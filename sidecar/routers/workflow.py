@@ -20,7 +20,6 @@ frames separated by ``\\n\\n``.
 
 from __future__ import annotations
 
-import json
 import logging
 import time
 import uuid
@@ -215,7 +214,3 @@ def list_webhooks() -> WebhookRefs:
 
 def _encode_event(event: WorkflowRunEvent) -> bytes:
     return f"data: {event.model_dump_json(by_alias=True, exclude_none=True)}\n\n".encode()
-
-
-def _encode_event_dict(payload: dict) -> bytes:  # pragma: no cover - kept for parity
-    return f"data: {json.dumps(payload)}\n\n".encode()

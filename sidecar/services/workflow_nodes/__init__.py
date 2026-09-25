@@ -1,9 +1,11 @@
-"""Built-in node-type handlers for the v0.5.0 workflow engine.
+"""Every node-type handler the workflow engine runs.
 
-The foundation engine (:mod:`services.workflow_engine`) is registry-driven —
-concrete node types register against a module-level table via
-:func:`workflow_engine.register_node_type`. This package ships the ten
-built-in node types Phase-4 promises:
+The engine (:mod:`services.workflow_engine`) is registry-driven — concrete
+node types register against a module-level table via
+:func:`workflow_engine.register_node_type`. This package ships the core
+built-ins (:mod:`builtin`), the ``transform.code`` expression node
+(:mod:`code_node`) and the domain nodes (``<domain>_nodes.py``: macro, SEC,
+quant, earnings/analyst research, screener). The core built-ins:
 
   - ``data.fetch_quote``         — latest quote via provider registry
   - ``data.fetch_history``       — OHLCV history
@@ -20,10 +22,10 @@ built-in node types Phase-4 promises:
 Plugin-contributed node types use the same registration surface via the
 locked ``VystedPlugin.getNodes()`` capability.
 
-:func:`register_all` is the single entry point — call it once on sidecar
-startup (``main.py``) and once at the top of every test suite that exercises
-a built-in handler. The function is idempotent; re-registration overwrites
-without raising.
+:func:`register_all` is the single entry point — ``app.create_app`` calls
+it, so the production boot and every TestClient build register the same
+set; a test that resets the registry calls it again. It is idempotent;
+re-registration overwrites without raising.
 """
 
 from __future__ import annotations
@@ -33,7 +35,15 @@ from typing import Any
 
 from services import workflow_engine
 
-from . import builtin, code_node
+from . import (
+    builtin,
+    code_node,
+    macro_nodes,
+    quant_nodes,
+    research_nodes,
+    screener_nodes,
+    sec_nodes,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -105,12 +115,10 @@ BUILTIN_NODE_SPECS: dict[str, dict[str, Any]] = {
 
 
 def register_all() -> None:
-    """Register every built-in node type against the workflow engine.
+    """Register every node type this package ships against the workflow engine.
 
     Safe to call repeatedly — :func:`workflow_engine.register_node_type`
-    overwrites existing entries. Sidecar startup calls this once; tests
-    that depend on the built-ins call it from a fixture so registration
-    survives the :func:`workflow_engine.reset_registry_for_tests` reset.
+    overwrites existing entries.
     """
     workflow_engine.register_node_type("data.fetch_quote", builtin.fetch_quote)
     workflow_engine.register_node_type("data.fetch_history", builtin.fetch_history)
@@ -126,7 +134,11 @@ def register_all() -> None:
     # R7 hackability — the agent-authorable restricted-expression code node
     # (server parity for the node editor's client-side mathjs lane).
     code_node.register()
-    logger.info("workflow_nodes: registered %d built-in node types", 12)
+    for domain in (macro_nodes, sec_nodes, quant_nodes, research_nodes, screener_nodes):
+        domain.register()
+    logger.info(
+        "workflow_nodes: %d node types registered", len(workflow_engine.registered_node_types())
+    )
 
 
 __all__ = ["BUILTIN_NODE_SPECS", "builtin", "register_all"]

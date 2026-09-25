@@ -125,6 +125,29 @@ _BUILTIN_PAIRS = [
 ]
 
 
+def test_create_app_registers_every_builtin_node() -> None:
+    """``create_app`` alone (no main.py step) registers what ``register_all`` does."""
+    from app import create_app
+
+    workflow_nodes.register_all()
+    expected = set(workflow_engine.registered_node_types())
+    workflow_engine.reset_registry_for_tests()
+
+    create_app()
+
+    registered = set(workflow_engine.registered_node_types())
+    assert registered == expected
+    one_per_domain = {
+        "transform.code",
+        "data.fetch_macro_series",
+        "data.fetch_sec_filing",
+        "quant.price_option",
+        "data.fetch_earnings_calendar",
+        "analysis.screener_query",
+    }
+    assert set(workflow_nodes.BUILTIN_NODE_SPECS) | one_per_domain <= registered
+
+
 # ---------------------------------------------------------------------------
 # data.fetch_quote
 # ---------------------------------------------------------------------------

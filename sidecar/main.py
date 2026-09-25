@@ -29,34 +29,26 @@ import uvicorn
 
 from app import app
 from config import DATA_DIR_ENV
-from services import agent_tools, backtest_strategies, mcp_server, workflow_nodes
+from services import agent_tools, backtest_strategies, mcp_server
 from services.quant import pool as quant_pool
-from services.workflow_nodes import registry_v0_6_0 as workflow_nodes_v0_6_0
 
 
 def _register_runtime_extensions() -> None:
-    """Wire the runtime tool/node registrations the production boot path needs.
+    """Re-run the agent-tool registrations ``create_app`` already made.
 
-    ``create_app`` already invokes the v0.5.0/v0.6.0 extension hooks at
-    app-build time; these re-calls are the documented production boot path and
-    are idempotent (overwrites by stable id). The workflow node handlers are
-    registered HERE (not in ``create_app``) so the pytest TestClient builds do
-    not see them — workflow-engine tests reset the registry and register their
-    own handlers. Shared by both the HTTP and ``--mcp-stdio`` entrypoints so the
-    MCP surface exposes the identical catalog tool set on both transports.
+    Idempotent (overwrites by stable id). Workflow node types are registered
+    by ``create_app`` alone (``workflow_nodes.register_all``). Shared by both
+    the HTTP and ``--mcp-stdio`` entrypoints so the MCP surface exposes the
+    identical catalog tool set on both transports.
     """
-    # Built-in workflow node handlers against the workflow engine's registry.
-    workflow_nodes.register_all()
-
     # v0.5.0 runtime extensions — backtest strategy archetypes + the
     # price_data + fundamentals agent tools.
     backtest_strategies.register_all()
     agent_tools.register_v0_5_0_tools()
 
     # v0.6.0 (Phase 6) extensions — macro + SEC + earnings + analyst + quant +
-    # screener agent tools and workflow nodes. Idempotent.
+    # screener agent tools. Idempotent.
     agent_tools.register_v0_6_0_tools()
-    workflow_nodes_v0_6_0.register_v0_6_0_nodes()
 
 
 def _exit_when_parent_closes_stdin() -> None:
