@@ -609,11 +609,7 @@ export function PortfolioPanel() {
         width: HOLDING_TRACKS.pnl,
         cell: (r) =>
           r.pnl === null ? null : (
-            <span
-              className={
-                r.pnl > 0 ? "text-positive" : r.pnl < 0 ? "text-negative" : "text-charcoal-200"
-              }
-            >
+            <span className={pnlTone(r.pnl)}>
               {`${lotMoney(r.pnl, r.quote?.currency, "signed")} (${r.pnlPercent !== null ? formatPercent(r.pnlPercent) : "—"})`}
             </span>
           ),
