@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ChatSidebar, describeContext } from "@/modules/chat/ChatSidebar";
@@ -7,9 +7,11 @@ import {
   useMessageNoticesStore,
 } from "@/modules/chat/message-notices";
 import { LENGTH_NOTICE } from "@/modules/chat/streaming";
+import { parseHostAction } from "@/lib/host-actions";
 import { resetAgentAutonomyStoreForTests, useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { resetAgentCommandStoreForTests, useAgentCommandStore } from "@/store/agent-command";
 import { useAgentModeStore } from "@/store/agent-mode";
+import { useAgentSpacesStore } from "@/store/agent-spaces";
 import { useAgentsStore, type AgentSummary } from "@/store/agents";
 import { resetBriefStoreForTests } from "@/store/brief";
 import { useChartSyncBus } from "@/store/chart-sync";
@@ -21,6 +23,7 @@ import { usePanelContextBus } from "@/store/panel-context";
 import { useNotesStore } from "@/store/notes";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 import { resetResearchDepthStoreForTests, useResearchDepthStore } from "@/store/research-depth";
+import type { ProposedChange } from "../../../types/proposed-change";
 
 // ---- Mocks ----
 
@@ -175,6 +178,24 @@ const FIRST_PARTY_AGENTS: AgentSummary[] = [
     origin: "first-party",
   },
 ];
+
+/** A staged (ASK-mode) write_note the user has not resolved yet. */
+function pendingNoteChange(): ProposedChange {
+  const input = { scope: "global", text: "Cochin looks stretched", mode: "replace" };
+  return {
+    id: "change-note",
+    toolCallId: "tc-note",
+    action: { name: "write_note", input },
+    intent: parseHostAction("write_note", input),
+    kind: "data-write",
+    title: "Replace the note",
+    before: "",
+    after: "Cochin looks stretched",
+    status: "pending",
+    batchId: "b-note",
+    createdAt: 0,
+  };
+}
 
 function seedStores() {
   useAgentsStore.setState({
@@ -700,6 +721,34 @@ describe("ChatSidebar", () => {
     fireEvent.change(input, { target: { value: "/clear" } });
     fireEvent.submit(input.closest("form")!);
     expect(useChatHistoryStore.getState().messages).toEqual([]);
+  });
+
+  it("/clear rejects a pending write_note and acks it failed (R15-CODE-FRONTEND-032)", async () => {
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    useProposedChangesStore.setState({ changes: [pendingNoteChange()] });
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "/clear" } });
+    fireEvent.submit(input.closest("form")!);
+    expect(useProposedChangesStore.getState().pending()).toEqual([]);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { body: string }];
+    expect(url).toContain("/agents/actions/ack");
+    expect(JSON.parse(init.body)).toMatchObject({ tool_call_id: "tc-note", status: "failed" });
+  });
+
+  it("switching to a new chat space rejects pending proposals (R15-CODE-FRONTEND-032)", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 200 })),
+    );
+    useProposedChangesStore.setState({ changes: [pendingNoteChange()] });
+    render(<ChatSidebar />);
+    fireEvent.click(screen.getByRole("button", { name: "New chat space" }));
+    expect(useProposedChangesStore.getState().pending()).toEqual([]);
+    const spaces = useAgentSpacesStore.getState();
+    act(() => spaces.closeSpace(spaces.activeId));
   });
 
   it("the context badge reports the focused panel's symbol when populated", () => {

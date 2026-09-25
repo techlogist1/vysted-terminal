@@ -598,6 +598,17 @@ export function ChatSidebar() {
     };
   }, [pendingChangeCount, acceptAllChanges, rejectAllChanges]);
 
+  // Proposals belong to the conversation that raised them: switching or opening
+  // a space rejects (and acks failed) whatever is still pending, so accept-all
+  // can never apply a change reviewed against another thread (R15-CODE-FRONTEND-032).
+  const proposalSpaceRef = useRef(activeSpaceId);
+  useEffect(() => {
+    if (proposalSpaceRef.current !== activeSpaceId) {
+      proposalSpaceRef.current = activeSpaceId;
+      rejectAllChanges();
+    }
+  }, [activeSpaceId, rejectAllChanges]);
+
   // Stage a curated-slash action through the SAME diff/accept gate the agent uses
   // (FR-100): in AUTO it auto-applies, in ASK it queues for review. Returns nothing; surfaces the proposal in
   // the status line so an ASK-mode user knows to confirm it below.
@@ -663,6 +674,7 @@ export function ChatSidebar() {
         case "clear":
           clearHistory();
           useMessageNoticesStore.getState().clear();
+          rejectAllChanges();
           return;
         case "export":
           exportConversation();
@@ -709,7 +721,7 @@ export function ChatSidebar() {
           return;
       }
     },
-    [clearHistory, enqueueSlashChange, exportConversation],
+    [clearHistory, enqueueSlashChange, exportConversation, rejectAllChanges],
   );
 
   const handleSend = useCallback(
@@ -746,6 +758,7 @@ export function ChatSidebar() {
       if (result.kind === "clear") {
         clearHistory();
         useMessageNoticesStore.getState().clear();
+        rejectAllChanges();
         setStatusLine(null);
         return;
       }
@@ -1179,6 +1192,7 @@ export function ChatSidebar() {
       mode,
       providerOverride,
       providers,
+      rejectAllChanges,
       setDefaultProviderId,
       setLastPrompt,
       setLastSentDepth,
