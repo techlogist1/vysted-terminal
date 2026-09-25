@@ -367,10 +367,11 @@ fundamentals provider exists).
   fan-out filter engine. Universes: `sp500` (full S&P 500 — 503 symbols, a
   static snapshot dated 2026-09-24), `nifty50` (50), `crypto-top50` (50,
   reseeded from the bundled snapshot on cache expiry — a live "refresh from
-  ccxt" worker still does **not exist**), `nse-all` (every NSE master row,
-  EQ+ETF, ~2,675 as `SYMBOL.NS`), `bse-all` (BSE master rows with STATUS ==
-  "Active" as `SYMBOL.BO`), `india-all` (the union of the two, NSE listing
-  preferred when a symbol is dual-listed), `custom`. The three India
+  ccxt" worker still does **not exist**), `nse-all` (every NSE master row as
+  `SYMBOL.NS` — 3,506 symbols: EQ 2,584 + ETF 351 + SM 571, SM = NSE Emerge),
+  `bse-all` (BSE master rows with STATUS == "Active" as `SYMBOL.BO` — 5,042
+  symbols), `india-all` (the union of the two, NSE listing preferred when a
+  symbol is dual-listed — 5,891 symbols), `custom`. The three India
   universes resolve from the same bundled resolver-master JSON the symbol
   resolver reads (offline, deterministic). Criteria support **nested AND/OR**
   via `CriterionGroup` (`models/screener.py`, `combinator: "and"|"or"`) — OR-
