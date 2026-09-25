@@ -430,6 +430,15 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
       input: (payload.input as Record<string, unknown>) ?? {},
     };
   }
+  if (kind === "tool_result") {
+    return {
+      kind: "tool_result",
+      toolCallId: String(payload.tool_call_id ?? ""),
+      name: String(payload.name ?? ""),
+      ok: payload.ok === true,
+      ...(typeof payload.error === "string" ? { error: payload.error } : {}),
+    };
+  }
   if (kind === "research_step") {
     const step = {
       kind: "research_step" as const,

@@ -152,6 +152,46 @@ def test_a_write_under_ask_fails_on_the_end_state() -> None:
     assert changed == ["end state changed under ASK: /portfolio/positions"]
 
 
+_CHAIN = {"id": "option-chain-spy", "expect": {}}
+
+
+def _chain_result(ok: bool, call_id: str) -> dict[str, Any]:
+    error = None if ok else "422: expiry 'nearest' is not a date"
+    return {
+        "kind": "tool_result",
+        "tool_call_id": call_id,
+        "name": "option_chain",
+        "ok": ok,
+        "error": error,
+    }
+
+
+def test_a_trial_whose_tool_call_errored_fails() -> None:
+    """R15-CODE-AGENT-033: the live option_chain 'nearest' call returned 422 and,
+    with no expectation to miss, the trial graded as a pass."""
+    events = [
+        _call("option_chain", {"symbol": "SPY", "expiry": "nearest"}),
+        _chain_result(False, "call-1"),
+        _text("I could not load the chain."),
+        _DONE,
+    ]
+    assert grader.grade(_CHAIN, events) == [
+        "option_chain errored: 422: expiry 'nearest' is not a date"
+    ]
+
+
+def test_a_successful_retry_of_the_errored_tool_passes() -> None:
+    events = [
+        _call("option_chain", {"symbol": "SPY", "expiry": "nearest"}),
+        _chain_result(False, "call-1"),
+        _call("option_chain", {"symbol": "SPY"}, "call-2"),
+        _chain_result(True, "call-2"),
+        _text("Here is SPY's nearest chain."),
+        _DONE,
+    ]
+    assert grader.grade(_CHAIN, events) == []
+
+
 def test_the_runtime_autobrief_is_not_graded_as_a_model_call() -> None:
     events = [
         _call("research", {"query": "RELIANCE"}),

@@ -2480,3 +2480,89 @@ def test_an_adr_price_range_or_time_is_not_a_ratio_claim() -> None:
     assert agent_runtime._guard_ratio_claims(kept, []) == kept
     claim = "The ADR ratio is 1:2. "
     assert agent_runtime._guard_ratio_claims(claim, []) == agent_runtime.RATIO_UNAVAILABLE + " "
+
+
+@pytest.mark.asyncio
+async def test_each_dispatched_call_streams_its_tool_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-033: the stream carried a call but not how it ended, so the
+    eval grader passed a trial whose option_chain call returned 422."""
+    agent_runtime.reload()
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _RecordingRoundsProvider(
+        [
+            [
+                LLMToolUseEvent(tool_call_id="a", name="option_chain", input={"symbol": "SPY"}),
+                LLMToolUseEvent(tool_call_id="b", name="price_data", input={"symbol": "SPY"}),
+                done,
+            ],
+            [LLMDeltaEvent(text="Done."), done],
+        ]
+    )
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+
+    async def _tool(tool_call: LLMToolUseEvent, *_a: Any, **_k: Any) -> str:
+        if tool_call.name == "option_chain":
+            return json.dumps({"ok": False, "error": "422: expiry 'nearest' is not a date"})
+        return json.dumps({"ok": True, "rows": [1, 2]})
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    events = [
+        e
+        async for e in agent_runtime.invoke_agent(
+            agent_id="copilot", prompt="SPY chain", api_key="sk-test", autonomy="ask"
+        )
+    ]
+    calls = [e for e in events if e.kind == "tool_use"]
+    results = [e for e in events if e.kind == "tool_result"]
+    assert [(r.tool_call_id, r.name, r.ok, r.error) for r in results] == [
+        (calls[0].tool_call_id, "option_chain", False, "422: expiry 'nearest' is not a date"),
+        (calls[1].tool_call_id, "price_data", True, None),
+    ]
+    assert events.index(results[0]) > events.index(calls[1])
+
+
+_SIFY_WEB_SEARCH = {
+    "ok": True,
+    "results": [{"title": "Sify Technologies Ltd ADS (Each Repr 6 Ords)"}],
+}
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "SIFY American Depositary Shares each represent six underlying equity shares. ",
+        "Each ADR is equivalent to 2 shares of common stock. ",
+        "The ADR-to-share ratio is 1 ADR : 6 shares. ",
+        "One ADS equals fifteen ordinary shares. ",
+        "Every SIFY ADS corresponds to 3 shares. ",
+    ],
+)
+def test_a_depositary_ratio_claim_in_any_wording_is_replaced(claim: str) -> None:
+    """R15-AGENT-090 batch 13: the claim was recognised by the shape of the
+    number's neighbours, so each new wording escaped. A claim is now a depositary
+    term, a ratio cue and a non-money quantity, whatever sits between them."""
+    result = json.dumps(_SIFY_FUNDAMENTALS)
+    assert (
+        agent_runtime._guard_ratio_claims(claim, [result]) == agent_runtime.RATIO_UNAVAILABLE + " "
+    )
+
+
+@pytest.mark.parametrize(
+    ("sentence", "result"),
+    [
+        ("The ADR traded between 10 and 12 dollars. ", _SIFY_FUNDAMENTALS),
+        ("Each ADR closed at $12.50 on volume of 40,000 shares. ", _SIFY_FUNDAMENTALS),
+        ("Revenue represents 12% of the total. ", _SIFY_FUNDAMENTALS),
+        ("The PE ratio is 22.4. ", _SIFY_FUNDAMENTALS),
+        # Traced: the unit side 1 is not part of the claim, the 6 is sourced.
+        ("The ADR-to-share ratio is 1 ADR : 6 shares. ", _SIFY_WEB_SEARCH),
+    ],
+)
+def test_a_price_volume_other_ratio_or_traced_ratio_streams_as_is(
+    sentence: str, result: dict[str, Any]
+) -> None:
+    """R15-AGENT-090: money, a percent, a trade volume, a non-depositary ratio and
+    a ratio a tool result carries are not replaced."""
+    assert agent_runtime._guard_ratio_claims(sentence, [json.dumps(result)]) == sentence
