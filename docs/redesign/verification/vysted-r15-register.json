@@ -124,8 +124,9 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "fixed",
-   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
+   "status": "open",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2",
+   "note": "rc1 refutation audit @6741387b: partial — root cause: The per-listing pick reaches the Equity Overview but not the chart. src/components/CommandPalette.tsx:391 (and :207) call loadSymbolIntoChart(c.symbol) and drop c.exchange/region. src/lib/host-actions.ts:318 loadSymbolIntoChart and src/store/chart-command.ts:39 loadSymbol take no region. src/lib/sidecar-client.ts:341 history() sends no regionHeader(). In an IN session, picking 'AMAL US' charts /history/AMAL from nse_direct (687.65 INR) instead of Amalgamated (47.21 USD).; acceptance: src/components/CommandPalette.test.tsx: with settings region IN and autocomplete candidates [AMAL/NSE, AMAL/US], selecting the 'AMAL US' Tickers row results in the chart's /history/AMAL request carrying header X-Vysted-Region: US (assert on the mocked sidecarGet/fetch headers). Selecting 'AMAL NSE' carries X-Vysted-Region: IN. Plus src/store/chart-command.test.ts: loadSymbol('AMAL', undefined, 'US') stores region 'US'."
   },
   {
    "id": "R15-DATA-003",
@@ -462,8 +463,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "fixed",
-   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
+   "status": "open",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2",
+   "note": "rc1 refutation audit @6741387b: partial — root cause: sidecar/services/research/verify.py:134-140. When the first word is not a verdict word, the fallback scans the whole line for _AGREE_MARKERS (verify.py:109) before looking for a standalone UNVERIFIED or DISAGREE word. deep.leading_token (deep.py:359-361) strips only *:-#> characters, so a 'Verdict:' label, [ ] brackets or '1.' numbering hide the verdict word. Result: 'Verdict: UNVERIFIED - no source confirms ...', '[UNVERIFIED] ...' and '1. UNVERIFIED - ...' parse as agree.; acceptance: Add sidecar/tests/test_research_verify.py::test_parse_verdict_reads_a_labelled_verdict_word. These must parse as _parse_verdict(s)[0]=='unverified': 'Verdict: UNVERIFIED - no source confirms the 23% operating margin.', '**Verdict:** UNVERIFIED - no source confirms it.', 'Answer: UNVERIFIED - evidence does not support the figure.', '[UNVERIFIED] the sources do not confirm this.', 'The claim is UNVERIFIED; nothing I found confirms the 23% margin.', '1. UNVERIFIED - no source confirms'. 'Verdict: DISAGREE - sources agree on 21% not 23%' must parse as 'disagree', and 'Verdict: AGREE - reuters confirms' as 'agree'. The existing _parse_verdict tests must stay green."
   },
   {
    "id": "R15-AGENT-002",
@@ -515,7 +517,8 @@
     "agent-chat"
    ],
    "status": "fixed",
-   "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
+   "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+   "note": "rc1 refutation audit @6741387b: adjacent_finding"
   },
   {
    "id": "R15-AGENT-004",
@@ -952,8 +955,9 @@
     "agent-chat",
     "ui-panels"
    ],
-   "status": "fixed",
-   "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
+   "status": "open",
+   "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+   "note": "rc1 refutation audit @6741387b: partial — root cause: sidecar/services/planner.py:76-108 _EDIT_SIGNALS has no log/record/hold cue and planner.py:120 r'\\?\\s*$' makes a trailing '?' a positive read cue, so sidecar/services/agent_runtime.py:1666 (read_only = inferred_intent == 'read' and bool(intent.signals)) strips every data write at :1669-1688 for question-shaped write asks like 'Can you log 10 TCS at 3400 in my portfolio?'.; acceptance: sidecar/tests/test_b3_runtime_intent_gate.py: parametrized test using _agent_tool_ids over 'Can you log 10 TCS at 3400 in my portfolio?' and 'Can you record that I hold 20 ITC at 410?' asserting 'portfolio_add_position' in tool_ids; test_positive_read_cue_still_strips_data_writes ('what is P/E?') and 'How is my portfolio doing?' must still strip."
   },
   {
    "id": "R15-AGENT-020",
@@ -2318,8 +2322,9 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "fixed",
-   "closure_evidence": "806a90c fix(r15): Stage C batch 2"
+   "status": "open",
+   "closure_evidence": "806a90c fix(r15): Stage C batch 2",
+   "note": "rc1 refutation audit @6741387b: partial — root cause: The top-K cut and the disclosure both ignore the currency grouping. sidecar/services/screener.py:423-429 sorts currency-grouped ('INR' before 'USD'). :815 rows = matched[:limit] cuts that order, so a top-K over mixed currencies keeps only the alphabetically-first currency group. :845-847 compute served_currencies over the served page rather than the matched set, so the 'ranked within each currency' note disappears exactly when the cut hides the other currency.; acceptance: sidecar/tests/test_screener.py: run_screener(custom [AAPL(USD 3.5e12), RELIANCE.NS(INR 1.95e13), MSFT(USD 3e12), TCS.NS(INR 7.5e12)], sort market_cap desc, limit=2). Assert the coverage line contains 'ranked within each currency' (the spans are computed over matched, not the page). Also assert the served page is not a single-currency slice presented as the top-2, i.e. it contains at least one USD row, or the result carries an explicit per-currency-cut disclosure."
   },
   {
    "id": "R15-DATA-044",
@@ -2552,8 +2557,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "fixed",
-   "note": "Batch-5 (1574ed8) verifier found this a REGRESSION (not_certified): the no-hint get_filing lookup widened to a 1,000-row unfiltered window that sec-edgar-mcp cannot serve (limit >=200 times out or 'cannot unpack non-iterable NoneType'; 40/60/100 succeed), so sec_filing_content now fails for every filing outside a 40-recent window (AAPL Form 4, MSFT 10-Q both broke). Fixed before the batch-5 merge closed: 7ae5117 forwards form_type from sec_tools.py and tries a small window first; 7ae5117 is an ancestor of the batch-5 merge commit 1574ed8, so the regression never shipped on 004.",
+   "status": "open",
+   "note": "Batch-5 (1574ed8) verifier found this a REGRESSION (not_certified): the no-hint get_filing lookup widened to a 1,000-row unfiltered window that sec-edgar-mcp cannot serve (limit >=200 times out or 'cannot unpack non-iterable NoneType'; 40/60/100 succeed), so sec_filing_content now fails for every filing outside a 40-recent window (AAPL Form 4, MSFT 10-Q both broke). Fixed before the batch-5 merge closed: 7ae5117 forwards form_type from sec_tools.py and tries a small window first; 7ae5117 is an ancestor of the batch-5 merge commit 1574ed8, so the regression never shipped on 004. || rc1 refutation audit @6741387b: partial — root cause: sidecar/services/agent_tools/catalog.py:741-746 marks sec_filing_content.form_type optional and says it only speeds up the lookup. Without that hint, sidecar/services/sec_filings_provider.py:579 and :618-632 search only the latest 40, then 100, filings of any form; for MSFT, 100 rows reach back only to 2026-03-24. sec_filings_provider.py:650-662 get_filing_sections and sidecar/routers/sec_filings.py:124-131 do not accept or forward form_type at all.; acceptance: In sidecar/tests/test_sec_filings_provider.py, use a recorder whose unfiltered get_recent_filings windows (limit 40 and 100, both full) never contain 0000320193-21-000105, but whose form_type=10-K list does. Assert (await get_filing('0000320193-21-000105', cik_or_symbol='AAPL')).filing.form_type == '10-K' with no ProviderError not_found, and that get_filing_sections(acc, cik_or_symbol='AAPL', form_type='10-K') resolves. In sidecar/tests/test_sec_tools.py, assert (await _sec_filing_content({'accession': acc, 'identifier': 'AAPL'}))['ok'] is True on the same recorder. Add a router test that /sections forwards form_type, unless R15-CODE-DATA-013 deletes that route.",
    "closure_evidence": "7ae5117 fix(sec): forward the form hint and try a small filing window first (R15-LEAD-010)"
   },
   {
@@ -3108,9 +3113,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "fixed",
+   "status": "open",
    "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
-   "note": "Verifier batch-3 residual: certifying this fix demoted first-party IR pages (tcs.com/investor-relations, reliance.com/investors, infosys.com/investors) from PRIMARY to GENERAL, below press, since a path marker alone is no longer PRIMARY. Expected side effect of the shipped fix shape; giving IR its own tier would avoid it."
+   "note": "Verifier batch-3 residual: certifying this fix demoted first-party IR pages (tcs.com/investor-relations, reliance.com/investors, infosys.com/investors) from PRIMARY to GENERAL, below press, since a path marker alone is no longer PRIMARY. Expected side effect of the shipped fix shape; giving IR its own tier would avoid it. || rc1 refutation audit @6741387b: partial — root cause: sidecar/services/research/finance.py:146. _looks_like_ir matches host.startswith('investors.'/'investor.'/'ir.') without requiring that label to be a subdomain. After the www. strip, the news site investors.com (IBD) therefore ranks PRIMARY. finance.py:79-89: _IR_PLATFORM_DENYLIST lacks github.io, wixsite.com, netlify.app and hubpages.com, and matches blogspot only on .com. So ir.blogspot.in, investors.github.io, investors.wixsite.com and ir.netlify.app rank PRIMARY.; acceptance: Add sidecar/tests/test_research_finance.py::test_ir_host_prefix_never_promotes_news_or_platform_hosts. Assert domain_tier(u) != TIER_PRIMARY for https://www.investors.com/news/technology/nvidia-stock-buy-now/, https://investors.github.io/pump, https://ir.blogspot.in/post, https://investors.wixsite.com/x, https://ir.netlify.app/x and https://investors.hubpages.com/x. Assert rank_sources([IBD, GH, Reuters])[0].title == 'Reuters', and that priority_note does not name IBD or GH as a primary record. The controls ir.nvidia.com, investors.infosys.com, investor.apple.com and ir.tatamotors.com must stay TIER_PRIMARY."
   },
   {
    "id": "R15-RESEARCH-008",
@@ -3505,9 +3510,9 @@
     "data-smallcaps",
     "ui-panels"
    ],
-   "status": "fixed",
+   "status": "open",
    "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4",
-   "note": "Batch-9 verifier (6b70230) fresh-case residual on the fixed class: BHP.AX still reads 'live' while the ASX is closed, and AAPL's daily bar still reads 'eod' intraday. Status left 'fixed' per the batch-4 closure; flag for a follow-up verifier pass."
+   "note": "Batch-9 verifier (6b70230) fresh-case residual on the fixed class: BHP.AX still reads 'live' while the ASX is closed, and AAPL's daily bar still reads 'eod' intraday. Status left 'fixed' per the batch-4 closure; flag for a follow-up verifier pass. || rc1 refutation audit @6741387b: partial — root cause: sidecar/services/locale.py:176-178 instrument_region returns IN only for an nse_direct/nse/bse provider or a .NS/.BO suffix, and defaults every other symbol to REGION_US. Indian indices served by yfinance (^NSEI, ^BSESN, ^NSEBANK) are therefore dated against the closed US calendar and read 'eod' during NSE hours. The same default also forces .AX and other foreign listings onto the US calendar.; acceptance: sidecar/tests/test_quotes.py: freeze the clock at _NSE_HOURS and monkeypatch get_quote to return provider='yfinance' and timestamp=_NSE_HOURS for ^NSEI and ^BSESN. Under X-Vysted-Region IN and under US, assert client.get('/quotes/%5ENSEI').json()['freshness']=='live' (same for ^BSESN). Also assert locale.instrument_region('^NSEI','yfinance')=='IN'."
   },
   {
    "id": "R15-AGENT-025",
@@ -3594,8 +3599,9 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "fixed",
-   "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
+   "status": "open",
+   "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+   "note": "rc1 refutation audit @6741387b: partial — root cause: sidecar/services/errors.py _BODY_RULES marker lists are too narrow: context_overflow markers at :288 miss Gemini's 400 'input token count ... exceeds the maximum number of tokens allowed'; model_not_found markers at :272 miss Groq's 400 'has been decommissioned' / model_decommissioned; the credit rule at :263-264 only matches statuses {400,429}, so xAI's 403 'doesn't have any credits' falls to :411-417 auth 'Re-enter the API key'; the class heuristic at :454-460 still gives Ollama a ReadTimeout the provider-agnostic 'check your network / internet connection' copy.; acceptance: sidecar/tests/test_errors.py parametrized test_provider_bodies_get_a_workable_next_step: humanize('gemini', genai ClientError(400, 'The input token count (1200000) exceeds the maximum number of tokens allowed (1048576).')).code == 'context_overflow'; humanize('groq', openai.BadRequestError 400 model_decommissioned body).code == 'model_not_found'; humanize('xai', openai.PermissionDeniedError 403 \"team doesn't have any credits yet\").code == 'insufficient_credit'; humanize('ollama', httpx.ReadTimeout('timed out')): 'internet' not in action.lower() and 'network' not in message.lower(); all existing test_errors.py rows stay green."
   },
   {
    "id": "R15-AGENT-028",
@@ -5776,8 +5782,9 @@
     "COD-plugins-12"
    ],
    "tier4": false,
-   "status": "fixed",
-   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
+   "status": "open",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10",
+   "note": "rc1 refutation audit @6741387b: partial — root cause: src/components/SettingsPanel.tsx:1938-1941: the Settings > Modules switch calls useModulesStore.setModuleEnabled for bridged plugin:<id> modules. This bypasses the lifecycle owner (useMarketplaceStore.enable/disable, which drives runtime plus plugins.db). The plugin's panels and commands are hidden while the Marketplace and Plugin Manager still report it active. Because workspace.ts:309-313 now drops plugin:* flags from the blob, the Settings 'off' is silently undone on relaunch when the runtime re-attaches from plugins.db.; acceptance: src/components/SettingsPanel.test.tsx: bridge moduleForPlugin(CATALOG_BY_ID['vysted-example']) (appendModules plus setModuleEnabled true), render SettingsPanel, and click 'Vysted Example Plugin enabled' in the Modules region. Assert either that useMarketplaceStore disable('vysted-example') was invoked (runtime.disablePlugin writes plugins.db), or that plugin:* rows are not free toggles there. In both cases, enabled['plugin:vysted-example'] must never be false while the runtime reports the plugin active."
   },
   {
    "id": "R15-CODE-PLATFORM-014",
@@ -6901,9 +6908,9 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "fixed",
+   "status": "open",
    "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
-   "note": "Batch-11 (4097dac) certified: Live `/resolve?q=BeiGene` returns disambiguate candidates ONC and BEIGF, both with former_name 'BeiGene, Ltd.'. 'Toss the Coin Private Limited' binds TTC (BSE). Fresh cases the fix was not written against: Facebook binds META (former 'Facebook Inc'); Zomato binds ETERNAL (former ZOMATO); 'Adani Transmission' binds ADANIENSOL (former ADANITRANS); 'Square Inc' puts XYZ in the candidates. `former_names.json` is inside the built binary."
+   "note": "Batch-11 (4097dac) certified: Live `/resolve?q=BeiGene` returns disambiguate candidates ONC and BEIGF, both with former_name 'BeiGene, Ltd.'. 'Toss the Coin Private Limited' binds TTC (BSE). Fresh cases the fix was not written against: Facebook binds META (former 'Facebook Inc'); Zomato binds ETERNAL (former ZOMATO); 'Adani Transmission' binds ADANIENSOL (former ADANITRANS); 'Square Inc' puts XYZ in the candidates. `former_names.json` is inside the built binary. || rc1 refutation audit @6741387b: regression_confirmed — root cause: sidecar/services/symbol_resolver.py:1377 `if inst.exchange not in (\"NSE\", \"BSE\"): return inst` returns before the former-name fallback (:1406-1411). That fallback only echoes inst.former_name, which only the name scan (:1064-1100) stamps. So a US ticker resolve (q=ONC, q=SIFY) never joins the bundled _former_names() 'us' index (:469), even though it contains ONC -> ['BeiGene, Ltd.'] and SIFY -> ['SIFY LTD','SATYAM INFOWAY LTD']. Separately, sidecar/services/resolver_masters/us_instruments.json rows are [ticker, name] only: the fix_shape step 'add ISIN/CUSIP to the US master' was never done, so isin is null for every US instrument.; acceptance: sidecar/tests/test_symbol_resolver.py: resolve('ONC','US').best.former_name == 'BeiGene, Ltd.' and resolve('SIFY','US').best.former_name in ('SIFY LTD','SATYAM INFOWAY LTD') (the most recent former name). Once the US master carries ISINs: resolve('ONC','US').best.isin == 'US07725L1026' and resolve('SIFY','US').best.isin == 'US82655M2061'. A US candidate beside a same-ticker NSE row must still take no Indian ISIN (the existing R13 TCI guard test stays green)."
   },
   {
    "id": "R15-DATA-060",
@@ -7156,8 +7163,8 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "fixed",
-   "note": "Batch-9 (6b70230) not certified: integrator-partial. Earnings history/surprises/estimates carry as_of; the analyst routes (ratings, price-target-history, individual targets) carry none. || Batch-10 (f407107) residual: /earnings and the three extended analyst routes now carry as_of, but the base GET /fundamentals/{symbol}/ratings consensus envelope still has none.",
+   "status": "open",
+   "note": "Batch-9 (6b70230) not certified: integrator-partial. Earnings history/surprises/estimates carry as_of; the analyst routes (ratings, price-target-history, individual targets) carry none. || Batch-10 (f407107) residual: /earnings and the three extended analyst routes now carry as_of, but the base GET /fundamentals/{symbol}/ratings consensus envelope still has none. || rc1 refutation audit @6741387b: partial — root cause: sidecar/routers/fundamentals.py:251: `rating, _ = await _cached(...)` discards the cache write time for the base GET /fundamentals/{symbol}/ratings consensus envelope, which is served from a 6 h cache (_TTL_RATINGS, :58). The AnalystRating model (sidecar/models/fundamentals.py:231) and its mirror types/data.ts:356 have no as_of field. The Equity Overview consensus block (src/modules/equity-overview/api.ts:115) therefore shows a possibly 6 h-old consensus with no timestamp.; acceptance: sidecar/tests/test_analyst_extended_router.py (or a fundamentals-router test): GET /fundamentals/AAPL/ratings with a monkeypatched provider returns 200 with a non-null ISO 'as_of'. A second GET within the TTL (a cache hit) returns the SAME as_of as the first (the cache row's write time), not now(). The types/data.ts AnalystRating interface gains as_of?: string | null in the same commit.",
    "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
@@ -8106,8 +8113,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "fixed",
-   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
+   "status": "open",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10",
+   "note": "rc1 refutation audit @6741387b: partial — root cause: docs/CURRENT_STATE.md:358-365 (section 3.3 screener bullet) never documents the nse-all, bse-all and india-all universes, although the entry title and fix_shape name them; the whole doc has 0 hits. The sp500 clause (506 symbols, 2026-06-04, 'R15-LEAD-013 open') was correct at batch-10 certification (the f407107 pack had 506 symbols). It went stale when batch 11's R15-LEAD-013 fix (34c2bbec) regenerated the pack to 503 symbols with snapshot_date 2026-09-24 and did not update the doc.; acceptance: sidecar/tests/test_sp500_universe.py (or new test_current_state_doc.py): section 3.3 of docs/CURRENT_STATE.md must contain f\"{len(sp500['symbols'])} symbols\" and sp500['snapshot_date'], must not contain 'R15-LEAD-013 open', and must name every ScreenerUniverseId literal except 'custom' in backticks (nse-all, bse-all, india-all)."
   },
   {
    "id": "R15-DOCS-018",
@@ -8130,8 +8138,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "fixed",
-   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
+   "status": "open",
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10",
+   "note": "rc1 refutation audit @6741387b: partial — root cause: docs/CURRENT_STATE.md section 3.3 (~318-335) replaced the 'routes by asset class' sentence but still omits the IN-scoped chain from sidecar/services/provider_registry.py:161-219: nse_direct rank 15, nse (jugaad) 20, bse 25, all region IN, ahead of yfinance 50. It still calls yfinance 'the no-key default for equities', which is false for IN-region requests. The doc has 0 hits for nse_direct or jugaad, and section 3.3 has 0 hits for NSE or BSE.; acceptance: sidecar/tests/test_provider_registry_region.py (or new test_current_state_doc.py): every ProviderDeclaration whose region contains 'IN' has its id present in docs/CURRENT_STATE.md section 3.3, and the yfinance bullet qualifies its default role by region."
   },
   {
    "id": "R15-LEAD-003",

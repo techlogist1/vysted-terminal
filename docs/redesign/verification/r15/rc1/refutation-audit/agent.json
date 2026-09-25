@@ -1,0 +1,29 @@
+{
+ "group": "agent",
+ "verdicts": [
+  {
+   "id": "R15-AGENT-003",
+   "verdict": "adjacent_finding",
+   "root_cause": "",
+   "acceptance_test": "",
+   "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/refutation-audit/agent-R15-AGENT-003.md",
+   "note": "Entry's own repro at HEAD 6741387b (scripted provider, one tool_use per round): 7 provider rounds, 6 yielded == 6 dispatched, closes with 'I stopped after 6 tool rounds...'; test_b3_runtime_capped_round + halt tests pass. The verifier's own cap test also passed ('multi yielded 18 dispatched 18'). Its refutation uses a different trigger: a Delegate BUDGET HALT (path added by R15-AGENT-037's batch-7 fix). NEW DEFECT to register: a Delegate run halted by a budget ceiling persists the halted round's undispatched host actions. Reproduced end to end: provider emits a valid write_note + done(100k tokens), RunBudget(max_tokens=1000) -> status error, dispatched [], yet row.host_actions == [write_note], and src/lib/delegate-runs.ts:279 enqueues host_actions into the proposed-changes gate regardless of status. Cause: agent_runtime.py:2016 yields each tool_use before the :2036 halt check, and run_manager.py:294-301 appends every yielded host action; the HALT_NOTICE_TOOL branch (:302) only sets halted and never retracts them. Suggested test: test_run_manager.py::test_a_halted_rounds_host_actions_are_not_proposed asserting row.host_actions == [] and dispatched == []."
+  },
+  {
+   "id": "R15-AGENT-019",
+   "verdict": "partial",
+   "root_cause": "sidecar/services/planner.py:76-108 _EDIT_SIGNALS has no log/record/hold cue and planner.py:120 r'\\?\\s*$' makes a trailing '?' a positive read cue, so sidecar/services/agent_runtime.py:1666 (read_only = inferred_intent == 'read' and bool(intent.signals)) strips every data write at :1669-1688 for question-shaped write asks like 'Can you log 10 TCS at 3400 in my portfolio?'.",
+   "acceptance_test": "sidecar/tests/test_b3_runtime_intent_gate.py: parametrized test using _agent_tool_ids over 'Can you log 10 TCS at 3400 in my portfolio?' and 'Can you record that I hold 20 ITC at 410?' asserting 'portfolio_add_position' in tool_ids; test_positive_read_cue_still_strips_data_writes ('what is P/E?') and 'How is my portfolio doing?' must still strip.",
+   "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/refutation-audit/agent-R15-AGENT-019.md",
+   "note": "Entry's repro holds at HEAD: all 24 captured phrasings keep their write tools (55 tools, read_only False) and the live llama3.1:8b AUTO runs emit real portfolio_delete_position and write_note tool_use; intent-gate tests 26 passed. The verifier's question-shaped phrasings reproduce in-process (read, signal '?', 42 tools, no writes). Live they fail exactly like the entry's A1: no tool_use, and the model types {\"name\": \"portfolio_update_position\", ...} as chat text (2/2). It needs both a read cue and a verb outside the cue table: 'Could you add...?' and 'Please log ...' (no '?') keep the writes. The verifier's two hypotheticals ('What if you drop...?', 'Why not trim...?') are ambiguous and not required."
+  },
+  {
+   "id": "R15-AGENT-027",
+   "verdict": "partial",
+   "root_cause": "sidecar/services/errors.py _BODY_RULES marker lists are too narrow: context_overflow markers at :288 miss Gemini's 400 'input token count ... exceeds the maximum number of tokens allowed'; model_not_found markers at :272 miss Groq's 400 'has been decommissioned' / model_decommissioned; the credit rule at :263-264 only matches statuses {400,429}, so xAI's 403 'doesn't have any credits' falls to :411-417 auth 'Re-enter the API key'; the class heuristic at :454-460 still gives Ollama a ReadTimeout the provider-agnostic 'check your network / internet connection' copy.",
+   "acceptance_test": "sidecar/tests/test_errors.py parametrized test_provider_bodies_get_a_workable_next_step: humanize('gemini', genai ClientError(400, 'The input token count (1200000) exceeds the maximum number of tokens allowed (1048576).')).code == 'context_overflow'; humanize('groq', openai.BadRequestError 400 model_decommissioned body).code == 'model_not_found'; humanize('xai', openai.PermissionDeniedError 403 \"team doesn't have any credits yet\").code == 'insufficient_credit'; humanize('ollama', httpx.ReadTimeout('timed out')): 'internet' not in action.lower() and 'network' not in message.lower(); all existing test_errors.py rows stay green.",
+   "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/refutation-audit/agent-R15-AGENT-027.md",
+   "note": "Entry's repro holds at HEAD: OpenAI credit 429 -> insufficient_credit, 400 context and Groq 413 -> context_overflow, Ollama connection refused -> ollama_not_running, Gemini/xAI 400 bad key -> auth, OpenRouter bad slug -> model_not_found, :free 429 -> free_pool_busy, user_id redacted; test_errors.py 47 passed. All four of the verifier's cases reproduce with realistic SDK exception objects, and three are stated legs of the entry (context overflow, invalid model, no-credit) in provider wordings the markers miss. The fourth is the entry's stated root cause ('network copy is provider-agnostic') for a slow, not stopped, Ollama. The verifier supplied the provider bodies; no keys were available to elicit them live, but humanize() is pure, so the verdict does not depend on that."
+  }
+ ]
+}

@@ -1,0 +1,37 @@
+{
+ "group": "surface",
+ "verdicts": [
+  {
+   "id": "R15-UI-090",
+   "verdict": "partial",
+   "root_cause": "sidecar/services/locale.py:176-178 instrument_region returns IN only for an nse_direct/nse/bse provider or a .NS/.BO suffix, and defaults every other symbol to REGION_US. Indian indices served by yfinance (^NSEI, ^BSESN, ^NSEBANK) are therefore dated against the closed US calendar and read 'eod' during NSE hours. The same default also forces .AX and other foreign listings onto the US calendar.",
+   "acceptance_test": "sidecar/tests/test_quotes.py: freeze the clock at _NSE_HOURS and monkeypatch get_quote to return provider='yfinance' and timestamp=_NSE_HOURS for ^NSEI and ^BSESN. Under X-Vysted-Region IN and under US, assert client.get('/quotes/%5ENSEI').json()['freshness']=='live' (same for ^BSESN). Also assert locale.instrument_region('^NSEI','yfinance')=='IN'.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/surface-R15-UI-090.md",
+   "note": "Live run at HEAD, 10:01 IST (NSE open, US closed), sidecar on :52375. The entry's own repro holds fixed: AAPL under IN reads 'eod', not 'live'. The certified pytest and the Portfolio cue vitest both pass. The verifier's probe reproduces: ^NSEI with a timestamp 1 second old reads 'eod', and ^BSESN and ^NSEBANK do the same, under both IN and US regions. This is the same freshness-wrong-calendar class through the narrow default-to-US branch. Separately, nse_direct stamps RELIANCE 2026-09-24T00:00:00Z at 10:01 IST on 09-25 with market_state REGULAR, so a live NSE quote reads 'eod'. That is a data-lane timestamp issue to triage on its own."
+  },
+  {
+   "id": "R15-DOCS-017",
+   "verdict": "partial",
+   "root_cause": "docs/CURRENT_STATE.md:358-365 (section 3.3 screener bullet) never documents the nse-all, bse-all and india-all universes, although the entry title and fix_shape name them. The sp500 clause (506 symbols, 2026-06-04, 'R15-LEAD-013 open') was correct at batch-10 certification (f407107 pack = 506 symbols) but went stale when batch 11's R15-LEAD-013 fix (34c2bbec) regenerated the pack to 503 symbols dated 2026-09-24 without touching the doc.",
+   "acceptance_test": "sidecar/tests/test_sp500_universe.py (or new test_current_state_doc.py): section 3.3 of docs/CURRENT_STATE.md must contain f\"{len(sp500['symbols'])} symbols\" and sp500['snapshot_date'], must not contain 'R15-LEAD-013 open', and must name every ScreenerUniverseId literal except 'custom' in backticks (nse-all, bse-all, india-all).",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/surface-R15-DOCS-017.md",
+   "note": "The AND/OR claim is fixed. The 'top 100' claim was fixed at certification but its replacement text is stale again at HEAD because of the later LEAD-013 fix. The India-universes claim was never fixed: 0 hits in the whole doc. The verifier's refutation holds in substance; it is not a taste judgement."
+  },
+  {
+   "id": "R15-DOCS-018",
+   "verdict": "partial",
+   "root_cause": "docs/CURRENT_STATE.md section 3.3 (~318-335) replaced the 'routes by asset class' sentence but still omits the IN-scoped chain from sidecar/services/provider_registry.py:161-219: nse_direct rank 15, nse (jugaad) 20, bse 25, all region IN, ahead of yfinance 50. It also still calls yfinance 'the no-key default for equities', which is false for IN-region requests. The doc has 0 hits for nse_direct or jugaad.",
+   "acceptance_test": "sidecar/tests/test_provider_registry_region.py (or new test_current_state_doc.py): every ProviderDeclaration whose region contains 'IN' has its id present in docs/CURRENT_STATE.md section 3.3, and the yfinance bullet qualifies its default role by region.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/surface-R15-DOCS-018.md",
+   "note": "The entry's literal false sentence (asset-class routing) is fixed at HEAD. Its title conclusion ('understates India data coverage') and the fix_shape item 'listing the IN chain and ranks' were never done. The verifier is correct on that stated part."
+  },
+  {
+   "id": "R15-CODE-PLATFORM-013",
+   "verdict": "partial",
+   "root_cause": "src/components/SettingsPanel.tsx:1938-1941: the Settings > Modules switch calls useModulesStore.setModuleEnabled for bridged plugin:<id> modules and bypasses the lifecycle owner (useMarketplaceStore.enable/disable, which drives runtime plus plugins.db). The plugin's panels and commands are hidden while the Marketplace and Plugin Manager report it active. Because workspace.ts:309-313 now drops plugin:* flags from the blob, the Settings 'off' is silently undone on relaunch when the runtime re-attaches from plugins.db.",
+   "acceptance_test": "src/components/SettingsPanel.test.tsx: bridge moduleForPlugin(CATALOG_BY_ID['vysted-example']) (appendModules plus setModuleEnabled true), render SettingsPanel, and click 'Vysted Example Plugin enabled' in the Modules region. Assert either that useMarketplaceStore disable('vysted-example') was invoked (runtime.disablePlugin writes plugins.db), or that plugin:* rows are not free toggles there. In both cases, enabled['plugin:vysted-example'] must never be false while the runtime reports the plugin active.",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/surface-R15-CODE-PLATFORM-013.md",
+   "note": "The entry's own repro holds fixed at HEAD: the workspace.test PLATFORM-013 test and the runtime defaultEnabled test pass, and a blob with plugin:x=false no longer hides a re-enabled plugin. The verifier's claim was driven with a scratch vitest that reuses the SettingsPanel mocks. The Settings toggle wrote only the module flag, made no sidecar call, was dropped from the serialized blob, and came back as true after a simulated relaunch. Env note: the main worktree node_modules lacks @tiptap/extension-list (declared in package.json:31), so the stock SettingsPanel.test.tsx fails to import at HEAD in this checkout. The scratch run stubbed that package."
+  }
+ ]
+}
