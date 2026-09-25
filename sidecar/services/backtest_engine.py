@@ -170,6 +170,12 @@ BarLoader = Callable[[list[str], str, str], Awaitable[list[Bar]]]
 # Engine
 # ---------------------------------------------------------------------------
 
+# How often the full (unsliced) run emits a "progress" SSE frame, in bars
+# processed. Walk-forward per-slice sub-runs never emit progress — only the
+# headline full run does, so the SSE stream carries one unambiguous progress
+# series instead of overlapping per-slice counts.
+PROGRESS_EVERY_BARS = 5
+
 
 async def _emit(callback: EventCallback | None, event: BacktestRunEvent) -> None:
     if callback is None:
@@ -281,6 +287,9 @@ async def _run_single_slice(
     bars: list[Bar],
     initial_capital: float,
     fees: BacktestFeeModel,
+    *,
+    on_event: EventCallback | None = None,
+    run_id: str | None = None,
 ) -> tuple[list[BacktestTrade], list[EquityCurvePoint], int, float]:
     """Run one (non-walk-forward) backtest slice.
 
@@ -299,6 +308,7 @@ async def _run_single_slice(
     last_close_per_symbol: dict[str, float] = {}
     peak_equity = initial_capital
     pending_timestamp: str | None = None
+    bars_processed = 0
 
     def _mark_to_market(timestamp: str) -> None:
         nonlocal peak_equity
@@ -325,6 +335,16 @@ async def _run_single_slice(
 
         last_close_per_symbol[bar.symbol] = bar.close
         intents = await strategy.on_bar(bar, portfolio)
+        bars_processed += 1
+        if (
+            on_event is not None
+            and run_id is not None
+            and bars_processed % PROGRESS_EVERY_BARS == 0
+        ):
+            await _emit(
+                on_event,
+                BacktestRunEvent(kind="progress", runId=run_id, barsProcessed=bars_processed),
+            )
 
         for intent in intents:
             if intent.quantity == 0:
@@ -462,7 +482,12 @@ async def run_backtest(
     # Full unsliced run for the headline metrics + equity curve + trade log.
     strategy = strategy_cls(request.params)
     trades, equity_curve, skipped_buys, worst_shortfall = await _run_single_slice(
-        strategy, bars_sorted, request.initial_capital, fees
+        strategy,
+        bars_sorted,
+        request.initial_capital,
+        fees,
+        on_event=on_event,
+        run_id=run_id,
     )
     metrics = _compute_metrics(equity_curve, trades, request.initial_capital)
     warnings: list[str] = []

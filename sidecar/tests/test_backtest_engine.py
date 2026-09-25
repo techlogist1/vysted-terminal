@@ -10,7 +10,6 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from models.backtest import BacktestFeeModel, BacktestRequest
 from services import agent_tools, backtest_engine, backtest_store
 from services.backtest_engine import (
@@ -551,3 +550,60 @@ async def test_partial_sell_keeps_the_rest_at_the_original_average() -> None:
     assert sold.quantity == 5
     assert sold.entry_price == pytest.approx(average)
     assert sold.pnl == pytest.approx((120.0 * (1 - _FEE_RATE) - average) * 5)
+
+
+# ---------------------------------------------------------------------------
+# R15-UI-060 — the SSE stream emits progress frames between run-start and
+# run-complete, on a fixed bars-processed cadence.
+# ---------------------------------------------------------------------------
+
+
+class NoOpStrategy(BacktestStrategy):
+    NAME = "noop"
+
+    async def on_bar(self, bar: Bar, portfolio: SimPortfolio) -> list[BacktestOrderIntent]:
+        return []
+
+
+@pytest.mark.asyncio
+async def test_event_sequence_has_progress_between_start_and_complete() -> None:
+    backtest_engine.register_strategy("noop_progress", NoOpStrategy)
+    bars = [
+        Bar(
+            timestamp=f"2025-02-{day:02d}",
+            symbol="AAPL",
+            open=1,
+            high=1,
+            low=1,
+            close=1,
+            volume=1,
+        )
+        for day in range(1, 13)
+    ]
+
+    async def loader(_symbols: list[str], _start: str, _end: str) -> list[Bar]:
+        return bars
+
+    request = BacktestRequest(
+        strategyId="noop_progress",
+        params={},
+        symbols=["AAPL"],
+        startDate="2025-02-01",
+        endDate="2025-02-12",
+        initialCapital=100_000.0,
+    )
+
+    events = []
+
+    async def collect(event) -> None:
+        events.append(event)
+
+    await backtest_engine.run_backtest(request, bar_loader=loader, on_event=collect)
+
+    kinds = [e.kind for e in events]
+    assert kinds[0] == "run-start"
+    assert kinds[-1] == "run-complete"
+    assert "progress" in kinds[1:-1]
+    for event in events:
+        if event.kind == "progress":
+            assert event.bars_processed % backtest_engine.PROGRESS_EVERY_BARS == 0

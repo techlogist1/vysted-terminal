@@ -161,7 +161,7 @@ describe("useBacktestStore — startRun", () => {
     expect(state.activeRunId).toBe("run-real-001");
   });
 
-  it("appends streamed trades and tracks bars-processed", async () => {
+  it("tracks bars-processed from progress events and folds trades from run-complete", async () => {
     const trade = {
       id: "t-stream-1",
       symbol: "SPY",
@@ -172,8 +172,7 @@ describe("useBacktestStore — startRun", () => {
     };
     const frames = [
       `data: ${JSON.stringify({ kind: "run-start", runId: "r1", totalBars: 100, startedAt: 0 })}\n\n`,
-      `data: ${JSON.stringify({ kind: "progress", runId: "r1", barsProcessed: 30, equity: 99_000 })}\n\n`,
-      `data: ${JSON.stringify({ kind: "trade", runId: "r1", trade })}\n\n`,
+      `data: ${JSON.stringify({ kind: "progress", runId: "r1", barsProcessed: 30 })}\n\n`,
       `data: ${JSON.stringify({ kind: "run-complete", runId: "r1", result: { ...SAMPLE_RESULT, runId: "r1", trades: [trade] } })}\n\n`,
     ];
     vi.stubGlobal(
@@ -183,6 +182,7 @@ describe("useBacktestStore — startRun", () => {
 
     await useBacktestStore.getState().startRun(SAMPLE_REQUEST);
     const slot = useBacktestStore.getState().runs["r1"];
+    expect(slot.barsProcessed).toBe(30);
     expect(slot.trades).toHaveLength(1);
     expect(slot.trades[0].id).toBe("t-stream-1");
   });
