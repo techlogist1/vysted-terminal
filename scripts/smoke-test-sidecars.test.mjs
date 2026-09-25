@@ -141,3 +141,16 @@ describe("coverage gate (R15-RELEASE-011)", () => {
     }
   });
 });
+
+describe("dead Phase-6 screenshot generators stay deleted (R15-CODE-PLATFORM-064)", () => {
+  it("the Windows-only-font, undeclared-Pillow generator scripts are not present", () => {
+    // Both scripts silently collapsed every requested font size to
+    // ImageFont.load_default() on macOS/Linux (load_font only tried
+    // C:/Windows/Fonts paths) and depended on a Pillow that was in none
+    // of the four requirements files. Deleted rather than fixed in place
+    // (dead v0.6.0-era tooling, superseded by real chrome-devtools captures) —
+    // this guards against either script quietly reappearing.
+    expect(existsSync(join(REPO_ROOT, "scripts/render_phase_6_e_screenshots.py"))).toBe(false);
+    expect(existsSync(join(REPO_ROOT, "scripts/render_phase_6_sc_screenshots.py"))).toBe(false);
+  });
+});
