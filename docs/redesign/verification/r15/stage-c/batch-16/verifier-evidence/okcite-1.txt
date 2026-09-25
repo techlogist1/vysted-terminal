@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+AAPL's market cap is approximately $4.90 trillion (USD), and its TTM revenue is around $466.82 billion (USD). The tool that returned these figures was fundamentals, provided by yfinance.
+
+=== ok · 54.0s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 45, 'done': 1} · usage in=5905 out=45 · est $0.00000 · llama3.1:8b

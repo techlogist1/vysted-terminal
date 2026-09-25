@@ -1,0 +1,7 @@
+
+=== ASSISTANT TEXT ===
+We couldn't retrieve the class A shares back ratio and trailing twelve month revenue for Sify Technologies. Our provider is missing this information for this name.
+
+However, I can suggest researching the company using the research tool to try and find more information on its fundamentals. Would you like me to do that?
+
+=== ok · 33.5s · events {'heartbeat': 2, 'tool_use': 1, 'tool_result': 1, 'delta': 62, 'done': 1} · usage in=2851 out=61 · est $0.00000 · llama3.1:8b

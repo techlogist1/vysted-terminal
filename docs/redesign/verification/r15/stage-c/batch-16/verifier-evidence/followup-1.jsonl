@@ -1,0 +1,19 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The fundamentals tool returned no data for this in this session.\n\n"}
+{"kind": "delta", "text": "{\n"}
+{"kind": "delta", "text": "   "}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "market"}
+{"kind": "delta", "text": "_cap"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "344"}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "}"}
+{"kind": "done", "usage": {"input_tokens": 7531, "output_tokens": 31, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
