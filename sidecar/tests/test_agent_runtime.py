@@ -2649,6 +2649,22 @@ def test_a_marked_number_beside_a_depositary_term_streams_as_is(sentence: str) -
     assert agent_runtime._guard_ratio_claims(sentence, [json.dumps(_SIFY_FUNDAMENTALS)]) == sentence
 
 
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "Sify's ADS is backed by 5 of its equity shares. ",
+        "The ADS conversion stood at 6 as the depositary set it. ",
+    ],
+)
+def test_a_function_word_after_a_count_does_not_mark_it(claim: str) -> None:
+    """R15-AGENT-090 batch 15: the plural-noun marker read 'its' / 'as' / 'this'
+    as a counted noun, so '6 of its shares' escaped as 'a count of its'."""
+    result = json.dumps(_SIFY_FUNDAMENTALS)
+    assert (
+        agent_runtime._guard_ratio_claims(claim, [result]) == agent_runtime.RATIO_UNAVAILABLE + " "
+    )
+
+
 _SIFY_FUNDAMENTALS_WITH_DEPOSITARY = {
     **_SIFY_FUNDAMENTALS,
     "ads_ratio": {
