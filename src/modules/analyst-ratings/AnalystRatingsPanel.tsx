@@ -245,6 +245,7 @@ export function AnalystRatingsPanel() {
             ) : tabError && tabData === null ? (
               <EmptyState
                 icon={Search}
+                variant="error"
                 headline={`Could not load ${symbol}`}
                 hint={tabError}
                 cta={{ label: "Retry", onClick: retryTab, primary: true }}
