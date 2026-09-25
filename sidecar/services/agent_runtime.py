@@ -650,6 +650,26 @@ def _history_tools(history: list[LLMMessage], known: set[str]) -> set[str]:
     return tools
 
 
+def _without_step_trailers(history: list[LLMMessage]) -> list[LLMMessage]:
+    """``history`` with the client's ``[tool steps: ...]`` lines taken out of
+    its verbatim assistant turns (a turn left empty is dropped): bookkeeping
+    the model would echo as its own prose (R15-LEAD-033). The folded summary
+    is a user turn and keeps its record (R15-AGENT-040)."""
+    out: list[LLMMessage] = []
+    for message in history:
+        if message.role == "assistant":
+            content = "\n".join(
+                line
+                for line in message.content.splitlines()
+                if not line.strip().startswith("[tool steps:")
+            ).strip()
+            if not content:
+                continue
+            message = LLMMessage(role="assistant", content=content)
+        out.append(message)
+    return out
+
+
 def _render_session_preamble() -> str:
     """Anchor the turn in the SERVER clock + the user's locale and forbid answering
     a time-sensitive question from (stale) training memory.
@@ -2264,6 +2284,10 @@ def _prepare_run(
     opts = dict(options or {})
     history, folded = _coerce_history(opts.pop("history", None))
     tool_ids, read_only, retired_tools = _resolve_tool_surface(spec, mode, prompt)
+    # The trailers seed the tools a follow-up may cite, then leave the history
+    # the provider sees (R15-LEAD-033: llama3.1:8b quoted them as its prose).
+    cited_tools = _history_tools(history, set(catalog.CAPABILITY_CATALOG) | set(tool_ids))
+    history = _without_step_trailers(history)
 
     # Web-search tier dispatch (FR-080/081/WS5). On the NATIVE tier, ride the
     # model's own server-side search when THIS model supports it (the adapter
@@ -2364,7 +2388,6 @@ def _prepare_run(
         if isinstance(effective_depth, str) and effective_depth.strip()
         else None,
     )
-    cited_tools = _history_tools(history, set(catalog.CAPABILITY_CATALOG) | set(tool_ids))
     if opts.get("web_search"):
         cited_tools.add("web_search")
     return _RunSetup(

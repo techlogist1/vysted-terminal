@@ -2585,6 +2585,51 @@ async def test_a_citation_of_a_tool_an_earlier_turn_ran_is_kept(
     assert await _scripted_answer(monkeypatch, None, {}, deltas, history) == answer
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("trailer", "citation"),
+    [
+        ("Using fundamentals", "The fundamentals tool returned a market cap of $4.90T."),
+        (
+            "Using price data; Reading your portfolio",
+            "Per `price_data`, the close was $2.11; `get_portfolio` returned 10 shares.",
+        ),
+    ],
+)
+async def test_the_history_trailer_seeds_citations_but_never_reaches_the_provider(
+    monkeypatch: pytest.MonkeyPatch, trailer: str, citation: str
+) -> None:
+    """R15-LEAD-033: the client's ``[tool steps: ...]`` trailer rode the
+    verbatim assistant turn to the provider and llama3.1:8b echoed it as its
+    own prose. It still seeds the tools turn 2 may cite, but no message the
+    provider receives carries it."""
+    agent_runtime.reload()
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _RecordingRoundsProvider([[LLMDeltaEvent(text=citation), done]])
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+    history = [
+        {"role": "user", "content": "AAPL?"},
+        {"role": "assistant", "content": f"AAPL closed at $2.11.\n\n[tool steps: {trailer}]"},
+    ]
+    answer = "".join(
+        [
+            e.text
+            async for e in agent_runtime.invoke_agent(
+                agent_id="copilot",
+                prompt="Which tool gave you that?",
+                api_key="sk-test",
+                autonomy="ask",
+                options={"history": history},
+            )
+            if isinstance(e, LLMDeltaEvent)
+        ]
+    )
+    assert answer == citation
+    sent = [m["content"] for m in provider.requests[0]]
+    assert "AAPL closed at $2.11." in sent
+    assert not any("[tool steps" in str(c) for c in sent)
+
+
 _FS_OK = {"ok": True, "statements": {"symbol": "SIFY", "revenue": "₹4,411 cr"}}
 _PRICE_NOTE = "The price_data tool returned no data for this in this turn."
 
