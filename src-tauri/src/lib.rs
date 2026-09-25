@@ -124,6 +124,38 @@ pub(crate) fn wait_for_port_timeout(port: u16, timeout_secs: u64) -> bool {
     false
 }
 
+/// Whether `127.0.0.1:port` answers `GET /health` as the Vysted sidecar. A bare
+/// TCP connect only proves *something* listens there (R15-LIFECYCLE-038).
+fn sidecar_healthy(port: u16) -> bool {
+    use std::io::{Read, Write};
+    let timeout = Duration::from_secs(5);
+    let Ok(mut stream) =
+        TcpStream::connect_timeout(&std::net::SocketAddr::from(([127, 0, 0, 1], port)), timeout)
+    else {
+        return false;
+    };
+    let _ = stream.set_read_timeout(Some(timeout));
+    let _ = stream.set_write_timeout(Some(timeout));
+    let request = "GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n";
+    let mut response = String::new();
+    stream.write_all(request.as_bytes()).is_ok()
+        && stream.read_to_string(&mut response).is_ok()
+        && response.starts_with("HTTP/1.1 200")
+        && response.contains(r#""service":"vysted-sidecar""#)
+}
+
+/// Poll [`sidecar_healthy`] until it answers or `timeout_secs` pass.
+fn wait_for_sidecar_health(port: u16, timeout_secs: u64) -> bool {
+    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
+    while Instant::now() < deadline {
+        if sidecar_healthy(port) {
+            return true;
+        }
+        thread::sleep(Duration::from_millis(200));
+    }
+    false
+}
+
 /// Per-attempt budget (seconds) for a cold MCP subprocess to bind its port.
 ///
 /// Phase-9 UC1 fix: the prior flat 15s budget was marginal for a COLD
@@ -363,6 +395,16 @@ fn start_main_sidecar(app: &AppHandle, port: u16, openbb: Option<u16>, sec_edgar
                 );
             },
         );
+        // The bind proves a listener, not that it is ours: confirm `/health`
+        // before announcing Ready or publishing the discovery file.
+        let healthy = bound && wait_for_sidecar_health(port, 15);
+        if bound && !healthy {
+            diag_eprintln!(
+                "[vysted] port {port} accepted a connection but did not answer /health \
+                 as the Vysted sidecar"
+            );
+        }
+        let bound = healthy;
         wait_app.state::<SidecarStatus>().settle_boot(bound);
         if bound {
             diag_println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
@@ -683,8 +725,8 @@ pub fn run() {
 mod tests {
     use super::{
         clear_mcp_endpoint_file, mcp_endpoint_json, mcp_endpoint_path, pick_free_port,
-        terminated_reason, wait_for_port_timeout, wait_for_port_with_retries, write_bytes_atomic,
-        write_text_atomic, SidecarPhase, SidecarStatus, MCP_ENDPOINT_FILENAME,
+        sidecar_healthy, terminated_reason, wait_for_port_timeout, wait_for_port_with_retries,
+        write_bytes_atomic, write_text_atomic, SidecarPhase, SidecarStatus, MCP_ENDPOINT_FILENAME,
         MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
     };
     use std::net::TcpListener;
@@ -834,6 +876,36 @@ mod tests {
         assert!(!mcp_endpoint_path(&data_dir).exists());
         clear_mcp_endpoint_file(&data_dir);
         let _ = std::fs::remove_dir_all(dir);
+    }
+
+    /// Serve one connection on a fresh loopback port with `reply` (None = accept,
+    /// read the request and close without answering).
+    fn one_shot_server(reply: Option<&'static str>) -> u16 {
+        use std::io::{Read, Write};
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut buf = [0u8; 1024];
+            let _ = stream.read(&mut buf);
+            if let Some(reply) = reply {
+                let _ = stream.write_all(reply.as_bytes());
+            }
+        });
+        port
+    }
+
+    #[test]
+    fn plain_tcp_listener_is_not_healthy() {
+        // R15-LIFECYCLE-038: a listener that is not the sidecar never reads as healthy.
+        assert!(!sidecar_healthy(one_shot_server(None)));
+        assert!(!sidecar_healthy(one_shot_server(Some(
+            "HTTP/1.1 200 OK\r\nContent-Length: 15\r\n\r\n{\"status\":\"ok\"}"
+        ))));
+        assert!(sidecar_healthy(one_shot_server(Some(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n\
+             {\"status\":\"ok\",\"service\":\"vysted-sidecar\"}"
+        ))));
     }
 
     #[test]
