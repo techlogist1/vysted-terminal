@@ -14,10 +14,10 @@ BUNDLE REHEARSAL: PASS-WITH-FINDINGS at 64e9470e
 | # | Step | Command | Exit | Duration | Log |
 |---|------|---------|------|----------|-----|
 | 1 | worktree | `git worktree add --detach <scratchpad>/rehearsal-64e9470e 64e9470e` | 0 | ~5 s | — |
-| 2a | install | `pnpm install --frozen-lockfile --offline` (the offline attempt worked, so no online fallback was needed) | 0 | 7 s (05:05:52) | `install-offline.log` |
+| 2a | install | `pnpm install --frozen-lockfile --offline` (the offline attempt worked, so no online fallback was needed) | 0 | 7 s (05:05:52) | `install-offline.log.txt` |
 | 2b | sidecars | `VYSTED_SKIP_DEV_SIGN=1 node scripts/ensure-all-sidecars.mjs --force` | 0 | 316 s, pip wheel cache warm (05:06:04) | `sidecars.log.tail` (last 400 of 1730 lines) |
 | 3 | tauri build | `VYSTED_SKIP_DEV_SIGN=1 pnpm tauri build` | 0 | 196 s, cargo release 2m29s on a cold target (05:11:33) | `tauri-build.log.tail` |
-| 4 | smoke | `node scripts/smoke-test-sidecars.mjs` | 0 | 138 s (05:15:17) | `smoke.log` |
+| 4 | smoke | `node scripts/smoke-test-sidecars.mjs` | 0 | 138 s (05:15:17) | `smoke.log.txt` |
 | 5 | clean-profile launch | `HOME=<scratchpad>/rehearsal-home "<app>/Contents/MacOS/vysted-terminal"` | quit by SIGTERM | 05:18:21 to 05:20:47 | `app-launch.log.tail`, `first-run-1x.png` |
 
 ## Sizes
@@ -92,7 +92,7 @@ The dialog was missing for this reason: the unified log for my app's pid shows `
 4. **§7** says "launch the just-built `.app` against a fresh app-data directory" and names no mechanism. Replace with: "There is no env var. The app-data dir is `$HOME/Library/Application Support/com.vysted.terminal` (`lib.rs:186` `app_data_dir()`). Launch `HOME=<fresh> "<bundle>/Contents/MacOS/vysted-terminal"` directly, not with `open`."
 5. **§7** says "check (read-only…) `security find-generic-password …` … If present, either delete it … or run the check as a separate macOS user." This is incomplete. A `HOME=` launch has no default keychain (errSecNoDefaultKeychain -25307), so the terms dialog never renders whether the item exists or not, and the delete is irrelevant. Replace with: "`HOME=` isolation proves data-dir and sidecar warm-up only. The terms/onboarding check needs a separate macOS user account (its own login keychain and its own `~/Library/WebKit`). Never delete the operator's items as part of a rehearsal."
 6. **§7** implies a fresh app-data dir isolates the run. It does not isolate WKWebView. Add: "WKWebView website data and caches still go to the real `~/Library/WebKit/com.vysted.terminal` and `~/Library/Caches/com.vysted.terminal` under a `HOME=` override."
-7. **§4/§5** leave a `<!-- fill at rc2 -->` placeholder for expected output. It can be filled from `sidecars.log.tail` and `smoke.log` here: three `[ensure-*] done.` lines and no `[dev-sign]` line; smoke shows 13 agents, MCP toolCount 40, and `[smoke] all sidecars booted cleanly.`
+7. **§4/§5** leave a `<!-- fill at rc2 -->` placeholder for expected output. It can be filled from `sidecars.log.tail` and `smoke.log.txt` here: three `[ensure-*] done.` lines and no `[dev-sign]` line; smoke shows 13 agents, MCP toolCount 40, and `[smoke] all sidecars booted cleanly.`
 8. **§7** should add the observed warm-up so the reader knows what to expect: the main sidecar needs ~40 s and all three need ~60 s to listen on a cold first launch.
 
 ## Findings for the register
