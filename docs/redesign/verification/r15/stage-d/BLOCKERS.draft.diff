@@ -1,31 +1,35 @@
 --- a/BLOCKERS.md
 +++ b/BLOCKERS.md
-@@ -1,9 +1,176 @@
+@@ -1,9 +1,271 @@
  # Blockers & Known Issues
  
 -Lead-level open items as of v0.8.0. Each release rolls its carry-forwards
 -into this file; resolved items become `~~struck through~~`. See
 -`CHANGELOG.md` and `docs/PHASE_N_HANDOFF.md` for per-phase context.
-+Lead-level open items as of 0.9.0 candidate f4444790. Each release rolls its
++Lead-level open items as of 0.9.0 candidate 4d89314. Each release rolls its
 +carry-forwards into this file; resolved items become `~~struck through~~`.
 +See `CHANGELOG.md` and `docs/PHASE_N_HANDOFF.md` for per-phase context. The
 +pre-R15 header line this replaced read "as of v0.8.0"; the R15 open-items
 +section immediately below is the current top-of-file truth.
- 
-+## R15 open items (as of 0.9.0 candidate f4444790)
++
++## R15 open items (as of 0.9.0 candidate 4d89314)
 +
 +Sourced from `docs/redesign/DECISIONS_FOR_OPERATOR.md` and
 +`docs/redesign/verification/vysted-r15-register.json`; see
 +`docs/CURRENT_STATE.md` §0.0 for the version/licence/Stage-C summary. This
 +section is additive — everything below it in this file is unchanged R15
-+carry-forward history except where explicitly struck through.
++carry-forward history except where explicitly struck through. No `r15-*` tag
++exists yet at this sha (`r15-rc1` has not been cut) — the newest ancestor tag
++is `r13-bedrock`.
 +
 +- **0.9.0 bump not made** — `package.json:3`, `src-tauri/Cargo.toml:3`,
-+  `src-tauri/tauri.conf.json:4`, `sidecar/app.py:327`,
-+  `src/lib/plugin-bootstrap.ts:37` are `0.8.0` (FACTS §versions); after
-+  editing run
++  `src-tauri/tauri.conf.json:4`, `sidecar/app.py:329`,
++  `src/lib/plugin-bootstrap.ts:38` are `0.8.0` (FACTS §versions, all six
++  version-of-truth files mutually consistent); after editing run
 +  `cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml`
-+  (CLAUDE.md §Versioning) and grep for stale `0.8.0` strings.
++  (CLAUDE.md §Versioning) and grep for stale `0.8.0` strings. `0.9.0` lands
++  when the prepared version branch (`worktree-agent-r15-version-0.9.0`)
++  merges, right after the `r15-rc1` tag — confirmed at the tag.
 +
 +### Open Tier-4 decisions (need the operator)
 +
@@ -72,6 +76,126 @@
 +  `004-r4-experience-rebuild` (no workflow edit needed) so the existing
 +  `pull_request` trigger runs the 3-OS matrix; fix the red `main` lint run
 +  first so the signal is meaningful.
++- **2.12** — `R15-AGENT-064` — no way to add a user-chosen MCP server (only
++  `openbb-mcp`/`sec-edgar-mcp` are wired). Unblock: approve a config surface
++  (servers list in settings) + a Rust stdio spawn + the existing read-only
++  wrapper audit on it.
++- **2.13** — `R15-CODE-PLATFORM-010` — webview file writes are unconfined
++  (`write_text_atomic`/`write_bytes_atomic` accept any absolute path) and
++  `tauri.conf.json`'s CSP is null. Unblock: approve a `write_atomic`
++  path-confinement helper in `lib.rs` (non-Tier-4, can land independently)
++  plus a CSP value for `tauri.conf.json`.
++- **2.14** — `R15-CODE-PLATFORM-015` — plugin data contribution is
++  declaration-only (`getDataSources()` only feeds a Plugin Manager subtitle
++  count; no host call site for `VystedPlugin.subscribe`). Unblock: pick (a)
++  approve a `provider_registry` resolution seam backed by plugin-declared
++  sidecar routes, or (b) approve marking `DataSource.realtime`/`subscribe`
++  reserved in `types/plugin.ts` + docs.
++- **2.15** — `R15-CODE-PLATFORM-071` — first-party panels bypass the plugin
++  model (every core panel is a static-import `VystedModule`, skipping
++  manifests/`requiredHostVersion`). Unblock: approve either wrapping
++  first-party modules as pre-installed bundled plugins, or a recorded FR-050
++  re-scope excluding first-party panels.
++- **2.16** — `R15-CODE-PLATFORM-073` — the off-scale/raw-hex design-token
++  audit (PDD §16) runs in no CI workflow. Unblock: approve adding the
++  audit's non-`--report` run to `lint.yml` (a Tier-1 edit); the script's own
++  rule extensions are not Tier-4.
++- **2.17** — `R15-CROSS-PLATFORM-001` — Windows/Linux CI has never run on
++  `004-r4-experience-rebuild` (655+ commits, no 3-OS signal). Unblock:
++  approve either a `workflow_dispatch` trigger addition, or opening a draft
++  PR for the branch (fix the red `main` lint run first).
++- **2.18** — `R15-DOCS-002` — commercial-license contact has no working
++  inbox (`commercial@vysted.com` has no MX/A record). Unblock: approve a
++  real contact address to swap into `COMMERCIAL_LICENSE.md`/`LICENSING.md`
++  before any public 0.9.0 announcement.
++- **2.19** — `R15-DOCS-003` — docs still name Next.js; the app ships Vite
++  (BLUEPRINT §2 + CLAUDE.md say "Next.js 16 App Router static export";
++  shipped Vite 8 + React 19 since D6). Unblock: approve landing the
++  already-queued `docs/redesign/CLAUDE_MD_PROPOSAL.md` edit plus the
++  Next.js → Vite swap in `BLUEPRINT.md` §2.
++- **2.20** — `R15-DOCS-015` — plugin docs describe the retired
++  panels.ts/`PLUGIN_COMPANIONS` model (`PLUGIN_DEVELOPMENT.md`/CLAUDE.md
++  tell authors to ship a sibling `panels.ts`; the actual mechanism is the
++  `marketplace.ts` `CATALOG_ROWS` catalog — confirmed in
++  `docs/CURRENT_STATE.md` §3.4 at this sha). Unblock: approve the CLAUDE.md
++  correction; the `PLUGIN_DEVELOPMENT.md`/`CURRENT_STATE.md` rewrites are
++  not Tier-4 and can land independently (this refresh's `CURRENT_STATE.draft.md`
++  already carries the corrected §3.4).
++- **2.21** — `R15-UI-044` — a denied/failed macOS keychain read during
++  first-launch TOS hydrate leaves the TOS dialog (and onboarding)
++  permanently unrendered with no error shown. Unblock: approve adding a
++  `catch` → `setError` to the hydrate effect (an error-handling fix, not a
++  copy/policy change).
++- **3.5** — `D-B3-1` (done, revertable) — AUTO scope tightened back to
++  SC-025: AUTO now skips review only for `panel`/`chart`/`watchlist`;
++  `data-write` and `settings` always stage. Reversible in one predicate
++  (`types/proposed-change.ts` `autoApplies`).
++- **3.6** — `D-B4-1` (done, revertable) — context admission on window-bound
++  lanes: tool results are capped with an elision marker and, on Ollama, the
++  tool schemas sent are subset by domain cue words. Reversible by having
++  `LLMProvider.context_window` return `None` for Ollama.
++- **4.1** — `rc1-battery-4:1` — FAST research drops an uncached Indian
++  name's fundamentals card on its first brief (FR-070's 6s box + the
++  anti-bot pacer). Not blocked on a locked file — an operator judgment call
++  between three handling options; **recommendation:** accept the honest
++  degrade for rc1, then show provider values at once with a stated
++  "exchange filings not yet checked" flag after.
++- **4.2** — `R15-AGENT-017` — the shipped default chat model (OpenRouter
++  DeepSeek V4 Flash) returns `content_filter` with zero tool calls on
++  ordinary portfolio-write asks. Unblock: fund the OpenRouter lane (or
++  supply another key), run the eval loop's portfolio-write scenario against
++  `glm-5.1`/`kimi-k2.6`, ship whichever passes as the new default.
++- **4.3** — `R15-AGENT-049` — native web search has no per-run cap or spend
++  meter off Anthropic (`web_search_max_uses` popped unused by every
++  non-Anthropic adapter). Unblock: fund the OpenRouter lane or supply a
++  reachable Gemini/Anthropic key, verify the per-round native-search counter
++  and per-search cost land in BudgetGuard.
++- **4.4** — `R15-UI-088` — in-webview drag gestures (dockview tab reorder,
++  node-editor palette→canvas drop) have no automated coverage; needs a real
++  window/GUI round to certify a Playwright real-event suite once it lands.
++- **4.5** — `R15-CODE-PLATFORM-063` — `scripts/*.py` sit outside every ruff
++  gate in CI/`ci-local`. Status: open, blocked_tier4. Unblock: change the two
++  `ruff check`/`ruff format --check` invocations in `lint.yml:87-89` from
++  `sidecar` to `sidecar scripts`, widen the same path in `package.json`'s
++  `ci-local` entry.
++- **4.6** — `R15-DOCS-008` — BLUEPRINT §2/§3.1 still describe OpenBB as an
++  in-process runtime-sidecar wrap (retired since v0.4.0's out-of-process
++  `openbb-mcp` subprocess). Status: open, blocked_tier4. Unblock: reword
++  `BLUEPRINT.md:55` (a Locked-table row) and the §3.1 sentence at `:87`
++  ("OpenBB ODP wrapped — gives 100+ data providers"; `DECISIONS_FOR_OPERATOR.md`
++  §4.6 cites `:84`, which is off by three lines — that's "Code signing pipeline
++  integration …", not the OpenBB sentence).
++- **4.7** — `R15-DOCS-011` — `CONTRIBUTING.md:95` promises a CLA no CI gate
++  enforces. Status: open, blocked_tier4. Unblock: add a CLA-assistant (or
++  PR-body check) workflow under `.github/workflows/` plus finalized
++  CLA/licensing text, before contributions reopen.
++- **4.8** — `R15-RELEASE-012` — CI never caches the three PyInstaller
++  sidecar binaries (~9 cold builds per push, ~20-25 min each). Status:
++  open, blocked_tier4. Unblock: add an `actions/cache` step keyed on
++  `hashFiles` of `sidecar/requirements*.txt`/`sidecar/**/*.py`/
++  `scripts/ensure-*.mjs` around `ensure-all-sidecars` in `build.yml`,
++  `test.yml`, `lint.yml`.
++- **4.9** — `R15-LEAD-030` — fabricated tool figures after a tool error.
++  Status: `blocked_tier4`, a fresh verifier concurred in batch-23. Documented
++  as a known limitation of the keyless local-model lane — see
++  `docs/CURRENT_STATE.md` §0.0 "Known limitations."
++- **4.10** — `R15-LEAD-035` — the "don't use tools" cue detector both
++  under- and over-matches. Status: **open** (not yet `blocked_tier4` at this
++  sha) — the batch-23 disposition verifier refused, on the ground that the
++  over-match harm is real (15/21 live runs invented a price); a
++  narrowing-only fix is named for batch-24, its final batch. Joins the known
++  limitations on batch-24's verifier concurrence, to be confirmed at the tag.
++- **4.11** — `R15-LEAD-037` — a figure the agent states for a company whose
++  data call succeeded is not checked against that result at all, so a stale
++  bar's value or a figure absent from the payload can pass as the current
++  price. Status: `blocked_tier4`, the batch-23 disposition verifier
++  concurred. Known limitation — see `docs/CURRENT_STATE.md` §0.0.
++- **4.12** — `R15-LEAD-038` — with tools withheld, the model can narrate a
++  portfolio write that never happened (nothing is written or queued:
++  `/portfolio/positions` stays `[]` and the review queue stays empty; there
++  is no `audit_orders` table, D81). Status: `blocked_tier4`, the batch-23
++  disposition verifier concurred. Known limitation — see
++  `docs/CURRENT_STATE.md` §0.0.
 +- **3.4** — BLOCKED-FOR-OPERATOR (Tier-1): no edit made, the operator's call.
 +  Unblock: decide whether to keep the `trading-bot` `PluginType` literal +
 +  JSDoc examples in `types/plugin.ts` as historical precedent or remove them
@@ -101,7 +225,7 @@
 +  agent writes beyond `action_ledger.py`'s 10-minute TTL
 +  (R15-CODE-FRONTEND-013), and no stop control for AUTO beyond reject or
 +  run-cancel (R15-CODE-FRONTEND-008). No unblock proposed — accepted gaps.
-+
+ 
 +(1.2, 2.3, 2.4, 2.5 are CLOSED/SUPERSEDED — removed with the trading feature,
 +D81; 3.1, 3.2, 3.3 are open non-Tier-4 items, listed above; 3.5 and 3.6 are
 +done-and-revertable Stage C batch decisions, not Tier-4-blocked. All stay
@@ -110,69 +234,40 @@
 +
 +### Open register entries, by subsystem
 +
-+Open **high** (3): `R15-AGENT-007` (agent-runtime), `R15-AGENT-017`
-+(llm-adapters), `R15-LEAD-022` (resolver). Open **critical**: none.
++**Register counts refreshed at this sha (register `counts` field, never
++`register.py status`, which lags):** 652 entries — fixed 391, open 206,
++needs_gui 11, blocked_tier4 25, removed_with_feature 14, not_a_defect 5.
++This is a large jump from an earlier draft of this section (Stage C batches
++10–22 landed since): open **critical**: none. Open **high**: none — the 3
++open-high ids an earlier draft of this section carried (`R15-AGENT-007`,
++`R15-AGENT-017` (now `blocked_tier4`, item **4.2** above), `R15-LEAD-022`)
++were each fixed or reclassified by a later batch.
 +
-+Open **medium** (114), grouped by subsystem:
++**Open critical/high/medium is exactly one entry:** `R15-LEAD-035`
++(medium, subsystem `agent-tools`) — items **4.10** above and
++`docs/CURRENT_STATE.md` §0.0 "Known limitations."
 +
-+- **agent-runtime:** R15-AGENT-049, R15-CODE-AGENT-008, R15-CODE-AGENT-009,
-+  R15-LIFECYCLE-025
-+- **agent-tools-catalog-ledger:** R15-AGENT-046, R15-AGENT-083,
-+  R15-CODE-AGENT-013
-+- **backtest:** R15-CODE-PLATFORM-029, R15-CODE-PLATFORM-030,
-+  R15-LIFECYCLE-015, R15-UI-010, R15-UI-011
-+- **disclosures-witnesses:** R15-RESEARCH-030
-+- **error-layer:** R15-DATA-061, R15-UI-015
-+- **frontend-panels-agent-shell:** R15-AGENT-053, R15-AGENT-082,
-+  R15-AGENT-088, R15-UI-052, R15-UI-084
-+- **frontend-panels-data-surfaces:** R15-UI-024, R15-UI-050, R15-UI-083,
-+  R15-UI-091
-+- **frontend-panels-shell-chrome:** R15-CROSS-PLATFORM-004, R15-DATA-092,
-+  R15-DOCS-003, R15-DOCS-004, R15-DOCS-005, R15-UI-018, R15-UI-027,
-+  R15-UI-047, R15-UI-058, R15-UI-085, R15-UI-086, R15-UI-087
-+- **frontend-stores:** R15-CODE-FRONTEND-016, R15-UI-016, R15-UI-048
-+- **fundamentals-profile:** R15-DATA-048, R15-DATA-054, R15-DATA-055,
-+  R15-DATA-080, R15-DATA-095, R15-DATA-096, R15-UI-059
-+- **host-actions-proposed-changes:** R15-AGENT-084, R15-DOCS-016
-+- **llm-adapters:** R15-AGENT-050, R15-CODE-AGENT-005
-+- **llm-adapters-and-errors:** R15-LEAD-018
-+- **macro-quant:** R15-DATA-087, R15-UI-028, R15-UI-051, R15-UI-053
-+- **market-data-providers-1:** R15-CROSS-PLATFORM-003, R15-DATA-053,
-+  R15-DATA-066, R15-DATA-071, R15-DATA-073, R15-DATA-077, R15-DATA-078,
-+  R15-DATA-079, R15-DOCS-018, R15-LEAD-013, R15-LEAD-016, R15-LEAD-023,
-+  R15-LIFECYCLE-021, R15-LIFECYCLE-026
-+- **market-data-providers-2:** R15-DATA-062, R15-DATA-065
-+- **market-data-providers-3:** R15-DATA-068, R15-DATA-069, R15-UI-032
-+- **plugins:** R15-AGENT-057, R15-CODE-PLATFORM-012, R15-CODE-PLATFORM-013,
-+  R15-CODE-PLATFORM-014, R15-CODE-PLATFORM-015, R15-CODE-PLATFORM-071,
-+  R15-CODE-PLATFORM-072, R15-DATA-094, R15-DOCS-015, R15-UI-033
-+- **portfolio:** R15-CODE-PLATFORM-021, R15-CODE-PLATFORM-023
-+- **research-depth-iter-deep:** R15-RESEARCH-027
-+- **research-extraction-synthesis:** R15-AGENT-063, R15-CROSS-PLATFORM-002
-+- **research-retrieval-relevance:** R15-CODE-RESEARCH-004,
-+  R15-LIFECYCLE-018, R15-RESEARCH-028
-+- **resolver:** R15-DATA-052, R15-DATA-059
-+- **rust-core:** R15-CODE-PLATFORM-010, R15-CODE-PLATFORM-024,
-+  R15-CODE-PLATFORM-025
-+- **safety-audit:** R15-CODE-FRONTEND-013, R15-UI-044
-+- **screener:** R15-DOCS-017, R15-RESEARCH-025
-+- **scripts-build:** R15-CODE-PLATFORM-026, R15-CODE-PLATFORM-027,
-+  R15-CODE-PLATFORM-028, R15-CODE-PLATFORM-073, R15-CROSS-PLATFORM-001,
-+  R15-DOCS-002, R15-RELEASE-005, R15-RELEASE-006, R15-RELEASE-007
-+- **workflow-engine:** R15-CODE-PLATFORM-017
-+- **workspace-layout:** R15-LIFECYCLE-024, R15-UI-088
-+- **mcp-servers:** R15-AGENT-064
++**Open low (205)**, grouped by subsystem, is a long tail (mostly polish/
++cosmetic low-severity findings — file paths and repro detail live in
++`docs/redesign/verification/vysted-r15-register.json`, `status: "open"`,
++filtered by `severity: "low"`); not reproduced id-by-id here to keep this
++section to what the operator needs (critical/high/medium + Tier-4 + GUI +
++the standing MCP carry-forward, per this file's own scope).
 +
 +### Needs a GUI to verify
 +
-+`R15-CODE-AGENT-001`, `R15-LIFECYCLE-001`, `R15-LIFECYCLE-008`,
-+`R15-UI-009`, `R15-UI-022`, `R15-UI-025` — no GUI/webview access in this
-+Stage D wave's lanes; carry forward to an operator or rig session.
++`R15-CODE-AGENT-001`, `R15-DOCS-024` (mcp-servers); `R15-LIFECYCLE-001`,
++`R15-LIFECYCLE-008`, `R15-LIFECYCLE-040` (rust-core); `R15-UI-009`,
++`R15-UI-022`, `R15-UI-025`, `R15-UI-050`, `R15-UI-083`
++(frontend-panels-data-surfaces); `R15-UI-084` (frontend-panels-agent-shell)
++— 11 ids total (register `needs_gui` count), up from the 6 an earlier draft
++of this section carried. No GUI/webview access in this Stage D wave's lanes;
++carry forward to an operator or rig session.
 +
 +### MCP cold-bind (`--onedir`) — still open at this sha
 +
 +The true fix for the ~34s cold-bind (see "Phase 9 UC1 residual" and "Phase
-+9.5 UC1 update" below) has not landed as of `f4444790` — no `--onedir`
++9.5 UC1 update" below) has not landed as of `4d89314` — no `--onedir`
 +packaging change or `bundle.externalBin` restructuring is present in
 +`src-tauri/tauri.conf.json` or the ensure scripts at this sha. Carries
 +forward unchanged; see those sections for the detail.
@@ -180,7 +275,7 @@
  ## Phase 10 carry-forwards (operator validation + deferred build)
  
  Phase 10 (copilot + integrations + Claude-after-dark + bug fixes) shipped
-@@ -22,16 +189,20 @@
+@@ -22,16 +284,20 @@
     needs a key in Settings → AI Providers. Gemini/Ollama tool paths are
     confidence-6-7 (built from the SDK shapes, unverifiable without a live key) —
     verify multi-round tool use on a real Gemini/Ollama key.
@@ -192,7 +287,7 @@
 -4. **Kite `request_token` Rust-loopback auto-capture — deferred.** v1 is manual
 +     operator-manual.~~ **CLOSED — removed with feature (D81, `a122dbf6`, 23
 +     Sep 2026).** No Kite/broker OAuth path exists any more; confirmed no
-+     broker/Kite service code remains under `sidecar/` or `src/` at `f4444790`.
++     broker/Kite service code remains under `sidecar/` or `src/` at `4d89314`.
 +4. ~~**Kite `request_token` Rust-loopback auto-capture — deferred.** v1 is manual
     paste of the redirect URL. The Rust loopback listener (auto-capture) needs
     sha2 + an HTTP client + a browser-opener crate — a cross-OS build/clippy
@@ -205,7 +300,38 @@
  5. **Copilot roster depth — deferred.** Built: live tool loop + context + a
     clickable persona strip + bare-text routing. Deferred (architected in
     `docs/research/phase-10/blueprint-copilot.md`): the `GET /agents/roster`
-@@ -237,9 +408,12 @@
+@@ -50,7 +316,7 @@
+ 1. **BYOK provider keys (L8 deferred).** Each provider (Anthropic /
+    OpenAI / Google / Groq / Mistral / Cohere / Ollama) needs first-token-
+    latency measurement (deferred from L6 perf baseline). Procedure in
+-   `docs/PHASE_8_PERF_BASELINE.md` "Agent first-token latency" section.
++   `docs/archive/PHASE_8_PERF_BASELINE.md` "Agent first-token latency" section.
+ 2. **Broker paper-mode connect (L9 deferred).** Alpaca paper most
+    accessible; remaining 6 brokers need failure-state UX verification
+    where credentials missing. **Note:** even after F1 fix, the 4 non-
+@@ -64,8 +330,10 @@
+    for openbb-mcp deadlock actually unblocks the chain in production
+    (test_rebuilt sidecar showed openbb-mcp "unavailable" gracefully — the
+    underlying deadlock still needs a real fix).
+-4. **Tradesa V2 6-state capture** with real Supabase project. T1 wrote
+-   the procedure (`docs/PHASE_8_VISUAL_REGRESSION_REPORT.md` Part B).
++4. ~~**Tradesa V2 6-state capture** with real Supabase project. T1 wrote
++   the procedure (`docs/archive/PHASE_8_VISUAL_REGRESSION_REPORT.md` Part B).~~
++   **MOOT — the Tradesa V2 plugin no longer exists in the tree at `4d89314`**
++   (removed well before R15, `183c52fe`, "E11").
+ 5. **Light theme audit** + **axe-core a11y audit** + **Lighthouse perf**
+    against the live Tauri shell.
+ 6. **macOS code-signing shake-out** (Apple Developer ID or ad-hoc).
+@@ -212,7 +480,7 @@
+ ## v0.8.0 → v0.8.x polish carry-forwards (S2 + S3 findings)
+ 
+ From Phase 8 audit. Per-finding detail in
+-`docs/PHASE_8_BUG_CATALOG.md` and the 5 teammate audit docs.
++`docs/archive/PHASE_8_BUG_CATALOG.md` and the 5 teammate audit docs.
+ 
+ ### S1 deferred (test-only — feature works, test gap is the bug)
+ 
+@@ -237,9 +505,12 @@
  2. **T2-mypy-macro-provider-literal** + **T2-mypy-fred-frequency-literal** —
     annotate `PROVIDER` and frequency/seasonal-adjustment params as
     `Literal[...]` instead of `str`.
@@ -215,27 +341,105 @@
 -   `autobahn>=20.12.3` as cheap insurance.
 +   `autobahn>=20.12.3` as cheap insurance.~~ **CLOSED — removed with feature
 +   (D81, `a122dbf6`, 23 Sep 2026).** `autobahn` is no longer a dependency
-+   anywhere at `f4444790` (confirmed: no match in any `requirements*.txt`);
++   anywhere at `4d89314` (confirmed: no match in any `requirements*.txt`);
 +   it existed only for the deleted `KiteTicker` path.
  4. **T3-significant-drop-scrutinee** — 3 `kill()` closures hold MutexGuard
     through `if let Some(...)`. Extract `.take()` to local binding.
  5. **T4-brokers-not-registered** — register the 7 broker plugins in
-@@ -547,20 +721,24 @@
+@@ -248,10 +519,13 @@
+    **CLOSED — removed with feature (D81, 23 Sep 2026).** The 7 broker
+    plugins and `bootstrap_default_adapters` are deleted, not merely
+    unregistered.
+-6. **T4-connection-keychain + T4-settings-dialog-keychain** — Tradesa V2
++6. ~~**T4-connection-keychain + T4-settings-dialog-keychain** — Tradesa V2
+    plugin reaches into `@/lib/keychain` + `@/lib/sidecar-client`. Should
+    use `PluginConfig.sidecarBaseUrl` + `PluginConfig.secrets`. Part of
+-   v0.6.6+ Tradesa V2 work.
++   v0.6.6+ Tradesa V2 work.~~ **MOOT — the Tradesa V2 plugin no longer
++   exists in the tree** (removed well before R15, `183c52fe`,
++   "E11"; pinned by `sidecar/tests/test_no_tradesa.py` at this sha). There
++   is no `plugins/tradesa-v2/connection.ts` left to fix.
+ 7. **T5-openbb-mcp-provider-fallback-paths** — yfinance fallback path
+    untested at registry level. Add coverage. Pairs with the deadlock fix
+    (#7 above).
+@@ -314,19 +588,24 @@
+    decision.
+ 7. **v1.0.0 narrative + launch announcement.** Tag v1.0.0; post.
+ 
+-## v0.7.0 → v0.6.6+ Tradesa V2 carry-forwards
++## ~~v0.7.0 → v0.6.6+ Tradesa V2 carry-forwards~~ — MOOT, plugin removed
+ 
+-Same shape as the v0.6.5 carry-forwards section below; documented in
+-`docs/PHASE_6.5_HANDOFF.md` §3 and unchanged by v0.7.0.
++**The Tradesa V2 plugin this whole section is about no longer exists in the
++tree** (removed well before R15, `183c52fe`, "E11" — confirmed
++`git ls-tree 4d89314:plugins` lists only `example`, `openbb-mcp`,
++`vysted-lenses`, `vysted-news`, `yfinance`; `sidecar/tests/test_no_tradesa.py`
++pins the absence). None of the six items below have a plugin left to apply
++to; kept struck-through for history, same shape as the v0.6.5 carry-forwards
++section below (`docs/archive/PHASE_6.5_HANDOFF.md` §3):
+ 
+-1. Realtime SSE proxy (replaces per-panel polling).
+-2. Write capability (manual position close, pause-bot, approve
+-   tuning-proposal) — Tier-4 design per surface.
+-3. MCP tool exposure for the brain-decision log.
+-4. Anon-key + Auth migration when Tradesa V2 ships v0.1.7.0 RLS.
+-5. Optional Bybit Demo position enrichment.
+-6. Live `pnpm tauri dev` Tradesa V2 populated-state screenshot pass
+-   (Phase 9 operator-led session).
++1. ~~Realtime SSE proxy (replaces per-panel polling).~~
++2. ~~Write capability (manual position close, pause-bot, approve
++   tuning-proposal) — Tier-4 design per surface.~~
++3. ~~MCP tool exposure for the brain-decision log.~~
++4. ~~Anon-key + Auth migration when Tradesa V2 ships v0.1.7.0 RLS.~~
++5. ~~Optional Bybit Demo position enrichment.~~
++6. ~~Live `pnpm tauri dev` Tradesa V2 populated-state screenshot pass
++   (Phase 9 operator-led session).~~
+ 
+ ## v0.7.0 → v0.8 polish carry-forwards
+ 
+@@ -437,8 +716,22 @@
+ migration when Tradesa V2 ships v0.1.7.0 RLS, Bybit Demo position
+ enrichment, operator-led live `pnpm tauri dev` screenshot pass.
+ 
++**Since superseded: the Tradesa V2 plugin this whole section describes no
++longer exists in the tree at `4d89314`** (removed well before R15,
++`183c52fe`, "E11"; `plugins/tradesa-v2/` and
++`sidecar/routers/tradesa_v2.py` are both gone, pinned absent by
++`sidecar/tests/test_no_tradesa.py`). Kept for history; see
++`docs/CURRENT_STATE.md` §3.4 for the current 5-plugin roster
++(`vysted-example`, `openbb-mcp`, `vysted-lenses`, `vysted-news`,
++`vysted-yfinance`).
++
+ ## Phase 6.5 → v0.6.6 carry-forwards
+ 
++**Since superseded — kept for history only.** The Tradesa V2 plugin every
++item below targets no longer exists in the tree at `4d89314` (see the note
++above §3); items 1/3/4/5/6 below are moot for that reason (no plugin left to
++extend or screenshot), separately from item 2's D81 closure.
++
+ ### 1. Realtime SSE proxy (Tier-3 deferral from v0.6.5)
+ 
+ v0.6.5 ships polling-only (per-panel cadences: 10s positions / 30s
+@@ -547,20 +840,27 @@
  
  ## Phase-5.1 / 6.0 follow-ups (cosmetic / forward-looking)
  
 -### 1. Populated screenshots of Teammate S's safety UI surfaces
 +### 1. ~~Populated screenshots of Teammate S's safety UI surfaces~~ — mostly moot (D81)
-+
+ 
 +**CLOSED for KillSwitchToolbar / OrderConfirmationDialog / AuditLogViewer /
-+BrokerConnectPanel — removed with feature (D81, `a122dbf6`, 23 Sep 2026).**
-+None of those four components exist in the tree at `f4444790` (confirmed via
++BrokerConnectPanel — removed with feature.** OrderConfirmationDialog,
++AuditLogViewer and BrokerConnectPanel were deleted by D81 (`a122dbf6`,
++23 Sep 2026); KillSwitchToolbar was removed earlier, in `c9790593`
++"feat(shell): remove kill-switch UI". None of those four components exist in
++the tree at `4d89314` (confirmed via
 +`git ls-tree`). The original ask also named "DisclaimerFlow three surfaces";
 +`src/modules/safety/DisclaimerFlow.tsx` is still live (first-launch terms,
 +tracked separately as decision 3.2 in `DECISIONS_FOR_OPERATOR.md`) — a
 +populated-state capture of DisclaimerFlow specifically, if still wanted,
 +would be a fresh ask, not a continuation of this stale item.
- 
++
  Teammate S's worktree terminated on a "monthly usage limit" error before
  pushing its branch. UI components + stores landed via worktree sharing
  (integrated through K's merge commit); the dedicated `test_safety_end_to_end.py`
@@ -253,7 +457,7 @@
  
  ### 2. Tradesa V2 full plugin
  
-@@ -572,17 +750,15 @@
+@@ -572,17 +872,15 @@
  control plane) are in place; v0.5.1 / v0.6.0 Tradesa V2 becomes plug-in
  work, not contract work.
  
@@ -278,7 +482,7 @@
  ### 4. Playwright real-event suite for node-editor canvas interactions
  
  chrome-devtools MCP cannot synthesize `isTrusted` events for canvas
-@@ -607,13 +783,12 @@
+@@ -607,13 +905,12 @@
  would close this. Drawings have full unit-test canvas-call coverage; UX
  shape is captured in toolbar + drawing-inspector populated screenshots.
  
@@ -292,8 +496,13 @@
 -`docs/BROKER_INTEGRATIONS.md`.
 +**CLOSED — removed with feature (D81, `a122dbf6`, 23 Sep 2026).** OANDA was
 +one of the deleted broker adapters; `oandapyV20` is no longer a dependency
-+anywhere at `f4444790` (confirmed: no match in any `requirements*.txt`).
++anywhere at `4d89314` (confirmed: no match in any `requirements*.txt`).
 +Nothing left to audit.
  
  ### 8. Workflow engine `resume-from` mode
  
+@@ -635,3 +932,4 @@
+ rule for high-value teammates: agent dispatch should monitor usage-limit
+ proximity and push intermediate commits more frequently to minimise loss
+ surface (CLAUDE.md captures this for the next mega-sprint).
++<!-- refresh f444479 to 4d89314: R15 open items rebuilt — added Tier-4 decisions 2.12-2.21, 3.5-3.6, and the full 4.1-4.12 RC1-fix-round battery (previously only 2.1-2.11 + 3.4 were listed); open register entries refreshed (652 entries now, was 626; open critical/high/medium collapsed to just R15-LEAD-035, was 3 high + 114 medium — most of the difference is batches 10-22 fixing entries; open-low (205) now pointed at the register JSON instead of omitted); needs_gui grew from 6 to 11 ids; struck several Tradesa V2 carry-forward items as moot (the plugin was removed well before R15, "E11" 183c52fe/9aaa64f7 — an earlier draft of this file had not caught this); version-of-truth line numbers corrected (app.py:329, plugin-bootstrap.ts:38) -->

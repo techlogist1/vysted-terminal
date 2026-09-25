@@ -1,5 +1,5 @@
-<!-- DRAFT at f444479031d7d493b7955b9af041d18e7c7a40cc by the Stage D docs wave; refresh before rc2 -->
-# Vysted Terminal — Current State (as of f4444790, 0.9.0 candidate)
+<!-- DRAFT at 4d893147def983623de681effd1bfbae2e7441c5 by the Stage D docs wave; refresh before rc2 -->
+# Vysted Terminal — Current State (as of 4d89314, 0.9.0 candidate)
 
 > An honest inventory of what exists today, written to anchor the "Cursor for
 > finance" redesign. It records the working foundation worth keeping and, just
@@ -21,7 +21,7 @@
 
 ---
 
-## 0.0 R15 state (as of f4444790, 0.9.0 candidate)
+## 0.0 R15 state (as of 4d89314, 0.9.0 candidate)
 
 > This section is the current top-of-file truth. §0, §0.5 and §0.x below are
 > kept as historical record of the pre-R15 redesign lineage and are not
@@ -31,8 +31,9 @@
 (`package.json`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`,
 `sidecar/app.py` `FastAPI(version=...)`, `HOST_VERSION` in
 `src/lib/plugin-bootstrap.ts`) are still literally `0.8.0` at this sha and
-mutually consistent with each other — the bump to `0.9.0` has not been made
-yet; it is an open pre-tag item (see `BLOCKERS.md` "R15 open items").
+mutually consistent with each other — `0.9.0` lands when the prepared version
+branch (`worktree-agent-r15-version-0.9.0`) merges, right after the `r15-rc1`
+tag — confirmed at the tag.
 
 **Trading removed permanently (D81, `a122dbf6`, 23 Sep 2026).** No broker
 connectivity, order placement, simulated/paper account, kill switch or
@@ -65,40 +66,111 @@ Next.js -> Vite 8 + React 19 (WS1)"); there is no `next` dependency or
 binary at this sha (`package.json` `"dev": "vite"`, `"build": "vite build"`).
 Next.js references below §0.0 are pre-migration history.
 
-**R15 Stage C remediation (batches 2–9, after the D81 batch-1 trading
-removal).** A census-driven register
-(`docs/redesign/verification/vysted-r15-register.json`) recorded 887 raw
-findings → 626 register entries (76 rejected) across critical/high/medium/low
-severity. At this sha:
+**R15 Stage C remediation (batches 2–22, after the D81 batch-1 trading
+removal; batch-23 blocked/unmerged, batch-24 in flight at this sha).** A
+census-driven register (`docs/redesign/verification/vysted-r15-register.json`)
+recorded 887 raw findings → **652** register entries (76 rejected) across
+critical/high/medium/low severity — the entry count grew from the 626 this
+section cited at an earlier draft as later batches split/added entries. The
+register's own `counts` field is authoritative (never `register.py status`,
+which recomputes from census merges and lags): raw=887, entries=652,
+rejections=76, critical=16, high=116, medium=293, low=227. At this sha:
 
 | Severity | Entries | Fixed | Open | Needs GUI | Removed w/ feature | Blocked Tier-4 | Other          |
 | -------- | ------- | ----- | ---- | --------- | ------------------ | -------------- | -------------- |
 | critical | 16      | 16    | 0    | —         | —                  | —              | —              |
-| high     | 112     | 100   | 3    | 4         | 1                  | 4              | —              |
-| medium   | 279     | 153   | 114  | 2         | 9                  | —              | 1 not_a_defect |
-| low      | 219     | 10    | 205  | —         | 4                  | —              | —              |
+| high     | 116     | 105   | 0    | 4         | 1                  | 6              | —              |
+| medium   | 293     | 258   | 1    | 5         | 9                  | 15             | 5 not_a_defect |
+| low      | 227     | 12    | 205  | 2         | 4                  | 4              | —              |
 
-All 16 critical entries are fixed. The 3 remaining open high entries are
-`R15-AGENT-007` (agent-runtime), `R15-AGENT-017` (llm-adapters) and
-`R15-LEAD-022` (resolver). Per-batch plans and certified verdicts live under
-`docs/redesign/verification/r15/stage-c/batch-2` through `batch-9` (each a
-`PLAN.md` + `VERDICTS.md` pair); batch merge commits are listed in
-`CHANGELOG.md` under the "R15 Stage C" headings (batches 2 through 9, all
-dated 2026-09-23/24). The batch-1 removal-plan riders are D85–D92 (D83
-records the relicense); per-batch decisions from batch 3 on carry
-`D-B<n>-<k>` ids in `docs/redesign/DECISIONS.md`.
+(Sums: fixed=391, open=206, needs_gui=11, removed_with_feature=14,
+blocked_tier4=25, not_a_defect=5 — matches the register `counts` field
+exactly.) All 16 critical entries are fixed. **Open critical/high/medium is
+now exactly one entry: `R15-LEAD-035`** (medium, subsystem `agent-tools`,
+agent-write no-tool-cue detector — see "Known limitations" below); the
+205 open low entries and the 25 blocked_tier4 ids are enumerated in
+`BLOCKERS.md` "R15 open items". Per-batch plans and certified verdicts live
+under `docs/redesign/verification/r15/stage-c/batch-2` through `batch-22`
+(each a `PLAN.md` + `VERDICTS.md` pair, all `approve` except batch-22 and
+batch-23 = `block`); batch-23's int branch went unmerged (a fresh verifier's
+LEAD-035 stop-rule refusal); batch-24 (LEAD-035's named narrowing-only fix)
+was in flight with only a `PLAN.md` on disk at this sha. Batch merge commits
+are listed in `CHANGELOG.md` under the "R15 Stage C" headings; the batch-1
+removal-plan riders are D81–D92 (D83 records the relicense), and per-batch
+decisions from batch 3 on carry `D-B<n>-<k>` ids in
+`docs/redesign/DECISIONS.md` (D81 through D92, 12 new decisions since the
+`r13-bedrock` tag).
 Full open-item detail (grouped by subsystem, plus the open Tier-4 operator
 decisions) is in `BLOCKERS.md` "R15 open items".
+
+**Known limitations at rc1 — agent chat with a keyless local model.**
+Operator-accepted (Tier-4 sign-off, DECISIONS_FOR_OPERATOR.md §4.9–4.12): one
+known-limitation class ships as a documented limitation of the keyless
+local-model lane, not a bug held open — with a keyless local model the agent
+can fabricate a figure, or claim a completed write, when it has no tool
+result to ground the claim; no further filter round runs this release.
+
+- **R15-LEAD-030** (high) — `blocked_tier4`, a fresh verifier concurred in
+  batch-23 (`docs/redesign/verification/r15/stage-c/batch-23/LEAD-030-CONCURRENCE.md`):
+  > With a keyless local model, the agent can still state an invented price or
+  > metric as if a tool had returned it when the figure is about a company no
+  > successful tool call in that turn covered — one named in the same
+  > paragraph as a company whose call succeeded (under a name the guard
+  > cannot map, or never looked up at all), or any company in a turn where no
+  > call failed or no tool was called — and a figure-less fabricated result
+  > dump or a code fence left open from an earlier round can also render,
+  > while every shape pinned in eight fix rounds is replaced by an honest
+  > "returned no data" note.
+
+  (The batch-23 disposition verifier struck the original sentence's clause
+  "figures for companies whose call succeeded are grounded against the tool
+  result" — the guard never checks a figure for a subject whose call
+  succeeded; wording above reflects the strike, per
+  `docs/redesign/verification/r15/stage-c/batch-23/DISPOSITION-CONCURRENCE.md`.)
+- **R15-LEAD-035** (medium) — `open`; the batch-23 disposition verifier
+  refused `blocked_tier4` (the shipping no-tool-cue detector over-matches too,
+  not only under-matches). The named narrowing-only fix is in batch-24, its
+  final batch (only a `PLAN.md` on disk at this sha, no
+  `LEAD-035-CONCURRENCE.md` yet); the residual joins the known limitations on
+  concurrence, to be confirmed at the tag.
+- **R15-LEAD-037** (medium) — `blocked_tier4`, the batch-23 disposition
+  verifier concurred:
+  > With a keyless local model, a figure the agent states for a company whose
+  > data call succeeded is not checked against that result at all, so it can
+  > give an older bar's value from the same payload as the current price (2
+  > of 18 live runs, 5-6% off) or a figure that appears nowhere in the
+  > payload (1 of 18: ₹20,820 for a ₹2,082 stock).
+- **R15-LEAD-038** (medium) — `blocked_tier4`, the batch-23 disposition
+  verifier concurred:
+  > With a keyless local model, when you tell the agent not to use tools and
+  > ask for a portfolio change in the same message, it makes no call and
+  > nothing is written or queued, but its reply can say the change was made
+  > or staged for your review and can describe holdings that do not exist.
+
+The fail-safe is **figure grounding by provenance**
+(`sidecar/services/figure_grounding.py` + `agent_runtime._judge_clause`,
+rules 1/2a/2b/2c/3 — the 2c fail-safe is gated on an errored tool call, which
+is the structural gap LEAD-030/037 describe). The shipping no-tool-instruction
+matcher is the closed cue list `_NO_TOOL_CUE` in
+`sidecar/services/planner.py:136` (closed in batch-21), narrowed by batch-24
+if its concurrence file certifies the narrowing fix. A portfolio write never
+auto-applies regardless of this class: `data-write` changes always stage for
+review, and AUTO skips review only for `panel`, `chart` and `watchlist`
+(`types/proposed-change.ts:38-46`); there is no `audit_orders` table any more
+(D81), so no order row can exist either way.
 
 **Test-count claims elsewhere in this document are stale.** §1's "619
 vitest, 942 pytest, §6.5 9/9" and the matching §7 row predate the D81 removal
 (which deleted the §6.5 order-safety tests, `test_safety_end_to_end.py` and
-`test_safety_router.py`, along with the feature) and Stage C batches 2–9
-(which changed others). This Stage D wave did not run the
-heavy test lanes (`pnpm ci-local`, `pytest`, `vitest`) against this sha, so
-current pass counts are unverified here.
+`test_safety_router.py`, along with the feature) and Stage C batches 2–22
+(which changed others; `DECISIONS_FOR_OPERATOR.md` §2.6 separately records a
+`pnpm ci-local` baseline of "pytest 2507 passed / 1 skipped, vitest 1504 in
+135 files, cargo 13" at an earlier R15 pause point, not re-verified at this
+sha). This Stage D wave did not run the heavy test lanes (`pnpm ci-local`,
+`pytest`, `vitest`) against this sha, so current pass counts are unverified
+here.
 
-<!-- VERIFY: current vitest/pytest/cargo-test pass counts at f4444790 — run `pnpm ci-local` (or `pnpm test` / `cd sidecar && pytest`) and update §1 + §7 with the real numbers -->
+<!-- VERIFY: current vitest/pytest/cargo-test pass counts at 4d89314 — run `pnpm ci-local` (or `pnpm test` / `cd sidecar && pytest`) and update §1 + §7 with the real numbers -->
 
 ---
 
@@ -123,7 +195,8 @@ current pass counts are unverified here.
 > **foundation window** has since landed on `001-agent-native-redesign` (not on
 > `main`). It does **not** build the user-facing P1/P2/P3 phases, but it closes
 > the documented copilot/catalog/runtime gaps the baseline records. Full detail +
-> gate results: **`docs/redesign/FOUNDATION_BUILD_REPORT.md`**. Deltas that
+> gate results: **`docs/redesign/FOUNDATION_BUILD_REPORT.md`** (not in tree at
+> this sha — `git ls-tree -r` at `4d89314` has no match). Deltas that
 > supersede statements below:
 >
 > - **Single capability catalog** (`sidecar/services/agent_tools/catalog.py`) is
@@ -156,14 +229,15 @@ current pass counts are unverified here.
 ## 0.5 Agent-native redesign — P1–P3 shipped (2026-05-31, branch `001-agent-native-redesign`)
 
 > The user-facing redesign (P1/P2/P3) has now landed on the branch (not `main`).
-> Full per-FR/SC accounting + gate results: **`docs/redesign/P1_P3_BUILD_REPORT.md`**.
+> Full per-FR/SC accounting + gate results: **`docs/redesign/P1_P3_BUILD_REPORT.md`**
+> (not in tree at this sha — `git ls-tree -r` at `4d89314` has no match).
 > Deltas that supersede the baseline below:
 >
 > - **P1 — agent-centric experience (US1–US4).** A four-mode agent spine
 >   (Ask / Edit-panel / Build / Delegate, ⌥1–4) with the agent as a co-equal
 >   primary surface alongside the hand-driven cockpit. **Every agent-proposed
 >   mutation routes through a diff/accept trust gate** (`src/store/proposed-changes.ts`)
->   — the write surface is the catalog's 18 host actions (`open_panel`/
+>   — the write surface is the catalog's 19 host actions (`open_panel`/
 >   `set_chart_symbol`/`add_to_watchlist`/the tracked-portfolio, note, screen and
 >   layout writers/`set_region`; no order action exists, D81) — none auto-apply
 >   under ASK autonomy (SC-003). Offer-both onboarding preserves the keyboard
@@ -206,7 +280,7 @@ current pass counts are unverified here.
   frontend + Python 3.13 FastAPI sidecar + two bundled MCP subprocesses) that is
   **local-first and bring-your-own-keys**: no Vysted backend, no account, no
   telemetry. Everything lives under the OS app-data dir + the OS keychain.
-- A **multi-panel cockpit** (dockview layout engine) with ~18 first-party
+- A **multi-panel cockpit** (dockview layout engine) with ~20 first-party
   modules: Chart (50 server-computed indicators + 10 drawing tools),
   Watchlist, News (RSS + optional NewsAPI, VADER sentiment), Portfolio (manual,
   SQLite), Equity Overview, plus Phase-6 analysis panels — Macro, SEC Filings,
@@ -227,11 +301,14 @@ current pass counts are unverified here.
   the removal notice describes the broker layer as it existed before D81;
   none of it is reachable today.
 - A **plugin platform**: one serializable Tier-1 contract (`types/plugin.ts`,
-  six capabilities) + a pure-TS runtime. Three plugins are actually loaded
-  (`example`, `openbb-mcp`, `tradesa-v2` — a read-only external bot mirror,
-  unaffected by D81 since it never placed an order through Vysted); the seven
-  broker plugins that used to exist in the tree are gone (D81), not merely
-  unwired. No filesystem/marketplace loader yet.
+  six capabilities) + a pure-TS runtime. **Five plugins are pre-installed and
+  enabled by default** (`vysted-example`, `openbb-mcp`, `vysted-lenses`,
+  `vysted-news`, `vysted-yfinance` — see §3.4; `tradesa-v2` no longer exists
+  in the tree at this sha, superseding this section's earlier "three plugins,
+  tradesa-v2 the only one with panels" description); the seven broker plugins
+  that used to exist are also gone (D81). Plugins are still static-import
+  compiled-in (no filesystem/marketplace loader yet); install/enable/
+  configure/remove state is tracked per plugin.
 - **Vysted speaks MCP on both sides**: as a _client_ it proxies two bundled MCP
   subprocesses (openbb-mcp fundamentals/macro, sec-edgar-mcp filings) into plain
   REST routes; as a _server_ it re-exposes 11 of its own endpoints as MCP tools
@@ -311,9 +388,10 @@ not-yet-up sidecar.
 
 ### 3.1 Desktop core & lifecycle (Tauri / Rust)
 
-`src-tauri/src/main.rs` is a 5-line shim into `lib.rs` + three modules
-(`keychain.rs`, `openbb_mcp.rs`, `sec_edgar_mcp.rs`) — `kill_switch.rs` was
-deleted with trading (D81); no global-shortcut plugin is registered any more.
+`src-tauri/src/main.rs` is a 5-line shim into `lib.rs` + four modules
+(`diag_log.rs`, `keychain.rs`, `openbb_mcp.rs`, `sec_edgar_mcp.rs`) —
+`kill_switch.rs` was deleted with trading (D81); no global-shortcut plugin is
+registered any more.
 Three Tauri plugins registered: `shell`, `updater`, `notification`. Single
 window: 1280×832, dark theme, `dragDropEnabled: false` (load-bearing —
 `true` installs an OS drag-drop handler that swallows in-webview HTML5 drag
@@ -342,20 +420,25 @@ unverified for the Rust path).
 
 ### 3.2 Sidecar app & endpoints (FastAPI)
 
-One app built by `create_app()` in `sidecar/app.py`. 24 router modules,
-~107 HTTP routes + 1 WebSocket + 1 mounted MCP sub-app. CORS fully permissive
+One app built by `create_app()` in `sidecar/app.py`. **28 router modules,
+~111 HTTP routes** (grep count of `@router.get/post/put/delete/patch(` across
+`sidecar/routers/` at this sha; up from the earlier-draft "24 router modules,
+~107 routes" — R15 added `data_sources`, `disclosures`, `resolve`, `runs`,
+`search_status`, `search_tiers` and `system` among others, and removed
+`tradesa_v2`, D81) + 1 WebSocket + 1 mounted MCP sub-app. CORS fully permissive
 (`*`) — justified because the sidecar binds loopback only (but **the bind itself
 is `main.py`/uvicorn's job, not enforced in `app.py`**). A single
 `ProviderError → HTTP 502` exception handler; SSE (`text/event-stream`,
 `data: {json}\n\n`) is the streaming convention for `/llm/chat`,
 `/agents/{id}/invoke`, `/backtest/run`, `/workflow/run` (the encode helpers are
 **duplicated verbatim** across four routers, two unused). `version="0.8.0"` is a
-hardcoded literal at `app.py:161` — a separate source of truth that has drifted
+hardcoded literal at `app.py:329` — a separate source of truth that has drifted
 before (`/health` now derives from `request.app.version`).
 
-The v0.6.0/v0.6.5 runtime-extension aggregators (`app.py:131,145`) are called at
-build time but are **live no-op stubs** per their own docstrings — dead
-scaffolding kept for per-release-stamp parity. Quotes/crypto are thread-offloaded
+The v0.5.0/v0.6.0 runtime-extension aggregators (`app.py:191,205`) are called
+at build time (`app.py:368,374`) but are **live no-op stubs** per their own
+docstrings — dead scaffolding kept for per-release-stamp parity. Quotes/crypto
+are thread-offloaded
 (`asyncio.to_thread`); **`/history/{symbol}` is NOT** — it calls the blocking
 provider synchronously on the request thread (a real event-loop-blocking
 asymmetry). Caching is per-router, not centralized.
@@ -399,7 +482,7 @@ asymmetry). Caching is per-router, not centralized.
 | POST                | `/llm/keys/validate`                                                                       | Probe a key                                      | transport error → `{ok:false}` (never raises)                              |
 | POST                | `/llm/chat`                                                                                | SSE `LLMStreamEvent`                             | `adapter.stream_chat`; unknown provider → 400                              |
 | —                   | _(none — the broker and safety routes were removed, D81, 23 Sep 2026)_                     | No broker, order or kill-switch route exists     | see §0.x                                                                   |
-| GET                 | `/tradesa-v2/*` (14 routes)                                                                | Read-only Tradesa bot mirror                     | `TradesaV2Provider`; GET-only by audit invariant; creds in headers         |
+| —                   | _(none — `tradesa-v2` no longer exists at this sha)_                                       | No Tradesa/bot-mirror route exists                | the plugin dir was replaced by `vysted-lenses`/`vysted-news`/`vysted-yfinance`, see §3.4 |
 | GET/POST/DELETE     | `/plugins[/{id}/config]`                                                                   | Persisted plugin configs                         | `plugins_store` (SQLite)                                                   |
 | GET/POST/DELETE     | `/workspace[/{name}]`                                                                      | Workspace blob persistence                       | `workspace_store`; opaque JSON                                             |
 | GET                 | `/mcp/status` `/openbb-mcp/status`                                                         | Vysted MCP + openbb-mcp readiness                | `mcp_server.tool_count()` / `openbb_mcp_provider.status()`                 |
@@ -407,16 +490,30 @@ asymmetry). Caching is per-router, not centralized.
 
 ### 3.3 Market-data & analytics services
 
-All under `sidecar/services/`. `provider_registry.py` is the single dispatch
-point (routing by `asset_class`): crypto → ccxt (`DEFAULT_CRYPTO_EXCHANGE =
-"binance"`, hardcoded), equity → yfinance; fundamentals/statements/ratings →
-openbb-mcp **if bundled** else yfinance; macro → openbb-mcp only else
-`ProviderError`. `get_quote`/`get_history` are **synchronous** here.
+All under `sidecar/services/`. `provider_registry.py` resolves by **standard
+model key** (`quote`, `ohlcv`, `fundamentals`, `income_statement`, …), walking
+installed providers in **preference order** until one succeeds — `asset_class`
+is a resolution _hint_ layered on top, not the dispatch switch (FR-035/053; a
+`ProviderDeclaration` table — id, model-keys served, preference rank,
+credential/availability gate, region gate — is the single source of truth, and
+`active_providers()` at `/health` derives from it rather than being
+hand-maintained). `get_quote`/`get_history` stay **synchronous** (ccxt/yfinance
+providers, wrapped in `asyncio.to_thread`); openbb-backed methods stay `async`
+— two resolvers (sync/async) share one declaration table and the same
+preference-order fallthrough. For region `IN`, three keyless providers
+outrank the broad default on `quote`/`ohlcv`: `nse_direct` (rank 15,
+exchange-direct EOD, the anti-bot curl_cffi lane), `nse` (rank 20,
+jugaad-data), `bse` (rank 25, the micro-cap EOD default for groups NSE never
+listed) — IN fundamentals still fall through to yfinance (no region-scoped
+fundamentals provider exists).
 
-- **`yfinance_provider.py`** — no-key default for equities. Load-bearing
-  details: `BRK.B`→`BRK-B` rewrite; **dividend-yield divided by 100** (yfinance
-  1.3.0 returns a percentage, the contract wants a fraction — a silent corruption
-  risk if upstream changes); aggregate rating reads only the single most-recent
+- **`yfinance_provider.py`** — the no-key default for equities, region-gated:
+  for `IN` requests `nse_direct`/`nse`/`bse` (ranks 15/20/25) all rank ahead
+  of it for `quote`/`ohlcv`, so it only serves as the IN fallback (fundamentals
+  and any other region still hit it first). Load-bearing details: `BRK.B`→
+  `BRK-B` rewrite; **dividend-yield divided by 100** (yfinance 1.3.0 returns a
+  percentage, the contract wants a fraction — a silent corruption risk if
+  upstream changes); aggregate rating reads only the single most-recent
   recommendation row.
 - **`ccxt_provider.py`** — ccxt (sync REST) + ccxt.pro (async WS). Exchanges:
   bybit, binance, kraken, coinbase. Backs `/crypto/*`.
@@ -439,10 +536,19 @@ openbb-mcp **if bundled** else yfinance; macro → openbb-mcp only else
 - **`sec_filings_provider.py`** (conditional) — sec-edgar-mcp subprocess. Narrow
   form coverage (10-K/10-Q/8-K/DEF 14A/3/4/5); extractors heavily defensive
   against upstream shape drift. Caches via `data_cache`.
-- **`screener.py` + `screener_universes/`** — fan-out filter engine. Universes:
-  `sp500` (**only top 100**, label admits it), `nifty50` (50), `crypto-top50`
-  (50, "refresh from ccxt" worker does **not exist**), `custom`. AND-only
-  criteria; OR-grouping reserved.
+- **`screener.py` + `screener_universes/` + `screener_universe_india.py`** —
+  fan-out filter engine. Universes: `sp500` (full S&P 500 — 503 symbols, a
+  static snapshot dated 2026-09-24), `nifty50` (50), `crypto-top50` (50,
+  reseeded from the bundled snapshot on cache expiry — a live "refresh from
+  ccxt" worker still does **not exist**), `nse-all` (every NSE master row as
+  `SYMBOL.NS` — 3,506 symbols: EQ 2,584 + ETF 351 + SM 571, SM = NSE Emerge),
+  `bse-all` (BSE master rows with STATUS == "Active" as `SYMBOL.BO` — 5,042
+  symbols), `india-all` (the union of the two, NSE listing preferred when a
+  symbol is dual-listed — 5,891 symbols), `custom`. The three India
+  universes resolve from the same bundled resolver-master JSON the symbol
+  resolver reads (offline, deterministic). Criteria support **nested AND/OR**
+  via `CriterionGroup` (`models/screener.py`, `combinator: "and"|"or"`) — OR-
+  grouping is no longer reserved/unimplemented.
 - **`services/macro/`** — four in-process providers (FRED requires
   `FRED_API_KEY`; ECB/IMF/world-bank keyless). Hand-curated `_FEATURED` catalogs;
   full catalog browsing deferred. `fred-mcp-server` turned out to be Node.js →
@@ -480,25 +586,40 @@ poll. **Honesty flag:** `PLUGIN_DEVELOPMENT.md` claims the runtime asserts
 manifest↔instance id/version match + checks `requiredHostVersion` — **none of
 those checks exist** in the code. Aspirational doc.
 
-`bootstrapPlugins()` runs once from `page.tsx`. `BUNDLED_PLUGINS` = exactly
-three (`example`, `openbb-mcp`, `tradesa-v2`). Because the contract is
-serializable, React components ride the **static `PLUGIN_COMPANIONS` map**
-(only `tradesa-v2` ships panels). Per-plugin config persists sidecar-side
-(SQLite `plugin_configs`), never browser storage. Plugin secret resolution via
-`PluginConfig.secrets` is **effectively a no-op** (default `resolveSecrets`
-returns `{}`); plugins fetch creds out-of-band.
+**`BUNDLED_PLUGINS`/`PLUGIN_COMPANIONS` are gone from the code at this sha —
+this whole model changed since an earlier draft of this section, and CLAUDE.md
++ `PLUGIN_DEVELOPMENT.md` are now stale describing it (filed as
+`R15-DOCS-015`, `blocked_tier4`, `DECISIONS_FOR_OPERATOR.md` §2.20).**
+`src/lib/plugin-bootstrap.ts` no longer defines either symbol (confirmed by
+grep at this sha). The catalog is now `CATALOG_ROWS: CatalogRow[]` in
+`src/lib/marketplace.ts:59` — one row per plugin, each pairing a
+`MarketplaceEntry` (name/category/description/icon/`preinstalled`/
+`credentialFields`) with the `DiscoveredPlugin` (manifest + instance).
+`plugin-bootstrap.ts` derives panels/commands per plugin instance from the
+runtime (`moduleForPlugin`, `:134`) instead of a static companion map. Five
+plugins are registered, all `preinstalled: true` (populated on first run):
 
-| Bundled plugin   | Type        | Capabilities (true)                              | Status                                                                                                                         |
-| ---------------- | ----------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| `vysted-example` | data-source | data, commands, control-plane                    | Pedagogical; proves contract end-to-end. Working.                                                                              |
-| `openbb-mcp`     | data-source | data only                                        | Declares 3 DataSources; `healthCheck` probes `/openbb-mcp/status`. Data actually flows through sidecar routes, not the plugin. |
-| `tradesa-v2`     | trading-bot | data, panels, commands (control-plane **false**) | Read-only wrapper, **7 panels** + 7 cmd+K commands; the only bundled plugin exercising panels + the companion map.             |
+| Bundled plugin (`pluginId`) | Type              | Capabilities (true)            | Status                                                                                                       |
+| ---------------------------- | ----------------- | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `vysted-yfinance`            | data-source        | data                            | The no-key equity+fundamentals default. `plugins/yfinance/`.                                                                      |
+| `openbb-mcp`                 | data-source        | data                            | Declares DataSources; `healthCheck` probes `/openbb-mcp/status`. Data actually flows through sidecar routes, not the plugin.      |
+| `vysted-lenses`               | agent-collection   | agents                          | **Contributes a real agent** — the "Quant Tutor" persona (`plugins/vysted-lenses/index.ts`), merged into the persona roster via `collectAgents()`; a genuinely runnable plugin-sourced agent, gated by the same §6.5-successor host-action enforcement as any first-party agent. |
+| `vysted-news`                | data-source        | data                            | RSS keyless + optional BYOK NewsAPI key (`newsapi_key`, sent as `X-Vysted-Newsapi-Key`); `plugins/vysted-news/`.                   |
+| `vysted-example`             | data-source        | data, commands, control-plane   | Pedagogical; proves contract end-to-end. Working.                                                                                  |
 
-**One real gap between narrative and wiring:** `contributesAgents` /
-`contributesNodes` paths are **unexercised** by any bundled plugin (empty in
-practice; first-party AI agents load via a separate sidecar JSON path). (The
-seven broker plugins this section used to describe as dead-wired test
-fixtures are gone outright, D81 — not merely unwired.)
+**`tradesa-v2` (the read-only Tradesa bot-mirror wrapper, 7 panels, the
+`/tradesa-v2/*` REST proxy) no longer exists in the tree at this sha** —
+`plugins/tradesa-v2/`, `sidecar/routers/tradesa_v2.py` and every
+tradesa-specific service/model are gone (confirmed: `git ls-tree`/
+`git cat-file -e` both fail for these paths at `4d89314`). **No bundled
+plugin contributes panels any more** — all five capability blocks above have
+`contributesPanels: false`; the companion-map mechanism this section used to
+describe (`tradesa-v2` as "the only bundled plugin exercising panels") has no
+live consumer.
+
+**`contributesAgents` is now exercised** (`vysted-lenses`'s Quant Tutor) —
+this closes the gap an earlier draft of this section flagged.
+`contributesNodes` remains **unexercised** by any bundled plugin.
 
 ### 3.5 Broker layer — removed (D81, 23 Sep 2026)
 
@@ -512,7 +633,7 @@ deleted, not merely unreachable.
 The execution-safety layer this section used to describe (the eight
 BLUEPRINT §6.5 order non-negotiables, `test_safety_end_to_end.py`) existed
 only to gate broker order placement and was removed with the feature. What
-remains — the proposed-changes trust gate over the 18 surviving host actions
+remains — the proposed-changes trust gate over the 19 surviving host actions
 — is documented in `docs/SAFETY_ARCHITECTURE.md`, current as of this
 removal. `sidecar/tests/test_no_trading_surface.py` pins that no order,
 broker or simulated-account path exists anywhere.
@@ -571,7 +692,7 @@ and mounts `DockviewReact`. **`collectPanelComponents` does a flat
 (last wins), no guard.** Default layout: Chart over Equity Overview (left),
 Watchlist/News/Portfolio stacking right, AI Assistant far-right column.
 
-**18 first-party modules** hard-listed in `src/modules/index.ts` (edit-once-
+**20 first-party modules** hard-listed in `src/modules/index.ts` (edit-once-
 per-phase so parallel work doesn't contend). Plugins bridge into the _same_
 registry via `moduleForPlugin` (id `plugin:<id>`) — no second registry.
 
@@ -644,9 +765,13 @@ none use `localStorage`. Notable surfaces:
 - **Chat sidebar** (`ChatSidebar.tsx`) — the most cross-cutting surface (6+
   stores). Default agent `copilot`; bare text routes to it; clickable persona
   chip roster; `/ask` raw escape hatch. `executeHostAction` maps copilot tool
-  calls to live store mutations (`set_chart_symbol`/`open_panel`/`add_to_watchlist`
-  and the rest of the 18 host actions), staged through the review bar (§5) —
-  there is no order kind any more (D81). BYOK key resolved from the **agent's**
+  calls to `ProposedChange` entries (`set_chart_symbol`/`open_panel`/
+  `add_to_watchlist` and the rest of `HOST_ACTION_NAMES`, `src/lib/
+host-actions.ts` — 19 host actions total), staged through the diff/accept
+  review bar (§5); the `panel`/`chart`/`watchlist` kinds apply without a
+  per-action confirmation under AUTO autonomy (`AUTO_APPLIED_KINDS`,
+  `types/proposed-change.ts`) — `data-write`/`settings` always wait — there is
+  no order kind any more (D81). BYOK key resolved from the **agent's**
   `defaultProvider` (not the UI default), read from keychain on demand.
   `defaultModelFor` **hard-codes one model per provider** (may drift).
 - **Integrations** (`ConnectCard.tsx`) — no `index.ts`, rendered inside
@@ -663,6 +788,15 @@ the Phase-10 `copilot` router. Each persona's prompt is 1.5–4 KB; only `copilo
 (ollama/`qwen2.5:7b`) and `researcher` (openai) deviate from anthropic default.
 The `sidecar/agents/` dir is bundled via an explicit `--add-data` (it has no
 `__init__.py`; was silently dropped for 3 releases — Phase 8 finding).
+
+**Plugin-contributed agents (new since an earlier draft of this section):**
+the `vysted-lenses` plugin's `contributesAgents: true` capability adds a 14th
+persona, "Quant Tutor" (`plugins/vysted-lenses/index.ts`), merged into the
+roster via the plugin runtime's `collectAgents()` — genuinely runnable, its
+`tools` allow-list gated the same as any first-party agent (§3.4). The 13-agent
+count above is specifically the `sidecar/agents/*.json` roster and stays
+accurate as that figure; the user-visible persona roster is 13 + this one
+plugin agent at this sha.
 
 **Custom agents:** CRUD'd via `/custom-agents`, SQLite store, `custom:` prefix
 required. **Caveat — the custom-agent tool allow-list is stale + out of sync:**
@@ -698,8 +832,9 @@ configured but `createUpdaterArtifacts:false` → no signed artifacts/`latest.js
 **no release/publish workflow exists** (CI only runs on push/PR + uploads
 ephemeral artifacts). **Version sources stuck at `0.8.0`** (`package.json`,
 `Cargo.toml`, `tauri.conf.json`, `app.py`, `HOST_VERSION`) despite Phase
-8/9/9.5/10 merged, D81 and Stage C batches 2-9 — this R15 candidate targets
-`0.9.0` (§0.0); the bump has not been made as of this sha.
+8/9/9.5/10 merged, D81 and Stage C batches 2-22 — this R15 candidate targets
+`0.9.0` (§0.0); `0.9.0` lands when the prepared version branch merges, right
+after the `r15-rc1` tag — confirmed at the tag.
 
 ### 3.13 Persistence & BYOK (see §6 for the consolidated model)
 
@@ -742,13 +877,16 @@ terse system preamble (`_render_terminal_preamble`, with the deixis line —
 `get_portfolio`).
 
 **Host-action tools drive the terminal.** `open_panel`, `set_chart_symbol`,
-`add_to_watchlist` and the rest of the catalog's 18 host actions are
-per-invocation closures that return a _synthetic_ success — the **real UI
-work happens frontend-side** in `ChatSidebar.executeHostAction`, dispatched
-off the streamed `tool_use` event, not the synthetic result (the
-`host_action` payload on the wire is effectively dead today). There is no
-order host action any more — no broker connection exists to place one
-against (D81).
+`add_to_watchlist` and the rest of `HOST_ACTION_NAMES` (`src/lib/
+host-actions.ts` — 19 host actions total) are per-invocation closures that
+return a _synthetic_ success — the **real UI work happens frontend-side** in
+`ChatSidebar.executeHostAction`, dispatched off the streamed `tool_use` event
+as a staged `ProposedChange` (not the synthetic result; the `host_action`
+payload on the wire is effectively dead today). The change waits in the
+diff/accept review bar (§5) unless its kind is one of `AUTO_APPLIED_KINDS`
+(`panel`/`chart`/`watchlist`, `types/proposed-change.ts`) under AUTO
+autonomy — `data-write`/`settings` always wait. There is no order host action
+any more — no broker connection exists to place one against (D81).
 
 **Personas.** 13 first-party agents (§3.11). `copilot` is the terminal-aware
 default whose allow-list is the broadest (14 tool ids incl. all host actions).
@@ -775,7 +913,7 @@ catalog.py`, the single source of truth per §0). No `broker_portfolio` or
 | `analyst_history`                                                                                                                                                                                                              | rating-change history                                                | yes                                                         |
 | `sec_filings_list`                                                                                                                                                                                                             | filings index (degrades if sec-edgar down)                           | yes                                                         |
 | `get_terminal_state` / `get_portfolio`                                                                                                                                                                                         | snapshot reads                                                       | yes (runtime-resolved)                                      |
-| `open_panel` / `set_chart_symbol` / `add_to_watchlist` / the tracked-portfolio, note, screen and layout writers / `set_region`                                                                                                 | host actions (18 total)                                              | yes (runtime-resolved)                                      |
+| `open_panel` / `set_chart_symbol` / `add_to_watchlist` / the tracked-portfolio, note, screen and layout writers / `set_region`                                                                                                 | host actions (19 total)                                              | yes (runtime-resolved)                                      |
 | `macro_search`, `earnings_upcoming`, `earnings_estimates`, `analyst_individual`, `price_target_history`, `sec_filing_content`, `sec_insider_transactions`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value` | registered handlers, callable over REST                              | **NO — no `TOOL_SCHEMAS` entry → invisible to every model** |
 
 **Material catalog gap:** ~11 registered handlers (the entire QuantLib quartet,
@@ -811,15 +949,17 @@ removed permanently with trading (D81, 23 Sep 2026) — see §0.x and
    change; the `"trading-bot"` `PluginType` literal and its Tradesa-shaped
    JSDoc examples are BLOCKED-FOR-OPERATOR, not reopened by D81.
 2. **The proposed-changes trust gate** (`src/store/proposed-changes.ts`,
-   `src/lib/host-actions.ts`) — every agent-proposed mutation over the 18
+   `src/lib/host-actions.ts`) — every agent-proposed mutation over the 19
    surviving host actions stages through the same diff/accept flow the
    removed order kind used to ride.
 3. **The renderer-reads-keychain → secret-in-request invariant** — the sidecar
    cannot read the OS keychain; only Rust can. Never log/echo/persist a secret.
-4. **Read-only-wrapper enforcement for data-source plugins** (e.g. Tradesa V2)
-   — three independent layers: no write methods on the provider surface
-   (audit-tested), no non-GET routes (audit-tested), `supportsControlPlane:
-false`.
+4. **Read-only-wrapper enforcement for data-source/trading-bot-shaped
+   plugins** — three independent layers: no write methods on the provider
+   surface (audit-tested), no non-GET routes (audit-tested),
+   `supportsControlPlane: false`. (Tradesa V2, this rule's original worked
+   example, no longer exists in the tree at this sha — see §3.4; the rule
+   itself is the standing contract for any future plugin of that shape.)
 5. **No order, broker or simulated-account path exists anywhere** — pinned by
    `sidecar/tests/test_no_trading_surface.py` (D81's Gate 8).
 
@@ -873,16 +1013,17 @@ auto-evicted.
 
 ## 7. Consolidated status — works / buggy / deferred
 
-Reference HEAD `3123e7c` (Phase 10); superseded at this sha (`f4444790`,
+Reference HEAD `3123e7c` (Phase 10); superseded at this sha (`4d89314`,
 0.9.0 candidate — see §0.0 for the R15 delta this table does not yet fully
 reflect subsystem-by-subsystem). **Last release tag `v0.8.0`; Phase
-8/9/9.5/10 sit on `main` unreleased/untagged.** "Works" below almost always means
-"automated gates pass against mocks," **not** "live/visually validated by a
-human."
+8/9/9.5/10 + R15 sit on `main`/`004-r4-experience-rebuild` unreleased/
+untagged (no `r15-*` tag exists yet at this sha, per `git tag`).** "Works"
+below almost always means "automated gates pass against mocks," **not**
+"live/visually validated by a human."
 
 | Item                                                                                   | Status                                                                                                          | Source                                                                         |
 | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `pnpm ci-local` (full CI parity)                                                       | **Stale figures** — pre-R15 (619 vitest, 6 cargo, 942 pytest); not re-run at this sha, see §0.0                 | PHASE_10_HANDOFF §"Gate results"; <!-- VERIFY: re-run ci-local at f4444790 --> |
+| `pnpm ci-local` (full CI parity)                                                       | **Stale figures** — pre-R15 (619 vitest, 6 cargo, 942 pytest); a later R15 pause point recorded "pytest 2507 passed/1 skipped, vitest 1504 in 135 files, cargo 13" (`DECISIONS_FOR_OPERATOR.md` §2.6), also not re-verified at this sha; see §0.0 | PHASE_10_HANDOFF §"Gate results"; <!-- VERIFY: re-run ci-local at 4d89314 --> |
 | Agent-write safety model (§6.5)                                                        | **Works** — Gate 8 no-trading test green; see §0.x, SAFETY_ARCHITECTURE                                         | SAFETY_ARCHITECTURE                                                            |
 | All 3 sidecar binaries spawn + bind                                                    | **Works** — `smoke-test-sidecars.mjs` exit 0 (freshness + bind probe)                                           | PHASE_10_HANDOFF                                                               |
 | Static-export build                                                                    | **Works** — `pnpm build` (`vite build`) per prior tags; not re-run at this sha                                  | PHASE_10_HANDOFF                                                               |
@@ -894,7 +1035,7 @@ human."
 | MCP cold-bind latency                                                                  | **Buggy/fragile** — 34s isolated, worse under I/O contention; mitigated (45s×2, graceful fallback), not crash   | BLOCKERS Phase 9.5 UC1                                                         |
 | openbb/sec-edgar `_MEIPASS` deadlock root cause                                        | **Buggy** — worked around at the supervisor, NOT actually fixed                                                 | BLOCKERS carry-forward #7                                                      |
 | Smoke-test endpoint-data gap                                                           | **Buggy** — binds-but-empty-data still passes the gate                                                          | BLOCKERS S2 #8                                                                 |
-| `contributesAgents` / `contributesNodes` plugin paths                                  | **Unexercised** — empty in practice                                                                             | §8                                                                             |
+| `contributesAgents` / `contributesNodes` plugin paths                                  | `contributesAgents` exercised by `vysted-lenses` (Quant Tutor); `contributesNodes` **unexercised**                                                                             | §8                                                                             |
 | Gemini multi-round tool use                                                            | **Likely broken** — `function_response` keyed by empty name                                                     | §4                                                                             |
 | Plugin manifest↔instance + `requiredHostVersion` checks                                | **Documented but not implemented**                                                                              | §8                                                                             |
 | Custom-agent tool allow-list                                                           | **Stale/out of sync** — 5 ids; `news`/`macro` not in `TOOL_SCHEMAS`                                             | §11                                                                            |
@@ -905,16 +1046,16 @@ human."
 | Light theme                                                                            | **Deferred to v1.1** — dark-only ships                                                                          | BLOCKERS S2 #10                                                                |
 | Launch ops (signing, updater wiring, channels, landing page, LICENSE flip, TOS dialog) | **Mostly deferred** (Phase 7 → still open)                                                                      | BLOCKERS v0.7.0→Phase 10                                                       |
 | `auto_export`/auto-updater end-to-end                                                  | **Non-functional** — `createUpdaterArtifacts:false`, no frontend caller, no release workflow                    | §1, §14                                                                        |
-| Version strings (`0.8.0` everywhere)                                                   | **Stale, open** — 0.9.0 candidate target (§0.0); files still 0.8.0, bump not yet made                           | §3.12; §0.0                                                                    |
+| Version strings (`0.8.0` everywhere)                                                   | **Stale, open** — 0.9.0 candidate target (§0.0); files still 0.8.0, bump lands with the prepared version branch right after the `r15-rc1` tag                          | §3.12; §0.0                                                                    |
 | mypy/lint debt, a11y gaps, Linux transitive advisories                                 | **Known debt** — see BLOCKERS S2/S3/S4                                                                          | BLOCKERS                                                                       |
-| R15 register remediation (critical/high/medium/low)                                    | **16/16 critical fixed; 100/112 high; 153/279 medium; 10/219 low** — 3 open high, 114 open medium, 205 open low | §0.0; `vysted-r15-register.json`; `BLOCKERS.md`                                |
+| R15 register remediation (critical/high/medium/low)                                    | **16/16 critical fixed; 105/116 high; 258/293 medium; 12/227 low** — open critical/high/medium is 1 entry (R15-LEAD-035, a documented known limitation, see §0.0); 205 open low, 25 blocked_tier4, 11 needs_gui | §0.0; `vysted-r15-register.json`; `BLOCKERS.md`                                |
 | Licence (PolyForm Strict 1.0.0 core + Apache-2.0 plugin contract + commercial)         | **Works** — `LICENSE`/`LICENSE-APACHE`/`COMMERCIAL_LICENSE.md` present at this sha                              | §0.0                                                                           |
 
 **Bottom line:** green on every machine-checkable gate as of the stale
 pre-R15 run cited above (re-run pending, §0.0), unproven on every
 human-checkable one. The §6.5 order-execution layer no longer exists (D81);
 §6.5 now names the agent-write safety model, i.e. the proposed-changes trust gate
-(§5) over the 18 surviving host actions, including the tracked portfolio. The
+(§5) over the 19 surviving host actions, including the tracked portfolio. The
 standing fragility to watch is MCP cold-bind contention (worked around, not
 root-fixed); R15 Stage C register remediation is summarized in §0.0.
 
@@ -928,12 +1069,12 @@ the surface and the agent-centrality.
 
 ### KEEP (the working foundation — do not rebuild)
 
-- **The sidecar + data layer.** ~94 REST routes (post-D81), the `provider_registry`
+- **The sidecar + data layer.** ~111 REST routes (post-D81), the `provider_registry`
   dispatch seam, yfinance/ccxt/news/VADER/macro/QuantLib/49-indicators, the
   data-cache, the SSE convention. This is the data brain; it works and is broadly
   tested. The redesign consumes it, it does not replace it.
 - **The agent-write safety model, intact.** Tier-1 LOCKED. The proposed-changes
-  trust gate over the 18 host actions is the most trustworthy asset — preserve
+  trust gate over the 19 host actions is the most trustworthy asset — preserve
   it and run `test_no_trading_surface.py` as a hard gate on any touch (§5).
   There is no broker connectivity, order placement or simulated account to
   preserve — that layer was removed permanently (D81, 23 Sep 2026).
@@ -993,17 +1134,24 @@ loop; rebuild the shell into an agent-first experience, promote MCP from
 plumbing to extension framework, and close the copilot's catalog/provider gaps
 that quietly cap what the agent can do today. Trading is not part of this
 product any more (D81) — nothing here should reopen it.
+<!-- refresh f444479 to 4d89314: register table + Stage C remediation section rebuilt for batches 2-22 (652 entries, was 626; open critical/high/medium now just R15-LEAD-035, was 3 high + 114 medium); added the operator-accepted "Known limitations at rc1 — agent chat with a keyless local model" subsection (LEAD-030/035/037/038 verbatim wording per the binding Tier-4 sign-off); corrected the plugin-system description throughout (§1, §3.2, §3.4, §5, §3.11) — tradesa-v2 no longer exists in the tree, replaced by vysted-lenses/vysted-news/vysted-yfinance (BUNDLED_PLUGINS/PLUGIN_COMPANIONS also gone, replaced by marketplace.ts CATALOG_ROWS; contributesAgents now exercised by vysted-lenses); router/route counts refreshed (24→28 routers, ~107→~111 routes); §7 status table and sha references updated -->
 <!-- critic-footer -->
 ## Critic findings applied
 
-1. applied
-2. applied
-3. applied
-4. n/a — targets BLOCKERS.draft.md, see its footer
-5. n/a — targets BLOCKERS.draft.md, see its footer
-6. applied
-7. applied
-8. applied
-9. applied
-10. applied
-11. applied
+1. applied — §3.3 `provider_registry.py` paragraph and yfinance bullet restored verbatim to the at-sha model-key/preference-order text.
+2. applied — §3.3 screener bullet restored verbatim to the at-sha 503-symbol `sp500` + India-universe + nested AND/OR text.
+3. applied — host-action count "18"→"19" fixed at every occurrence; `HOST_ACTION_NAMES` (`src/lib/host-actions.ts`) pointer restored in both the Chat sidebar and "Host-action tools drive the terminal" paragraphs.
+4. applied — both paragraphs restored to state that `executeHostAction` stages a `ProposedChange` and that only `AUTO_APPLIED_KINDS` (`panel`/`chart`/`watchlist`) skip review under AUTO.
+5. applied — no `.draft.md` change needed; the diff-generation commands already `tail -n +2` the draft before diffing, so the regenerated `CURRENT_STATE.draft.diff`/`BLOCKERS.draft.diff` no longer add the DRAFT marker line to root `BLOCKERS.md`.
+6. applied — §0.0 "Version" paragraph, §3.12, and the §7 "Version strings" row now say `0.9.0` lands when the prepared version branch merges right after `r15-rc1`, matching `BLOCKERS.draft.md`.
+7. applied (in `BLOCKERS.draft.md`) — see that file's footer.
+8. applied (in `BLOCKERS.draft.md`) — see that file's footer.
+9. applied — §7 `contributesAgents`/`contributesNodes` row now says `contributesAgents` is exercised by `vysted-lenses` (Quant Tutor); `contributesNodes` stays unexercised.
+10. applied — §3.2 now cites `app.py:329` for `version="0.8.0"` and `app.py:191,205` (called at `:368,374`) for the v0.5.0/v0.6.0 aggregators.
+11. applied — §3.12 "despite … Stage C batches 2-9" corrected to "2-22".
+12. applied — §8 KEEP "~94 REST routes" corrected to "~111 REST routes".
+13. applied (in `BLOCKERS.draft.md`) — see that file's footer.
+14. applied (in `BLOCKERS.draft.md`) — see that file's footer.
+15. applied (in `BLOCKERS.draft.md`) — see that file's footer.
+16. applied — the two `docs/redesign/FOUNDATION_BUILD_REPORT.md`/`P1_P3_BUILD_REPORT.md` pointers in this file now note "(not in tree at this sha — `git ls-tree -r` at `4d89314` has no match)"; the four `docs/PHASE_*` pointers this finding also covers live in `BLOCKERS.draft.md` and are fixed there.
+17. applied — module count "~18 first-party"/"18 first-party modules" corrected to "~20"/"20" (§1, §3.8); `lib.rs` "+ three modules" corrected to "+ four modules (`diag_log.rs`, `keychain.rs`, `openbb_mcp.rs`, `sec_edgar_mcp.rs`)" (§3.1).

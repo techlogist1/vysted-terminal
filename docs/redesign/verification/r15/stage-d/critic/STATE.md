@@ -1,155 +1,212 @@
-<!-- CRITIC of CURRENT_STATE.draft.md, CURRENT_STATE.draft.diff, BLOCKERS.draft.md, BLOCKERS.draft.diff at f444479031d7d493b7955b9af041d18e7c7a40cc -->
+<!-- CRITIC of CURRENT_STATE.draft.md, CURRENT_STATE.draft.diff, BLOCKERS.draft.md, BLOCKERS.draft.diff at 4d893147def983623de681effd1bfbae2e7441c5 -->
 
-# Critic — STATE (Fable, stage-d-critic-state)
+# Critic: STATE (Opus, stage-d-critic-state)
 
-Sha: `f444479031d7d493b7955b9af041d18e7c7a40cc`. Inputs: the four draft files under
-`docs/redesign/verification/r15/stage-d/`. Targets: `docs/CURRENT_STATE.md`, `BLOCKERS.md`.
+**Verdict: REVISE.** 17 findings: wrong 11, missing 0, stale 6, unverifiable 0.
 
-## Verdict: REVISE
+The main problem: `CURRENT_STATE.draft.diff` does not start from the file at the sha. It **reverts four R15 doc fixes
+that already landed on `docs/CURRENT_STATE.md`**: R15-DOCS-016/017/018 (`f10fb8ce`, `bbfc64bd`, `190b380e`, `3cb5bc29`)
+and the batch-10 host-action count fix (`6c5b49d3`). It puts back the stale pre-redesign text that those commits removed
+(findings 1-4). The draft looks as if it was rebuilt on an older copy of the file. Both diffs apply cleanly. The
+register table, the known-limitations wording and the licence facts are correct.
 
-Findings 1–6 would mislead the next maintainer or make a CI step fail. The rest are
-one-line corrections. Counts: wrong 6, missing 3, stale 2, unverifiable 0 (11 total).
+All paths and lines below are at `4d893147` (`git show 4d893147:<path>`).
 
 ## Findings
 
-1. **wrong** — CURRENT_STATE §0.0, "R15 Stage C remediation" paragraph (draft line ~79):
-   "batch merge commits are listed … and as D82 through D92 in `docs/redesign/DECISIONS.md`".
-   Evidence: `git show f4444790:docs/redesign/DECISIONS.md` lines 142–152 — D82 = OpenAI
-   spend cap, D83 = relicense commit `0c63d46`, D84 = Gate 2 adjudication, D85–D92 = Stage C
-   **removal-plan (batch 1, D81) riders**; a second D85 row at line 153 records the
-   `a122dbf` merge. Batch 3/4 decisions are `D-B3-1` (line 163) and `D-B4-1`, not D-numbers.
-   Nothing in D82–D92 records batches 2–9. Fix: replace the clause with "the batch-1
-   removal-plan riders are D85–D92 (D83 records the relicense); per-batch decisions from
-   batch 3 on carry `D-B<n>-<k>` ids in `DECISIONS.md`".
+1. **wrong**: CURRENT_STATE §3.3, draft lines 488-498 (diff hunk `@@ -317,30 +484,16 @@`).
+   - **What is wrong:** the draft replaces the at-sha `provider_registry` paragraph with the pre-redesign text:
+     "single dispatch point (routing by `asset_class`) … equity → yfinance". It also strips the region-gating from the
+     yfinance bullet.
+   - **Evidence:** the dispatch is model-key and preference-order based.
+     - `sidecar/services/provider_registry.py:91` has `class ProviderDeclaration`.
+     - `:166` has `id="nse_direct"`.
+     - `:370` has "Walk SYNC providers for `model_key` in preference order".
+     - The at-sha text was put there by `190b380e` "document the IN provider chain, region-qualify yfinance
+       (R15-DOCS-018)" and `f10fb8ce`.
+   - **Fix:** drop those `-`/`+` lines from the hunk and keep the at-sha §3.3 paragraph and yfinance bullet verbatim.
 
-2. **wrong** — CURRENT_STATE §7 "Bottom line" (draft line ~904): "§6.5 itself no longer
-   exists — it was removed with trading (D81)". Evidence: DECISIONS.md D88 (line 148)
-   "BLUEPRINT keeps the §6.5 section number for the agent-write safety model, retitled";
-   `git show f4444790:docs/SAFETY_ARCHITECTURE.md` line 1 is
-   `# Vysted Terminal — Agent-Write Safety (BLUEPRINT §6.5)`; the draft's own §7 row
-   "Agent-write safety model (§6.5) — **Works**" and §3.6 heading contradict the sentence.
-   Fix: "the §6.5 order-execution layer no longer exists (D81); §6.5 now names the
-   agent-write safety model, i.e. the proposed-changes trust gate (§5) over the 18 host
-   actions".
+2. **wrong**: CURRENT_STATE §3.3 screener bullet, draft lines 520-523.
+   - **What is wrong:** the draft says "`sp500` (**only top 100**) … AND-only criteria; OR-grouping reserved". This
+     reverts the R15-DOCS-017 fix.
+   - **Evidence:**
+     - `sidecar/models/screener.py:36-38` defines the `nse-all`, `bse-all` and `india-all` universes.
+     - `sidecar/models/screener.py:181` has `combinator: Literal["and", "or"]`.
+     - `sidecar/services/screener_universe_india.py` exists.
+     - The fix commits are `bbfc64bd` and `3cb5bc29`.
+   - **Fix:** keep the at-sha screener bullet (503-symbol sp500, the India universes, nested AND/OR).
 
-3. **wrong (makes `pnpm format:check` / CI lint fail)** — both diffs. The drafts pass
-   prettier only because `docs/redesign/verification/r15/` is ignored
-   (`git show f4444790:.prettierignore` line 73); the promoted targets are not ignored.
-   Command (repo cwd, PATH per brief): `node_modules/.bin/prettier --check <sha copies>` →
-   "All matched files use Prettier code style!" exit 0; the same on the patched copies →
-   `[warn] CS.patched.md`, `[warn] BL.patched.md`, exit 1 (prettier 3.8.3, repo
-   `.prettierrc`). `prettier --write` delta: (a) both files gain a leading blank line
-   (CS diff hunk 1 `+` blank before the title; BL diff hunk 1 first `+` line) — delete it;
-   (b) §0.0 severity table (draft lines 67–72) is unpadded — prettier pads every column;
-   (c) §7 table (draft lines 872–900): the two appended rows and the edited cells widen the
-   Status/Source columns, so every row re-pads, and a blank line is required between the
-   table and `**Bottom line:**` (draft line 901); (d) BLOCKERS item 3 continuation
-   (draft lines 166–167) must be indented 5 spaces, not 3. Fix: run
-   `node_modules/.bin/prettier --write` on the two patched copies and regenerate both
-   `.diff` files from them; the `.draft.md` files then match.
+3. **wrong**: the host-action count "18" appears throughout CURRENT_STATE: draft lines 237, 608, 741, 847, 880, 916,
+   1022 and 1041.
+   - **Evidence:**
+     - `src/lib/host-actions.ts:74-94` has `HOST_ACTION_NAMES` with 19 names, ending in `set_region`.
+     - `git show 4d893147:sidecar/services/agent_tools/catalog.py | grep -c 'kind="host_action"'` returns `19`.
+     - The at-sha file already said 19 (`6c5b49d3`).
+   - **Fix:** use "19" everywhere and restore the `HOST_ACTION_NAMES` (`src/lib/host-actions.ts`) pointer.
 
-4. **missing** — BLOCKERS "R15 open items" → "Open Tier-4 decisions" closing parenthetical
-   (draft lines 72–75) accounts for 1.2/2.3/2.4/2.5/3.5/3.6 and nothing else, so DFO §3.1,
-   §3.2, §3.3 vanish. Evidence: `git show f4444790:docs/redesign/DECISIONS_FOR_OPERATOR.md`
-   lines 179 (3.1 "approve a one-time 'remove leftover broker credentials' step + CHANGELOG
-   note"), 195 (3.2 "review the exact copy in `src/modules/safety/DisclaimerFlow.tsx`
-   before it ships — flagged Tier-4 by R15-UI-041"), 205 (3.3 accepted gaps, tracked as
-   R15-CODE-FRONTEND-013 / -008). All three are open (FACTS §decisions closed=False). Fix:
-   add a sub-list "Open non-Tier-4 operator items" with 3.1, 3.2, 3.3 and their verbatim
-   unblock lines, and mention them in the parenthetical.
+4. **wrong**: CURRENT_STATE §3.10 Chat sidebar (draft lines 739-742) and §4 "Host-action tools drive the terminal"
+   (draft lines 846-853).
+   - **What is wrong:** the draft says `executeHostAction` "maps copilot tool calls to live store mutations". It drops
+     the at-sha statement that host actions are staged as `ProposedChange` entries and that only
+     `AUTO_APPLIED_KINDS` (`panel`/`chart`/`watchlist`) skip review under AUTO. The draft's own §0.0 (lines 155-158)
+     states that rule.
+   - **Evidence:** `types/proposed-change.ts:38-46` (`AUTO_APPLIED_KINDS`, `autoApplies`). The at-sha wording came
+     from `f10fb8ce` (R15-DOCS-016).
+   - **Fix:** keep both at-sha paragraphs verbatim.
 
-5. **missing** — CURRENT_STATE §0.0 "Version" paragraph and the §1 edit both send the reader
-   to `BLOCKERS.md` "R15 open items" for the 0.9.0 bump, but the BLOCKERS draft's R15
-   section has no such item (`grep -n -i '0\.9\.0\|bump' BLOCKERS.draft.md` → only the two
-   header lines 5/11 and unrelated 304/424). Fix: add a bullet under "R15 open items":
-   "**0.9.0 bump not made** — `package.json:3`, `src-tauri/Cargo.toml:3`,
-   `src-tauri/tauri.conf.json:4`, `sidecar/app.py:327`, `src/lib/plugin-bootstrap.ts:37`
-   are `0.8.0` (FACTS §versions); after editing run
-   `cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml`
-   (CLAUDE.md §Versioning) and grep for stale `0.8.0` strings".
+5. **wrong**: `BLOCKERS.draft.diff` line 4 adds
+   `+<!-- DRAFT at 4d893147… by the Stage D docs wave; refresh before rc2 -->` as line 1 of the repo's `BLOCKERS.md`.
+   - **Evidence:** I applied the diff to a copy of `BLOCKERS.md` at the sha and got a file byte-identical to
+     `BLOCKERS.draft.md`, marker included. `CURRENT_STATE.draft.diff`, by contrast, correctly leaves the marker out:
+     the patched copy differs from the draft only by line 1.
+   - **Fix:** remove that `+` line from the BLOCKERS diff and make the hunk header `@@ -1,9 +1,267 @@`. Otherwise
+     promoting the diff with `patch` ships a DRAFT marker in root `BLOCKERS.md`.
 
-6. **stale** — CURRENT_STATE §7 row "Static-export build — **Works** — `next build`
-   compiles" (draft line 878) and the untouched §1/§2/§3.8 Next.js claims (lines 195, 259,
-   549). Evidence: `git show f4444790:package.json` has no `next` dependency; line 8
-   `"dev": "vite"`, `"build": "vite build"`, line 82 `"vite": "^8.0.16"`, line 68
-   `@vitejs/plugin-react`; `vite.config.ts` exists at the sha; migration commit
-   `8c2f9ab9 2026-06-10 feat(shell): migrate Next.js -> Vite 8 + React 19 (WS1)`. There is
-   no `next` binary to run, so the row names a command that does not exist. §0.0 claims to
-   be the current top-of-file truth and does not mention it. Fix: §7 row → "`pnpm build`
-   (`vite build`) — **Works** per prior tags; not re-run at this sha"; add one sentence to
-   §0.0: "Frontend is Vite 8 + React 19 since `8c2f9ab9` (2026-06-10); Next.js references
-   below are pre-migration history." (CLAUDE.md at the sha also still says Next.js — Tier-1,
-   queue via `docs/redesign/CLAUDE_MD_PROPOSAL.md`, not this draft.)
+6. **wrong**: CURRENT_STATE §0.0 "Version", draft lines 33-35.
+   - **What is wrong:** the draft says the bump "has not been made yet; it is an open pre-tag item". The lead note
+     says 0.9.0 lands when the prepared version branch (`worktree-agent-r15-version-0.9.0`) merges, right after the
+     `r15-rc1` tag. `BLOCKERS.draft.md:25-27` already says that. As written, the two docs contradict each other, and
+     the reader would bump before tagging.
+   - **Fix:** use the BLOCKERS sentence ("`0.9.0` lands when the prepared version branch … merges, right after the
+     `r15-rc1` tag — confirmed at the tag"). Mirror it in §3.12 (draft line 804) and the §7 "Version strings" row
+     (line 1013).
 
-7. **wrong** — CURRENT_STATE §0.0 "Trading removed" paragraph: "only
-   `src/modules/safety/DisclaimerFlow.tsx` remains under `src/modules/safety/`".
-   Evidence: `git ls-tree f4444790 src/modules/safety/` → `DisclaimerFlow.test.tsx`,
-   `DisclaimerFlow.tsx`, `index.ts`. Fix: "only the DisclaimerFlow module
-   (`DisclaimerFlow.tsx`, its test and `index.ts`) remains".
+7. **wrong**: BLOCKERS 4.12, draft lines 186-188.
+   - **What is wrong:** "§6.5 successor confirms `/portfolio/positions` and `audit_orders` stay untouched" implies
+     that an `audit_orders` table exists.
+   - **Evidence:**
+     - `docs/redesign/DECISIONS_FOR_OPERATOR.md:629-631`: "There is no `audit_orders` table any more: D81 removed it".
+     - The FACTS fail-safe bullet says the same.
+     - The CURRENT_STATE draft line 158 says the same.
+   - **Fix:** "(nothing is written or queued: `/portfolio/positions` stays `[]` and the review queue stays empty; there
+     is no `audit_orders` table, D81)".
 
-8. **wrong** — CURRENT_STATE §0.0 "Test-count claims" paragraph: "Stage C batches 2–9
-   (which deleted the §6.5 safety-model tests along with the feature …)". Evidence:
-   `git show --stat a122dbf6` (batch 1, the D81 merge) deletes
-   `sidecar/tests/test_safety_end_to_end.py` (509 lines) and `test_safety_router.py`;
-   batches 2–9 did not. Fix: attach the parenthetical to D81: "the D81 removal (which
-   deleted the §6.5 order-safety tests) and Stage C batches 2–9 (which changed others)".
+8. **wrong**: BLOCKERS 4.11, draft lines 180-182.
+   - **What is wrong:** "the figure guard grounds a price by value only, not by ok-subject provenance, so a stale bar
+     (or, once, an invented figure outside the payload) can pass". This contradicts the concurred wording, which says
+     such a figure "is not checked against that result at all"
+     (`docs/redesign/verification/r15/stage-c/batch-23/DISPOSITION-CONCURRENCE.md:313-316`). The disposition verifier
+     proved the guard never checks a figure for a subject whose call succeeded, which is why that clause was struck
+     from LEAD-030.
+   - **Fix:** "a figure the agent states for a company whose data call succeeded is not checked against that result at
+     all, so a stale bar's value or a figure absent from the payload can pass as the current price".
 
-9. **stale** — CURRENT_STATE header blockquote, draft line 14 (a paragraph the diff edits):
-   "any BYOK/live-broker round-trip are unverified". No broker exists (D81; §0.0 two lines
-   later). Fix: "any BYOK round-trip".
+9. **stale**: CURRENT_STATE §7 row "`contributesAgents` / `contributesNodes` plugin paths — **Unexercised**", draft
+   line 1002 (re-added at diff line 523).
+   - **Evidence:** this contradicts the draft's own §3.4 (line 592, "`contributesAgents` is now exercised") and
+     `plugins/vysted-lenses/index.ts:23` (`contributesAgents: true`).
+   - **Fix:** "`contributesAgents` exercised by `vysted-lenses` (Quant Tutor); `contributesNodes` **unexercised**".
 
-10. **wrong** — CURRENT_STATE §7, "Version strings" row source cell (edited by the diff,
-    draft line 898) cites "§14"; the neighbouring `auto_export` row cites "§1, §14" and
-    other rows "§15"/"§11"/"§8". The document's headings run §0.0–§8 (`grep '^## '`); the
-    version/updater text lives in §3.12 (draft lines 686–692). Fix: "§3.12; §0.0" for the
-    edited row (the other pre-existing dangling anchors are optional cleanup).
+10. **stale**: CURRENT_STATE §3.2, draft lines 430-436. The draft edited this paragraph but kept its dead pointers.
+    - **Evidence:**
+      - `version="0.8.0"` is at `sidecar/app.py:329`, not `:161`.
+      - The runtime-extension aggregators are `_register_v0_5_0_…`/`_register_v0_6_0_…` at `app.py:191,205`, called
+        at `:368,374`. The draft names "v0.6.0/v0.6.5 … `app.py:131,145`".
+      - The v0.6.5 registry was deleted (D89, `docs/redesign/DECISIONS.md:149`).
+    - **Fix:** `app.py:329`; "v0.5.0/v0.6.0 aggregators (`app.py:191,205`)".
 
-11. **missing** — CURRENT_STATE §0.0 "Relicensed" paragraph names only `types/plugin.ts` and
-    `plugins/example` as the Apache-2.0 carve-out. Evidence:
-    `git show f4444790:LICENSING.md` lines 46–50 also list `types/plugin-runtime.ts` and the
-    example's `example.test.ts` + `manifest.json`; DECISIONS.md D83 says the same. A plugin
-    author reading this would think importing `plugin-runtime.ts` is Strict territory. Fix:
-    "(`types/plugin.ts`, `types/plugin-runtime.ts`, `plugins/example/*` — see
-    `LICENSING.md`)".
+11. **stale**: CURRENT_STATE §3.12, draft line 803: "despite … D81 and Stage C batches 2-9". The draft's own §0.0 says
+    batches 2-22 merged, with batch-23 unmerged.
+    - **Fix:** "Stage C batches 2-22".
+
+12. **stale**: CURRENT_STATE §8 KEEP, draft line 1036: "~94 REST routes (post-D81)".
+    - **Evidence:** this contradicts §3.2's "~111".
+      `git grep -h -E '@router\.(get|post|put|delete|patch)\(' 4d893147 -- 'sidecar/routers/*.py' | wc -l` returns
+      `111`, over 28 router modules.
+    - **Fix:** "~111 REST routes".
+
+13. **wrong**: BLOCKERS "Phase-5.1 / 6.0 follow-ups" item 1, draft lines 842-845.
+    - **What is wrong:** the draft attributes the removal of all four components, KillSwitchToolbar included, to
+      `a122dbf6`.
+    - **Evidence:**
+      - `git log --diff-filter=D -- '*KillSwitchToolbar.tsx'` returns `c9790593 feat(shell): remove kill-switch UI`.
+      - `git show --stat a122dbf6` deletes only OrderConfirmationDialog, AuditLogViewer and BrokerConnectPanel.
+    - **Fix:** "(D81, `a122dbf6`; KillSwitchToolbar earlier in `c9790593`)".
+
+14. **wrong**: BLOCKERS draft lines 333, 523, 591 and 718 cite "`183c52fe`/`9aaa64f7`, 'E11'" as the Tradesa removal.
+    - **Evidence:** `git merge-base --is-ancestor 9aaa64f7 4d893147` gives rc=1. `9aaa64f7` is only on
+      `worktree-agent-r10-errors`. `183c52fe` ("complete Tradesa V2 removal (E11)") is an ancestor.
+    - **Fix:** cite `183c52fe` only.
+
+15. **wrong**: BLOCKERS 4.6, draft line 159: "the §3.1 sentence at `:84`".
+    - **Evidence:** `docs/BLUEPRINT.md:84` is "Code signing pipeline integration …". The OpenBB §3.1 sentence is `:87`
+      ("OpenBB ODP wrapped — gives 100+ data providers"). The draft carried the error from
+      `DECISIONS_FOR_OPERATOR.md` §4.6.
+    - **Fix:** `:87`, and note that the source line number is off.
+
+16. **stale**: dead doc pointers.
+    - **Draft-authored:** BLOCKERS line 596 points at `docs/PHASE_6.5_HANDOFF.md`. At the sha the file is
+      `docs/archive/PHASE_6.5_HANDOFF.md`.
+    - **Carried over:**
+      - BLOCKERS 316 `docs/PHASE_8_PERF_BASELINE.md`, 331 `docs/PHASE_8_VISUAL_REGRESSION_REPORT.md` and 480
+        `docs/PHASE_8_BUG_CATALOG.md` are all under `docs/archive/` now.
+      - CURRENT_STATE lines 197 and 230 name `docs/redesign/FOUNDATION_BUILD_REPORT.md` and
+        `docs/redesign/P1_P3_BUILD_REPORT.md`. Neither exists anywhere in the tree (`git ls-tree -r` has no match).
+    - **Fix:** repoint the four to `docs/archive/`, and mark the two build reports "(not in tree at this sha)".
+
+17. **stale**: counts in CURRENT_STATE that the refresh left alone.
+    - **Evidence:**
+      - §1 line 280 says "~18 first-party modules" and §3.8 line 667 says "18". `src/modules/index.ts`
+        `vystedModules` lists 20.
+      - §3.1 line 388 says "three modules" beside `lib.rs`. `src-tauri/src/lib.rs:3-6` declares four: `diag_log`,
+        `keychain`, `openbb_mcp` and `sec_edgar_mcp`.
+    - **Fix:** 20 modules; four modules (add `diag_log.rs`).
 
 ## Checked and correct
 
-- Line 1 of both `.draft.md` files is exactly
-  `<!-- DRAFT at f444479031d7d493b7955b9af041d18e7c7a40cc by the Stage D docs wave; refresh before rc2 -->`.
-- Both diffs apply cleanly to the files at the sha: `patch --dry-run` exit 0 for
-  `docs/CURRENT_STATE.md` (898 lines) and `BLOCKERS.md` (637 lines); each `.draft.md` minus
-  line 1 is byte-identical to sha-file + diff (`diff` empty).
-- No section deleted wholesale: every struck item keeps its heading and a CLOSED note;
-  BLOCKERS pre-sha items already closed by D81 without strike-through (Phase 9 #2, S1 #1–2,
-  S2 #5) carry their own CLOSED text at the sha and were correctly left alone.
-- Every strike-through names `a122dbf6`, which is an ancestor of the sha and a real merge
-  (`git log -1` shows two parents) whose stat deletes `plugins/brokers/kite/*`,
-  `plugins/brokers/oanda/*`, `sidecar/services/brokers/{kite,oanda}.py`,
-  `sidecar/requirements.txt` (−20 lines incl. autobahn), `src/modules/safety/{AuditLogViewer,
-  OrderConfirmationDialog}.tsx`, `src/modules/broker-connect/*`,
-  `sidecar/tests/test_safety_end_to_end.py`. `7a1cd8f` touches only
-  `sidecar/services/resolver_masters/enrich_nse_sectors.py`; `043850c` is the gpt-5.x fix;
-  both are ancestors.
-- Register counts equal FACTS and the register JSON `counts` block (887/626/76;
-  16/112/279/219); the §0.0 severity × status table sums row-wise (112 = 100+3+4+1+4,
-  279 = 153+114+2+9+1, 219 = 10+205+4). The 114 open-medium ids in the BLOCKERS grouping
-  match the register exactly, per `subsystem` field, 30 subsystems, 0 mismatches; 3 open
-  high, 6 `needs_gui`, 4 `blocked_tier4` ids match; 0 open critical.
-- The 12 Tier-4 items listed equal FACTS §decisions (tier4 ∧ ¬closed); unblock lines are
-  verbatim from `DECISIONS_FOR_OPERATOR.md` at the sha.
-- Product facts: no trading anywhere (`test_no_trading_surface.py` present; no
-  `autobahn`/`oandapyV20` outside that test; no KillSwitchToolbar/OrderConfirmationDialog/
-  AuditLogViewer/BrokerConnectPanel under `src/`); portfolio stays; licence = PolyForm
-  Strict 1.0.0 (`LICENSE` heading) + `COMMERCIAL_LICENSE.md` + `LICENSE-APACHE` +
-  `LICENSING.md` all present; `package.json` `license: SEE LICENSE IN LICENSE`; target
-  0.9.0 with all five version sources still `0.8.0` and consistent; three
-  `externalBin` sidecars; the draft does not claim a macOS production build.
-- 18 host actions: `git grep -c 'kind="host_action"' f4444790 -- sidecar/services/agent_tools/catalog.py` → 18.
-- MCP `--onedir` still open: no `onedir` in `src-tauri/tauri.conf.json` or `scripts/`
-  except a hint string in `scripts/smoke-test-sidecars.mjs:843`.
-- Workflows at the sha are `build.yml`, `lint.yml`, `test.yml` only (no `release.yml`),
-  matching the 2.9/2.11 text. Commands cited (`pnpm ci-local`, `pnpm test`,
-  `cd sidecar && pytest`, `git revert 7a1cd8f`, `smoke-test-sidecars.mjs`) exist in
-  `package.json` scripts / `scripts/` at the sha.
-- No key, token or keystore content: secret-shape grep (sk-/AKIA/ghp_/PRIVATE KEY/xox/AIza/
-  Bearer) over all four files → 0 matches.
+- **Diffs apply:** `patch --dry-run` on copies of both files at the sha returns rc=0 for both diffs. Applying the
+  CURRENT_STATE diff reproduces the draft minus the line-1 marker. The four BLOCKERS headings the diff removes are
+  renamed to struck-through or MOOT forms, not deleted. No section is deleted wholesale.
+- **Line 1:** the required DRAFT marker on both `.draft.md` files.
+- **Register:** the §0.0 severity × status table matches the register JSON at the sha cell by cell:
+  - critical: 16 fixed.
+  - high: 105 fixed / 6 blocked / 4 needs_gui / 1 removed.
+  - medium: 258 / 1 open / 5 needs_gui / 9 removed / 15 blocked / 5 not_a_defect.
+  - low: 12 fixed / 205 open / 2 / 4 / 4.
+  - The `counts` field: raw 887 / entries 652 / rejections 76.
+  - The only open critical/high/medium entry is R15-LEAD-035.
+  - `R15-AGENT-007` and `R15-LEAD-022` are fixed; `R15-AGENT-017` is blocked_tier4.
+  - The 11 needs_gui ids and their subsystems match.
+- **Known limitations wording:**
+  - LEAD-037 and LEAD-038 match `DISPOSITION-CONCURRENCE.md:313-320` verbatim.
+  - LEAD-030 is `LEAD-030-CONCURRENCE.md:118-123` with the struck clause removed. It is identical to
+    `RELEASE_NOTES.draft.md`.
+  - LEAD-035 falls back to the lead-note text correctly: `batch-24/LEAD-035-CONCURRENCE.md` does not exist yet.
+  - The fail-safe (`figure_grounding.py`, `agent_runtime._judge_clause` at `agent_runtime.py:2321`, the 2c gate at
+    `:2378`) and the matcher (`_NO_TOOL_CUE`, `planner.py:136`, blame `2e8593eb`, merged in batch 21 `86ae79c4`) are
+    both named correctly.
+- **Version:** 0.8.0 in all version-of-truth files (`sidecar/app.py:329`, `src/lib/plugin-bootstrap.ts:38`).
+- **Tags:** `v0.8.0` and `r13-bedrock` are ancestors, and no `r15*` tag exists.
+- **Licence:**
+  - `LICENSE` is PolyForm Strict 1.0.0.
+  - The Apache-2.0 carve-out list is at `LICENSING.md:44-52` (`types/plugin.ts`, `types/plugin-runtime.ts`,
+    `plugins/example/*`).
+  - The relicense commit is `0c63d465`, subject "chore(license): relicense core to PolyForm Strict 1.0.0".
+- **Trading removal:**
+  - `a122dbf6` (2026-09-23) deletes Kite, OANDA, `kill_switch.rs`, `test_safety_end_to_end.py` and
+    `test_safety_router.py`.
+  - `kiteconnect` and `oandapyV20` were pinned at `a122dbf6^`. Neither they nor autobahn is in any requirements file
+    at the sha.
+  - `src/modules/safety/` holds only `DisclaimerFlow{.tsx,.test.tsx}` and `index.ts`.
+  - `test_no_trading_surface.py` and `test_no_tradesa.py` exist.
+- **Plugins:**
+  - `CATALOG_ROWS` is at `marketplace.ts:59`, with 5 rows, all `preinstalled: true`.
+  - Every plugin has `contributesPanels: false`.
+  - `plugins/vysted-lenses` has `contributesAgents: true` (Quant Tutor).
+  - `plugins/example` has data + commands + controlPlane.
+  - `plugin-bootstrap.ts` has no `BUNDLED_PLUGINS`/`PLUGIN_COMPANIONS`; `moduleForPlugin` is at `:134`.
+- **Other code facts:**
+  - 28 router modules and 111 routes.
+  - Vite migration `8c2f9ab9` (2026-06-10).
+  - D81-D92 and D83 (relicense) are in `DECISIONS.md:141-152`.
+  - `action_ledger.py` exists.
+- **Commits and pointers:**
+  - `7a1cd8f` and `043850c` exist.
+  - `lint.yml:87-89` holds the ruff step.
+  - `CONTRIBUTING.md:95` holds the CLA sentence.
+  - `BLUEPRINT.md:55` holds the OpenBB row.
+- **Commands:** `cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml`, `pnpm ci-local`,
+  `pnpm test`, `pnpm build` (= `vite build`), `pnpm sidecars:build`, `pnpm sec-edgar-mcp-sidecar:build` and
+  `pnpm tauri dev` all resolve against the `package.json` scripts at the sha.
+- **Hygiene:** a case-insensitive grep for the banned name finds 0 hits in all four files. The banned phrase also has
+  0 hits. The secret-shape grep has 0 hits.

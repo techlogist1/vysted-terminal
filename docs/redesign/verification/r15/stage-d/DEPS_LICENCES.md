@@ -1,15 +1,16 @@
-<!-- SCAN at f444479031d7d493b7955b9af041d18e7c7a40cc by the Stage D docs wave -->
+<!-- SCAN at 4d893147def983623de681effd1bfbae2e7441c5 by the Stage D docs wave -->
 
-# Dependency licence scan — f4444790
+# Dependency licence scan — 4d893147
 
 Read-only scan, no installs run. Full machine data: `DEPS_LICENCES.json`.
+REFRESH of the prior scan at `f4444790` (see **Since f4444790** below).
 
 ## Method per ecosystem
 
 - **pnpm** (frontend, static export): `pnpm licenses list --json --prod` for the
   bundled set, `pnpm licenses list --json` for the full set (prod + dev). `dev-only`
   = full set minus the prod set by name@version. `pnpm-lock.yaml` matches the sha
-  (`git diff --quiet f4444790 -- pnpm-lock.yaml`).
+  (`git diff --quiet 4d893147 -- pnpm-lock.yaml`).
 - **cargo** (src-tauri, compiled into the app binary): `cargo metadata --format-version 1
   --no-deps --manifest-path src-tauri/Cargo.toml` for the app's own licence fields, then
   `cargo metadata --format-version 1 --locked --offline` for the full resolve graph.
@@ -26,7 +27,13 @@ Read-only scan, no installs run. Full machine data: `DEPS_LICENCES.json`.
   the full installed set; anything outside the closure is `dev-only`. All three
   `requirements.txt` files match the sha. `pip-licenses` is absent from PATH.
   The PyInstaller bootloader itself (GPL, with the PyInstaller bootloader exception) is
-  recorded as one `bundled` row per binary.
+  recorded as one `bundled` row per binary (`PyInstaller-bootloader` / `embedded`).
+
+All five lockfile/requirements inputs (`pnpm-lock.yaml`, `src-tauri/Cargo.lock`,
+`sidecar/requirements.txt`, `sidecar/openbb_mcp_subprocess/requirements.txt`,
+`sidecar/sec_edgar_mcp_subprocess/requirements.txt`) match the sha
+(`git diff --quiet 4d893147... -- <file>`, all clean) — no ecosystem carries the
+"installed tree differs from the sha" caveat.
 
 ## Counts by ecosystem
 
@@ -59,9 +66,9 @@ Clause/BUSL and none are empty/unknown — pnpm has no flagged rows.
 | python/sec_edgar_mcp | Unidecode | 1.4.0 | GPL | bundled — frozen into the **sec-edgar-mcp** binary | OSI classifier: GNU General Public License v2 or later (GPLv2+) |
 | python/sidecar | frozendict | 2.4.7 | LGPL v3 | bundled — frozen into the **main sidecar** binary | OSI classifier: GNU Lesser General Public License v3 (LGPLv3) |
 | python/openbb_mcp | frozendict | 2.4.7 | LGPL v3 | bundled — same package also frozen into the **openbb-mcp** binary | same classifier |
-| cargo | r-efi | 5.3.0 | `MIT OR Apache-2.0 OR LGPL-2.1-or-later` | bundled *only* under `cfg(target_os = "uefi")`, pulled in transitively via `getrandom`; this app builds macOS/Windows/Linux desktop targets only, so this edge is never active in a shipped artifact — would be a static Rust crate in `src-tauri` if it ever were | flagged because the licence string contains "LGPL"; it is an OR-licensed choice (MIT/Apache-2.0 selectable without LGPL obligations) and the edge is target-gated off |
+| cargo | r-efi | 5.3.0 | `MIT OR Apache-2.0 OR LGPL-2.1-or-later` | bundled *only* under `cfg(all(target_os="uefi", getrandom_backend="efi_rng"))`, pulled in transitively via `getrandom`; this app builds macOS/Windows/Linux desktop targets only, so this edge is never active in a shipped artifact — would be a static Rust crate in `src-tauri` if it ever were | flagged because the licence string contains "LGPL"; it is an OR-licensed choice (MIT/Apache-2.0 selectable without LGPL obligations) and the edge is target-gated off |
 | cargo | r-efi | 6.0.0 | `MIT OR Apache-2.0 OR LGPL-2.1-or-later` | same as above (second resolved version in the lockfile) | same note |
-| python/sidecar | caio | 0.9.25 | (empty) | bundled — frozen into the **main sidecar** binary | installed metadata License field empty; PyPI JSON `info.license`/`info.license_expression` both null, no `License ::` classifiers (checked 2026-09-24) |
+| python/sidecar | caio | 0.9.25 | (empty) | bundled — frozen into the **main sidecar** binary | installed metadata License field empty; PyPI JSON `info.license`/`info.license_expression` both null, no `License ::` classifiers (checked 2026-09-26) |
 | python/openbb_mcp | caio | 0.9.25 | (empty) | bundled — same package also frozen into the **openbb-mcp** binary | same PyPI check |
 | python/sidecar | fredapi | 0.5.2 | (empty) | bundled — frozen into the **main sidecar** binary | same PyPI check (empty at registry) |
 | python/sidecar | peewee | 4.0.6 | (empty) | bundled — frozen into the **main sidecar** binary | same PyPI check (empty at registry) |
@@ -80,5 +87,44 @@ with the PolyForm Strict core is drawn here.
 - Python dev-only rows (pip-list-full minus the closure) carry no licence text — the
   closure tool is the only lane that resolves licence metadata, and it only walks
   `Requires-Dist` from the requirements roots, so dev-only rows in `DEPS_LICENCES.json`
-  are marked with a placeholder string rather than a scanned licence.
+  are marked `licence: null` rather than a scanned licence.
 - No GUI, no sidecar boot, no installs were run for this scan (lane restrictions).
+
+## Since f4444790 (previous Stage D scan)
+
+**Verdict: no real dependency or licence change.** Only `pnpm-lock.yaml` moved between
+the two shas (`git diff f4444790..4d893147 -- pnpm-lock.yaml`: `+3/-0`), and that change
+adds a direct-importer specifier for `@tiptap/extension-list` — a package already
+resolved transitively at the previous sha with the identical version (`3.25.0`) and
+licence (`MIT`). `src-tauri/Cargo.lock` and all three `requirements.txt` files are
+byte-identical between the two shas (`git diff --quiet`, no output).
+
+Per-ecosystem package-identity diff (name@version present/absent, or licence/scope
+changed), cross-checked field-by-field against the previous `DEPS_LICENCES.json`:
+
+| Ecosystem | Added | Removed | Changed |
+|---|---:|---:|---:|
+| pnpm | 0 | 0 | 0 |
+| cargo | 0 | 0 | 0 |
+| python/sidecar | 0 real (1 label artifact) | 0 real (1 label artifact) | 0 real (58 label artifacts) |
+| python/openbb_mcp | 0 real (1 label artifact) | 0 real (1 label artifact) | 0 real (8 label artifacts) |
+| python/sec_edgar_mcp | 0 real (1 label artifact) | 0 real (1 label artifact) | 0 real (8 label artifacts) |
+
+The python "added/removed/changed" rows this run's raw JSON diff surfaces are every one
+a naming-convention artifact of **this run's own output shape** versus the previous
+run's, not a real package-set or licence change on disk:
+- the bootloader row's key changed from `PyInstaller bootloader` / `n/a (embedded...)`
+  (previous run) to `PyInstaller-bootloader` / `embedded` (this run) — same fact, same
+  package, different label string;
+- dev-only python rows carry `licence: null` this run vs. the previous run's explicit
+  placeholder string `"(not scanned by closure tool; classifier lookup not run)"` — same
+  underlying fact (no licence data was collected for dev-only rows either time);
+- the 4 empty-licence bundled rows (`caio`, `peewee`, `httpxthrottlecache`) show
+  `licence: ""` (previous) vs. `licence: null` (this run) — both mean "empty", re-curled
+  against PyPI just now and still empty at the registry.
+
+**Flagged table: identical, 20/20.** Once the ecosystem-label spelling is normalised
+(`python/sidecar` vs. `python-sidecar`, etc.), `flagged_added` and `flagged_removed` are
+both empty — the same 9 unique AGPL/GPL/LGPL packages, the same 2 target-gated r-efi
+LGPL-string rows, and the same 5 unique empty-licence packages, at the same versions,
+across the same three venvs.

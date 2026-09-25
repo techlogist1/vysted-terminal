@@ -1,62 +1,79 @@
-<!-- DRAFT at f444479031d7d493b7955b9af041d18e7c7a40cc by the Stage D docs wave; refresh before rc2 -->
+<!-- DRAFT at 4d893147def983623de681effd1bfbae2e7441c5 by the Stage D docs wave; refresh before rc2 -->
 
-# Open questions for the operator
+# Open questions for the operator — Stage D, sha `4d893147def983623de681effd1bfbae2e7441c5`
 
-Only what the operator alone can answer. Everything the lead can re-verify or
-re-run at rc2 stays in `STAGE_D_INDEX.md`'s open-questions column instead.
+Only items only the operator can answer. Everything the lead can answer stays in
+`STAGE_D_INDEX.md`'s per-file "open questions" column instead.
 
-Source: `docs/redesign/verification/r15/stage-d/FACTS.md`, sha f444479031d7d493b7955b9af041d18e7c7a40cc.
+## 1. Open Tier-4 decisions (`docs/redesign/DECISIONS_FOR_OPERATOR.md` §4.9-4.12, per `FACTS.md`)
 
-## 1. Open Tier-4 items (DECISIONS_FOR_OPERATOR.md)
+- **4.9 R15-LEAD-030** — status `blocked_tier4`; a fresh verifier concurred in batch-23
+  (`docs/redesign/verification/r15/stage-c/batch-23/LEAD-030-CONCURRENCE.md`). Smallest
+  unblock: the operator's acceptance of this status is already recorded as binding for
+  this release per the lead's refresh-rules note — no further action needed unless the
+  operator wants to reopen it.
+- **4.10 R15-LEAD-035** — status `open` at this sha; the batch-23 disposition verifier
+  REFUSED `blocked_tier4` this round (over-match fix routed to batch-24; the under-match
+  residual is pending batch-24's own concurrence). Smallest unblock: confirm at the tag
+  whether `docs/redesign/verification/r15/stage-c/batch-24/LEAD-035-CONCURRENCE.md` landed
+  and whether its wording should be adopted verbatim (it had not landed as of this sha).
+- **4.11 R15-LEAD-037** — status `blocked_tier4`; fresh verifier concurred on corrected
+  wording. Same acceptance basis as 4.9.
+- **4.12 R15-LEAD-038** — status `blocked_tier4`; fresh verifier concurred. Same acceptance
+  basis as 4.9.
 
-| # | Item | Smallest unblock |
-|---|---|---|
-| 1.1 | The "sacred" `enrich_nse_sectors.py` edit is now committed (7a1cd8f) | `git revert 7a1cd8f` |
-| 1.3 | Five local, never-pushed commits were rewritten once (brief said "no history rewrite") | nothing to undo on origin; to publish the brief, remove its line from `.gitignore` and commit it |
-| 1.4 | Relicensed to PolyForm Strict 1.0.0 (operator decision, given 23 Sep 2026) | `git revert <relicense commit>` (subject: `chore(license): relicense core to PolyForm Strict 1.0.0`) |
-| 2.1 | Default provider lanes are unfunded — the app cannot answer on them | top up OpenRouter (negative paid balance) or fund DeepSeek-direct ($0); restart the dev stack to pick up 043850c's gpt-5.x tool-calling fix |
-| 2.2 | Docker/OrbStack is not running, so SearXNG is down and research silently uses the keyless scraper | start OrbStack before judging research depth |
-| 2.6 | CI has never run on 004, and the last main run failed | open a PR against main / fix the red main lint run so CI's push+pull_request triggers actually fire |
-| 2.7 | GUI rig: input-idle time is not proof the operator is away | add an away-sentinel file (`~/.vysted-rig-away`, with expiry) required in addition to idle time — not added because it would make unattended runs refuse until the operator knows about it |
-| 2.8 | R15-RELEASE-001 — unsigned desktop bundles (Gatekeeper/SmartScreen block every install) | at minimum set `bundle.macOS.signingIdentity: "-"` in `tauri.conf.json` for an ad-hoc seal (still needs operator sign-off, Tier-1 file); full fix needs a paid Apple Developer ID + notarization and a Windows code-signing cert |
-| 2.9 | R15-RELEASE-002 — no GitHub release pipeline (tags v0.6.0..v0.8.0 have zero installable builds) | approve adding `.github/workflows/release.yml` (3-OS matrix via `tauri-apps/tauri-action`, `createUpdaterArtifacts:true`, `TAURI_SIGNING_PRIVATE_KEY` wired); also unblocks 2.10 |
-| 2.10 | R15-RELEASE-003 — auto-updater is dead end-to-end | approve 2.9 first (produces latest.json/.sig), then set `createUpdaterArtifacts:true` in `tauri.conf.json`; the consumer-side `app.updater()?.check()` call is not Tier-4 and can ship independently |
-| 2.11 | R15-RELEASE-004 — CI has never run on `004-r4-experience-rebuild` | open a draft PR for `004-r4-experience-rebuild` (no workflow edit needed) so the existing `pull_request` trigger runs the 3-OS matrix; fix the red main lint run first so the signal is meaningful |
-| 3.4 | BLOCKED-FOR-OPERATOR (Tier-1): no edit made, operator's call | decide whether to keep the `'trading-bot'` `PluginType` literal + JSDoc examples in `types/plugin.ts` as historical precedent or remove them (contract-breaking either way); apply the queued CLAUDE.md edits in `docs/redesign/CLAUDE_MD_PROPOSAL.md` when convenient; `COMMERCIAL_LICENSE.md:36-48` broker clause left as-is, no change required |
+Smallest unblock for all four as a set: the operator's Tier-4 sign-off already covers
+4.9-4.12 (relayed in this run's refresh rules); the only live gap is confirming
+R15-LEAD-035's batch-24 concurrence text once that file exists, at the tag.
 
-(2.3, 2.4, 2.5 omitted — closed, superseded by D81 trading removal.)
+## 2. Copyleft / bundled licences flagged by `DEPS_LICENCES.md`
 
-## 2. Copyleft: bundled AGPL/GPL/LGPL/SSPL packages
+Facts only, no legal conclusion — the operator decides what each implies for the
+PolyForm Strict 1.0.0 + commercial dual-license model.
 
-Facts only, per `DEPS_LICENCES.md` — no legal conclusion drawn.
+| Package | Scope | Linkage | Licence |
+|---|---|---|---|
+| `openbb-core`, `openbb-economy`, `openbb-equity`, `openbb-fmp`, `openbb-fred`, `openbb-mcp-server`, `openbb-news`, `openbb-yfinance` | bundled (`python/openbb_mcp`, Requires-Dist closure from `sidecar/openbb_mcp_subprocess/requirements.txt`) | frozen into the `vysted-openbb-mcp-sidecar` PyInstaller `--onefile` binary | AGPL-3.0-only |
+| `sec-edgar-mcp` 1.0.8 | bundled (`python/sec_edgar_mcp`) | frozen into the `vysted-sec-edgar-mcp-sidecar` PyInstaller binary | AGPL-3.0 |
+| `Unidecode` 1.4.0 | bundled (`python/sec_edgar_mcp`) | frozen into the sec-edgar-mcp binary | GPL (OSI classifier: GPLv2+) |
+| `frozendict` 2.4.7 | bundled (`python/sidecar` + `python/openbb_mcp`) | same package frozen into both the main sidecar and openbb-mcp binaries | LGPL v3 |
+| `r-efi` 5.3.0 and 6.0.0 | bundled per cargo resolve graph | reachable only via `getrandom`'s `cfg(all(target_os="uefi", getrandom_backend="efi_rng"))` edge — this app never builds for UEFI, so the edge is inert in any shipped artifact | MIT OR Apache-2.0 OR LGPL-2.1-or-later (OR-licensed choice, not solely LGPL) |
 
-| Package | Scope | Linkage |
-|---|---|---|
-| openbb-core@1.6.9, openbb-economy@1.6.1, openbb-equity@1.6.1, openbb-fmp@1.6.0, openbb-fred@1.6.0, openbb-mcp-server@1.4.0, openbb-news@1.6.0, openbb-yfinance@1.6.2 | AGPL-3.0-only (OSI classifier) | bundled, frozen into the `openbb-mcp` PyInstaller binary |
-| sec-edgar-mcp@1.0.8 | AGPL-3.0 | bundled, frozen into the `sec-edgar-mcp` PyInstaller binary |
-| Unidecode@1.4.0 | GPL (GPLv2+ classifier) | bundled, frozen into the `sec-edgar-mcp` binary |
-| frozendict@2.4.7 | LGPL v3 | bundled into both the main sidecar and `openbb-mcp` binaries |
+Also flagged (empty licence metadata, not a copyleft finding but adjacent to the same
+question): `caio` 0.9.25, `peewee` 4.0.6, `fredapi` 0.5.2, `httpxthrottlecache` 0.3.5 —
+bundled, installed metadata `License` field empty, PyPI JSON `info.license` /
+`info.license_expression` / classifiers all null/empty as of a live re-check on
+2026-09-26 (unchanged from the prior scan).
 
-No SSPL packages found. `r-efi@5.3.0`/`6.0.0` (MIT OR Apache-2.0 OR LGPL-2.1-or-later, via `getrandom`) is reachable only under `cfg(target_os="uefi")`, never active on this app's macOS/Windows/Linux desktop targets, and is OR-licensed so MIT/Apache-2.0 is selectable — not counted above.
+## 3. `LICENCE_CHECK.md` mismatches in Tier-1 files
 
-## 3. LICENCE_CHECK mismatches in Tier-1 files
-
-| Location | What | Note |
-|---|---|---|
-| `CLAUDE.md:57-58` | "1. **Locked** — `docs/BLUEPRINT.md` §2. Never reopen unilaterally. (Stack; AGPL-3.0 + commercial dual license; MCP server in v1.0.)" | Stale — relicensed 23 Sep 2026 to PolyForm Strict 1.0.0 + commercial (BLUEPRINT.md §2/§6.1 already updated at this sha). Fix already drafted in `docs/redesign/CLAUDE_MD_PROPOSAL.md:76`, tracked open at `DECISIONS_FOR_OPERATOR.md §3.4` ("apply the queued CLAUDE.md edits ... when convenient"). Tier-1: CLAUDE.md is itself a Tier-1 file. |
+- `CLAUDE.md:57-58` still reads: "1. **Locked** — `docs/BLUEPRINT.md` §2. Never reopen
+  unilaterally. (Stack; AGPL-3.0 + commercial dual license; MCP server in v1.0.)" — stale
+  pre-relicense wording. A fix is already drafted verbatim at
+  `docs/redesign/CLAUDE_MD_PROPOSAL.md:76`. `CLAUDE.md` is Tier-1/locked and was not
+  edited by this wave (out of lane). Open across two scans at different shas
+  (f4444790 and this one, 4d893147) with no interim fix — the operator decides whether to
+  promote it now or hold for a batched CLAUDE.md edit.
 
 ## 4. Windows
 
-Nothing verified. No Windows build/install/smoke-test evidence exists anywhere in the repo at this sha. `RELEASE_RUNBOOK.draft.md` §10 is entirely `NEEDS-MANUAL-CHECK` with zero verified precedent.
+Nothing verified this wave. `FACTS.md:71` confirms the three CI workflows run an
+`[windows-latest, macos-latest, ubuntu-latest]` matrix on every push/PR to `main`, but
+Stage D is a read-only, off-machine, no-GUI wave — no Windows build, smoke test, or manual
+verification was run or is claimable at this sha.
 
-## 5. Secrets hits classed real_or_unknown
+## 5. Secrets hits classed `real_or_unknown`
 
-None. `SECRETS_SCAN.md` at this sha: `real_or_unknown: 0`, `pushed_real_or_unknown: 0` (1489 commits / 7353 blobs scanned in history, 40 files in the tree). Nothing to list, pushed or otherwise.
+None. `SECRETS_SCAN.md`/`.json` at this sha report `real_or_unknown: 0` and
+`pushed_real_or_unknown: 0` across tree-at-sha (115 files), full history (2090 commits /
+10647 blobs), and the blob sweep (314). No location/rule to list.
 
-## 6. Draft open questions that need the operator's decision
+## 6. Draft open questions that need the operator's decision (not answerable by the lead)
 
-(Excludes items the lead can settle by re-running/re-checking at rc2 — those stay in `STAGE_D_INDEX.md`.)
-
-- **README** — whether to keep the 7-provider framing (OpenRouter folded in as a broker) or add OpenRouter as an explicit 8th provider row — the registry (`sidecar/config/model_registry.json`) lists 8 provider ids at this sha; this is a product-positioning call, not a fact to re-check.
-- **RELEASE_NOTES** — whether `DECISIONS_FOR_OPERATOR.md` §2.1/§2.2 (unfunded provider lanes; SearXNG down without OrbStack) belong in a public release body at all, versus staying internal-only — an editorial/disclosure call.
-- **CURRENT_STATE/BLOCKERS (STATE draft)** — the bundled line "T4-ccxt-executecommand-dead + T4-bare-commandids + T4-kite-manifest-unknown-field — plugin polish" bundles a broker-specific sub-item with `T4-bare-commandids`, which may be unrelated; needs the operator (or lead, on the operator's authority) to split or explicitly resolve it rather than have it carried forward silently.
+- **RELEASE_RUNBOOK draft, §11** — whether the operator keeps any locally-built prior
+  `.dmg`/`.app` on hand outside this repo, for a real rollback path.
+- **OPERATOR_BRIEFING draft, §4** — whether the filing-watcher groundwork folder should
+  move under the git-ignored `r15/local/` per the operator's own one-line call (referenced
+  but not resolved at this sha).
+- **R15-LEAD-035 promotion** (also listed in §1 above) — whether to adopt batch-24's
+  concurrence wording once it exists, before or at the tag.

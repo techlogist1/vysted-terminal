@@ -1,4 +1,4 @@
-<!-- DRAFT at f444479031d7d493b7955b9af041d18e7c7a40cc by the Stage D docs wave; refresh before rc2 -->
+<!-- DRAFT at 4d893147def983623de681effd1bfbae2e7441c5 by the Stage D docs wave; refresh before rc2 -->
 
 # Vysted Terminal
 
@@ -7,12 +7,12 @@ market cockpit (charts, watchlist, news, portfolio, screener, macro, SEC filings
 node-editor/workflow surface) with an agentic AI copilot that can read data and drive
 the terminal on your behalf. It runs entirely on your machine — a Rust core, a
 Vite + React frontend, and a Python FastAPI sidecar talk to each other over `127.0.0.1`
-only, with bring-your-own-keys for every AI provider (README.md at f4444790, "Overview").
+only, with bring-your-own-keys for every AI provider.
 
 > **Redesign in flight.** Vysted is being reframed into an agent-native finance
 > workspace. [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) is the honest
 > inventory of what exists today; [`specs/001-agent-native-redesign/spec.md`](./specs/001-agent-native-redesign/spec.md)
-> is where it's headed (both present at f4444790).
+> is where it's headed.
 
 <p align="center">
   <img src="docs/screenshots/v0.8.0/research-cockpit-hero.png" width="880"
@@ -22,23 +22,24 @@ only, with bring-your-own-keys for every AI provider (README.md at f4444790, "Ov
 ## What it is not
 
 - **No trading.** Trading was removed from the product permanently
-  (D81, 23 Sep 2026 — `docs/BROKER_INTEGRATIONS.md` at f4444790). There is no broker
+  (D81, 23 Sep 2026 — `docs/BROKER_INTEGRATIONS.md`). There is no broker
   connection, no order placement, no paper or live trading account, and no
   paper/live switch anywhere in the app. Your manually tracked portfolio (the
   Portfolio panel — holdings you enter by hand, with P&L and CSV export) is not
   trading and stays.
 - **Not investment advice.** Nothing the app displays or the AI copilot generates,
   including agent output, is a trade recommendation
-  (`COMMERCIAL_LICENSE.md` at f4444790, "No warranty for trading losses").
+  (`COMMERCIAL_LICENSE.md`, "No warranty for trading losses").
 
 ## Download and install (macOS)
 
 <!-- fill at rc2: release asset URL and the Gatekeeper steps once the lead publishes -->
 
 No signed, installable release is published yet: there is no release pipeline and
-no code-signing identity at this sha, so a built `.dmg` would be Gatekeeper-blocked
-on every machine it reached (open items in this run's decision log). Until that
-ships, run Vysted from source.
+no code-signing identity yet, so a built `.dmg` would be Gatekeeper-blocked
+on every machine it reached (tracked in
+[`docs/redesign/DECISIONS_FOR_OPERATOR.md`](./docs/redesign/DECISIONS_FOR_OPERATOR.md)
+§2.8–2.9). Until that ships, run Vysted from source.
 
 ## Build from source
 
@@ -89,19 +90,26 @@ Vysted works without any key: quotes, charts, news, screeners, and web research
 (a keyless DuckDuckGo floor) all run out of the box. The AI copilot and deep
 research need a model, either:
 
-- a local model run through [Ollama](https://ollama.com) — no key, fully offline, or
+- a local model through [Ollama](https://ollama.com): no key, and the model runs on
+  your machine (market data still comes from the network). Pull a model first, for
+  example `ollama pull qwen2.5:7b` (the default) or `llama3.1:8b`, or
 - one of seven keyed providers — Anthropic, OpenAI, Gemini, Groq, DeepSeek, xAI, and
-  OpenRouter (a broker that routes to most of the above through one key) — plus
+  OpenRouter (a router that reaches most of the above through one key) — plus
   Ollama, all eight in one dropdown — the exact list the sidecar's provider registry
-  ships (`sidecar/config/model_registry.json` at f4444790).
+  ships (`sidecar/config/model_registry.json`).
+
+Known limitation: with a keyless local model the agent can state a price or metric
+that no successful tool call returned, or say a portfolio change was made when
+nothing was written. A portfolio change never applies without your review. See the
+release notes, "Known limitations at rc1 — agent chat with a keyless local model".
 
 Keys are entered in the frontend and stored through the Tauri `keychain_set` /
-`keychain_get` / `keychain_delete` commands (`src-tauri/src/keychain.rs` at
-f4444790): the OS keychain in a release build, or a local, git-ignored
+`keychain_get` / `keychain_delete` commands (`src-tauri/src/keychain.rs`):
+the OS keychain in a release build, or a local, git-ignored
 `dev-keystore.json` file under the app's data directory in a debug build only (the
 file-keystore code is compiled only into debug builds — `cfg(debug_assertions)` — so
 a release binary has no file path to fall back to). The
-frontend's keychain wrapper (`src/lib/keychain.ts` at f4444790) is the only path
+frontend's keychain wrapper (`src/lib/keychain.ts`) is the only path
 that touches credentials and never uses `localStorage`/`sessionStorage`/cookies.
 A stored key is sent to the sidecar once per request to reach the provider you
 configured; the sidecar does not persist it beyond that request — or, for a
@@ -120,7 +128,10 @@ on both files (`// SPDX-License-Identifier: Apache-2.0`) and on the bundled exam
 plugin (`plugins/example/index.ts`, `plugins/example/example.test.ts`); the example
 plugin's `manifest.json` carries no header (JSON can't) but is named explicitly in
 `LICENSING.md`'s Apache-2.0 list. See
-[`docs/PLUGIN_DEVELOPMENT.md`](./docs/PLUGIN_DEVELOPMENT.md) to build one.
+[`docs/PLUGIN_DEVELOPMENT.md`](./docs/PLUGIN_DEVELOPMENT.md) to build one — its
+panel-registration section (the `panels.ts` / `PLUGIN_COMPANIONS` glue) predates the
+current plugin runtime and is being rewritten (R15-DOCS-015). Use
+[`plugins/example/`](./plugins/example/) as the working reference.
 
 ## License
 
@@ -130,7 +141,7 @@ redistribution needs a paid commercial license
 ([`COMMERCIAL_LICENSE.md`](./COMMERCIAL_LICENSE.md), plain-language summary in
 [`LICENSING.md`](./LICENSING.md)). Every commit made before the relicensing commit
 remains available under its original AGPL-3.0 terms — relicensing only changes the
-terms for new work going forward (`LICENSING.md` at f4444790). The plugin contract
+terms for new work going forward (`LICENSING.md`). The plugin contract
 and example plugin are the Apache-2.0 exception described above.
 
 ## Support and roadmap
@@ -156,9 +167,8 @@ and example plugin are the Apache-2.0 exception described above.
 
 ## Status
 
-Version 0.8.0 <!-- VERIFY: target is 0.9.0; every version source (package.json,
-Cargo.toml, tauri.conf.json, sidecar/app.py, plugin-bootstrap.ts) reads 0.8.0 at
-f4444790 — reprint as 0.9.0 only once the bump has landed on the promoted sha -->.
+Version 0.8.0 at this commit. The 0.9.0 bump is prepared on its own branch and
+merges right after the r15-rc1 tag (tag and sha: confirmed at the tag).
 Phases 0–10 are merged to `main` (data layer, charting, AI copilot,
 node editor + backtest, agent-write safety, macro/research/QuantLib, integrations
 hub); trading was removed from the product (D81). An agent-native redesign is in
@@ -167,35 +177,37 @@ flight on top of that baseline — see
 deferred, and [`docs/BLUEPRINT.md`](./docs/BLUEPRINT.md) for the architecture.
 <!-- VERIFY: whether the sha this build ships from is signed off as release-ready by the lead at rc2; this draft states no release pipeline exists per this run's decision log only -->
 
+<!-- refresh f4444790 to 4d89314: no change to any source this draft draws on (docs/README.md, package.json, specs/001-agent-native-redesign/spec.md moved between the two shas, but none of it is quoted here; version still 0.8.0 consistent everywhere per FACTS.md, no release pipeline landed) — header bumped, critic footer cleared for the critic's next pass, content otherwise unchanged from f4444790 -->
+
 <!-- critic-footer -->
 
 ## Critic findings applied
 
-1. applied — "Next.js frontend" corrected to "Vite + React frontend" (intro line 9) and
-   "Vite + React 19 frontend" in the Project layout table (line 149); verified
-   `package.json`'s `dev`/`build` scripts run `vite`/`vite build`, no `next` dependency,
-   `vite.config.ts` present at the sha.
-2. applied — Python row changed to "3.13 (exactly)" with the `VYSTED_PYTHON`/
-   `brew install python@3.13` guidance; verified `scripts/build-python.mjs:12` `WANT = "3.13"`
-   and its throw message.
-3. applied — added Xcode CLT / VS Build Tools 2022 + WebView2 / `build-essential` notes under
-   the Build from source table; verified `CONTRIBUTING.md` and
-   `.github/workflows/build.yml`'s Linux dependency list.
-4. applied — added a note after the `ci-local`/smoke-test block that `pnpm ci-local` needs a
-   bare `python` resolving to 3.13; verified `package.json`'s `ci-local` script shells to
-   plain `python`.
-5. applied — reworded to "seven keyed providers ... plus Ollama, all eight in one dropdown";
-   verified `sidecar/config/model_registry.json` lists 8 ids including `ollama`.
-6. applied — replaced the mis-attributed "asserted in a test" claim with the structural
-   guarantee (`cfg(debug_assertions)` compiles the file-keystore code out of release builds);
-   verified `src-tauri/src/keychain.rs`'s module doc and `release_never_uses_dev_keystore` test.
-7. applied — added "or, for a background agent run, beyond that run"; verified
-   `sidecar/routers/runs.py`'s module doc on the BYOK key's run-scoped lifetime.
-8. applied — "Version 0.9.0" changed to "Version 0.8.0" with a VERIFY comment naming every
-   version source and the promotion condition; verified `package.json`, `Cargo.toml`,
-   `tauri.conf.json`, `sidecar/app.py` all read 0.8.0 at f4444790.
-9. rejected: the critic's own prescribed fix is "at rc2 delete every 'at f4444790'
-   parenthetical" — explicitly a promotion-time action for the lead (CLAUDE.md: "the lead
-   promotes drafts at rc2"), not a Stage D reviser action, and the citations are the wave's
-   shared evidence-trail convention (also present in the sibling RELEASE_RUNBOOK.draft.md and
-   CURRENT_STATE.draft.md). Left as-is for this pass.
+1. applied — added a known-limitation sentence to the BYOK section (with fail-safe and
+   a pointer to the release notes), sourced from `types/proposed-change.ts:38-46`
+   (`AUTO_APPLIED_KINDS`) and RELEASE_NOTES.draft.md's "Known limitations at rc1"
+   heading; did not reuse the struck grounding clause.
+2. applied — replaced the VERIFY comment with reader-visible prose: version stays
+   0.8.0 at this sha (FACTS.md:18-27, all six sources agree), 0.9.0 lands when the
+   prepared version branch merges after the r15-rc1 tag; the tag itself is not
+   claimed to exist.
+3. applied — removed every "at f4444790" parenthetical from reader prose (the
+   Overview, redesign-in-flight callout, both "What it is not" bullets, the BYOK
+   provider-registry and keychain citations, and the licensing citation); kept the
+   bare relative links. Left the process note at the file's end untouched — it is
+   not reader-facing prose citing a fact, it documents the prior refresh step
+   itself.
+4. applied — "at this sha" became "yet", and the parenthetical now points at
+   `docs/redesign/DECISIONS_FOR_OPERATOR.md` §2.8–2.9 (verified: §2.8 = R15-RELEASE-001
+   unsigned bundles, §2.9 = R15-RELEASE-002 no release pipeline).
+5. applied — added a sentence after the `docs/PLUGIN_DEVELOPMENT.md` link noting its
+   panel-registration section predates the current runtime (verified:
+   `src/lib/plugin-bootstrap.ts` at the sha uses `CATALOG_ROWS`/`marketplace.ts`, zero
+   hits for `PLUGIN_COMPANIONS`/`BUNDLED_PLUGINS`; R15-DOCS-015 in the register JSON)
+   and pointed authors at `plugins/example/` instead.
+6. applied — named the default (`qwen2.5:7b`) and known (`llama3.1:8b`) Ollama models
+   from `sidecar/config/model_registry.json` at the sha, replaced "fully offline" with
+   "the model runs on your machine (market data still comes from the network)", and
+   added the pull-a-model step.
+7. applied — "a broker" became "a router" for OpenRouter, consistent with the "no
+   broker connection" line in "What it is not".

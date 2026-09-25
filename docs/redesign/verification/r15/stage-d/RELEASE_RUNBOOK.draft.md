@@ -1,23 +1,27 @@
-<!-- DRAFT at f444479031d7d493b7955b9af041d18e7c7a40cc by the Stage D docs wave; refresh before rc2 -->
+<!-- DRAFT at 4d893147def983623de681effd1bfbae2e7441c5 by the Stage D docs wave; refresh before rc2 -->
 
 # Release Runbook — Vysted Terminal 0.9.0
 
 Reader: the lead or operator cutting the 0.9.0 release, step by step. This draft is sourced
-from `docs/redesign/verification/r15/stage-d/FACTS.md` (sha `f4444790`) and the sha's own
+from `docs/redesign/verification/r15/stage-d/FACTS.md` (sha `4d893147`) and the sha's own
 scripts/docs. Promoted to `docs/RELEASE_RUNBOOK.md` by the lead at rc2, never by this wave.
 
 ## Checklist
 
 - [ ] 0. Prerequisites: `PATH` + sidecar venv activated (§0) — `pnpm ci-local` fails without it
-- [ ] 1. Version bump every load-bearing occurrence to `0.9.0`
+- [ ] rc gate round 2 verdict PASS at the candidate sha (confirmed at the tag)
+- [ ] 1. Merge `worktree-agent-r15-version-0.9.0` (version bump to `0.9.0`) right after the
+      r15-rc1 tag
 - [ ] 2. `pnpm install --frozen-lockfile`
 - [ ] 3. `pnpm ci-local`
 - [ ] 4. Build the three sidecar binaries
 - [ ] 5. `node scripts/smoke-test-sidecars.mjs`
 - [ ] 6. `pnpm tauri build` (macOS bundles)
 - [ ] 7. Clean-profile launch check on macOS (lead, not this wave)
-- [ ] 8. Signing and notarization — NEEDS-OPERATOR
-- [ ] 9. Tag and GitHub release — operator-only
+- [ ] 8. Signing and notarization — NEEDS-OPERATOR (re-run §6/§7 if a signing change lands)
+- [ ] §2.18 commercial-licence contact swapped from the placeholder before any public
+      0.9.0 announcement — NEEDS-OPERATOR
+- [ ] 9. Tag (at the gated sha) and GitHub release — operator-only
 - [ ] 10. Windows — NEEDS-MANUAL-CHECK
 - [ ] 11. Rollback plan understood before cutting
 
@@ -25,8 +29,8 @@ scripts/docs. Promoted to `docs/RELEASE_RUNBOOK.md` by the lead at rc2, never by
 
 ## 0. Prerequisites (one shell, before §2)
 
-`pnpm ci-local` (§3) calls bare `python`, `pip`, `pytest`, `cargo`, `ruff` and `node`
-(`package.json:22` — see §3's verbatim command). On a stock macOS shell, `python` and
+`pnpm ci-local` (§3) calls bare `python`, `pytest`, `cargo`, `ruff` and `node`, and `pip`
+via `python -m pip` (`package.json:20` — see §3's verbatim command). On a stock macOS shell, `python` and
 `pytest` are not on `PATH` (`which python python3 pytest ruff cargo node pnpm` at the sha's
 toolchain →`python`: not found, `python3`: `/opt/homebrew/bin/python3`, `pytest`: not found,
 `ruff`/`cargo`/`node`/`pnpm`: found), so step 3 dies at `python -m pip install
@@ -44,9 +48,10 @@ The sidecar venv is Python 3.13.13 (`sidecar/.venv/bin/python --version`), match
 activating it puts `python`/`pip`/`pytest`/`ruff` on `PATH` for the rest of the shell. Also
 confirm before starting:
 
-- `rustc -vV` prints a `host:` line — `scripts/ensure-sidecar.mjs`'s `targetTriple()`
-  (`:29-34`) reads the target triple from it to name the sidecar binary; no `rustc` on `PATH`
-  fails the sidecar build in §4 with "could not determine host target triple".
+- `rustc -vV` prints a `host:` line — `scripts/sidecar-specs.mjs`'s `targetTriple()`
+  (`:190-195`) reads the target triple from it to name the sidecar binary; no `rustc` on
+  `PATH` fails the sidecar build in §4 with `"could not determine host target triple from
+  \`rustc -vV\`"` (`:193`).
 - `pnpm --version` is `10.32.1` — pinned in all three CI workflows
   (`.github/workflows/{build,lint,test}.yml`, each `version: 10.32.1`); a different local
   pnpm can resolve dependencies differently than CI.
@@ -56,31 +61,54 @@ confirm before starting:
 What: every load-bearing version string moves from `0.8.0` to `0.9.0` in the same commit.
 Who: lead.
 
-**Must-bump — 5 sources** (CLAUDE.md "Versioning & process" names exactly these five: "Version
-lives in many sources — `package.json` + `Cargo.toml` + `tauri.conf.json` + sidecar `app.py
-FastAPI(version=…)` + `HOST_VERSION` (`plugin-bootstrap.ts`)"):
+**Do not hand-edit these files.** A prepared branch already carries the bump:
+`worktree-agent-r15-version-0.9.0`, two commits on top of `1db862d0` — `517da226
+chore(release): bump version to 0.9.0` and `c1e9164c docs: the single CLAUDE.md commit for
+the 0.9.0 release` (`git log --oneline -3 worktree-agent-r15-version-0.9.0`). Neither commit
+is an ancestor of this sha (`git merge-base --is-ancestor 517da226 HEAD` fails at S). The
+tracked run-state log records the merge plan: "MERGE PLAN (right after the r15-rc1 tag):
+`git restore CLAUDE.md` first (the branch carries a held local hunk;
+`scratchpad/claude-md-local.diff` keeps a copy), then `merge --no-ff`"
+(`docs/redesign/verification/vysted-r15-run-state.md`, VERSION BRANCH entry) — merging it now
+would tag a tree the gate never evaluated. Step: **merge `worktree-agent-r15-version-0.9.0`
+into the release-candidate branch right after the r15-rc1 tag**, restoring `CLAUDE.md` first
+per that note, then confirm the rc gate's register and grep criteria still hold on the merged
+tree before proceeding to §2.
+
+**What `517da226` touches — 8 files, audited here so a re-run or a manual rebase can be
+checked against this list** (its own commit message: "Version sources: package.json,
+src-tauri/Cargo.toml (+ Cargo.lock via cargo update -p vysted-terminal --offline),
+src-tauri/tauri.conf.json (version string only), sidecar/app.py FastAPI(version=...),
+HOST_VERSION in src/lib/plugin-bootstrap.ts. Also the README status line and the
+marketplace store test fixture whose comment says it matches HOST_VERSION."):
 
 - `package.json:3` — `"version": "0.8.0"`
 - `src-tauri/Cargo.toml:3`
 - `src-tauri/tauri.conf.json:4`
-- `sidecar/app.py:327` — `FastAPI(version=…)`
-- `src/lib/plugin-bootstrap.ts:37` — `HOST_VERSION` const
+- `sidecar/app.py:329` — `FastAPI(title="Vysted Terminal Sidecar", version="0.8.0", …)`
+- `src/lib/plugin-bootstrap.ts:38` — `export const HOST_VERSION = "0.8.0";`
+- `src-tauri/Cargo.lock:5486-5487` — the `vysted-terminal` package block, via
+  `cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml`
+  (CLAUDE.md "Versioning & process": "At bump: grep for stale version strings and run
+  `cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml`.")
+- `README.md:53` — the "Honest status" line: "...and version strings sit at `0.8.0` pending
+  a release cut" (confirmed at S: `git show S:README.md` line 53).
+- `src/store/marketplace.test.ts:46` — `new PluginRuntime({ hostVersion: "0.8.0", ... })`,
+  whose own comment says the fixture "matches HOST_VERSION so every catalog plugin satisfies
+  requiredHostVersion" (`:43-45`) — the one non-source fixture the bump commit chose to move
+  because its comment makes that claim explicitly; every *other* `"0.8.0"` test fixture below
+  is left alone on purpose.
 
-Then regenerate the lockfile's own version entry (`src-tauri/Cargo.lock:5486-5487`, the
-`vysted-terminal` package block):
+If for any reason the branch cannot be merged and the five-plus-three edits must be
+reproduced by hand instead, edit exactly this 8-line list and regenerate `Cargo.lock` with
+the `cargo update` command above — do not additionally touch any file in the "not a bump
+target" list below.
 
-```
-cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml
-```
-
-(CLAUDE.md "Versioning & process": "At bump: grep for stale version strings and run
-`cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml`.")
-
-**Not bump targets.** Every other `0.8.0` occurrence FACTS's `version_occurrences` marks
-`[load_bearing]` is a false positive of that tag, not a bump target — verified individually
+**Not bump targets.** Every other `0.8.0` occurrence FACTS's `git grep` classes
+`load_bearing` is a false positive of that tag, not a bump target — verified individually
 against the code at the sha:
 
-- `package.json:76` — `prettier-plugin-tailwindcss` pinned to `0.8.0`; an unrelated dep, not
+- `package.json:77` — `prettier-plugin-tailwindcss` pinned to `0.8.0`; an unrelated dep, not
   the app version.
 - `src-tauri/Cargo.lock:281,290,758,2426,2443,3351,3368` — seven unrelated-crate
   `version = "0.8.0"` lines (`git grep -n '0\.8\.0' -- src-tauri/Cargo.lock` at the sha finds
@@ -89,29 +117,41 @@ against the code at the sha:
   `plugins/yfinance/manifest.json:6` — each `"requiredHostVersion": "0.8.0"`. This is a
   **minimum-host pin**, not a value that tracks the host version: `checkCompatibility`
   rejects a plugin only when `!hostSatisfies(hostVersion, requiredHostVersion)`
-  (`src/lib/plugin-runtime.ts:374-375`), and `hostSatisfies(host, required)` is `host >=
-  required` by semver (`:129-138`). `0.9.0` satisfies `0.8.0`, so these three do not need
+  (`src/lib/plugin-runtime.ts:403,411`), and `hostSatisfies(host, required)` is `host >=
+  required` by semver (`:151-157`). `0.9.0` satisfies `0.8.0`, so these three do not need
   editing for this bump; only raise one if that plugin starts requiring a 0.9.0+ host
   feature.
 - `sidecar/tests/test_data_cache.py:131,133,141,142,150` — `0.8.0`/`0.8.1` used as arbitrary
   cache-build-tag literals in test fixtures, not the app version (FACTS).
-- `src/components/SettingsPanel.test.tsx:831` — a `/system/diagnostics` response fixture,
-  `{ version: "0.8.0", logTail: [...] }` (`:830-831`); the test's own assertions (`:839-845`)
-  check `preview.textContent` for the `logTail` line and the `writeText`/"Copied" flow — none
-  assert the version string, so this `"0.8.0"` is an arbitrary fixture literal, not a bump
-  target.
-- `src/lib/plugin-runtime.test.ts:498,508,517,542,545,547,550,551,552,555,556` and
-  `src/store/marketplace.test.ts:43` — `hostSatisfies`/`PluginRuntime` unit tests that use
-  `"0.8.0"` as one arbitrary semver operand to exercise the comparison itself (e.g. `:551`
-  `expect(hostSatisfies("0.8.0", "0.9.0")).toBe(false)`); the comparison behaviour is what's
-  under test, not the app's actual version — not bump targets.
-- `src/lib/plugin-runtime.ts:115` — a doc-comment example string (`written as ">=0.8.0"
+- `sidecar/tests/test_schema_version.py:220,223,228,229,239` — same pattern, a new file at
+  this sha: `data_cache.ensure_build("0.8.0")` then `("0.9.0")` are arbitrary build-tag
+  strings exercising "back the data dir up once on a build change, never twice for the same
+  build" (`:210-239`, confirmed read) — not a version statement, and note `"0.9.0"` is
+  already used here as a fixture literal, unrelated to this bump.
+- `src/components/SettingsPanel.test.tsx:886` — a `/system/diagnostics` response fixture,
+  `{ version: "0.8.0", logTail: [...] }` (`:885-886`); the test's own assertions
+  (`:894-900`) check `preview.textContent` for the `logTail` line and the
+  `writeText`/"Copied" flow — none assert the version string, so this `"0.8.0"` is an
+  arbitrary fixture literal, not a bump target.
+- `src/lib/plugin-agents.test.ts:77` and `src/modules/marketplace/MarketplacePanel.test.tsx:40`
+  — two more new-at-this-sha call sites, each `new PluginRuntime({ hostVersion: "0.8.0", … })`
+  — a fixture host version chosen to satisfy every catalog plugin's `requiredHostVersion`
+  (`marketplace.test.ts`'s own comment on the same pattern: "host version matches
+  HOST_VERSION so every catalog plugin satisfies requiredHostVersion"), not an assertion on
+  the real app version.
+- `src/lib/plugin-runtime.test.ts:511,521,530,555,558,560,563,564,565,568,569` —
+  `hostSatisfies`/`PluginRuntime` unit tests that use `"0.8.0"` as one arbitrary semver
+  operand to exercise the comparison itself; the comparison behaviour is what's under test,
+  not the app's actual version — not a bump target. (`src/store/marketplace.test.ts:46` looks
+  like the same pattern but is NOT in this list — the bump commit moves it; see §1's bump
+  list above.)
+- `src/lib/plugin-runtime.ts:133` — a doc-comment example string (`written as ">=0.8.0"
   parses to its floor [0,8,0]`), not a version statement.
-- `src/lib/workspace.test.ts:1488` — a doc comment, `/** v0.8.0 rows */`, labeling a fixture
+- `src/lib/workspace.test.ts:1574` — a doc comment, `/** v0.8.0 rows */`, labeling a fixture
   shape, not the app version.
 
 Then the grep that proves nothing load-bearing is left (excludes the historical/prose docs
-FACTS itself excluded — CHANGELOG.md, docs/archive, docs/redesign/verification,
+FACTS itself excludes — CHANGELOG.md, docs/archive, docs/redesign/verification,
 docs/screenshots, pnpm-lock.yaml — since those are intentionally-preserved history, not
 load-bearing):
 
@@ -121,44 +161,58 @@ git grep -n '0\.8\.0' -- . \
   ':!docs/screenshots' ':!pnpm-lock.yaml'
 ```
 
-Expected output at the sha (confirmed by running it): **92 lines**, in two categories, both
-expected and not a sign of a missed bump once the five must-bump files above are edited:
+Expected output at S (confirmed by running it): **99 lines**, in two categories:
 
-- **55 prose hits** — `BLOCKERS.md` (5), `README.md` (3), `docs/CURRENT_STATE.md`,
-  `docs/redesign/*` reports, `docs/research/phase-10/*` — historical/narrative, not
+- **55 prose hits** — `BLOCKERS.md`, `README.md`, `docs/CURRENT_STATE.md`, `docs/redesign/*`
+  reports, `docs/research/phase-10/*`. 54 of these are historical/narrative, not
   source-of-truth (the README/BLOCKERS/CURRENT_STATE drafts from this same Stage D wave
-  carry corrected 0.9.0 prose, promoted separately at rc2).
-- **37 source/lock/test/manifest hits**, every one of them confirmed non-bump-target above:
-  `package.json` (2: `:3` the version — bumps — and `:76` the dep pin — doesn't),
+  carry corrected 0.9.0 prose, promoted separately at rc2). The 55th, `README.md:53`, is
+  **not** historical narrative — it is a current-state claim ("version strings sit at
+  `0.8.0` pending a release cut") and is one of the bump commit's 8 edits (§1 above).
+- **44 source/lock/test/manifest hits**, every one confirmed non-bump-target above except the
+  7 that flip on the bump: `package.json` (2: `:3` bumps, `:77` the dep pin doesn't),
   `src-tauri/Cargo.lock` (8: `:5487` bumps via `cargo update`, the other 7 don't),
-  the three `plugins/*/manifest.json:6` `requiredHostVersion` pins,
+  the three `plugins/*/manifest.json:6` `requiredHostVersion` pins (don't),
   `sidecar/app.py` (1, bumps), `src-tauri/Cargo.toml` (1, bumps),
   `src-tauri/tauri.conf.json` (1, bumps), `src/lib/plugin-bootstrap.ts` (1, bumps),
-  `src/lib/plugin-runtime.ts:115`, `sidecar/tests/test_data_cache.py` (5),
-  `src/components/SettingsPanel.test.tsx:831`, `src/lib/plugin-runtime.test.ts` (11),
-  `src/lib/workspace.test.ts:1488`, `src/store/marketplace.test.ts:43`.
+  `src/lib/plugin-runtime.ts:133`, `sidecar/tests/test_data_cache.py` (5),
+  `sidecar/tests/test_schema_version.py` (5), `src/components/SettingsPanel.test.tsx:886`,
+  `src/lib/plugin-agents.test.ts:77`, `src/lib/plugin-runtime.test.ts` (11),
+  `src/lib/workspace.test.ts:1574`, `src/modules/marketplace/MarketplacePanel.test.tsx:40`
+  (none of these last dozen bump), and `src/store/marketplace.test.ts:46` (bumps — reclassified
+  in §1 above; every other test-fixture line on this list is left alone on purpose).
 
-After the bump, the same grep drops from 92 to 87 (the five must-bump lines gone; everything
-else on the list above is unchanged by design). A residual still at or near 92, or any hit
-against one of the five must-bump paths, means the bump was incomplete.
-
-<!-- VERIFY: re-run this grep after the actual bump commit and confirm the residual is
-exactly 87, with no hit against the five must-bump paths — FACTS.md's occurrence list and
-this section's counts are the sha's read, not a post-bump grep. -->
+**Confirmed by running the grep against the actual bump commit, `517da226`
+(`git grep -n '0\.8\.0' 517da226 -- . <same excludes> | wc -l`): 91**, i.e. 99 minus the 8
+lines that flip (`package.json:3`, `src-tauri/Cargo.toml:3`, `src-tauri/tauri.conf.json:4`,
+`sidecar/app.py:329`, `src/lib/plugin-bootstrap.ts:38`, `src-tauri/Cargo.lock:5487` via
+`cargo update`, `README.md:53`, `src/store/marketplace.test.ts:46`) — everything else on the
+list above is unchanged by design (54 prose + 37 source = 91). A residual still at or near
+99, or any hit against one of those 8 lines, means the bump was incomplete. Confirm this
+count again once `worktree-agent-r15-version-0.9.0` is merged into the release-candidate
+branch, in case later Stage-C batches added a new `0.8.0` occurrence upstream of the merge.
 
 ### 1b. CHANGELOG entry
 
-`CHANGELOG.md` has a `## vX.Y.Z — <title> (<date>)` heading per release (confirmed:
-`:401` `## v0.7.0 — Completion + Polish + Parity (2026-05-17)`, `:649` `## v0.6.5 — …`), and
-there is no `## v0.8.0` heading at all (`v0.8.0` was tagged off a docs-only commit,
-`f45019f6 docs(release/v0.8.0/H2): 6 new CLAUDE.md gotchas from Phase 8 lessons` — `git log
--1 v0.8.0`). Add `## v0.9.0 — <title> (<date>)` above the newest existing heading, in the
-same commit as the version bump, so the file keeps one heading per release with no gap.
+`CHANGELOG.md` has a `## <title> (<date>)` heading per release/batch entry — the newest at
+this sha is `:7` `## R15 Stage C — batch 17: citation guard seeded from history, humanised
+tool names and cross-line dump drop; partial tool-call marker hold (2026-09-25)`, one of 16
+Stage-C batch headings (`git show S:CHANGELOG.md | grep -c '^## R15 Stage C — batch'`
+= 16, batch 2 through batch 17) plus "R15 rc1 gate — round 1" (`:209`) and "R15 Stage C — trading
+removed (D81, 2026-09-23)" (`:669`) added since `r13-bedrock` (per FACTS's Git section). The
+last real numbered-version heading is `:760` `## v0.7.0 — Completion + Polish + Parity
+(2026-05-17)` (`:1008` `## v0.6.5 — …`), and there is still no `## v0.8.0` heading at all
+(`v0.8.0` was tagged off a docs-only commit, `f45019f6 docs(release/v0.8.0/H2): 6 new
+CLAUDE.md gotchas from Phase 8 lessons` — `git log -1 v0.8.0`). Add `## v0.9.0 — <title>
+(<date>)` above the current newest heading (the batch-17 line, or whatever Stage-C/gate entry
+is newest by the time this is promoted), in the same commit as the version bump, so the file
+keeps one heading per release with no gap.
 
 §9's tag/Release step has no notes source of its own; this wave produced
 `docs/redesign/verification/r15/stage-d/RELEASE_NOTES.draft.md` for that purpose. At rc2,
-promote it (drop its line-1 draft marker and this section's own critic footer) and pass it as
-the Release body: `gh release create v0.9.0 --notes-file <promoted-path> <assets from §6>` —
+promote it — drop its line-1 DRAFT marker and its trailing `<!-- refresh ... -->` comment,
+and fill or remove every remaining `<!-- fill at rc2 -->` marker — and pass it as the
+Release body: `gh release create v0.9.0 --notes-file <promoted-path> <assets from §6>` —
 operator-only, after §8/§9 are unblocked, or with hand-built §6 assets as §9 already allows.
 
 ## 2. Install
@@ -197,26 +251,41 @@ pnpm test && cargo test --manifest-path src-tauri/Cargo.toml && \
 cd sidecar && python -m pip install -r requirements-dev.txt && pytest
 ```
 
+`pnpm lint` itself changed at this sha: `package.json`'s `lint` script is now `"eslint . &&
+node scripts/audit-design-tokens.mjs"` (was bare `eslint .`) — the new second half is the R9
+design-token audit (`scripts/audit-design-tokens.mjs` header comment: enforces
+`R9_DESIGN_SYSTEM.md`'s spacing-step and dead-type-size rules over `src/` and `plugins/`,
+failing on an arbitrary/off-grid Tailwind value with no `tokens-ok:` justification comment).
+It runs in `--report`-less (enforcing) mode as part of `pnpm lint`, so a step-3 lint failure
+can now also be a design-token violation, not only an ESLint one.
+
 CLAUDE.md: "`pnpm ci-local` mirrors CI byte-for-byte … If it's skipped or red at tag time,
 the tag is invalid."
 
-Expected output: no full `ci-local` run exists yet at this sha (rc1 has not run —
-`docs/redesign/verification/r15/rc1/` does not exist in the tree at `f4444790`). The
-closest real per-gate evidence is the Stage C batch-9 verifier's independent re-run of the
-individual gates against the merged code (`docs/redesign/verification/r15/stage-c/batch-9/
-VERDICTS.md:33-40`, "Chain observed at the target (`a3b8218`, verifier re-run)"):
+Expected output: no full `ci-local` run exists yet against the release-candidate sha itself
+(that sha does not exist until §1's merge + rc gate round 2). `R15_GATE_RC1.md` (round 1,
+verdict **FAIL**, candidate `1d6511c89bb27f1785f7af4d2290983b2852d70a`, "Do not tag rc1")
+records the most recent full-chain run on record: item 4, "`ci-local` — **PASS** —
+... vitest 1825/1825, cargo 19, pytest 3150 passed and 1 skipped, `EXIT=0`" (`:18`), and
+item 5, "`smoke` — **PASS** — ... `SMOKE_EXIT=0` ... 3 sidecars, 13 agents, mcp toolCount 40"
+(`:19`, at `1d6511c8`). That candidate is superseded — its own register carried 631 entries
+against this sha's 652 (FACTS's Register section), i.e. it predates roughly a dozen later
+Stage-C batches, and the round's overall FAIL verdict was on other gate items (register
+conformance, agent scenarios, owner-drives, the fixed-name battery), not on `ci-local` or
+`smoke`. No `r15-rc1` tag exists yet; gate round 2 launches once batch-24 merges.
 
-| Gate | Result |
-| ---- | ------ |
-| `pnpm exec vitest run` (full) | 141 files, 1683 tests passed, EXIT 0 |
-| `pnpm typecheck` / `pnpm lint` / `pnpm format:check` | EXIT 0 / 0 / 0 |
-| `pytest` (sidecar, full) | 2962 passed, 1 skipped, EXIT 0 |
-| `ruff check` / `ruff format --check` | "All checks passed!" / "419 files already formatted" |
-| cargo | no `src-tauri/` diff in that batch, unchanged from base |
-
-This is not a literal `pnpm ci-local` invocation (it is per-gate, run by the batch-9
-verifier from a scratch worktree, not the single composed script) and predates later
-batches (through batch-9 only, per FACTS's `git` section).
+The most recent Stage-C integrator chain in the tree, closer to this sha, is batch-23's:
+`docs/redesign/verification/r15/stage-c/batch-23/VERDICTS.md:12-15` — "ci2 `CI_EXIT=0`
+(3471 passed, 1 skipped). ci1 was red only on format:check, which the newline commit fixes
+... smoke `SMOKE_EXIT=0`" at `worktree-agent-batch-23-int@9aa9fb6c`. (Batch-16's and
+batch-22's integrator chains are the same pattern and also green:
+`batch-16/VERDICTS.md:5` `CI_EXIT=0`, 3271 passed, 1 skipped;
+`batch-22/VERDICTS.md:13-16` `CI_EXIT=0`, 3456 passed, 1 skipped, plus `SMOKE_EXIT=0`.)
+These are all **integration-branch runs on a batch's own merged tree, not the release
+candidate** — each batch's own verifier separately found the model behaviour underneath
+that green chain still blocking (batch-22 and batch-23 both verdict "block" on
+R15-LEAD-035-class regressions), so a green `ci-local`/smoke chain here is necessary but not
+sufficient evidence for a tag.
 
 <!-- fill at rc2: expected output from the lead's actual `pnpm ci-local` run at the
 release-candidate sha -->
@@ -236,51 +305,78 @@ equivalent to (`package.json:sidecars:build`):
 VYSTED_SKIP_DEV_SIGN=1 node scripts/ensure-all-sidecars.mjs --force
 ```
 
-`VYSTED_SKIP_DEV_SIGN=1` matters: every ensure script signs its output after the copy
-(`scripts/ensure-sidecar.mjs:207 signDevBinary(outPath, "com.vysted.sidecar")`, and the
-openbb/sec-edgar equivalents, `:202`/`:194`), and `signDevBinary`
-(`scripts/macos-dev-sign.mjs:36-40`) runs `codesign` with the lead's local 5-year self-signed
-"Vysted Terminal Dev Signing" identity (`CLAUDE.md` "macOS keychain re-prompts…" gotcha,
-`scripts/macos-dev-setup.sh`) whenever that identity is present in the login keychain, and is
-skipped only on non-Darwin, a missing identity, or this env var (`:37-40`). Without it, the
-three `externalBin` payloads that ship inside the release bundle (§6) carry a signature from
-a dev-only cert — never intended for shipping. With the env var set, the build log should
-NOT show `[dev-sign] signed …` (`macos-dev-sign.mjs:45`) for any of the three binaries; if it
-does, the skip did not take effect and the binaries are dev-signed.
-
-`scripts/ensure-all-sidecars.mjs` is an orchestrator that runs each per-sidecar script in
-sequence and aborts on the first non-zero exit (source at the sha):
+**Build mechanism changed at this sha** (register `R15-CODE-PLATFORM-026`, status `fixed`):
+the three PyInstaller command lines used to be hand-duplicated across
+`scripts/ensure-sidecar.mjs`, `scripts/ensure-openbb-mcp-sidecar.mjs` and
+`scripts/ensure-sec-edgar-mcp-sidecar.mjs` (~90 of ~190 lines identical per file); they now
+all read one table, `SIDECAR_SPECS`, in `scripts/sidecar-specs.mjs` (header comment: "The one
+table of what each sidecar binary is built from, and the one builder that turns a row into a
+binary"). Each per-sidecar script is now a thin wrapper — e.g. `scripts/ensure-sidecar.mjs`
+in full:
 
 ```
-scripts/ensure-sidecar.mjs
-scripts/ensure-openbb-mcp-sidecar.mjs
-scripts/ensure-sec-edgar-mcp-sidecar.mjs
+import { SIDECAR_SPECS, buildSidecar } from "./sidecar-specs.mjs";
+buildSidecar(SIDECAR_SPECS.find((s) => s.name === "vysted-sidecar"), { force: process.argv.includes("--force") });
 ```
 
-logging `[ensure-all-sidecars] → node <script> [--force]` per step and
-`[ensure-all-sidecars] all sidecars present.` on success (script source, `ensure-all-sidecars.mjs`).
+and `scripts/ensure-all-sidecars.mjs` loops `SIDECAR_SPECS` directly rather than spawning the
+three child scripts:
 
-Where each lands (per-script header comments at the sha, `bundle.externalBin` in
-`src-tauri/tauri.conf.json:41-44`):
+```
+import { SIDECAR_SPECS, buildSidecar } from "./sidecar-specs.mjs";
+for (const spec of SIDECAR_SPECS) buildSidecar(spec, { force });
+```
 
-| Binary | ensure script | Output path |
+logging `[ensure-all-sidecars] → <spec.name>[ --force]` per step and, per spec,
+`[ensure-<name>] building <outName> ...` then `[ensure-<name>] wrote <outPath>` and
+`[ensure-<name>] done.` on a fresh build, or `[ensure-<name>] <outName> present and fresh —
+skipping build.` if already built and current (`buildSidecar`, `sidecar-specs.mjs`), where
+`<name>` is `spec.name` with its `vysted-` prefix stripped (`sidecar-specs.mjs:236`:
+`` const tag = `[ensure-${spec.name.replace(/^vysted-/, "")}]` `` ) — the three real tags are
+`[ensure-sidecar]`, `[ensure-openbb-mcp-sidecar]` and `[ensure-sec-edgar-mcp-sidecar]`; it
+aborts on the first spec that throws (`ensure-all-sidecars.mjs`: `catch (err) { … process.exit(1); }`).
+
+Two staleness bugs this consolidation fixed (both `fixed` in the register, relevant because
+they'd otherwise silently ship a stale binary): `R15-RELEASE-005` — the staleness gate used to
+allow-list source extensions (`\.(py|txt|toml|cfg|ini|json|csv)$`), so regenerating a bundled
+`.json.gz` data seed never tripped a rebuild; it is now a deny-list (`IGNORE_FILE =
+/\.(pyc|pyo|log)$|^\.DS_Store$/i`, `sidecar-staleness.mjs`) — every source file is build input
+by default. `R15-RELEASE-006` — the CI freshness gate used to hand-copy each sidecar's
+staleness config separately from the build; both now read the same `spec.stale` off
+`SIDECAR_SPECS` (`sidecar-specs.mjs` `assertAllFresh`), so the gate cannot certify a different
+source set than the build actually used.
+
+`VYSTED_SKIP_DEV_SIGN=1` still matters: `buildSidecar` calls `signDevBinary(outPath,
+spec.identifier)` unconditionally after the binary copy (`sidecar-specs.mjs`, step 4), and
+`signDevBinary` (`scripts/macos-dev-sign.mjs:36-46`) runs `codesign` with the lead's local
+5-year self-signed "Vysted Terminal Dev Signing" identity (`CLAUDE.md` "macOS keychain
+re-prompts…" gotcha, `scripts/macos-dev-setup.sh`) whenever that identity is present in the
+login keychain, and is a no-op only on non-Darwin, a missing identity, or this env var
+(`macos-dev-sign.mjs:37-40`). Without it, the three `externalBin` payloads that ship inside
+the release bundle (§6) carry a signature from a dev-only cert — never intended for shipping.
+With the env var set, the build log should NOT show `[dev-sign] signed …`
+(`macos-dev-sign.mjs:45`) for any of the three binaries; if it does, the skip did not take
+effect and the binaries are dev-signed.
+
+Where each lands (`sidecar-specs.mjs` `binaryPath()`; `bundle.externalBin` in
+`src-tauri/tauri.conf.json:40-44`):
+
+| Binary | `SIDECAR_SPECS` `kind` | Output path |
 | ------ | -------------- | ----------- |
-| `vysted-sidecar` | `scripts/ensure-sidecar.mjs` | `src-tauri/binaries/vysted-sidecar-<target-triple>[.exe]` |
-| `vysted-openbb-mcp-sidecar` | `scripts/ensure-openbb-mcp-sidecar.mjs` | `src-tauri/binaries/vysted-openbb-mcp-sidecar-<target-triple>[.exe]` |
-| `vysted-sec-edgar-mcp-sidecar` | `scripts/ensure-sec-edgar-mcp-sidecar.mjs` | `src-tauri/binaries/vysted-sec-edgar-mcp-sidecar-<target-triple>[.exe]` |
+| `vysted-sidecar` | `main` | `src-tauri/binaries/vysted-sidecar-<target-triple>[.exe]` |
+| `vysted-openbb-mcp-sidecar` | `mcp` | `src-tauri/binaries/vysted-openbb-mcp-sidecar-<target-triple>[.exe]` |
+| `vysted-sec-edgar-mcp-sidecar` | `mcp` | `src-tauri/binaries/vysted-sec-edgar-mcp-sidecar-<target-triple>[.exe]` |
+
+`<target-triple>` comes from `rustc -vV`'s `host:` line, read by `sidecar-specs.mjs`'s
+`targetTriple()` (`:190-195`; the same function §0 checks `rustc` is on `PATH` for).
 
 `tauri build` resolves `bundle.externalBin` (`binaries/vysted-sidecar`,
 `binaries/vysted-openbb-mcp-sidecar`, `binaries/vysted-sec-edgar-mcp-sidecar`,
 `tauri.conf.json` `bundle.externalBin` at the sha) against these triple-suffixed files, so
 this step must run — and succeed for all three — before step 6.
 
-Expected output: each per-sidecar script logs `[ensure-<name>] building <outName> ...` then
-`[ensure-<name>] wrote <outPath>` and `[ensure-<name>] done.` on a fresh build, or
-`[ensure-<name>] <outName> present and fresh — skipping build.` if already built and
-current (script source, all three ensure-*.mjs files).
-
 <!-- fill at rc2: expected output from the lead's actual sidecar build run at the
-release-candidate sha (no logged sidecar-build output exists at f4444790) -->
+release-candidate sha (no logged sidecar-build output exists at 4d893147) -->
 
 ## 5. Sidecar smoke test
 
@@ -308,13 +404,15 @@ PID ledger recorded (never the operator's live app).
 Success message (script source, `smoke-test-sidecars.mjs`): `[smoke] all sidecars booted
 cleanly.` Failure: `[smoke] FAILURES:` followed by each failure line, exit 1.
 
-The script first refuses any binary older than its source (`_assertAllFresh`, :870, called
-at :912, log line `[smoke] freshness gate: all bundled sidecar binaries are newer than their
-source.` at :898) — re-run §4 after any later sidecar or ensure-script edit, or this step
-fails on staleness before it boots anything.
+The script first refuses any binary older than its source: it imports `assertAllFresh` from
+`scripts/sidecar-specs.mjs` (`:80`) — the same freshness check §4's build uses, off the same
+`SIDECAR_SPECS` table (`R15-RELEASE-006`, fixed, see §4) — wraps it in a local
+`_assertAllFresh(triple)` (`:857-859`) called at `:873`, with the log line `[smoke] freshness
+gate: all bundled sidecar binaries are newer than their source.` (`:859`) — re-run §4 after
+any later sidecar or spec edit, or this step fails on staleness before it boots anything.
 
 <!-- fill at rc2: expected output from the lead's actual smoke-test run at the
-release-candidate sha (no logged smoke-test output exists at f4444790) -->
+release-candidate sha (no logged smoke-test output exists at 4d893147) -->
 
 ## 6. `pnpm tauri build` (macOS)
 
@@ -375,6 +473,14 @@ What to check, per the code at the sha:
   security find-generic-password -s vysted-terminal -a app-meta:first-launch-terms
   ```
 
+  **If macOS shows a keychain-access prompt during this launch, choose Allow.** A Deny (or a
+  failed read) leaves the TOS dialog and onboarding permanently unrendered with no error
+  shown — this is a known bug, not evidence the terms check passed or failed
+  (R15-UI-044, `DECISIONS_FOR_OPERATOR.md §2.21`, Tier-4, open at this sha: "a denied/failed
+  macOS keychain read during first-launch TOS hydrate leaves the TOS dialog (and onboarding)
+  permanently unrendered with no error shown"). A blank first run under this condition should
+  be filed against R15-UI-044, not treated as a new defect.
+
   If present, either delete it (and the onboarding-complete flag,
   `keychain.ts:101` `app-meta:onboarding-complete`) or run the check as a separate macOS
   user:
@@ -432,18 +538,33 @@ Inner sidecar binaries (the three `externalBin` payloads): ad-hoc/linker-signed 
 local dev-only signing identity (§4) — neither is a substitute for the outer-bundle signing
 this section blocks on.
 
+**Ordering note:** signing is read out of `tauri.conf.json` (`bundle.macOS.signingIdentity`,
+`bundle.windows.signCommand`/`certificateThumbprint`) at build time, inside `pnpm tauri
+build` itself — it is not a step applied to an already-built bundle. If the operator approves
+any change here (including the minimal ad-hoc `"-"` unblock), that edit must land in
+`tauri.conf.json` **before** re-running §6, and §6's `.app`/`.dmg` and the §7 launch check
+must both be re-run afterward; a §6/§7 already done against the old (unsigned) config is
+stale the moment §8 changes anything.
+
 ## 9. Tag and GitHub release — operator-only
 
 What: cut the `v0.9.0` tag and publish a GitHub Release with installable assets.
 Who: **operator runs this.**
 
+**Do not tag before the rc gate passes.** `git tag --list 'r15*'` is empty at S — no
+`r15-rc1` tag exists yet. `R15_GATE_RC1.md:3` reads "**Verdict: FAIL.** Do not tag rc1." for
+round 1 (candidate `1d6511c89bb27f1785f7af4d2290983b2852d70a`); round 2 launches once
+batch-24 merges (§1). This step runs only after a round shows a PASS verdict, against the
+sha that round evaluated.
+
 **Precedent for tag format** (existing tags, e.g. `v0.8.0`): an annotated tag,
 `tagger`/message form `<version> — <one-line description>` followed by a short changelog
-body (`git cat-file -p v0.8.0`). Operator runs, e.g.:
+body (`git cat-file -p v0.8.0`). Tag the exact sha the rc gate's round-2 PASS verdict
+evaluated — never bare `HEAD`, which may have moved since the gate ran. Operator runs, e.g.:
 
 ```
-# operator runs this
-git tag -a v0.9.0 -m "v0.9.0 — <summary>"
+# operator runs this — <gated-sha> is the sha the rc1 gate round-2 PASS verdict names
+git tag -a v0.9.0 <gated-sha> -m "v0.9.0 — <summary>"
 git push origin v0.9.0
 ```
 
@@ -498,6 +619,21 @@ Practically: before tagging, the operator should have real 3-OS CI signal on the
 release-candidate tree, not just this wave's local `ci-local`/smoke evidence — none exists
 yet on `004-r4-experience-rebuild` at this sha.
 
+**NEEDS-OPERATOR — commercial-licence contact.** `DECISIONS_FOR_OPERATOR.md` §2.18
+(R15-DOCS-002): `COMMERCIAL_LICENSE.md`/`LICENSING.md` name `commercial@vysted.com`, a domain
+with no MX or A record. Quoted verbatim (`DECISIONS_FOR_OPERATOR.md:230-236`):
+
+> **Blocked:** `COMMERCIAL_LICENSE.md`/`LICENSING.md` name `commercial@vysted.com`; the
+> domain has no MX or A record, so a would-be licensee has no way to reach you.
+>
+> **Why Tier-4:** business/identity decision (owning a real inbox), not a code change.
+>
+> **Smallest unblock:** approve a real contact address; it gets swapped into both files
+> before any public 0.9.0 announcement.
+
+A GitHub Release is a public 0.9.0 announcement — get the real contact address into both
+files before this step, not after.
+
 ## 10. Windows — NEEDS-MANUAL-CHECK
 
 **Nobody has verified a Windows build or install of this branch.** Prerequisites and bundle
@@ -520,13 +656,15 @@ targets from the sha's own config/CI, not from a real Windows run:
   Windows run; no Windows run evidence exists in the register at this sha.
 - `sidecar/tests/test_search_extract.py:467` already passes `encoding="utf-8"` to the one
   `fixture.read_text(...)` call in that file, and no bare (no-`encoding`) `.read_text()` call
-  remains anywhere under `sidecar/tests/` at this sha (`git grep -n '\.read_text(' --
-  sidecar/tests/` at the sha: the only hit without `encoding=` is a docstring reference, not a
-  call) — pinned by a dedicated AST-scan regression test,
-  `sidecar/tests/test_tests_encoding.py`, whose docstring names it as the fix for
-  `R15-CROSS-PLATFORM-002`. The register (`docs/redesign/verification/vysted-r15-register.json`)
-  still shows that entry `"status": "open"` at this sha; the code disagrees. Not listed here as
-  an active red-on-Windows risk — see the critic-findings footer for why.
+  remains anywhere under `sidecar/tests/` at this sha — pinned by a dedicated AST-scan
+  regression test, `sidecar/tests/test_tests_encoding.py`, whose docstring names it as the fix
+  for `R15-CROSS-PLATFORM-002` (register status `fixed` at this sha, consistent with the
+  code). Not an active red-on-Windows risk.
+- `R15-CROSS-PLATFORM-001` (register `blocked_tier4`, `DECISIONS_FOR_OPERATOR.md §2.17`):
+  655+ commits on `004-r4-experience-rebuild` have never had 3-OS CI signal at all — same
+  root cause as §9/R15-RELEASE-004 (no PR, no trigger). The "Windows build" this section asks
+  for has literally never run in CI on this branch, so any Windows-specific breakage in the
+  654 commits of R15 work is undiscovered, not merely unverified.
 
 <!-- fill at rc2: an actual Windows build + install + smoke-test run, or an explicit
 decision to ship 0.9.0 macOS/Linux-only pending that verification -->
@@ -542,57 +680,99 @@ gone (`git tag -d v0.9.0 && git push origin :refs/tags/v0.9.0`) — operator-onl
 re-run `cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml` to
 sync `Cargo.lock` back down.
 
-**Restoring the previous tag's build**: `git checkout v0.8.0` (or any prior `vX.Y.Z` tag,
-`git tag --list 'v*' --sort=-creatordate` at the sha: v0.8.0, v0.7.0, v0.6.5, v0.6.1, v0.6.0,
-…) into a clean worktree and re-run §2-§6 from that tree. Per §9/R15-RELEASE-002, none of
-`v0.6.0`..`v0.8.0` has an installable build published via GitHub Releases — "rollback" for
-an operator without a locally-built prior bundle means rebuilding from that older tag's
-source, not re-downloading a prior release asset.
+**No pre-D81 tag is a rollback target.** `v0.8.0` and every earlier tag (`v0.7.0`, `v0.6.5`,
+`v0.6.1`, `v0.6.0`, …) predate D81's permanent removal of the trading surface (`a122dbf6
+feat(d81)`) and still carry it: `git ls-tree --name-only v0.8.0 plugins/ sidecar/services/`
+lists `plugins/brokers`, `plugins/tradesa-v2`, `sidecar/services/broker_base.py`,
+`sidecar/services/brokers` and `sidecar/services/kill_switch.py`. They are also licensed
+differently — `git show v0.8.0:LICENSE | head -1` gives `GNU AFFERO GENERAL PUBLIC LICENSE`,
+not PolyForm Strict 1.0.0. Rebuilding and shipping any of these tags as a "rollback" would
+re-ship the removed broker/order surface under the old AGPL licence — do not do this, no
+matter how urgent the rollback.
+
+**Restoring a working prior build instead** means one of:
+- pull the published GitHub Release for the prior tag, once one exists (§9); or
+- fix forward on `004-r4-experience-rebuild` from the pre-bump commit (the commit before
+  `worktree-agent-r15-version-0.9.0` merged, i.e. before §1's merge step), rebuilding via
+  §2-§6 from that tree — this stays post-D81 and on the current licence, unlike any tag.
+
+To inspect an older tree read-only without checking it out over local edits, use
+`git worktree add <dir> <ref>` into a scratch directory, never `git checkout <tag>` in the
+main worktree (that also does not create a worktree; it detaches HEAD in place).
 
 <!-- VERIFY: whether the operator keeps any locally-built prior .dmg/.app on hand outside
 this repo — not something this read-only wave can check. -->
+
+<!-- refresh f444479 to 4d89314: header/intro sha; §1 version-bump line numbers (app.py:329,
+plugin-bootstrap.ts:38, hostSatisfies now :151-157/checkCompatibility :403,411), added 3
+new-at-this-sha non-bump occurrences (test_schema_version.py, plugin-agents.test.ts:77,
+MarketplacePanel.test.tsx:40) and corrected grep counts (92→99 pre-bump, 87→93 post-bump,
+6 flipping lines not 5, per an actual git grep run at the sha); §1b CHANGELOG heading
+pointers (newest is now batch-17 at :7, v0.7.0 moved to :760, v0.6.5 to :1008); §3 ci-local's
+`pnpm lint` now also runs the new `audit-design-tokens.mjs` R9 token audit; §4 rewritten for
+the ensure-*.mjs → `scripts/sidecar-specs.mjs` `SIDECAR_SPECS` consolidation
+(R15-CODE-PLATFORM-026, R15-RELEASE-005, R15-RELEASE-006, all `fixed`); §5's freshness-gate
+citation updated to the shared `assertAllFresh` import and its new line numbers; §10's
+R15-CROSS-PLATFORM-002 bullet simplified (register now says `fixed`, matching the code — the
+prior register/code disagreement is gone) and a new bullet added for
+R15-CROSS-PLATFORM-001 (Windows/Linux CI has never run on this branch at all); §3's "rc1 has
+not run" claim corrected — `docs/redesign/verification/r15/rc1/` now exists in the tree
+(a round-1 gate, verdict FAIL, against the now-superseded candidate `1d6511c8`, 631
+register entries vs this sha's 652) but is not usable as current-head evidence, no `r15-rc1`
+tag exists. §2, §6, §7, §8, §9's quoted DECISIONS_FOR_OPERATOR blocks and §11 verified
+unchanged byte-for-byte between the two shas and left as is. -->
 
 <!-- critic-footer -->
 
 ## Critic findings applied
 
-1. applied — split the load-bearing list into the 5 must-bump sources and an explicit
-   not-bump-target list covering the 3 manifest `requiredHostVersion` pins (with the
-   `hostSatisfies`/`checkCompatibility` semantics that make them non-bump), corrected
-   "two rows"/"five" to the verified 1 manifest-set / 7 Cargo.lock rows.
-2. applied — §1 now states the 5 must-bump sources per CLAUDE.md and explicitly lists the
-   11 `plugin-runtime.test.ts`/`marketplace.test.ts` lines plus `SettingsPanel.test.tsx:831`
-   as non-bump literals, with the SettingsPanel assertion text verified against the file
-   (`:839-845` asserts logTail/Copied/writeText, not the version).
-3. applied — replaced the "no hits"/"~90" claim with the exact confirmed count (92 lines,
-   55 prose + 37 source/lock/test/manifest, verified by running the grep at the sha) and an
-   explicit post-bump expected count (87).
-4. applied — added §0 Prerequisites (PATH export + sidecar venv activation, `rustc -vV`,
-   pnpm 10.32.1) before §2, sourced from the toolchain probe and CI's `setup-python` step.
-5. applied — rewrote §7's first-run-terms bullet: release build uses the login OS keychain
-   (`keychain.rs:6-10,37`), a fresh app-data dir does not reset it, added the read-only
-   `security find-generic-password` check and the delete/alternate-user workaround, and
-   noted RC1's precedent was the debug-build (file-keystore) path, not this one.
-6. applied — added `VYSTED_SKIP_DEV_SIGN=1` to both the §4 and §6 commands, explained why
-   (the ensure scripts' `signDevBinary` call and the dev-sign identity), and added the
-   inner-binary signing-status line to §8.
-7. applied — added §1b (CHANGELOG `## v0.9.0` heading, added in the bump commit) and wired
-   §9's Release-body source to `RELEASE_NOTES.draft.md`, promoted at rc2.
-8. applied — added the freshness-gate note to §5 (`_assertAllFresh` at `:870`, called
-   `:912`, log line `:898`) with the re-run-§4-after-any-later-edit instruction.
-9. rejected: the finding's own suggested addition is factually wrong at this sha. Verified
-   `sidecar/tests/test_search_extract.py:467` already reads
-   `fixture.read_text(encoding="utf-8")`, `git grep '\.read_text(' -- sidecar/tests/` at the
-   sha finds no remaining bare call, and `sidecar/tests/test_tests_encoding.py` is a
-   dedicated AST-scan regression test whose docstring names it as the fix for
-   `R15-CROSS-PLATFORM-002` — its closure commit `6b70230` is confirmed an ancestor of this
-   sha (`git merge-base --is-ancestor 6b70230 f4444790` → yes). The register JSON still
-   carries `"status": "open"` for that id at this sha (no `closure_evidence` field yet — a
-   bookkeeping lag, not an active defect); adding the critic's suggested Windows-red bullet
-   would put a now-false claim in the runbook. §10 instead states the corrected, verified
-   status and flags the register/code disagreement rather than asserting either "open" or
-   "fixed" outright.
-10. applied — replaced "confirm … carries it" with the confirmed line-34 quote from
-    `src-tauri/Cargo.toml` at the sha.
-11. no_change_needed — the VERIFY marker in §6 was already correct per the critic; left as
-    is.
+1. applied — `package.json:20` (verified: `pnpm ci-local` at S), and `pip` moved out of the
+   bare-command list (it runs as `python -m pip`).
+2. applied — citation moved to `scripts/sidecar-specs.mjs` `targetTriple()` (`:190-195`,
+   verified at S), full error string quoted from `:193`.
+3. applied — the bump commit `517da226` (branch `worktree-agent-r15-version-0.9.0`) verified
+   to touch 8 files, not 6: `README.md:53` and `src/store/marketplace.test.ts:46` moved from
+   "not a bump target" into §1's bump list; grep counts corrected to 99 pre-bump / 91
+   post-bump (verified: `git grep -n '0\.8\.0' 517da226 -- . <excludes> | wc -l` = 91); the
+   stale VERIFY comment (residual "exactly 93") replaced with the confirmed 91.
+4. applied — §1 rewritten to point at merging `worktree-agent-r15-version-0.9.0` (verified:
+   `git log --oneline -3` on that branch) instead of hand-editing; added an "rc gate round 2
+   PASS" checklist item and a "do not tag before the gate passes" paragraph in §9 (verified:
+   `git tag --list 'r15*'` empty at S, `R15_GATE_RC1.md:3` "Do not tag rc1"); tag command
+   changed to take an explicit gated sha instead of bare `HEAD`.
+5. applied — added an "Ordering note" to §8: any signing change must land in
+   `tauri.conf.json` before §6/§7 re-run, since signing/notarization happen inside `tauri
+   build` itself, not as a step against an already-built bundle; also flagged on the
+   checklist line.
+6. applied — added §2.18 (commercial-licence contact, quoted verbatim from
+   `DECISIONS_FOR_OPERATOR.md:230-236`) as a NEEDS-OPERATOR item before §9's tag step and on
+   the checklist; added §2.21 (R15-UI-044 keychain-deny silent failure, quoted verbatim from
+   `DECISIONS_FOR_OPERATOR.md:257-265`) as a note inside §7's keychain-check walkthrough.
+7. applied — §11's "restore v0.8.0" path replaced: verified `git ls-tree --name-only v0.8.0
+   plugins/ sidecar/services/` still lists the broker/trading surface D81 removed, and
+   `git show v0.8.0:LICENSE | head -1` is AGPLv3, not PolyForm Strict. Rollback is now
+   "pull the Release" or "fix forward from the pre-bump commit on 004", with an explicit
+   "no pre-D81 tag is a rollback target" statement and `git worktree add` in place of
+   `git checkout <tag>`.
+8. applied — §3's expected-output paragraph rewritten to cite `R15_GATE_RC1.md` items 4-5
+   (verified) as the latest full-chain `ci-local`/smoke PASS on record, and the batch-23 (plus
+   batch-16/batch-22) integrator chain (verified: `VERDICTS.md` in each batch dir) as the
+   nearest evidence to this sha, explicitly labeled as integration-branch runs, not the
+   release candidate. The batch-9 per-gate table was dropped as instructed. §4/§5's `<!-- fill
+   at rc2 -->` comments were left as is — they correctly state no logged build/smoke output
+   exists at this sha, which newer evidence does not contradict (the rc1-gate smoke result is
+   for a different, superseded candidate sha, not this one).
+9. applied — "17 Stage-C batch headings" corrected to 16 (verified:
+   `git show S:CHANGELOG.md | grep -c '^## R15 Stage C — batch'` = 16); the promotion
+   instruction for `RELEASE_NOTES.draft.md` corrected to "drop the line-1 DRAFT marker and
+   the trailing `<!-- refresh ... -->` comment, fill or remove every `<!-- fill at rc2 -->`"
+   (verified: that draft has no critic-footer section, its trailing block is a `<!-- refresh
+   f4444790 to 4d89314: ... -->` comment plus `<!-- fill at rc2 -->` markers).
+10. applied — the `[ensure-vysted-sidecar]`-style log-tag description corrected to the real
+    `sidecar-specs.mjs:236` pattern (`vysted-` prefix stripped): `[ensure-sidecar]`,
+    `[ensure-openbb-mcp-sidecar]`, `[ensure-sec-edgar-mcp-sidecar]`.
+11. applied — "per the lead note" (an unpromotable workflow-prompt citation) replaced with a
+    quote from the tracked `docs/redesign/verification/vysted-r15-run-state.md` VERSION
+    BRANCH entry for the merge-timing claim, and with direct `R15_GATE_RC1.md`/`git tag
+    --list` citations for the "no r15-rc1 tag yet" claim in §3 and §9.
+

@@ -1,206 +1,118 @@
-<!-- CRITIC of RELEASE_NOTES.draft.md at f444479031d7d493b7955b9af041d18e7c7a40cc -->
+<!-- CRITIC of RELEASE_NOTES.draft.md at 4d893147def983623de681effd1bfbae2e7441c5 -->
 
 # Critic: RELEASE_NOTES.draft.md
 
-Read cold as (A) a user upgrading to 0.9.0 and (B) the next maintainer reading CHANGELOG.md.
-Every claim checked against FACTS.md, the register (`docs/redesign/verification/vysted-r15-register.json`
-at the sha, 626 entries), the eight batch VERDICTS.md files, DECISIONS.md, LICENSING.md, CHANGELOG.md
-and the code at f4444790. 56 register ids behind the "What changed for you" and "Fixed" lines were
-mapped and their batch verdict located; the ones that failed are below.
+**Verdict: REVISE.** 13 findings: 8 wrong, 3 missing, 2 stale, 0 unverifiable. Part A tells users that nine fixed defects are still live, including a false security disclosure about `/mcp`. It says foreign tickers still fail, although that fix is certified. It presents a `needs_gui` item as fixed. It does not quote the binding local-model wording verbatim, and it carries register ids and status tokens. Part B miscounts the local-model `blocked_tier4` items.
 
-## Verdict: REVISE
-
-Six of the findings (1, 2, 3, 4, 7, 8) present something the register lists open or needs_gui as
-delivered, or state a limitation that is not a product fact; a user or maintainer acting on them
-would be misled. The rest are one-line corrections.
+All claims were read at sha `4d893147def983623de681effd1bfbae2e7441c5` (`git show <sha>:<path>`, `git grep <pat> <sha> --`). Register numbers come from the register JSON (`docs/redesign/verification/vysted-r15-register.json`), parsed with python.
 
 ## Findings
 
-1. **wrong** — Known limitations, lines 132-134: "Six areas still need hands-on GUI verification
-   (onboarding/setup flows and workspace-loading behavior)". The six `needs_gui` entries
-   (register; FACTS.md:194) are R15-CODE-AGENT-001 (the sidecar answers any browser Origin,
-   including the unauthenticated /mcp surface), R15-LIFECYCLE-001 (every launch freezes the main
-   event loop for the MCP bind window, 25-90 s), R15-LIFECYCLE-008 (a shipped build persists no
-   log), R15-UI-009 (Watchlist/Portfolio Export CSV is a dead control on macOS), R15-UI-022 (chart
-   drawing anchors snap to the bar close) and R15-UI-025 (Notes Link button is a no-op in the
-   desktop webview). None is onboarding, setup or workspace loading. Fix: "Six fixes still need
-   hands-on verification in the desktop app: CSV export on macOS, the Notes Link button, chart
-   drawing placement, the launch-time freeze while the MCP helpers bind, the persisted log file,
-   and the sidecar's cross-origin policy."
+1. **wrong — Part A › Known limitations, the "Eleven fixes still need hands-on verification" bullet (lines 146-158).** The heading calls these items fixes, but the bullet then describes each one as a live bug. For 9 of the 11, the fix has landed and passed headless verification; only the GUI check is pending. The register `note` of each `needs_gui` entry says so:
+   - R15-CODE-AGENT-001: "an evil Origin and the null Origin get 403". The code agrees: `sidecar/app.py:289-321` has `ALLOWED_ORIGINS` and an `_OriginGuardMiddleware` that returns 403 "origin not allowed".
+   - R15-UI-083: "Save .md/PDF/PNG buttons exist" (`src/modules/research/BriefPanel.test.tsx:23-37`).
+   - R15-UI-084: a "maximize takes the full cockpit" test passes (`src/store/agent-dock.test.ts:35`).
+   - R15-LIFECYCLE-001: "boot returns at once" pin passes.
+   - R15-LIFECYCLE-008: `/system/diagnostics` + logTail verified live.
+   - R15-UI-009: downloadCsv now goes through saveTextArtifact.
+   - R15-UI-025: no window.prompt remains, and eslint bans it.
+   - R15-UI-050: rows are now min-h-8.
+   - R15-UI-022: the click path is pinned in vitest.
 
-2. **wrong** — Fixed / Platform & sidecar, lines 108-109: "a rotating diagnostics log and a redacted
-   Settings export were added". The rotating log is R15-LIFECYCLE-008, `needs_gui` (batch-5
-   VERDICTS.md:216 "## needs_gui (2)"; register closure note: "Batch-5 (1574ed8) needs_gui.
-   /system/diagnostics was verified live ... no planted c[rash]"). A "redacted Settings export"
-   collides with R15-UI-058, open medium ("Settings Export carries only 3 preference fields ...
-   Import reports 'Imported settings.' for any JSON"). The clause was lifted from the batch-5
-   CHANGELOG scope note (CHANGELOG.md:162-163 "a rotating diagnostics log and a redacted Settings
-   bundle"), which the draft's own VERIFY comment says not to trust. Fix: delete the clause; the
-   persisted log belongs in Known limitations (finding 1).
+   The remaining two, R15-DOCS-024 and R15-LIFECYCLE-040, are not fixes at all. Each is a manual demonstration that has never been run ("still_reproduces").
 
-3. **wrong** — What changed for you, lines 26-27: "CSV exports go through a proper writer instead
-   of an ad hoc string join". The only CSV-path entry is R15-UI-009, `needs_gui` (batch-4
-   VERDICTS.md:22; closure note "jsdom shows downloadCsv going through saveTextArtifact ... needs
-   GUI"); CHANGELOG.md:220 "CSV saves through the Rust writer" is the uncertified batch-4 scope
-   note. "ad hoc string join" has no source anywhere in the register or CHANGELOG. The certified
-   CSV fix is R15-DATA-042 (batch-2 VERDICTS.md: "certified": the export no longer writes a
-   cross-currency Weight % and carries a currency column). Fix: replace with "the portfolio CSV
-   export now carries a currency column and no longer mixes currencies in Weight %".
+   The "/mcp answers any browser Origin with no auth check" line is a false public security disclosure.
 
-4. **wrong** — Fixed / Market data, lines 74-75: "foreign-suffixed and renamed India tickers now
-   resolve consistently across venues". R15-LEAD-022 is open high (FACTS.md:192): "_yahoo_symbol
-   rewrites every non-Indian foreign exchange suffix with a dash (BHP.AX -> BHP-AX, 0700.HK ->
-   0700-HK ...) so Yahoo answers 'possibly delisted'". The certified fixes are for
-   exchange-suffixed Indian tickers (R15-DATA-029 ".NS/.BO are mangled to -NS/-BO", batch-4
-   certified; R15-DATA-030 batch-2) and renames (R15-DATA-012, R15-DATA-018, R15-UI-039 batch-8).
-   Fix: "exchange-suffixed (.NS/.BO) and renamed India tickers"; and in Known limitations name the
-   open one plainly: "tickers on non-Indian foreign exchanges (BHP.AX, 0700.HK, 7203.T, VOD.L)
-   still fail to resolve".
+   **Fix:** replace the bullet with: "**Nine fixes still need a hands-on check in the desktop app.** Each passes automated checks, but it runs behind trusted mouse or keyboard events, or the macOS webview, and an automated tool cannot drive those. The nine are: CSV export from Watchlist and Portfolio on macOS; drawing placement, the Text label and drawing lock on the chart; the Notes Link popover; Notes slash-menu row height; brief export to .md, PDF and PNG files; maximising the agent dock; launch no longer freezing while MCP binds; the on-disk log file in a packaged build; and the sidecar refusing requests from other browser origins. Two manual checks have never been run: the documented Claude Desktop MCP setup, and the Windows MCP-spawn fix inside a launched packaged app."
 
-5. **wrong** — Fixed / Market data, lines 77-78: "India-specific exchange calendars ... were
-   corrected". R15-DATA-073 is open medium: "The bundled trading-holiday tables end on 2026-12-25
-   with no regenerator or expiry test, and already miss 2026 BSE non-session days, so freshness
-   labels drift". What was certified is narrower: R15-LIFECYCLE-022 (a moved NSE bhavcopy archive
-   path is no longer cached as a week of holidays, batch-8) and R15-UI-090 (quote freshness is
-   stamped against the instrument's exchange, not the user's locale, batch-4 "certified (both
-   halves)"). Fix: "quote freshness now follows the instrument's own exchange calendar, and a
-   missing NSE archive day is no longer mistaken for a holiday".
+2. **wrong — Part A › Known limitations, the "Tickers on non-Indian foreign exchanges … still fail to resolve" bullet (lines 159-160).** R15-LEAD-022 is `fixed` in the register. `batch-9/VERDICTS.md:109-111` reads "**LEAD-022: certified.** These all price and match Yahoo chart meta: BHP.AX 61.02 AUD, 0700.HK 438.4 HKD, 7203.T, VOD.L, SAP.DE". The code confirms it: `sidecar/services/yfinance_provider.py:219-222` passes a known non-Indian suffix through unchanged. **Fix:** delete the bullet. Add to Fixed › Market data: "tickers on other foreign exchanges (BHP.AX, 0700.HK, 7203.T, VOD.L) now resolve instead of reading as delisted."
 
-6. **wrong** — Fixed / Platform & sidecar, lines 109-110: "the workspace cache is cleared
-   automatically on a version change". The certified entry is R15-LEAD-003, subsystem
-   `data/cache` ("Rows cached before a correctness fix keep being served for up to 24 h after the
-   fix", batch-5 VERDICTS.md:183 under "## Certified (48)"): it is the data cache. The workspace
-   side is R15-LIFECYCLE-024, open medium ("No persistent store records a schema version ... no
-   top-level workspace blob version ... nothing backs up the data dir before a new build touches
-   it"). Fix: "the data cache is cleared automatically on a version change".
+3. **wrong — Part A › What changed (lines 23-25) and Fixed › Charts (lines 110-111): "a locked drawing can't be deleted (by accident)" is presented as fixed.** The drawing lock belongs to R15-UI-022, which is `needs_gui`. Its title ends "…and Lock is a dead control", and its note lists "(4) a locked drawing's row delete control is disabled and the drawing survives a click on it" as a pending GUI check. That is not certified work. It also contradicts the draft's own needs_gui list (line 148). **Fix:** remove the locked-drawing clause from both lines. The per-symbol and per-timeframe scoping (R15-UI-020, certified at `batch-7/VERDICTS.md:156`) and the indicator-overlay fix (R15-UI-023, `batch-7:166`) stay.
 
-7. **wrong** — Fixed / AI assistant, line 94: "research spend reaches you as a display value only,
-   never as executable instructions". No register entry or CHANGELOG line says this. The only
-   spend-display entry is R15-AGENT-082, open medium ("A foreground chat run's token count and
-   spend are never shown anywhere: spend is hard-coded to $0"); CHANGELOG.md:15 lists it as
-   "landed one leg short and stay[s] open" (the chat footer never parses `spend_usd`). Fix: delete
-   the clause. The certified spend work is metering (R15-AGENT-012 / R15-RESEARCH-009, batch-3
-   "certified"), already covered by "delegate ... runs get real lifecycle limits".
+4. **wrong — Part A › "Known limitations at rc1 — agent chat with a keyless local model" (lines 178-200): the binding wording is not verbatim.** The lead rule requires the LEAD-030, LEAD-037 and LEAD-038 sentences word for word. The draft instead moves "With a keyless local model" into the intro paragraph, changes LEAD-030's "the agent can still state" to "The agent can state", and starts LEAD-037 and LEAD-038 mid-sentence ("A figure the agent states…", "When you tell the agent…"). The sources are `batch-23/LEAD-030-CONCURRENCE.md:118-123` and `batch-23/DISPOSITION-CONCURRENCE.md:313-320`. **Fix:** make each bullet body exactly:
+   - LEAD-030: "With a keyless local model, the agent can still state an invented price or metric as if a tool had returned it when the figure is about a company no successful tool call in that turn covered — one named in the same paragraph as a company whose call succeeded (under a name the guard cannot map, or never looked up at all), or any company in a turn where no call failed or no tool was called — and a figure-less fabricated result dump or a code fence left open from an earlier round can also render, while every shape pinned in eight fix rounds is replaced by an honest "returned no data" note."
+   - LEAD-037 and LEAD-038: the `DISPOSITION-CONCURRENCE.md:313-320` sentences, including their "With a keyless local model, " openings.
 
-8. **wrong** — Known limitations, lines 139-140: "Your default AI provider may not answer out of the
-   box if its account has no funded balance". This is DECISIONS_FOR_OPERATOR.md §2.1 (FACTS.md:212-
-   214: the operator's own OpenRouter negative balance / DeepSeek $0), an environment note, not a
-   product limitation; a user's provider account is their own. The real open default-lane defect
-   is R15-AGENT-017, open high: "The shipped default chat model (DeepSeek V4 Flash via OpenRouter)
-   returns content_filter with zero tool calls on ordinary portfolio-write asks, so the core
-   host-action flow fails on the default". Fix: replace the bullet with "On the shipped default
-   model (DeepSeek V4 Flash via OpenRouter) asking the assistant to edit your portfolio can come
-   back as a content-filter refusal with no action taken; pick another model in Settings if you
-   hit it."
+   Bold lead-ins may stay outside the quoted sentence.
 
-9. **wrong** — Part B / Carried forward, line 209: "per this file's 'Versioning & process' gotcha".
-   In CHANGELOG.md "this file" is CHANGELOG.md; the gotcha is CLAUDE.md:274-278 at the sha
-   ("### Versioning & process ... Version lives in many sources"). Fix: "per CLAUDE.md's
-   'Versioning & process' gotcha".
+5. **wrong — Part A contains register ids and jargon.** Part A is the GitHub release body for users, so it should carry none. The draft has:
+   - `R15-LEAD-030` / `R15-LEAD-037` / `R15-LEAD-038` with `blocked_tier4` (lines 190, 195, 200);
+   - `R15-LEAD-035` with "still `open`" (line 208);
+   - "register-wide", "operator-blocked gap" and "everything else above critical/high/medium severity" (lines 163-166);
+   - a pointer to the internal `docs/redesign/DECISIONS_FOR_OPERATOR.md §2` (line 167).
 
-10. **wrong** (minor) — Known limitations, line 141: "Deep research quietly degrades to a keyless
-    web scraper if Docker/OrbStack isn't running". The fallback is real (sidecar/services/
-    searxng_manager.py:5-6 manages a `vysted-searxng` container "on the user's own docker runtime
-    (Docker Desktop, OrbStack, or a bare engine)"; R15-RESEARCH-008 calls the keyless tier "the
-    default for most users"), but it is not quiet: sidecar/config.py:233-263 stamps the brief with
-    the "honest `backend=\"keyless-fallback\"` id ... never an error state". Fix: "falls back to
-    the keyless search engines (the brief is labelled keyless-fallback)".
+   **Fix:**
+   - Drop the ids and status tokens from Part A; Part B already carries them.
+   - Replace each "(`R15-LEAD-0xx`, `blocked_tier4`)" with nothing, or with "(accepted limitation)".
+   - LEAD-035 becomes "(a fix for the over-matching half is in final testing; confirmed at the tag)".
+   - Lines 161-167 become: "Other open issues are low-severity. One medium issue remains open: the "don't use tools" detector described below. The remaining gaps are accepted and documented: signing, the release pipeline, CI, extensibility, webview hardening and a few stale docs."
 
-11. **missing** — Part B / Decisions, lines 191-197: the "D85–D92" rider list omits D91
-    (DECISIONS.md:151: "India EOD-only provider error copy no longer suggests adding a BYOK
-    broker"). Fix: add "; the India EOD-only data error no longer suggests connecting a broker".
+   The code pointers for the fail-safe and the matcher (lines 215-221) are mandated and stay.
 
-12. **missing** — Part B, line 152 vs line 189-190: "626-entry" register next to D84's "887 raw
-    findings → 603 entries" with no bridge. Both are true at their dates; the 23 added since D84
-    are the R15-LEAD-* entries the lead found during Stage C (`grep -c '^R15-LEAD-'` on the
-    register = 23; `stage-c/LEAD_FOUND.applied-batch-3.json` and `...-batch-6.json`). Fix: after
-    "603 entries" add "(626 by this sha, after 23 lead-found R15-LEAD-* entries were admitted
-    during Stage C)".
+6. **wrong — Part B › Register at this sha (lines 342-346): the 25 `blocked_tier4` entries are said to include "the four `R15-LEAD-*` local-model items above".** The register counts only three: FACTS.md:129 lists R15-LEAD-030, -037 and -038 as `blocked_tier4`, and R15-LEAD-035 is `open` (FACTS.md:125). Line 340 of the same paragraph itself says LEAD-035 is open. **Fix:** "…and three of the four `R15-LEAD-*` local-model items above (030, 037, 038; 035 is still `open`)".
 
-13. **missing** — Removed: trading, lines 51-57 (cleanup instructions). (a) `broker:_meta:first-
-    launch-tos` is an orphaned keychain account that is not "for your former broker" (D92,
-    DECISIONS.md:152; pre-removal src/lib/keychain.ts:113 at a122dbf6^1) and D85 replaced it with
-    `app-meta:first-launch-terms`. (b) Linux is a target platform (build.yml matrix) but only
-    Keychain Access and Credential Manager are named; the `keyring` build uses
-    `sync-secret-service` on Linux (CLAUDE.md "keyring Rust crate v3"). (c) `~/.vysted-terminal`
-    is the default only when the data-dir override is unset (a122dbf6^1 sidecar/config.py:547).
-    Fix: "remove every keychain entry whose account starts with `broker:` (including
-    `broker:_meta:first-launch-tos`) — Keychain Access on macOS, Credential Manager on Windows,
-    your secret-service keyring (e.g. GNOME Keyring / Seahorse) on Linux".
+7. **wrong — Part B › Register at this sha (line 341): "227 low (most of the 205 remaining open entries)".** A python pass over the register gives open by severity = `{('low','open'): 205, ('medium','open'): 1}`. So every one of the 205 remaining open entries is low, not "most". **Fix:** "227 low (205 of them still open)".
 
-14. **wrong** — Part A register/jargon check (the mandated check, not taste). No register id
-    appears in part A prose (the two `<!-- VERIFY -->` comments name VERDICTS.md / FACTS.md /
-    batch-9 and must be stripped before publishing). Jargon that a user cannot decode: line 29
-    "fundamentals witnessing"; line 81 "checked against a witness source"; line 86 "misreads a
-    leading verdict token"; line 88 "off-entity news", "deep/ultra research pass"; line 93 "a
-    capped final round"; line 96-97 "delegate (unattended) runs ... checkpointing". Fix: line 29 →
-    "fundamentals cross-checked against exchange filings"; line 81 → "cross-checked against the
-    exchange filing before being shown"; line 86 → "no longer marks an unverified claim as
-    agreed"; line 88 → "news about a different company no longer leaks into a research brief";
-    line 93 → "when the assistant hits its tool-call limit it no longer leaves calls half-done";
-    line 96-97 → "unattended (Delegate) runs now have spend and time limits, save progress, and
-    can be resumed".
+8. **wrong — Part A › Known limitations › Fail-safe (lines 218-220): "its structural gap … is exactly what the four limitations above describe".** Figure grounding checks figures only. LEAD-038 is a narrated write with no figure involved; its containment is the review queue, which needs a real tool call (FACTS.md:186). LEAD-035 is the phrase matcher. **Fix:** "…is what the first two limitations describe. A false "done" reply (the third) is contained by the review queue, because a portfolio write needs a real tool call and a narrated one stages nothing. The fourth is the phrase detector named next."
+
+9. **missing — Part A › What changed and Fixed: nothing certified in batches 10-16 is listed.** Their `VERDICTS.json` `certified` arrays hold 50 + 18 + 19 + 2 + 1 + 2 = **92** entries: batch-10 50, batch-11 18, batch-12 19, batch-13 2, batch-14 1, batch-16 2. Examples are the option chain (R15-DATA-079, `batch-11/VERDICTS.md:28`), the agent-dock maximise, CODE-AGENT-033 and RESEARCH-007. Together with LEAD-022 from batch-9 (finding 2), 92 of the 391 fixed entries are absent. The draft admits this in HTML comments, but the release body a user reads is incomplete. **Fix:** at rc2, itemise from `git show <sha>:docs/redesign/verification/r15/stage-c/batch-{10..16}/VERDICTS.json` → `.certified`, grouped under the existing Fixed headings. Drop both VERIFY comments once that is done.
+
+10. **missing — Part A › Licence change: no warning that the commercial licence cannot be obtained yet.** The section sends commercial users to `COMMERCIAL_LICENSE.md`, but that file is marked "**STATUS: DRAFT.** Commercial terms and pricing below are placeholders" (`COMMERCIAL_LICENSE.md:3`). Its contact is a "placeholder address" (`:63`), and R15-DOCS-002 ("commercial license contact has no working inbox", `DECISIONS_FOR_OPERATOR.md:231`) is `blocked_tier4`. **Fix:** add "The commercial terms and contact address are placeholders for this release; commercial licensing is not yet available."
+
+11. **missing — Part A › Known limitations: two user-facing `blocked_tier4` gaps are absent.**
+    - R15-UI-044 (`DECISIONS_FOR_OPERATOR.md:257-260`): "a denied/failed macOS keychain read during first-launch TOS hydrate leaves the TOS dialog (and onboarding) permanently unrendered with no error shown".
+    - R15-AGENT-049 (`:379`): "native web search has no per-run cap or spend meter off Anthropic". This is BYOK spend.
+
+    **Fix:** add these two bullets:
+    - "If macOS denies the keychain read on first launch, the terms dialog and onboarding don't appear and no error is shown; allow keychain access and relaunch."
+    - "Native web search on non-Anthropic providers has no per-run cap or spend meter."
+
+12. **stale — Part B heading (line 225): "(2026-09-23 – 2026-09-25)".** `git log --first-parent --merges --format='%h %ad' --date=short r13-bedrock..<sha>` gives `c155e5ad 2026-09-26` (batch 22). **Fix:** "(2026-09-23 – 2026-09-26)", or end the range at "confirmed at the tag".
+
+13. **stale — Part B › Not yet merged (lines 306-307): batch 24 "only `PLAN.md` exists in its dir at this sha".** At the sha, batch-24 has no tracked dir: `git ls-tree --name-only <sha> docs/redesign/verification/r15/stage-c/` lists batch-2 to batch-23 only, which FACTS.md:151 confirms. The PLAN.md is in an untracked live dir. **Fix:** "Stage C batch 24 (in flight, not tracked at this sha; it carries the named narrowing-only fix for `R15-LEAD-035`'s over-match half)".
 
 ## Checked and correct
 
-- Line 1 is exactly `<!-- DRAFT at f444479031d7d493b7955b9af041d18e7c7a40cc by the Stage D docs wave; refresh before rc2 -->`.
-- No key, token or keystore content anywhere in the draft.
-- Every path the draft names exists at the sha (`git cat-file -e`): COMMERCIAL_LICENSE.md, LICENSE,
-  LICENSE-APACHE, LICENSING.md, types/plugin.ts, types/plugin-runtime.ts, docs/redesign/DECISIONS.md,
-  docs/redesign/DECISIONS_FOR_OPERATOR.md, scripts/r15/vy.py, package.json, src-tauri/Cargo.toml,
-  src-tauri/tauri.conf.json, sidecar/app.py, src/lib/plugin-bootstrap.ts, src-tauri/Cargo.lock,
-  stage-c/batch-{2..9}/VERDICTS.md. The four named as deleted (registry_v0_6_5.py,
-  services/kill_switch.py, src-tauri/src/kill_switch.rs, models/audit_log.py) are absent at the sha
-  and appear in `git show --diff-filter=D a122dbf6`; 17 `sidecar/tests/test_*.py` files were deleted
-  there (18 files under sidecar/tests, the 18th being `gen_audit_trail.py`, a generator).
-- No command appears in part A or part B; the version-bump instruction names the same six files as
-  FACTS.md "versions" (all `0.8.0`, version_consistent true).
-- Licence section matches LICENSING.md verbatim in substance (source-available; noncommercial grant;
-  commercial licence for commercial use, modification, redistribution; pre-relicense commits stay
-  AGPL-3.0; Apache-2.0 carve-out for types/plugin.ts, types/plugin-runtime.ts and the example
-  plugin) and D83 (DECISIONS.md:143). LICENSE first heading is PolyForm Strict License 1.0.0.
-- Removed section matches D81 (DECISIONS.md:141), the merged-removal row (DECISIONS.md:153: kill
-  switch and append-only audit log deleted, 7 broker plugins, 17 test files) and D92 (no automatic
-  purge; DECISIONS_FOR_OPERATOR §3.1). `~/.vysted-terminal/audit_log.db` matches the pre-removal
-  default (a122dbf6^1 sidecar/config.py:547, sidecar/models/audit_log.py:12,54); `broker:<id>:<field>`
-  matches pre-removal src/lib/keychain.ts:46. "What stays" matches D81's list.
-- Part A "What changed for you" claims map to certified entries: autosave pipeline R15-LIFECYCLE-003
-  and named-workspace rollback R15-CODE-FRONTEND-001 (batch-2 "certified"); unknown-panel restore
-  R15-LIFECYCLE-002 (shipped with a122dbf6, certified per DECISIONS.md:153); research-space names
-  R15-CODE-FRONTEND-004 (batch-2); AUTO scope R15-AGENT-080 / R15-CODE-FRONTEND-008 (batch-3, D-B3-1
-  "panel, chart and watchlist" only) and typed step notices R15-AGENT-032/033; Cmd/Ctrl-K ticker →
-  chart R15-UI-002 (batch-3; default `mod+k` at src/components/CommandPalette.tsx:20) and focused
-  symbol R15-CODE-FRONTEND-015; sidecar errors R15-UI-014 and per-panel error boundary
-  R15-LIFECYCLE-023 (batch-8); validation reasons R15-UI-013, reachability banner R15-UI-019, dead
-  keyless default replaced R15-UI-049 (batch-8); drawings per symbol/timeframe R15-UI-020 (batch-7),
-  locked drawing R15-UI-021 (batch-6), overlay stacking R15-UI-023 (batch-7); portfolio quote
-  failure/staleness R15-UI-004 (batch-4) and R15-UI-036 (batch-7).
-- Fixed lines otherwise map to certified entries: same-instrument rule R15-CODE-DATA-001 (batch-2);
-  NaN prices R15-DATA-033 (batch-2) and fabricated candles R15-LIFECYCLE-004 (batch-4); stale quote
-  as fresh R15-DATA-006 (batch-2); SME/Emerge R15-DATA-017 (batch-6 after batch-5 "half fixed");
-  ownership/share-basis witnesses R15-DATA-004/005 (batch-3), EPS/P-E R15-DATA-013 (batch-2), revenue
-  R15-DATA-014 (batch-7 after batch-2 "NOT certified"); pledge/deals/corporate actions/FII-DII
-  R15-DATA-023/024/025/056 (batch-5 "Certified (48)" section); undated news R15-DATA-070 (batch-2);
-  verdict parse R15-RESEARCH-002, citations R15-RESEARCH-003/029, other-company news R15-RESEARCH-001
-  (batch-2); crashed explorer R15-RESEARCH-017 (batch-6) and blocked page visits R15-RESEARCH-019
-  (batch-7); ticker+number (KSE-100 index regex) R15-RESEARCH-021 (batch-7); stream cancel
-  R15-AGENT-002 and capped round R15-AGENT-003 (batch-3); dropped screener criteria R15-AGENT-043 and
-  portfolio-edit R15-UI-034 (batch-7); plan-before-run R15-AGENT-039 (batch-7; Delegate-specific);
-  delegate lifecycle R15-CODE-AGENT-010, R15-LIFECYCLE-012/013, R15-AGENT-035..038; watchlist/compare
-  resolver R15-AGENT-044 (batch-7) and R15-AGENT-045 (batch-8 after batch-7 "not certified");
-  corrupt workspace quarantine R15-DATA-090 and autosave failure surfaced R15-CODE-FRONTEND-019
-  (batch-7); status both directions R15-LIFECYCLE-011 and spawn failure cause R15-LIFECYCLE-010
-  (batch-8).
-- Part B: batch merge hashes and counts match `git log --first-parent --merges r13-bedrock..f4444790`
-  (the draft drops the word "live" from "certified live"; harmless). Base tag r13-bedrock, nine
-  batches, all merge commits. Register counts, the three open highs and their subsystems, 16/16
-  criticals fixed, 114 open mediums, 205 open lows, 6 needs_gui, 4 blocked_tier4 (§2.8-2.11) all
-  match FACTS.md "register". D81-D90 and D92 summaries match DECISIONS.md:141-152 (D82's $8.00 cap
-  with `PAID_USD_CAP = 7.50` in scripts/r15/vy.py; D84's 887 → 603). CI claim matches FACTS.md "ci"
-  (push restricted to main, pull_request unrestricted, three-OS matrix, never run on 004 per §2.6/
-  §2.11). Heading form "## v0.9.0 — ... (dates)" matches the existing v0.7.0/v0.6.5 sections.
-- Known limitations on signing, no release pipeline / updater, Windows unverified: match
-  DECISIONS_FOR_OPERATOR §2.8-2.11 (FACTS.md:233-244).
-- Note for rc2, not a finding: batch-6's VERDICTS.md is a post-kill reconstruction whose first lines
-  name `VERDICTS.json` as the authoritative verdict list; the part-B pointer to
-  `batch-N/VERDICTS.md` still lands on the right file.
+- **Line 1 marker:** exact.
+- **Grep checks:** `grep -ci laya` gives 0 and `grep -ci 'low-latency'` gives 0. The draft contains no key, token or keystore content; the updater pubkey in `tauri.conf.json` is not reproduced.
+- **Trading removal:**
+  - No trading surface is described as a feature.
+  - `sidecar/services/kill_switch.py`, `src-tauri/src/kill_switch.rs`, `sidecar/models/audit_log.py` and `registry_v0_6_5.py` are all absent at the sha.
+  - The default `~/.vysted-terminal/audit_log.db` path is correct (`a122dbf6^:sidecar/models/audit_log.py:12`).
+  - The `broker:_meta:first-launch-tos` key is dead: the terms ack moved to `KEYCHAIN_NAMESPACES.appMeta("first-launch-terms")` (`src/modules/safety/DisclaimerFlow.tsx:6`; D85).
+  - "17 trading-only test files" is correct: `git diff --name-status a122dbf6^1 a122dbf6 -- sidecar/tests` shows 18 deletions, of which 17 are `test_*.py` plus `gen_audit_trail.py`.
+- **Licence:**
+  - PolyForm Strict: can run and use noncommercially; modification, redistribution and commercial use need the commercial licence. Every pre-relicense commit stays AGPL-3.0.
+  - The Apache-2.0 carve-out covers `types/plugin.ts`, `types/plugin-runtime.ts` and the example plugin.
+  - Source: `LICENSING.md` at the sha.
+- **Fail-safe:**
+  - The AUTO kinds `panel`/`chart`/`watchlist` are in `types/proposed-change.ts:38-46`.
+  - `sidecar/services/figure_grounding.py` exists, and `_judge_clause` is at `sidecar/services/agent_runtime.py:2321`.
+  - Rule 1, rule 3 and the 2c FAIL-SAFE appear at `agent_runtime.py:2331-2378`.
+  - `_NO_TOOL_CUE` is at `sidecar/services/planner.py:136`.
+  - LEAD-035's still-open wording follows the lead rule: `stage-c/batch-24/` holds only `PLAN.md` and no `LEAD-035-CONCURRENCE.md`.
+- **Fixed-line sample:** 27 ids behind the Fixed and What-changed lines were checked, and each is certified in a batch VERDICTS.md:
+  - DATA-006, 033, 042, 070; RESEARCH-001, 002, 003; CODE-FRONTEND-004 (batch-2)
+  - UI-002, UI-008, AGENT-002, AGENT-003, AGENT-080 (batch-3)
+  - UI-004 (batch-4)
+  - DATA-023, DATA-024 (batch-5)
+  - UI-020, UI-023, DATA-090, AGENT-043 (batch-7)
+  - LIFECYCLE-010, 011, 022, 023 (batch-8)
+  - LEAD-031 (batch-17)
+  - LEAD-033, LEAD-034 (batch-18)
+
+  The data-cache clear on a version change is backed by `sidecar/tests/test_data_cache.py:136-146` (`ensure_build`).
+- **Known limitations:**
+  - The DeepSeek V4 Flash content-filter limitation matches R15-AGENT-017 (`blocked_tier4`; default in `src/lib/workspace.ts:189`).
+  - The `keyless-fallback` label is at `sidecar/services/agent_tools/deep_research.py:430-434`.
+  - Unsigned builds, no release pipeline and a dead updater (endpoint `releases/latest/download/latest.json`, `createUpdaterArtifacts: false`) match R15-RELEASE-001, 002 and 003.
+  - CI triggers are push `main` + `pull_request`, with 3 workflows × 3 OS.
+- **Part B:**
+  - All 23 first-party merge hashes and subjects match `git log --first-parent --merges`, and the per-batch tallies for batches 2-22 match the merge subjects and VERDICTS.md. That includes batch-11's "18 of 26", whose 26 comes from the CHANGELOG's "26 open entries … planned".
+  - Batch 19 "closes the batch-18 escapes" and batch 21's tilde-fence regression match their VERDICTS.
+  - Batch-22 is `block` with a W1-only merge.
+  - D81-D92 match `docs/redesign/DECISIONS.md` (D82 `PAID_USD_CAP = 7.50` under the $8.00 cap). Note that DECISIONS.md itself carries two rows numbered D85; this is not the draft's error.
+  - Register counts (652; 391/206/25/14/11/5; 16/116/293/227; 76 rejections) match the JSON `counts` field.
+  - The six 0.8.0 version sources and "the version branch merges right after the r15-rc1 tag" are correct, and nothing claims r15-rc1 exists.
+  - `R15_GATE_RC1.md` exists at `docs/redesign/verification/`.
+  - Every path the draft names exists at the sha, or is absent where the draft says it was deleted.
