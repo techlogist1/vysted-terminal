@@ -1,0 +1,24 @@
+BAD expect_no_tools=False n_tools=0 writes=[] price=False | No tools except price_data for TCS.NS
+BAD expect_no_tools=True n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Answer without any tools: I sold 5 TCS shares at ₹3,100 each. Restate my total proceeds.
+BAD expect_no_tools=True n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Avoid calling any functions. I bought 40 ITC at ₹415; what did I spend?
+BAD expect_no_tools=True n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Do NOT use external data. I own 20 SBIN at ₹800, what is my cost basis?
+BAD expect_no_tools=True n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Do not call a tool. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.
+BAD expect_no_tools=True n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Don’t use any tools. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.
+BAD expect_no_tools=True n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Please don’t invoke any tool — record nothing, just tell me 5 × ₹3,100.
+BAD expect_no_tools=True n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Skip the tools for this one — I hold 12 HDFCBANK at ₹1,600; add 3 more at ₹1,650, what is my average?
+BAD expect_no_tools=True n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Work it out without tool use: 9 WIPRO at ₹260 sold at ₹270, profit?
+BAD expect_no_tools=True n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Zero tool calls please: 7 INFY at ₹1,500 — total cost?
+OK  expect_no_tools=False n_tools=42 writes=[] price=True | Do not answer without using the tools: what is TCS.NS trading at?
+OK  expect_no_tools=False n_tools=42 writes=[] price=True | Never guess, always call the tools: what is INFY.NS trading at
+OK  expect_no_tools=False n_tools=42 writes=[] price=True | Not sure which tool to use — what is TCS.NS trading at?
+OK  expect_no_tools=False n_tools=42 writes=[] price=True | What tools do you have?
+OK  expect_no_tools=False n_tools=42 writes=[] price=True | Why did you not use the tools
+OK  expect_no_tools=False n_tools=42 writes=[] price=True | Why did you not use the tools? Get the TCS.NS price now.
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Add 10 TCS at 3,200 to my portfolio
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Answer using the latest data, not just from memory: TCS.NS price
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Don't forget to use the tools to get the latest TCS.NS price.
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Don't use web search, get TCS.NS price
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | I don't trust your memory, use the tools to fetch INFY.NS fundamentals
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Just get the latest price from the market for the stocks in this message: TCS.NS, INFY.NS
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Only use data from price_data for the above symbols: TCS.NS
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | I sold 5 TCS shares at ₹3,100 each. Without calling any tool, restate my sale price and my total proceeds.
