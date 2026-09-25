@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  43.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_972128965f4c47b5b2decb74fb5a0743", "name": "financial_statements", "input": {"statement": "income", "period": "annual", "symbol": "SIFY.US"}}
+[  44.4s] tool_result: {"kind": "tool_result", "tool_call_id": "call_972128965f4c47b5b2decb74fb5a0743", "name": "financial_statements", "ok": true, "error": null}
+[  49.8s] done: {"kind": "done", "usage": {"input_tokens": 2896, "output_tokens": 80, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Unfortunately, I was unable to fetch SIFY's TTM revenue data from the tool. The response indicates that there is no available data for this metric. Therefore, I must state that the terminal's data does not include the information requested.
+
+However, it seems like we were unable to retrieve this information using yfinance as our provider. Let me try fetching this information again with a different tool.
+
+=== ok · 49.8s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 82, 'done': 1} · usage in=2896 out=80 · est $0.00000 · llama3.1:8b

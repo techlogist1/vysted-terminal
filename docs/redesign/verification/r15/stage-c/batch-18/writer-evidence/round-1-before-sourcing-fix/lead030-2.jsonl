@@ -1,0 +1,91 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_db5825167d794212805a76f33b8660e8", "name": "financial_statements", "input": {"statement": "income", "period": "annual", "symbol": "SIFY.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_db5825167d794212805a76f33b8660e8", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "delta", "text": "It"}
+{"kind": "delta", "text": " seems"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " y"}
+{"kind": "delta", "text": "finance"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " alternative"}
+{"kind": "delta", "text": " ways"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " another"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " Alpha"}
+{"kind": "delta", "text": " V"}
+{"kind": "delta", "text": "antage"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " Qu"}
+{"kind": "delta", "text": "and"}
+{"kind": "delta", "text": "l"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Alternatively"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " could"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " official"}
+{"kind": "delta", "text": " website"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " filings"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " SEC"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " look"}
+{"kind": "delta", "text": " into"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " alternatives"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2898, "output_tokens": 85, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

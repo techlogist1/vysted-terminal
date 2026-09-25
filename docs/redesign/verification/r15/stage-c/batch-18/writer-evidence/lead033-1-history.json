@@ -1,0 +1,10 @@
+[
+ {
+  "role": "user",
+  "content": "What is AAPL's market cap?"
+ },
+ {
+  "role": "assistant",
+  "content": "The market capitalization of AAPL is USD 4.90T.\n\n[tool steps: Using fundamentals]"
+ }
+]

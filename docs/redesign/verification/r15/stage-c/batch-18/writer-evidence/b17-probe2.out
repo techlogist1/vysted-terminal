@@ -1,0 +1,22 @@
+PASS err-mention-plus-true-figure: "The fundamentals tool returned an error, so I used financial statements, which shows revenue of \u20b94,411 cr.\nDone."
+PASS err-mention-plus-true-figure-2: "fundamentals failed for SIFY.NS, but `financial_statements` shows revenue of \u20b94,411 cr.\nDone."
+PASS err-mention-separate-sentence: "The fundamentals tool returned an error. Financial statements show revenue of \u20b94,411 cr.\nDone."
+PASS fab-humanised-titlecase-sameline: "Here is what I found.\n\nThe earnings_history tool returned no data for this in this turn.\n\nRevenue is above."
+PASS fab-humanised-nextline-dump: "The analyst_history tool returned no data for this in this turn.\n\nConsensus is buy."
+PASS fab-hyphen-errored: "The price_data tool returned no data for this in this turn.\nDone."
+PASS fab-bracket-array-humanised: "The corporate_actions tool returned no data for this in this turn.\n\nNo more."
+PASS true-humanised-ok: "Financial Statements returned revenue of \u20b94,411 cr.\nThat is TTM."
+PASS true-backtick-dump-ok: "`price_data` returned:\n{\n \"latest_price\": 13.41\n}\nSo it closed at $13.41."
+PASS precall-narration-fresh: "I'm about to check the earnings history data for SIFY. Done."
+PASS precall-narration-with-other-ok: "Next I'll pull the financial statements data for SIFY. Done."
+PASS precall-with-figure-fabricated: "The news tool returned no data for this in this turn. "
+PASS history-seed-fixed-label: "The get_portfolio tool returned 10 AAPL shares worth $2,300.\nOK."
+PASS history-seed-multi-step: "The Price Data tool returned a close of $13.41.\nOK."
+PASS history-seed-negative: "The price_data tool returned no data for this in this turn.\nOK."
+PASS prose-price-data-kept: "I don't have price data for SIFY yet, but revenue grew."
+PASS 031/orig2-json-fundamentals: shown=['Sure. '] held='{"name": "fundamentals", "arguments": {"symbol": "SIFY"}}'
+PASS 031/nospace-json-charwise: shown=['O', 'k', ' '] held='{"name":"financial_statements","arguments":{}}'
+PASS 031/call-syntax-news: shown=['See '] held='news(symbol="SIFY")'
+PASS 031/benign-prefix-replay: shown=['The ', 'pri', 'ce', ' is up.'] held=''
+PASS 031/unoffered-json-replay: shown=['x; {"', 'name', '": "', 'scre', 'ener_run"} y'] held=''
+BAD 0
