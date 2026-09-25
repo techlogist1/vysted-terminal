@@ -89,6 +89,41 @@ def test_projected_tool_dispatches_to_the_registered_handler() -> None:
         agent_tools.reset_for_tests()
 
 
+def test_failing_catalog_tool_returns_is_error() -> None:
+    """R15-CODE-AGENT-023: a catalog-tool handler that raises comes back over MCP
+    as ``isError: true`` (a :class:`fastmcp.exceptions.ToolError`), the same
+    signal Vysted's own MCP-client code (openbb_mcp_provider, sec_filings_provider)
+    keys failure off of — never a successful result whose body says ``ok: false``."""
+    import json as _json
+
+    from services import agent_tools
+
+    async def _boom(_args: dict[str, Any]) -> dict[str, Any]:
+        raise RuntimeError("kaboom")
+
+    agent_tools.register_tool("price_data", _boom)
+    try:
+        call = {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "price_data", "arguments": {}},
+        }
+        with TestClient(mcp_server.get_streamable_http_app()) as mcp_client:
+            response = mcp_client.post(
+                "/",
+                headers={"Accept": "application/json, text/event-stream"},
+                json=call,
+            )
+        assert response.status_code == 200
+        data_line = next(line for line in response.text.splitlines() if line.startswith("data:"))
+        body = _json.loads(data_line.removeprefix("data:").strip())
+        assert body["result"]["isError"] is True
+        assert "kaboom" in body["result"]["content"][0]["text"]
+    finally:
+        agent_tools.reset_for_tests()
+
+
 def test_invoke_agent_tool_returns_error_when_agents_router_missing(
     client: TestClient,
 ) -> None:

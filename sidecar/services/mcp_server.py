@@ -43,6 +43,7 @@ from typing import Any
 import httpx
 from fastapi import FastAPI
 from fastmcp import FastMCP
+from fastmcp.exceptions import ToolError
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.tools import FunctionTool
 from mcp.types import LATEST_PROTOCOL_VERSION, ToolAnnotations
@@ -131,17 +132,19 @@ def _make_catalog_tool(tool_id: str) -> Any:
 
     No logic duplication: the external MCP surface and the internal agent loop
     run the identical handler. Errors (unregistered handler, handler raise)
-    surface as a structured ``{"ok": False, "error": ...}`` dict so an MCP
-    client recovers cleanly rather than seeing a transport error.
+    raise :class:`fastmcp.exceptions.ToolError` so the result comes back over
+    MCP with ``isError=True`` — the same signal Vysted's own MCP-client code
+    keys failure off of (R15-CODE-AGENT-023), instead of a successful result
+    whose body happens to say ``{"ok": False, ...}``.
     """
 
     async def _handler(**kwargs: Any) -> dict[str, Any]:
         try:
             return await agent_tools.invoke_tool(tool_id, kwargs)
         except KeyError:
-            return {"ok": False, "error": f"tool {tool_id!r} is not available in this build"}
+            raise ToolError(f"tool {tool_id!r} is not available in this build") from None
         except Exception as exc:  # noqa: BLE001 — surface to the MCP client
-            return {"ok": False, "error": f"tool {tool_id!r} raised: {exc}"}
+            raise ToolError(f"tool {tool_id!r} raised: {exc}") from exc
 
     return _handler
 
