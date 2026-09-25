@@ -31,7 +31,32 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from .base import SearchBackend
+from .base import SearchBackend, SearchResponse
+
+
+class _PacedBackend:
+    """Paces a bare (non-rotation) backend via the shared per-engine queue.
+
+    The keyless rotation tier already paces each engine turn itself
+    (:meth:`services.search.keyless.KeylessSearchBackend._try_engine` acquires
+    :func:`~services.search.pacing.get_queue` once per attempt before calling
+    the engine). A backend resolved directly by id (e.g. the bare ``"ddg"``
+    floor, not routed through keyless) has nothing pacing its outbound hits —
+    this wraps exactly ONE ``pacing.get_queue().acquire(engine_id)`` around the
+    whole ``search()`` call (never per internal retry/fallback the backend
+    makes on its own) so the two lanes share one rate policy
+    (R15-CODE-RESEARCH-009).
+    """
+
+    def __init__(self, backend: SearchBackend, *, engine_id: str) -> None:
+        self._backend = backend
+        self._engine_id = engine_id
+
+    async def search(self, query: str, *, options: dict | None = None) -> SearchResponse:
+        from .pacing import get_queue
+
+        await get_queue().acquire(self._engine_id)
+        return await self._backend.search(query, options=options)
 
 
 def _build_searxng(
@@ -48,12 +73,18 @@ def _build_searxng(
 
 
 def _build_ddg(*, searxng_url: str | None, region: str | None, **_: object) -> SearchBackend | None:
-    """Construct the keyless DuckDuckGo floor — UNCONDITIONAL (needs no credential)."""
+    """Construct the keyless DuckDuckGo floor — UNCONDITIONAL (needs no credential).
+
+    Wrapped in :class:`_PacedBackend`: this bare-id lane runs OUTSIDE the
+    keyless rotation, so unlike ``DdgSearchBackend`` used via
+    :mod:`services.search.keyless` (which the rotation already paces), nothing
+    else paces it (R15-CODE-RESEARCH-009).
+    """
     try:
         from .ddg import DdgSearchBackend
     except ImportError:
         return None
-    return DdgSearchBackend(region=region)
+    return _PacedBackend(DdgSearchBackend(region=region), engine_id="ddg")
 
 
 def _build_keyless(

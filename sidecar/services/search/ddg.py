@@ -18,11 +18,9 @@ yields no parsed rows returns an empty (but successful) response.
 
 from __future__ import annotations
 
-import asyncio
 import html
 import re
-import time
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, unquote, urlparse
 
 import httpx
@@ -36,6 +34,9 @@ from .base import (
     normalize_results_to_citations,
     result_limit,
 )
+
+if TYPE_CHECKING:
+    from .transport import FetchResult
 
 #: Identifier this backend reports in :class:`SearchResponse.backend`.
 BACKEND_ID = "ddg"
@@ -54,18 +55,6 @@ _LITE_ENDPOINT = "https://lite.duckduckgo.com/lite/"
 #: 429) as a rate-limit so the loop surfaces an honest "try again" instead of
 #: silently parsing a block page as "no results".
 _RATE_LIMIT_STATUSES = frozenset({202, 429})
-
-#: PROACTIVE pacing rate for the keyless DDG floor. ~20/min keeps us comfortably
-#: under DuckDuckGo's soft burst threshold: the ``html.`` host trips its 202
-#: "anomaly" challenge on an over-eager burst, so spacing requests to roughly one
-#: every ~3s dodges the throttle BEFORE it fires (the reactive 202/429 retry below
-#: is the safety net for the rare miss, not the first line of defence). Token-bucket
-#: idea ported from nickclyde/duckduckgo-mcp-server (MIT-licensed).
-_RATE_PER_MIN = 20
-_RATE_PER_SEC = _RATE_PER_MIN / 60.0
-#: Burst capacity == per-minute rate: the bucket starts FULL so the first request
-#: (and a small burst) goes through immediately; only a SUSTAINED burst is paced.
-_BUCKET_CAPACITY = _RATE_PER_MIN
 
 #: A desktop User-Agent — the bare httpx UA gets a thinner/blocked response.
 _USER_AGENT = (
@@ -173,23 +162,25 @@ def _parse_lite(text: str, *, limit: int) -> list[SearchResult]:
     return out
 
 
-async def _impersonated_fallback(endpoint: str, data: dict[str, str]) -> str | None:
+async def _impersonated_fallback(endpoint: str, data: dict[str, str]) -> FetchResult | None:
     """One Chrome-impersonated retry for a DDG 403 (TLS-fingerprint block).
 
     DuckDuckGo intermittently 403s the plain httpx TLS hello while serving the
-    same request to a real browser fingerprint. Returns the page text on a 2xx,
-    ``None`` on any failure — the caller then continues its normal retry/raise
-    path, so this fallback can only ever HELP (R7 T1 hardening).
+    same request to a real browser fingerprint. Returns the :class:`FetchResult`
+    (ANY status) on a transport-level success, ``None`` only when the
+    impersonated transport itself failed (R15-RESEARCH-039: this used to return
+    the text-or-None of a 2xx-only check, discarding a 429/202 the impersonated
+    lane could still answer with — the caller now inspects the status itself
+    through the same rate-limit check the plain lane uses, so a hard throttle
+    surfaces as "rate-limited", not a false "unreachable"). This fallback can
+    only ever HELP the caller's outcome (R7 T1 hardening).
     """
     from .transport import TransportError, impersonated_fetch
 
     try:
-        fetched = await impersonated_fetch(endpoint, data=data)
+        return await impersonated_fetch(endpoint, data=data)
     except TransportError:
         return None
-    if 200 <= fetched.status_code < 300:
-        return fetched.text
-    return None
 
 
 async def _fetch(http: httpx.AsyncClient, endpoint: str, data: dict[str, str]) -> str:
@@ -213,13 +204,17 @@ async def _fetch(http: httpx.AsyncClient, endpoint: str, data: dict[str, str]) -
         resp = await http.post(endpoint, data=data, headers=headers)
     except httpx.HTTPError as exc:
         raise SearchError(unreachable) from exc
-    if resp.status_code == 403:
-        # Fingerprint block, not a throttle: one real Chrome TLS hello.
-        text = await _impersonated_fallback(endpoint, data)
-        if text is not None:
-            return text
-        raise SearchError(unreachable)
-    if resp.status_code in _RATE_LIMIT_STATUSES:
+    status, text = resp.status_code, resp.text
+    if status == 403:
+        # Fingerprint block, not a throttle: one real Chrome TLS hello. Its
+        # status feeds the SAME rate-limit check below (not just "2xx or
+        # bust") so a 429/202 from the impersonated lane is reported honestly
+        # instead of collapsing into "unreachable" (R15-RESEARCH-039).
+        fetched = await _impersonated_fallback(endpoint, data)
+        if fetched is None:
+            raise SearchError(unreachable)
+        status, text = fetched.status_code, fetched.text
+    if status in _RATE_LIMIT_STATUSES:
         # TRANSIENT throttle (202 anomaly / 429), NOT a missing backend: tag it
         # so the brief surfaces "rate-limited, retrying" instead of the false
         # global "no web-search backend configured".
@@ -228,96 +223,9 @@ async def _fetch(http: httpx.AsyncClient, endpoint: str, data: dict[str, str]) -
             "moment and retry, or add an Exa key / local SearXNG for a dedicated route",
             reason=SEARCH_REASON_RATE_LIMITED,
         )
-    try:
-        resp.raise_for_status()
-    except httpx.HTTPError as exc:
-        raise SearchError(unreachable) from exc
-    return resp.text
-
-
-class _TokenBucket:
-    """An async token-bucket that PACES requests to a steady refill rate.
-
-    The bucket starts FULL (``capacity`` tokens), so the first request — and a
-    short burst up to ``capacity`` — passes with zero wait; only a SUSTAINED burst
-    is throttled, each over-budget acquire waiting just long enough for one token
-    to refill. Tokens accrue continuously at ``rate_per_sec`` and saturate at
-    ``capacity`` (no unbounded build-up while idle).
-
-    ``acquire`` is serialised by an :class:`asyncio.Lock` so concurrent awaits
-    can't race the token count, and returns the wall-clock seconds it slept (``0.0``
-    when immediate) — handy for deterministic, injected-clock testing.
-
-    ``clock`` is injectable purely so tests can advance time without real sleeps;
-    production uses :func:`time.monotonic`. Idea ported from
-    nickclyde/duckduckgo-mcp-server (MIT).
-    """
-
-    def __init__(
-        self,
-        *,
-        rate_per_sec: float,
-        capacity: float,
-        clock: Callable[[], float] = time.monotonic,
-    ) -> None:
-        self._rate = rate_per_sec
-        self._capacity = capacity
-        self._clock = clock
-        self._tokens = float(capacity)  # start FULL → first request is immediate
-        self._updated = clock()
-        self._lock = asyncio.Lock()
-
-    def _refill(self) -> None:
-        now = self._clock()
-        elapsed = now - self._updated
-        if elapsed > 0:
-            self._tokens = min(self._capacity, self._tokens + elapsed * self._rate)
-            self._updated = now
-
-    def time_until_available(self) -> float:
-        """Seconds until a token is available (``0.0`` if one is ready now).
-
-        Refills against the current clock first, then reports the deficit. Pure
-        accounting — no sleep, no mutation beyond the refill — so a deterministic
-        test can drive the pacing/refill maths directly with an injected clock,
-        never a real-time sleep. :meth:`acquire` is the awaitable wrapper that
-        sleeps this long and then consumes the token.
-        """
-        self._refill()
-        if self._tokens >= 1.0:
-            return 0.0
-        return (1.0 - self._tokens) / self._rate
-
-    async def acquire(self) -> float:
-        """Consume one token, sleeping if the bucket is empty. Returns seconds slept.
-
-        Refill → if a token is ready, take it immediately (zero wait); else sleep
-        the deficit and re-refill against the clock (which has advanced by ~``wait``
-        in production) before consuming. The lock serialises concurrent awaits so
-        the token count can't be raced.
-        """
-        async with self._lock:
-            wait = self.time_until_available()  # refills, then reports the deficit
-            if wait > 0:
-                await asyncio.sleep(wait)
-                self._refill()  # the monotonic clock advanced ~wait during the sleep
-            self._tokens -= 1.0  # take the (now-available) token
-            return wait
-
-
-#: Process-global limiter for the keyless DDG floor — lazily built on first use so
-#: no asyncio primitive (the bucket's Lock) is created at import time before an
-#: event loop exists. Shared across all DdgSearchBackend instances so the pacing is
-#: per-process, not per-search.
-_BUCKET: _TokenBucket | None = None
-
-
-def _get_bucket() -> _TokenBucket:
-    """Return the process-global DDG rate-limiter, building it lazily on first call."""
-    global _BUCKET
-    if _BUCKET is None:
-        _BUCKET = _TokenBucket(rate_per_sec=_RATE_PER_SEC, capacity=_BUCKET_CAPACITY)
-    return _BUCKET
+    if status >= 400:
+        raise SearchError(unreachable)
+    return text
 
 
 class DdgSearchBackend(SearchBackend):
@@ -355,19 +263,24 @@ class DdgSearchBackend(SearchBackend):
     async def _search_with(
         self, http: httpx.AsyncClient, data: dict[str, str], limit: int
     ) -> list[SearchResult]:
-        """Query the HTML endpoint; on zero rows, fall back to DDG Lite."""
-        # PROACTIVE pacing: take a token BEFORE each outbound DDG hit so an
-        # over-eager burst is spaced out and dodges the 202 "anomaly" challenge
-        # before it fires (the reactive 202/429 retry in _fetch is the net for the
-        # rare miss). The bucket starts full → the first request is never delayed.
-        await _get_bucket().acquire()
+        """Query the HTML endpoint; on zero rows, fall back to DDG Lite.
+
+        No pacing lives HERE (R15-CODE-RESEARCH-009): this used to take a
+        private token-bucket slot before EACH of the two outbound hits below,
+        double-spending a budget the keyless tier's :mod:`services.search.pacing`
+        queue already metered around the whole engine turn, on top of double-
+        pacing the Lite fallback within one search. Pacing is now the CALLER's
+        job — one ``pacing.get_queue().acquire("ddg")`` per outer ``search()``
+        call, whether that call resolves via the keyless rotation (which paces
+        it already) or the bare ``"ddg"`` registry id (paced by the
+        :class:`~services.search.registry._PacedBackend` wrapper).
+        """
         results = _parse(await _fetch(http, _ENDPOINT, data), limit=limit)
         if results:
             return results
         # Zero rows from HTML (markup drift or a soft block) → try the simpler,
         # more stable Lite page. A Lite failure leaves the empty HTML result —
         # never worse than before this fallback existed.
-        await _get_bucket().acquire()
         try:
             lite_text = await _fetch(http, _LITE_ENDPOINT, data)
         except SearchError:
