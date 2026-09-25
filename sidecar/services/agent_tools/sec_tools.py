@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from services.agent_tools import register_tool
+from services.agent_tools import clamp_int, register_tool
 
 # Honest unavailability message (Phase 9.5 nit): the binary IS bundled; when
 # unreachable it almost always failed to bind a port this launch (UC1 cold
@@ -29,6 +29,10 @@ _UNAVAILABLE_ERROR = (
     "sec-edgar-mcp is not available — the subprocess did not bind a port "
     "this launch (relaunch to retry)"
 )
+
+#: Row cap so a chatty backfill (a model-supplied 100000 or a stray -1)
+#: never reaches the provider unclamped (R15-CODE-AGENT-015).
+_MAX_LIMIT = 100
 
 
 async def _sec_filings_list(args: dict[str, Any]) -> dict[str, Any]:
@@ -45,11 +49,7 @@ async def _sec_filings_list(args: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(identifier, str) or not identifier:
         return {"ok": False, "error": "missing cik/symbol"}
     form_type = args.get("form_type")
-    limit_raw = args.get("limit", 20)
-    try:
-        limit = int(limit_raw)
-    except (TypeError, ValueError):
-        limit = 20
+    limit = clamp_int(args, "limit", 20, minimum=1, maximum=_MAX_LIMIT)
 
     from services import sec_filings_provider
 
@@ -113,11 +113,7 @@ async def _sec_insider_transactions(args: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(identifier, str) or not identifier:
         return {"ok": False, "error": "missing cik/symbol"}
     form = args.get("form") or args.get("form_type")
-    limit_raw = args.get("limit", 30)
-    try:
-        limit = int(limit_raw)
-    except (TypeError, ValueError):
-        limit = 30
+    limit = clamp_int(args, "limit", 30, minimum=1, maximum=_MAX_LIMIT)
 
     from services import sec_filings_provider
 

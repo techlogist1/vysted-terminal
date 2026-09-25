@@ -81,6 +81,25 @@ def coerce_int_in_range(
     return value, None
 
 
+def clamp_int(args: dict[str, Any], key: str, default: int, *, minimum: int, maximum: int) -> int:
+    """Coerce ``args[key]`` to an int, silently clamped to ``[minimum, maximum]``.
+
+    Mirrors the ``max(1, min(N, int(x)))`` convention several sibling tools
+    (``news``, ``macro_search``) already use for a ``limit`` arg: a
+    missing/non-numeric value falls back to ``default``, and an in-range
+    value passes through unchanged — unlike :func:`coerce_int_in_range`, an
+    out-of-range ``limit`` is a hint to shrink, not a validation failure
+    (R15-CODE-AGENT-015 — ``sec_tools`` passed an unclamped model-supplied
+    limit straight to the provider).
+    """
+    raw = args.get(key, default)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        value = default
+    return max(minimum, min(maximum, value))
+
+
 async def invoke_tool(tool_id: str, args: dict[str, Any]) -> dict[str, Any]:
     """Invoke a registered tool. Raises ``KeyError`` on unknown id.
 
@@ -252,6 +271,7 @@ def register_v0_6_0_tools() -> None:
 
 __all__ = [
     "AgentToolHandler",
+    "clamp_int",
     "coerce_int_in_range",
     "invoke_tool",
     "is_registered",
