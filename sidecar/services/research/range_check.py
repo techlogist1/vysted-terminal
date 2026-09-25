@@ -92,8 +92,9 @@ class Range52w:
     ``high``/``low`` are the max intraday high / min intraday low over the
     trailing 52-week window; ``coverage_days`` and ``bars`` back the
     applicability gate and are carried as evidence; ``source`` is the provider
-    lane that actually served the series (``nse_direct`` / ``nse`` / ``bse`` /
-    ``yfinance``), so a disagreement names which exchange series it came from.
+    lane that actually served the series (``nse_direct`` / ``nse`` / ``bse`` —
+    only an exchange-direct lane can witness, see _EXCHANGE_DIRECT_PROVIDERS),
+    so a disagreement names which exchange series it came from.
     """
 
     high: float
