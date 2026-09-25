@@ -2,7 +2,7 @@
 
 887 raw findings -> 646 entries + 76 rejections. critical: 16 . high: 116 . medium: 288 . low: 226
 
-Status: blocked_tier4: 18 . fixed: 386 . needs_gui: 9 . not_a_defect: 5 . open: 214 . removed_with_feature: 14
+Status: blocked_tier4: 18 . fixed: 388 . needs_gui: 9 . not_a_defect: 5 . open: 212 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -214,12 +214,12 @@ Status: blocked_tier4: 18 . fixed: 386 . needs_gui: 9 . not_a_defect: 5 . open: 
 - **R15-AGENT-089** [low] close_panel/focus_panel steps can never appear in the planner's plan: planner._coerce_steps drops them (absent from PLAN_ACTIONS) and the runtime's stageable set omits them, so R4 register S-17's fix is half-done — _open_
 - **R15-CODE-PLATFORM-076** [low] copilot.json's system prompt is 8751 bytes (2-3x every other agent) while running on the small local default qwen2.5:7b, inflating per-call token and latency cost — _open_
 - **R15-DATA-101** [low] market_overview returns region 'GLOBAL' with the US index set and no note in the payload — _open_
-- **R15-AGENT-090** [high] Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure — _open_
+- **R15-AGENT-090** [high] Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure — _fixed_
 - **R15-AGENT-091** [low] get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) — _open_
 - **R15-AGENT-092** [high] A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes — _fixed_
 - **R15-AGENT-093** [high] The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures — _fixed_
 - **R15-LEAD-030** [high] After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries — _open_
-- **R15-LEAD-032** [medium] adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol — _open_
+- **R15-LEAD-032** [medium] adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol — _fixed_
 - **R15-LEAD-031** [low] The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator — _open_
 
 ### Research / web search (53)
@@ -1045,7 +1045,7 @@ Status: blocked_tier4: 18 . fixed: 386 . needs_gui: 9 . not_a_defect: 5 . open: 
 | R15-UI-089 | low | ui | plugins | Plugin data credentials (the optional NewsAPI key) are saved from a separate Marketplace form with no validation, unlike LLM keys, which are live-probed before save | open | INT-spec-90-8 |
 | R15-UI-093 | low | ui | frontend-panels-agent-shell | The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change | open | INT-spec-135-158 |
 | R15-UI-094 | low | ui | fundamentals-profile | The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) | open | INT-spec-135-174 |
-| R15-AGENT-090 | high | agent | agent-tools | Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure | open | rc1-scenarios:5, rc1-verifier:16 |
+| R15-AGENT-090 | high | agent | agent-tools | Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure | fixed | rc1-scenarios:5, rc1-verifier:16 |
 | R15-DATA-112 | medium | data | screener | A row with no fundamentals currency (and a null market_cap) ranks FIRST in a market_cap-desc screen, breaking R15-UI-006's missing-values-last rule | fixed | rc1-verifier:15 |
 | R15-DATA-113 | medium | data | earnings | Earnings-estimate revenue for a foreign reporter is labelled in the trading currency: WIT's revenue_estimate_mean (INR-sized) is served as currency USD | fixed | rc1-fix-r2-triage:1, rc1-verifier:17 |
 | R15-AGENT-091 | low | agent | agent-tools | get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) | open | rc1-gate8:2 |
@@ -1056,5 +1056,5 @@ Status: blocked_tier4: 18 . fixed: 386 . needs_gui: 9 . not_a_defect: 5 . open: 
 | R15-CODE-PLATFORM-077 | low | code | lifecycle-upgrade | Data-dir upgrade backups (backups/<old-build>/) are never pruned; each build change adds a full data-dir copy | open | batch-11-backlog-4 |
 | R15-DATA-115 | medium | data | market-data-providers | A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history | fixed | batch-11-backlog-5 |
 | R15-LEAD-030 | high | agent | agent-tools | After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries | open |  |
-| R15-LEAD-032 | medium | agent | agent-tools | adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol | open |  |
+| R15-LEAD-032 | medium | agent | agent-tools | adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol | fixed |  |
 | R15-LEAD-031 | low | agent | agent-tools | The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator | open |  |
