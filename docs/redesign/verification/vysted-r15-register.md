@@ -2,7 +2,7 @@
 
 887 raw findings -> 648 entries + 76 rejections. critical: 16 . high: 116 . medium: 290 . low: 226
 
-Status: blocked_tier4: 22 . fixed: 389 . needs_gui: 11 . not_a_defect: 5 . open: 207 . removed_with_feature: 14
+Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open: 205 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -221,7 +221,7 @@ Status: blocked_tier4: 22 . fixed: 389 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-LEAD-030** [high] After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries — _open_
 - **R15-LEAD-032** [medium] adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol — _fixed_
 - **R15-LEAD-031** [low] The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator — _fixed_
-- **R15-LEAD-033** [medium] The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose — _open_
+- **R15-LEAD-033** [medium] The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose — _fixed_
 
 ### Research / web search (53)
 
@@ -408,7 +408,7 @@ Status: blocked_tier4: 22 . fixed: 389 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-DATA-113** [medium] Earnings-estimate revenue for a foreign reporter is labelled in the trading currency: WIT's revenue_estimate_mean (INR-sized) is served as currency USD — _fixed_
 - **R15-DATA-114** [medium] The options-chain provider re-probes today's F&O file on every request because a negative probe is never cached, so a transient error can 502 a request while a good cached day sits in cache — _fixed_
 - **R15-DATA-115** [medium] A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history — _fixed_
-- **R15-LEAD-034** [medium] Background India fundamentals warming passes bare screener-universe symbols to the correctness gate, which never strips yfinance's Emerge (SME) '-SM' infix, so every NSE Emerge symbol fails as a symbol mismatch — _open_
+- **R15-LEAD-034** [medium] Background India fundamentals warming passes bare screener-universe symbols to the correctness gate, which never strips yfinance's Emerge (SME) '-SM' infix, so every NSE Emerge symbol fails as a symbol mismatch — _fixed_
 
 ## All entries by severity
 
@@ -1060,5 +1060,5 @@ Status: blocked_tier4: 22 . fixed: 389 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-LEAD-030 | high | agent | agent-tools | After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries | open |  |
 | R15-LEAD-032 | medium | agent | agent-tools | adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol | fixed |  |
 | R15-LEAD-031 | low | agent | agent-tools | The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator | fixed |  |
-| R15-LEAD-033 | medium | agent | frontend-stores | The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose | open |  |
-| R15-LEAD-034 | medium | data | fundamentals-profile | Background India fundamentals warming passes bare screener-universe symbols to the correctness gate, which never strips yfinance's Emerge (SME) '-SM' infix, so every NSE Emerge symbol fails as a symbol mismatch | open |  |
+| R15-LEAD-033 | medium | agent | frontend-stores | The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose | fixed |  |
+| R15-LEAD-034 | medium | data | fundamentals-profile | Background India fundamentals warming passes bare screener-universe symbols to the correctness gate, which never strips yfinance's Emerge (SME) '-SM' infix, so every NSE Emerge symbol fails as a symbol mismatch | fixed |  |
