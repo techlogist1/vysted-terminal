@@ -46,7 +46,7 @@ export const LAYOUT_TEMPLATE_IDS: ReadonlySet<string> = new Set(Object.keys(TEMP
 // drifted id here silently duplicates a panel). R7: the map now covers every
 // first-party panel — "chart and settings side by side" used to silently drop
 // settings because only 9 panels were arrangeable.
-const ARRANGEABLE: Record<string, { id: string; component: string }> = {
+export const ARRANGEABLE: Record<string, { id: string; component: string }> = {
   chart: { id: "chart", component: "chart-panel" },
   "equity-overview": { id: "equity-overview", component: "equity-overview-panel" },
   watchlist: { id: "watchlist", component: "watchlist-panel" },
@@ -67,6 +67,7 @@ const ARRANGEABLE: Record<string, { id: string; component: string }> = {
   backtest: { id: "backtest", component: "backtest-panel" },
   "sec-filings": { id: "sec-filings", component: "sec-filings-panel" },
   "option-pricer": { id: "option-pricer", component: "option-pricer-panel" },
+  "option-chain": { id: "option-chain", component: "option-chain-panel" },
   "greeks-dashboard": { id: "greeks-dashboard", component: "greeks-dashboard-panel" },
   "bond-pricer": { id: "bond-pricer", component: "bond-pricer-panel" },
   "yield-curve": { id: "yield-curve", component: "yield-curve-panel" },
@@ -167,16 +168,14 @@ export interface LayoutPlanOptions {
 }
 
 // Panel id ↔ component id are NOT interchangeable: the dockview panel `id` is the
-// short module name (`"chart"`, `"equity-overview"`, `"news"`, `"macro"`) —
-// matching the default layout (`src/config/default-layout.ts`) and the module
-// specs — while the `component` is the registered React component id (the
-// `-panel` suffix). Centralised here so the two never drift.
+// short module name while the `component` is the registered React component id
+// (the `-panel` suffix). Derived from ARRANGEABLE so the two never drift.
 const PANEL = {
-  chart: { id: "chart", component: "chart-panel" },
-  equityOverview: { id: "equity-overview", component: "equity-overview-panel" },
-  brief: { id: "brief", component: "brief-panel" },
-  notes: { id: "notes", component: "notes-panel" },
-} as const;
+  chart: ARRANGEABLE.chart,
+  equityOverview: ARRANGEABLE["equity-overview"],
+  brief: ARRANGEABLE.brief,
+  notes: ARRANGEABLE.notes,
+};
 
 /** Where each agent template puts its panels (by role), and what it focuses.
  *  WHICH panels a template places is `TEMPLATE_PANELS` (the JSON); a role with
@@ -425,8 +424,9 @@ export interface PanelContentSignals {
   watchlistRows: number;
 }
 
-/** Narrow side-rail panels — never a main column. */
-const RAIL_PANELS: ReadonlySet<string> = new Set([
+/** Narrow side-rail panels — never a main column. The one rail definition:
+ *  `openPanel` (store/workspace.ts) keeps these out of the main group too. */
+export const RAIL_PANELS: ReadonlySet<string> = new Set([
   "watchlist",
   "news",
   "earnings-calendar",

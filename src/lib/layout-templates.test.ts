@@ -2,7 +2,12 @@ import type { DockviewApi } from "dockview";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import templateCatalog from "../../sidecar/config/layout_templates.json";
+import { DEFAULT_PANELS } from "@/config/default-layout";
+import { collectPanels } from "@/lib/module-registry";
+import { vystedModules } from "@/modules";
 import {
+  ARRANGEABLE,
+  RAIL_PANELS,
   applyCustomLayout,
   applyLayoutMode,
   applyLayoutTemplate,
@@ -565,5 +570,22 @@ describe("one plan per template id (R15-AGENT-055)", () => {
       expect(api.clear).toHaveBeenCalledTimes(1);
       expect(added).toEqual(ids);
     }
+  });
+});
+
+describe("panel id/component tables match the registry (R15-CODE-FRONTEND-036)", () => {
+  it("every ARRANGEABLE/PANEL/DEFAULT_PANELS {id, component} equals a registered PanelSpec", () => {
+    const registered = collectPanels(vystedModules).map(({ id, component }) => ({ id, component }));
+    const pairs = [...Object.values(ARRANGEABLE), ...DEFAULT_PANELS].map(({ id, component }) => ({
+      id,
+      component,
+    }));
+    for (const pair of pairs) {
+      expect(registered).toContainEqual(pair);
+    }
+    // ...and the arrange table covers every registered panel.
+    const arrangeable = new Set(Object.values(ARRANGEABLE).map((p) => p.id));
+    expect(registered.filter((p) => !arrangeable.has(p.id))).toEqual([]);
+    expect([...RAIL_PANELS].filter((id) => !arrangeable.has(id))).toEqual([]);
   });
 });

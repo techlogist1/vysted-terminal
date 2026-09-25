@@ -2,6 +2,7 @@ import type { DockviewApi, IDockviewPanel } from "dockview";
 import { create } from "zustand";
 
 import { applyDefaultLayout } from "@/config/default-layout";
+import { RAIL_PANELS } from "@/lib/layout-templates";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useModulesStore } from "@/store/modules";
 
@@ -26,10 +27,6 @@ export function isReservedLayoutName(name: string): boolean {
   return name.startsWith("__");
 }
 
-/** Side-rail data panels that belong in the dockview side stack, not the main
- *  content group. Everything else is "primary content" and tabs into the centre. */
-const RAIL_PANEL_IDS = new Set(["watchlist", "news", "portfolio"]);
-
 /**
  * Placement position for a newly-opened panel: a primary-content panel tabs
  * `within` the main / centre group (anchored on the chart or equity overview,
@@ -42,12 +39,12 @@ function mainGroupPosition(
   api: DockviewApi,
   panelId: string,
 ): { referencePanel: string; direction: "within" } | undefined {
-  if (RAIL_PANEL_IDS.has(panelId)) {
+  if (RAIL_PANELS.has(panelId)) {
     return undefined;
   }
   const anchorId =
     ["chart", "equity-overview"].find((id) => api.getPanel(id)) ??
-    api.panels.find((p) => !RAIL_PANEL_IDS.has(p.id))?.id;
+    api.panels.find((p) => !RAIL_PANELS.has(p.id))?.id;
   return anchorId ? { referencePanel: anchorId, direction: "within" } : undefined;
 }
 
