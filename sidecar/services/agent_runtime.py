@@ -2054,7 +2054,11 @@ def _tool_reference(tool_ids: set[str]) -> re.Pattern[str]:
     backticked; a bare snake_case id; or a humanised id (``[\\s_-]?`` between
     the parts, so "price data", "price-data", "Price Data" and "PriceData" all
     name ``price_data``) that a tool/returned/results/output/data noun or a
-    ``:``/``=`` follows, or that "according to"/"per"/"the output of" leads in."""
+    ``:``/``=`` follows. A lead-in ("according to"/"per"/"the output of")
+    cites only an exact id (backticked, or a bare snake_case id) or a
+    humanised one a tool noun follows: "according to news reports" and
+    "based on the price data and earnings" are plain English.
+    ponytail: so "Based on the earnings history, EPS was $0.42" passes."""
     ids = "|".join(sorted(re.escape(t).replace("_", r"[\s_-]?") for t in tool_ids))
     bare = "|".join(sorted(re.escape(t) for t in tool_ids if "_" in t))
     return re.compile(
@@ -2062,7 +2066,8 @@ def _tool_reference(tool_ids: set[str]) -> re.Pattern[str]:
         rf"|(?:according to|as per|per|based on|(?:output|results?|data|response)\s+(?:of|from)"
         r"|(?:obtained|fetched|retrieved|pulled|sourced|taken|got|gotten|came|comes?|derived"
         r"|drawn|received)\b[^,;.\n]{0,60}?\s(?:from|via|by|using|through))"
-        rf"\s+(?:the\s+)?`?(?P<lead>{ids})\b"
+        rf"\s+(?:the\s+)?`?(?P<lead>(?<=`)(?:{ids})(?=`)|(?:{bare})\b"
+        rf"|(?:{ids})(?=\s+(?:tool|results?|output|data|response|call)\b))"
         rf"|\b(?P<noun>{ids})(?=\s+(?:tool|returned|results?|output|data)\b|\s*[:=])"
         rf"|\b(?P<bare>{bare})\b",
         re.IGNORECASE,

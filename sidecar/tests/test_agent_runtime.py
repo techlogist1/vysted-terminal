@@ -2763,7 +2763,7 @@ _FUND_NOTE = "the fundamentals tool returned no data for this in this turn"
         ),
         (
             {},
-            "Based on the earnings history, EPS came in at $0.42 last quarter.",
+            "Based on `earnings_history`, EPS came in at $0.42 last quarter.",
             "The earnings_history tool returned no data for this in this turn.",
         ),
         (
@@ -2806,6 +2806,32 @@ async def test_a_figure_attributed_to_a_tool_with_no_ok_result_is_replaced(
     backticked id is cited by the verb after its closing backtick, whatever
     the figure's unit."""
     assert await _scripted_answer(monkeypatch, tools, {}, [sentence]) == answer
+
+
+_WEB_OK = {"ok": True, "results": [{"title": "Apple rises", "snippet": "AAPL rose 3%"}]}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("tools", "sentence"),
+    [
+        ({"web_search": _WEB_OK}, "According to news reports from Reuters, AAPL rose 3% to $190."),
+        ({"web_search": _WEB_OK}, "Based on research from Morgan Stanley, the target is $250."),
+        (
+            {"fundamentals": _SIFY_FUNDAMENTALS},
+            "The P/E is 30, based on the price data and earnings.",
+        ),
+        ({"web_search": _WEB_OK}, "Per news from Bloomberg, MSFT closed at $512."),
+    ],
+)
+async def test_a_lead_in_before_a_plain_word_that_names_a_tool_is_kept(
+    monkeypatch: pytest.MonkeyPatch, tools: dict[str, dict[str, Any]], sentence: str
+) -> None:
+    """R15-LEAD-030 batch-18 review: a lead-in ("according to", "based on",
+    "per") before any humanised id cited that tool, so a true web-search
+    answer about "news reports" or "research" was replaced. A lead-in cites
+    an exact id or one a tool noun follows; plain English is kept."""
+    assert await _scripted_answer(monkeypatch, tools, {}, [sentence]) == sentence
 
 
 @pytest.mark.asyncio
