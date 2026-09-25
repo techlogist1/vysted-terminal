@@ -114,6 +114,44 @@ def test_ir_blogspot_class_pin_on_a_multi_label_tld() -> None:
     assert finance.domain_tier("https://investors.pages.dev/x") != finance.TIER_PRIMARY
 
 
+def test_ir_registrable_domain_uses_the_public_suffix_list() -> None:
+    """R15-RESEARCH-007 (batch-12 verifier fresh cases): the class fix is a
+    Public Suffix List registrable-domain check, not an enumerated platform
+    denylist — free-hosting PSL private suffixes and ccSLD registrable
+    domains (a two-label TLD like ``co.uk``/``com.au``) must never rank
+    PRIMARY just because the host has three-plus labels and an ``ir.``/
+    ``investors.`` prefix."""
+    for url in (
+        "https://ir.firebaseapp.com/x",
+        "https://investors.web.app/x",
+        "https://ir.azurewebsites.net/x",
+        "https://ir.onrender.com/x",
+        "https://ir.fly.dev/x",
+        "https://ir.glitch.me/x",
+        "https://investors.notion.site/x",
+        "https://ir.webflow.io/x",
+        "https://ir.herokuapp.com/x",
+        "https://www.investors.co.uk/news/x",
+        "https://ir.co.in/x",
+        "https://investors.com.au/x",
+    ):
+        assert finance.domain_tier(url) != finance.TIER_PRIMARY, url
+
+    # Controls: real company IR subdomains stay primary.
+    for url in ("https://investors.apple.com/", "https://ir.tesla.com/"):
+        assert finance.domain_tier(url) == finance.TIER_PRIMARY, url
+
+
+def test_ir_registrable_domain_class_pin() -> None:
+    """Class pin: hosts the fix was not written against. A PSL private
+    suffix (pythonanywhere.com) and a ccSLD (org.uk) must not rank primary;
+    a real company IR subdomain on a ccSLD (bhp.com.au) must, proving the
+    ccSLD handling isn't a blanket ccSLD denylist."""
+    assert finance.domain_tier("https://ir.pythonanywhere.com/x") != finance.TIER_PRIMARY
+    assert finance.domain_tier("https://investors.org.uk/x") != finance.TIER_PRIMARY
+    assert finance.domain_tier("https://investors.bhp.com.au/x") == finance.TIER_PRIMARY
+
+
 def test_tier1_press_ranks_second_and_general_third() -> None:
     assert finance.domain_tier("https://www.reuters.com/markets/x") == finance.TIER_PRESS
     assert finance.domain_tier("https://www.moneycontrol.com/news/x") == finance.TIER_PRESS
