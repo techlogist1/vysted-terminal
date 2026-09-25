@@ -619,7 +619,7 @@ function ProvidersSection() {
 function DefaultsGroup() {
   const firstParty = useAgentsStore(selectFirstPartyAgents);
   const custom = useAgentsStore(selectCustomAgents);
-  const agentsLoading = useAgentsStore((s) => s.loading);
+  const agentsLoading = useAgentsStore((s) => s.firstPartyStatus === "loading");
   const refreshAgents = useAgentsStore((s) => s.refresh);
 
   const providers = useLLMProvidersStore((s) => s.providers);

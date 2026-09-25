@@ -197,46 +197,22 @@ const MAX_RECENTS = 8;
 interface CommandPaletteState {
   /** Whether the palette dialog is open. */
   open: boolean;
-  /** The current search query (mirror of cmdk input value — stored so corpus can gate symbols). */
-  query: string;
   /** Recently-used item ids, most-recent first. In-memory only — never localStorage. */
   recents: string[];
 
   setOpen: (open: boolean) => void;
   toggle: () => void;
-  setQuery: (query: string) => void;
   /** Record a selection — bumps the item to the front of recents. */
   recordSelection: (itemId: string) => void;
-  /** Alias for recordSelection — explicit name for the recency-push contract. */
-  pushRecent: (itemId: string) => void;
-
-  // --- legacy compat (page.tsx calls setCommands; we keep the signature but
-  //     the corpus is now built dynamically from live stores) ---
-  /** @deprecated Kept for backward compat with page.tsx bootstrap; no-op in the new model. */
-  commands: CommandSpec[];
-  /** @deprecated */
-  setCommands: (_commands: CommandSpec[]) => void;
 }
 
 export const useCommandPalette = create<CommandPaletteState>((set) => ({
   open: false,
-  query: "",
   recents: [],
-  // legacy compat
-  commands: [],
-  setCommands: (_c) => {
-    // no-op — corpus is now built on-demand from live stores
-  },
 
   setOpen: (open) => set({ open }),
   toggle: () => set((state) => ({ open: !state.open })),
-  setQuery: (query) => set({ query }),
   recordSelection: (itemId) =>
-    set((state) => {
-      const filtered = state.recents.filter((id) => id !== itemId);
-      return { recents: [itemId, ...filtered].slice(0, MAX_RECENTS) };
-    }),
-  pushRecent: (itemId) =>
     set((state) => {
       const filtered = state.recents.filter((id) => id !== itemId);
       return { recents: [itemId, ...filtered].slice(0, MAX_RECENTS) };
@@ -248,8 +224,9 @@ export const useCommandPalette = create<CommandPaletteState>((set) => ({
 // ---------------------------------------------------------------------------
 
 /**
- * Build the live multi-source corpus.  Called inside the palette component on
- * each render (stores are cheap Zustand reads — no async, no caching needed).
+ * Build the live multi-source corpus from the current store state. The palette
+ * re-runs it whenever a source store changes (so agents and plugins that load
+ * while it is open appear).
  *
  * Symbols are always included in the corpus (gating is done in the rendering
  * layer via `query`-check and `forceMount={false}` on the group), capped at

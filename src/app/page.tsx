@@ -55,13 +55,12 @@ export default function Page() {
   useDesktopNotificationBridge();
 
   useEffect(() => {
-    // Register the module registry, seed the command palette from the enabled
-    // modules, and connect to the Python sidecar. Runs once on mount. `PanelHost`
+    // Register the module registry and connect to the Python sidecar. Runs once
+    // on mount. `PanelHost`
     // mounts dockview only after this point: dockview resolves each panel's
     // component id when a layout loads, so the component map must be complete
     // before its `onReady` fires the restore.
     useModulesStore.getState().registerModules(vystedModules);
-    useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
     void useAppStore.getState().connectSidecar();
 
     // One-time dev-keystore migration (R9): in a dev build, copy existing
@@ -116,7 +115,6 @@ export default function Page() {
           return;
         }
         teardown = dispose;
-        useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
       })
       .finally(() => {
         // Settled either way (a failed bootstrap has nothing more to register).
@@ -126,16 +124,6 @@ export default function Page() {
         }
       });
 
-    const unsubscribeEnabled = useModulesStore.subscribe((state, previous) => {
-      if (state.enabled !== previous.enabled) {
-        useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
-      }
-    });
-    const unsubscribeModules = useModulesStore.subscribe((state, previous) => {
-      if (state.modules !== previous.modules) {
-        useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
-      }
-    });
     // Every persisted workspace slice autosaves through one registry (the
     // dockview layout's own trigger is wired by PanelHost after the restore).
     const unwireAutosave = wireAutosaveTriggers();
@@ -152,8 +140,6 @@ export default function Page() {
       alive = false;
       clearTimeout(pluginsReadyFallback);
       usePluginsStore.getState().setPluginsReady(false);
-      unsubscribeEnabled();
-      unsubscribeModules();
       unwireAutosave();
       unsubscribeDefaultProvider();
       disposeMenu();

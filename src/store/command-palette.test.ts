@@ -288,7 +288,7 @@ describe("buildPaletteCorpus", () => {
 
 describe("useCommandPalette recency", () => {
   beforeEach(() => {
-    useCommandPalette.setState({ open: false, query: "", recents: [] });
+    useCommandPalette.setState({ open: false, recents: [] });
   });
 
   it("recordSelection adds item to front of recents", () => {
@@ -320,12 +320,14 @@ describe("useCommandPalette recency", () => {
     expect(useCommandPalette.getState().open).toBe(false);
   });
 
-  it("setCommands is a no-op (legacy compat)", () => {
-    const before = useCommandPalette.getState().commands;
-    useCommandPalette
-      .getState()
-      .setCommands([{ id: "x", trigger: "x", title: "X", opensPanel: "x" }]);
-    expect(useCommandPalette.getState().commands).toEqual(before);
+  it("carries no dead members (the corpus is built from the live stores)", () => {
+    expect(Object.keys(useCommandPalette.getState()).sort()).toEqual([
+      "open",
+      "recents",
+      "recordSelection",
+      "setOpen",
+      "toggle",
+    ]);
   });
 });
 

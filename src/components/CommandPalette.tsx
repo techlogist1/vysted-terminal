@@ -57,6 +57,7 @@ import { useSymbolAutocomplete } from "@/lib/symbol-autocomplete";
 import { useActiveAgentStore } from "@/store/active-agent";
 import { sendToAgent } from "@/store/agent-command";
 import { useAgentDockStore } from "@/store/agent-dock";
+import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
 import {
   buildPaletteCorpus,
   paletteFilter,
@@ -66,7 +67,9 @@ import {
   type PaletteItem,
 } from "@/store/command-palette";
 import { formatBinding, registerAction, useKeybindingsStore } from "@/store/keybindings";
+import { useModulesStore } from "@/store/modules";
 import { useSettingsStore } from "@/store/settings";
+import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
 // ---------------------------------------------------------------------------
@@ -121,8 +124,18 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
     [showRecents, recordedRecents],
   );
 
-  // Live corpus — rebuilt on each render from live Zustand stores.
-  const corpus = useMemo(() => buildPaletteCorpus(), []);
+  // Live corpus — rebuilt whenever a source store changes, so an agent or a
+  // plugin's commands that load while the palette is open appear.
+  const modules = useModulesStore((state) => state.modules);
+  const enabledModules = useModulesStore((state) => state.enabled);
+  const firstPartyAgents = useAgentsStore(selectFirstPartyAgents);
+  const customAgents = useAgentsStore(selectCustomAgents);
+  const symbolEntries = useSymbolsStore((state) => state.entries);
+  const corpus = useMemo(
+    () => buildPaletteCorpus(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- buildPaletteCorpus reads these stores
+    [modules, enabledModules, firstPartyAgents, customAgents, symbolEntries],
+  );
 
   // Partition by kind.
   const agents = useMemo(() => corpus.filter((i) => i.kind === "agent"), [corpus]);

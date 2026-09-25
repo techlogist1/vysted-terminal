@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CommandPalette } from "@/components/CommandPalette";
@@ -103,7 +103,6 @@ function seedStores() {
   });
   resetKeybindingsStoreForTests();
   resetSettingsStoreForTests();
-  useCommandPalette.setState({ commands });
 }
 
 beforeEach(() => {
@@ -114,7 +113,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-  useCommandPalette.setState({ open: false, commands: [], recents: [] });
+  useCommandPalette.setState({ open: false, recents: [] });
 });
 
 describe("CommandPalette (cmdk)", () => {
@@ -257,5 +256,24 @@ describe("CommandPalette (cmdk)", () => {
     render(<CommandPalette />);
     fireEvent.click(screen.getByText("Warren Buffett"));
     expect(useActiveAgentStore.getState().activeAgentId).toBe("buffett");
+  });
+
+  it("custom agent added while open appears", () => {
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    expect(screen.queryByText("Momentum Scout")).not.toBeInTheDocument();
+    act(() => {
+      useAgentsStore.getState().setCustomAgents([
+        {
+          id: "momentum-scout",
+          name: "Momentum Scout",
+          philosophy: "Trend following.",
+          systemPrompt: "",
+          tools: [],
+          defaultProvider: "openai",
+        },
+      ]);
+    });
+    expect(screen.getByText("Momentum Scout")).toBeInTheDocument();
   });
 });

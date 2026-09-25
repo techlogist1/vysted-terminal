@@ -167,8 +167,6 @@ interface AgentsState {
   refreshCustom: () => Promise<void>;
   /** Convenience: refresh both in parallel. Chat sidebar (A) calls this on mount. */
   refresh: () => Promise<void>;
-  /** Alias for :func:`refresh` — present so Teammate C's existing call sites compile. */
-  refreshAll: () => Promise<void>;
 }
 
 export const useAgentsStore = create<AgentsState>((set, get) => ({
@@ -244,10 +242,6 @@ export const useAgentsStore = create<AgentsState>((set, get) => ({
     const { refreshFirstParty, refreshCustom } = get();
     await Promise.all([refreshFirstParty(), refreshCustom()]);
     set({ loading: false });
-  },
-
-  refreshAll: async () => {
-    await get().refresh();
   },
 }));
 
