@@ -734,6 +734,27 @@ is empty (verified against the live catalog: 56/56).
   (`test_tool_loop_e2e.py`). A real answer needs a BYOK key. Anthropic/OpenAI/Groq
   are higher confidence; Gemini/Ollama are confidence-6-7.
 
+**BYOK first-token latency.** `docs/archive/PHASE_8_PERF_BASELINE.md`'s "Not
+measured this session" line was never superseded by a real measurement — the
+Phase-9 manual TTFT procedure it describes still hasn't run. No r15 drive log
+isolates a per-chunk streaming timestamp either, so a true first-token figure
+remains unmeasured for every provider. The closest sourced proxy is full
+round-trip call duration (request → final `done`, not first token) from
+`docs/redesign/verification/r15/spend-ledger.jsonl`, median over `status:
+"ok"` entries at the r15 sha:
+
+| Provider   | n  | median round-trip | source                       |
+| ---------- | -- | ------------------ | ----------------------------- |
+| openrouter | 28 | 3.5s                | spend-ledger.jsonl `secs`    |
+| openai     | 12 | 3.8s                | spend-ledger.jsonl `secs`    |
+| deepseek   | 1  | 6.9s                | spend-ledger.jsonl `secs`    |
+| ollama     | 54 | 110.0s              | spend-ledger.jsonl `secs` (local CPU/GPU inference, includes tool-round overhead) |
+
+These are total-call, not first-token, numbers (no stream-chunk timestamps
+exist in the r15 record to isolate TTFT from tool-round or research overhead)
+— they bound the honest floor for a real TTFT measurement, which stays
+deferred to the Phase-9 procedure.
+
 ---
 
 ## 5. Safety & Tier-1 locks — what must NOT break in the redesign
