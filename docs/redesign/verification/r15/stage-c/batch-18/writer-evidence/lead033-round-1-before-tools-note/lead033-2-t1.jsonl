@@ -1,0 +1,18 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_8dc9835a211a4677a44fc8cb341e627f", "name": "price_data", "input": {"symbol": "MSFT", "timeframe": "1d", "asset_class": "equity", "range": "1mo"}}
+{"kind": "tool_result", "tool_call_id": "call_8dc9835a211a4677a44fc8cb341e627f", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " MS"}
+{"kind": "delta", "text": "FT"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "497"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "93"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 4716, "output_tokens": 13, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

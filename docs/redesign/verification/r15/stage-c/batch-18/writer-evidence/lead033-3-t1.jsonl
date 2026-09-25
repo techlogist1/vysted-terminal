@@ -1,0 +1,38 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_2dcb0316f9b74d2288152f9eb3bbadb9", "name": "fundamentals", "input": {"symbol": "NVDA"}}
+{"kind": "tool_result", "tool_call_id": "call_2dcb0316f9b74d2288152f9eb3bbadb9", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "NV"}
+{"kind": "delta", "text": "DA"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "28"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "39"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "(Note"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " truncated"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " output"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " too"}
+{"kind": "delta", "text": " long"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " included"}
+{"kind": "delta", "text": " only"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " relevant"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ".)"}
+{"kind": "done", "usage": {"input_tokens": 5898, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
