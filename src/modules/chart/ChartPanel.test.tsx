@@ -33,6 +33,7 @@ const chartApi = {
     type === "Candlestick" ? candleSeries : { setData: vi.fn(), priceScaleId: vi.fn() },
   ),
   removeSeries: vi.fn(),
+  applyOptions: vi.fn(),
   timeScale: vi.fn(() => timeScale),
   remove: vi.fn(),
   subscribeClick: vi.fn(),
@@ -1132,6 +1133,71 @@ describe("ChartPanel", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Remove comparison overlay" }));
     expect(screen.queryByTestId("compare-chip")).toBeNull();
+  });
+
+  it("a % comparison overlay gets sorted, de-duplicated points on a VISIBLE left scale (R15-UI-064)", async () => {
+    const dupes: OHLCVSeries = {
+      ...makeSeries("QQQ"),
+      bars: [
+        { timestamp: "2026-01-02T00:00:00Z", open: 1, high: 1, low: 1, close: 110, volume: 1 },
+        { timestamp: "2026-01-01T00:00:00Z", open: 1, high: 1, low: 1, close: 100, volume: 1 },
+        { timestamp: "2026-01-02T00:00:00Z", open: 1, high: 1, low: 1, close: 120, volume: 1 },
+      ],
+    };
+    historyMock.mockImplementation((sym: string) =>
+      Promise.resolve(sym === "QQQ" ? dupes : makeSeries(sym)),
+    );
+    render(<ChartPanel api={{ id: "chart-A" }} />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalledTimes(1));
+    openCompare();
+    fireEvent.change(screen.getByLabelText("Compare symbol"), { target: { value: "qqq" } });
+    fireEvent.click(screen.getByRole("button", { name: "Add" }));
+
+    await waitFor(() => {
+      expect(chartApi.applyOptions).toHaveBeenCalledWith({
+        leftPriceScale: expect.objectContaining({ visible: true }),
+      });
+    });
+    const calls = chartApi.addSeries.mock.calls as unknown as [unknown, { title?: string }][];
+    const idx = calls.findIndex(([, opts]) => opts?.title === "QQQ %");
+    const overlay = chartApi.addSeries.mock.results[idx].value as {
+      setData: ReturnType<typeof vi.fn>;
+    };
+    const data = overlay.setData.mock.calls[0][0] as { time: number; value: number }[];
+    expect(data.map((p) => p.time)).toEqual([
+      Date.UTC(2026, 0, 1) / 1000,
+      Date.UTC(2026, 0, 2) / 1000,
+    ]);
+    // Base is the EARLIEST close (100); the last duplicate (120) wins its day.
+    expect(data.map((p) => Math.round(p.value))).toEqual([0, 20]);
+  });
+
+  it("two single-line indicators never share a colour (R15-UI-064)", async () => {
+    suggestedIndicatorsMock.mockResolvedValue({ indicators: ["ema:9", "ema:21"] });
+    const line = (label: string) => ({
+      label,
+      points: [{ time: "2026-01-02T00:00:00Z", value: 2 }],
+    });
+    fetchIndicatorsMock.mockResolvedValue({
+      ...makeIndicatorResponse(),
+      indicators: [
+        { name: "sma", panel: "price", lines: [line("SMA(20)")] },
+        { name: "ema", panel: "price", lines: [line("EMA(9)")] },
+      ],
+    });
+    render(<ChartPanel />);
+    await waitFor(() => {
+      const titles = (
+        chartApi.addSeries.mock.calls as unknown as [unknown, { title?: string }][]
+      ).map(([, o]) => o?.title);
+      expect(titles).toEqual(expect.arrayContaining(["SMA(20)", "EMA(9)"]));
+    });
+    const colours = (
+      chartApi.addSeries.mock.calls as unknown as [unknown, { title?: string; color?: string }][]
+    )
+      .filter(([, o]) => o?.title === "SMA(20)" || o?.title === "EMA(9)")
+      .map(([, o]) => o.color);
+    expect(new Set(colours).size).toBe(2);
   });
 
   it("uses a stable per-instance panelId from dockview's panel api when present", async () => {

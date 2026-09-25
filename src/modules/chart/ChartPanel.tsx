@@ -153,69 +153,63 @@ function toChartTime(iso: string): UTCTimestamp {
 }
 
 /**
- * Map an OHLCV series to candlestick data. Bars are de-duplicated by timestamp
- * and sorted ascending — lightweight-charts rejects unordered or repeated
- * times, and provider feeds occasionally include both.
+ * The ONE ISO→chart-time converter every series goes through: drops unparseable
+ * times and skipped points (`point` → null), de-duplicates by time (last wins)
+ * and sorts ascending — lightweight-charts rejects unordered or repeated times,
+ * and provider feeds occasionally include both.
  */
-function toCandlestickData(series: OHLCVSeries): CandlestickData<Time>[] {
-  const byTime = new Map<number, CandlestickData<Time>>();
-  for (const bar of series.bars) {
-    const time = toChartTime(bar.timestamp);
+function toSeriesPoints<T, P extends { time: Time }>(
+  items: readonly T[],
+  isoOf: (item: T) => string,
+  point: (item: T, time: UTCTimestamp) => P | null,
+): P[] {
+  const byTime = new Map<number, P>();
+  for (const item of items) {
+    const time = toChartTime(isoOf(item));
     if (Number.isNaN(time)) {
       continue;
     }
-    byTime.set(time, {
-      time,
-      open: bar.open,
-      high: bar.high,
-      low: bar.low,
-      close: bar.close,
-    });
+    const p = point(item, time);
+    if (p !== null) {
+      byTime.set(time, p);
+    }
   }
   return [...byTime.values()].sort((a, b) => (a.time as number) - (b.time as number));
+}
+
+/** Map an OHLCV series to candlestick data. */
+function toCandlestickData(series: OHLCVSeries): CandlestickData<Time>[] {
+  return toSeriesPoints(
+    series.bars,
+    (bar) => bar.timestamp,
+    (bar, time) => ({ time, open: bar.open, high: bar.high, low: bar.low, close: bar.close }),
+  );
 }
 
 /** Map an indicator line's points to lightweight-charts line data, dropping gaps. */
 function toLineData(points: { time: string; value: number | null }[]): LineData<Time>[] {
-  const byTime = new Map<number, LineData<Time>>();
-  for (const point of points) {
-    if (point.value === null) {
-      continue;
-    }
-    const time = toChartTime(point.time);
-    if (Number.isNaN(time)) {
-      continue;
-    }
-    byTime.set(time, { time, value: point.value });
-  }
-  return [...byTime.values()].sort((a, b) => (a.time as number) - (b.time as number));
+  return toSeriesPoints(
+    points,
+    (p) => p.time,
+    (p, time) => (p.value === null ? null : { time, value: p.value }),
+  );
 }
 
 /**
  * Build a comparison-overlay line from an OHLCV series. When `normalize` is on,
- * each value is `(close[i] / close[0] - 1) * 100` so the overlay shares the
- * percentage scale with any future second-symbol overlay; when off, raw closes
- * are emitted on the second symbol's natural scale.
+ * each value is `(close[i] / close[0] - 1) * 100` on its own (visible) left
+ * percentage scale; when off, raw closes share the candles' right scale.
  */
 function toComparisonLineData(series: OHLCVSeries, normalize: boolean): LineData<Time>[] {
-  if (series.bars.length === 0) {
-    return [];
-  }
-  const sorted = [...series.bars].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  const closes = toSeriesPoints(
+    series.bars,
+    (bar) => bar.timestamp,
+    (bar, time) => ({ time, value: bar.close }),
   );
-  const base = sorted[0]?.close ?? 1;
-  const safeBase = base === 0 ? 1 : base;
-  const out: LineData<Time>[] = [];
-  for (const bar of sorted) {
-    const time = toChartTime(bar.timestamp);
-    if (Number.isNaN(time)) {
-      continue;
-    }
-    const value = normalize ? (bar.close / safeBase - 1) * 100 : bar.close;
-    out.push({ time, value });
-  }
-  return out;
+  const base = closes[0]?.value || 1;
+  return normalize
+    ? closes.map((p) => ({ time: p.time, value: (p.value / base - 1) * 100 }))
+    : closes;
 }
 
 type LoadState = "idle" | "loading" | "ready" | "error";
@@ -560,29 +554,24 @@ function ChartPanel(props: ChartPanelProps = {}) {
     for (const candle of candleDataRef.current) {
       closeByTime.set(candle.time as number, candle.close);
     }
-    const markers: SeriesMarker<Time>[] = [];
-    for (const point of points) {
-      if (point.value === null) {
-        continue;
-      }
-      const time = toChartTime(point.time);
-      if (Number.isNaN(time)) {
-        continue;
-      }
-      const close = closeByTime.get(time);
-      if (close === undefined) {
-        continue;
-      }
-      const isUptrend = point.value < close;
-      markers.push({
-        time,
-        position: isUptrend ? "belowBar" : "aboveBar",
-        shape: "circle",
-        color: isUptrend ? NEUTRAL : NEGATIVE,
-        size: 1,
-      });
-    }
-    markers.sort((a, b) => (a.time as number) - (b.time as number));
+    const markers = toSeriesPoints(
+      points,
+      (point) => point.time,
+      (point, time): SeriesMarker<Time> | null => {
+        const close = closeByTime.get(time);
+        if (point.value === null || close === undefined) {
+          return null;
+        }
+        const isUptrend = point.value < close;
+        return {
+          time,
+          position: isUptrend ? "belowBar" : "aboveBar",
+          shape: "circle",
+          color: isUptrend ? NEUTRAL : NEGATIVE,
+          size: 1,
+        };
+      },
+    );
     const existing = sarMarkersRef.current;
     if (existing) {
       existing.setMarkers(markers);
@@ -601,6 +590,9 @@ function ChartPanel(props: ChartPanelProps = {}) {
       // Price-pane overlays share pane 0; each separate-pane indicator gets the
       // next pane index, so all panes stay time-synced within the one chart.
       let nextPane = 1;
+      // Colour by the running series index across ALL indicators, so two
+      // single-line indicators (SMA + EMA) never share palette slot 0.
+      let colorIndex = 0;
       for (const indicator of response.indicators) {
         if (indicator.name === "parabolic_sar") {
           renderParabolicSar(indicator.lines[0]?.points ?? []);
@@ -608,7 +600,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
         }
         const isOverlay = indicator.panel === "price";
         const paneIndex = isOverlay ? 0 : nextPane++;
-        indicator.lines.forEach((line, lineIndex) => {
+        indicator.lines.forEach((line) => {
           const data = toLineData(line.points);
           if (data.length === 0) {
             return;
@@ -616,7 +608,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
           const series = chart.addSeries(
             LineSeries,
             {
-              color: INDICATOR_COLORS[lineIndex % INDICATOR_COLORS.length],
+              color: INDICATOR_COLORS[colorIndex++ % INDICATOR_COLORS.length],
               lineWidth: 2,
               priceLineVisible: false,
               lastValueVisible: isOverlay,
@@ -1080,6 +1072,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
     if (comparisonSeriesRef.current) {
       chart.removeSeries(comparisonSeriesRef.current);
       comparisonSeriesRef.current = null;
+      chart.applyOptions({ leftPriceScale: { visible: false } });
     }
     if (!compareSymbol) {
       return;
@@ -1106,6 +1099,11 @@ function ChartPanel(props: ChartPanelProps = {}) {
         // Normalised overlay rides its own price scale on the left so it
         // does not warp the candle series' right scale.
         priceScaleId: compareNormalize ? "left" : "right",
+      });
+      // …and that scale is SHOWN, so a % line is never read against the
+      // candles' absolute price axis.
+      chartRef.current.applyOptions({
+        leftPriceScale: { visible: compareNormalize, borderColor: CHART_BORDER },
       });
       overlay.setData(data);
       comparisonSeriesRef.current = overlay;
