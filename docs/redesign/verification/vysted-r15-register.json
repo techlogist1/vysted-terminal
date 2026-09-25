@@ -124,8 +124,8 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open",
-   "closure_evidence": "806a90c fix(r15): Stage C batch 2",
+   "status": "fixed",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)",
    "note": "rc1 refutation audit @6741387b: partial — root cause: The per-listing pick reaches the Equity Overview but not the chart. src/components/CommandPalette.tsx:391 (and :207) call loadSymbolIntoChart(c.symbol) and drop c.exchange/region. src/lib/host-actions.ts:318 loadSymbolIntoChart and src/store/chart-command.ts:39 loadSymbol take no region. src/lib/sidecar-client.ts:341 history() sends no regionHeader(). In an IN session, picking 'AMAL US' charts /history/AMAL from nse_direct (687.65 INR) instead of Amalgamated (47.21 USD).; acceptance: src/components/CommandPalette.test.tsx: with settings region IN and autocomplete candidates [AMAL/NSE, AMAL/US], selecting the 'AMAL US' Tickers row results in the chart's /history/AMAL request carrying header X-Vysted-Region: US (assert on the mocked sidecarGet/fetch headers). Selecting 'AMAL NSE' carries X-Vysted-Region: IN. Plus src/store/chart-command.test.ts: loadSymbol('AMAL', undefined, 'US') stores region 'US'."
   },
   {
@@ -463,8 +463,8 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "closure_evidence": "806a90c fix(r15): Stage C batch 2",
+   "status": "fixed",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)",
    "note": "rc1 refutation audit @6741387b: partial — root cause: sidecar/services/research/verify.py:134-140. When the first word is not a verdict word, the fallback scans the whole line for _AGREE_MARKERS (verify.py:109) before looking for a standalone UNVERIFIED or DISAGREE word. deep.leading_token (deep.py:359-361) strips only *:-#> characters, so a 'Verdict:' label, [ ] brackets or '1.' numbering hide the verdict word. Result: 'Verdict: UNVERIFIED - no source confirms ...', '[UNVERIFIED] ...' and '1. UNVERIFIED - ...' parse as agree.; acceptance: Add sidecar/tests/test_research_verify.py::test_parse_verdict_reads_a_labelled_verdict_word. These must parse as _parse_verdict(s)[0]=='unverified': 'Verdict: UNVERIFIED - no source confirms the 23% operating margin.', '**Verdict:** UNVERIFIED - no source confirms it.', 'Answer: UNVERIFIED - evidence does not support the figure.', '[UNVERIFIED] the sources do not confirm this.', 'The claim is UNVERIFIED; nothing I found confirms the 23% margin.', '1. UNVERIFIED - no source confirms'. 'Verdict: DISAGREE - sources agree on 21% not 23%' must parse as 'disagree', and 'Verdict: AGREE - reuters confirms' as 'agree'. The existing _parse_verdict tests must stay green."
   },
   {
@@ -956,8 +956,8 @@
     "agent-chat",
     "ui-panels"
    ],
-   "status": "open",
-   "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+   "status": "fixed",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)",
    "note": "rc1 refutation audit @6741387b: partial — root cause: sidecar/services/planner.py:76-108 _EDIT_SIGNALS has no log/record/hold cue and planner.py:120 r'\\?\\s*$' makes a trailing '?' a positive read cue, so sidecar/services/agent_runtime.py:1666 (read_only = inferred_intent == 'read' and bool(intent.signals)) strips every data write at :1669-1688 for question-shaped write asks like 'Can you log 10 TCS at 3400 in my portfolio?'.; acceptance: sidecar/tests/test_b3_runtime_intent_gate.py: parametrized test using _agent_tool_ids over 'Can you log 10 TCS at 3400 in my portfolio?' and 'Can you record that I hold 20 ITC at 410?' asserting 'portfolio_add_position' in tool_ids; test_positive_read_cue_still_strips_data_writes ('what is P/E?') and 'How is my portfolio doing?' must still strip."
   },
   {
@@ -1130,6 +1130,85 @@
    ],
    "status": "fixed",
    "closure_evidence": "c81d879 fix(r15): Stage C batch 3"
+  },
+  {
+   "id": "R15-AGENT-090",
+   "title": "Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure",
+   "severity": "high",
+   "area": "agent",
+   "subsystem": "agent-tools",
+   "files": [
+    "sidecar/services/agent_tools",
+    "sidecar/agents/copilot.json"
+   ],
+   "repro": "vy invoke, provider openrouter model nvidia/nemotron-3-super-120b-a12b:free (and independently llama3.1:8b/ollama), autonomy=ask, prompt \"How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?\" -> tool_use resolve_symbol/fundamentals/financial_statements -> final text states a 1:1 (later, re-run at 1d6511c8, 1:2) ADR ratio attributed to \"fundamentals data\"; ground truth is 1 ADS = 6 ordinary shares (battery pack P17_SIFY.json / SEC 20-F). None of the three tools called plausibly returns an ADR-ratio field, so the figure is fabricated. Cross-model confirmed (ollama-sk4-sify.jsonl / or-sk4-sify.jsonl).",
+   "evidence": "docs/redesign/verification/r15/rc1/scenarios/or-sk4-sify.jsonl; docs/redesign/verification/r15/rc1/scenarios/ollama-sk4-sify.jsonl; docs/redesign/verification/r15/rc1/verifier/rc1-verifier-evidence/unclosed-sc5-sify-llama.jsonl; docs/redesign/verification/R15_GATE_RC1.md blocker 3",
+   "root_cause": "No tool result carries an ADR-ratio field, and the agent spec gives no instruction to refuse or hedge on a fact the tool results do not contain, so the model states a plausible-looking ratio as sourced fact.",
+   "fix_shape": "Either surface a real adr_ratio field on the fundamentals/financial_statements tool results where known, or add an explicit refuse/hedge instruction for facts not present in tool output; pin with a scripted-provider test asserting the model cannot cite \"fundamentals data\" for a field the mocked tool result does not include.",
+   "defect_class": "hallucinated-field-no-plausibility-check",
+   "raw_ids": [
+    "rc1-scenarios:5",
+    "rc1-verifier:16"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat",
+    "research-search"
+   ],
+   "status": "open",
+   "note": "batch-12: mined from R15_GATE_RC1.md blocker 3 (rc1-scenarios:5, new_defect) and rc1-verifier:16 (reproduces at candidate sha 1d6511c8, currency half fixed, ratio half still fabricated). Not a prior register entry. || batch-12 verifier @3d588a29: Still reproduces on the running sidecar. The original repro prompt on llama3.1:8b (ollama, autonomy ask) fabricated an ADR ratio in 3 of 5 runs. Run 1: '10 ordinary shares'. Run 4: 'approximately 144869230 ordinary shares', derived from the fundamentals tool result's shares-outstanding field and a made-up 'typically two'. Run 5: '1 ordinary share'. Truth is 1 ADS = 6 ordinary shares. Runs 2 and 3 followed the new preamble rule ('unavailable in the terminal's data'). The fix is a prompt rule only; the ponytail note records that no deterministic guard landed. nemotron-3-super:free now reasons that fundamentals has no ADR field and web-searches instead (it found 'Each Repr 6 Ords'), but both of its runs hit an upstream 'Nvidia overloaded' 5xx before the final answer. || batch-13: stage-c/batch-12/VERDICTS.md 'Issues found' item 3 (llama3.1:8b answered 'SIFY's TTM revenue in USD' in INR, ₹4,651 cr, without converting or saying it had not) — same repro prompt/symbol as this entry; folded here rather than filed separately."
+  },
+  {
+   "id": "R15-AGENT-092",
+   "title": "A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes",
+   "severity": "high",
+   "area": "agent",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/services/run_manager.py",
+    "sidecar/services/agent_runtime.py",
+    "src/lib/delegate-runs.ts"
+   ],
+   "repro": "End-to-end through run_manager with a valid host action: provider emits a valid write_note + done(100k tokens), RunBudget(max_tokens=1000) -> status error, token ceiling 1000 reached (100000 used), dispatched [], but the persisted run row's host_actions still carries the undispatched write_note. delegate-runs.ts enqueues every host_actions entry into the proposed-changes gate regardless of status, so the user is offered a write_note the model never saw a result for.",
+   "evidence": "sidecar/services/run_manager.py:294-301 (appends every yielded host action with no retraction on HALT_NOTICE_TOOL; :302 only sets halted); sidecar/services/agent_runtime.py:2016 (tool_use yielded before the :2036-2046 halt check); src/lib/delegate-runs.ts:277-281 (loop at :279, enqueues regardless of status); docs/redesign/verification/r15/rc1/refutation-audit/agent-R15-AGENT-003.md",
+   "root_cause": "run_manager.py collects host actions from yielded tool_use events and never drops the ones from a round that HALT_NOTICE_TOOL says was not actually run, because agent_runtime.py yields the tool_use before the round's halt check runs. Foreground chat never sets on_round_usage, so this is Delegate-only.",
+   "fix_shape": "In run_manager, collect host actions per round and discard the pending round's entries on HALT_NOTICE_TOOL (or have _consume_round buffer tool_use events until the round's done when on_round_usage is set). Acceptance test: sidecar/tests/test_run_manager.py::test_a_halted_rounds_host_actions_are_not_proposed - provider emits a valid write_note + done(100k tokens), RunBudget(max_tokens=1000) -> assert row.status == 'error', dispatched == [], row.host_actions == [].",
+   "defect_class": "announced-but-undispatched-tool",
+   "raw_ids": [
+    "rc1-verifier:4-adjacent"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ],
+   "status": "fixed",
+   "note": "batch-12: filed per the LEAD NOTE from docs/redesign/verification/r15/rc1/refutation-audit/agent-R15-AGENT-003.md, classification 'adjacent_finding' — same defect class as R15-AGENT-003 (announced-but-undispatched tool) but a distinct trigger (Delegate budget halt, introduced by the R15-AGENT-037 fix in batch 7 after R15-AGENT-003 was closed in batch 3); the refutation audit itself recommends filing it as a new entry.",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)"
+  },
+  {
+   "id": "R15-AGENT-093",
+   "title": "The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures",
+   "severity": "high",
+   "area": "agent",
+   "subsystem": "agent-runtime",
+   "files": [
+    "sidecar/services/agent_runtime.py"
+   ],
+   "repro": "llama3.1:8b repeatedly sends integers as strings ('5', '10', '100' for max_strikes, limit and similar params); jsonschema.Draft7Validator (agent_runtime.py:867-868) rejects the type mismatch and the model then answers without data. Reproduces across sec-filings, sec-insider, disclosures and option_chain scenarios in the R15-AGENT-007 eval harness (scripts/agent_eval/run.py).",
+   "evidence": "sidecar/services/agent_runtime.py:867-868 (jsonschema.validators.validator_for(cap.input_schema)... iter_errors(args), no coercion before validation); docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.md 'Issues found' item 2 and the R15-AGENT-007 certification note ('every ollama failure is the model: ... integers sent as strings')",
+   "root_cause": "The tool-argument schema gate (agent_runtime.py:867-868) validates raw model-supplied arguments against the JSON schema with no type coercion, so a numeric-looking string fails Draft7Validator's type check instead of being accepted.",
+   "fix_shape": "Coerce a numeric-looking string to its declared integer/number type at the schema gate before validation runs (a class fix, not per-tool, per the source finding).",
+   "defect_class": "strict-gate-rejects-coercible-args",
+   "raw_ids": [
+    "batch-11-backlog-2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ],
+   "status": "fixed",
+   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 2.",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)"
   },
   {
    "id": "R15-CODE-AGENT-001",
@@ -2323,8 +2402,8 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open",
-   "closure_evidence": "806a90c fix(r15): Stage C batch 2",
+   "status": "fixed",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)",
    "note": "rc1 refutation audit @6741387b: partial — root cause: The top-K cut and the disclosure both ignore the currency grouping. sidecar/services/screener.py:423-429 sorts currency-grouped ('INR' before 'USD'). :815 rows = matched[:limit] cuts that order, so a top-K over mixed currencies keeps only the alphabetically-first currency group. :845-847 compute served_currencies over the served page rather than the matched set, so the 'ranked within each currency' note disappears exactly when the cut hides the other currency.; acceptance: sidecar/tests/test_screener.py: run_screener(custom [AAPL(USD 3.5e12), RELIANCE.NS(INR 1.95e13), MSFT(USD 3e12), TCS.NS(INR 7.5e12)], sort market_cap desc, limit=2). Assert the coverage line contains 'ranked within each currency' (the spans are computed over matched, not the page). Also assert the served page is not a single-currency slice presented as the top-2, i.e. it contains at least one USD row, or the result carries an explicit per-currency-cut disclosure."
   },
   {
@@ -2558,9 +2637,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
+   "status": "fixed",
    "note": "verify-only: Batch-5 (1574ed8) verifier found this a REGRESSION (not_certified): the no-hint get_filing lookup widened to a 1,000-row unfiltered window that sec-edgar-mcp cannot serve (limit >=200 times out or 'cannot unpack non-iterable NoneType'; 40/60/100 succeed), so sec_filing_content now fails for every filing outside a 40-recent window (AAPL Form 4, MSFT 10-Q both broke). Fixed before the batch-5 merge closed: 7ae5117 forwards form_type from sec_tools.py and tries a small window first; 7ae5117 is an ancestor of the batch-5 merge commit 1574ed8, so the regression never shipped on 004. || rc1 refutation audit @6741387b: partial — root cause: sidecar/services/agent_tools/catalog.py:741-746 marks sec_filing_content.form_type optional and says it only speeds up the lookup. Without that hint, sidecar/services/sec_filings_provider.py:579 and :618-632 search only the latest 40, then 100, filings of any form; for MSFT, 100 rows reach back only to 2026-03-24. sec_filings_provider.py:650-662 get_filing_sections and sidecar/routers/sec_filings.py:124-131 do not accept or forward form_type at all.; acceptance: In sidecar/tests/test_sec_filings_provider.py, use a recorder whose unfiltered get_recent_filings windows (limit 40 and 100, both full) never contain 0000320193-21-000105, but whose form_type=10-K list does. Assert (await get_filing('0000320193-21-000105', cik_or_symbol='AAPL')).filing.form_type == '10-K' with no ProviderError not_found, and that get_filing_sections(acc, cik_or_symbol='AAPL', form_type='10-K') resolves. In sidecar/tests/test_sec_tools.py, assert (await _sec_filing_content({'accession': acc, 'identifier': 'AAPL'}))['ok'] is True on the same recorder. Add a router test that /sections forwards form_type, unless R15-CODE-DATA-013 deletes that route.",
-   "closure_evidence": "7ae5117 fix(sec): forward the form hint and try a small filing window first (R15-LEAD-010)"
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)"
   },
   {
    "id": "R15-LEAD-011",
@@ -3116,7 +3195,7 @@
    ],
    "status": "open",
    "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
-   "note": "Verifier batch-3 residual: certifying this fix demoted first-party IR pages (tcs.com/investor-relations, reliance.com/investors, infosys.com/investors) from PRIMARY to GENERAL, below press, since a path marker alone is no longer PRIMARY. Expected side effect of the shipped fix shape; giving IR its own tier would avoid it. || rc1 refutation audit @6741387b: partial — root cause: sidecar/services/research/finance.py:146. _looks_like_ir matches host.startswith('investors.'/'investor.'/'ir.') without requiring that label to be a subdomain. After the www. strip, the news site investors.com (IBD) therefore ranks PRIMARY. finance.py:79-89: _IR_PLATFORM_DENYLIST lacks github.io, wixsite.com, netlify.app and hubpages.com, and matches blogspot only on .com. So ir.blogspot.in, investors.github.io, investors.wixsite.com and ir.netlify.app rank PRIMARY.; acceptance: Add sidecar/tests/test_research_finance.py::test_ir_host_prefix_never_promotes_news_or_platform_hosts. Assert domain_tier(u) != TIER_PRIMARY for https://www.investors.com/news/technology/nvidia-stock-buy-now/, https://investors.github.io/pump, https://ir.blogspot.in/post, https://investors.wixsite.com/x, https://ir.netlify.app/x and https://investors.hubpages.com/x. Assert rank_sources([IBD, GH, Reuters])[0].title == 'Reuters', and that priority_note does not name IBD or GH as a primary record. The controls ir.nvidia.com, investors.infosys.com, investor.apple.com and ir.tatamotors.com must stay TIER_PRIMARY."
+   "note": "Verifier batch-3 residual: certifying this fix demoted first-party IR pages (tcs.com/investor-relations, reliance.com/investors, infosys.com/investors) from PRIMARY to GENERAL, below press, since a path marker alone is no longer PRIMARY. Expected side effect of the shipped fix shape; giving IR its own tier would avoid it. || rc1 refutation audit @6741387b: partial — root cause: sidecar/services/research/finance.py:146. _looks_like_ir matches host.startswith('investors.'/'investor.'/'ir.') without requiring that label to be a subdomain. After the www. strip, the news site investors.com (IBD) therefore ranks PRIMARY. finance.py:79-89: _IR_PLATFORM_DENYLIST lacks github.io, wixsite.com, netlify.app and hubpages.com, and matches blogspot only on .com. So ir.blogspot.in, investors.github.io, investors.wixsite.com and ir.netlify.app rank PRIMARY.; acceptance: Add sidecar/tests/test_research_finance.py::test_ir_host_prefix_never_promotes_news_or_platform_hosts. Assert domain_tier(u) != TIER_PRIMARY for https://www.investors.com/news/technology/nvidia-stock-buy-now/, https://investors.github.io/pump, https://ir.blogspot.in/post, https://investors.wixsite.com/x, https://ir.netlify.app/x and https://investors.hubpages.com/x. Assert rank_sources([IBD, GH, Reuters])[0].title == 'Reuters', and that priority_note does not name IBD or GH as a primary record. The controls ir.nvidia.com, investors.infosys.com, investor.apple.com and ir.tatamotors.com must stay TIER_PRIMARY. || batch-12 verifier @3d588a29: Acceptance cases pass, but the class fix fails fresh cases. The fix enumerates nine platforms in a denylist, so other free-hosting platforms still rank TIER_PRIMARY: ir.firebaseapp.com, investors.web.app, ir.azurewebsites.net, ir.onrender.com, ir.fly.dev, ir.glitch.me, investors.notion.site, ir.webflow.io, ir.herokuapp.com. The three-label 'IR label is a subdomain' check also misses ccSLD registrable domains: https://www.investors.co.uk/news/x, https://ir.co.in/x and https://investors.com.au/x rank 1, which is the original investors.com mechanism on a two-part TLD. Root fix: decide 'IR label sits on a registrable domain' from the Public Suffix List, including its private section (github.io, web.app, herokuapp.com, blogspot.* etc. are PSL private suffixes). No PSL package is in the venv today."
   },
   {
    "id": "R15-RESEARCH-008",
@@ -3511,8 +3590,8 @@
     "data-smallcaps",
     "ui-panels"
    ],
-   "status": "open",
-   "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4",
+   "status": "fixed",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)",
    "note": "Batch-9 verifier (6b70230) fresh-case residual on the fixed class: BHP.AX still reads 'live' while the ASX is closed, and AAPL's daily bar still reads 'eod' intraday. Status left 'fixed' per the batch-4 closure; flag for a follow-up verifier pass. || rc1 refutation audit @6741387b: partial — root cause: sidecar/services/locale.py:176-178 instrument_region returns IN only for an nse_direct/nse/bse provider or a .NS/.BO suffix, and defaults every other symbol to REGION_US. Indian indices served by yfinance (^NSEI, ^BSESN, ^NSEBANK) are therefore dated against the closed US calendar and read 'eod' during NSE hours. The same default also forces .AX and other foreign listings onto the US calendar.; acceptance: sidecar/tests/test_quotes.py: freeze the clock at _NSE_HOURS and monkeypatch get_quote to return provider='yfinance' and timestamp=_NSE_HOURS for ^NSEI and ^BSESN. Under X-Vysted-Region IN and under US, assert client.get('/quotes/%5ENSEI').json()['freshness']=='live' (same for ^BSESN). Also assert locale.instrument_region('^NSEI','yfinance')=='IN'."
   },
   {
@@ -3600,8 +3679,8 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open",
-   "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
+   "status": "fixed",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)",
    "note": "rc1 refutation audit @6741387b: partial — root cause: sidecar/services/errors.py _BODY_RULES marker lists are too narrow: context_overflow markers at :288 miss Gemini's 400 'input token count ... exceeds the maximum number of tokens allowed'; model_not_found markers at :272 miss Groq's 400 'has been decommissioned' / model_decommissioned; the credit rule at :263-264 only matches statuses {400,429}, so xAI's 403 'doesn't have any credits' falls to :411-417 auth 'Re-enter the API key'; the class heuristic at :454-460 still gives Ollama a ReadTimeout the provider-agnostic 'check your network / internet connection' copy.; acceptance: sidecar/tests/test_errors.py parametrized test_provider_bodies_get_a_workable_next_step: humanize('gemini', genai ClientError(400, 'The input token count (1200000) exceeds the maximum number of tokens allowed (1048576).')).code == 'context_overflow'; humanize('groq', openai.BadRequestError 400 model_decommissioned body).code == 'model_not_found'; humanize('xai', openai.PermissionDeniedError 403 \"team doesn't have any credits yet\").code == 'insufficient_credit'; humanize('ollama', httpx.ReadTimeout('timed out')): 'internet' not in action.lower() and 'network' not in message.lower(); all existing test_errors.py rows stay green."
   },
   {
@@ -5070,6 +5149,31 @@
    "closure_evidence": "f407107 merge: R15 Stage C batch 10"
   },
   {
+   "id": "R15-CODE-AGENT-033",
+   "title": "The agent-eval grader passes a trial whose tool call returned an error, because the tool's ok/error result is not carried in the vy eval stream",
+   "severity": "medium",
+   "area": "code",
+   "subsystem": "agent-eval",
+   "files": [
+    "scripts/agent_eval/run.py",
+    "scripts/r15/vy.py"
+   ],
+   "repro": "The first live option_chain run (expiry 'nearest' -> 422) grades [] as recorded, i.e. as a pass, because the grader has no signal that the underlying tool call errored. With the tool input doctored to {}, the same trial correctly fails on the missing-call predicate.",
+   "evidence": "docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.md 'Issues found' item 3 and the R15-AGENT-007 certification note ('Fresh grader case: live streams ... grade [] as recorded. With the tool input doctored to {}, each fails...')",
+   "root_cause": "vy's eval stream does not thread the tool result's ok/error status alongside the tool call into the grader, so a trial is graded on output shape alone, blind to whether the tool call itself errored.",
+   "fix_shape": "Thread the tool result's ok/error status through the eval stream into the grader, and score a trial whose tool call errored as a fail rather than grading its (possibly empty) recorded output as-is.",
+   "defect_class": "grader-blind-to-tool-error",
+   "raw_ids": [
+    "batch-11-backlog-3"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ],
+   "status": "open",
+   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 3. || batch-12 planner (PLAN.md §9): deferred to batch 13 — the agent SSE stream carries no tool-result event (models/llm.py event kinds: delta, tool_use, research_step, agent_plan, thinking, heartbeat, done, error), so vy.py cannot record an ok/error for the grader. The fix needs a new stream event emitted from agent_runtime.py (owned by W5 in batch 12, so the file could not be shared this batch), then models/llm.py + scripts/agent_eval/grader.py, plus a frontend check that unknown event kinds are ignored."
+  },
+  {
    "id": "R15-CODE-DATA-002",
    "title": "resolve() re-runs a 300-900 ms SequenceMatcher scan over ~17.9k master names on every call with no result memo",
    "severity": "medium",
@@ -5783,8 +5887,8 @@
     "COD-plugins-12"
    ],
    "tier4": false,
-   "status": "open",
-   "closure_evidence": "f407107 merge: R15 Stage C batch 10",
+   "status": "fixed",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)",
    "note": "rc1 refutation audit @6741387b: partial — root cause: src/components/SettingsPanel.tsx:1938-1941: the Settings > Modules switch calls useModulesStore.setModuleEnabled for bridged plugin:<id> modules. This bypasses the lifecycle owner (useMarketplaceStore.enable/disable, which drives runtime plus plugins.db). The plugin's panels and commands are hidden while the Marketplace and Plugin Manager still report it active. Because workspace.ts:309-313 now drops plugin:* flags from the blob, the Settings 'off' is silently undone on relaunch when the runtime re-attaches from plugins.db.; acceptance: src/components/SettingsPanel.test.tsx: bridge moduleForPlugin(CATALOG_BY_ID['vysted-example']) (appendModules plus setModuleEnabled true), render SettingsPanel, and click 'Vysted Example Plugin enabled' in the Modules region. Assert either that useMarketplaceStore disable('vysted-example') was invoked (runtime.disablePlugin writes plugins.db), or that plugin:* rows are not free toggles there. In both cases, enabled['plugin:vysted-example'] must never be false while the runtime reports the plugin active."
   },
   {
@@ -6742,7 +6846,8 @@
    ],
    "tier4": false,
    "status": "fixed",
-   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
+   "closure_evidence": "f407107 merge: R15 Stage C batch 10",
+   "note": "batch-13: stage-c/batch-12/VERDICTS.md 'Issues found' item 2 (GET /quotes/500325.BO reports volume: 2.19 for RELIANCE on BSE — looks like a lakh/unit or partial-day artifact in the bse lane) — same field/provider (bse_provider.py volume) as this fixed entry; folded here as a possible residual for the next verifier pass, status left 'fixed' (not re-adjudicated by this batch)."
   },
   {
    "id": "R15-DATA-054",
@@ -6909,8 +7014,8 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open",
-   "closure_evidence": "4097dac merge(r15): stage C batch 11 - 18 certified fixes at 9985b00e",
+   "status": "fixed",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)",
    "note": "Batch-11 (4097dac) certified: Live `/resolve?q=BeiGene` returns disambiguate candidates ONC and BEIGF, both with former_name 'BeiGene, Ltd.'. 'Toss the Coin Private Limited' binds TTC (BSE). Fresh cases the fix was not written against: Facebook binds META (former 'Facebook Inc'); Zomato binds ETERNAL (former ZOMATO); 'Adani Transmission' binds ADANIENSOL (former ADANITRANS); 'Square Inc' puts XYZ in the candidates. `former_names.json` is inside the built binary. || rc1 refutation audit @6741387b: regression_confirmed — root cause: sidecar/services/symbol_resolver.py:1377 `if inst.exchange not in (\"NSE\", \"BSE\"): return inst` returns before the former-name fallback (:1406-1411). That fallback only echoes inst.former_name, which only the name scan (:1064-1100) stamps. So a US ticker resolve (q=ONC, q=SIFY) never joins the bundled _former_names() 'us' index (:469), even though it contains ONC -> ['BeiGene, Ltd.'] and SIFY -> ['SIFY LTD','SATYAM INFOWAY LTD']. Separately, sidecar/services/resolver_masters/us_instruments.json rows are [ticker, name] only: the fix_shape step 'add ISIN/CUSIP to the US master' was never done, so isin is null for every US instrument.; acceptance: sidecar/tests/test_symbol_resolver.py: resolve('ONC','US').best.former_name == 'BeiGene, Ltd.' and resolve('SIFY','US').best.former_name in ('SIFY LTD','SATYAM INFOWAY LTD') (the most recent former name). Once the US master carries ISINs: resolve('ONC','US').best.isin == 'US07725L1026' and resolve('SIFY','US').best.isin == 'US82655M2061'. A US candidate beside a same-ticker NSE row must still take no Indian ISIN (the existing R13 TCI guard test stays green)."
   },
   {
@@ -7164,9 +7269,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
+   "status": "fixed",
    "note": "Batch-9 (6b70230) not certified: integrator-partial. Earnings history/surprises/estimates carry as_of; the analyst routes (ratings, price-target-history, individual targets) carry none. || Batch-10 (f407107) residual: /earnings and the three extended analyst routes now carry as_of, but the base GET /fundamentals/{symbol}/ratings consensus envelope still has none. || rc1 refutation audit @6741387b: partial — root cause: sidecar/routers/fundamentals.py:251: `rating, _ = await _cached(...)` discards the cache write time for the base GET /fundamentals/{symbol}/ratings consensus envelope, which is served from a 6 h cache (_TTL_RATINGS, :58). The AnalystRating model (sidecar/models/fundamentals.py:231) and its mirror types/data.ts:356 have no as_of field. The Equity Overview consensus block (src/modules/equity-overview/api.ts:115) therefore shows a possibly 6 h-old consensus with no timestamp.; acceptance: sidecar/tests/test_analyst_extended_router.py (or a fundamentals-router test): GET /fundamentals/AAPL/ratings with a monkeypatched provider returns 200 with a non-null ISO 'as_of'. A second GET within the TTL (a cache hit) returns the SAME as_of as the first (the cache row's write time), not now(). The types/data.ts AnalystRating interface gains as_of?: string | null in the same commit.",
-   "closure_evidence": "f407107 merge: R15 Stage C batch 10"
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)"
   },
   {
    "id": "R15-DATA-069",
@@ -7910,6 +8015,111 @@
    "closure_evidence": "1574ed8 fix(r15): Stage C batch 5"
   },
   {
+   "id": "R15-DATA-112",
+   "title": "A row with no fundamentals currency (and a null market_cap) ranks FIRST in a market_cap-desc screen, breaking R15-UI-006's missing-values-last rule",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "screener",
+   "files": [
+    "sidecar/services/screener.py"
+   ],
+   "repro": "POST /screener/run {universe:custom, custom_symbols:[MANIKA.NS, RELIANCE.NS, TCS.NS], criteria:[], sort_by:market_cap, sort_dir:desc} -> rows [(MANIKA.NS, None, INR), (RELIANCE.NS, 1.655e13, INR), (TCS.NS, 7.55e12, INR)]; MANIKA (null market_cap) sorts first. Same on india-all pe 0-40. /fundamentals/MANIKA.NS -> currency None.",
+   "evidence": "sidecar/services/screener.py:358-360 (_currency_sort_key normalizes None to ''), :423-430 (sort key tuple); docs/redesign/verification/r15/rc1/verifier/rc1-verifier-evidence/new-manika-sort-custom.json; docs/redesign/verification/R15_GATE_RC1.md blocker 5",
+   "root_cause": "_currency_sort_key(None) returns '', which sorts alphabetically ahead of every real currency code, so a row whose fundamentals.currency is missing is grouped and shown first regardless of sort_dir or its (null) market_cap.",
+   "fix_shape": "Route a missing/empty currency through the same pair[0] is None tiebreak used for a missing sort value (sort it last), instead of letting it form its own leading currency group.",
+   "defect_class": "missing-value-sorts-first",
+   "raw_ids": [
+    "rc1-verifier:15"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "ui-panels",
+    "data-smallcaps"
+   ],
+   "status": "fixed",
+   "note": "batch-12: mined from R15_GATE_RC1.md blocker 5 / rc1-verifier:15. Same function as the reopened R15-DATA-043 (screener.py _currency_sort_key / sort tuple, lines 423-430) but a distinct rule violation (missing-values-last, not currency grouping/top-K disclosure) that R15-DATA-043's frozen refutation-audit acceptance test does not cover; filed separately rather than amending that entry's note.",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)"
+  },
+  {
+   "id": "R15-DATA-113",
+   "title": "Earnings-estimate revenue for a foreign reporter is labelled in the trading currency: WIT's revenue_estimate_mean (INR-sized) is served as currency USD",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "earnings",
+   "files": [
+    "sidecar/services/earnings_provider.py",
+    "sidecar/models/earnings.py",
+    "types/ (EarningsEstimateDetail mirror)",
+    "src/modules/earnings/EpsEstimateGrid.tsx"
+   ],
+   "repro": "GET /earnings/WIT/estimates -> revenue_estimate_mean 244246846490.0, currency 'USD', eps_estimate_mean 0.035. Wipro's quarterly revenue is about INR 22,000 cr (~USD 2.6B), so the revenue figure is in the reporting currency (Yahoo financialCurrency INR) while EPS is per-ADS USD.",
+   "evidence": "sidecar/services/earnings_provider.py:130-200,468-510 (currency set from info['currency'] for every money field); src/modules/earnings/EpsEstimateGrid.tsx:111 (formats revenue_estimate_mean in estimate.currency); docs/redesign/verification/r15/rc1/fix-r2/evidence/earnings-estimate-currency.txt; docs/redesign/verification/r15/rc1/verifier/rc1-verifier-evidence/fixr2-triage1-wit-estimates.json",
+   "root_cause": "earnings_provider.py sets currency from the trading/ADR currency (info['currency']) for every money field, but Yahoo reports statement-size estimates like revenue_estimate_mean in the filer's reporting currency (financialCurrency), not the trading currency. Same class as R15-AGENT-001 / rc1-scenarios:5 (statement-size money read in the trading currency), on a fourth surface.",
+   "fix_shape": "Carry financialCurrency separately for statement-size fields (revenue_estimate_mean) vs per-share fields (eps_estimate_mean), mirror the split in types/, and label the panel per field.",
+   "defect_class": "currency-mislabel",
+   "raw_ids": [
+    "rc1-fix-r2-triage:1",
+    "rc1-verifier:17"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "status": "fixed",
+   "note": "batch-12: mined from R15_GATE_RC1.md blocker 4 (rc1-fix-r2-triage:1, open with no disposition in the fix loop) and rc1-verifier:17 (confirmed still open at candidate sha 1d6511c8).",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)"
+  },
+  {
+   "id": "R15-DATA-114",
+   "title": "The options-chain provider re-probes today's F&O file on every request because a negative probe (404/transport error) is never cached, so a transient error can 502 a request while a good cached day sits in cache",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "option-chain",
+   "files": [
+    "sidecar/services/option_chain.py"
+   ],
+   "repro": "Three consecutive /quant/option/chain/NIFTY requests (04:00:18-04:00:32) got 502 'the NSE F&O bhavcopy could not be fetched' while 2026-09-24 sat in cache; one of the three was a live agent tool call.",
+   "evidence": "sidecar/services/option_chain.py:133-150 (fetch_latest_fo); docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.md (Certified > R15-DATA-079, embedded 'ISSUE (new, not a regression)')",
+   "root_cause": "fetch_latest_fo re-probes today's file on every request because today's 404 is never cached, and a transport error on that probe returns None instead of walking back to the cached previous day.",
+   "fix_shape": "Cache today's probe outcome briefly (or treat a failed today-probe as 'missing' and fall back to the newest cached day) so a transient error on the today-probe doesn't shadow a good cached day.",
+   "defect_class": "uncached-negative-probe",
+   "raw_ids": [
+    "batch-11-backlog-1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "status": "fixed",
+   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found (not in this batch's scope; for the backlog)' item 1.",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)"
+  },
+  {
+   "id": "R15-DATA-115",
+   "title": "A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "market-data-providers",
+   "files": [
+    "sidecar/services (provider_registry / nse_direct / bse_provider routing)"
+   ],
+   "repro": "GET /history/AMAL.BO?range=1y returns NSE's 28 bars (AMAL's 2026-08-17 NSE listing date), not BSE's longer history, despite the explicit .BO exchange suffix. Predates batch 11.",
+   "evidence": "docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.md 'Issues found' item 5",
+   "root_cause": "Not pinned by the source finding beyond 'a .BO request for a dual-listed name is served by nse_direct'; the provider-selection path for a .BO-suffixed symbol prefers nse_direct over the BSE provider even when NSE has a shorter listing history for that instrument.",
+   "fix_shape": "Route a .BO-suffixed history/quote request to the BSE provider by suffix regardless of NSE listing recency, or prefer/merge the longer available history across venues for a dual-listed instrument.",
+   "defect_class": "wrong-provider-for-exchange-suffix",
+   "raw_ids": [
+    "batch-11-backlog-5"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "status": "fixed",
+   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 5 ('predates the batch'). Distinct mechanism from R15-DATA-002 (session-region bare-ticker binding, a reopened entry, not re-adjudicated here): this is an explicit .BO-suffixed request still routed to the wrong venue provider.",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)"
+  },
+  {
    "id": "R15-DOCS-001",
    "title": "Safety contract comments and SAFETY_ARCHITECTURE.md state behaviour the code does not have: 'Halt All Trading' claimed to cancel open orders (it only blocks new ones), wrong trigger exception type, wrong file pointers, a removed toolbar fallback",
    "severity": "medium",
@@ -8116,7 +8326,7 @@
    ],
    "status": "open",
    "closure_evidence": "f407107 merge: R15 Stage C batch 10",
-   "note": "rc1 refutation audit @6741387b: partial — root cause: docs/CURRENT_STATE.md:358-365 (section 3.3 screener bullet) never documents the nse-all, bse-all and india-all universes, although the entry title and fix_shape name them; the whole doc has 0 hits. The sp500 clause (506 symbols, 2026-06-04, 'R15-LEAD-013 open') was correct at batch-10 certification (the f407107 pack had 506 symbols). It went stale when batch 11's R15-LEAD-013 fix (34c2bbec) regenerated the pack to 503 symbols with snapshot_date 2026-09-24 and did not update the doc.; acceptance: sidecar/tests/test_sp500_universe.py (or new test_current_state_doc.py): section 3.3 of docs/CURRENT_STATE.md must contain f\"{len(sp500['symbols'])} symbols\" and sp500['snapshot_date'], must not contain 'R15-LEAD-013 open', and must name every ScreenerUniverseId literal except 'custom' in backticks (nse-all, bse-all, india-all)."
+   "note": "rc1 refutation audit @6741387b: partial — root cause: docs/CURRENT_STATE.md:358-365 (section 3.3 screener bullet) never documents the nse-all, bse-all and india-all universes, although the entry title and fix_shape name them; the whole doc has 0 hits. The sp500 clause (506 symbols, 2026-06-04, 'R15-LEAD-013 open') was correct at batch-10 certification (the f407107 pack had 506 symbols). It went stale when batch 11's R15-LEAD-013 fix (34c2bbec) regenerated the pack to 503 symbols with snapshot_date 2026-09-24 and did not update the doc.; acceptance: sidecar/tests/test_sp500_universe.py (or new test_current_state_doc.py): section 3.3 of docs/CURRENT_STATE.md must contain f\"{len(sp500['symbols'])} symbols\" and sp500['snapshot_date'], must not contain 'R15-LEAD-013 open', and must name every ScreenerUniverseId literal except 'custom' in backticks (nse-all, bse-all, india-all). || batch-12 verifier @3d588a29: The rewritten section 3.3 bullet has the same drift class the entry is about. It says nse-all is 'every NSE master row (EQ + ETF) ... ~2,675', but the running code's load_india_universe('nse-all') returns 3,506 symbols: EQ 2584 + ETF 351 + SM 571 (the NSE Emerge rows added by 1df9cb0e, R15-DATA-017). bse-all is 5,042 and india-all is 5,891, and the doc gives no count for either. The count came from a stale module docstring (screener_universe_india.py:6), not the master. The sp500 count and snapshot date (503, 2026-09-24) and the universe names are correct."
   },
   {
    "id": "R15-DOCS-018",
@@ -8139,8 +8349,8 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "closure_evidence": "f407107 merge: R15 Stage C batch 10",
+   "status": "fixed",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)",
    "note": "rc1 refutation audit @6741387b: partial — root cause: docs/CURRENT_STATE.md section 3.3 (~318-335) replaced the 'routes by asset class' sentence but still omits the IN-scoped chain from sidecar/services/provider_registry.py:161-219: nse_direct rank 15, nse (jugaad) 20, bse 25, all region IN, ahead of yfinance 50. It still calls yfinance 'the no-key default for equities', which is false for IN-region requests. The doc has 0 hits for nse_direct or jugaad, and section 3.3 has 0 hits for NSE or BSE.; acceptance: sidecar/tests/test_provider_registry_region.py (or new test_current_state_doc.py): every ProviderDeclaration whose region contains 'IN' has its id present in docs/CURRENT_STATE.md section 3.3, and the yfinance bullet qualifies its default role by region."
   },
   {
@@ -8445,9 +8655,10 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
+   "status": "fixed",
    "source": "verifier batch-10",
-   "note": "Batch-11 (4097dac) not certified: Live on the running sidecar GET /quotes/506597.BO -> 404 not_found and GET /history/544774.BO?range=1y -> 200 with bars [] provider none. The resolver half works (is_bse_symbol/bse_scrip_code/_require_bse map 506597->AMAL, 544774->SMR; bse_provider.get_quote('506597.BO') returns AMAL 688.1 directly), but provider_registry then rejects the result in correctness_gate.validate_quote/validate_series: \"provider 'bse' returned 'AMAL' for requested '506597.BO' (symbol mismatch)\" (correctness_gate.py:155-158, :193-196), falls through to yfinance, which has no data. The unit tests call bse_provider on fakes and never go through the registry gate. Fix: let the gate accept a code-addressed request whose provider returned the code's canonical ticker (or canonicalise the request before the walk), and pin it with a registry-level test. Not a regression: before the batch the same routes failed one lane earlier."
+   "note": "Batch-11 (4097dac) not certified: Live on the running sidecar GET /quotes/506597.BO -> 404 not_found and GET /history/544774.BO?range=1y -> 200 with bars [] provider none. The resolver half works (is_bse_symbol/bse_scrip_code/_require_bse map 506597->AMAL, 544774->SMR; bse_provider.get_quote('506597.BO') returns AMAL 688.1 directly), but provider_registry then rejects the result in correctness_gate.validate_quote/validate_series: \"provider 'bse' returned 'AMAL' for requested '506597.BO' (symbol mismatch)\" (correctness_gate.py:155-158, :193-196), falls through to yfinance, which has no data. The unit tests call bse_provider on fakes and never go through the registry gate. Fix: let the gate accept a code-addressed request whose provider returned the code's canonical ticker (or canonicalise the request before the walk), and pin it with a registry-level test. Not a regression: before the batch the same routes failed one lane earlier.",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)"
   },
   {
    "id": "R15-LIFECYCLE-010",
@@ -8977,8 +9188,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "Batch-11 (4097dac) not certified: Writers reported could-not and the integrator left it open: package.json lint is still 'eslint .'; the audit is wired into no script or gate. node scripts/audit-design-tokens.mjs at 9985b00e exits 1 with 4 pre-existing off-grid hits (OnboardingFlow.tsx:533 px-1.5, ProposedChangesReview.tsx:106 py-1.5, SecFilingsPanel.tsx:212 max-h-56, :226 py-1.5), which is why wiring it would turn lint red. Those four spacing fixes plus the one-line lint wiring close it."
+   "status": "fixed",
+   "note": "Batch-11 (4097dac) not certified: Writers reported could-not and the integrator left it open: package.json lint is still 'eslint .'; the audit is wired into no script or gate. node scripts/audit-design-tokens.mjs at 9985b00e exits 1 with 4 pre-existing off-grid hits (OnboardingFlow.tsx:533 px-1.5, ProposedChangesReview.tsx:106 py-1.5, SecFilingsPanel.tsx:212 max-h-56, :226 py-1.5), which is why wiring it would turn lint red. Those four spacing fixes plus the one-line lint wiring close it.",
+   "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)"
   },
   {
    "id": "R15-RESEARCH-012",
@@ -11543,6 +11755,31 @@
    "note": "triage@e032be7: still_reproduces, confidence 5, add two ids to two constants, or derive both from the catalog, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-089"
   },
   {
+   "id": "R15-AGENT-091",
+   "title": "get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190)",
+   "severity": "low",
+   "area": "agent",
+   "subsystem": "agent-tools",
+   "files": [
+    "src/modules/chat/context-provider.ts",
+    "src/modules/portfolio/PortfolioPanel.tsx"
+   ],
+   "repro": "With holdings AAPL 8 @ 190 (USD) and INFY 20 @ 1500 (INR), portfolio panel closed, capture the context as the chat does (captureAgentContext) and ask the copilot 'What is in my portfolio?' (llama3.1:8b, --autonomy ask). tool_use get_portfolio returns __terminal__.portfolio holdings {id, symbol, quantity, costBasis, assetClass, marketValue:null, pnl:null}; no currency field on either the store fallback or the panel-published path. Reply: 'Apple (AAPL) - 8 shares, cost basis: ₹190 per share'.",
+   "evidence": "docs/redesign/verification/r15/rc1/gate8/agent-01-get-portfolio.stdout; docs/redesign/verification/R15_GATE_RC1.md item 3 evidence",
+   "root_cause": "TerminalHolding in src/modules/chat/context-provider.ts has no currency field on either the store fallback or the panel-published path.",
+   "fix_shape": "Add a currency field to TerminalHolding (sourced from the tracked position's currency) and include it in the get_portfolio tool result.",
+   "defect_class": "missing-field-agent-guesses",
+   "raw_ids": [
+    "rc1-gate8:2"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ],
+   "status": "open",
+   "note": "batch-12: mined from rc1 Gate 8 (R15_GATE_RC1.md item 3)."
+  },
+  {
    "id": "R15-CODE-AGENT-014",
    "title": "Tool-call failures come back as a hand-copied {ok:false,error} envelope in ~11 handler files while invoke_tool is a bare await, with an outlier 'news fetch failed:' prefix",
    "severity": "low",
@@ -12172,7 +12409,7 @@
    "operator_areas": [],
    "tier4": false,
    "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, delete the pass-through route + function (no caller) or make the docstring true, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-013"
+   "note": "triage@e032be7: still_reproduces, confidence 4, delete the pass-through route + function (no caller) or make the docstring true, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-013 || batch-13: stage-c/batch-12/VERDICTS.md 'Issues found (not in this batch's scope; for the backlog)' item 1 (GET /sec/filings/{accession}/sections returns [] for 10-Q filings; section parsing covers only 10-K items) — same route/file as this entry; folded here rather than filed separately since the fix_shape (delete the dead pass-through route) resolves it too."
   },
   {
    "id": "R15-CODE-DATA-014",
@@ -12392,6 +12629,31 @@
    "tier4": false,
    "status": "open",
    "note": "triage@e032be7: still_reproduces, confidence 5, one-line Literal on a model no other batch touched, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-022"
+  },
+  {
+   "id": "R15-CODE-DATA-023",
+   "title": "Stale hardcoded universe-size counts in screener source comments drift from the live India master (nse-all/bse-all/india-all), the same current-state-drift class as R15-DOCS-017 but in code comments rather than docs/CURRENT_STATE.md",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "screener",
+   "files": [
+    "sidecar/services/screener_universe_india.py",
+    "sidecar/models/screener.py"
+   ],
+   "repro": "screener_universe_india.py:6 module docstring says nse-all is '~2,675'; models/screener.py:34 comment says '~2.7k / 4.9k'. The running load_india_universe('nse-all') returns 3,506 symbols (EQ 2584 + ETF 351 + SM 571 — the NSE Emerge rows added by 1df9cb0e / R15-DATA-017); bse-all is 5,042 and india-all is 5,891, neither counted in either comment.",
+   "evidence": "docs/redesign/verification/r15/stage-c/batch-12/VERDICTS.md 'Issues found (not in this batch's scope; for the backlog)' item 4; sidecar/services/screener_universe_india.py:6; sidecar/models/screener.py:34",
+   "root_cause": "The module docstring/comment counts were written before 1df9cb0e (R15-DATA-017) added the NSE Emerge/SME rows and were never refreshed; same current-state-drift class as R15-DOCS-017 but in source comments instead of docs/CURRENT_STATE.md.",
+   "fix_shape": "Replace the hardcoded counts in both comments with the live counts, or drop the specific numbers and describe composition only; pin with a test asserting the comment's count (if kept) matches len(load_india_universe(id)) for each universe id.",
+   "defect_class": "current-state-drift",
+   "raw_ids": [
+    "batch-12-backlog-4"
+   ],
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "tier4": false,
+   "status": "open",
+   "note": "batch-13: mined from stage-c/batch-12/VERDICTS.md 'Issues found (not in this batch's scope; for the backlog)' item 4."
   },
   {
    "id": "R15-CODE-FRONTEND-021",
@@ -13851,6 +14113,28 @@
    "tier4": false,
    "status": "open",
    "note": "triage@e032be7: still_reproduces, confidence 5, prompt trimming needs a behaviour re-check on the small local model, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-076"
+  },
+  {
+   "id": "R15-CODE-PLATFORM-077",
+   "title": "Data-dir upgrade backups (backups/<old-build>/) are never pruned; each build change adds a full data-dir copy",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "lifecycle-upgrade",
+   "files": [
+    "sidecar/services/data_cache.py"
+   ],
+   "repro": "Each version upgrade copies the data dir once to backups/<old-build>/ (data_cache.py:153) before migrating; nothing ever deletes an old backup, so disk usage grows by one full data-dir copy per upgrade a user runs.",
+   "evidence": "sidecar/services/data_cache.py:49,153; docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.md 'Issues found' item 4",
+   "root_cause": "The pre-upgrade backup path (data_cache.py:153) writes backups/<old_build>/ unconditionally and has no retention/pruning policy.",
+   "fix_shape": "Cap the number of retained backups (e.g. keep the newest N, or the newest per major version) and delete older ones once a new backup completes successfully.",
+   "defect_class": "unbounded-growth",
+   "raw_ids": [
+    "batch-11-backlog-4"
+   ],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 4."
   },
   {
    "id": "R15-CODE-RESEARCH-005",
@@ -16513,256 +16797,6 @@
    ],
    "status": "open",
    "note": "triage@e032be7: still_reproduces, confidence 5, prompt + parser + model + TS mirror + typed render blocks, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-094"
-  },
-  {
-   "id": "R15-AGENT-090",
-   "title": "Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure",
-   "severity": "high",
-   "area": "agent",
-   "subsystem": "agent-tools",
-   "files": [
-    "sidecar/services/agent_tools",
-    "sidecar/agents/copilot.json"
-   ],
-   "repro": "vy invoke, provider openrouter model nvidia/nemotron-3-super-120b-a12b:free (and independently llama3.1:8b/ollama), autonomy=ask, prompt \"How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?\" -> tool_use resolve_symbol/fundamentals/financial_statements -> final text states a 1:1 (later, re-run at 1d6511c8, 1:2) ADR ratio attributed to \"fundamentals data\"; ground truth is 1 ADS = 6 ordinary shares (battery pack P17_SIFY.json / SEC 20-F). None of the three tools called plausibly returns an ADR-ratio field, so the figure is fabricated. Cross-model confirmed (ollama-sk4-sify.jsonl / or-sk4-sify.jsonl).",
-   "evidence": "docs/redesign/verification/r15/rc1/scenarios/or-sk4-sify.jsonl; docs/redesign/verification/r15/rc1/scenarios/ollama-sk4-sify.jsonl; docs/redesign/verification/r15/rc1/verifier/rc1-verifier-evidence/unclosed-sc5-sify-llama.jsonl; docs/redesign/verification/R15_GATE_RC1.md blocker 3",
-   "root_cause": "No tool result carries an ADR-ratio field, and the agent spec gives no instruction to refuse or hedge on a fact the tool results do not contain, so the model states a plausible-looking ratio as sourced fact.",
-   "fix_shape": "Either surface a real adr_ratio field on the fundamentals/financial_statements tool results where known, or add an explicit refuse/hedge instruction for facts not present in tool output; pin with a scripted-provider test asserting the model cannot cite \"fundamentals data\" for a field the mocked tool result does not include.",
-   "defect_class": "hallucinated-field-no-plausibility-check",
-   "raw_ids": [
-    "rc1-scenarios:5",
-    "rc1-verifier:16"
-   ],
-   "tier4": false,
-   "operator_areas": [
-    "agent-chat",
-    "research-search"
-   ],
-   "status": "open",
-   "note": "batch-12: mined from R15_GATE_RC1.md blocker 3 (rc1-scenarios:5, new_defect) and rc1-verifier:16 (reproduces at candidate sha 1d6511c8, currency half fixed, ratio half still fabricated). Not a prior register entry."
-  },
-  {
-   "id": "R15-DATA-112",
-   "title": "A row with no fundamentals currency (and a null market_cap) ranks FIRST in a market_cap-desc screen, breaking R15-UI-006's missing-values-last rule",
-   "severity": "medium",
-   "area": "data",
-   "subsystem": "screener",
-   "files": [
-    "sidecar/services/screener.py"
-   ],
-   "repro": "POST /screener/run {universe:custom, custom_symbols:[MANIKA.NS, RELIANCE.NS, TCS.NS], criteria:[], sort_by:market_cap, sort_dir:desc} -> rows [(MANIKA.NS, None, INR), (RELIANCE.NS, 1.655e13, INR), (TCS.NS, 7.55e12, INR)]; MANIKA (null market_cap) sorts first. Same on india-all pe 0-40. /fundamentals/MANIKA.NS -> currency None.",
-   "evidence": "sidecar/services/screener.py:358-360 (_currency_sort_key normalizes None to ''), :423-430 (sort key tuple); docs/redesign/verification/r15/rc1/verifier/rc1-verifier-evidence/new-manika-sort-custom.json; docs/redesign/verification/R15_GATE_RC1.md blocker 5",
-   "root_cause": "_currency_sort_key(None) returns '', which sorts alphabetically ahead of every real currency code, so a row whose fundamentals.currency is missing is grouped and shown first regardless of sort_dir or its (null) market_cap.",
-   "fix_shape": "Route a missing/empty currency through the same pair[0] is None tiebreak used for a missing sort value (sort it last), instead of letting it form its own leading currency group.",
-   "defect_class": "missing-value-sorts-first",
-   "raw_ids": [
-    "rc1-verifier:15"
-   ],
-   "tier4": false,
-   "operator_areas": [
-    "ui-panels",
-    "data-smallcaps"
-   ],
-   "status": "open",
-   "note": "batch-12: mined from R15_GATE_RC1.md blocker 5 / rc1-verifier:15. Same function as the reopened R15-DATA-043 (screener.py _currency_sort_key / sort tuple, lines 423-430) but a distinct rule violation (missing-values-last, not currency grouping/top-K disclosure) that R15-DATA-043's frozen refutation-audit acceptance test does not cover; filed separately rather than amending that entry's note."
-  },
-  {
-   "id": "R15-DATA-113",
-   "title": "Earnings-estimate revenue for a foreign reporter is labelled in the trading currency: WIT's revenue_estimate_mean (INR-sized) is served as currency USD",
-   "severity": "medium",
-   "area": "data",
-   "subsystem": "earnings",
-   "files": [
-    "sidecar/services/earnings_provider.py",
-    "sidecar/models/earnings.py",
-    "types/ (EarningsEstimateDetail mirror)",
-    "src/modules/earnings/EpsEstimateGrid.tsx"
-   ],
-   "repro": "GET /earnings/WIT/estimates -> revenue_estimate_mean 244246846490.0, currency 'USD', eps_estimate_mean 0.035. Wipro's quarterly revenue is about INR 22,000 cr (~USD 2.6B), so the revenue figure is in the reporting currency (Yahoo financialCurrency INR) while EPS is per-ADS USD.",
-   "evidence": "sidecar/services/earnings_provider.py:130-200,468-510 (currency set from info['currency'] for every money field); src/modules/earnings/EpsEstimateGrid.tsx:111 (formats revenue_estimate_mean in estimate.currency); docs/redesign/verification/r15/rc1/fix-r2/evidence/earnings-estimate-currency.txt; docs/redesign/verification/r15/rc1/verifier/rc1-verifier-evidence/fixr2-triage1-wit-estimates.json",
-   "root_cause": "earnings_provider.py sets currency from the trading/ADR currency (info['currency']) for every money field, but Yahoo reports statement-size estimates like revenue_estimate_mean in the filer's reporting currency (financialCurrency), not the trading currency. Same class as R15-AGENT-001 / rc1-scenarios:5 (statement-size money read in the trading currency), on a fourth surface.",
-   "fix_shape": "Carry financialCurrency separately for statement-size fields (revenue_estimate_mean) vs per-share fields (eps_estimate_mean), mirror the split in types/, and label the panel per field.",
-   "defect_class": "currency-mislabel",
-   "raw_ids": [
-    "rc1-fix-r2-triage:1",
-    "rc1-verifier:17"
-   ],
-   "tier4": false,
-   "operator_areas": [
-    "data-smallcaps"
-   ],
-   "status": "open",
-   "note": "batch-12: mined from R15_GATE_RC1.md blocker 4 (rc1-fix-r2-triage:1, open with no disposition in the fix loop) and rc1-verifier:17 (confirmed still open at candidate sha 1d6511c8)."
-  },
-  {
-   "id": "R15-AGENT-091",
-   "title": "get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190)",
-   "severity": "low",
-   "area": "agent",
-   "subsystem": "agent-tools",
-   "files": [
-    "src/modules/chat/context-provider.ts",
-    "src/modules/portfolio/PortfolioPanel.tsx"
-   ],
-   "repro": "With holdings AAPL 8 @ 190 (USD) and INFY 20 @ 1500 (INR), portfolio panel closed, capture the context as the chat does (captureAgentContext) and ask the copilot 'What is in my portfolio?' (llama3.1:8b, --autonomy ask). tool_use get_portfolio returns __terminal__.portfolio holdings {id, symbol, quantity, costBasis, assetClass, marketValue:null, pnl:null}; no currency field on either the store fallback or the panel-published path. Reply: 'Apple (AAPL) - 8 shares, cost basis: ₹190 per share'.",
-   "evidence": "docs/redesign/verification/r15/rc1/gate8/agent-01-get-portfolio.stdout; docs/redesign/verification/R15_GATE_RC1.md item 3 evidence",
-   "root_cause": "TerminalHolding in src/modules/chat/context-provider.ts has no currency field on either the store fallback or the panel-published path.",
-   "fix_shape": "Add a currency field to TerminalHolding (sourced from the tracked position's currency) and include it in the get_portfolio tool result.",
-   "defect_class": "missing-field-agent-guesses",
-   "raw_ids": [
-    "rc1-gate8:2"
-   ],
-   "tier4": false,
-   "operator_areas": [
-    "agent-chat"
-   ],
-   "status": "open",
-   "note": "batch-12: mined from rc1 Gate 8 (R15_GATE_RC1.md item 3)."
-  },
-  {
-   "id": "R15-AGENT-092",
-   "title": "A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes",
-   "severity": "high",
-   "area": "agent",
-   "subsystem": "agent-runtime",
-   "files": [
-    "sidecar/services/run_manager.py",
-    "sidecar/services/agent_runtime.py",
-    "src/lib/delegate-runs.ts"
-   ],
-   "repro": "End-to-end through run_manager with a valid host action: provider emits a valid write_note + done(100k tokens), RunBudget(max_tokens=1000) -> status error, token ceiling 1000 reached (100000 used), dispatched [], but the persisted run row's host_actions still carries the undispatched write_note. delegate-runs.ts enqueues every host_actions entry into the proposed-changes gate regardless of status, so the user is offered a write_note the model never saw a result for.",
-   "evidence": "sidecar/services/run_manager.py:294-301 (appends every yielded host action with no retraction on HALT_NOTICE_TOOL; :302 only sets halted); sidecar/services/agent_runtime.py:2016 (tool_use yielded before the :2036-2046 halt check); src/lib/delegate-runs.ts:277-281 (loop at :279, enqueues regardless of status); docs/redesign/verification/r15/rc1/refutation-audit/agent-R15-AGENT-003.md",
-   "root_cause": "run_manager.py collects host actions from yielded tool_use events and never drops the ones from a round that HALT_NOTICE_TOOL says was not actually run, because agent_runtime.py yields the tool_use before the round's halt check runs. Foreground chat never sets on_round_usage, so this is Delegate-only.",
-   "fix_shape": "In run_manager, collect host actions per round and discard the pending round's entries on HALT_NOTICE_TOOL (or have _consume_round buffer tool_use events until the round's done when on_round_usage is set). Acceptance test: sidecar/tests/test_run_manager.py::test_a_halted_rounds_host_actions_are_not_proposed - provider emits a valid write_note + done(100k tokens), RunBudget(max_tokens=1000) -> assert row.status == 'error', dispatched == [], row.host_actions == [].",
-   "defect_class": "announced-but-undispatched-tool",
-   "raw_ids": [
-    "rc1-verifier:4-adjacent"
-   ],
-   "tier4": false,
-   "operator_areas": [
-    "agent-chat"
-   ],
-   "status": "open",
-   "note": "batch-12: filed per the LEAD NOTE from docs/redesign/verification/r15/rc1/refutation-audit/agent-R15-AGENT-003.md, classification 'adjacent_finding' — same defect class as R15-AGENT-003 (announced-but-undispatched tool) but a distinct trigger (Delegate budget halt, introduced by the R15-AGENT-037 fix in batch 7 after R15-AGENT-003 was closed in batch 3); the refutation audit itself recommends filing it as a new entry."
-  },
-  {
-   "id": "R15-DATA-114",
-   "title": "The options-chain provider re-probes today's F&O file on every request because a negative probe (404/transport error) is never cached, so a transient error can 502 a request while a good cached day sits in cache",
-   "severity": "medium",
-   "area": "data",
-   "subsystem": "option-chain",
-   "files": [
-    "sidecar/services/option_chain.py"
-   ],
-   "repro": "Three consecutive /quant/option/chain/NIFTY requests (04:00:18-04:00:32) got 502 'the NSE F&O bhavcopy could not be fetched' while 2026-09-24 sat in cache; one of the three was a live agent tool call.",
-   "evidence": "sidecar/services/option_chain.py:133-150 (fetch_latest_fo); docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.md (Certified > R15-DATA-079, embedded 'ISSUE (new, not a regression)')",
-   "root_cause": "fetch_latest_fo re-probes today's file on every request because today's 404 is never cached, and a transport error on that probe returns None instead of walking back to the cached previous day.",
-   "fix_shape": "Cache today's probe outcome briefly (or treat a failed today-probe as 'missing' and fall back to the newest cached day) so a transient error on the today-probe doesn't shadow a good cached day.",
-   "defect_class": "uncached-negative-probe",
-   "raw_ids": [
-    "batch-11-backlog-1"
-   ],
-   "tier4": false,
-   "operator_areas": [
-    "data-smallcaps"
-   ],
-   "status": "open",
-   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found (not in this batch's scope; for the backlog)' item 1."
-  },
-  {
-   "id": "R15-AGENT-093",
-   "title": "The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures",
-   "severity": "high",
-   "area": "agent",
-   "subsystem": "agent-runtime",
-   "files": [
-    "sidecar/services/agent_runtime.py"
-   ],
-   "repro": "llama3.1:8b repeatedly sends integers as strings ('5', '10', '100' for max_strikes, limit and similar params); jsonschema.Draft7Validator (agent_runtime.py:867-868) rejects the type mismatch and the model then answers without data. Reproduces across sec-filings, sec-insider, disclosures and option_chain scenarios in the R15-AGENT-007 eval harness (scripts/agent_eval/run.py).",
-   "evidence": "sidecar/services/agent_runtime.py:867-868 (jsonschema.validators.validator_for(cap.input_schema)... iter_errors(args), no coercion before validation); docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.md 'Issues found' item 2 and the R15-AGENT-007 certification note ('every ollama failure is the model: ... integers sent as strings')",
-   "root_cause": "The tool-argument schema gate (agent_runtime.py:867-868) validates raw model-supplied arguments against the JSON schema with no type coercion, so a numeric-looking string fails Draft7Validator's type check instead of being accepted.",
-   "fix_shape": "Coerce a numeric-looking string to its declared integer/number type at the schema gate before validation runs (a class fix, not per-tool, per the source finding).",
-   "defect_class": "strict-gate-rejects-coercible-args",
-   "raw_ids": [
-    "batch-11-backlog-2"
-   ],
-   "tier4": false,
-   "operator_areas": [
-    "agent-chat"
-   ],
-   "status": "open",
-   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 2."
-  },
-  {
-   "id": "R15-CODE-AGENT-033",
-   "title": "The agent-eval grader passes a trial whose tool call returned an error, because the tool's ok/error result is not carried in the vy eval stream",
-   "severity": "medium",
-   "area": "code",
-   "subsystem": "agent-eval",
-   "files": [
-    "scripts/agent_eval/run.py",
-    "scripts/r15/vy.py"
-   ],
-   "repro": "The first live option_chain run (expiry 'nearest' -> 422) grades [] as recorded, i.e. as a pass, because the grader has no signal that the underlying tool call errored. With the tool input doctored to {}, the same trial correctly fails on the missing-call predicate.",
-   "evidence": "docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.md 'Issues found' item 3 and the R15-AGENT-007 certification note ('Fresh grader case: live streams ... grade [] as recorded. With the tool input doctored to {}, each fails...')",
-   "root_cause": "vy's eval stream does not thread the tool result's ok/error status alongside the tool call into the grader, so a trial is graded on output shape alone, blind to whether the tool call itself errored.",
-   "fix_shape": "Thread the tool result's ok/error status through the eval stream into the grader, and score a trial whose tool call errored as a fail rather than grading its (possibly empty) recorded output as-is.",
-   "defect_class": "grader-blind-to-tool-error",
-   "raw_ids": [
-    "batch-11-backlog-3"
-   ],
-   "tier4": false,
-   "operator_areas": [
-    "agent-chat"
-   ],
-   "status": "open",
-   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 3."
-  },
-  {
-   "id": "R15-CODE-PLATFORM-077",
-   "title": "Data-dir upgrade backups (backups/<old-build>/) are never pruned; each build change adds a full data-dir copy",
-   "severity": "low",
-   "area": "code",
-   "subsystem": "lifecycle-upgrade",
-   "files": [
-    "sidecar/services/data_cache.py"
-   ],
-   "repro": "Each version upgrade copies the data dir once to backups/<old-build>/ (data_cache.py:153) before migrating; nothing ever deletes an old backup, so disk usage grows by one full data-dir copy per upgrade a user runs.",
-   "evidence": "sidecar/services/data_cache.py:49,153; docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.md 'Issues found' item 4",
-   "root_cause": "The pre-upgrade backup path (data_cache.py:153) writes backups/<old_build>/ unconditionally and has no retention/pruning policy.",
-   "fix_shape": "Cap the number of retained backups (e.g. keep the newest N, or the newest per major version) and delete older ones once a new backup completes successfully.",
-   "defect_class": "unbounded-growth",
-   "raw_ids": [
-    "batch-11-backlog-4"
-   ],
-   "tier4": false,
-   "operator_areas": [],
-   "status": "open",
-   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 4."
-  },
-  {
-   "id": "R15-DATA-115",
-   "title": "A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history",
-   "severity": "medium",
-   "area": "data",
-   "subsystem": "market-data-providers",
-   "files": [
-    "sidecar/services (provider_registry / nse_direct / bse_provider routing)"
-   ],
-   "repro": "GET /history/AMAL.BO?range=1y returns NSE's 28 bars (AMAL's 2026-08-17 NSE listing date), not BSE's longer history, despite the explicit .BO exchange suffix. Predates batch 11.",
-   "evidence": "docs/redesign/verification/r15/stage-c/batch-11/VERDICTS.md 'Issues found' item 5",
-   "root_cause": "Not pinned by the source finding beyond 'a .BO request for a dual-listed name is served by nse_direct'; the provider-selection path for a .BO-suffixed symbol prefers nse_direct over the BSE provider even when NSE has a shorter listing history for that instrument.",
-   "fix_shape": "Route a .BO-suffixed history/quote request to the BSE provider by suffix regardless of NSE listing recency, or prefer/merge the longer available history across venues for a dual-listed instrument.",
-   "defect_class": "wrong-provider-for-exchange-suffix",
-   "raw_ids": [
-    "batch-11-backlog-5"
-   ],
-   "tier4": false,
-   "operator_areas": [
-    "data-smallcaps"
-   ],
-   "status": "open",
-   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 5 ('predates the batch'). Distinct mechanism from R15-DATA-002 (session-region bare-ticker binding, a reopened entry, not re-adjudicated here): this is an explicit .BO-suffixed request still routed to the wrong venue provider."
   }
  ],
  "rejections": [
@@ -17073,11 +17107,11 @@
  ],
  "counts": {
   "raw": 887,
-  "entries": 641,
+  "entries": 642,
   "rejections": 76,
   "critical": 16,
   "high": 115,
   "medium": 287,
-  "low": 223
+  "low": 224
  }
 }
