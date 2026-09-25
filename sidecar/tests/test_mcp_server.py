@@ -152,6 +152,40 @@ def test_protocol_version_returns_a_string() -> None:
     assert len(version) > 0
 
 
+def test_status_protocol_version_matches_initialize_handshake(client: TestClient) -> None:
+    """R15-CODE-AGENT-022: ``/mcp/status`` reports the SDK's
+    ``LATEST_PROTOCOL_VERSION`` — the same revision a live ``initialize``
+    handshake negotiates — not a hardcoded constant that drifts behind it."""
+    import json as _json
+
+    from mcp.types import LATEST_PROTOCOL_VERSION
+
+    status = client.get("/mcp/status").json()
+    assert status["protocolVersion"] == LATEST_PROTOCOL_VERSION
+
+    call = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": LATEST_PROTOCOL_VERSION,
+            "capabilities": {},
+            "clientInfo": {"name": "test", "version": "0"},
+        },
+    }
+    with TestClient(mcp_server.get_streamable_http_app()) as mcp_client:
+        response = mcp_client.post(
+            "/",
+            headers={"Accept": "application/json, text/event-stream"},
+            json=call,
+        )
+    assert response.status_code == 200
+    # Streamable-HTTP framing: one ``data: <json>`` SSE line per message.
+    data_line = next(line for line in response.text.splitlines() if line.startswith("data:"))
+    handshake = _json.loads(data_line.removeprefix("data:").strip())
+    assert handshake["result"]["protocolVersion"] == status["protocolVersion"]
+
+
 # ---------------------------------------------------------------------------
 # v0.5.0 workflow tools
 # ---------------------------------------------------------------------------
