@@ -1570,7 +1570,7 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     except Exception as exc:  # noqa: BLE001 - any live-lookup failure is non-fatal
         with _live_cache_lock:
             _live_cooldown_until = time.monotonic() + _LIVE_FAILURE_COOLDOWN_SECONDS
-        if type(exc).__name__ == "YFRateLimitError":
+        if provider_health.is_rate_limit(exc):
             provider_health.record_rate_limited()
         logger.debug("symbol_resolver: live lookup failed for %r: %s", query, exc)
         return []
