@@ -17,10 +17,34 @@ import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { CommandSpec } from "../../types/plugin";
 
-// The live resolver answers any query with one instrument the watchlist lacks.
+// The live resolver answers any query with one instrument the watchlist lacks,
+// or — for "amal" — the cross-region collision pair (R15-DATA-002).
 vi.mock("@/lib/symbol-autocomplete", () => ({
-  useSymbolAutocomplete: (query: string) =>
-    query.trim()
+  useSymbolAutocomplete: (query: string) => {
+    const q = query.trim().toLowerCase();
+    if (q === "amal") {
+      return [
+        {
+          symbol: "AMAL",
+          name: "Amal Ltd",
+          exchange: "NSE",
+          region: "IN",
+          asset_class: "equity",
+          yahoo_symbol: "AMAL.NS",
+          confidence: 1,
+        },
+        {
+          symbol: "AMAL",
+          name: "Amalgamated Financial",
+          exchange: "NASDAQ",
+          region: "US",
+          asset_class: "equity",
+          yahoo_symbol: "AMAL",
+          confidence: 1,
+        },
+      ];
+    }
+    return q
       ? [
           {
             symbol: "ROUTE",
@@ -32,7 +56,8 @@ vi.mock("@/lib/symbol-autocomplete", () => ({
             confidence: 1,
           },
         ]
-      : [],
+      : [];
+  },
 }));
 
 // cmdk-powered palette (FR-120 / SC-031). The corpus/ranking LOGIC is unit-tested
@@ -201,5 +226,27 @@ describe("CommandPalette (cmdk)", () => {
     expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
     // No chart on screen → one is opened so the command has a consumer.
     expect(openPanel).toHaveBeenCalledWith("chart");
+  });
+
+  it("a cross-region ticker pick charts the region of the listing actually picked (R15-DATA-002)", () => {
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel: vi.fn() } as never);
+    resetChartCommandStoreForTests();
+
+    // "AMAL NASDAQ" row -> US.
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Ask anything/i), { target: { value: "amal" } });
+    let tickersGroup = screen.getByText("Tickers").closest("[cmdk-group]") as HTMLElement;
+    fireEvent.click(within(tickersGroup).getByText("NASDAQ"));
+    expect(useChartCommandStore.getState().command).toMatchObject({ symbol: "AMAL", region: "US" });
+
+    // "AMAL NSE" row -> IN.
+    cleanup();
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Ask anything/i), { target: { value: "amal" } });
+    tickersGroup = screen.getByText("Tickers").closest("[cmdk-group]") as HTMLElement;
+    fireEvent.click(within(tickersGroup).getByText("NSE"));
+    expect(useChartCommandStore.getState().command).toMatchObject({ symbol: "AMAL", region: "IN" });
   });
 });

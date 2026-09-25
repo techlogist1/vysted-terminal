@@ -17,8 +17,12 @@ import { create } from "zustand";
 
 interface ChartCommandState {
   /** Most recent "load this symbol" command from the host (agent / palette).
-   *  `seq` bumps on every issue so equal symbols still re-trigger consumers. */
-  command: { symbol: string; timeframe?: string; seq: number } | null;
+   *  `seq` bumps on every issue so equal symbols still re-trigger consumers.
+   *  `region` is the region of the listing the issuer picked (a `/resolve`
+   *  candidate, R15-DATA-002) — a ticker that names different companies in
+   *  different markets (AMAL) charts the picked one; absent, the session
+   *  region applies. */
+  command: { symbol: string; timeframe?: string; region?: string; seq: number } | null;
   /** The active chart's currently-displayed symbol — reported by ChartPanel so
    *  the host can render an accurate "before" in the proposed-change diff. */
   activeSymbol: string | null;
@@ -35,8 +39,8 @@ interface ChartCommandState {
   /** The active chart's currently-displayed comparison overlay symbol (or null)
    *  — reported by ChartPanel for the host's diff gate. */
   activeComparison: string | null;
-  /** Host → chart: load a symbol (and optional timeframe). */
-  loadSymbol: (symbol: string, timeframe?: string) => void;
+  /** Host → chart: load a symbol (and optional timeframe/region). */
+  loadSymbol: (symbol: string, timeframe?: string, region?: string) => void;
   /** Chart → store: report the active chart's displayed symbol. */
   reportActiveSymbol: (symbol: string) => void;
   /** Host → chart: set the indicator selection (optionally scoped to a symbol). */
@@ -56,8 +60,10 @@ export const useChartCommandStore = create<ChartCommandState>((set) => ({
   activeIndicators: [],
   comparisonCommand: null,
   activeComparison: null,
-  loadSymbol: (symbol, timeframe) =>
-    set((state) => ({ command: { symbol, timeframe, seq: (state.command?.seq ?? 0) + 1 } })),
+  loadSymbol: (symbol, timeframe, region) =>
+    set((state) => ({
+      command: { symbol, timeframe, region, seq: (state.command?.seq ?? 0) + 1 },
+    })),
   reportActiveSymbol: (symbol) => set({ activeSymbol: symbol }),
   setIndicators: (indicators, symbol) =>
     set((state) => ({
