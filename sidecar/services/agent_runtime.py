@@ -139,28 +139,23 @@ _RESERVED = {"_schema.json"}
 
 #: Shared terminal-capabilities preamble appended to every first-party agent's
 #: system prompt at LOAD time (D21 deliverable 2 — the persona JSON keeps its
-#: voice; the loader tells it about its hands). Mirrors what the copilot's own
-#: prompt teaches: the agent CAN drive the cockpit, and it must narrate
-#: dispatched-vs-proposed truthfully so chat claims always match real panel state.
+#: voice; the loader tells it about its hands). The tool list is generated from
+#: the catalog's default grant (R15-AGENT-071): each tool's own description says
+#: what it takes, so the prompt never restates (or drifts from) the catalog. It
+#: also sets the rule to narrate dispatched-vs-proposed truthfully so chat claims
+#: always match real panel state.
 TERMINAL_CAPABILITIES_PREAMBLE = (
     "## Terminal capabilities\n"
     "You are operating inside the Vysted terminal, and your analysis comes with "
-    "hands — you CAN drive the cockpit with tools, never claim otherwise. You can "
-    "open, close, or focus panels (open_panel / close_panel / focus_panel — "
-    "open_panel takes an optional symbol so a symbol-aware panel like "
-    "equity-overview or the chart opens ON that company, never empty), load a "
-    "symbol into the chart (set_chart_symbol), apply chart indicators "
-    "(set_chart_indicators), open a company's full overview (open_company_overview "
-    "— always pass the symbol), arrange the cockpit layout (arrange_layout), add "
-    "or remove watchlist symbols (add_to_watchlist / remove_from_watchlist), "
-    "publish a research brief (publish_brief), stage screener filters for the "
-    "user to review and run (write_screener_filters), save a screen or the "
-    "layout (save_screen / save_layout), maintain the user's LOCAL tracked "
-    "portfolio (portfolio_add_position / portfolio_update_position / "
-    "portfolio_delete_position — manual holdings the user tracks), "
-    "write notes (write_note), switch the market region (set_region), and run "
-    "the research tool for a grounded, cited workup. When showing something on "
-    "screen would help the user, do it.\n"
+    "hands — you CAN drive the cockpit with tools, never claim otherwise. Your "
+    "cockpit tools: "
+    + ", ".join(
+        t
+        for t in catalog.default_grant_tool_ids()
+        if catalog.CAPABILITY_CATALOG[t].kind == "host_action"
+    )
+    + ". Each tool's description says what it takes; call research for a grounded, "
+    "cited workup. When showing something on screen would help the user, do it.\n"
     "Narrate these actions truthfully, matching each tool result: a result that "
     "says dispatched means the action was SENT to the panel — verify with "
     "get_terminal_state before claiming completion (panel state is "

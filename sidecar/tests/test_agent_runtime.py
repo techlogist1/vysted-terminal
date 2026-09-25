@@ -238,6 +238,29 @@ def test_loader_appends_terminal_capabilities_preamble_to_every_first_party_prom
         assert not spec.system_prompt.startswith("## Terminal capabilities")
 
 
+def test_every_tool_named_in_prompts_resolves_in_catalog() -> None:
+    """R15-AGENT-071: the preamble lists the catalog's host actions (generated,
+    not prose), and every snake_case name in any agent's effective prompt is a
+    catalog tool or a status word a tool result carries, so a renamed tool
+    cannot linger in a prompt."""
+    import re
+
+    from services.agent_tools import catalog
+
+    result_words = {"awaiting_user_review", "provider_error", "rate_limited", "not_published"}
+    host_actions = [
+        t
+        for t in catalog.default_grant_tool_ids()
+        if catalog.CAPABILITY_CATALOG[t].kind == "host_action"
+    ]
+    assert ", ".join(host_actions) in agent_runtime.TERMINAL_CAPABILITIES_PREAMBLE
+    agent_runtime.reload()
+    for spec in agent_runtime.list_agents():
+        names = set(re.findall(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b", spec.system_prompt))
+        unknown = names - set(catalog.CAPABILITY_CATALOG) - result_words
+        assert unknown == set(), f"{spec.id}: prompt names unknown tools {sorted(unknown)}"
+
+
 def test_capabilities_preamble_is_loader_level_not_in_the_json_files() -> None:
     """The persona JSON files keep their voice — the preamble never leaks onto
     disk (per-JSON edits are exactly what D21 forbids)."""
