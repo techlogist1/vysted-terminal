@@ -109,8 +109,20 @@ def test_mcp_surface_is_a_subset_of_internal_modulo_local_only() -> None:
         cap.id
         for cap in CAPABILITY_CATALOG.values()
         if cap.internal
-        and (cap.kind in ("per_invocation", "host_action") or cap.id == "backtest_summary")
+        and (
+            cap.kind in ("per_invocation", "host_action")
+            or cap.id in ("backtest_summary", "run_custom_backtest")
+        )
     }
     assert internal_only == expected_internal_only, (
         f"unexpected internal/MCP divergence: {internal_only ^ expected_internal_only}"
     )
+
+
+def test_run_custom_backtest_not_read_only_on_mcp() -> None:
+    """R15-AGENT-066: run_custom_backtest caches its run in this session, so the
+    MCP listing never advertises it with readOnlyHint=true (it stays local with
+    backtest_summary, the only reader of its run_id)."""
+    listed = {tool.name for tool in _mcp_tools()}
+    assert "run_custom_backtest" not in listed
+    assert "run_custom_backtest" not in mcp_tool_ids()

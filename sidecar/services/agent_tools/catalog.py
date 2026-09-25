@@ -222,11 +222,14 @@ class Capability:
 
 # MCP projection rule (FR-020/022, R15-AGENT-083): the external MCP surface is
 # READ-ONLY in 0.9. Every handler-backed read capability is exposed — EXCEPT
-# those that need local-only context (a backtest run_id lives only in this
-# session). Per-invocation reads are request-scoped and host actions mutate the
-# cockpit behind the in-app proposed-changes gate, so neither is projected.
-# Exposing writes through a host-side queue is a future operator decision.
-_MCP_INTERNAL_ONLY: frozenset[str] = frozenset({"backtest_summary"})
+# those bound to local-only context: a backtest run_id lives only in this
+# session, so neither its reader (backtest_summary) nor its writer
+# (run_custom_backtest, which caches the run and would otherwise advertise
+# readOnlyHint=true, R15-AGENT-066) is projected. Per-invocation reads are
+# request-scoped and host actions mutate the cockpit behind the in-app
+# proposed-changes gate, so neither is projected. Exposing writes through a
+# host-side queue is a future operator decision.
+_MCP_INTERNAL_ONLY: frozenset[str] = frozenset({"backtest_summary", "run_custom_backtest"})
 
 
 def _cap(id: str, **fields: Any) -> tuple[str, Capability]:
