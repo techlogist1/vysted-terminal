@@ -29,11 +29,17 @@ network, no LLM, fully unit-testable.
 
 from __future__ import annotations
 
+import functools
 import re
 from datetime import UTC, datetime
+from pathlib import Path
 from urllib.parse import urlparse
 
 from services.research.models import ResearchSource
+
+#: Vendored upstream Public Suffix List (fetched at write time, never at
+#: runtime — see the file's own header for the source URL and fetch date).
+_PSL_PATH = Path(__file__).parent / "psl" / "public_suffix_list.dat"
 
 #: Domain tiers, best first. Tier 1 = the primary record (exchanges,
 #: regulators, filings, company IR); tier 2 = Tier-1 financial press;
@@ -75,7 +81,11 @@ PRESS_DOMAINS: frozenset[str] = frozenset(
 _IR_HOST_PREFIXES = ("ir.", "investor.", "investors.")
 
 #: Publishing platforms where anyone can host an ``ir.``/``investors.``-looking
-#: page — never the company's own disclosure surface (suffix-matched).
+#: page, and that are NOT themselves Public Suffix List entries (so the PSL
+#: registrable-domain check below cannot already exclude them). Every entry
+#: that IS a PSL suffix (github.io, gitlab.io, wixsite.com, netlify.app,
+#: vercel.app, pages.dev, blogspot.com, ...) was removed here on purpose —
+#: `_looks_like_ir` excludes those generically via the PSL now.
 _IR_PLATFORM_DENYLIST: frozenset[str] = frozenset(
     {
         "medium.com",
@@ -83,17 +93,13 @@ _IR_PLATFORM_DENYLIST: frozenset[str] = frozenset(
         "substack.com",
         "seekingalpha.com",
         "reddit.com",
-        "blogspot.com",
         "linkedin.com",
-        "github.io",
-        "gitlab.io",
-        "wixsite.com",
-        "netlify.app",
-        "vercel.app",
-        "pages.dev",
         "hubpages.com",
         "weebly.com",
         "tumblr.com",
+        # Not (or no longer) in the vendored PSL as of its fetch date; pinned
+        # explicitly (R15-RESEARCH-007 batch-12 verifier fresh case).
+        "glitch.me",
     }
 )
 
@@ -149,19 +155,78 @@ def _matches(host: str, table: frozenset[str]) -> bool:
     return any(host == entry or host.endswith("." + entry) for entry in table)
 
 
+@functools.cache
+def _psl_rules() -> tuple[frozenset[str], frozenset[str], frozenset[str]]:
+    """Parse the vendored PSL once into (normal, wildcard, exception) rule
+    sets, each holding dot-joined lowercase label suffixes with the rule's own
+    ``*.``/``!`` marker stripped. Covers both the ICANN and PRIVATE sections —
+    the registrable-domain algorithm below does not distinguish them."""
+    normal: set[str] = set()
+    wildcard: set[str] = set()
+    exception: set[str] = set()
+    for line in _PSL_PATH.read_text(encoding="utf-8").splitlines():
+        rule = line.strip()
+        if not rule or rule.startswith("//"):
+            continue
+        rule = rule.lower()
+        if rule.startswith("!"):
+            exception.add(rule[1:])
+        elif rule.startswith("*."):
+            wildcard.add(rule[2:])
+        else:
+            normal.add(rule)
+    return frozenset(normal), frozenset(wildcard), frozenset(exception)
+
+
+def _public_suffix(host: str) -> str:
+    """The public suffix of ``host`` per the standard PSL algorithm: scan from
+    the most specific candidate (the whole host) down to the least specific
+    (its last label); the first rule that matches — an exception rule always
+    wins the position it matches at — is the longest (most specific) match.
+    Falls back to the default rule (the last label alone) when nothing in the
+    list matches at all."""
+    labels = host.split(".")
+    normal, wildcard, exception = _psl_rules()
+    for i in range(len(labels)):
+        candidate = ".".join(labels[i:])
+        if candidate in exception:
+            return ".".join(labels[i + 1 :])
+        if candidate in normal:
+            return candidate
+        if i + 1 < len(labels) and ".".join(labels[i + 1 :]) in wildcard:
+            return candidate
+    return labels[-1]
+
+
+def _registrable_domain(host: str) -> str:
+    """The registrable domain of ``host``: its public suffix plus one extra
+    label. Equal to ``host`` itself when the host has no label beyond its
+    public suffix (e.g. ``investors.github.io`` — a whole PSL private-suffix
+    registration, not a subdomain of one)."""
+    labels = host.split(".")
+    suffix_labels = _public_suffix(host).split(".")
+    if len(labels) <= len(suffix_labels):
+        return host
+    return ".".join(labels[len(labels) - len(suffix_labels) - 1 :])
+
+
 def _looks_like_ir(host: str) -> bool:
     """Is this a company investor-relations host? Needs a dedicated IR host
-    prefix that is an actual SUBDOMAIN (the host has at least three labels, so
-    the "ir."/"investors." text is not the registrable domain itself — e.g.
-    ``investors.com``, the news site, must never qualify), a host that is not
-    on the publishing-platform denylist, and not a blogspot host (any TLD)."""
-    if host.count(".") < 2:
-        return False
+    prefix (``ir.``/``investor.``/``investors.``) that is a true SUBDOMAIN of
+    the host's PSL registrable domain — so a host that IS its own registrable
+    domain (``investors.com`` the news site; ``investors.github.io``, a whole
+    PSL-private-suffix registration) never qualifies — a host not on the
+    publishing-platform denylist, and not a blogspot host on a ccTLD the PSL
+    doesn't cover (only ``blogspot.com`` is a PSL entry; ``blogspot.in`` /
+    ``blogspot.co.uk`` etc. are not, so the registrable-domain check alone
+    would miss them)."""
     if "blogspot" in host.split("."):
         return False
-    return any(host.startswith(prefix) for prefix in _IR_HOST_PREFIXES) and not _matches(
-        host, _IR_PLATFORM_DENYLIST
-    )
+    if not any(host.startswith(prefix) for prefix in _IR_HOST_PREFIXES):
+        return False
+    if _matches(host, _IR_PLATFORM_DENYLIST):
+        return False
+    return host != _registrable_domain(host)
 
 
 def domain_tier(url_or_domain: str) -> int:
