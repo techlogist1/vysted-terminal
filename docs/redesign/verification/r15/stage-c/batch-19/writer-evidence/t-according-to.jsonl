@@ -1,0 +1,211 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_dd8c8ded0ae3421eb832d7df4956e472", "name": "news", "input": {"limit": 10, "symbols": ["AAPL"]}}
+{"kind": "tool_result", "tool_call_id": "call_dd8c8ded0ae3421eb832d7df4956e472", "name": "news", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Finance"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " just"}
+{"kind": "delta", "text": " below"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " buy"}
+{"kind": "delta", "text": " point"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " aimed"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " stretch"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " string"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " weekly"}
+{"kind": "delta", "text": " wins"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n"}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Finance"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": " News"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " month"}
+{"kind": "delta", "text": " began"}
+{"kind": "delta", "text": " selling"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " iPhone"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "18"}
+{"kind": "delta", "text": " Pro"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Pro"}
+{"kind": "delta", "text": " Max"}
+{"kind": "delta", "text": " smartphones"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " prompting"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " optimistic"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "-target"}
+{"kind": "delta", "text": " hike"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " Ever"}
+{"kind": "delta", "text": "core"}
+{"kind": "delta", "text": " ISI"}
+{"kind": "delta", "text": " analyst"}
+{"kind": "delta", "text": " Amit"}
+{"kind": "delta", "text": " D"}
+{"kind": "delta", "text": "ary"}
+{"kind": "delta", "text": "an"}
+{"kind": "delta", "text": "ani"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " who"}
+{"kind": "delta", "text": " reiterated"}
+{"kind": "delta", "text": " his"}
+{"kind": "delta", "text": " out"}
+{"kind": "delta", "text": "perform"}
+{"kind": "delta", "text": " rating"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " raised"}
+{"kind": "delta", "text": " his"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " target"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "380"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "365"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Finance"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": " News"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Meta"}
+{"kind": "delta", "text": " Platforms"}
+{"kind": "delta", "text": " Inc"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "("}
+{"kind": "delta", "text": "NASDAQ"}
+{"kind": "delta", "text": ":M"}
+{"kind": "delta", "text": "ETA"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " overt"}
+{"kind": "delta", "text": "aken"}
+{"kind": "delta", "text": " Space"}
+{"kind": "delta", "text": " Exploration"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": " Corp"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "("}
+{"kind": "delta", "text": "NASDAQ"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "SP"}
+{"kind": "delta", "text": "CX"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " become"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " world"}
+{"kind": "delta", "text": "\u2019s"}
+{"kind": "delta", "text": " seventh"}
+{"kind": "delta", "text": "-largest"}
+{"kind": "delta", "text": " public"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " excitement"}
+{"kind": "delta", "text": " builds"}
+{"kind": "delta", "text": " around"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " new"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " agent"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Muse"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Yahoo"}
+{"kind": "delta", "text": "!"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Finance"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": " News"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Apple"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " Tim"}
+{"kind": "delta", "text": " Cook"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Nvidia"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " Jensen"}
+{"kind": "delta", "text": " Huang"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Tesla"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " SpaceX"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " Elon"}
+{"kind": "delta", "text": " Musk"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " Open"}
+{"kind": "delta", "text": "AI"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " Sam"}
+{"kind": "delta", "text": " Alt"}
+{"kind": "delta", "text": "man"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " corporate"}
+{"kind": "delta", "text": " leaders"}
+{"kind": "delta", "text": " joined"}
+{"kind": "delta", "text": " Donald"}
+{"kind": "delta", "text": " Trump"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Xi"}
+{"kind": "delta", "text": " Jinping"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " White"}
+{"kind": "delta", "text": " House"}
+{"kind": "delta", "text": " state"}
+{"kind": "delta", "text": " dinner"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5343, "output_tokens": 199, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

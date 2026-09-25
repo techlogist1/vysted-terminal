@@ -2074,20 +2074,71 @@ def _tool_reference(tool_ids: set[str]) -> re.Pattern[str]:
     )
 
 
+#: One line of a result block: an optional bullet or number, a symbol or
+#: metric name, a ``:``/``=``/dash, then a figure ("* INFY.NS: ₹1,233.65",
+#: "2. HDFCBANK.NS = 1,610.40", "- Market cap: ₹12.1 lakh cr").
+_RESULT_LINE = re.compile(
+    r"^[ \t]*(?:[-*•]|\d+[.)])?[ \t]*[*_]*[A-Za-z][^\n:=]{0,40}?\s*(?:[:=]|\s[-–—])\s*"
+    r"(?:[$₹€£]|Rs\.?|USD|INR)?\s*-?\d[\d,.]*(?:\s*(?:%|[A-Za-z]{1,5})){0,2}[*_]*[ \t]*$",
+    re.MULTILINE,
+)
+#: A blank line and the whitespace after it: where a bound paragraph closes.
+_BLANK_LINE = re.compile(r"\n[ \t]*\n\s*")
+
+
+def _result_block(text: str) -> bool:
+    """Whether ``text`` lists results: at least two name-then-figure lines."""
+    return len(_RESULT_LINE.findall(text)) >= 2
+
+
+def _paragraph_end(text: str, start: int) -> int | None:
+    """The end of the paragraph a colon sentence ending at ``start`` binds
+    (blank lines before it included, the blank line closing it too), or None
+    while no blank line has closed it."""
+    body = len(text) - len(text[start:].lstrip())
+    close = _BLANK_LINE.search(text, body) if body < len(text) else None
+    return close.end() if close else None
+
+
+def _open_bound(text: str) -> int:
+    """Where the first colon sentence of ``text`` whose bound paragraph is
+    still open starts (``len(text)`` when none): the stream holds from there."""
+    pos = 0
+    while pos < len(text):
+        end = _SENTENCE.match(text, pos).end()  # type: ignore[union-attr]
+        if text[pos:end].rstrip().endswith(":") and _paragraph_end(text, end) is None:
+            return pos
+        pos = end
+    return len(text)
+
+
 def _guard_tool_citations(
-    text: str, ok_tools: set[str], tool_ids: set[str], depth: int, pending: bool = False
+    text: str,
+    ok_tools: set[str],
+    tool_ids: set[str],
+    depth: int,
+    pending: bool = False,
+    errored: set[str] | frozenset[str] = frozenset(),
 ) -> tuple[str, int]:
     """``text`` with each clause that attributes a result to a tool no ok
     result came from replaced (R15-LEAD-030; :func:`_guard_sentence` decides
     a sentence). ``depth``: the brackets a replaced dump left open, or
     :data:`DUMP_PENDING`; the text until they balance is dropped. ``pending``:
     a tool call of this round awaits its result, so a bare dump is fabricated
-    too. Returns the text and the depth left open."""
+    too. ``errored``: this turn's tools whose result was not ok.
+
+    A sentence ending in ``:`` binds the paragraph after it, up to the next
+    blank line: the paragraph is judged as that sentence's result ("I get:\\n\\n
+    {...}", "Here are the results:\\n\\n* INFY.NS: ₹1,233.65\\n* ..."), and a
+    figure-bearing one goes with the sentence when it is replaced.
+    Returns the text and the depth left open."""
     ref = _tool_reference(tool_ids)
     canon = {t.replace("_", ""): t for t in tool_ids}  # "PriceData" -> price_data
     out: list[str] = []
-    for match in _SENTENCE.finditer(text):
-        sentence = match.group()
+    pos = 0
+    while pos < len(text):
+        sentence = _SENTENCE.match(text, pos).group()  # type: ignore[union-attr]
+        pos += len(sentence)
         if depth == DUMP_PENDING:
             body = sentence.lstrip()
             if not body:
@@ -2103,8 +2154,20 @@ def _guard_tool_citations(
                     out.append(sentence[i + 1 :])
                     break
             continue
-        sentence, depth = _guard_sentence(sentence, ok_tools, ref, canon, pending)
+        stop, bound = pos, ""
+        if sentence.rstrip().endswith(":"):
+            stop = _paragraph_end(text, pos) or len(text)
+            bound = text[pos:stop]
+        sentence, depth = _guard_sentence(sentence, ok_tools, ref, canon, pending, errored, bound)
         out.append(sentence)
+        # A replaced intro's figure paragraph goes with it; a bracket dump is
+        # left to DUMP_PENDING, which keeps the prose after the dump.
+        if (
+            depth == DUMP_PENDING
+            and not bound.lstrip().startswith(("{", "["))
+            and (_result_block(bound) or _CURRENCY_FIGURE.search(bound))
+        ):
+            pos, depth = stop, 0
     return "".join(out), depth
 
 
@@ -2118,12 +2181,17 @@ def _guard_sentence(
     ref: re.Pattern[str],
     canon: dict[str, str],
     pending: bool = False,
+    errored: set[str] | frozenset[str] = frozenset(),
+    bound: str = "",
 ) -> tuple[str, int]:
     """``sentence`` with each clause that attributes a result to a tool not in
     ``ok_tools`` replaced, and the bracket depth a replaced dump left open
     (``canon``: each id without its underscores, to the id; ``pending``: a
     call of this round has no result yet, so a bare dump or a "Returned:"
-    label with no tool named is fabricated as well).
+    label with no tool named is fabricated as well; ``bound``: the paragraph
+    a sentence ending in ``:`` binds, a figure or dump of its last clause;
+    ``errored``: this turn's tools with no ok result, named when a result
+    block or dump cites no tool and no tool returned ok).
 
     The decision is by attribution, not co-occurrence: a clause (the sentence
     between :data:`_CLAUSE_BREAK` conjunctions, a cited tool after a comma
@@ -2191,13 +2259,22 @@ def _guard_sentence(
         prose = clause[: max(cut - start, 0)] if cut < end else clause
         inside = [r for r in refs if start <= r[0] < end]
         bad = [r for r in inside if r[1] not in ok_tools]
-        figure = bool(_CURRENCY_FIGURE.search(clause)) or len(prose) < len(clause)
+        tail = bound if end == len(sentence) else ""
+        shaped = (
+            len(prose) < len(clause) or tail.lstrip().startswith(("{", "[")) or _result_block(tail)
+        )
+        figure = bool(_CURRENCY_FIGURE.search(clause + tail)) or shaped
         negative = bool(_NEGATIVE.search(prose))
         if negative:
             pieces.append(clause)
             continue
         if bad and (any(r[2] for r in bad) or (figure and len(bad) == len(inside))):
             note = f"the {bad[0][1]} tool returned no data for this in this turn"
+        elif not inside and not ok_tools and errored and shaped:
+            # Every call of the turn failed, yet a result block streams.
+            names = sorted(errored)
+            tools = f"{', '.join(names)} tool{'s' * (len(names) > 1)}"
+            note = f"the {tools} returned no data for this in this turn"
         elif (
             not inside
             and (pending or not ok_tools)
@@ -2260,6 +2337,9 @@ class _TurnState:
     # cited_tools: a sentence citing any other tool's result is replaced
     # (R15-LEAD-030).
     ok_tools: set[str] = field(default_factory=set)
+    # The tools whose result was not ok this turn: a result block no tool is
+    # named for, while none returned ok, is replaced naming them (R15-LEAD-030).
+    errored_tools: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -2475,7 +2555,12 @@ async def _consume_round(
         # cannot cite it, and a bare "Returned: {...}" is fabricated.
         pending = {call.name for call in rnd.pending_tools}
         guarded, dump_depth = _guard_tool_citations(
-            guarded, turn.ok_tools - pending, tool_ids, dump_depth, bool(pending)
+            guarded,
+            turn.ok_tools - pending,
+            tool_ids,
+            dump_depth,
+            bool(pending),
+            turn.errored_tools,
         )
         turn.ratio_context = _depositary_context(text, turn.ratio_context)
         if guarded.strip():
@@ -2489,13 +2574,18 @@ async def _consume_round(
             held.append(event.text)
             text = "".join(held)
             cut = max((m.end() for m in _SENTENCE_BOUNDARY.finditer(text)), default=0)
-            if cut:
-                # What was held had no boundary, so a new one ends in the newest chunk.
-                newest = held.pop()
-                split = len(newest) - (len(text) - cut)
-                for delta in _release([*held, newest[:split]]):
-                    yield delta
-                held = [newest[split:]]
+            # A colon sentence is held with its paragraph until a blank line
+            # closes it, so the guard judges them as one unit.
+            cut = min(cut, _open_bound(text))
+            size = 0
+            for index, chunk in enumerate(held if cut else []):
+                size += len(chunk)
+                if size >= cut:
+                    split = len(chunk) - (size - cut)
+                    for delta in _release([*held[:index], chunk[:split]]):
+                        yield delta
+                    held = [chunk[split:], *held[index + 1 :]]
+                    break
             continue
         if held and not isinstance(event, LLMHeartbeatEvent):
             for delta in _release(held):
@@ -2751,6 +2841,8 @@ async def _dispatch_round(
         outcome = _tool_result_event(tool_call, result_str)
         if outcome.ok:
             turn.ok_tools.add(tool_call.name)
+        else:
+            turn.errored_tools.add(tool_call.name)
         yield outcome
         if on_tool_result is not None:
             on_tool_result(tool_call, result_str)
