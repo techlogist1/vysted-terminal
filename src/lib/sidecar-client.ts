@@ -244,12 +244,17 @@ export async function sidecarRequest<T>(
   const requestHeaders: Record<string, string> = {
     "X-Vysted-Region": useSettingsStore.getState().region,
   };
-  // The three-tier web-search contract (FR-080/083/084): the active tier, the
-  // BYOK Exa key (keychain), and the local SearXNG URL ride every request so the
-  // sidecar dispatches search to the right backend. Undefined values are dropped
-  // below (never an empty header). Merged FIRST so a per-call header arg still
-  // wins if it ever sets the same key.
-  const searchHeaders = await buildSearchHeaders();
+  // The three-tier web-search contract (FR-080/083/084): the active tier and
+  // the local SearXNG URL ride every request so the sidecar dispatches search
+  // to the right backend. The tier_b BYOK OpenRouter key is OMITTED here
+  // (R15-CODE-PLATFORM-039) — this default REST path is taken by every sidecar
+  // call, including polls that never research (e.g. the watchlist's 5 s
+  // `/quotes` refresh), not just research; the SSE research transport
+  // (`chat/streaming.ts`) calls `buildSearchHeaders()` directly and keeps the
+  // full set including the key. Undefined values are dropped below (never an
+  // empty header). Merged FIRST so a per-call header arg still wins if it ever
+  // sets the same key.
+  const searchHeaders = await buildSearchHeaders({ includeKey: false });
   for (const [key, value] of Object.entries({ ...searchHeaders, ...opts.headers })) {
     if (value !== undefined) {
       requestHeaders[key] = value;

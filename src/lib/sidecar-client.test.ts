@@ -247,3 +247,49 @@ describe("sidecarRequest error layer", () => {
     await expect(sidecarRequest("DELETE", "/custom-agents/custom:x")).resolves.toBeUndefined();
   });
 });
+
+/**
+ * R15-CODE-PLATFORM-039: sidecarRequest is the default REST path for every
+ * sidecar call, including polls that never research (e.g. the watchlist's 5 s
+ * `/quotes` refresh) — it must not do an unmemoised keychain read + ship the
+ * tier_b BYOK OpenRouter key on every one of those.
+ */
+describe("sidecarRequest omits the research key on its default REST path", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    invokeMock.mockReset();
+    vi.unstubAllGlobals();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("tier_b GET /quotes sends no X-Vysted-Openrouter-Key and reads the keychain 0 times", async () => {
+    invokeMock.mockImplementation(async (cmd: string) => {
+      if (cmd === "get_sidecar_port") return READY;
+      if (cmd === "keychain_get") return "sk-or-v1-should-never-be-read";
+      throw new Error(`unexpected invoke: ${cmd}`);
+    });
+    const capturedHeaders: Record<string, string>[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (new URL(url).pathname === "/health") return { ok: true } as Response;
+        capturedHeaders.push((init?.headers ?? {}) as Record<string, string>);
+        return { ok: true, json: async () => ({}) } as Response;
+      }),
+    );
+    const { useSearchSettingsStore } = await import("@/store/search-settings");
+    useSearchSettingsStore.getState().setResearchTier("tier_b");
+    const { sidecarGet } = await import("@/lib/sidecar-client");
+
+    await sidecarGet("/quotes", { symbols: "AAPL" });
+
+    expect(capturedHeaders[0]["X-Vysted-Openrouter-Key"]).toBeUndefined();
+    // The tier header itself still rides every request — only the keychain
+    // read + secret are omitted on this path.
+    expect(capturedHeaders[0]["X-Vysted-Research-Tier"]).toBe("tier_b");
+    expect(invokeMock.mock.calls.filter((c) => c[0] === "keychain_get")).toHaveLength(0);
+  });
+});
