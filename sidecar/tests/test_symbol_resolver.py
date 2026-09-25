@@ -885,3 +885,33 @@ def test_nse_listing_date_is_the_exchange_date_of_listing() -> None:
     assert parsed == ["2026-08-17", "2026-09-02", None]
     assert symbol_resolver.nse_listing_date("DHOOTTRANS.NS") == "2026-08-17"
     assert symbol_resolver.nse_listing_date("NAPEROL") is None
+
+
+def test_garbled_master_degrades_to_no_match_not_500(monkeypatch) -> None:  # noqa: ANN001
+    """R15-LIFECYCLE-036: a garbled bundled master (json.load raises
+    JSONDecodeError) degrades to an empty master as the loader documents — the
+    resolve is an honest no-match and ``GET /resolve`` answers 200, never 500."""
+    import json
+
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from routers import resolve as resolve_router
+
+    def _garbled(*_a: object, **_k: object) -> None:
+        raise json.JSONDecodeError("Expecting value", "", 0)
+
+    monkeypatch.setattr(symbol_resolver.json, "load", _garbled)
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda *_a, **_k: [])
+    symbol_resolver.reset_caches_for_tests()
+    try:
+        r = symbol_resolver.resolve("TATASTEEL", "IN")
+        assert r.best is None and r.candidates == []
+        app = FastAPI()
+        app.include_router(resolve_router.router)
+        resp = TestClient(app).get("/resolve", params={"q": "TATASTEEL", "region": "IN"})
+        assert resp.status_code == 200
+        assert resp.json()["ok"] is False
+    finally:
+        monkeypatch.undo()
+        symbol_resolver.reset_caches_for_tests()

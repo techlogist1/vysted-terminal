@@ -501,8 +501,8 @@ def _load_master(filename: str, *, fallback: dict | None = None) -> dict:
             .open("r", encoding="utf-8")
         ) as fp:
             return json.load(fp)
-    except (FileNotFoundError, ModuleNotFoundError) as exc:  # pragma: no cover - bundling bug
-        logger.error("symbol_resolver: missing bundled master %s: %s", filename, exc)
+    except (OSError, ModuleNotFoundError, ValueError) as exc:  # bundling bug / garbled JSON
+        logger.error("symbol_resolver: missing or garbled bundled master %s: %s", filename, exc)
         return fallback if fallback is not None else {"instruments": []}
 
 
