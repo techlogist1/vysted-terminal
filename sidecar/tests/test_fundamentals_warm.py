@@ -284,24 +284,6 @@ async def test_crawl_rate_limit_does_not_mark_failure_but_generic_error_does(
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.asyncio
-async def test_start_stop_clean_no_leaked_tasks() -> None:
-    # Region defaults to US in tests — the loops idle without network or
-    # store writes, and stop cancels + awaits both tasks.
-    fundamentals_warm.start_warm_fundamentals()
-    assert fundamentals_warm._sweep_task is not None
-    assert fundamentals_warm._crawl_task is not None
-    sweep_task = fundamentals_warm._sweep_task
-    crawl_task = fundamentals_warm._crawl_task
-    await asyncio.sleep(0.02)
-    assert not sweep_task.done()
-    await fundamentals_warm.stop_warm_fundamentals()
-    assert sweep_task.done()
-    assert crawl_task.done()
-    assert fundamentals_warm._sweep_task is None
-    assert fundamentals_warm._crawl_task is None
-
-
 def _quiet_in_boot(monkeypatch: pytest.MonkeyPatch) -> list[str]:
     """An IN-region boot with every network lane stubbed; returns the log of
     ``seed_india_store`` calls (by task name)."""
@@ -321,6 +303,30 @@ def _quiet_in_boot(monkeypatch: pytest.MonkeyPatch) -> list[str]:
     monkeypatch.setattr(fundamentals_warm, "_crawl_once", _cycle)
     monkeypatch.setattr(fundamentals_warm, "bhavcopy_refresh_once", _cycle)
     return seeds
+
+
+@pytest.mark.asyncio
+async def test_start_stop_clean_no_leaked_tasks(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LIFECYCLE-031: on an IN boot (the only region that schedules the
+    boot seed) stop cancels + awaits every task start spawned, the seed too."""
+    _quiet_in_boot(monkeypatch)
+
+    async def _slow_seed() -> int:
+        await asyncio.sleep(60)
+        return 0
+
+    monkeypatch.setattr(fundamentals_warm, "seed_india_store", _slow_seed)
+    before = asyncio.all_tasks()
+    fundamentals_warm.start_warm_fundamentals()
+    spawned = asyncio.all_tasks() - before
+    assert fundamentals_warm._seed_task in spawned
+    await asyncio.sleep(0.02)
+    assert not fundamentals_warm._seed_task.done()
+    await fundamentals_warm.stop_warm_fundamentals()
+    assert all(t.done() for t in spawned), [t for t in spawned if not t.done()]
+    assert fundamentals_warm._sweep_task is None
+    assert fundamentals_warm._crawl_task is None
+    assert fundamentals_warm._seed_task is None
 
 
 @pytest.mark.asyncio

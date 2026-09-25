@@ -22,7 +22,8 @@ Region-aware: the loops only do WORK while ``config.get_region() == "IN"``
      Yahoo doesn't cover) rotate out of the priority head for
      ``TTL_INFO_RETRY_SECONDS`` instead of wedging every cycle.
 
-``stop_warm_fundamentals()`` cancels + awaits both loops (lifespan finally).
+``stop_warm_fundamentals()`` cancels + awaits the loops and the boot seed
+(lifespan finally).
 """
 
 from __future__ import annotations
@@ -409,6 +410,7 @@ async def _crawl_loop() -> None:
 _sweep_task: asyncio.Task[None] | None = None
 _crawl_task: asyncio.Task[None] | None = None
 _bhavcopy_task: asyncio.Task[None] | None = None
+_seed_task: asyncio.Task[None] | None = None
 
 
 def start_warm_fundamentals() -> None:
@@ -418,13 +420,13 @@ def start_warm_fundamentals() -> None:
     seed pack, zero network) is scheduled IMMEDIATELY for an IN region — a
     user opening the screener seconds after a fresh install must hit a seeded
     store, not wait for the sweep loop's first cycle to get around to it."""
-    global _sweep_task, _crawl_task, _bhavcopy_task
+    global _sweep_task, _crawl_task, _bhavcopy_task, _seed_task
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         logger.debug("fundamentals warm: no running loop; workers not started")
         return
-    if get_region() == "IN":
+    if get_region() == "IN" and _seed_task is None:
 
         async def _boot_seed() -> None:
             try:
@@ -432,7 +434,7 @@ def start_warm_fundamentals() -> None:
             except Exception as exc:  # noqa: BLE001 — seed is best-effort
                 logger.warning("fundamentals warm: boot seed failed: %s", exc)
 
-        loop.create_task(_boot_seed())
+        _seed_task = loop.create_task(_boot_seed())
     if _sweep_task is None or _sweep_task.done():
         _sweep_task = loop.create_task(_sweep_loop())
     if _crawl_task is None or _crawl_task.done():
@@ -443,11 +445,12 @@ def start_warm_fundamentals() -> None:
 
 async def stop_warm_fundamentals() -> None:
     """Cancel + await the warm workers (lifespan finally — no leaked tasks)."""
-    global _sweep_task, _crawl_task, _bhavcopy_task
-    tasks = [t for t in (_sweep_task, _crawl_task, _bhavcopy_task) if t is not None]
+    global _sweep_task, _crawl_task, _bhavcopy_task, _seed_task
+    tasks = [t for t in (_sweep_task, _crawl_task, _bhavcopy_task, _seed_task) if t is not None]
     _sweep_task = None
     _crawl_task = None
     _bhavcopy_task = None
+    _seed_task = None
     for task in tasks:
         task.cancel()
     for task in tasks:
