@@ -3,7 +3,8 @@
 Resolves the three India universe ids the contracts commit added to
 ``models/screener.py``:
 
-  - ``nse-all``   — every NSE master row (EQ + ETF) as ``SYMBOL.NS`` (~2,675).
+  - ``nse-all``   — every NSE master row (EQ + ETF + SM/NSE Emerge) as
+    ``SYMBOL.NS``.
   - ``bse-all``   — BSE master rows with STATUS == "Active" as ``SYMBOL.BO``
     (the liquidity ``group`` is retained in the per-symbol meta).
   - ``india-all`` — the union, NSE listing preferred: a BSE row whose SYMBOL

@@ -31,8 +31,8 @@ ScreenerUniverseId = Literal[
     "crypto-top50",
     "custom",
     # R10 (D40): full-market India universes resolved from the bundled resolver
-    # masters — nse-all (~2.7k EQ/BE/SME rows), bse-all (4.9k Active scrips),
-    # india-all (union, NSE listing preferred on dual-listings).
+    # masters — nse-all (EQ + ETF + SM/NSE Emerge rows), bse-all (Active
+    # scrips), india-all (union, NSE listing preferred on dual-listings).
     "nse-all",
     "bse-all",
     "india-all",
