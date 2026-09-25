@@ -238,6 +238,19 @@ def test_loader_appends_terminal_capabilities_preamble_to_every_first_party_prom
         assert not spec.system_prompt.startswith("## Terminal capabilities")
 
 
+def test_agent_system_prompts_within_byte_budget() -> None:
+    """R15-CODE-PLATFORM-076: every agent JSON prompt stays within a byte budget
+    (copilot runs on a small local model by default; tool usage belongs in the
+    tool schemas, and the loader appends the shared preamble on top)."""
+    budget = 4608
+    for path in sorted(agent_runtime.AGENTS_DIR.glob("*.json")):
+        if path.name.startswith("_"):
+            continue
+        prompt = json.loads(path.read_text(encoding="utf-8"))["systemPrompt"]
+        size = len(prompt.encode("utf-8"))
+        assert size <= budget, f"{path.name}: systemPrompt is {size} bytes (budget {budget})"
+
+
 def test_every_tool_named_in_prompts_resolves_in_catalog() -> None:
     """R15-AGENT-071: the preamble lists the catalog's host actions (generated,
     not prose), and every snake_case name in any agent's effective prompt is a
