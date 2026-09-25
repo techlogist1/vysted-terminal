@@ -4,6 +4,260 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 17: citation guard seeded from history, humanised tool names and cross-line dump drop; partial tool-call marker hold (2026-09-25)
+
+**Scope:** register queue after adjudication `{critical:0, high:1, medium:0, low:211}`: one open c/h/m entry, R15-LEAD-030
+(high, agent-chat). R15-LEAD-031 (low) rides along on the same streaming surface. One writer set, W1 (Opus), base
+`5d4ca99c`, commits `4b6acb6b` (LEAD-030) and `ede02247` (LEAD-031) merged `--no-ff` on `worktree-agent-batch-17-int`
+(`a340ad7b`), merge `292ba53a`.
+
+- **R15-LEAD-030 (not certified, second attempt).** `ok_tools` is now seeded from the history's `[tool steps: …]`
+  trailer, replacement text says "in this turn", a humanised tool name is matched, and `DUMP_PENDING` drops a dump that
+  opens on the line after a replaced citation. Every batch-16 escape is fixed, live and offline (13/13 fresh offline
+  cases pass, live originally 9 of 12 offline probes failed on base and only 2 fail here, both pre-existing). Still
+  fails the entry's own claim ("no true citation is replaced"): a sentence naming an errored tool next to a true
+  ok-tool figure — "The fundamentals tool returned an error, so I used financial statements, which shows revenue of
+  ₹4,411 cr." — is replaced whole and the true figure is lost; that failure reproduces identically on base, so it is
+  not a regression. A minor camelCase escape ("PriceData returned a close of $2.11.") also remains. Fix shape recorded
+  for the next pass: replace a sentence only when a figure/dump is attributed to the untraced tool as the subject of
+  the result verb, and let `[\s_-]?` join humanised-id parts so camelCase also matches.
+- **R15-LEAD-031 (certified).** A guard replacement no longer splices onto a leaked text-form tool-call fragment:
+  `LeakHold.feed` now returns `list[str]` and holds whole chunks while a partial offered-tool marker may still
+  complete. Verified by replaying the original chunk shape plus 3 fresh splits through the real `OllamaProvider` with
+  a fake client (base leaked the fragment in every case) and across 11 live turns, none of which streamed a `{"name`
+  fragment.
+
+**Verifier:** fresh-context Opus. `pnpm ci-local` exited 0 (pytest 3294 passed, 1 skipped); the smoke test exited 0.
+The focused re-run (`test_agent_runtime`, `test_tool_call_rescue`, `test_llm_ollama`, `test_llm_openai`) passed 240.
+No GUI-only surface; no frontend file changed. R15-LEAD-030 stays open, carried into batch 18 (out of this
+backfill's scope).
+
+## R15 Stage C — batch 16: ratio-guard class qualifier, untraced tool-citation guard, bounded `adr_ratio` lookup (2026-09-25)
+
+**Scope:** base `f7ea77b8` (the batch-15 merge `74ee3468` is its ancestor; only docs commits follow it). Queue after
+adjudication `{critical:16, high:116, medium:288, low:226}`; status `open` c/h/m in the register: 2 high, 1 medium.
+One writer set, W1, commit `50399b67`, merged `--no-ff` on `worktree-agent-batch-16-int` (`7b65b217`), merge
+`d64640d2`.
+
+- **R15-AGENT-090 (certified).** `_MARKED` gets a structural lookahead fix (`f421d73e`) so a class/series/bonus
+  qualifier ("class A shares", "6 bonus shares") is no longer read as the counted noun and left unguarded. Verified
+  against the real sec.gov 20-F covers (SIFY 6, WIT 1, BABA 8, all matching the fetched cover text), 12 of 12 offline
+  class-qualifier fabrications replaced, 5 of 5 legitimate sentences kept, and the original live repro at 5 of 5 runs
+  with 0 untraced ratio claims.
+- **R15-LEAD-032 (certified).** `adr_ratio.lookup` is bounded to an 8 s `wait_for` with an exception-miss cache
+  (`5710f28a`). A black-hole-proxy stall now bounds the first lookup at 8.01 s with a 0.00 s cached repeat, replacing
+  a prior worst case of roughly 150 s per call.
+- **R15-LEAD-030 (not certified).** A new `_guard_tool_citations` plus per-turn `ok_tools` (`50399b67`) fixes the
+  live-1 dump/errored-tool escape and every uncalled-tool citation case, but (1) a humanised tool name ("Price Data:
+  {…}") still escapes live, (2) a dump opening on the line after a replaced "returned:" clause still escapes, and
+  (3) a new over-replacement regresses agent-chat: per-turn `ok_tools` falsely replaces a follow-up turn's true
+  citation of an earlier turn's ok tool. Fix shape recorded in `docs/redesign/verification/r15/stage-c/batch-16/VERDICTS.md`
+  §LEAD-030 for the next pass.
+- **R15-LEAD-031 (not attempted).** The writer lacked ownership of `sidecar/tests/test_llm_ollama.py` this batch;
+  carried into batch 17, where it certified.
+
+**Verifier:** fresh-context Opus. `pnpm ci-local` exited 0 (pytest 3271 passed 1 skipped, vitest 1831, cargo 19); the
+smoke test exited 0 with MCP toolCount 40.
+
+## R15 Stage C — batch 15: ADR ratio grounded from the SEC 20-F cover page, marker-based depositary guard (2026-09-25)
+
+**Scope:** base `f7b3abf3`. Queue after adjudication `{critical:0, high:1, medium:0, low:210}`; the only open c/h/m
+entry is R15-AGENT-090. One writer set, W1, whose branch (`aaf32a7e`, a dedicated root-cause step ahead of the batch,
+run as one Fable/high agent after two Opus attempts across batches 13–14 had failed to crack the class) is merged as
+`74ee3468`, review commit `4daf6507`, W1 head `497a3b27`.
+
+- **Root cause and fix.** No tool result carried an ADR ratio at all, so wording recognition alone was bounding an
+  unbounded class. `sidecar/services/adr_ratio.py` now parses the newest 20-F cover page (the Section 12(b) window,
+  exactly one ratio else `None`) from keyless EDGAR, cached 30 d on a hit / 24 h on a miss, and attaches it as the
+  leading `ads_ratio` key on the `fundamentals` and `financial_statements` results for a foreign reporter. A
+  marker-based depositary-number guard in `agent_runtime` blanks a number that is really a currency amount,
+  percentage, year, period, points figure, decimal, thousands separator, form number, ordinal, time or a
+  count-of-a-plural noun, and requires everything else to sit inside a depositary tool-result segment, or it is
+  replaced with `RATIO_UNAVAILABLE`. 12 new tests; live bar 0 of 8 untraced.
+- **Integration (`4daf6507`, one function-word fix, `596ae9e9`):** the integrator salvaged `aaf32a7e` plus a
+  next-sentence-context correction to `_MARKED`.
+- **R15-AGENT-090 (not certified, third pass): one residual.** The count-of-lower-case-plural-noun rule still reads a
+  class qualifier as the counted noun, so "Each ADS represents 6 class A shares." streams unguarded (seen live in
+  `live-8`). Everything else holds: grounding for SIFY 6 / IBN 2 / HDB 3 / INFY 1 checked directly against the fetched
+  20-F cover text, AAPL/MSFT carry no key, TSM/BABA are honest misses (no grounding, guard still fires), every
+  batch-13 and batch-14 escape and kept sentence still behaves, and the original repro is 0 of 5 untraced live.
+
+**Issues logged (outside this entry's scope, carried forward):** replacement can splice onto a leaked text-form
+tool-call JSON fragment; after a `SIFY.NS` tool error llama3.1:8b fabricated a fundamentals dump citing "$1320 m" TTM
+revenue — a fake tool-result citation the ratio guard doesn't cover (registered as a candidate, second sighting after
+batch 14); `adr_ratio.lookup` did not yet cache an exception miss and used a 60 s timeout (fixed next batch as
+R15-LEAD-032).
+
+**Verifier:** fresh-context Opus. `pnpm ci-local` exited 0 at `497a3b27` (3254 passed), smoke exited 0. Focused re-run
+at `4daf6507`: `test_adr_ratio`, `test_agent_runtime`, `test_fundamentals_tool` (166 passed); `ruff format --check`
+and `ruff check` clean.
+
+## R15 Stage C — batch 14: tool_result SSE event and grader (CODE-AGENT-033 certified); ADR ratio guard second pass (AGENT-090, not certified) (2026-09-25)
+
+**Scope:** base `4cfd283e`. Selection: exactly two open critical/high/medium register entries (everything else at
+c/h/m was already fixed, `blocked_tier4`, `needs_gui`, `removed_with_feature` or `not_a_defect`). Writer commit
+`c27e07c0` merges both. Merge `17301f54`.
+
+- **R15-CODE-AGENT-033 (certified).** Every `tool_use` event is now followed by a `tool_result` SSE frame;
+  `models/llm.py`, `services/llm/base.py`, `types/ai.ts` and `streaming.ts` mirror the new kind in one commit, and
+  `scripts/agent_eval/grader.py` now fails a trial whose tool call errored instead of grading it as a pass. Verified
+  live: 12 invokes all carried the frame immediately after each `tool_use`; the frontend's `onEvent` if/else chain
+  ignores the new kind (no consumer change needed) and `test_runtime_phases` still asserts the exact event sequence
+  without being loosened.
+- **R15-AGENT-090 (not certified, second pass).** A sentence-buffered guard catches more fabrication wordings but
+  introduces a new regression: true ADR price/return sentences ("Each ADR closed at 5.20 USD on Friday.", "Each ADS's
+  52-week high was 12.4.", "SIFY's ADSs each gained 3 points in 2024.") are now wrongly replaced, while `=`/`worth`/
+  `gives`-shaped fabrications ("1 ADR = 6 shares.") still escape live. Live bar: 1 of 5 runs states an untraced ratio
+  (down from 3 of 5 at batch 12, but the bar is 0 of 5). Merged anyway — it hides a fact rather than stating a false
+  one, so the branch is not worse than base for a high-severity fabrication, but the entry does not certify. Two Opus
+  attempts (batch 13's and this one) failed to close the class, which is why the next attempt (batch 15) ran as one
+  strongest-tier agent doing root-cause work ahead of a batch.
+
+**Verifier:** live sidecar on `127.0.0.1:52310`, local model llama3.1:8b via ollama, autonomy ask. `pnpm ci-local`
+exited 0 at `c27e07c0` (pytest 3214 passed 1 skipped, vitest 1831), smoke exited 0. Focused re-run: `test_agent_eval`,
+`test_runtime_phases`, `test_agent_runtime`, `test_run_manager`, `test_mcp_server`, `test_capability_catalog` (196
+passed); ruff clean; `streaming.test.ts` 23 of 23.
+
+## R15 Stage C — batch 13: RESEARCH-007 Public Suffix List check, DOCS-017 live universe counts, AGENT-090 ratio guard (partial) (2026-09-25)
+
+**Scope:** base `ba951d23` (RC1 round 2, last pure critical/high/medium batch by count). 4 open entries: R15-AGENT-090
+(high), R15-RESEARCH-007 (high), R15-CODE-AGENT-033 (medium), R15-DOCS-017 (medium); all selected, 3 file-disjoint
+writers (W1 Opus for the agent-runtime streaming state machine, W2/W3 Sonnet). Merged `--no-ff` on
+`worktree-agent-batch-13-int` (`e02073bd`), merge `a217a529`.
+
+- **R15-RESEARCH-007 (certified).** `_looks_like_ir` now runs a full Public Suffix List lookup, including the private
+  section, instead of a longer host-prefix denylist; the PSL ships inside the built binary
+  (`services/research/psl/public_suffix_list.dat`, confirmed via `pyi-archive_viewer` on the built sidecar). 13 fresh
+  free-hosting platforms (Firebase, Heroku, Vercel, Pages.dev, GitHub/GitLab Pages, Repl.co, Glitch, Netlify, Notion,
+  Webflow, S3, AppEngine, Bitbucket) now tier to 3, and ccSLD real IR hosts (`ir.tata.co.in`, `investors.xero.co.nz`,
+  `ir.sony.co.jp`, `investor.vale.com.br`) correctly stay tier 1.
+- **R15-DOCS-017 (certified).** `CURRENT_STATE.md` §3.3 now states nse-all 3,506 (EQ 2,584 + ETF 351 + SM 571),
+  bse-all 5,042, india-all 5,891 and sp500 503, read live from `load_india_universe`/`GET /screener/universe`,
+  replacing the stale ~2,675 docstring figure; the module docstring and `models/screener.py:34` now name row types
+  instead of counts.
+- **R15-AGENT-090 (not certified, class gap).** The shared preamble rule plus sentence-level replacement meets the
+  live bar (0 of 5 untraced), but the class check fails on fresh phrasings with a qualifier or "shares of common
+  stock" / "N ADR : M shares" wording — `_CLAIM_NUMBERS` only matched a bare number directly before
+  ordinary|equity|underlying|common + shares.
+- **R15-CODE-AGENT-033 (not certified, no fix landed).** This writer's only commit was AGENT-090 (`b24a0860`); no
+  stream-event change shipped this batch. Deferred to batch 14 with a ready patch left in scratch
+  (`scratchpad/code-agent-033.patch`) because the intended change broke `test_runtime_phases.py:209`, a file this
+  writer didn't own.
+
+**Verifier:** integrator's `pnpm ci-local` exited 0 at `69fa149e` (pytest 3200 passed 1 skipped); smoke exited 0; a
+follow-up review commit at `e02073bd` re-ran 124 focused tests.
+
+## R15 Stage C — batch 12: rc1 refutation-audit reopenings and gate findings (2026-09-25)
+
+**Scope:** 23 open entries (2 critical, 8 high, 13 medium) planned in
+`docs/redesign/verification/r15/stage-c/batch-12/PLAN.md`: 22 selected, 1 deferred (R15-CODE-AGENT-033 — needs a new
+SSE tool-result event owned by W5's `agent_runtime.py` this batch; moved to batch 13). Mechanisms follow each
+entry's rc1-refutation-audit note (see the rc1 gate — round 1 section below) or, for 10 batch-12-mined entries, the
+adjudicated mechanism. Merged `--no-ff` in run order W1 → W4 → W6 → W5 → W2 → W3 → W8 → W7 on
+`worktree-agent-batch-12-int` (base `bc3e64fe`), merge `ef33c7f6`.
+
+- **W1 resolver and venue identity:** R15-DATA-059's US-ticker resolve now falls through to the former-name fallback
+  instead of returning early (`symbol_resolver.py:1377`), restoring `ONC → BeiGene, Ltd.` and `SIFY → SIFY LTD`; ISIN
+  stays null and honestly reported could-not (no keyless, licence-compatible bulk source exists). R15-LEAD-028's
+  `correctness_gate.symbols_match` now canonicalises a bare BSE scrip code through `bse_symbol_for_code` before
+  comparing, so `506597.BO`/`544774.BO` no longer fail the gate and fall through to an empty yfinance result.
+  R15-DATA-115: both NSE lanes (`nse_provider`/`india_provider` `_require_nse`) now reject an explicit `.BO`-suffixed
+  symbol instead of silently serving NSE data for a BSE request.
+- **W2 screener and doc drift:** R15-DATA-043 cuts the top-K per currency round-robin instead of after grouping, so a
+  mixed-currency page keeps the "ranked within each currency" note and at least one row per currency. R15-DATA-112
+  sorts a missing fundamentals currency last in both directions instead of first. R15-DOCS-018 lists the IN-scoped
+  provider chain (nse_direct 15, nse 20, bse 25, ahead of yfinance 50) in §3.3. **R15-DOCS-017 does not certify this
+  batch:** the nse-all count landed as a stale docstring figure (2,675) rather than the live loader count (3,506);
+  fixed next batch.
+- **W3 ratings as-of and estimate currency:** R15-DATA-068 adds `as_of` to the ratings-consensus model and type
+  (mirrored in the same commit) so a 6 h-cached rating shows its real fetch time. R15-DATA-113 carries a separate
+  `revenue_currency` (`financialCurrency`) alongside the trading `currency` across estimates, history and surprises,
+  fixing WIT's INR-sized revenue mislabelled USD.
+- **W4 research verdict parse and source authority:** R15-RESEARCH-002 fixes `_parse_verdict`/`leading_token` to skip
+  a `Verdict:` label, brackets or list numbering before scanning for the verdict word, with UNVERIFIED > DISAGREE >
+  AGREE priority. **R15-RESEARCH-007 does not certify this batch:** the first-pass denylist widening plus a
+  three-label host check passes its own acceptance cases, but ccSLD hosts (`www.investors.co.uk`, `ir.co.in`) and
+  more free-hosting platforms still rank PRIMARY; the full Public Suffix List fix lands next batch.
+- **W5 agent runtime (Opus, §6.5-adjacent; no proposed-changes gate weakened):** R15-AGENT-019 adds log/record/hold
+  edit cues so "Can you log 10 TCS at 3400…" reaches the write tool instead of being stripped by the trailing-`?`
+  read-cue rule. R15-AGENT-092 stops a budget-halted round's host actions from reaching the proposed-changes gate.
+  R15-AGENT-093 extends the arg-coercion loop to numeric/boolean strings ("10" → int 10) before schema validation.
+  **R15-AGENT-090's first pass does not certify:** the "never attribute an unfetched fact" rule is added to the
+  shared agent preamble, but 3 of 5 live llama3.1:8b runs still fabricate the SIFY ADR ratio — this opens the
+  multi-batch saga closed in batch 16.
+- **W6 error copy and option-chain caching:** R15-AGENT-027 widens the context_overflow/model_not_found/
+  insufficient_credit marker rows (Gemini, Groq, xAI 403) and gives Ollama connect/timeout errors dedicated copy.
+  R15-DATA-114 makes a failed or missing today's option-chain probe walk back cache-only instead of re-probing NSE on
+  every request.
+- **W7 instrument region on the chart and Indian index calendar:** R15-DATA-002 threads an optional `region` from
+  `CommandPalette`'s picked candidate through `loadSymbolIntoChart` → `loadSymbol` → the chart-command store →
+  `ChartPanel` → `sidecarApi.history`, so a cross-region ticker pick charts the region of the listing actually picked
+  (an IN session picking "AMAL US" now charts US Amalgamated, not NSE's Amal Ltd). R15-UI-090 recognises the Indian
+  caret index families (`^NSE`/`^BSE`/`^CNX`, `^INDIAVIX`) as region IN in `locale.instrument_region`, so they read
+  `live` during NSE hours instead of being dated against the US calendar.
+- **W8 design-token gate, Settings plugin toggle, SEC filing lookup:** R15-RELEASE-007 moves 4 stray Tailwind classes
+  onto the design-token grid and wires `pnpm lint` to chain the audit, closing the "gate exists but nothing calls it"
+  hole. R15-CODE-PLATFORM-013 routes a bridged plugin's Settings toggle through the marketplace lifecycle owner
+  instead of `setModuleEnabled` directly, so an "off" survives relaunch. R15-LEAD-010 (verify-first): re-ran the
+  repro cold, then added a form-type-filtered fallback search plus forwarding `form_type` through
+  `get_filing_sections`/`/sections`, so an unhinted older 10-K/10-Q resolves.
+
+**Verifier:** fresh-context Opus, live sidecar on `127.0.0.1:52310`. Chain: pytest 3194 passed 1 skipped; vitest 152
+files / 1829 tests; `pnpm lint`/`typecheck`/`format:check` exit 0; `ruff format --check`/`ruff check` exit 0. Result:
+19 certified, 3 not certified (R15-RESEARCH-007, R15-DOCS-017, R15-AGENT-090), 0 needs_gui.
+
+## R15 rc1 gate — round 1 (2026-09-25)
+
+Not a Stage C batch — the first full pre-tag release gate, run against the batch-11 line's final fix-round candidate,
+with two triage/fix rounds ahead of the gate and a refutation audit after it. The audit's reopened entries, plus a
+few it surfaced along the way, are what Stage C batches 12–17 above then fixed.
+
+- **Gate-8-only spot check**, ahead of the full gate, against the batch-11 candidate `4097dac4`: the no-trading-path
+  and tracked-portfolio criteria held (111 routes, no order/broker/kill-switch/audit route, 56 catalog + 40 MCP
+  tools, none for orders or brokers; the tracked portfolio's add/export/delete round-trip, including a gated agent
+  write, was clean), but one doc failed: `docs/PHASE_10_HANDOFF.md` — indexed by `docs/README.md` as the latest
+  handoff — still explained connecting Kite (`rc1-gate8:1`).
+- **Fix round 1** (base `4097dac4`, head `b0f2b256`): a triage of 12 findings kept 7 real across 4 file-disjoint
+  writer sets, merged `--no-ff` as `27e490e1` (W1 research-coverage: `rc1-drive-research-briefs:1`,
+  `rc1-battery-4:1`), `73036305` (W2 agent-model-boundary: `rc1-scenarios:5`, `rc1-drive-onboarding-stranger:1`),
+  `e81c2b3d` (W3 fundamentals-derived: `rc1-datapack:1`), `b0f2b256` (W4 portfolio-and-docs:
+  `rc1-drive-portfolio-notes:1`, `rc1-gate8:1`). `pnpm ci-local` and the smoke test both passed twice at `b0f2b256`
+  (pytest 3141 passed 1 skipped, vitest 1825/1825, cargo 19 passed).
+- **Fix round 2** (base `b0f2b256`, head `1d6511c8`): a re-triage of the 3 keys round 1 left open merged `--no-ff` as
+  `fcbc38d9` (W1 statements-currency: `financial_statements` now carries the statement's reporting currency, so
+  SIFY's INR revenue is no longer read as USD), `3fac7312` (W2 leaked-call-tail: a rescued text-form tool call now
+  holds instead of leaking its trailing JSON fragment), `1d6511c8` (W3 overlay-cache: the repeat-run half of
+  `rc1-battery-4:1`). `pnpm ci-local` and smoke both passed twice at `1d6511c8` (pytest 3150 passed 1 skipped, vitest
+  1825/1825, cargo 19 passed). The first-brief half of `rc1-battery-4:1` was deferred to the operator
+  (`DECISIONS_FOR_OPERATOR.md` §4.1); `rc1-fix-r2-triage:1` (WIT revenue mislabelled USD) was left without a
+  disposition.
+- **The gate itself**, candidate `1d6511c8` (sheet `docs/redesign/verification/R15_GATE_RC1.md`, evidence
+  `docs/redesign/verification/r15/rc1/`): **FAIL, no tag.** Four of twelve items passed clean (Gate 8 no-trading-path,
+  Gate 8 tracked-portfolio, ci-local, smoke); GUI was an allowed deferral (9 needs_gui ids; the computer-use grant
+  doesn't cover the built app). Six items failed: the register criterion (5 open c/h/m — R15-AGENT-017,
+  R15-AGENT-049, R15-LEAD-028, R15-RELEASE-007, R15-UI-088 — plus R15-LEAD-010 fixed but certified nowhere); agent
+  scenarios (11 of 20 OpenRouter runs hit an upstream 5xx, one transcript was 0 bytes, two scenarios never completed
+  on either lane, and the SIFY ADR ratio still fabricated as "1:2"); owner-drives (a fresh screener replay found a
+  null-market-cap row ranking first in a market_cap-desc sort, filed as `rc1-verifier:15`); the fixed-id battery (160
+  of 376 fixed ids had no raw evidence output, with two shard sets empty and four absent); the fix loop
+  (`rc1-scenarios:5` and `rc1-fix-r2-triage:1` still open); and, the headline finding, **the adversarial sample: all
+  14 of 14 re-run certified entries were refuted at the sha** (R15-DATA-002/043/068/059, R15-RESEARCH-002/007,
+  R15-AGENT-003/019/027, R15-UI-090, R15-DOCS-017/018, R15-CODE-PLATFORM-013, R15-LEAD-010) — a 100% refutation rate
+  the gate verifier itself called suspect, and routed to an audit before any re-plan rather than re-litigating each
+  finding solo.
+- **Refutation audit** (HEAD `6741387b`; the workspace moved to `5a1c1a97` via docs-only commits mid-run, with the
+  audited product code unchanged, verified by `git diff --stat` between the two): all 4 auditor groups (agent, data,
+  research, surface) returned. Verdicts: `regression_confirmed` 1 (R15-DATA-059 — never actually fixed in the
+  ticker-resolve direction), `partial` 12 (each entry's own original repro still held, but the gate's adjacent claim
+  also reproduced, with a root-cause file:line and a fresh acceptance test recorded per entry — R15-DATA-002/043/068,
+  R15-RESEARCH-002/007, R15-LEAD-010, R15-AGENT-019/027, R15-UI-090, R15-DOCS-017/018, R15-CODE-PLATFORM-013),
+  `adjacent_finding` 1 (a new defect found alongside R15-AGENT-003's still-passing repro: a budget-halted Delegate
+  round still proposes its undispatched host actions to the proposed-changes gate, `run_manager.py:294-302`),
+  `verifier_error` 0, `not_reproducible` 0 — **13 reopened**. The audit's verdict on the gate verifier itself: "None.
+  Every verifier claim in this batch reproduced at HEAD." These 13 reopened entries, plus the ones the fix rounds and
+  the audit surfaced along the way (R15-DATA-112/113/114/115, R15-AGENT-090/092/093, R15-CODE-AGENT-033), are the
+  queue Stage C batches 12–17 above worked through.
+
 ## R15 Stage C — batch 11: build recipe and gates, runtime phases and schema versions, agent eval, registry and loop, reference data, option chain, preferences, contrast and portfolio risk (2026-09-25)
 
 **Scope:** 26 open entries (2 high, 24 medium) planned in `docs/redesign/verification/r15/stage-c/batch-11/PLAN.md`:
