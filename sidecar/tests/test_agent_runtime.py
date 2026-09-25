@@ -2566,3 +2566,147 @@ def test_a_price_volume_other_ratio_or_traced_ratio_streams_as_is(
     """R15-AGENT-090: money, a percent, a trade volume, a non-depositary ratio and
     a ratio a tool result carries are not replaced."""
     assert agent_runtime._guard_ratio_claims(sentence, [json.dumps(result)]) == sentence
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "American Depositary Shares each represent six underlying equity shares. ",
+        "Each ADR is equivalent to 2 shares of common stock. ",
+        "The ADR-to-share ratio is 1 ADR : 6 shares. ",
+        "1 ADR = 6 shares. ",
+        "One ADR is worth 10 shares of Sify. ",
+        "A single SIFY ADR gives you 2 shares. ",
+        "Holders get four SIFY shares for every depositary receipt they own. ",
+        "Converting 10 ADSs yields 60 equity shares. ",
+        "Sify's ADS program: 1 receipt, 3 underlying shares. ",
+    ],
+)
+def test_a_depositary_ratio_claim_is_replaced_whatever_its_wording(claim: str) -> None:
+    """R15-AGENT-090 batch 15: batches 13/14 recognised the claim by wording and
+    every fresh phrasing escaped. A claim is now any unmarked number in a
+    depositary sentence, so no wording is needed to catch it."""
+    result = json.dumps(_SIFY_FUNDAMENTALS)
+    assert (
+        agent_runtime._guard_ratio_claims(claim, [result]) == agent_runtime.RATIO_UNAVAILABLE + " "
+    )
+
+
+def test_a_claim_split_over_two_sentences_is_replaced() -> None:
+    """R15-AGENT-090 batch-14 live bar: 'For SIFY, one ordinary share represents
+    1 share.' followed a sentence naming the ADR. The depositary context extends
+    one sentence to a following one that speaks of shares with a count."""
+    text = "SIFY trades as an ADR on Nasdaq. For SIFY, one ordinary share represents 1 share. "
+    guarded = agent_runtime._guard_ratio_claims(text, [json.dumps(_SIFY_FUNDAMENTALS)])
+    assert guarded == f"SIFY trades as an ADR on Nasdaq. {agent_runtime.RATIO_UNAVAILABLE} "
+    # One hop only, and only a sentence about shares with a count.
+    kept = "SIFY trades as an ADR on Nasdaq. Volume was 40,000 shares. It has 3 segments. "
+    assert agent_runtime._guard_ratio_claims(kept, []) == kept
+
+
+@pytest.mark.asyncio
+async def test_the_depositary_context_survives_the_stream_chunking(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The split claim is released sentence by sentence; the context carries
+    from one release to the next."""
+    deltas = [
+        "SIFY trades as an ADR on Nasdaq. ",
+        "For SIFY, one ordinary share repre",
+        "sents 1 share. TTM rev",
+    ]
+    answer = await _scripted_answer(
+        monkeypatch, "fundamentals", _SIFY_FUNDAMENTALS, [*deltas, "enue was ₹4,651 cr."]
+    )
+    assert answer == (
+        f"SIFY trades as an ADR on Nasdaq. {agent_runtime.RATIO_UNAVAILABLE} "
+        "TTM revenue was ₹4,651 cr."
+    )
+
+
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "Each ADR closed at 5.20 USD on Friday. ",
+        "Each ADS's 52-week high was 12.4. ",
+        "SIFY's ADSs each gained 3 points in 2024. ",
+        "the ADR traded between 10 and 12 dollars. ",
+        "Each ADR closed at $12.50 on volume of 40,000 shares. ",
+        "The PE ratio is 22.4. ",
+        "Revenue represents 12% of the segment. ",
+        "SIFY filed its 2024 20-F in July. ",
+        "SIFY's ADR is one of the few Indian tech listings; it files an F-6 and 6-K reports. ",
+        "The ADS rose 4% in Q1 FY25, its 3rd gain in two months. ",
+        # batch-15 live (sify-3): a resolver disambiguation is not a ratio.
+        "There are two possible matches: SPIIY (SPIE SA/ADR) and SPIWF (SPIE SA/ADR). ",
+        "The ADR has 3 analyst ratings across 2 exchanges. ",
+    ],
+)
+def test_a_marked_number_beside_a_depositary_term_streams_as_is(sentence: str) -> None:
+    """R15-AGENT-090 batch 15: money, a decimal, a period, points, a year, a
+    percent, a form name, a fiscal tag and an idiom are excluded by their own
+    marker — 'each' beside an ADR no longer makes true prose a claim."""
+    assert agent_runtime._guard_ratio_claims(sentence, [json.dumps(_SIFY_FUNDAMENTALS)]) == sentence
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "Sify's ADS is backed by 5 of its equity shares. ",
+        "The ADS conversion stood at 6 as the depositary set it. ",
+    ],
+)
+def test_a_function_word_after_a_count_does_not_mark_it(claim: str) -> None:
+    """R15-AGENT-090 batch 15: the plural-noun marker read 'its' / 'as' / 'this'
+    as a counted noun, so '6 of its shares' escaped as 'a count of its'."""
+    result = json.dumps(_SIFY_FUNDAMENTALS)
+    assert (
+        agent_runtime._guard_ratio_claims(claim, [result]) == agent_runtime.RATIO_UNAVAILABLE + " "
+    )
+
+
+_SIFY_FUNDAMENTALS_WITH_DEPOSITARY = {
+    **_SIFY_FUNDAMENTALS,
+    "ads_ratio": {
+        "ordinary_shares_per_ads": 6,
+        "statement": "American Depositary Shares, each represented by Six Equity Shares",
+        "provenance": {"source": "SEC 20-F cover page", "filed": "2026-06-26", "url": "x"},
+    },
+}
+
+
+def test_a_sourced_count_must_sit_beside_the_depositary_term() -> None:
+    """A tool result is read in segments: the fundamentals share count next to
+    the ``ads_ratio`` block, and the filing date inside it, never source a
+    ratio claim of their own."""
+    result = json.dumps(_SIFY_FUNDAMENTALS_WITH_DEPOSITARY)
+    assert agent_runtime._sourced_counts(result) == {"6"}
+    for claim in ("Each ADS equals 144869230 ordinary shares. ", "1 ADR = 26 shares. "):
+        assert agent_runtime._guard_ratio_claims(claim, [result]) == (
+            agent_runtime.RATIO_UNAVAILABLE + " "
+        )
+
+
+@pytest.mark.parametrize(
+    ("sentence", "result"),
+    [
+        ("The ADR-to-share ratio is 1 ADR : 6 shares. ", {"text": "Each Repr 6 Ords"}),
+        (
+            "Each ADS represents six ordinary shares. ",
+            {"text": "Each American Depositary Share represents six (6) Ordinary Shares"},
+        ),
+        ("One SIFY ADS represents 6 equity shares. ", _SIFY_FUNDAMENTALS_WITH_DEPOSITARY),
+        ("1 ADR = 6 shares. ", _SIFY_FUNDAMENTALS_WITH_DEPOSITARY),
+    ],
+)
+def test_a_ratio_a_tool_result_carries_is_traced_and_kept(
+    sentence: str, result: dict[str, Any]
+) -> None:
+    """R15-AGENT-090: a ratio a tool result of the run carries — a listing title,
+    a filing sentence, or the ``depositary`` block the fundamentals tool reads
+    off the 20-F cover — streams as is; the same claims against the bare
+    fundamentals result are replaced."""
+    assert agent_runtime._guard_ratio_claims(sentence, [json.dumps(result)]) == sentence
+    assert agent_runtime._guard_ratio_claims(sentence, [json.dumps(_SIFY_FUNDAMENTALS)]) == (
+        agent_runtime.RATIO_UNAVAILABLE + " "
+    )

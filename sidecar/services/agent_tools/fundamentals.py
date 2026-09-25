@@ -160,6 +160,29 @@ async def _canonicalize(symbol: str) -> _Canonicalization:
     return _Canonicalization()
 
 
+async def _result(symbol: str, fundamentals: Any) -> dict[str, Any]:
+    """The ok result, with the depositary ratio of a foreign reporter
+    (``financial_currency`` set — an ADR such as SIFY) read off its 20-F cover
+    page (R15-AGENT-090). No result carried the ratio, so the model stated one;
+    now a stated ratio is traceable to ``ads_ratio.statement`` and the true
+    one reaches the model. Absent (never guessed) when no 20-F states it. It
+    leads the payload: the model-facing view is cut to a share of the context
+    window, and a dump with field_meta can outrun a small model's share."""
+    payload: dict[str, Any] = {"ok": True, **await _ads_ratio(symbol, fundamentals)}
+    payload["fundamentals"] = fundamentals.model_dump(by_alias=True, mode="json")
+    return payload
+
+
+async def _ads_ratio(symbol: str, fundamentals: Any) -> dict[str, Any]:
+    """``{"ads_ratio": ...}`` for a foreign reporter whose 20-F states one, else ``{}``."""
+    if not getattr(fundamentals, "financial_currency", None):
+        return {}
+    from services import adr_ratio
+
+    ratio = await adr_ratio.lookup(symbol)
+    return {} if ratio is None else {"ads_ratio": ratio}
+
+
 async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
     """Return valuation ratios + a company profile for ``symbol``.
 
@@ -198,10 +221,7 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
         failed = await _fetch_once(symbol)
         if failed.error is None:
             assert failed.fundamentals is not None
-            return {
-                "ok": True,
-                "fundamentals": failed.fundamentals.model_dump(by_alias=True, mode="json"),
-            }
+            return await _result(symbol, failed.fundamentals)
         if attempt == 0:
             await asyncio.sleep(_RETRY_BACKOFF_SECS)
 
@@ -214,8 +234,7 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
         if corrected.error is None:
             assert corrected.fundamentals is not None
             return {
-                "ok": True,
-                "fundamentals": corrected.fundamentals.model_dump(by_alias=True, mode="json"),
+                **await _result(canonicalization.canonical_symbol, corrected.fundamentals),
                 "note": canonicalization.note,
             }
         failed = corrected
@@ -237,17 +256,19 @@ _STATEMENT_FETCHERS = {
 }
 
 
-async def _statement_currency(symbol: str) -> str | None:
-    """The currency the statements are reported in: ``financial_currency``
-    (an ADR such as SIFY reports in INR), else the trading ``currency``.
-    ``None`` when the lookup fails — never a guessed code."""
+async def _statement_context(symbol: str) -> tuple[str | None, dict[str, Any]]:
+    """The currency the statements are reported in — ``financial_currency``
+    (an ADR such as SIFY reports in INR), else the trading ``currency``, ``None``
+    when the lookup fails, never a guessed code — and the ``ads_ratio`` entry
+    a foreign reporter's statement carries (R15-AGENT-090: the model reaches
+    for this tool on a revenue question and states the ratio beside it)."""
     from services import provider_registry
 
     try:
         fund = await provider_registry.get_fundamentals(symbol)
     except Exception:  # noqa: BLE001 — the statement still ships, currency unknown
-        return None
-    return fund.financial_currency or fund.currency
+        return None, {}
+    return fund.financial_currency or fund.currency, await _ads_ratio(symbol, fund)
 
 
 async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
@@ -276,8 +297,8 @@ async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
 
     fetch = getattr(provider_registry, _STATEMENT_FETCHERS[statement])
     try:
-        result, currency = await asyncio.gather(
-            fetch(symbol, period=period), _statement_currency(symbol)
+        result, (currency, ads_ratio) = await asyncio.gather(
+            fetch(symbol, period=period), _statement_context(symbol)
         )
     except ProviderError as exc:
         return {
@@ -291,6 +312,7 @@ async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
     periods = sorted(result.periods, reverse=True)[:_MAX_STATEMENT_PERIODS]
     return {
         "ok": True,
+        **ads_ratio,
         "symbol": result.symbol,
         "statement": statement,
         "period": period,
