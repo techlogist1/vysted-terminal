@@ -160,6 +160,25 @@ async def _canonicalize(symbol: str) -> _Canonicalization:
     return _Canonicalization()
 
 
+async def _result(symbol: str, fundamentals: Any) -> dict[str, Any]:
+    """The ok result, with the depositary ratio of a foreign reporter
+    (``financial_currency`` set — an ADR such as SIFY) read off its 20-F cover
+    page (R15-AGENT-090). No result carried the ratio, so the model stated one;
+    now a stated ratio is traceable to ``ads_ratio.statement`` and the true
+    one reaches the model. Absent (never guessed) when no 20-F states it."""
+    payload: dict[str, Any] = {
+        "ok": True,
+        "fundamentals": fundamentals.model_dump(by_alias=True, mode="json"),
+    }
+    if getattr(fundamentals, "financial_currency", None):
+        from services import adr_ratio
+
+        ratio = await adr_ratio.lookup(symbol)
+        if ratio is not None:
+            payload["ads_ratio"] = ratio
+    return payload
+
+
 async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
     """Return valuation ratios + a company profile for ``symbol``.
 
@@ -198,10 +217,7 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
         failed = await _fetch_once(symbol)
         if failed.error is None:
             assert failed.fundamentals is not None
-            return {
-                "ok": True,
-                "fundamentals": failed.fundamentals.model_dump(by_alias=True, mode="json"),
-            }
+            return await _result(symbol, failed.fundamentals)
         if attempt == 0:
             await asyncio.sleep(_RETRY_BACKOFF_SECS)
 
@@ -214,8 +230,7 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
         if corrected.error is None:
             assert corrected.fundamentals is not None
             return {
-                "ok": True,
-                "fundamentals": corrected.fundamentals.model_dump(by_alias=True, mode="json"),
+                **await _result(canonicalization.canonical_symbol, corrected.fundamentals),
                 "note": canonicalization.note,
             }
         failed = corrected
