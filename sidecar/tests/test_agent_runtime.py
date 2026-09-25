@@ -3042,7 +3042,7 @@ _INFY_HISTORY = [
     ("tool", "result", "deltas", "history"),
     [
         ("price_data", {"ok": True, "close": 1000.2}, _INFY_LIST, None),
-        ("price_data", _PRICE_ARGS_ERROR, _INFY_LIST, _INFY_HISTORY),
+        (None, {}, _INFY_LIST, _INFY_HISTORY),
         (None, {}, _INFY_LIST, None),
         (
             "price_data",
@@ -3067,10 +3067,13 @@ async def test_a_result_list_with_a_source_or_no_result_shape_streams(
     history: list[dict[str, str]] | None,
 ) -> None:
     """R15-LEAD-030 batch-19 controls: the same result list streams as is when
-    price_data returned ok, when an earlier turn's trailer seeds it, or when
-    no tool ran at all; a figure-less list, a user's own figure (one the user
-    wrote: batch-20 judges figures by provenance) or a markdown link's bracket
-    after an errored call is no result, and streams too."""
+    price_data returned ok, when an earlier turn's trailer seeds it and no
+    call of this turn unseated it, or when no tool ran at all; a figure-less
+    list, a user's own figure (one the user wrote: batch-20 judges figures by
+    provenance) or a markdown link's bracket after an errored call is no
+    result, and streams too. (batch-20: the seeded list after an errored
+    price_data call of THIS turn is pinned as replaced below — the live bar
+    streamed INFY.NS ₹1,042.30 that way against a prior turn's 1,000.20.)"""
     prompt = "I bought SIFY at ₹1,500. ADR ratio?"
     got = await _scripted_answer(monkeypatch, tool, result, deltas, history, prompt=prompt)
     assert got == "".join(deltas)
@@ -3578,3 +3581,35 @@ async def test_a_replaced_fenced_block_leaves_no_fence_markers(
     got = await _scripted_answer(monkeypatch, _TATA_ERR, {}, deltas, inputs=_TATA_IN)
     assert got == f"{_FUND_NOTE_CAP}.\n\nLet me know if you need more."
     assert "```" not in got
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("deltas", "answer"),
+    [
+        (  # batch-19 control, turned: the trailer seeds price_data, this turn's call errors
+            _INFY_LIST,
+            f"{_PRICE_NOTE}\n\n{_INFY_CLOSER}",
+        ),
+        (  # batch-20 live f-infy-tcs-t2 as streamed: plain "SYMBOL: price" lines, no bullets
+            [
+                "I'll call `price_data` again with the required symbol argument.\n\n",
+                "Here are the latest prices:\nINFY.NS: ₹1,042.30\nTCS.NS: ₹3,444.15",
+            ],
+            f"I'll call `price_data` again with the required symbol argument.\n\n{_PRICE_NOTE}\n",
+        ),
+    ],
+)
+async def test_an_errored_call_unseats_a_history_seeded_tool(
+    monkeypatch: pytest.MonkeyPatch, deltas: list[str], answer: str
+) -> None:
+    """R15-LEAD-030 batch-20 live f-infy-tcs-t2: the prior turn's trailer
+    ("[tool steps: Using price data]") seeded price_data as ok, this turn's
+    price_data call errored, and llama3.1:8b listed INFY.NS ₹1,042.30 against
+    the prior turn's ₹1,000.20. Last turn's result is not this turn's: a tool
+    that errored this turn and returned nothing ok this turn is not ok, so
+    the list is judged all-errored and replaced."""
+    got = await _scripted_answer(
+        monkeypatch, "price_data", _PRICE_ARGS_ERROR, deltas, _INFY_HISTORY
+    )
+    assert got == answer

@@ -2524,6 +2524,9 @@ class _TurnState:
     # cited_tools: a sentence citing any other tool's result is replaced
     # (R15-LEAD-030).
     ok_tools: set[str] = field(default_factory=set)
+    # Of those, the ones that returned ok THIS turn: an errored call unseats a
+    # tool the history seeded, since last turn's result is not this turn's.
+    ok_this_turn: set[str] = field(default_factory=set)
     # The tools whose result was not ok this turn: a result block no tool is
     # named for, while none returned ok, is replaced naming them (R15-LEAD-030).
     errored_tools: set[str] = field(default_factory=set)
@@ -3044,9 +3047,12 @@ async def _dispatch_round(
         outcome = _tool_result_event(tool_call, result_str)
         if outcome.ok:
             turn.ok_tools.add(tool_call.name)
+            turn.ok_this_turn.add(tool_call.name)
             turn.ok_subjects |= figure_grounding.subjects(tool_call.input)
         else:
             turn.errored_tools.add(tool_call.name)
+            if tool_call.name not in turn.ok_this_turn:
+                turn.ok_tools.discard(tool_call.name)
             for subject in figure_grounding.subjects(tool_call.input):
                 turn.errored_subjects.setdefault(subject, tool_call.name)
         yield outcome
