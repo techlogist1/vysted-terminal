@@ -237,6 +237,14 @@ function SourceTypeBadge({ type }: { type: BriefSourceType }) {
   );
 }
 
+/** Structured-provenance legs (`vysted://price|fundamentals|news/...`) are
+ *  synthetic citations into the metric grid, never a real external page —
+ *  they must never render as a clickable link or trigger a favicon lookup
+ *  for a scheme the browser can't resolve (R15-UI-080). */
+function isInternalProvenance(source: BriefSource): boolean {
+  return source.url.startsWith("vysted://");
+}
+
 function SourceRow({
   index,
   source,
@@ -248,6 +256,7 @@ function SourceRow({
 }) {
   const domain = domainOf(source);
   const sourceType = deriveSourceType(source);
+  const isInternal = isInternalProvenance(source);
   return (
     <li
       ref={(el) => registerRef(index, el)}
@@ -257,22 +266,41 @@ function SourceRow({
       <span className="text-charcoal-500 text-micro w-4 shrink-0 pt-0.5 text-right font-mono">
         {index}
       </span>
-      <FaviconDot domain={domain} />
+      {isInternal ? (
+        <span aria-hidden="true" className="bg-charcoal-600 mt-1 size-3 shrink-0 rounded-full" />
+      ) : (
+        <FaviconDot domain={domain} />
+      )}
       <div className="flex min-w-0 flex-col gap-1">
-        <a
-          href={source.url}
-          target="_blank"
-          rel="noreferrer"
-          className="text-charcoal-100 group text-caption hover:text-charcoal-100 inline-flex items-start gap-1 leading-snug transition-colors"
-        >
-          <span className="min-w-0">{source.title || source.url}</span>
-          <ExternalLink className="text-charcoal-500 group-hover:text-charcoal-100 mt-0.5 size-3 shrink-0" />
-        </a>
+        {isInternal ? (
+          <span className="text-charcoal-100 text-caption inline-flex items-start gap-1 leading-snug">
+            <span className="min-w-0">{source.title || source.url}</span>
+          </span>
+        ) : (
+          <a
+            href={source.url}
+            target="_blank"
+            rel="noreferrer"
+            className="text-charcoal-100 group text-caption hover:text-charcoal-100 inline-flex items-start gap-1 leading-snug transition-colors"
+          >
+            <span className="min-w-0">{source.title || source.url}</span>
+            <ExternalLink className="text-charcoal-500 group-hover:text-charcoal-100 mt-0.5 size-3 shrink-0" />
+          </a>
+        )}
         <div className="flex flex-wrap items-center gap-2">
           <SourceTypeBadge type={sourceType} />
-          <span className="text-charcoal-500 bg-charcoal-850 rounded-control text-micro max-w-full truncate px-1 py-px font-mono">
-            {domain}
-          </span>
+          {isInternal ? (
+            <span
+              data-testid="source-provenance-chip"
+              className="text-charcoal-400 bg-charcoal-850 rounded-control text-micro max-w-full truncate px-1 py-px font-mono"
+            >
+              {source.provider ?? domain}
+            </span>
+          ) : (
+            <span className="text-charcoal-500 bg-charcoal-850 rounded-control text-micro max-w-full truncate px-1 py-px font-mono">
+              {domain}
+            </span>
+          )}
           {source.publishedAt ? (
             <time
               dateTime={source.publishedAt}
