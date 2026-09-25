@@ -44,6 +44,7 @@ import {
   CHART_SURFACE,
   CHART_TEXT,
 } from "@/lib/chart-theme";
+import { yieldCurveDateDefaults } from "@/lib/date-defaults";
 import { useQuantStore } from "@/store/quant";
 
 import type {
@@ -77,8 +78,6 @@ const DEFAULT_INSTRUMENTS: YieldCurveInstrument[] = [
   { type: "swap", tenor: 10, tenor_unit: "years", rate: 0.05 },
   { type: "swap", tenor: 30, tenor_unit: "years", rate: 0.052 },
 ];
-
-const DEFAULT_VALUATION_DATE = "2026-05-16";
 
 /** Shared classes for the dense instrument-grid controls — 32px ladder,
  *  text-body, inset fill (the rail is narrow, so padding drops to 8px). */
@@ -138,7 +137,7 @@ export function YieldCurvePanel() {
   const error = useQuantStore((s) => s.yieldCurveError);
   const bootstrap = useQuantStore((s) => s.bootstrapYieldCurve);
 
-  const [valuationDate, setValuationDate] = useState(DEFAULT_VALUATION_DATE);
+  const [valuationDate, setValuationDate] = useState(() => yieldCurveDateDefaults().valuationDate);
   const [instruments, setInstruments] = useState<YieldCurveInstrument[]>(DEFAULT_INSTRUMENTS);
   const [sampleCount, setSampleCount] = useState("30");
 
@@ -154,6 +153,7 @@ export function YieldCurvePanel() {
     if (sampleCount.trim() === "" || !Number.isInteger(samples) || samples < 3 || samples > 200) {
       return "Sample points must be a whole number from 3 to 200.";
     }
+    const pillarFirstSeenAt = new Map<string, number>();
     for (const [idx, row] of instruments.entries()) {
       if (!Number.isFinite(row.tenor) || row.tenor < 1) {
         return `Instrument ${idx + 1}: tenor must be ≥ 1.`;
@@ -161,6 +161,15 @@ export function YieldCurvePanel() {
       if (!Number.isFinite(row.rate) || row.rate <= 0) {
         return `Instrument ${idx + 1}: rate must be positive.`;
       }
+      // The bootstrap needs one pillar (maturity date) per instrument —
+      // two rows at the same tenor collide into a QuantLib RuntimeError
+      // server-side (R15-UI-077).
+      const pillar = `${row.tenor}-${row.tenor_unit}`;
+      const firstIdx = pillarFirstSeenAt.get(pillar);
+      if (firstIdx !== undefined) {
+        return `Instruments ${firstIdx + 1} and ${idx + 1} share the same pillar (${row.tenor} ${row.tenor_unit}) — use a distinct tenor for each.`;
+      }
+      pillarFirstSeenAt.set(pillar, idx);
     }
     return null;
   }, [valuationDate, sampleCount, instruments]);
