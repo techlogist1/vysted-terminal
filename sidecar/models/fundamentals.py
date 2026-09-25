@@ -5,6 +5,7 @@ Mirrored by hand in ``types/data.ts`` — keep in sync (see CLAUDE.md Gotchas).
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -242,6 +243,9 @@ class AnalystRating(BaseModel):
     sell: int = Field(default=0, ge=0)
     strong_sell: int = Field(default=0, ge=0)
     provider: str
+    # When this envelope was fetched upstream (a cache hit keeps the fetch
+    # time, not the read time) — R15-DATA-068.
+    as_of: datetime | None = None
 
 
 class UnverifiedClaim(BaseModel):

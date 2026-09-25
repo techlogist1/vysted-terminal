@@ -207,6 +207,37 @@ def test_us_quote_in_an_in_session_reads_the_us_calendar(
     assert client.get("/quotes/RELIANCE", headers=headers).json()["freshness"] == "live"
 
 
+@pytest.mark.parametrize("index_symbol", ["%5ENSEI", "%5EBSESN"])
+@pytest.mark.parametrize("region_header", ["IN", "US"])
+def test_indian_index_reads_the_nse_calendar_regardless_of_session_region(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    index_symbol: str,
+    region_header: str,
+) -> None:
+    """R15-UI-090: an Indian caret index (served by yfinance) is dated against
+    the NSE calendar, not the session region — live during NSE hours whether
+    the active session region is IN or US."""
+    from services import provider_registry
+
+    _freeze_locale_clock(monkeypatch, _NSE_HOURS)
+
+    def quote(symbol: str, asset_class: str = "equity") -> Quote:  # noqa: ARG001
+        return Quote(
+            symbol=symbol,
+            price=100.0,
+            change=0.0,
+            change_percent=0.0,
+            timestamp=_NSE_HOURS,
+            provider="yfinance",
+        )
+
+    monkeypatch.setattr(provider_registry, "get_quote", quote)
+    headers = {"X-Vysted-Region": region_header}
+    body = client.get(f"/quotes/{index_symbol}", headers=headers).json()
+    assert body["freshness"] == "live"
+
+
 def test_a_crypto_pair_routes_through_the_quote_path(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:

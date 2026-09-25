@@ -172,6 +172,15 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
     "no brokerage connection: you cannot place, stage or simulate trades. If "
     "the user asks to buy or sell, say so plainly and offer to research it or "
     "to track the holding in their local portfolio (portfolio_add_position).\n"
+    # R15-AGENT-090: a fact no tool can return (an ADR ratio) was stated and
+    # cited to "fundamentals data". ponytail: prompt rule only; no deterministic
+    # guard fits, since telling a sourced figure from an invented one in free
+    # text needs claim-to-result matching, add it with a claim extractor.
+    "Unavailable facts: a figure, ratio, date or other specific fact that no "
+    "tool result you received contains is UNAVAILABLE. Say plainly that the "
+    "terminal's data does not include it, never state a value for it, and never "
+    "attribute it to a tool, a data feed or any source (e.g. an ADR ratio when "
+    "no result carries one).\n"
     "Stay consistent across turns: when a figure you are about to state "
     "materially contradicts a PRIOR STATED VALUE listed in the terminal context "
     "(the same symbol + metric you stated earlier this session), do NOT silently "
@@ -819,9 +828,21 @@ async def _dispatch_tool(
         return str(payload)
 
 
-#: Schema container types a small model often sends as a JSON *string*
-#: (R15-AGENT-024: ``criteria: "[{...}]"``), mapped to the parsed Python type.
-_JSON_CONTAINER_TYPES: dict[str, type] = {"array": list, "object": dict}
+#: Schema types a small model often sends as a JSON *string* (R15-AGENT-024:
+#: ``criteria: "[{...}]"``; R15-AGENT-093: ``max_strikes: "10"``), mapped to
+#: the exact Python types the parsed string may have. bool is not an int here.
+_JSON_STRING_TYPES: dict[str, tuple[type, ...]] = {
+    "array": (list,),
+    "object": (dict,),
+    "integer": (int,),
+    "number": (int, float),
+    "boolean": (bool,),
+}
+
+
+def _reject_json_constant(name: str) -> float:
+    """``json.loads`` hook: ``"NaN"``/``"Infinity"`` are not numbers a tool takes."""
+    raise ValueError(name)
 
 
 def _normalise_tool_args(event: LLMToolUseEvent) -> None:
@@ -836,7 +857,9 @@ def _normalise_tool_args(event: LLMToolUseEvent) -> None:
       missing field rather than a type error;
     - an ``array``/``object`` param sent as a JSON string is parsed, kept only
       when the parsed type matches (R15-AGENT-024: local 8B models send
-      ``write_screener_filters.criteria`` as a string and the host drops it);
+      ``write_screener_filters.criteria`` as a string and the host drops it),
+      and so is an ``integer``/``number``/``boolean`` param sent as an exact
+      JSON literal string (R15-AGENT-093: ``max_strikes: "10"``);
     - the args are validated against the catalog ``input_schema``; on failure
       the input is replaced by :data:`INVALID_ARGS_SENTINEL` with a
       model-readable reason, which ``_dispatch_tool`` returns as
@@ -854,15 +877,13 @@ def _normalise_tool_args(event: LLMToolUseEvent) -> None:
     properties = cap.input_schema.get("properties") or {}
     for key, value in args.items():
         expected = (properties.get(key) or {}).get("type")
-        if expected not in _JSON_CONTAINER_TYPES or not isinstance(value, str):
-            continue
-        if value.lstrip()[:1] not in ("[", "{"):
+        if expected not in _JSON_STRING_TYPES or not isinstance(value, str):
             continue
         try:
-            parsed = json.loads(value)
+            parsed = json.loads(value, parse_constant=_reject_json_constant)
         except ValueError:
             continue
-        if isinstance(parsed, _JSON_CONTAINER_TYPES[expected]):
+        if type(parsed) in _JSON_STRING_TYPES[expected]:
             args[key] = parsed
     validator_cls = jsonschema.validators.validator_for(cap.input_schema)
     error = jsonschema.exceptions.best_match(validator_cls(cap.input_schema).iter_errors(args))

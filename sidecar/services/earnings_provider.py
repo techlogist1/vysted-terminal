@@ -98,6 +98,16 @@ def _num(value: Any) -> float | None:
     return out
 
 
+def _revenue_currency(payload: dict[str, Any]) -> str:
+    """Yahoo reports statement-size revenue fields in the filer's reporting
+    currency (``financialCurrency``), which for a foreign reporter (WIT: ADS
+    trades in USD, reports in INR) differs from the trading ``currency`` every
+    other money field on the payload carries. Falls back to ``currency`` when
+    ``financialCurrency`` is absent — never a bare 'USD' default hiding a
+    missing field (R15-DATA-113)."""
+    return str(payload.get("financial_currency") or payload.get("currency") or "USD")
+
+
 def _analyst_count(frame: Any) -> int | None:
     """The current-quarter ``numberOfAnalysts`` of a yfinance estimate frame
     (``earnings_estimate`` / ``revenue_estimate``), or ``None`` when absent —
@@ -166,6 +176,7 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
         "earnings_estimate": est_frame,
         "revenue_estimate": rev_frame,
         "currency": info.get("currency") or "USD",
+        "financial_currency": info.get("financialCurrency"),
         "name": info.get("longName") or info.get("shortName"),
     }
 
@@ -197,6 +208,7 @@ def _fetch_history_sync(symbol: str) -> dict[str, Any]:
         "history": history,
         "earnings_dates": earnings_dates,
         "currency": info.get("currency") or "USD",
+        "financial_currency": info.get("financialCurrency"),
     }
 
 
@@ -403,6 +415,7 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
     normalized = payload["symbol"]
     history_frame = payload.get("history")
     currency = str(payload.get("currency") or "USD")
+    revenue_currency = _revenue_currency(payload)
     announcement_dates = _extract_announcement_dates(payload.get("earnings_dates"))
     entries: list[EarningsHistoryEntry] = []
     if isinstance(history_frame, pd.DataFrame) and not history_frame.empty:
@@ -423,6 +436,7 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
                     revenue_actual=_num(row.get("revenueActual")),
                     revenue_estimate_mean=_num(row.get("revenueEstimate")),
                     currency=currency,
+                    revenue_currency=revenue_currency,
                 )
             )
     entries.sort(key=lambda entry: entry.period_end, reverse=True)
@@ -459,6 +473,7 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
                 revenue_estimate_mean=revenue_estimate,
                 revenue_surprise_pct=revenue_pct,
                 currency=entry.currency,
+                revenue_currency=entry.revenue_currency,
                 provider=PROVIDER,
             )
         )
@@ -503,6 +518,7 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
         revenue_estimate_low=rev_low,
         revenue_analyst_count=_analyst_count(payload.get("revenue_estimate")),
         currency=str(payload.get("currency") or "USD"),
+        revenue_currency=_revenue_currency(payload),
         provider=PROVIDER,
         as_of=datetime.now(tz=UTC),
     )

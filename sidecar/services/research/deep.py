@@ -345,20 +345,41 @@ def finalize_markdown(
     return web_only_floor_note(markdown, structured=structured, findings=findings)
 
 
+#: A leading list marker ("1." "1)") to skip before the verdict word.
+_LEADING_LIST_MARKER_RE = re.compile(r"^\d+[.)]$")
+
+#: A leading "Label:" word ("Verdict:", "Answer:") to skip before the verdict
+#: word, tolerating markdown emphasis around the colon ("**Verdict:**"). A
+#: closed set: a verdict word followed by a colon ("Unverified: ...",
+#: "COMPLETE: ...") is the verdict itself and must never be skipped.
+_LEADING_LABEL_WORDS = frozenset(
+    {"VERDICT:", "ANSWER:", "STATUS:", "RESULT:", "ASSESSMENT:", "CONCLUSION:", "RESPONSE:"}
+)
+
+
 def leading_token(text: str) -> str:
     """The first word of an LLM reply's first non-empty line, upper-cased.
 
-    Markdown emphasis and list/label punctuation (``*``, ``:``, ``-``, ``#``)
-    around the word are stripped, so ``**UNVERIFIED** - ...`` and
-    ``COMPLETE: ...`` both read as their verdict word. The ONE reader for every
-    prompt that mandates a leading verdict token (cross-check verdicts, reflect
-    COMPLETE/GAPS) — a whole-reply substring scan reads a reason's wording
-    ("no source confirms", "not covered") as the verdict.
+    Markdown emphasis and list/label punctuation (``*``, ``:``, ``-``, ``#``,
+    ``[``, ``]``) around the word are stripped, so ``**UNVERIFIED** - ...``,
+    ``[UNVERIFIED] ...`` and ``COMPLETE: ...`` all read as their verdict word.
+    A leading list marker (``1.``) or a leading "Label:" word (``Verdict:``,
+    ``Answer:``) is skipped so the actual verdict/status word after it decides.
+    The ONE reader for every prompt that mandates a leading verdict token
+    (cross-check verdicts, reflect COMPLETE/GAPS) — a whole-reply substring
+    scan reads a reason's wording ("no source confirms", "not covered") as the
+    verdict.
     """
     for line in text.splitlines():
         words = line.strip().strip("*:-#> ").split()
+        while words:
+            bare = words[0].strip("*")
+            if _LEADING_LIST_MARKER_RE.fullmatch(bare) or bare.upper() in _LEADING_LABEL_WORDS:
+                words = words[1:]
+                continue
+            break
         if words:
-            return words[0].strip("*:-#.,;!").upper()
+            return words[0].strip("*:-#.,;!\"'[]").upper()
     return ""
 
 

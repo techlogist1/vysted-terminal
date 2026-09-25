@@ -365,6 +365,8 @@ export interface AnalystRating {
   sell: number;
   strong_sell: number;
   provider: string;
+  /** When this envelope was fetched upstream (a cache hit keeps the fetch time). */
+  as_of?: string | null;
 }
 
 // --- news -----------------------------------------------------------------

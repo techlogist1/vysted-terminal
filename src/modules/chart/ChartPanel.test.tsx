@@ -115,6 +115,7 @@ vi.mock("./api", () => ({
   fetchIndicators: (...args: unknown[]) => fetchIndicatorsMock(...args),
 }));
 
+import { resetChartCommandStoreForTests, useChartCommandStore } from "@/store/chart-command";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useChartSyncBus } from "@/store/chart-sync";
 import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
@@ -216,13 +217,14 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  resetChartCommandStoreForTests();
 });
 
 describe("ChartPanel", () => {
   it("loads SPY at the 1d timeframe by default", async () => {
     render(<ChartPanel />);
     await waitFor(() => {
-      expect(historyMock).toHaveBeenCalledWith("SPY", "1d", undefined, "equity");
+      expect(historyMock).toHaveBeenCalledWith("SPY", "1d", undefined, "equity", undefined);
     });
     expect(await screen.findByText(/via yfinance/)).toBeInTheDocument();
   });
@@ -242,6 +244,7 @@ describe("ChartPanel", () => {
         expect.arrayContaining(["ema:9", "ema:21", "vwap", "rsi"]),
         "1d",
         "equity",
+        undefined,
       );
     });
   });
@@ -257,7 +260,7 @@ describe("ChartPanel", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "1h", pressed: false }));
     await waitFor(() => {
-      expect(historyMock).toHaveBeenCalledWith("SPY", "1h", undefined, "equity");
+      expect(historyMock).toHaveBeenCalledWith("SPY", "1h", undefined, "equity", undefined);
     });
     // The touched chart's timeframe change never re-fetches the suggested set.
     expect(suggestedIndicatorsMock).not.toHaveBeenCalled();
@@ -279,7 +282,7 @@ describe("ChartPanel", () => {
     historyMock.mockResolvedValue(makeSeries("TCS.NS"));
     render(<ChartPanel />);
     await waitFor(() => {
-      expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1h", undefined, "equity");
+      expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1h", undefined, "equity", undefined);
     });
   });
 
@@ -295,7 +298,13 @@ describe("ChartPanel", () => {
     });
     render(<ChartPanel api={{ id: "chart-A" }} />);
     await waitFor(() => {
-      expect(historyMock).toHaveBeenCalledWith("RELIANCE.NS", "1wk", undefined, "equity");
+      expect(historyMock).toHaveBeenCalledWith(
+        "RELIANCE.NS",
+        "1wk",
+        undefined,
+        "equity",
+        undefined,
+      );
     });
   });
 
@@ -316,6 +325,25 @@ describe("ChartPanel", () => {
     expect(fetchIndicatorsMock).not.toHaveBeenCalled();
   });
 
+  it("a host command's picked region rides the chart's history and indicator calls (R15-DATA-002)", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    openIndicators();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Relative Strength Index", pressed: false }),
+    );
+
+    historyMock.mockResolvedValue(makeSeries("AMAL"));
+    act(() => useChartCommandStore.getState().loadSymbol("AMAL", undefined, "US"));
+
+    await waitFor(() => {
+      expect(historyMock).toHaveBeenCalledWith("AMAL", "1d", undefined, "equity", "US");
+    });
+    await waitFor(() => {
+      expect(fetchIndicatorsMock).toHaveBeenCalledWith("AMAL", ["rsi"], "1d", "equity", "US");
+    });
+  });
+
   it("fetches an indicator server-side when toggled on in the popover", async () => {
     render(<ChartPanel />);
     await waitFor(() => expect(historyMock).toHaveBeenCalled());
@@ -326,7 +354,7 @@ describe("ChartPanel", () => {
     );
 
     await waitFor(() => {
-      expect(fetchIndicatorsMock).toHaveBeenCalledWith("SPY", ["rsi"], "1d", "equity");
+      expect(fetchIndicatorsMock).toHaveBeenCalledWith("SPY", ["rsi"], "1d", "equity", undefined);
     });
     // The popover stays open for multi-select; the row reflects the toggle.
     expect(
@@ -344,8 +372,8 @@ describe("ChartPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "1h", pressed: false }));
 
     await waitFor(() => {
-      expect(historyMock).toHaveBeenCalledWith("SPY", "1h", undefined, "equity");
-      expect(fetchIndicatorsMock).toHaveBeenCalledWith("SPY", ["rsi"], "1h", "equity");
+      expect(historyMock).toHaveBeenCalledWith("SPY", "1h", undefined, "equity", undefined);
+      expect(fetchIndicatorsMock).toHaveBeenCalledWith("SPY", ["rsi"], "1h", "equity", undefined);
     });
   });
 
@@ -358,7 +386,7 @@ describe("ChartPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Load" }));
 
     await waitFor(() => {
-      expect(historyMock).toHaveBeenCalledWith("NVDA", "1d", undefined, "equity");
+      expect(historyMock).toHaveBeenCalledWith("NVDA", "1d", undefined, "equity", undefined);
     });
   });
 
@@ -370,7 +398,7 @@ describe("ChartPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Load" }));
 
     await waitFor(() => {
-      expect(historyMock).toHaveBeenCalledWith("BTC/USDT", "1d", undefined, "crypto");
+      expect(historyMock).toHaveBeenCalledWith("BTC/USDT", "1d", undefined, "crypto", undefined);
     });
   });
 
@@ -421,12 +449,18 @@ describe("ChartPanel", () => {
     fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "TCS.NS" } });
     fireEvent.click(screen.getByRole("button", { name: "Load" }));
     await waitFor(() =>
-      expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1d", undefined, "equity"),
+      expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1d", undefined, "equity", undefined),
     );
 
     toggleIndicatorByName("Relative Strength Index");
     await waitFor(() =>
-      expect(fetchIndicatorsMock).toHaveBeenCalledWith("TCS.NS", ["rsi"], "1d", "equity"),
+      expect(fetchIndicatorsMock).toHaveBeenCalledWith(
+        "TCS.NS",
+        ["rsi"],
+        "1d",
+        "equity",
+        undefined,
+      ),
     );
     await Promise.resolve();
     expect(chartApi.addSeries.mock.calls.filter(([type]) => type === "Line")).toHaveLength(0);
@@ -515,7 +549,13 @@ describe("ChartPanel", () => {
     fireEvent.keyDown(document, { key: "Escape" });
 
     await waitFor(() => {
-      expect(fetchIndicatorsMock).toHaveBeenCalledWith("SPY", ["macd", "rsi"], "1d", "equity");
+      expect(fetchIndicatorsMock).toHaveBeenCalledWith(
+        "SPY",
+        ["macd", "rsi"],
+        "1d",
+        "equity",
+        undefined,
+      );
     });
     const chipRow = screen.getByTestId("indicator-chip-row");
     expect(chipRow).toHaveTextContent("RSI");
@@ -524,7 +564,7 @@ describe("ChartPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Remove RSI" }));
 
     await waitFor(() => {
-      expect(fetchIndicatorsMock).toHaveBeenCalledWith("SPY", ["macd"], "1d", "equity");
+      expect(fetchIndicatorsMock).toHaveBeenCalledWith("SPY", ["macd"], "1d", "equity", undefined);
     });
     expect(screen.queryByRole("button", { name: "Remove RSI" })).toBeNull();
   });
@@ -913,7 +953,7 @@ describe("ChartPanel", () => {
     render(<ChartPanel api={{ id: "chart-A" }} />);
 
     await waitFor(() =>
-      expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1wk", undefined, "equity"),
+      expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1wk", undefined, "equity", undefined),
     );
     expect(screen.queryByRole("button", { name: "Select horizontal-line" })).toBeNull();
 
@@ -1134,7 +1174,7 @@ describe("ChartPanel", () => {
     fireEvent.change(screen.getAllByLabelText("Symbol")[1]!, { target: { value: "INFY" } });
     fireEvent.click(screen.getAllByRole("button", { name: "Load" })[1]!);
     await waitFor(() =>
-      expect(historyMock).toHaveBeenCalledWith("INFY", "1d", undefined, "equity"),
+      expect(historyMock).toHaveBeenCalledWith("INFY", "1d", undefined, "equity", undefined),
     );
     // PanelHost focuses the dockview id.
     usePanelContextBus.getState().setFocusedSource("chart-2");

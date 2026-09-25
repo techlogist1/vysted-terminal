@@ -261,7 +261,9 @@ def test_filing_sections_route(
 ) -> None:
     sections = [_sample_section(i) for i in range(1, 4)]
 
-    async def _fake(accession: str, *, cik_or_symbol: str | None = None) -> list[FilingSection]:
+    async def _fake(
+        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
+    ) -> list[FilingSection]:
         return sections
 
     monkeypatch.setattr(sec_filings_provider, "get_filing_sections", _fake)
@@ -272,6 +274,29 @@ def test_filing_sections_route(
     body = response.json()
     assert "sections" in body
     assert len(body["sections"]) == 3
+
+
+def test_filing_sections_route_forwards_form_type(
+    client: TestClient,
+    available_provider: None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-010: /sections is a lookup hint too, same as /filings/{accession}."""
+    captured: dict[str, Any] = {}
+
+    async def _fake(
+        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
+    ) -> list[FilingSection]:
+        captured["form_type"] = form_type
+        return []
+
+    monkeypatch.setattr(sec_filings_provider, "get_filing_sections", _fake)
+    response = client.get(
+        "/sec/filings/0000320193-24-000123/sections",
+        params={"identifier": "AAPL", "form_type": "10-K"},
+    )
+    assert response.status_code == 200
+    assert captured["form_type"] == "10-K"
 
 
 # ---------------------------------------------------------------------------

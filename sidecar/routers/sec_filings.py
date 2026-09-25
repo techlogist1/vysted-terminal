@@ -125,10 +125,15 @@ async def get_filing(
 async def get_filing_sections(
     accession: str,
     identifier: str,
+    form_type: str | None = None,
 ) -> dict[str, list[FilingSection]]:
-    """Return the sections list for an accession."""
+    """Return the sections list for an accession.
+
+    ``form_type`` is the listed row's form — a lookup hint (R15-LEAD-010)."""
     _require_available()
-    sections = await sec_filings_provider.get_filing_sections(accession, cik_or_symbol=identifier)
+    sections = await sec_filings_provider.get_filing_sections(
+        accession, cik_or_symbol=identifier, form_type=form_type
+    )
     # Wrap to keep the schema dict-shaped (CLAUDE.md FastMCP-tool gotcha).
     return {"sections": sections}
 

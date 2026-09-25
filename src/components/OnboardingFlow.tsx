@@ -530,7 +530,7 @@ function LocalStep({
               </span>
               {rec.device.estimated && (
                 <span
-                  className="border-charcoal-700 bg-charcoal-850 text-charcoal-400 rounded-control border px-1.5"
+                  className="border-charcoal-700 bg-charcoal-850 text-charcoal-400 rounded-control border px-1 py-0.5"
                   title="RAM could not be measured on this machine — using a generic estimate."
                 >
                   estimated

@@ -55,6 +55,7 @@ import {
   REGISTRY_PROVIDERS,
   useModelSelectionStore,
 } from "@/store/model-selection";
+import { useMarketplaceStore } from "@/store/marketplace";
 import { useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { fetchHardwareReport, type ScoredModel, verdictMeta } from "@/lib/hardware-fit";
@@ -1937,6 +1938,17 @@ function ModulesSection() {
               disabled={isPlatform}
               onChange={(next) => {
                 if (isPlatform) return;
+                // A bridged plugin module's enabled flag is owned by the
+                // marketplace lifecycle (runtime + plugins.db), not the
+                // workspace-persisted module map — routing through
+                // setModuleEnabled here left the two out of sync and the
+                // "off" reverted on relaunch (R15-CODE-PLATFORM-013).
+                if (module.id.startsWith("plugin:")) {
+                  const pluginId = module.id.slice("plugin:".length);
+                  const marketplace = useMarketplaceStore.getState();
+                  void (next ? marketplace.enable : marketplace.disable)(pluginId);
+                  return;
+                }
                 setModuleEnabled(module.id, next);
               }}
               switchLabel={`${module.title} enabled`}

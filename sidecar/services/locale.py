@@ -164,16 +164,25 @@ def region_for_suffix(symbol: str) -> str | None:
 #: The provider lanes that serve only Indian exchange listings.
 _IN_PROVIDERS = frozenset({"nse_direct", "nse", "bse"})
 
+#: Indian index tickers (caret symbols), served by yfinance rather than an IN
+#: provider lane or a .NS/.BO suffix — the NSE/BSE/CNX families plus the India
+#: VIX (R15-UI-090). No other caret index (e.g. .AX) is in scope here.
+_IN_INDEX_PREFIXES = ("^NSE", "^BSE", "^CNX", "^INDIAVIX")
+
 
 def instrument_region(symbol: str, provider: str) -> str:
     """The trading-calendar region of a SERVED instrument (R15-UI-090).
 
-    An Indian listing is known from the lane that served it or its ``.NS``/``.BO``
-    symbol (yfinance echoes the listing it fetched); anything else trades on the
-    US calendar. Never the session region: a US quote read in an IN session is
-    still dated against the US session.
+    An Indian listing is known from the lane that served it, its ``.NS``/``.BO``
+    symbol (yfinance echoes the listing it fetched), or an Indian index caret
+    symbol; anything else trades on the US calendar. Never the session region:
+    a US quote read in an IN session is still dated against the US session.
     """
-    if provider in _IN_PROVIDERS or region_for_suffix(symbol) == REGION_IN:
+    if (
+        provider in _IN_PROVIDERS
+        or region_for_suffix(symbol) == REGION_IN
+        or symbol.strip().upper().startswith(_IN_INDEX_PREFIXES)
+    ):
         return REGION_IN
     return REGION_US
 

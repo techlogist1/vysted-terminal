@@ -173,6 +173,22 @@ def test_non_nse_symbol_fast_fails_without_network(monkeypatch: pytest.MonkeyPat
     assert sessions == []
 
 
+def test_bo_suffixed_request_is_a_routing_miss_without_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-115: AMAL is on both exchanges; an explicit ``AMAL.BO`` asks for
+    the BSE listing, so the NSE lane must not answer it with NSE bars."""
+    sessions = _install(monkeypatch, _ok_responder({}))
+    for call in (
+        lambda: nse_provider.get_quote("AMAL.BO"),
+        lambda: nse_provider.get_history("AMAL.BO", "1d", "1y"),
+    ):
+        with pytest.raises(ProviderError) as exc:
+            call()
+        assert exc.value.kind == "not_found"
+    assert sessions == []
+
+
 def test_wide_range_exceeds_direct_lane_budget_without_network(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

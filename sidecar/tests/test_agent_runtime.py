@@ -432,6 +432,19 @@ def test_capabilities_preamble_carries_self_consistency_instruction() -> None:
     assert "acknowledge both" in text.lower()
 
 
+def test_every_first_party_agent_states_an_unavailable_fact_as_unavailable() -> None:
+    """R15-AGENT-090: with no tool able to return SIFY's ADR ratio, the model
+    invented one and cited "fundamentals data"; every loaded agent now carries
+    the rule that such a fact is unavailable and never attributed to a source."""
+    agent_runtime.reload()
+    specs = agent_runtime.list_agents()
+    assert specs
+    for spec in specs:
+        prompt = spec.system_prompt
+        assert "no tool result you received contains is UNAVAILABLE" in prompt, spec.id
+        assert "never attribute it to a tool, a data feed or any source" in prompt, spec.id
+
+
 @pytest.mark.asyncio
 async def test_invoke_agent_emits_plan_for_compound_on_capable_model(
     monkeypatch: pytest.MonkeyPatch,

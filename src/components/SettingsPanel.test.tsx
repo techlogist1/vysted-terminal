@@ -2,10 +2,13 @@ import { cleanup, fireEvent, render, screen, within } from "@testing-library/rea
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { buildSettingsExport, searxngChipMeta, SettingsPanel } from "@/components/SettingsPanel";
+import { CATALOG_BY_ID } from "@/lib/marketplace";
+import { moduleForPlugin } from "@/lib/plugin-bootstrap";
 import { vystedModules } from "@/modules";
 import { PLATFORM_MODULE_ID } from "@/modules/platform";
 import { resetKeybindingsStoreForTests, useKeybindingsStore } from "@/store/keybindings";
 import { useLLMProvidersStore } from "@/store/llm-providers";
+import { useMarketplaceStore } from "@/store/marketplace";
 import { resetModelCatalogStoreForTests, useModelCatalogStore } from "@/store/model-catalog";
 import { resetModelSelectionStoreForTests, useModelSelectionStore } from "@/store/model-selection";
 import { useModulesStore } from "@/store/modules";
@@ -136,6 +139,34 @@ describe("SettingsPanel", () => {
     fireEvent.click(chartToggle);
     expect(useModulesStore.getState().enabled.chart).toBe(true);
     expect(chartToggle).toBeChecked();
+  });
+
+  // R15-CODE-PLATFORM-013: a bridged plugin module's toggle must route through
+  // the marketplace lifecycle owner (runtime + plugins.db), not the bare
+  // modules-store setter — otherwise the workspace-persisted "off" is silently
+  // undone on relaunch when the runtime re-attaches from plugins.db.
+  it("toggling a bridged plugin module routes through the marketplace lifecycle, not setModuleEnabled directly", () => {
+    const mod = moduleForPlugin(CATALOG_BY_ID["vysted-example"]);
+    if (!mod) throw new Error("vysted-example plugin has no panels/commands to bridge");
+    useModulesStore.getState().appendModules([mod]);
+    useModulesStore.getState().setModuleEnabled(mod.id, true);
+
+    const disableSpy = vi
+      .spyOn(useMarketplaceStore.getState(), "disable")
+      .mockResolvedValue(undefined);
+
+    render(<SettingsPanel />);
+    const toggle = screen.getByRole("switch", { name: "Vysted Example Plugin enabled" });
+    expect(toggle).toBeChecked();
+
+    fireEvent.click(toggle);
+
+    expect(disableSpy).toHaveBeenCalledWith("vysted-example");
+    // The lifecycle owner (marketplace.disable → runtime.disablePlugin) is
+    // mocked out here, so it never actually flips the module map — the point
+    // is that SettingsPanel no longer flips it directly for a plugin:* row.
+    expect(useModulesStore.getState().enabled["plugin:vysted-example"]).not.toBe(false);
+    disableSpy.mockRestore();
   });
 
   it("the platform module toggle is not user-disableable", () => {

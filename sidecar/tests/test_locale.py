@@ -21,6 +21,18 @@ def test_region_for_suffix() -> None:
     assert locale.region_for_suffix("AAPL") is None
 
 
+def test_instrument_region_recognises_indian_caret_indices() -> None:
+    # R15-UI-090: Indian index tickers (served by yfinance) trade on the NSE
+    # calendar regardless of the session region.
+    assert locale.instrument_region("^NSEI", "yfinance") == "IN"
+    assert locale.instrument_region("^BSESN", "yfinance") == "IN"
+    assert locale.instrument_region("^NSEBANK", "yfinance") == "IN"
+    assert locale.instrument_region("^INDIAVIX", "yfinance") == "IN"
+    # Class pin: an entry the fix was not written against.
+    assert locale.instrument_region("^CNXIT", "yfinance") == "IN"
+    assert locale.instrument_region("^GSPC", "yfinance") == "US"
+
+
 def test_strip_exchange_suffix() -> None:
     assert locale.strip_exchange_suffix("GOLDBEES.NS") == "GOLDBEES"
     assert locale.strip_exchange_suffix("TATASTEEL.BO") == "TATASTEEL"

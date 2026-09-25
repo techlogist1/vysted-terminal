@@ -178,6 +178,10 @@ async def _drive_run(
     # thread on the terminal poll — never applied here.
     brief: dict[str, Any] | None = None
     host_actions: list[dict[str, Any]] = []
+    # A round's host actions wait here, keyed by call id, until the runtime
+    # dispatches them: a budget halt stops before dispatch, and an action the
+    # model never got a result for is never proposed (R15-AGENT-092).
+    undispatched: dict[str, dict[str, Any]] = {}
 
     def _output() -> dict[str, Any]:
         return {
@@ -197,6 +201,9 @@ async def _drive_run(
         return {"prompt": checkpoint["prompt"], "turns": list(turns)}
 
     def _on_tool_result(tool_call: Any, result_str: str) -> None:
+        action = undispatched.pop(tool_call.tool_call_id, None)
+        if action is not None:
+            host_actions.append(action)
         status, line = _result_line(result_str)
         _flush_text()
         turns.append({"role": "assistant", "content": f"[{tool_call.name} → {line}]"})
@@ -292,13 +299,11 @@ async def _drive_run(
                     if name == "publish_brief":
                         brief = dict(event.input)
                     elif name in HOST_ACTION_TOOLS:
-                        host_actions.append(
-                            {
-                                "tool_call_id": event.tool_call_id,
-                                "name": name,
-                                "input": dict(event.input),
-                            }
-                        )
+                        undispatched[event.tool_call_id] = {
+                            "tool_call_id": event.tool_call_id,
+                            "name": name,
+                            "input": dict(event.input),
+                        }
                 elif kind == "research_step" and event.tool == agent_runtime.HALT_NOTICE_TOOL:
                     halted = True
                 elif kind == "error":

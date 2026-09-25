@@ -85,6 +85,15 @@ _IR_PLATFORM_DENYLIST: frozenset[str] = frozenset(
         "reddit.com",
         "blogspot.com",
         "linkedin.com",
+        "github.io",
+        "gitlab.io",
+        "wixsite.com",
+        "netlify.app",
+        "vercel.app",
+        "pages.dev",
+        "hubpages.com",
+        "weebly.com",
+        "tumblr.com",
     }
 )
 
@@ -141,8 +150,15 @@ def _matches(host: str, table: frozenset[str]) -> bool:
 
 
 def _looks_like_ir(host: str) -> bool:
-    """Is this a company investor-relations host? Needs BOTH a dedicated IR
-    host prefix AND a host that is not a publishing platform."""
+    """Is this a company investor-relations host? Needs a dedicated IR host
+    prefix that is an actual SUBDOMAIN (the host has at least three labels, so
+    the "ir."/"investors." text is not the registrable domain itself — e.g.
+    ``investors.com``, the news site, must never qualify), a host that is not
+    on the publishing-platform denylist, and not a blogspot host (any TLD)."""
+    if host.count(".") < 2:
+        return False
+    if "blogspot" in host.split("."):
+        return False
     return any(host.startswith(prefix) for prefix in _IR_HOST_PREFIXES) and not _matches(
         host, _IR_PLATFORM_DENYLIST
     )

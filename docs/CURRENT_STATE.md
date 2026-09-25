@@ -322,17 +322,25 @@ model key** (`quote`, `ohlcv`, `fundamentals`, `income_statement`, …), walking
 installed providers in **preference order** until one succeeds — `asset_class`
 is a resolution _hint_ layered on top, not the dispatch switch (FR-035/053; a
 `ProviderDeclaration` table — id, model-keys served, preference rank,
-credential/availability gate — is the single source of truth, and
+credential/availability gate, region gate — is the single source of truth, and
 `active_providers()` at `/health` derives from it rather than being
 hand-maintained). `get_quote`/`get_history` stay **synchronous** (ccxt/yfinance
 providers, wrapped in `asyncio.to_thread`); openbb-backed methods stay `async`
 — two resolvers (sync/async) share one declaration table and the same
-preference-order fallthrough.
+preference-order fallthrough. For region `IN`, three keyless providers
+outrank the broad default on `quote`/`ohlcv`: `nse_direct` (rank 15,
+exchange-direct EOD, the anti-bot curl_cffi lane), `nse` (rank 20,
+jugaad-data), `bse` (rank 25, the micro-cap EOD default for groups NSE never
+listed) — IN fundamentals still fall through to yfinance (no region-scoped
+fundamentals provider exists).
 
-- **`yfinance_provider.py`** — no-key default for equities. Load-bearing
-  details: `BRK.B`→`BRK-B` rewrite; **dividend-yield divided by 100** (yfinance
-  1.3.0 returns a percentage, the contract wants a fraction — a silent corruption
-  risk if upstream changes); aggregate rating reads only the single most-recent
+- **`yfinance_provider.py`** — the no-key default for equities, region-gated:
+  for `IN` requests `nse_direct`/`nse`/`bse` (ranks 15/20/25) all rank ahead
+  of it for `quote`/`ohlcv`, so it only serves as the IN fallback (fundamentals
+  and any other region still hit it first). Load-bearing details: `BRK.B`→
+  `BRK-B` rewrite; **dividend-yield divided by 100** (yfinance 1.3.0 returns a
+  percentage, the contract wants a fraction — a silent corruption risk if
+  upstream changes); aggregate rating reads only the single most-recent
   recommendation row.
 - **`ccxt_provider.py`** — ccxt (sync REST) + ccxt.pro (async WS). Exchanges:
   bybit, binance, kraken, coinbase. Backs `/crypto/*`.
@@ -355,14 +363,18 @@ preference-order fallthrough.
 - **`sec_filings_provider.py`** (conditional) — sec-edgar-mcp subprocess. Narrow
   form coverage (10-K/10-Q/8-K/DEF 14A/3/4/5); extractors heavily defensive
   against upstream shape drift. Caches via `data_cache`.
-- **`screener.py` + `screener_universes/`** — fan-out filter engine. Universes:
-  `sp500` (full S&P 500 — 506 symbols, a static snapshot dated 2026-06-04 that
-  has drifted from current membership, R15-LEAD-013 open),
-  `nifty50` (50), `crypto-top50` (50, reseeded from the bundled snapshot on
-  cache expiry — a live "refresh from ccxt" worker still does **not exist**),
-  `custom`. Criteria support **nested AND/OR** via `CriterionGroup`
-  (`models/screener.py`, `combinator: "and"|"or"`) — OR-grouping is no longer
-  reserved/unimplemented.
+- **`screener.py` + `screener_universes/` + `screener_universe_india.py`** —
+  fan-out filter engine. Universes: `sp500` (full S&P 500 — 503 symbols, a
+  static snapshot dated 2026-09-24), `nifty50` (50), `crypto-top50` (50,
+  reseeded from the bundled snapshot on cache expiry — a live "refresh from
+  ccxt" worker still does **not exist**), `nse-all` (every NSE master row,
+  EQ+ETF, ~2,675 as `SYMBOL.NS`), `bse-all` (BSE master rows with STATUS ==
+  "Active" as `SYMBOL.BO`), `india-all` (the union of the two, NSE listing
+  preferred when a symbol is dual-listed), `custom`. The three India
+  universes resolve from the same bundled resolver-master JSON the symbol
+  resolver reads (offline, deterministic). Criteria support **nested AND/OR**
+  via `CriterionGroup` (`models/screener.py`, `combinator: "and"|"or"`) — OR-
+  grouping is no longer reserved/unimplemented.
 - **`services/macro/`** — four in-process providers (FRED requires
   `FRED_API_KEY`; ECB/IMF/world-bank keyless). Hand-curated `_FEATURED` catalogs;
   full catalog browsing deferred. `fred-mcp-server` turned out to be Node.js →

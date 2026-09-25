@@ -791,3 +791,83 @@ def test_debt_free_zero_debt_to_equity_passes_a_threshold_screen() -> None:
     matched, missing = evaluate_formula(compiled, fund, None)
     assert missing is None
     assert matched is True
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-112: a missing listing currency must sort LAST, not first.
+# ---------------------------------------------------------------------------
+
+
+def test_apply_criteria_missing_currency_sorts_last_desc() -> None:
+    """MANIKA.NS has no fundamentals currency (None) — it must never form its
+    own leading group ahead of every real currency code."""
+    rows = [
+        (_make_fundamentals("MANIKA.NS", market_cap=None, currency=None), _make_quote("MANIKA.NS")),
+        (
+            _make_fundamentals("RELIANCE.NS", market_cap=1.655e13, currency="INR"),
+            _make_quote("RELIANCE.NS"),
+        ),
+        (_make_fundamentals("TCS.NS", market_cap=7.55e12, currency="INR"), _make_quote("TCS.NS")),
+    ]
+    result = screener.apply_criteria(rows, [], sort_by="market_cap", sort_dir="desc")
+    assert [r.symbol for r in result] == ["RELIANCE.NS", "TCS.NS", "MANIKA.NS"]
+
+
+def test_apply_criteria_missing_currency_sorts_last_asc() -> None:
+    """Same rule holds ascending — the missing-currency group stays last
+    regardless of sort_dir (it is not scaled by the value's sign)."""
+    rows = [
+        (_make_fundamentals("MANIKA.NS", market_cap=None, currency=None), _make_quote("MANIKA.NS")),
+        (
+            _make_fundamentals("RELIANCE.NS", market_cap=1.655e13, currency="INR"),
+            _make_quote("RELIANCE.NS"),
+        ),
+        (_make_fundamentals("TCS.NS", market_cap=7.55e12, currency="INR"), _make_quote("TCS.NS")),
+    ]
+    result = screener.apply_criteria(rows, [], sort_by="market_cap", sort_dir="asc")
+    assert [r.symbol for r in result] == ["TCS.NS", "RELIANCE.NS", "MANIKA.NS"]
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-043: the top-K cut is round-robin per currency, and the disclosure
+# is computed over the full matched set, not the served page.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_run_screener_top_k_cut_is_round_robin_per_currency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A mixed-currency universe cut to a top-K smaller than the matched set
+    must not silently keep only the alphabetically-first currency group
+    (INR before USD) — each currency is represented, and the 'ranked within
+    each currency' disclosure survives the cut."""
+    fake_fundamentals = {
+        "AAPL": _make_fundamentals("AAPL", market_cap=3.5e12, currency="USD"),
+        "RELIANCE.NS": _make_fundamentals("RELIANCE.NS", market_cap=1.95e13, currency="INR"),
+        "MSFT": _make_fundamentals("MSFT", market_cap=3.0e12, currency="USD"),
+        "TCS.NS": _make_fundamentals("TCS.NS", market_cap=7.5e12, currency="INR"),
+    }
+
+    async def fake_get_fundamentals(symbol: str) -> Fundamentals:
+        return fake_fundamentals[symbol]
+
+    def fake_get_quote(symbol: str, _asset_class: str = "equity") -> Quote:
+        return _make_quote(symbol)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_get_fundamentals)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_get_quote)
+
+    request = ScreenerRequest(
+        universe="custom",
+        custom_symbols=["AAPL", "RELIANCE.NS", "MSFT", "TCS.NS"],
+        criteria=[],
+        sort_by="market_cap",
+        sort_dir="desc",
+        limit=2,
+    )
+    result = await screener.run_screener(request)
+    assert result.matched_count == 4
+    assert result.result_count == 2
+    assert "ranked within each currency" in result.coverage
+    assert any(row.currency == "USD" for row in result.rows)

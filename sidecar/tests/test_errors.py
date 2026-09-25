@@ -412,6 +412,84 @@ def test_ollama_not_pulled_names_the_pull_command() -> None:
     assert h.action is not None and "ollama pull qwen3:8b" in h.action
 
 
+def _r15_agent_027_widened_marker_cases() -> list[tuple[str, str, Exception, str]]:
+    """R15-AGENT-027 rc1 refutation audit: the _BODY_RULES marker lists were too
+    narrow for Gemini's context-overflow wording, Groq's decommissioned-model
+    wording and xAI's 403 no-credit response; Ollama's timeout/connect class
+    also got generic network copy instead of Ollama-specific copy."""
+    import openai
+    from google.genai import errors as genai_errors
+
+    return [
+        (
+            "gemini context overflow — input token count wording",
+            "gemini",
+            genai_errors.ClientError(
+                400,
+                {
+                    "error": {
+                        "code": 400,
+                        "message": (
+                            "The input token count (1200000) exceeds the maximum "
+                            "number of tokens allowed (1048576)."
+                        ),
+                        "status": "INVALID_ARGUMENT",
+                    }
+                },
+            ),
+            "context_overflow",
+        ),
+        (
+            "groq model_not_found — decommissioned wording",
+            "groq",
+            _openai_err(
+                openai.BadRequestError,
+                400,
+                {
+                    "error": {
+                        "message": "The model `llama3-8b-8192` has been decommissioned "
+                        "and is no longer supported.",
+                        "code": "model_decommissioned",
+                    }
+                },
+            ),
+            "model_not_found",
+        ),
+        (
+            "xai insufficient_credit — 403, not 400/429",
+            "xai",
+            _openai_err(
+                openai.PermissionDeniedError,
+                403,
+                {"error": "Your team doesn't have any credits yet."},
+            ),
+            "insufficient_credit",
+        ),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("provider", "exc", "code"),
+    [pytest.param(p, e, c, id=name) for name, p, e, c in _r15_agent_027_widened_marker_cases()],
+)
+def test_provider_bodies_get_a_workable_next_step(provider: str, exc: Exception, code: str) -> None:
+    h = humanize(provider, exc)
+    assert h.code == code
+    assert h.message and h.action
+
+
+def test_ollama_read_timeout_gets_ollama_copy_not_network_copy() -> None:
+    """Class pin: Ollama's ReadTimeout/connect failures point at the local
+    Ollama server, not the internet — the fix was not written against a
+    ConnectError (that path already matched the body-rule markers)."""
+    import httpx
+
+    h = humanize("ollama", httpx.ReadTimeout("timed out"))
+    assert "internet" not in (h.action or "").lower()
+    assert "network" not in h.message.lower()
+    assert h.code == "ollama_not_running"
+
+
 def test_user_id_is_scrubbed_from_detail() -> None:
     import openai
 

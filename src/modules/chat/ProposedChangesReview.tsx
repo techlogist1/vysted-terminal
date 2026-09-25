@@ -103,7 +103,7 @@ function AppliedChangeRow({ change, onUndo }: { change: ProposedChange; onUndo: 
     <motion.li
       layout
       data-kind={change.kind}
-      className="border-charcoal-800 rounded-none border px-2 py-1.5"
+      className="border-charcoal-800 rounded-none border px-2 py-1"
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 8, height: 0, marginBottom: 0 }}

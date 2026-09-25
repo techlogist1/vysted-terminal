@@ -342,3 +342,48 @@ def test_two_partial_lanes_serve_the_higher_ranked(monkeypatch: pytest.MonkeyPat
     series = provider_registry.get_history("ICONIKSPEV", "1d", "1y", region="IN")
     assert series.provider == "bse"
     assert series.partial is True
+
+
+def test_bse_scrip_code_request_accepts_the_codes_canonical_ticker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-028: the bse lane answers a code-addressed request (506597.BO)
+    under the code's canonical ticker (AMAL); the correctness gate used to
+    reject that as a symbol mismatch and fall through to yfinance (no data). A
+    code whose canonical ticker is not the returned symbol (544774 is SMR) is
+    still a mismatch and falls through."""
+    from services import bse_provider, india_provider, nse_provider, yfinance_provider
+
+    def nse_no_listing(symbol: str) -> Quote:
+        raise ProviderError("nse: not a known NSE instrument", kind="not_found")
+
+    monkeypatch.setattr(nse_provider, "get_quote", nse_no_listing)
+    monkeypatch.setattr(india_provider, "get_quote", nse_no_listing)
+    monkeypatch.setattr(bse_provider, "get_quote", lambda s: _quote("bse", "AMAL"))
+    monkeypatch.setattr(yfinance_provider, "get_quote", lambda s: _quote("yfinance", s))
+    assert provider_registry.get_quote("506597.BO", region="IN").provider == "bse"
+    assert provider_registry.get_quote("544774.BO", region="IN").provider == "yfinance"
+
+    _in_history_lanes(
+        monkeypatch,
+        bse=lambda s, tf, r=None: _series("bse", "AMAL"),
+        yfinance=lambda s, tf, r=None: pytest.fail("yfinance must not be reached"),
+    )
+    assert provider_registry.get_history("506597.BO", "1d", "1y", region="IN").provider == "bse"
+
+
+def test_bo_history_for_a_dual_listed_name_is_never_served_by_an_nse_lane(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-115 class pin (RELIANCE, a case the fix was not written against):
+    with both NSE lanes up, an explicit ``.BO`` history request goes to bse. The
+    real NSE gates run; their fetches fail the test if reached."""
+    from services import bse_provider, india_provider, nse_provider
+
+    monkeypatch.setattr(nse_provider, "is_available", lambda: True)
+    monkeypatch.setattr(india_provider, "is_available", lambda: True)
+    monkeypatch.setattr(nse_provider, "_new_session", lambda: pytest.fail("nse_direct fetched"))
+    monkeypatch.setattr(india_provider, "_stock_df", lambda *a: pytest.fail("nse fetched"))
+    monkeypatch.setattr(bse_provider, "get_history", lambda s, tf, r=None: _series("bse", s))
+    series = provider_registry.get_history("RELIANCE.BO", "1d", "1y", region="IN")
+    assert series.provider == "bse"
