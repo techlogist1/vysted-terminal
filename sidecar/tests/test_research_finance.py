@@ -76,6 +76,44 @@ def test_real_ir_host_stays_primary() -> None:
     )
 
 
+def test_ir_host_prefix_never_promotes_news_or_platform_hosts() -> None:
+    """R15-RESEARCH-007 (rc1 refutation audit): the IR host prefix must be a
+    real subdomain (host has >= 3 labels) and the platform denylist must catch
+    free-hosting IR lookalikes and blogspot on any TLD."""
+    for url in (
+        "https://www.investors.com/news/technology/nvidia-stock-buy-now/",
+        "https://investors.github.io/pump",
+        "https://ir.blogspot.in/post",
+        "https://investors.wixsite.com/x",
+        "https://ir.netlify.app/x",
+        "https://investors.hubpages.com/x",
+    ):
+        assert finance.domain_tier(url) != finance.TIER_PRIMARY, url
+    ibd = _src("https://www.investors.com/news/technology/nvidia-stock-buy-now/")
+    gh = _src("https://investors.github.io/pump")
+    reuters = _src("https://reuters.com/markets/x")
+    ranked = finance.rank_sources([ibd, gh, reuters])
+    assert ranked[0] is reuters
+    note = finance.priority_note(ranked)
+    assert "primary record" not in note
+
+    # Controls: real company IR subdomains still rank primary.
+    for url in (
+        "https://ir.nvidia.com/financial-info",
+        "https://investors.infosys.com/annual-report/2025",
+        "https://investor.apple.com/",
+        "https://ir.tatamotors.com/",
+    ):
+        assert finance.domain_tier(url) == finance.TIER_PRIMARY, url
+
+
+def test_ir_blogspot_class_pin_on_a_multi_label_tld() -> None:
+    """Class pin (R15-RESEARCH-007): blogspot must be denied on ANY TLD,
+    including a multi-label one the fix was not written against directly."""
+    assert finance.domain_tier("https://ir.blogspot.co.uk/post") != finance.TIER_PRIMARY
+    assert finance.domain_tier("https://investors.pages.dev/x") != finance.TIER_PRIMARY
+
+
 def test_tier1_press_ranks_second_and_general_third() -> None:
     assert finance.domain_tier("https://www.reuters.com/markets/x") == finance.TIER_PRESS
     assert finance.domain_tier("https://www.moneycontrol.com/news/x") == finance.TIER_PRESS
