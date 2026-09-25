@@ -293,3 +293,11 @@ describe("sidecarRequest omits the research key on its default REST path", () =>
     expect(invokeMock.mock.calls.filter((c) => c[0] === "keychain_get")).toHaveLength(0);
   });
 });
+
+/** R15-DATA-109: the never-opened crypto WebSocket helper is dead code, deleted. */
+describe("no crypto WebSocket helper (R15-DATA-109)", () => {
+  it("openCryptoStream is not exported", async () => {
+    const mod: Record<string, unknown> = await import("@/lib/sidecar-client");
+    expect("openCryptoStream" in mod).toBe(false);
+  });
+});

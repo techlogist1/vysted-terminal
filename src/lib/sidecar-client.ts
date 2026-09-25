@@ -2,9 +2,8 @@
  * Sidecar API client.
  *
  * Resolves the Python sidecar's localhost port from the Tauri core (cached after
- * the first call) and exposes typed accessors for the data-layer REST endpoints,
- * plus a WebSocket helper for crypto streams. Panels call these functions rather
- * than building URLs themselves.
+ * the first call) and exposes typed accessors for the data-layer REST endpoints.
+ * Panels call these functions rather than building URLs themselves.
  */
 
 import { invoke } from "@tauri-apps/api/core";
@@ -298,15 +297,6 @@ export function sidecarGet<T>(
   headers?: Record<string, string | undefined>,
 ): Promise<T> {
   return sidecarRequest<T>("GET", path, { params, headers });
-}
-
-/** Open a WebSocket to the crypto ticker stream. The caller owns the socket. */
-export async function openCryptoStream(exchange: string, symbol: string): Promise<WebSocket> {
-  const base = await getSidecarBaseUrl();
-  const url = new URL("/crypto/stream", base.replace(/^http/, "ws"));
-  url.searchParams.set("exchange", exchange);
-  url.searchParams.set("symbol", symbol);
-  return new WebSocket(url.toString());
 }
 
 /** Shape of the `/health` response. */
