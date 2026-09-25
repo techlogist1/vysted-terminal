@@ -379,10 +379,10 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const broadcastVisibleRange = useChartSyncBus((state) => state.setVisibleRange);
   const broadcastSymbol = useChartSyncBus((state) => state.setSymbol);
 
-  // The latest broadcasts — keep the function-ref stable so subscriber effects
-  // don't churn when only the source/seq changes.
-  const crosshairBroadcast = useChartSyncBus((state) => state.crosshair);
-  const visibleRangeBroadcast = useChartSyncBus((state) => state.visibleRange);
+  // Only the symbol broadcast is React state (it sets state anyway). Crosshair
+  // and visible-range fire at pointer rate, so they are read in a store
+  // subscription below — selecting them here re-rendered the whole panel on
+  // every mouse move, peer chart or not (R15-CODE-FRONTEND-023).
   const symbolBroadcast = useChartSyncBus((state) => state.symbol);
 
   const selectedKeys = useMemo(() => [...selected].sort(), [selected]);
@@ -858,8 +858,13 @@ function ChartPanel(props: ChartPanelProps = {}) {
       }
       chartRef.current?.setCrosshairPosition(NaN, broadcast.time as Time, series);
     };
-    handleBroadcast(crosshairBroadcast);
-  }, [syncSubscriptions.crosshair, crosshairBroadcast, panelId]);
+    handleBroadcast(useChartSyncBus.getState().crosshair);
+    return useChartSyncBus.subscribe((state, prev) => {
+      if (state.crosshair !== prev.crosshair) {
+        handleBroadcast(state.crosshair);
+      }
+    });
+  }, [syncSubscriptions.crosshair, panelId]);
 
   useEffect(() => {
     if (!syncSubscriptions.visibleRange) {
@@ -892,8 +897,13 @@ function ChartPanel(props: ChartPanelProps = {}) {
         // The next broadcast (or the autosave-driven re-fit) re-syncs the range.
       }
     };
-    handleBroadcast(visibleRangeBroadcast);
-  }, [syncSubscriptions.visibleRange, visibleRangeBroadcast, panelId]);
+    handleBroadcast(useChartSyncBus.getState().visibleRange);
+    return useChartSyncBus.subscribe((state, prev) => {
+      if (state.visibleRange !== prev.visibleRange) {
+        handleBroadcast(state.visibleRange);
+      }
+    });
+  }, [syncSubscriptions.visibleRange, panelId]);
 
   useEffect(() => {
     if (!syncSubscriptions.symbol) {

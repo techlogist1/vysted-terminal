@@ -1,4 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { Profiler } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidecarError } from "@/lib/sidecar-client";
@@ -1065,6 +1066,33 @@ describe("ChartPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: /Clear drawings \(1\)/ }));
 
     expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
+  });
+
+  it("N crosshair moves on a lone chart cause 0 ChartPanel re-renders (R15-CODE-FRONTEND-023)", async () => {
+    let commits = 0;
+    render(
+      <Profiler id="chart" onRender={() => void commits++}>
+        <ChartPanel api={{ id: "chart-A" }} />
+      </Profiler>,
+    );
+    expect(await screen.findByText(/via yfinance/)).toBeInTheDocument();
+    const calls = chartApi.subscribeCrosshairMove.mock.calls as unknown as [
+      (param: { time?: number }) => void,
+    ][];
+    const onCrosshair = calls[calls.length - 1][0];
+    const before = commits;
+    const seqBefore = useChartSyncBus.getState().crosshair?.seq ?? 0;
+
+    act(() => {
+      for (let i = 0; i < 25; i++) {
+        onCrosshair({ time: 1_700_000_000 + i });
+      }
+    });
+
+    // The moves were broadcast on the bus…
+    expect(useChartSyncBus.getState().crosshair?.seq).toBe(seqBefore + 25);
+    // …but the panel itself never re-rendered.
+    expect(commits).toBe(before);
   });
 
   it("toggles sync subscriptions through the Sync popover", async () => {
