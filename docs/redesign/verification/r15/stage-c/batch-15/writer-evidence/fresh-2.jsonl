@@ -1,0 +1,80 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_1b1ab3e7178543c1a6abbdb2900d37f5", "name": "resolve_symbol", "input": {"query": "SIFY ADR", "region": "US"}}
+{"kind": "tool_result", "tool_call_id": "call_1b1ab3e7178543c1a6abbdb2900d37f5", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": " '"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": "'"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " ambiguous"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " answer"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " question"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " clarify"}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " referring"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " one"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " following"}
+{"kind": "delta", "text": " companies"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " meant"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " TECHNO"}
+{"kind": "delta", "text": "LOG"}
+{"kind": "delta", "text": "IES"}
+{"kind": "delta", "text": " LTD"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": ")\n"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "SPI"}
+{"kind": "delta", "text": "E"}
+{"kind": "delta", "text": " SA"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "ADR"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "SPI"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " SPI"}
+{"kind": "delta", "text": "WF"}
+{"kind": "delta", "text": ")"}
+{"kind": "done", "usage": {"input_tokens": 3229, "output_tokens": 72, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

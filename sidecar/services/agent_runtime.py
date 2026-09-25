@@ -1815,29 +1815,45 @@ _NUMBER_WORDS = (
     "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
     "eighteen", "nineteen", "twenty",
 )  # fmt: skip
-_NUM = r"(?:\d[\d,]*(?:\.\d+)?|" + "|".join(_NUMBER_WORDS) + ")"
+_WORDS = "|".join(_NUMBER_WORDS)
+_NUM = rf"(?:\d[\d,]*(?:\.\d+)?|{_WORDS})"
 _CLAIM_TERM = re.compile(
     r"\b(?:ADRs?|ADSs?|American Depositary|depositary|conversion ratio)\b", re.IGNORECASE
 )
 _SOURCE_TERM = re.compile(r"\b(?:ADRs?|ADSs?|American Depositary|depositary|Repr)\b", re.IGNORECASE)
-#: A sentence with a depositary term claims a ratio only beside one of these:
-#: a ratio word, or a count of ordinary/underlying shares ("backed by 6
-#: ordinary shares"). Without one, "ADR ... 5.20 to 7.10" is a price range.
-_RATIO_CUE = re.compile(
-    r"\b(?:ratio|represent\w*|equivalent|equals?|each|convert\w*|correspond\w*|for every)\b"
-    rf"|-for-|\b{_NUM}\s+(?:ordinary|equity|underlying|common)\s+shares?\b",
+#: A number (or a range of two) that its own marker says is NOT a share count:
+#: money, a percent, a period, a year, a fiscal tag, an ordinal, a form name
+#: (20-F, F-6), a clock time, a decimal, a volume (a thousands separator or
+#: four or more digits) and the idioms "one of" / "one-time". Blanked before
+#: the share-count candidates of a depositary sentence are read.
+_RANGE = rf"{_NUM}(?:\s*(?:and|to|-|–|—)\s*{_NUM})?"
+_MARKED = re.compile(
+    rf"(?:[$₹€£]|\b(?:Rs\.?|USD|INR|EUR|GBP|US\$))\s*{_RANGE}"
+    rf"|(?:\bbetween\s+)?{_RANGE}\s*(?:%|\b(?:percent|dollars?|cents?|rupees?|cr|crore|lakhs?"
+    r"|USD|INR|million|billion|thousand|mn|bn|points?|pts)\b)"
+    rf"|{_RANGE}[\s-]*(?:weeks?|months?|days?|years?|quarters?|hours?|minutes?|sessions?)\b"
+    r"|\b(?:19|20)\d{2}\b|\b(?:FY|Q|H)\s?\d{1,4}\b|\b\d+(?:st|nd|rd|th)\b"
+    r"|(?-i:\b\d{1,2}-[A-Z]{1,2}\b|\b[A-Z]{1,2}-\d{1,2}\b)"
+    r"|\b(?:at\s+)?\d{1,2}:\d{2}\s*(?:ET|EST|EDT|PT|IST|UTC|GMT|[ap]\.?m\.?)\b|\bat\s+\d{1,2}:\d{2}\b"
+    r"|\b\d+\.\d+\b|\bone(?:\s+of|-)"
+    # A count of something other than shares ("two possible matches", "3
+    # analyst ratings"): a lower-case plural noun, one adjective allowed. A
+    # function word ending in s is no noun: "6 of its shares", "was 6 this year".
+    rf"|\b{_NUM}\s+(?-i:(?:[a-z]+\s+)?(?!(?:shares?|ords?|units?|stocks?|equities|securities"
+    r"|is|was|has|as|its|his|this|thus|plus)\b)[a-z]+(?:s|es)\b)"
+    # A volume/count, unless stated as N ordinary shares (not "outstanding"):
+    # "equals approximately 144869230 ordinary shares" was a live fabrication.
+    r"|\b(?:\d{1,3}(?:,\d{3})+|\d{4,})\b"
+    r"(?!\s+(?:ordinary|equity|underlying|common)\s+shares?\b(?!\s+(?:outstanding|in issue|held)))",
     re.IGNORECASE,
 )
-#: Every number in a sentence, with the money / percent / trade-volume marker
-#: that makes it a price or a volume ("$12.50", "12%", "volume of 40,000")
-#: rather than a count of shares per depositary unit.
-_QUANTITY = re.compile(
-    rf"(?P<unit_before>(?:[$₹]|\b(?:Rs\.?|USD|INR)|\bvolume\W+(?:\w+\s+)?)\s*)?"
-    rf"\b(?P<n>{_NUM})\b"
-    r"(?P<unit_after>\s*(?:%|(?:percent|dollars?|cents?|rupees?|cr)\b))?",
-    re.IGNORECASE,
-)
-_ANY_NUMBER = re.compile(rf"\b{_NUM}\b", re.IGNORECASE)
+#: What is left: an integer, a number word up to twenty, or "a single".
+_COUNT = re.compile(rf"\b(?:a\s+single|\d+|{_WORDS})\b", re.IGNORECASE)
+_SHARES = re.compile(r"\bshares?\b", re.IGNORECASE)
+#: A tool result is read in segments (sentences, lines, JSON objects/arrays)
+#: so a number counts as sourced only beside a depositary term, never because
+#: it sits elsewhere in the same result (a share count in a fundamentals dump).
+_SEGMENT_END = re.compile(r"(?<!\d)\.(?!\d)|[;\n{}\[\]]")
 #: A sentence (with its trailing whitespace) of released prose.
 _SENTENCE = re.compile(r".*?(?:[.!?]\s+|\n\s*|\Z)", re.DOTALL)
 #: Where held prose may be released: after a sentence end or a line break.
@@ -1846,52 +1862,83 @@ _SENTENCE_BOUNDARY = re.compile(r"[.!?]\s+|\n")
 
 def _norm_number(token: str) -> str:
     token = token.lower().replace(",", "")
+    if token.startswith("a"):  # "a single"
+        return "1"
     return str(_NUMBER_WORDS.index(token) + 1) if token in _NUMBER_WORDS else token
 
 
-def _ratio_claim_traced(sentence: str, tool_results: list[str]) -> bool:
-    """False for a depositary-ratio claim no tool result carries (R15-AGENT-090).
+def _share_counts(sentence: str) -> set[str]:
+    """The numbers of ``sentence`` no marker excludes, normalised to digits."""
+    return {_norm_number(m.group()) for m in _COUNT.finditer(_MARKED.sub(" ", sentence))}
 
-    A sentence claims a ratio when it names a depositary term, carries a ratio
-    cue (:data:`_RATIO_CUE`) and states a quantity: a number, or a number word
-    up to twenty, that is not money, a percent or a trade volume. The claim is
-    its quantities less the unit side ``1`` ("1 ADR : 6 shares" claims 6), or
-    ``1`` when that is all it states. It is traced when one tool result names a
-    depositary term (``Repr`` covers the listing style "Each Repr 6 Ords") and
-    carries every claimed number.
-    ponytail: per-sentence regex; a claim split over two sentences slips past, a
-    year or a number beside a form name ("20-F") in a claim sentence counts as
-    claimed, and one sourced from a provider's native server-side search (never
-    a tool result here) is replaced. A claim extractor if more claim types need it.
-    """
-    if not (_CLAIM_TERM.search(sentence) and _RATIO_CUE.search(sentence)):
-        return True
-    quantities = {
-        _norm_number(m["n"])
-        for m in _QUANTITY.finditer(sentence)
-        if not (m["unit_before"] or m["unit_after"])
-    }
-    if not quantities:
-        return True
-    claimed = quantities - {"1"} or {"1"}
-    return any(
-        _SOURCE_TERM.search(result)
-        and claimed <= {_norm_number(n) for n in _ANY_NUMBER.findall(result)}
-        for result in tool_results
+
+def _sourced_counts(result: str) -> set[str]:
+    """The share counts a tool result carries beside a depositary term."""
+    return set().union(
+        *(_share_counts(seg) for seg in _SEGMENT_END.split(result) if _SOURCE_TERM.search(seg))
     )
 
 
-def _guard_ratio_claims(text: str, tool_results: list[str]) -> str:
+def _ratio_claim_traced(sentence: str, tool_results: list[str], in_context: bool) -> bool:
+    """False for a depositary-ratio claim no tool result carries (R15-AGENT-090).
+
+    Batches 13 and 14 recognised the claim by its wording (a cue word, a number
+    beside "ordinary shares") and every new phrasing escaped while "each" made
+    true prose a claim. The class is now decided by markers, not wording: in a
+    depositary context every number is a share count unless its OWN marker
+    (:data:`_MARKED`) says otherwise. The context is a sentence naming a
+    depositary term, extended one hop to a following sentence (``in_context``)
+    that speaks of shares and carries such a count ("SIFY trades as an ADR.
+    For SIFY, one ordinary share represents 1 share."). The claim is the counts
+    less the unit side ``1`` ("1 ADR : 6 shares" claims 6), or ``1`` when that
+    is all it states; it is traced when one tool result carries every claimed
+    number beside a depositary term (``Repr`` covers the listing style "Each
+    Repr 6 Ords"; :func:`_sourced_counts`).
+    ponytail: an unmarked small integer beside a depositary term ("the ADR has 3
+    analysts", "closed at 5") is replaced unless a depositary tool result
+    carries it; a ratio sourced by a provider's native server-side search
+    (never a tool result here) is replaced. Extend :data:`_MARKED`, not the
+    claim class, when a true sentence is caught.
+    """
+    if _CLAIM_TERM.search(sentence):
+        counts = _share_counts(sentence)
+    elif in_context and _SHARES.search(sentence):
+        counts = _share_counts(sentence)
+    else:
+        return True
+    if not counts:
+        return True
+    claimed = counts - {"1"} or {"1"}
+    return any(claimed <= _sourced_counts(result) for result in tool_results)
+
+
+def _guard_ratio_claims(text: str, tool_results: list[str], in_context: bool = False) -> str:
     """``text`` with each untraced depositary-ratio sentence replaced by
-    :data:`RATIO_UNAVAILABLE`, its surrounding whitespace kept."""
+    :data:`RATIO_UNAVAILABLE`, its surrounding whitespace kept. ``in_context``:
+    the sentence released before ``text`` named a depositary term (see
+    :func:`_depositary_context`)."""
     out: list[str] = []
     for match in _SENTENCE.finditer(text):
         sentence = match.group()
-        if sentence.strip() and not _ratio_claim_traced(sentence, tool_results):
-            lead = sentence[: len(sentence) - len(sentence.lstrip())]
-            sentence = lead + RATIO_UNAVAILABLE + sentence[len(sentence.rstrip()) :]
+        if sentence.strip():
+            # From the sentence as written, as _depositary_context reads it across
+            # releases: RATIO_UNAVAILABLE names the ADR, so reading the replacement
+            # would extend the context a second hop only within one release.
+            names_term = bool(_CLAIM_TERM.search(sentence))
+            if not _ratio_claim_traced(sentence, tool_results, in_context):
+                logger.info("ratio guard replaced an untraced claim: %r", sentence.strip())
+                lead = sentence[: len(sentence) - len(sentence.lstrip())]
+                sentence = lead + RATIO_UNAVAILABLE + sentence[len(sentence.rstrip()) :]
+            in_context = names_term
         out.append(sentence)
     return "".join(out)
+
+
+def _depositary_context(text: str, before: bool) -> bool:
+    """Whether the prose after ``text`` is in depositary context: the last
+    sentence of ``text`` names a depositary term (``before`` when it has none)."""
+    last = [s for s in _SENTENCE.findall(text) if s.strip()]
+    return bool(_CLAIM_TERM.search(last[-1])) if last else before
 
 
 @dataclass
@@ -1921,6 +1968,9 @@ class _TurnState:
     # Every tool result string of the run: the ratio-claim guard traces a
     # released sentence against them (R15-AGENT-090).
     tool_results: list[str] = field(default_factory=list)
+    # The last released sentence named a depositary term, so the next one is
+    # read in depositary context (R15-AGENT-090, the split-sentence claim).
+    ratio_context: bool = False
 
 
 @dataclass
@@ -2117,7 +2167,8 @@ async def _consume_round(
 
     def _release(chunks: list[str]) -> list[LLMDeltaEvent]:
         text = "".join(chunks)
-        guarded = _guard_ratio_claims(text, turn.tool_results)
+        guarded = _guard_ratio_claims(text, turn.tool_results, turn.ratio_context)
+        turn.ratio_context = _depositary_context(text, turn.ratio_context)
         if guarded.strip():
             rnd.streamed_text = True
             turn.turn_text = True

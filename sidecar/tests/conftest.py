@@ -56,6 +56,21 @@ def client() -> TestClient:
 
 
 @pytest.fixture(autouse=True)
+def _no_network_adr_ratio(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep the R15-AGENT-090 20-F cover-page read off the network: the
+    ``fundamentals`` tool looks the depositary ratio up for every foreign
+    reporter. Stub it to ``None`` for every test EXCEPT ``test_adr_ratio``."""
+    if request.module.__name__.rsplit(".", 1)[-1] == "test_adr_ratio":
+        return
+    from services import adr_ratio
+
+    async def _stub(_symbol: str) -> None:
+        return None
+
+    monkeypatch.setattr(adr_ratio, "lookup", _stub)
+
+
+@pytest.fixture(autouse=True)
 def _no_network_dividend_history(
     request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
 ) -> None:
