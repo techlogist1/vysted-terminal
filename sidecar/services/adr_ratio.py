@@ -12,6 +12,7 @@ per symbol so the 5 MB filing is read once.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 from typing import Any
@@ -25,7 +26,9 @@ _log = logging.getLogger(__name__)
 
 _SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
 _ARCHIVE_URL = "https://www.sec.gov/Archives/edgar/data/{cik}/{acc}/{doc}"
-_TIMEOUT = 60.0
+#: Bounds the whole lookup (ticker map + two EDGAR reads), not one request:
+#: fundamentals and financial_statements await it (R15-LEAD-032).
+_TIMEOUT = 8.0
 _TTL = 30 * 24 * 60 * 60  # a ratio changes by a ratio-change event, rarely
 _MISS_TTL = 24 * 60 * 60
 
@@ -139,9 +142,13 @@ async def lookup(symbol: str) -> dict[str, Any] | None:
     if await data_cache.get(f"{key}:miss", _MISS_TTL) is not None:
         return None
     try:
-        found = await _fetch(symbol)
+        found = await asyncio.wait_for(_fetch(symbol), _TIMEOUT)
     except Exception as exc:  # noqa: BLE001 — an unreachable EDGAR is a miss, not a fault
-        _log.warning("adr_ratio %s: %s", symbol, exc)
+        # ponytail: a cold fetch slower than _TIMEOUT caches a 24 h miss (an honest
+        # absence; the ratio guard still defends); complete it in the background
+        # if the live bar shows real ADRs missing.
+        _log.warning("adr_ratio %s: %r", symbol, exc)
+        await data_cache.set(f"{key}:miss", {})
         return None
     await data_cache.set(key if found else f"{key}:miss", found or {})
     return found
