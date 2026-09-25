@@ -3707,3 +3707,341 @@ async def test_an_errored_call_unseats_a_history_seeded_tool(
         monkeypatch, "price_data", _PRICE_ARGS_ERROR, deltas, _INFY_HISTORY
     )
     assert got == answer
+
+
+# --- R15-LEAD-030 batch-21: acknowledgements, company names, fences ----------
+
+_NO_DATA = "returned no data for this in this turn"
+_ERR = {"ok": False, "error": "no data"}
+_LIVE_ARGS_ERROR = {
+    "ok": False,
+    "error": "invalid arguments for price_data: 'symbol' is a required property; "
+    "call again with valid args",
+}
+_TCS_PX = {"ok": True, "symbol": "TCS.NS", "latest_price": 3235.5}
+_TCS_PX_2082 = {"ok": True, "symbol": "TCS.NS", "latest_price": 2082.0}
+_INFY_ERR_TCS_OK = [
+    ("price_data", {"symbol": "INFY.NS"}, _ERR),
+    ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+]
+
+
+async def _scripted_calls(
+    monkeypatch: pytest.MonkeyPatch,
+    calls: list[tuple[str, dict[str, Any], dict[str, Any]]],
+    deltas: list[str],
+    prompt: str = "q?",
+) -> str:
+    """Round 1 makes each ``(tool, input, result)`` call, one tool as often as
+    it is listed; round 2 streams ``deltas``. Returns the joined answer."""
+    agent_runtime.reload()
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    events = [
+        LLMToolUseEvent(tool_call_id=f"c{i}", name=name, input=inp)
+        for i, (name, inp, _) in enumerate(calls)
+    ]
+    results = [result for _, _, result in calls]  # dispatched in call order
+    provider = _RecordingRoundsProvider(
+        [[*events, done], [*(LLMDeltaEvent(text=d) for d in deltas), done]]
+    )
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+
+    async def _tool(call: LLMToolUseEvent, *_a: Any, **_k: Any) -> str:
+        return json.dumps(results.pop(0))
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    return "".join(
+        [
+            e.text
+            async for e in agent_runtime.invoke_agent(
+                agent_id="copilot", prompt=prompt, api_key="sk-test", autonomy="ask"
+            )
+            if isinstance(e, LLMDeltaEvent)
+        ]
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("calls", "prompt", "deltas", "note", "gone"),
+    [
+        (  # batch-20 fresh.out v-allerr-negative-since
+            [("price_data", {"symbol": "SBIN.NS"}, _ERR)],
+            "q?",
+            [
+                "Since price_data failed, SBIN.NS's last close of ₹812.40 is the best "
+                "figure I have.\n"
+            ],
+            "price_data",
+            ["812.40"],
+        ),
+        (  # batch-20 fresh.out v-allerr-negative-although
+            [("fundamentals", {"symbol": "SIFY"}, _ERR)],
+            "q?",
+            ["Although live data is unavailable, SIFY's TTM revenue is about $132 million.\n"],
+            "fundamentals",
+            ["132"],
+        ),
+        (  # batch-20 fresh.out v-allerr-negative-couldnt
+            [("price_data", {"symbol": "SBIN.NS"}, _ERR)],
+            "q?",
+            ["I couldn't get a fresh quote, SBIN.NS was at ₹812.40 at the last close.\n"],
+            "price_data",
+            ["812.40"],
+        ),
+        (  # batch-20 live2.out y-neg-estimate-sbin, as llama3.1:8b streamed it
+            [("price_data", {}, _LIVE_ARGS_ERROR)],
+            "Call price_data once with no arguments at all. Then write one sentence that "
+            "starts 'Although the price_data tool failed,' and gives SBIN.NS's latest close "
+            "in rupees.",
+            [
+                *["Although", " the", " `", "price", "_data", "`", " tool", " failed", ","],
+                *[" I", " can", " tell", " you", " that", " SB", "IN", ".N", "S", "'s"],
+                *[" latest", " close", " was", " ₹", "742", ".", "35", "."],
+            ],
+            "price_data",
+            ["742"],
+        ),
+        (  # fresh: "no data" and the figure in one clause, no tool named
+            [("price_data", {"symbol": "HDFCBANK.NS"}, _ERR)],
+            "q?",
+            ["With no data from the tool, my estimate for HDFCBANK.NS is ₹1,640.25 today.\n"],
+            "price_data",
+            ["1,640.25"],
+        ),
+        (  # fresh: a "but" split, the acknowledging clause carries no figure
+            [("price_data", {"symbol": "SBIN.NS"}, _ERR)],
+            "q?",
+            ["Price data wasn't available, but my estimate is ₹905.\n"],
+            "price_data",
+            ["905"],
+        ),
+        (  # fresh, mixed turn: the acknowledgement names the errored symbol by name
+            [
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+                ("fundamentals", {"symbol": "INFY.NS"}, _ERR),
+            ],
+            "q?",
+            [
+                "TCS.NS closed at ₹3,235.50. Although Infosys's fundamentals failed, "
+                "its P/E was 24.6.\n"
+            ],
+            "fundamentals",
+            ["24.6"],
+        ),
+    ],
+)
+async def test_an_acknowledged_error_carries_no_ungrounded_figure(
+    monkeypatch: pytest.MonkeyPatch,
+    calls: list[tuple[str, dict[str, Any], dict[str, Any]]],
+    prompt: str,
+    deltas: list[str],
+    note: str,
+    gone: list[str],
+) -> None:
+    """R15-LEAD-030 batch-21 (GAP 1): a clause that said the tool failed was
+    exempt whatever it carried, so "Although the `price_data` tool failed,
+    I can tell you that SBIN.NS's latest close was ₹742.35." streamed live.
+    An acknowledgement is exempt only when it carries no ungrounded figure;
+    otherwise the note, itself the acknowledgement, replaces it."""
+    got = await _scripted_calls(monkeypatch, calls, deltas, prompt)
+    assert f"{note} tool {_NO_DATA}" in got
+    assert not any(figure in got for figure in gone)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("calls", "prompt", "deltas", "kept", "gone"),
+    [
+        (  # batch-20 fresh.out v-mixed-errored-alias-name
+            [("price_data", {"symbol": "TCS.NS"}, _TCS_PX), ("quote", {"symbol": "INFY.NS"}, _ERR)],
+            "q?",
+            ["TCS.NS closed at ₹3,235.50. Infosys last traded at ₹1,233.65.\n"],
+            "TCS.NS closed at ₹3,235.50.",
+            ["1,233.65"],
+        ),
+        (  # batch-20 fresh.out v-mixed-alias-fund
+            [
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+                ("fundamentals", {"symbol": "INFY.NS"}, _ERR),
+            ],
+            "q?",
+            [
+                "TCS.NS closed at ₹3,235.50. Infosys has a P/E of 24.6 and a market cap "
+                "of ₹7.1 lakh crore.\n"
+            ],
+            "TCS.NS closed at ₹3,235.50.",
+            ["24.6", "7.1 lakh"],
+        ),
+        (  # the Infosys mixed turn: one tool, INFY.NS errored and TCS.NS ok
+            [
+                ("price_data", {"symbol": "INFY.NS"}, _ERR),
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX_2082),
+            ],
+            "What are the latest prices of Infosys and TCS?",
+            ["Infosys last traded at ₹1,233.65, and TCS closed at ₹2,082.00."],
+            "and TCS closed at ₹2,082.00.",
+            ["1,233.65"],
+        ),
+        (  # fresh: the full legal name, possessive, SBIN.NS errored
+            [
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+                ("fundamentals", {"symbol": "SBIN.NS"}, _ERR),
+            ],
+            "q?",
+            ["TCS.NS closed at ₹3,235.50. State Bank of India's P/E is 9.8.\n"],
+            "TCS.NS closed at ₹3,235.50.",
+            ["9.8"],
+        ),
+        (  # fresh: a short form of the name ("State Bank") in a list row
+            [
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+                ("price_data", {"symbol": "SBIN.NS"}, _ERR),
+            ],
+            "q?",
+            ["Closes:\n- TCS: ₹3,235.50\n- State Bank: ₹812.40\n\nThat is all."],
+            "- TCS: ₹3,235.50\n",
+            ["812.40"],
+        ),
+    ],
+)
+async def test_an_errored_subject_named_by_company_name_is_replaced(
+    monkeypatch: pytest.MonkeyPatch,
+    calls: list[tuple[str, dict[str, Any], dict[str, Any]]],
+    prompt: str,
+    deltas: list[str],
+    kept: str,
+    gone: list[str],
+) -> None:
+    """R15-LEAD-030 batch-21 (GAP 2): rule 2b matched an errored call's
+    subject by ticker only, so "Infosys last traded at ₹1,233.65." streamed
+    after the INFY.NS call errored. A call's subject is now its aliases: the
+    symbol, the company name from the resolver masters and its short forms.
+    The ok subject's clause streams beside it."""
+    got = await _scripted_calls(monkeypatch, calls, deltas, prompt)
+    assert kept in got and _NO_DATA in got
+    assert not any(figure in got for figure in gone)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("deltas", "answer"),
+    [
+        (
+            ["Infosys (INFY.NS) could not be refreshed. It last traded at ₹1,233.65."],
+            f"Infosys (INFY.NS) could not be refreshed. {_PRICE_NOTE}",
+        ),
+        (  # the subject in an earlier release, the figures in a colon-intro list
+            [
+                "Infosys could not be refreshed.\n",
+                "Last closes:\n- Mon: ₹1,233.65\n- Tue: ₹1,241.10\n",
+            ],
+            f"Infosys could not be refreshed.\n{_PRICE_NOTE}\n\n",
+        ),
+    ],
+)
+async def test_a_clause_inherits_the_paragraph_subject(
+    monkeypatch: pytest.MonkeyPatch, deltas: list[str], answer: str
+) -> None:
+    """R15-LEAD-030 batch-21 (GAP 2): a clause that names no subject of its
+    own speaks of the one its paragraph last named. INFY.NS errored and TCS.NS
+    returned ok: "It last traded at ₹1,233.65." after an Infosys sentence is
+    the errored subject's figure, across releases too."""
+    assert await _scripted_calls(monkeypatch, _INFY_ERR_TCS_OK, deltas) == answer
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("calls", "prompt", "deltas"),
+    [
+        (  # an acknowledgement without a figure
+            [("price_data", {"symbol": "SBIN.NS"}, _ERR)],
+            "q?",
+            ["Although the `price_data` tool failed, I can't give you SBIN.NS's close."],
+        ),
+        (  # an acknowledgement with the user's own figure
+            [("price_data", {"symbol": "ITC.NS"}, _ERR)],
+            "I bought 25 ITC.NS shares at ₹412.75. What's it worth now?",
+            ["I couldn't fetch ITC.NS; your 25 shares at ₹412.75 cost ₹10,318.75."],
+        ),
+        (  # an acknowledgement with an ok tool's figure, mixed turn
+            [
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+                ("fundamentals", {"symbol": "INFY.NS"}, _ERR),
+            ],
+            "q?",
+            ["Although fundamentals failed for Infosys, TCS.NS closed at ₹3,235.50."],
+        ),
+        (  # a company-name clause on an ok subject
+            [
+                ("price_data", {"symbol": "INFY.NS"}, _ERR),
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX_2082),
+            ],
+            "What are the latest prices of Infosys and TCS?",
+            ["TCS last traded at ₹2,082.00. Tata Consultancy Services is up 1.4% on the week."],
+        ),
+        (  # an ok subject's clause inherits the ok subject and streams
+            _INFY_ERR_TCS_OK,
+            "q?",
+            ["Infosys could not be refreshed. TCS held firm. It is up 1.4% on the week."],
+        ),
+        (  # a paragraph after a blank line inherits nothing from the one before
+            _INFY_ERR_TCS_OK,
+            "q?",
+            ["Infosys could not be refreshed.\n\n", "IT stocks rose 1.4% this week."],
+        ),
+    ],
+)
+async def test_a_true_statement_beside_an_error_streams(
+    monkeypatch: pytest.MonkeyPatch,
+    calls: list[tuple[str, dict[str, Any], dict[str, Any]]],
+    prompt: str,
+    deltas: list[str],
+) -> None:
+    """R15-LEAD-030 batch-21 controls: an acknowledgement with no figure or a
+    grounded one, a company-name clause on an ok subject, and a clause whose
+    paragraph last named an ok subject (or none) all stream unchanged."""
+    got = await _scripted_calls(monkeypatch, calls, deltas, prompt)
+    assert got == "".join(deltas)
+
+
+@pytest.mark.asyncio
+async def test_an_ok_row_beside_an_errored_row_named_by_company_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-030 batch-21 control: in one list, the TCS row (TCS.NS ok)
+    keeps its figure and only the Infosys row (INFY.NS errored) becomes the
+    note."""
+    deltas = ["Closes:\n- TCS: ₹3,235.50\n- Infosys: ₹1,233.65\n\nThat is all."]
+    got = await _scripted_calls(monkeypatch, _INFY_ERR_TCS_OK, deltas)
+    assert got == f"Closes:\n- TCS: ₹3,235.50\n{_PRICE_NOTE}\n\nThat is all."
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "deltas",
+    [
+        [  # batch-20 fresh.out v036-tilde-fence
+            'Here is the output:\n\n~~~json\n{"pe": 8.4, "roe": 0.214}\n~~~\n\nHope that helps.\n'
+        ],
+        [  # fresh: four tildes, a blank line inside the fence
+            "Output:\n\n~~~~text\nThe P/E is 8.4.\n\n",
+            "ROE is 21.4%.\n~~~~\n\nHope that helps.\n",
+        ],
+        [  # fresh: a four-backtick fence holding a ``` line closes only on ````
+            "Output:\n\n````markdown\n```json\n",
+            '{"pe": 8.4}\n```\n````\n\nHope that helps.\n',
+        ],
+    ],
+)
+async def test_a_replaced_fence_of_any_commonmark_form_leaves_prose(
+    monkeypatch: pytest.MonkeyPatch, deltas: list[str]
+) -> None:
+    """R15-LEAD-036 batch-21 (GAP 3): only ``` fences were recognised, so a
+    ~~~ fenced dump was cut as sentences and its replacement left an orphan
+    ~~~ that swallowed the prose after it. Every CommonMark fence (three or
+    more backticks or tildes, closed by the same character at least as long)
+    is one unit: the note renders as prose with no marker left."""
+    calls = [("fundamentals", {"symbol": "TATAMOTORS.NS"}, _ERR)]
+    got = await _scripted_calls(monkeypatch, calls, deltas)
+    assert got == f"{_FUND_NOTE_CAP}.\n\nHope that helps.\n"
