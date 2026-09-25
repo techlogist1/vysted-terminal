@@ -41,7 +41,7 @@ class FieldMeta(BaseModel):
     map is ADDITIVE — an absent map must never break an existing consumer.
     """
 
-    status: str
+    status: Literal["ok", "flagged", "withheld", "unavailable"]
     provider: str | None = None
     as_of: str | None = None
     reason: str | None = None
