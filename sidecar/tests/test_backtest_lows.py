@@ -14,6 +14,8 @@ from services import backtest_dsl, backtest_engine, backtest_store
 from services.backtest_dsl import CustomDslStrategy, compile_rule
 from services.backtest_engine import BacktestOrderIntent, BacktestStrategy, Bar, SimPortfolio
 
+SIDECAR_ROOT = Path(__file__).resolve().parents[1]
+
 
 @pytest.fixture(autouse=True)
 def isolated_registries(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -119,3 +121,27 @@ async def test_each_bar_in_exactly_one_slice(monkeypatch: pytest.MonkeyPatch) ->
 
     assert all(count == 1 for count in timestamp_hits.values()), timestamp_hits
     assert sum(len(sb) for sb in walk_forward_calls) == len(bars)
+
+
+# ---------------------------------------------------------------------------
+# R15-CODE-PLATFORM-035 — dead scaffolding removed
+# ---------------------------------------------------------------------------
+
+
+def test_no_dead_backtest_scaffolding() -> None:
+    targets = [
+        SIDECAR_ROOT / "services" / "backtest_engine.py",
+        SIDECAR_ROOT / "routers" / "backtest.py",
+        SIDECAR_ROOT / "services" / "backtest_strategies.py",
+    ]
+    banned_phrases = [
+        "_default_bar_loader",
+        "_encode_event_dict",
+        "Teammate K",
+        "kept for parity",
+        "no longer reachable",
+    ]
+    for path in targets:
+        text = path.read_text()
+        for phrase in banned_phrases:
+            assert phrase not in text, f"{phrase!r} still present in {path}"

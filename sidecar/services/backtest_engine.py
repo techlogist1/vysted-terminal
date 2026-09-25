@@ -7,8 +7,8 @@ computes the aggregated :class:`BacktestResult` — total return, Sharpe,
 Sortino, Calmar, max drawdown, win rate, trade log, equity curve.
 
 The engine is intentionally strategy-agnostic; concrete strategies are
-Teammate K's deliverable, registered via :func:`register_strategy` into
-the module-level registry.
+registered via :func:`register_strategy` into the module-level registry
+(see ``backtest_strategies.py``).
 
 Walk-forward: the engine slices the requested date range into N equal
 sections, runs the strategy independently on each, and aggregates the
@@ -164,22 +164,6 @@ def reset_registry_for_tests() -> None:
 # ---------------------------------------------------------------------------
 
 BarLoader = Callable[[list[str], str, str], Awaitable[list[Bar]]]
-
-
-async def _default_bar_loader(symbols: list[str], start: str, end: str) -> list[Bar]:
-    """Default bar loader — pulls from yfinance via the provider registry.
-
-    Teammate K may swap this for a more powerful loader (per-symbol
-    different sources, intraday bars, etc.); the engine accepts any
-    callable matching :data:`BarLoader`.
-    """
-    # Foundation kept minimal — Teammate K wires the real OHLCV plumbing
-    # into the strategy backtests. For unit-test parity an in-memory
-    # fixture loader is injected via run_backtest's `bar_loader` kwarg.
-    raise NotImplementedError(
-        "Foundation backtest_engine does not bundle a default bar loader; "
-        "pass bar_loader= to run_backtest(). Teammate K wires production."
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -438,23 +422,22 @@ async def _run_single_slice(
 async def run_backtest(
     request: BacktestRequest,
     *,
-    bar_loader: BarLoader | None = None,
+    bar_loader: BarLoader,
     on_event: EventCallback | None = None,
 ) -> BacktestResult:
-    """Run a backtest end-to-end."""
+    """Run a backtest end-to-end. ``bar_loader`` supplies the historical bars."""
     strategy_cls = _STRATEGIES.get(request.strategy_id)
     if strategy_cls is None:
         raise BacktestEngineError(
             f"unknown strategy {request.strategy_id!r}; registered: {registered_strategies()}"
         )
 
-    loader = bar_loader or _default_bar_loader
     fees = request.fee_model or BacktestFeeModel()
     run_id = str(uuid.uuid4())
     started_at = int(time.time() * 1000)
     started_ns = time.perf_counter_ns()
 
-    bars = await loader(request.symbols, request.start_date, request.end_date)
+    bars = await bar_loader(request.symbols, request.start_date, request.end_date)
     if request.symbols and not bars:
         # Every requested symbol returned zero bars — the bar loader swallows
         # per-symbol ProviderErrors into empty lists, so without this gate the
