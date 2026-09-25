@@ -11,6 +11,8 @@ seam and the registry is monkeypatched.
 from __future__ import annotations
 
 import asyncio
+import logging
+import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -277,6 +279,41 @@ async def test_crawl_rate_limit_does_not_mark_failure_but_generic_error_does(
     rows = await fundamentals_store.fetch_rows(["THROTTLED.NS", "BROKEN.NS"])
     assert rows["THROTTLED.NS"]["info_failed_at"] is None
     assert rows["BROKEN.NS"]["info_failed_at"] is not None
+
+
+@pytest.mark.asyncio
+async def test_one_upsert_failure_counts_the_others(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """R15-LIFECYCLE-032: a store write failing for one symbol must not abort
+    the cycle — the other symbols are still counted, and the failure is
+    logged at WARNING, not swallowed at DEBUG."""
+    from services import screener_universe_india
+
+    monkeypatch.setattr(
+        screener_universe_india,
+        "load_india_universe",
+        _tiny_universe(["A.NS", "B.NS", "C.NS"]),
+    )
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    await fundamentals_store.seed_universe([{"symbol": s} for s in ("A.NS", "B.NS", "C.NS")])
+
+    async def fake_fund(symbol: str) -> Fundamentals:
+        return Fundamentals(symbol=symbol, roe=0.2, provider="yf")
+
+    real_upsert = fundamentals_store.upsert_info
+
+    async def flaky_upsert(symbol: str, fundamentals: Fundamentals) -> None:
+        if symbol == "B.NS":
+            raise sqlite3.OperationalError("database is locked")
+        await real_upsert(symbol, fundamentals)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_fund)
+    monkeypatch.setattr(fundamentals_store, "upsert_info", flaky_upsert)
+
+    with caplog.at_level(logging.WARNING, logger=fundamentals_warm.__name__):
+        assert await fundamentals_warm._crawl_once() == 2
+    assert any("1 of 3 symbols failed" in r.getMessage() for r in caplog.records)
 
 
 # ---------------------------------------------------------------------------

@@ -375,7 +375,17 @@ async def _crawl_once() -> int:
             fetched += 1
             await asyncio.sleep(random.uniform(*_CRAWL_JITTER_RANGE))
 
-    await asyncio.gather(*(_one(s) for s in batch))
+    # R15-LIFECYCLE-032: one symbol's failure outside the fetch guard (a
+    # store write) must not abort the cycle and drop its siblings' count.
+    results = await asyncio.gather(*(_one(s) for s in batch), return_exceptions=True)
+    failures = [r for r in results if isinstance(r, BaseException)]
+    if failures:
+        logger.warning(
+            "fundamentals warm: crawl cycle: %d of %d symbols failed (first: %r)",
+            len(failures),
+            len(batch),
+            failures[0],
+        )
     return fetched
 
 
@@ -392,7 +402,7 @@ async def _crawl_loop() -> None:
             except asyncio.CancelledError:
                 raise
             except Exception as exc:  # noqa: BLE001 — a crawl cycle is best-effort
-                logger.debug("fundamentals warm: crawl cycle failed: %s", exc)
+                logger.warning("fundamentals warm: crawl cycle failed: %s", exc)
                 fetched = 0
             # An empty cycle (everything fresh) idles longer than a busy one.
             await asyncio.sleep(
