@@ -56,6 +56,11 @@ router = APIRouter(prefix="/workflow", tags=["workflow"])
 @router.post("/run")
 async def run_workflow(payload: WorkflowRunRequest) -> StreamingResponse:
     """Open an SSE stream that emits :class:`WorkflowRunEvent` JSON frames."""
+    if payload.mode != "full":
+        raise HTTPException(
+            status_code=400,
+            detail=f"unsupported run mode {payload.mode!r}; only 'full' is implemented",
+        )
 
     async def _generator() -> AsyncIterator[bytes]:
         import asyncio

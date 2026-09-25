@@ -97,14 +97,8 @@ export interface WorkflowRunRequest {
   spec: WorkflowSpec;
   /** Run-time inputs threaded into source nodes (e.g. a focused symbol). */
   inputs?: Record<string, unknown>;
-  /**
-   * Run mode. `"full"` walks the whole graph; `"resume-from"` restarts from
-   * a previously failed node id using captured upstream outputs. Phase-4
-   * default is `"full"` — `"resume-from"` is the partial-replay path.
-   */
-  mode?: "full" | "resume-from";
-  /** Node id to resume from when `mode === "resume-from"`. */
-  resumeFrom?: string;
+  /** Run mode — only `"full"` (walk the whole graph); the sidecar answers 400 to any other. */
+  mode?: "full";
   /**
    * Foreground BYOK creds for `ai.agent_invoke` nodes (the chat selection),
    * the same names as the agent-invoke request. Held for the run only; never

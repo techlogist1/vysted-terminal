@@ -39,3 +39,14 @@ def test_dangling_edge_yields_one_run_error_frame(client: TestClient) -> None:
     # The run is opened so the client can key the error to a run id.
     assert [f["kind"] for f in frames] == ["run-start", "run-error"]
     assert frames[0]["runId"] == errors[0]["runId"]
+
+
+def test_resume_from_is_rejected_not_silently_rerun(client: TestClient) -> None:
+    resume = client.post("/workflow/run", json={"spec": _spec([]), "mode": "resume-from"})
+    assert resume.status_code == 400
+    assert "resume-from" in resume.json()["detail"]
+    assert "run-start" not in resume.text
+
+    # The resume target field is gone from the contract, not ignored.
+    target = client.post("/workflow/run", json={"spec": _spec([]), "resumeFrom": "a"})
+    assert target.status_code == 422
