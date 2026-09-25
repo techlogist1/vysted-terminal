@@ -56,7 +56,7 @@ import {
   useModelSelectionStore,
 } from "@/store/model-selection";
 import { useMarketplaceStore } from "@/store/marketplace";
-import { useModulesStore } from "@/store/modules";
+import { contributesNothing, useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { fetchHardwareReport, type ScoredModel, verdictMeta } from "@/lib/hardware-fit";
 import { getSidecarBaseUrl, sidecarGet, sidecarRequest } from "@/lib/sidecar-client";
@@ -1921,8 +1921,8 @@ function ModulesSection() {
       />
       <Card>
         {modules.map((module) => {
-          const isPlatform = module.id === PLATFORM_MODULE_ID;
-          const isEnabled = enabled[module.id] !== false;
+          const alwaysOn = module.id === PLATFORM_MODULE_ID || contributesNothing(module);
+          const isEnabled = alwaysOn || enabled[module.id] !== false;
           return (
             <ToggleRow
               key={module.id}
@@ -1931,13 +1931,13 @@ function ModulesSection() {
                 <>
                   {module.panels.length} panel{module.panels.length === 1 ? "" : "s"} ·{" "}
                   {module.commands.length} command{module.commands.length === 1 ? "" : "s"}
-                  {isPlatform ? " · always on" : ""}
+                  {alwaysOn ? " · always on" : ""}
                 </>
               }
               checked={isEnabled}
-              disabled={isPlatform}
+              disabled={alwaysOn}
               onChange={(next) => {
-                if (isPlatform) return;
+                if (alwaysOn) return;
                 // A bridged plugin module's enabled flag is owned by the
                 // marketplace lifecycle (runtime + plugins.db), not the
                 // workspace-persisted module map — routing through

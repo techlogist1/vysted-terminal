@@ -8,6 +8,14 @@ import {
 } from "@/lib/module-registry";
 import type { CommandSpec, PanelSpec } from "../../types/plugin";
 
+/**
+ * A module with no panels and no commands (the agent-dock "AI Assistant")
+ * has nothing a toggle could switch off, so Settings shows it always-on.
+ */
+export function contributesNothing(module: VystedModule): boolean {
+  return module.panels.length === 0 && module.commands.length === 0;
+}
+
 interface ModulesState {
   /** Every registered module, in registry order. */
   modules: VystedModule[];

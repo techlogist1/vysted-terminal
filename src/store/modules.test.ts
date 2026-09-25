@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import type { VystedModule } from "@/lib/module-registry";
 import { vystedModules } from "@/modules";
-import { useModulesStore } from "@/store/modules";
+import { contributesNothing, useModulesStore } from "@/store/modules";
 
 function fakeModule(id: string, panelId = `${id}-panel`): VystedModule {
   return {
@@ -45,6 +45,12 @@ describe("modules store", () => {
     useModulesStore.getState().registerModules(vystedModules);
     useModulesStore.getState().setModuleEnabled("chart", false);
     expect(useModulesStore.getState().findPanel("chart")).toBeDefined();
+  });
+
+  it("only a panel-less, command-less module is always-on in Settings (R15-UI-081)", () => {
+    const alwaysOn = vystedModules.filter(contributesNothing).map((module) => module.id);
+    expect(alwaysOn).toEqual(["chat"]);
+    expect(contributesNothing(fakeModule("portfolio"))).toBe(false);
   });
 
   it("setEnabledMap replaces the whole enabled map", () => {

@@ -74,8 +74,12 @@ interface WorkspaceState {
   /** Set (or clear, with `null`) the active research space's symbol. */
   setResearchSymbol: (symbol: string | null) => void;
   setDockviewApi: (api: DockviewApi | null) => void;
-  /** Open a panel by its `PanelSpec` id, or focus it if already open. */
-  openPanel: (panelId: string) => void;
+  /**
+   * Open a panel by its `PanelSpec` id, or focus it if already open. Resolves
+   * through ENABLED modules only: returns false (nothing opened) for a
+   * disabled module's panel, an unknown id, or no mounted layout.
+   */
+  openPanel: (panelId: string) => boolean;
   /** Close a panel by id, if open. */
   closePanel: (panelId: string) => void;
   /**
@@ -109,14 +113,15 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
   openPanel: (panelId) => {
     const api = get().dockviewApi;
     if (!api) {
-      return;
+      return false;
     }
-    const spec = useModulesStore.getState().findPanel(panelId);
+    const modules = useModulesStore.getState();
+    const spec = modules.enabledPanels().find((panel) => panel.id === panelId);
     if (!spec) {
-      if (process.env.NODE_ENV !== "production") {
+      if (process.env.NODE_ENV !== "production" && !modules.findPanel(panelId)) {
         console.error(`openPanel: no registered panel "${panelId}" (a component id?)`);
       }
-      return;
+      return false;
     }
     // Seed the opened panel's size from the spec's declared defaultSize (a
     // proportional starting ratio; dockview redistributes from there).
@@ -141,12 +146,12 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       const existing = api.getPanel(panelId);
       if (existing) {
         existing.api.setActive();
-        return;
+        return true;
       }
       applySize(
         api.addPanel({ id: spec.id, component: spec.component, title: spec.title, position }),
       );
-      return;
+      return true;
     }
     // Non-singleton panel: mint a unique panel id so multiple instances can
     // coexist and dockview's id-uniqueness invariant holds. (Currently no
@@ -158,6 +163,7 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     applySize(
       api.addPanel({ id: uniqueId, component: spec.component, title: spec.title, position }),
     );
+    return true;
   },
   closePanel: (panelId) => {
     get().dockviewApi?.getPanel(panelId)?.api.close();
