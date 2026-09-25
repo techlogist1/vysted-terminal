@@ -1,11 +1,11 @@
 # R15 lows partition
 
-Base `4097dac423bd6d6fb49245e7ee9e0ab2bc64f18a` · triage `e032be7dd164a504215055a1cd7b7b497dbd68e9` · 207 open/low entries selected, exclude_ids [].
+Base `4097dac423bd6d6fb49245e7ee9e0ab2bc64f18a` · triage `e032be7dd164a504215055a1cd7b7b497dbd68e9` · 210 open/low entries selected, exclude_ids [].
 
 | Partition | Sets | Entries | Effort pts | Opus | Sonnet |
 |---|---|---|---|---|---|
-| P1 | 9 | 62 | 88 | 4 | 5 |
-| P2 | 9 | 62 | 88 | 3 | 6 |
+| P1 | 9 | 63 | 90 | 4 | 5 |
+| P2 | 9 | 64 | 90 | 3 | 6 |
 | P3 | 9 | 67 | 87 | 3 | 6 |
 
 ## P1
@@ -66,15 +66,16 @@ Files: `src/lib/host-actions.ts`, `src/lib/host-actions.test.ts`, `src/store/pro
 
 Files: `src/modules/chat/DepthControl.tsx`, `src/modules/chat/DepthControl.test.tsx` (new), `src/store/search-settings.ts`, `src/store/search-settings.test.ts`, `src/modules/chat/mentions.ts`, `src/modules/chat/mentions.test.ts`, `src/modules/chat/MentionPicker.tsx`
 
-### P1/W5 `portfolio` — sonnet, 9 pts, merge hint 2
+### P1/W5 `portfolio` — sonnet, 11 pts, merge hint 2
 
 - **R15-UI-078**: form, agent path and restore apply different holding rules (blank cost saved as 0, 1e20 quantity, '1,000' gets a misleading 'required') → one validateHolding() in portfolios.ts (non-empty cost, 0<qty<=1e12, cost>=0, field-specific messages) used by normalizeHolding (so addHolding/updateHolding and the agent path inherit it) and the PortfolioPanel form → acceptance test src/store/portfolios.test.ts 'validateHolding rejects blank cost, qty>1e12, names the field for 1,000'
 - **R15-CODE-PLATFORM-050**: metrics.ts computes on a snake_case Position adapter whose id is the array index and PortfolioPanel re-joins rows to holdings by index → buildPortfolioSummary takes Holding[] with real ids; delete the adapter, synthetic id and index join → acceptance test src/modules/portfolio/metrics.test.ts 'rows carry the real holding id'
 - **R15-CODE-PLATFORM-051**: the P&L cell re-inlines the pnlTone ternary → call pnlTone(r.pnl) → acceptance test src/modules/portfolio/PortfolioPanel.test.tsx 'P&L cell tone equals pnlTone'
 - **R15-CODE-PLATFORM-052**: updateHolding's interface comment says 'Patch' but it replaces → reword to 'Replace an existing holding's fields (not a partial merge)' → acceptance test: doc-only; existing replace test in src/store/portfolios.test.ts stays green
 - **R15-UI-079**: csv.ts writes cells starting with = + - @ tab or CR verbatim (formula injection from agent-written notes) → prefix a single quote in the shared cell escaper, leaving plain numeric cells like -12.5 unprefixed → acceptance test src/lib/csv.test.ts formula-trigger table ('=HYPERLINK(..)', '+1', '@x', '\t..')
+- **R15-AGENT-091**: get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) → add a currency field to TerminalHolding (context-provider.ts), sourced from the tracked position's currency, and include it on both the panel-published path (PortfolioPanel.tsx publishedHoldings) and the store-fallback path (portfolioFromStore) → acceptance test src/modules/chat/context-provider.test.ts 'get_portfolio holdings carry a currency field on both the panel-published and store-fallback paths'
 
-Files: `src/store/portfolios.ts`, `src/store/portfolios.test.ts`, `src/modules/portfolio/PortfolioPanel.tsx`, `src/modules/portfolio/PortfolioPanel.test.tsx`, `src/modules/portfolio/metrics.ts`, `src/modules/portfolio/metrics.test.ts`, `src/lib/csv.ts`, `src/lib/csv.test.ts`
+Files: `src/store/portfolios.ts`, `src/store/portfolios.test.ts`, `src/modules/chat/context-provider.ts`, `src/modules/portfolio/PortfolioPanel.tsx`, `src/modules/portfolio/PortfolioPanel.test.tsx`, `src/modules/chat/context-provider.test.ts`, `src/modules/portfolio/metrics.ts`, `src/modules/portfolio/metrics.test.ts`, `src/lib/csv.ts`, `src/lib/csv.test.ts`
 
 ### P1/W6 `runs-stores` — opus, 6 pts, merge hint 2
 
@@ -191,7 +192,7 @@ Files: `sidecar/services/agent_tools/__init__.py`, `sidecar/services/agent_tools
 
 > Merge before llm-router-mcp (CODE-AGENT-023 converts the {ok:false} envelope to an MCP ToolError).
 
-### P2/W4 `warm-screener` — opus, 10 pts, merge hint 1
+### P2/W4 `warm-screener` — opus, 11 pts, merge hint 1
 
 Model reason: R15-LEAD-025 is untriaged and not root-caused (measure-first); the warm loops are boot-lifecycle tasks.
 
@@ -203,12 +204,13 @@ Model reason: R15-LEAD-025 is untriaged and not root-caused (measure-first); the
 - **R15-CODE-DATA-020**: POST /screener/run maps every ValueError to 400 with a comment that teaches a false fact, misreporting internal model bugs as client errors → narrow to FormulaError with an honest comment → acceptance test sidecar/tests/test_screener_router.py::test_internal_error_is_500_formula_error_is_400
 - **R15-DATA-107**: India master accessors pass positional tuples (_bse_lookup), so a field reorder would mislabel scrip_code as ISIN → NamedTuple returns with field access by name → acceptance test sidecar/tests/test_screener_india.py::test_india_symbol_meta_fields_by_name (scrip_code digits, isin 'INE')
 - **R15-DATA-108**: sector_map_generated/sector_map_coverage re-parse the ~1 MB India sector master every call while the sibling is lru_cached → @lru_cache on _load_master plus cache_clear in the reset hook → acceptance test sidecar/tests/test_screener_india.py::test_sector_master_parsed_once
+- **R15-LEAD-029**: screener_universe_india.py's _nse_lookup docstring (:95) still hardcodes a stale india-all count ('~5,156') distinct from the counts R15-CODE-DATA-023 fixed elsewhere in the same file (load_india_universe('india-all') returns 5,891) → replace the hardcoded count with the live count or drop the specific number and describe composition only (as 3cb5bc29 did for the other two comments in this file) → acceptance test sidecar/tests/test_screener_india.py::test_nse_lookup_docstring_count_matches_india_all_length
 
 Files: `sidecar/services/fundamentals_warm.py`, `sidecar/services/screener.py`, `sidecar/models/screener.py`, `types/screener.ts`, `sidecar/routers/screener.py`, `sidecar/services/screener_universe_india.py`, `sidecar/tests/test_fundamentals_warm.py`, `sidecar/tests/test_screener.py`, `sidecar/tests/test_screener_router.py`, `sidecar/tests/test_screener_india.py`
 
 > Mirror: sidecar/models/screener.py <-> types/screener.ts owned together.
 
-### P2/W5 `data-resilience` — sonnet, 9 pts, merge hint 2
+### P2/W5 `data-resilience` — sonnet, 10 pts, merge hint 2
 
 - **R15-CODE-DATA-007**: the disclosure lane loops (announcements, shareholding) in corporate_disclosures catch only ProviderError, so any other lane exception 500s the route instead of a partial merge → widen both to except Exception (noqa BLE001), keeping the reason in errors → acceptance test sidecar/tests/test_corporate_disclosures.py::test_lane_keyerror_degrades_to_partial_merge (both routes)
 - **R15-LEAD-017**: CSL's shareholding history carries a duplicate quarter row (2026-08-20); no dedupe exists at the lane boundary → dedupe the SHP series by (symbol, period_end) before return (bse_provider _fetch_shp_index or get_shareholding) → acceptance test sidecar/tests/test_corporate_disclosures.py::test_duplicate_quarter_rows_collapse_to_one
@@ -219,6 +221,7 @@ Files: `sidecar/services/fundamentals_warm.py`, `sidecar/services/screener.py`, 
 - **R15-LIFECYCLE-033**: rig mutation endpoints POST /system/provider-health/trip and /reset ship ungated and can open the Yahoo breaker for the whole process → 404 unless VYSTED_RIG_HOOKS=1 → acceptance test sidecar/tests/test_system_router.py::test_rig_hooks_404_without_flag
 - **R15-LIFECYCLE-034**: the SearXNG one-click setup task has no exception boundary (write_settings OSError kills it mid-PULLING with no reason) and the module logger is unused → wrap _setup_locked's body: STATE_ERROR with a reason + _log.exception, and log docker non-zero exits → acceptance test sidecar/tests/test_searxng_manager.py::test_write_settings_oserror_reports_error_reason
 - **R15-LIFECYCLE-035**: the managed-SearXNG error state is sticky for the process, so a container fixed by hand stays bypassed → carry last_error on the snapshot and let refresh() re-derive state → acceptance test sidecar/tests/test_searxng_manager.py::test_refresh_recovers_from_error_keeping_last_error
+- **R15-CODE-PLATFORM-077**: data-dir upgrade backups (backups/<old-build>/, data_cache.py:153) are never pruned; each build change adds a full data-dir copy → cap retained backups (keep the newest N) and delete older ones once a new backup completes successfully → acceptance test sidecar/tests/test_data_cache.py::test_old_upgrade_backups_are_pruned_after_a_successful_backup
 
 Files: `sidecar/services/corporate_disclosures.py`, `sidecar/services/bse_provider.py`, `sidecar/services/provider_registry.py`, `sidecar/services/data_cache.py`, `sidecar/services/exchange_financials.py`, `sidecar/services/earnings_provider.py`, `sidecar/routers/system.py`, `sidecar/services/searxng_manager.py`, `sidecar/tests/test_corporate_disclosures.py`, `sidecar/tests/test_provider_registry.py`, `sidecar/tests/test_data_cache.py`, `sidecar/tests/test_exchange_financials_negcache.py` (new), `sidecar/tests/test_earnings_provider.py`, `sidecar/tests/test_system_router.py`, `sidecar/tests/test_searxng_manager.py`
 
