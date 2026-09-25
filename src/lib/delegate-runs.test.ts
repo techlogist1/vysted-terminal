@@ -148,6 +148,38 @@ describe("delegate-runs", () => {
     expect(run?.detail).toContain("token budget exceeded");
   });
 
+  it("skips a poll while one is in flight, and bounds the /runs read with a timeout", async () => {
+    const id = useAgentRunsStore.getState().startRun({
+      agentId: "copilot",
+      agentName: "Copilot",
+      mode: "delegate",
+      budget: BUDGET,
+      cost: { tokens: 0, spendUsd: 0, steps: 0 },
+    });
+    useAgentRunsStore.getState().updateRun(id, { sidecarRunId: "run-9" });
+    let answer: (r: Response) => void = () => {};
+    const fetchMock = vi.fn(
+      (_url: string, _init?: RequestInit) =>
+        new Promise<Response>((resolve) => {
+          answer = resolve;
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const first = pollDelegateRuns();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    await pollDelegateRuns(); // the timer ticks while the first read hangs
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][1]?.signal).toBeInstanceOf(AbortSignal);
+
+    answer(jsonResponse({ runs: [] }));
+    await first;
+    const next = pollDelegateRuns(); // the guard released: the next tick reads again
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    answer(jsonResponse({ runs: [] }));
+    await next;
+  });
+
   it("routes cancel + answer to the run routes", async () => {
     const cancelFetch = vi.fn().mockResolvedValue(jsonResponse({}));
     vi.stubGlobal("fetch", cancelFetch);

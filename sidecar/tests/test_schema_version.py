@@ -108,7 +108,7 @@ STORES: list[tuple[object, str, str, Callable[[Path], None]]] = [
         "NULL DEFAULT '{}', cost_json TEXT NOT NULL DEFAULT '{}', detail TEXT, question TEXT, "
         "checkpoint_json TEXT, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL); "
         "INSERT INTO runs (id, agent_id, agent_name, status, created_at, updated_at) "
-        "VALUES ('KEEP', 'a', 'A', 'done', 1, 1)",
+        "VALUES ('KEEP', 'a', 'A', 'done', strftime('%s', 'now'), strftime('%s', 'now'))",
         _open_runs,
     ),
     (
