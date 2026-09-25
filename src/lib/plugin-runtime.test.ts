@@ -397,6 +397,30 @@ describe("PluginRuntime — health checks", () => {
     expect(snapshot?.state).toBe("error");
     expect(snapshot?.errorMessage).toContain("boom");
   });
+
+  // R15-CODE-PLATFORM-047: healthCheckOne used to write back a snapshot of
+  // `record` captured BEFORE the `healthCheck()` await, so a disable landing
+  // mid-check overwrote the record with `{...staleActiveRecord, healthHistory}`
+  // once the check resolved — reviving state:"active" on a plugin that had
+  // just been stopped.
+  it("disable during a pending healthCheck stays stopped, not reverted to active", async () => {
+    let resolveHealth: (status: HealthStatus) => void = () => {};
+    const pendingHealth = new Promise<HealthStatus>((resolve) => {
+      resolveHealth = resolve;
+    });
+    const runtime = new PluginRuntime();
+    const plugin = discovered(fakePlugin("a", { healthCheck: () => pendingHealth }));
+    await runtime.loadPlugin(plugin);
+
+    const checking = runtime.healthCheckAll(); // healthCheck() in flight, awaiting pendingHealth
+    await runtime.disablePlugin("a"); // lands mid-check: shutdown + transition to `stopped`
+    resolveHealth({ status: "healthy", checkedAt: 0 });
+    await checking;
+
+    const snapshot = runtime.getPlugin("a");
+    expect(snapshot?.state).toBe("stopped");
+    expect(snapshot?.healthHistory).toHaveLength(0);
+  });
 });
 
 // ---------------------------------------------------------------------------

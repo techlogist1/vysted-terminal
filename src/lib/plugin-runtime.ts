@@ -538,19 +538,28 @@ export class PluginRuntime {
       this.transitionToError(record.manifest.id, error, "healthCheck");
       return;
     }
+    // R15-CODE-PLATFORM-047: re-read the CURRENT record post-await rather than
+    // writing back the pre-await `record` — a disable/error transition that
+    // landed while `healthCheck()` was in flight must not be reverted to
+    // `active` by this stale-record overwrite. Bail if the plugin is gone or
+    // no longer active; only `healthHistory` is mutated otherwise.
+    const current = this.plugins.get(record.manifest.id);
+    if (!current || current.state !== "active") {
+      return;
+    }
     const sample: HealthSample = {
       status: status.status,
       message: status.message,
       recordedAt: this.context.now(),
     };
-    const previous = record.healthHistory[record.healthHistory.length - 1];
-    const newHistory = [...record.healthHistory, sample].slice(-HEALTH_HISTORY_LIMIT);
-    this.plugins.set(record.manifest.id, {
-      ...record,
+    const previous = current.healthHistory[current.healthHistory.length - 1];
+    const newHistory = [...current.healthHistory, sample].slice(-HEALTH_HISTORY_LIMIT);
+    this.plugins.set(current.manifest.id, {
+      ...current,
       healthHistory: newHistory,
     });
     if (!previous || previous.status !== sample.status) {
-      this.emit("health-changed", record.manifest.id, status.message);
+      this.emit("health-changed", current.manifest.id, status.message);
     }
   }
 
