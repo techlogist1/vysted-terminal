@@ -48,7 +48,9 @@ export function ProvenanceBadge({
   className?: string;
 }) {
   const short = providerShortLabel(provider);
-  const label = prefix ? `${prefix} · ${synthetic ? "synthetic" : short}` : short;
+  // "synthetic" is always visible text, never colour alone, with or without a prefix.
+  const body = synthetic ? "synthetic" : short;
+  const label = prefix ? `${prefix} · ${body}` : body;
   return (
     <span
       data-testid="provenance-badge"
@@ -57,22 +59,26 @@ export function ProvenanceBadge({
         synthetic ? "bg-charcoal-850 text-warning" : "bg-charcoal-800 text-charcoal-300",
         className,
       )}
-      title={synthetic ? "Synthetic / placeholder value — not a live read" : `Source: ${provider}`}
+      title={
+        synthetic
+          ? `Synthetic / placeholder value from ${provider} — not a live read`
+          : `Source: ${provider}`
+      }
     >
       {label}
     </span>
   );
 }
 
-/** Format an epoch-ms timestamp as a short `YYYY-MM-DD` (locale-stable) date. */
+/** Format an epoch-ms timestamp as a `YYYY-MM-DD` date in the viewer's LOCAL
+ *  calendar (en-CA is the ISO shape) — a UTC date reads a day early between
+ *  00:00 and 05:29 IST and disagrees with the local timestamps beside it. */
 function asOfDate(epochMs: number): string {
   const d = new Date(epochMs);
   if (Number.isNaN(d.getTime())) {
     return "";
   }
-  // Fixed ISO date (not locale) so the "as of" anchor is unambiguous across
-  // regions — this is a data-freshness fact, not a display-formatted number.
-  return d.toISOString().slice(0, 10);
+  return d.toLocaleDateString("en-CA");
 }
 
 /**
@@ -87,7 +93,8 @@ export function StalenessBadge({
   className,
 }: {
   freshness: Freshness;
-  /** Epoch ms the value is as-of; required for a readable `eod` label. */
+  /** Epoch ms the value is as-of. Every `eod` caller passes it — a bare "EOD"
+   *  with no date cannot be told apart from today's close. */
   asOf?: number;
   className?: string;
 }) {

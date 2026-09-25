@@ -32,6 +32,13 @@ describe("ProvenanceBadge", () => {
     expect(badge).toHaveTextContent("PAPER · synthetic");
     expect(badge.className).toContain("text-warning");
   });
+
+  it("states synthetic in visible text without a prefix, never colour alone (R15-UI-067)", () => {
+    render(<ProvenanceBadge provider="kite" synthetic />);
+    const badge = screen.getByTestId("provenance-badge");
+    expect(badge).toHaveTextContent("synthetic");
+    expect(badge.getAttribute("title")).toContain("kite");
+  });
 });
 
 describe("StalenessBadge", () => {
@@ -61,6 +68,22 @@ describe("StalenessBadge", () => {
     const epoch = Date.UTC(2026, 0, 15, 12, 0, 0);
     render(<StalenessBadge freshness="eod" asOf={epoch} />);
     expect(screen.getByTestId("staleness-badge")).toHaveTextContent("EOD as of 2026-01-15");
+  });
+
+  it("dates EOD in the viewer's local calendar across IST midnight (R15-UI-067)", () => {
+    const prevTz = process.env.TZ;
+    process.env.TZ = "Asia/Kolkata";
+    try {
+      // 01:30 IST on the 24th is still the 23rd in UTC — the old UTC slice read a day early.
+      render(<StalenessBadge freshness="eod" asOf={Date.parse("2026-09-24T01:30:00+05:30")} />);
+      expect(screen.getByTestId("staleness-badge")).toHaveTextContent("EOD as of 2026-09-24");
+    } finally {
+      if (prevTz === undefined) {
+        delete process.env.TZ;
+      } else {
+        process.env.TZ = prevTz;
+      }
+    }
   });
 
   it("degrades to a bare EOD label when no timestamp is given", () => {

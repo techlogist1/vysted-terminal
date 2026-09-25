@@ -77,7 +77,9 @@ function SymbolCell({ row, showChips }: { row: WatchlistRow; showChips: boolean 
       {showChips && quote !== null && (
         <span className="flex flex-wrap items-center gap-1 overflow-hidden">
           <ProvenanceBadge provider={quote.provider} />
-          {quote.freshness != null && <StalenessBadge freshness={quote.freshness} />}
+          {quote.freshness != null && (
+            <StalenessBadge freshness={quote.freshness} asOf={Date.parse(quote.timestamp)} />
+          )}
         </span>
       )}
       {session.label !== null && session.tone === "muted" && (

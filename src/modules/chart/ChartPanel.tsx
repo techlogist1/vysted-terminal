@@ -339,6 +339,8 @@ function ChartPanel(props: ChartPanelProps = {}) {
   } | null>(null);
   // Calendar-aware staleness of the series' last bar (FR-041 / SC-019).
   const [freshness, setFreshness] = useState<Freshness | null>(null);
+  // Epoch ms of the last bar — the date an `eod` badge states.
+  const [freshnessAsOf, setFreshnessAsOf] = useState<number | undefined>(undefined);
 
   // --- drawings state -----------------------------------------------------
   const [activeTool, setActiveTool] = useState<DrawingKind | null>(null);
@@ -496,6 +498,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
         }
         setProvider(series.provider);
         setFreshness(series.freshness ?? null);
+        setFreshnessAsOf((candleData[candleData.length - 1].time as number) * 1000);
         setPriceState("ready");
       } catch (error: unknown) {
         if (cancelled) {
@@ -1594,7 +1597,9 @@ function ChartPanel(props: ChartPanelProps = {}) {
               <span className="min-w-0 truncate">via {provider}</span>
             ) : null}
             {/* Calendar-aware freshness so a stale series is never read as current. */}
-            {freshness && priceState === "ready" ? <StalenessBadge freshness={freshness} /> : null}
+            {freshness && priceState === "ready" ? (
+              <StalenessBadge freshness={freshness} asOf={freshnessAsOf} />
+            ) : null}
             {/* FR-118 session hint — the OHLCV series carries freshness but no
                 provider market_state, so the chart derives a humanized closed /
                 stale label from freshness rather than presenting EOD bars as live. */}
