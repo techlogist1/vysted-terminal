@@ -103,8 +103,11 @@ def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
 class GroqProvider(LLMProvider):
     """Groq chat-completions adapter."""
 
+    def __init__(self, base_url: str | None = None) -> None:
+        self._base_url = base_url
+
     def _client(self, api_key: str | None) -> groq.AsyncGroq:
-        return groq.AsyncGroq(api_key=api_key, timeout=client_timeout())
+        return groq.AsyncGroq(api_key=api_key, base_url=self._base_url, timeout=client_timeout())
 
     async def stream_chat(
         self,

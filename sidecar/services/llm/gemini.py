@@ -100,7 +100,12 @@ def _split_system_and_contents(
 class GeminiProvider(LLMProvider):
     """Google Gemini adapter via the unified ``google-genai`` SDK."""
 
+    def __init__(self, base_url: str | None = None) -> None:
+        self._base_url = base_url
+
     def _client(self, api_key: str | None) -> genai.Client:
+        if self._base_url:
+            return genai.Client(api_key=api_key, http_options={"base_url": self._base_url})
         return genai.Client(api_key=api_key)
 
     async def stream_chat(

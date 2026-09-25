@@ -6,6 +6,7 @@ import ast
 import inspect
 from pathlib import Path
 
+from services.llm import get_provider
 from services.llm.base import LLMProvider
 
 _LLM_DIR = Path(__file__).resolve().parent.parent / "services" / "llm"
@@ -35,3 +36,18 @@ def test_validate_key_has_no_reraise_only_clause() -> None:
                 ):
                     offenders.append(f"{path.name}:{handler.lineno}")
     assert offenders == []
+
+
+def test_get_provider_groq_gemini_honour_or_reject_base_url() -> None:
+    """R15-CODE-AGENT-020: a base_url handed to get_provider reaches the SDK
+    client for groq and gemini instead of being dropped; omitted, the vendor
+    default stays."""
+    groq_proxy = "https://groq.proxy.internal/openai/v1/"
+    gemini_proxy = "https://gemini.proxy.internal/"
+    groq_client = get_provider("groq", base_url=groq_proxy)._client("k")
+    gemini_client = get_provider("gemini", base_url=gemini_proxy)._client("k")
+    assert str(groq_client.base_url) == groq_proxy
+    assert gemini_client._api_client._http_options.base_url == gemini_proxy
+    assert str(get_provider("groq")._client("k").base_url).startswith("https://api.groq.com")
+    default_gemini = get_provider("gemini")._client("k")._api_client._http_options.base_url
+    assert default_gemini.startswith("https://generativelanguage.googleapis.com")
