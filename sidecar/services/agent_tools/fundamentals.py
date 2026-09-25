@@ -237,14 +237,29 @@ _STATEMENT_FETCHERS = {
 }
 
 
+async def _statement_currency(symbol: str) -> str | None:
+    """The currency the statements are reported in: ``financial_currency``
+    (an ADR such as SIFY reports in INR), else the trading ``currency``.
+    ``None`` when the lookup fails — never a guessed code."""
+    from services import provider_registry
+
+    try:
+        fund = await provider_registry.get_fundamentals(symbol)
+    except Exception:  # noqa: BLE001 — the statement still ships, currency unknown
+        return None
+    return fund.financial_currency or fund.currency
+
+
 async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
     """Return one financial statement (income / balance / cashflow) for
-    ``symbol``, annual or quarterly, as ``{symbol, statement, period, periods,
-    lines}`` (R15-DATA-026).
+    ``symbol``, annual or quarterly, as ``{symbol, statement, period, currency,
+    periods, lines}`` (R15-DATA-026).
 
     Periods are fiscal years (annual) or ISO period-end dates (quarterly),
     newest first, capped at the newest :data:`_MAX_STATEMENT_PERIODS`;
-    ``periods_available`` counts what the provider served.
+    ``periods_available`` counts what the provider served. ``currency`` is the
+    reporting currency (rc1-scenarios:5: SIFY's INR revenue reached the model
+    bare and was stated in dollars); ``None`` plus a ``note`` when unknown.
     """
     from services import provider_registry
     from services.errors import ProviderError
@@ -261,7 +276,9 @@ async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
 
     fetch = getattr(provider_registry, _STATEMENT_FETCHERS[statement])
     try:
-        result = await fetch(symbol, period=period)
+        result, currency = await asyncio.gather(
+            fetch(symbol, period=period), _statement_currency(symbol)
+        )
     except ProviderError as exc:
         return {
             "ok": False,
@@ -278,6 +295,12 @@ async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
         "statement": statement,
         "period": period,
         "provider": result.provider,
+        "currency": currency,
+        **(
+            {}
+            if currency
+            else {"note": "reporting currency unknown — do not state these values in any currency"}
+        ),
         "periods": periods,
         "periods_available": len(result.periods),
         "lines": [

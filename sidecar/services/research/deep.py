@@ -298,15 +298,30 @@ _WEB_ONLY_FLOOR_NOTE = (
 )
 
 
+def structured_source_gathered(sources: list[ResearchSource]) -> bool:
+    """Did the run cite a structured price/fundamentals source ANYWHERE?
+
+    The up-front snapshot can time out while a researcher's own ``price`` /
+    ``fundamentals`` leg later succeeds (:func:`_record_structured` appends
+    ``vysted://<dim>/<SYM>``) — that source is as real as a snapshot leg.
+    """
+    return any(s.url.startswith(("vysted://price/", "vysted://fundamentals/")) for s in sources)
+
+
 def web_only_floor_note(markdown: str, *, structured: dict[str, Any], findings: _Findings) -> str:
     """Append the honest web-only-floor statement when it applies.
 
-    Applies only when the loosened floor actually carried the run: the
-    structured feeds returned nothing AND web citations exist. A run with zero
+    Applies only when the loosened floor actually carried the run: no
+    structured price/fundamentals source exists anywhere in the run (neither
+    the snapshot nor a researcher leg) AND web citations exist. A run with zero
     sources keeps the existing ``web_available=False`` banner instead — the
     note must never claim web coverage that was not gathered.
     """
-    if structured_feeds_available(structured) or not findings.web_sources:
+    if (
+        structured_feeds_available(structured)
+        or structured_source_gathered(findings.structured_sources)
+        or not findings.web_sources
+    ):
         return markdown
     return markdown.rstrip() + "\n\n" + _WEB_ONLY_FLOOR_NOTE
 
@@ -1164,6 +1179,7 @@ __all__ = [
     "remaining_wall",
     "snapshot_context",
     "structured_feeds_available",
+    "structured_source_gathered",
     "visit_failure_step",
     "web_only_floor_note",
 ]

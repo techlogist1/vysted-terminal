@@ -765,6 +765,38 @@ async def test_content_leaked_tool_call_rescued_when_wrapped_in_prose(
     assert tool_use[0].input == expected_input
 
 
+@pytest.mark.asyncio
+async def test_gated_rescue_hides_the_leaked_call_and_its_made_up_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """rc1-drive-onboarding-stranger:1 on the openai adapter: a leaked JSON call
+    and the result the model typed after it are held, then dropped once the
+    rescue fires, so neither reaches the user."""
+    text = (
+        "Fetching the quote.\n"
+        '{"name": "price_data", "arguments": {"symbol": "AAPL"}}\n'
+        'Result: {"price": 231.7}\nPer the live data AAPL trades at $231.7.'
+    )
+    chunks = [_Chunk([_Choice(_Delta(content=text[i : i + 5]))]) for i in range(0, len(text), 5)]
+    chunks.append(_Chunk([_Choice(_Delta(content=""), finish_reason="stop")]))
+    _patch_client(monkeypatch, chunks=chunks)
+    out = [
+        e
+        async for e in OpenAIProvider(provider_id="openrouter").stream_chat(
+            messages=[LLMMessage(role="user", content="quote AAPL")],
+            model="some-model",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    shown = "".join(e.text for e in out if e.kind == "delta")
+    assert "231.7" not in shown
+    assert shown.startswith("Fetching the quote.\n")
+    calls = [e for e in out if e.kind == "tool_use"]
+    assert [(c.name, c.input) for c in calls] == [("price_data", {"symbol": "AAPL"})]
+    assert out[-1].kind == "done"
+
+
 def test_balanced_json_objects_brackets_nested_and_skips_trailing() -> None:
     """The brace-depth scanner extracts each top-level object whole — a nested
     arguments object stays intact and a trailing object is a SEPARATE candidate,

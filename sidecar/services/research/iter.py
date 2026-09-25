@@ -69,9 +69,10 @@ from services.research.deep import (
     remaining_wall,
     snapshot_context,
     structured_feeds_available,
+    structured_source_gathered,
     visit_failure_step,
 )
-from services.research.fast import snapshot_structured
+from services.research.fast import DEEP_SNAPSHOT_LEG_TIMEOUT_S, snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
 from services.research.semantics import prompt_block
 from services.research.target import (
@@ -359,7 +360,11 @@ async def run_iter_research(
     if target is not None:
         if snapshot is None:
             snapshot = await snapshot_structured(
-                tool_call, target.symbol, region=region, canonical_name=target.name
+                tool_call,
+                target.symbol,
+                region=region,
+                canonical_name=target.name,
+                leg_timeout_s=DEEP_SNAPSHOT_LEG_TIMEOUT_S,
             )
         structured.update(snapshot)
         record_snapshot_sources(findings, target.symbol, structured)
@@ -969,7 +974,11 @@ async def run_heavy_research(
     snapshot: dict[str, Any] | None = None
     if target is not None:
         snapshot = await snapshot_structured(
-            tool_call, target.symbol, region=region, canonical_name=target.name
+            tool_call,
+            target.symbol,
+            region=region,
+            canonical_name=target.name,
+            leg_timeout_s=DEEP_SNAPSHOT_LEG_TIMEOUT_S,
         )
         # R13 filings floor: pull exchange announcements ONCE for the whole panel
         # and share via the snapshot dict — every angle's structured floor (and
@@ -1159,16 +1168,21 @@ async def run_heavy_research(
         markdown = f"# Research brief: {query}\n\n{panel}"  # deterministic fallback
     # Panel-level web-only honesty: each angle stamps its own coverage note, but
     # the synthesist rewrites the prose and may drop it. With NO bound target the
-    # honest statement is the one-line no-instrument note; otherwise, when EVERY
-    # angle ran on the loosened web-only floor (no structured feed covers the
-    # instrument) and the merged panel actually cites web evidence, the final
-    # brief must state it too — once (skip when the synthesist carried it).
+    # honest statement is the one-line no-instrument note; otherwise, when NO
+    # structured price/fundamentals source exists anywhere in the panel (every
+    # snapshot failed AND no angle's researcher leg cited one) and the merged
+    # panel actually cites web evidence, the final brief must state it too —
+    # once (skip when the synthesist carried it). When one DOES exist, a note an
+    # angle stamped on its own web-only run is false for the brief: drop it.
     if target is None:
         if NO_INSTRUMENT_NOTE not in markdown:
             markdown = markdown.rstrip() + "\n\n> " + NO_INSTRUMENT_NOTE
+    elif any(structured_feeds_available(b.structured) for b in good) or (
+        structured_source_gathered(merged_sources)
+    ):
+        markdown = markdown.replace(_WEB_ONLY_FLOOR_NOTE, "")
     elif (
-        all(not structured_feeds_available(b.structured) for b in good)
-        and any(s.url.startswith("http") for s in merged_sources)
+        any(s.url.startswith("http") for s in merged_sources)
         and _WEB_ONLY_FLOOR_NOTE not in markdown
     ):
         markdown = markdown.rstrip() + "\n\n" + _WEB_ONLY_FLOOR_NOTE

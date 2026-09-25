@@ -237,6 +237,52 @@ describe("PortfolioPanel", () => {
     }
   });
 
+  it("skips a quote-refresh tick while the previous fan-out is still in flight, then refetches once it settles (rc1-drive-portfolio-notes:1)", async () => {
+    vi.useFakeTimers();
+    try {
+      let resolveFetch: ((v: { quotes: Map<string, Quote>; failed: number }) => void) | null = null;
+      mockFetchQuotes.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveFetch = resolve;
+          }),
+      );
+      render(<PortfolioPanel />);
+      await addHolding("aapl", "10", "150");
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      // The last call (for the "AAPL" holding set) is the one left pending —
+      // that's the fan-out the guard must not pile another one on top of.
+      const callsAfterAdd = mockFetchQuotes.mock.calls.length;
+
+      // Three 5s ticks pass while the fetch never resolves — none of them
+      // should start a new fan-out on top of it.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5_000);
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5_000);
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5_000);
+      });
+      expect(mockFetchQuotes).toHaveBeenCalledTimes(callsAfterAdd);
+
+      // Let the pending fetch settle; the next tick refetches.
+      await act(async () => {
+        resolveFetch?.({ quotes: new Map([["AAPL", quote("AAPL", 200)]]), failed: 0 });
+        await vi.advanceTimersByTimeAsync(0);
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5_000);
+      });
+      expect(mockFetchQuotes).toHaveBeenCalledTimes(callsAfterAdd + 1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("R15-UI-090: an eod quote renders a staleness cue on its holding row", async () => {
     mockFetchQuotes.mockResolvedValue({
       quotes: new Map([["AAPL", { ...quote("AAPL", 200), freshness: "eod" as const }]]),

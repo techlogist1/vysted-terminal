@@ -975,3 +975,24 @@ def test_a_stalled_leading_leg_is_time_boxed_and_the_rest_publish(
     (timed_out,) = [s for s in steps if s.detail.startswith(f"{leg} timed out")]
     assert timed_out.status == "error"
     assert timed_out.latency_ms >= fast._WITNESS_LEG_TIMEOUT_S * 1000
+
+
+@pytest.mark.parametrize(("leg_timeout_s", "price_ok"), [(None, False), (1.0, True)])
+def test_snapshot_leg_box_comes_from_the_caller(
+    monkeypatch: pytest.MonkeyPatch, leg_timeout_s: float | None, price_ok: bool
+) -> None:
+    """rc1-battery-4:1 — a cold price leg slower than the FAST FR-070 box is
+    dropped by default but kept under the longer box a deep caller passes."""
+    from services.research import fast
+
+    monkeypatch.setattr(fast, "_WITNESS_LEG_TIMEOUT_S", 0.05)
+
+    async def tool(name: str, _args: dict[str, Any]) -> dict[str, Any]:
+        if name == "price_data":
+            await asyncio.sleep(0.2)
+            return {"ok": True, "symbol": "NTPC", "provider": "nse_direct", "quote": {"price": 1}}
+        return {"ok": False, "error": f"{name} unavailable"}
+
+    snap = asyncio.run(snapshot_structured(tool, "NTPC", region="IN", leg_timeout_s=leg_timeout_s))
+
+    assert snap["price"]["ok"] is price_ok

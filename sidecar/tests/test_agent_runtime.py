@@ -2274,3 +2274,110 @@ async def test_sent_tool_results_are_never_rewritten(monkeypatch: pytest.MonkeyP
     assert "chars elided" in provider.requests[2][-1]["content"]  # round 2 truncated
     for earlier, later in zip(provider.requests, provider.requests[1:], strict=False):
         assert later[: len(earlier)] == earlier
+
+
+def test_fundamentals_money_reads_in_the_statement_currency() -> None:
+    """rc1-scenarios:5: SIFY trades in USD but reports in INR. The model read the
+    raw revenue float next to ``currency: USD`` and said "$46.5B USD"."""
+    result = json.dumps(
+        {
+            "ok": True,
+            "fundamentals": {
+                "symbol": "SIFY",
+                "currency": "USD",
+                "financial_currency": "INR",
+                "market_cap": 1204567890.0,
+                "revenue_ttm": 46506049536.0,
+                "pe_ratio": None,
+                "provider": "yfinance",
+            },
+        }
+    )
+    fund = json.loads(agent_runtime._model_facing_content("fundamentals", result))["fundamentals"]
+    assert fund["revenue_ttm"] == "₹4,651 cr"
+    assert fund["market_cap"] == "USD 1.20B"
+    assert fund["currency"] == "USD"
+
+
+def _statement_result(currency: str | None, lines: dict[str, float | None]) -> str:
+    return json.dumps(
+        {
+            "ok": True,
+            "symbol": "X",
+            "statement": "income",
+            "period": "annual",
+            "currency": currency,
+            "periods": ["2025-03-31"],
+            "lines": [
+                {"label": label, "values": {"2025-03-31": value}} for label, value in lines.items()
+            ],
+        }
+    )
+
+
+def _statement_lines(content: str) -> dict[str, object]:
+    return {line["label"]: line["values"]["2025-03-31"] for line in json.loads(content)["lines"]}
+
+
+def test_financial_statements_money_reads_in_the_reporting_currency() -> None:
+    """rc1-scenarios:5: SIFY's INR income ``total_revenue 44877000000.0`` reached
+    the model bare and was stated as "$44.9B". Money lines become displays;
+    per-share, share-count and rate lines stay numeric."""
+    result = _statement_result(
+        "INR",
+        {
+            "total_revenue": 44877000000.0,
+            "Basic EPS": -0.6,
+            "Diluted Average Shares": 438000000.0,
+            "Tax Rate For Calcs": 0.21,
+            "Net Income Common Stockholders": None,
+        },
+    )
+    lines = _statement_lines(agent_runtime._model_facing_content("financial_statements", result))
+    assert lines == {
+        "total_revenue": "₹4,488 cr",
+        "Basic EPS": -0.6,
+        "Diluted Average Shares": 438000000.0,
+        "Tax Rate For Calcs": 0.21,
+        "Net Income Common Stockholders": None,
+    }
+
+
+def test_financial_statements_usd_cash_flow_scales_and_unknown_currency_stays_raw() -> None:
+    usd = _statement_result(
+        "USD", {"Free Cash Flow": 108807000000.0, "Repurchase Of Capital Stock": -94949000000.0}
+    )
+    lines = _statement_lines(agent_runtime._model_facing_content("financial_statements", usd))
+    assert lines == {
+        "Free Cash Flow": "USD 108.81B",
+        "Repurchase Of Capital Stock": "USD -94.95B",
+    }
+    unknown = _statement_result(None, {"Free Cash Flow": 108807000000.0})
+    assert _statement_lines(
+        agent_runtime._model_facing_content("financial_statements", unknown)
+    ) == {"Free Cash Flow": 108807000000.0}
+
+
+def test_compare_symbols_market_cap_reads_in_each_row_quote_currency() -> None:
+    result = json.dumps(
+        {
+            "ok": True,
+            "symbols": [
+                {
+                    "symbol": "TCS.NS",
+                    "quote": {"price": 3100.0, "currency": "INR"},
+                    "fundamentals": {"market_cap": 11216000000000.0, "pe_ratio": 22.4},
+                },
+                {
+                    "symbol": "ACN",
+                    "quote": {"price": 250.0, "currency": "USD"},
+                    "fundamentals": {"market_cap": 156000000000.0, "pe_ratio": 20.1},
+                },
+                {"symbol": "ZZZZ", "error": "no quote"},
+            ],
+        }
+    )
+    rows = json.loads(agent_runtime._model_facing_content("compare_symbols", result))["symbols"]
+    assert rows[0]["fundamentals"] == {"market_cap": "₹1,121,600 cr", "pe_ratio": 22.4}
+    assert rows[1]["fundamentals"]["market_cap"] == "USD 156.00B"
+    assert rows[2] == {"symbol": "ZZZZ", "error": "no quote"}

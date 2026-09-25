@@ -29,7 +29,7 @@ artifacts are under `docs/archive/`.
 | [PLUGIN_DEVELOPMENT.md](./PLUGIN_DEVELOPMENT.md)   | The `VystedPlugin` six-capability contract and how to build a plugin                            |
 | [BROKER_INTEGRATIONS.md](./BROKER_INTEGRATIONS.md) | Removal note — trading was removed permanently (D81, 23 Sep 2026)                               |
 | [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md)             | Design tokens and the (current) visual language                                                 |
-| [PHASE_10_HANDOFF.md](./PHASE_10_HANDOFF.md)       | Latest phase handoff (copilot + integrations + reskin)                                          |
+| [PHASE_10_HANDOFF.md](./PHASE_10_HANDOFF.md)       | Historical phase handoff (copilot + reskin) — its §3 broker/Kite content is superseded by D81   |
 
 ## History
 
