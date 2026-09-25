@@ -588,7 +588,9 @@ pub fn run() {
     app.run(|app_handle, event| {
         if let RunEvent::Exit = event {
             if let Some(state) = app_handle.try_state::<SidecarProcess>() {
-                if let Some(child) = state.0.lock().unwrap().take() {
+                // Take the child in its own statement so the guard drops before kill().
+                let child = state.0.lock().unwrap().take();
+                if let Some(child) = child {
                     let _ = child.kill();
                 }
             }

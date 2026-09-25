@@ -189,7 +189,9 @@ pub fn supervise(app: &AppHandle, port: u16) {
 /// child is reaped on app shutdown alongside the main sidecar.
 pub fn kill(app: &AppHandle) {
     if let Some(state) = app.try_state::<SecEdgarMcpProcess>() {
-        if let Some(child) = state.0.lock().unwrap().take() {
+        // Take the child in its own statement so the guard drops before kill().
+        let child = state.0.lock().unwrap().take();
+        if let Some(child) = child {
             let _ = child.kill();
         }
     }
