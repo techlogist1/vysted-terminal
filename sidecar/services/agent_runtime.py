@@ -2013,8 +2013,8 @@ _NEGATIVE = re.compile(
 #: Where one sentence's clauses part. Each clause is judged on its own, so an
 #: error mention of one tool never drags a sibling clause's true figure along.
 _CLAUSE_BREAK = re.compile(
-    r";\s+|\s+[—–]\s+|,?\s+(?:but|so|and|while|whereas|yet|however|though|although|then"
-    r"|instead|except)\s+",
+    r";\s+|\s+[—–]\s+|,?\s+(?:but|while|whereas|yet|however|though|although|instead|except)\s+"
+    r"|,\s+(?:and|so|then)\s+|(?P<weak>\s+(?:and|so|then)\s+)",
     re.IGNORECASE,
 )
 #: The ``depth`` of a round whose replaced citation ended in ``:``/``=`` with no
@@ -2032,7 +2032,9 @@ def _tool_reference(tool_ids: set[str]) -> re.Pattern[str]:
     bare = "|".join(sorted(re.escape(t) for t in tool_ids if "_" in t))
     return re.compile(
         rf"`(?P<tick>{ids})`"
-        rf"|(?:according to|as per|per|based on|(?:output|results?|data|response)\s+(?:of|from))"
+        rf"|(?:according to|as per|per|based on|(?:output|results?|data|response)\s+(?:of|from)"
+        r"|(?:obtained|fetched|retrieved|pulled|sourced|taken|got|gotten|came|comes?|derived"
+        r"|drawn|received)\s+(?:from|via|by|using|through))"
         rf"\s+(?:the\s+)?`?(?P<lead>{ids})\b"
         rf"|\b(?P<noun>{ids})(?=\s+(?:tool|returned|results?|output|data)\b|\s*[:=])"
         rf"|\b(?P<bare>{bare})\b",
@@ -2101,7 +2103,6 @@ def _guard_sentence(
     # A dump belongs to the clause that opened it: clauses part only before it.
     brackets = [i for i in (sentence.find("{"), sentence.find("[")) if i >= 0]
     cut = min(brackets, default=len(sentence))
-    breaks = [m.span() for m in _CLAUSE_BREAK.finditer(sentence, 0, cut)]
     refs: list[tuple[int, str, bool]] = []  # (start, tool id, cited)
     for m in ref.finditer(sentence):
         group = m.lastgroup or "bare"
@@ -2109,6 +2110,15 @@ def _guard_sentence(
         cited = group == "lead" or bool(_ATTRIBUTES.match(sentence, end))
         tool = re.sub(r"[\s_-]", "", m.group(group).lower())
         refs.append((start, canon.get(tool, tool), cited))
+    breaks: list[tuple[int, int]] = []
+    for m in _CLAUSE_BREAK.finditer(sentence, 0, cut):
+        # A bare "and"/"so"/"then" parts clauses only before a tool reference
+        # ("had nothing and fundamentals returned:"), not a list ("'annual'
+        # and 'quarterly'").
+        if m.group("weak") and not any(m.end() <= r[0] <= m.end() + 40 for r in refs):
+            continue
+        breaks.append(m.span())
+    for start, _tool, cited in refs:
         # "Although news had nothing, fundamentals returned: {": a cited tool
         # after a comma starts its own clause.
         comma = re.search(r",\s+(?=(?:the\s+)?$)", sentence[:start])

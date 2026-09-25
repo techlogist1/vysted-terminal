@@ -2717,6 +2717,12 @@ _FUND_NOTE = "the fundamentals tool returned no data for this in this turn"
             'The output of the fundamentals call: {"revenue": "$1320 m"}',
             "The fundamentals tool returned no data for this in this turn.",
         ),
+        (
+            {"financial_statements": _ERRORED},
+            "These figures were obtained from the financial statements tool using the "
+            "'annual' and 'quarterly' parameters respectively.",
+            "The financial_statements tool returned no data for this in this turn.",
+        ),
     ],
 )
 async def test_a_figure_attributed_to_a_tool_with_no_ok_result_is_replaced(
