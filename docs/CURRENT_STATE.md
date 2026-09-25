@@ -355,14 +355,18 @@ preference-order fallthrough.
 - **`sec_filings_provider.py`** (conditional) — sec-edgar-mcp subprocess. Narrow
   form coverage (10-K/10-Q/8-K/DEF 14A/3/4/5); extractors heavily defensive
   against upstream shape drift. Caches via `data_cache`.
-- **`screener.py` + `screener_universes/`** — fan-out filter engine. Universes:
-  `sp500` (full S&P 500 — 506 symbols, a static snapshot dated 2026-06-04 that
-  has drifted from current membership, R15-LEAD-013 open),
-  `nifty50` (50), `crypto-top50` (50, reseeded from the bundled snapshot on
-  cache expiry — a live "refresh from ccxt" worker still does **not exist**),
-  `custom`. Criteria support **nested AND/OR** via `CriterionGroup`
-  (`models/screener.py`, `combinator: "and"|"or"`) — OR-grouping is no longer
-  reserved/unimplemented.
+- **`screener.py` + `screener_universes/` + `screener_universe_india.py`** —
+  fan-out filter engine. Universes: `sp500` (full S&P 500 — 503 symbols, a
+  static snapshot dated 2026-09-24), `nifty50` (50), `crypto-top50` (50,
+  reseeded from the bundled snapshot on cache expiry — a live "refresh from
+  ccxt" worker still does **not exist**), `nse-all` (every NSE master row,
+  EQ+ETF, ~2,675 as `SYMBOL.NS`), `bse-all` (BSE master rows with STATUS ==
+  "Active" as `SYMBOL.BO`), `india-all` (the union of the two, NSE listing
+  preferred when a symbol is dual-listed), `custom`. The three India
+  universes resolve from the same bundled resolver-master JSON the symbol
+  resolver reads (offline, deterministic). Criteria support **nested AND/OR**
+  via `CriterionGroup` (`models/screener.py`, `combinator: "and"|"or"`) — OR-
+  grouping is no longer reserved/unimplemented.
 - **`services/macro/`** — four in-process providers (FRED requires
   `FRED_API_KEY`; ECB/IMF/world-bank keyless). Hand-curated `_FEATURED` catalogs;
   full catalog browsing deferred. `fred-mcp-server` turned out to be Node.js →
