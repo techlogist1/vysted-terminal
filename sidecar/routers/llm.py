@@ -35,7 +35,7 @@ from models.llm import (
     LLMProviderInfo,
 )
 from services import budget_guard, model_registry
-from services.errors import error_frame
+from services.errors import error_frame, humanize
 from services.llm import get_provider, list_provider_info, scrub_adapter_options
 from services.llm.base import LLMStreamEvent
 
@@ -117,11 +117,12 @@ async def validate_key(payload: LLMKeyValidationRequest) -> LLMKeyValidationResp
         ok = await adapter.validate_key(api_key)
     except Exception as exc:  # noqa: BLE001 — any transport failure means unreachable
         logger.warning("provider %s validation transport error: %s", payload.provider, exc)
-        return LLMKeyValidationResponse(
-            ok=False,
-            reason="unreachable",
-            detail=f"Could not reach {info.label} ({type(exc).__name__}: {exc}).",
-        )
+        # The raw SDK exception text (`{type(exc).__name__}: {exc}`) stays in the
+        # log only — the Key Entry Dialog gets humanize()'s sentence + action,
+        # same as every other failure surface in this subsystem (R15-CODE-AGENT-019).
+        human = humanize(payload.provider, exc)
+        detail = f"{human.message} {human.action}" if human.action else human.message
+        return LLMKeyValidationResponse(ok=False, reason="unreachable", detail=detail)
     if not ok:
         return LLMKeyValidationResponse(
             ok=False, reason="invalid", detail=f"{info.label} rejected this key."

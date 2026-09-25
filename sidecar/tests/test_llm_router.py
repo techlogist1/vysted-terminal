@@ -159,13 +159,17 @@ def test_validate_key_connect_error_is_unreachable(
     body = response.json()
     assert body["ok"] is False
     assert body["reason"] == "unreachable"
-    assert "ConnectError" in body["detail"]
+    assert "Could not reach OpenAI" in body["detail"]
 
 
-def test_validate_key_transport_error_surfaces_detail(
+def test_validate_transport_failure_is_humanized(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """R15-CODE-AGENT-019: the raw SDK exception repr never reaches the Key Entry
+    Dialog — the route returns humanize()'s message + action, same as every other
+    failure surface in the subsystem; the raw text stays in the sidecar log only."""
+
     class _RaisingProvider:
         async def stream_chat(self, *_a: Any, **_kw: Any) -> AsyncIterator[Any]:  # pragma: no cover
             if False:
@@ -182,7 +186,12 @@ def test_validate_key_transport_error_surfaces_detail(
     body = response.json()
     assert body["ok"] is False
     assert body["reason"] == "unreachable"
-    assert "network down" in body["detail"]
+    assert (
+        body["detail"]
+        == "Something went wrong with Anthropic. Try again or switch provider in Settings."
+    )
+    assert "RuntimeError" not in body["detail"]
+    assert "network down" not in body["detail"]
 
 
 def test_chat_streams_sse_frames(
