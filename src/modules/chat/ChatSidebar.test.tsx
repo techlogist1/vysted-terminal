@@ -517,6 +517,26 @@ describe("ChatSidebar", () => {
     await waitFor(() => expect(screen.getByText(LENGTH_NOTICE)).toBeInTheDocument());
   });
 
+  it("names the model a router slug actually served (R15-AGENT-075)", async () => {
+    streamChatMock.mockImplementationOnce((async (
+      _payload: unknown,
+      handlers: { onEvent: (event: unknown) => void },
+    ) => {
+      handlers.onEvent({ kind: "delta", text: "TCS trades at 28x earnings." });
+      handlers.onEvent({
+        kind: "done",
+        usage: { inputTokens: 10, outputTokens: 5, servedModel: "router-pick/model-x" },
+      });
+    }) as unknown as () => Promise<undefined>);
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "/ask value TCS" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(screen.getByText("Answered by router-pick/model-x")).toBeInTheDocument(),
+    );
+  });
+
   it("/agent buffett invokes the agent endpoint with the context snapshot", async () => {
     // Seed a chart panel context so the snapshot has content.
     usePanelContextBus.setState({

@@ -24,6 +24,7 @@ import type {
   LLMMessage,
   LLMProviderId,
   LLMStreamEvent,
+  LLMUsage,
 } from "../../../types/ai";
 import type { BriefStepKind, BriefStepStatus } from "../../../types/brief";
 
@@ -88,7 +89,7 @@ export function isProviderFailure(code: string | undefined): boolean {
  */
 interface StreamDoneFrame {
   kind: "done";
-  usage?: { inputTokens: number; outputTokens: number };
+  usage?: LLMUsage;
   finishReason?: string;
   contextWindow?: number;
   /** Estimated USD spend of the whole turn, or `undefined` when the model has
@@ -476,13 +477,16 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
   }
   if (kind === "done") {
     const rawUsage = payload.usage as
-      | { input_tokens?: number; output_tokens?: number }
+      | { input_tokens?: number; output_tokens?: number; served_model?: unknown }
       | null
       | undefined;
     const usage = rawUsage
       ? {
           inputTokens: Number(rawUsage.input_tokens ?? 0),
           outputTokens: Number(rawUsage.output_tokens ?? 0),
+          ...(typeof rawUsage.served_model === "string" && rawUsage.served_model
+            ? { servedModel: rawUsage.served_model }
+            : {}),
         }
       : undefined;
     // Typed as a variable (not returned as a literal) so the extra

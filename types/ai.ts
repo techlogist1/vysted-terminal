@@ -220,6 +220,9 @@ export interface LLMUsage {
   /** Anthropic-style cache hits, when reported by the provider. */
   cacheReadInputTokens?: number;
   cacheCreationInputTokens?: number;
+  /** The model that actually answered, when the provider names it (a router
+   *  slug such as `openrouter/auto` picks one per call — R15-AGENT-075). */
+  servedModel?: string;
 }
 
 // ---------------------------------------------------------------------------

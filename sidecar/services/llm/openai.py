@@ -658,6 +658,8 @@ class OpenAIProvider(LLMProvider):
             # and the citations (R15-AGENT-049).
             raw_usage: Any = None
             cited = False
+            # The model that answered, from the chunks (R15-AGENT-075).
+            served_model: str | None = None
             # Function-call streaming sends the id/name once and the arguments
             # JSON in fragments across many chunks, keyed by the tool_call
             # index. Accumulate per index, then emit ONE tool_use event per
@@ -681,6 +683,7 @@ class OpenAIProvider(LLMProvider):
             # content all come out as thinking events.
             splitter = ReasoningSplitter()
             async for chunk in stream:
+                served_model = getattr(chunk, "model", None) or served_model
                 # Some providers (DeepSeek, occasionally OpenAI) emit a
                 # terminal chunk with no choices but populated usage. Guard
                 # both branches independently.
@@ -793,6 +796,8 @@ class OpenAIProvider(LLMProvider):
             if native_search:
                 searches = openai_shaped_search_count(self._provider_id, raw_usage, cited)
                 usage = (usage or LLMUsage()).model_copy(update={"web_search_requests": searches})
+            if usage is not None and served_model:
+                usage = usage.model_copy(update={"served_model": served_model})
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except openai.OpenAIError as exc:  # pragma: no cover — network path
             _h = humanize(self._provider_id, exc)

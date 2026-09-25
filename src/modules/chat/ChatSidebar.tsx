@@ -994,7 +994,7 @@ export function ChatSidebar() {
           }
           settleError(message, frame);
         },
-        onDone: (usage, finishReason, contextWindow, spendUsd) => {
+        onDone: (usage, finishReason, contextWindow, spendUsd, servedModel) => {
           if (abortRef.current === controller) {
             abortRef.current = null;
           }
@@ -1002,6 +1002,12 @@ export function ChatSidebar() {
           // path's runtime emits the same notice itself (R15-AGENT-026).
           if (!agentForCall && isLengthFinish(finishReason)) {
             useMessageNoticesStore.getState().addNotice(assistantId, LENGTH_NOTICE);
+          }
+          // A router slug (openrouter/auto) answers with a model of its choosing:
+          // name it (R15-AGENT-075). A dated snapshot of the requested id is the
+          // same model, so it says nothing.
+          if (servedModel && !servedModel.startsWith(attempt.model)) {
+            useMessageNoticesStore.getState().addNotice(assistantId, `Answered by ${servedModel}`);
           }
           finalize(assistantId, usage, contextWindow, spendUsd);
           if (usage) {
@@ -2229,6 +2235,7 @@ interface InternalHandlers {
     finishReason?: string,
     contextWindow?: number,
     spendUsd?: number,
+    servedModel?: string,
   ) => void;
   onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
   onResearchStep: (step: ResearchStepView, tool: string) => void;
@@ -2272,6 +2279,7 @@ function makeHandlers(internal: InternalHandlers): {
           event.finishReason,
           event.contextWindow,
           doneFrameOf(event),
+          event.usage?.servedModel,
         );
       }
     },
