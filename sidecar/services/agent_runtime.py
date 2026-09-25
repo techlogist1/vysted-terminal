@@ -1749,6 +1749,12 @@ def _resolve_tool_surface(
     returned so the caller says it once) (R15-LIFECYCLE-025).
     """
     tool_ids, retired_tools = catalog.resolve_tool_ids(spec.tools)
+    # R15-LEAD-035: an explicit no-tool instruction in the user's turn
+    # ("without calling any tool") is honoured server-side in every mode: the
+    # provider is sent no tools, so the model can make no call, a write or a
+    # read (planner.classify_intent tags it with the "no-tool" signal).
+    if "no-tool" in classify_intent(prompt).signals:
+        return [], True, retired_tools
     # Resolve whether this turn is READ-ONLY. The collapsed "agent" mode (Track B)
     # has no Ask/Edit/Build picker — it INFERS the intent from the prompt
     # (deterministic, no LLM) and gates a READ intent to read-only tools exactly as
