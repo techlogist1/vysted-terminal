@@ -114,3 +114,13 @@ def test_price_returned_alongside_greeks() -> None:
     # Sanity: matches the BS pricer for the same inputs.
     bs = options.price(_make_option_req())
     assert g.price == pytest.approx(bs.price, rel=1e-8)
+
+
+def test_compute_greeks_equals_price_european_bs() -> None:
+    """R15-CODE-PLATFORM-042: compute_greeks delegates to price_european_bs,
+    it does not rebuild the BSM process/payoff/exercise/engine a second time."""
+    g = greeks.compute_greeks(_make_greeks_req(payoff="put"))
+    bs = options.price_european_bs(_make_option_req(payoff="put"))
+    assert g.price == pytest.approx(bs.price, rel=1e-12)
+    assert bs.greeks is not None
+    assert g.greeks == bs.greeks
