@@ -459,7 +459,7 @@ are done-and-revertable like §1; these are yours to review or act on.
   risk.
 - **Status: open, blocked_tier4**
 
-### 4.9 R15-LEAD-030 — fabricated tool figures after a tool error: six fix batches, the seventh is the last
+### 4.9 R15-LEAD-030 — fabricated tool figures after a tool error: eight fix batches, the stop rule has fired
 
 - **Blocked:** a disposition question, not a locked file. Stage C batches 15–20 fixed the entry's
   literal repro and every shape an earlier verifier found; a fresh Opus verifier found a new
@@ -472,13 +472,24 @@ are done-and-revertable like §1; these are yours to review or act on.
   and rc1 stays gated on a high entry in the agent-chat area, which the brief's Boundaries say
   cannot be adjudicated away without a fresh verifier's concurrence. Tagging with a documented
   known limitation is the operator's call.
-- **Recommendation:** if batch-21 certifies, close this item. If not: tag r15-rc1 with LEAD-030
+- **Recommendation:** mark the entry `blocked_tier4` (a fresh verifier's concurrence is sought in
+  batch-23, as the Boundaries require for the agent-chat area) and tag r15-rc1 with LEAD-030
   listed in the operator briefing as a known limitation (after a tool error a keyless local
-  model can still state an invented figure inside an error-acknowledging sentence or under a
-  company-name alias; every other shape is replaced by the honest note), keep the entry open,
-  and take the post-launch design change instead of an eighth filter round: end the model's
-  answer with a structured no-data turn after an all-errored round.
+  model can still state an invented figure for a company it names in the same paragraph as a
+  subject whose call succeeded, when that name is neither the ticker, the resolver name nor an
+  initialism of it, or was never looked up at all; a fabricated tool-result dump with no
+  currency figure can also stream; every other shape found in eight rounds is replaced by the
+  honest note). Take the post-launch design change instead of a ninth filter round: end the
+  model's answer with a structured no-data turn after an all-errored round.
 - **Risk of not doing it:** the release ships an agent that can, on a tool failure with a local
   model, print a made-up price. Offline fresh-case fabrication on the residual classes is 6/19
   after batch-20 (14/19 before); 0 on every pinned shape.
-- **Status: open, pending batch-22** — batch-21 (merged `86ae79c4`) took the verifier's fresh cases to 19/20 (base 11/20) and the live entry prompt to 0 fabricated figures; the seventh residual is short-name aliases (SBI, Airtel, L&T) and an unclosed-fence regression. The lead amended its stop rule once, for a regression plus closed-list gaps rather than a new prose class; an eighth failure is final and lands here for disposition.
+- **Status: open; the stop rule has fired (eighth failure, batch-22, W1 merged `c155e5ad`)** —
+  batch-22 took the verifier's fresh cases to BAD 4 (8 on base) and every pinned shape from
+  batches 15–21 holds, but a figure for a subject the guard cannot name, or never called, inherits
+  the ok subject of its paragraph and streams ('TCS.NS closed at ₹3,235.50. Tata Motors last
+  traded at ₹702.10.' with TATAMOTORS.NS errored or never called); a figure-less fabricated
+  result dump also streamed live. No ninth round. Batch-23's fresh verifier rules CONCUR or
+  REFUSE on this disposition (`r15/stage-c/batch-23/LEAD-030-CONCURRENCE.md`); on CONCUR the
+  entry becomes `blocked_tier4` and rc1 needs the operator's word on shipping with the known
+  limitation.
