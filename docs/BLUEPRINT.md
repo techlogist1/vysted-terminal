@@ -87,7 +87,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 - OpenBB ODP wrapped — gives 100+ data providers (Polygon, FMP, FRED, Intrinio, Tiingo, ECB, FINRA, SEC, etc.)
 - QuantLib via Python bindings (Black-Scholes, Binomial, Monte Carlo, VaR, Greeks, yield curves, duration/convexity, bond optimization)
 - Backtest engine (vectorbt + backtrader patterns)
-- AI agent orchestration (LangGraph)
+- AI agent orchestration (hand-rolled loop — agent_runtime/run_manager/workflow_engine)
 - ccxt for unified crypto WebSockets (Bybit, Binance, Kraken, Coinbase)
 - MCP server for external AI tool access
 
@@ -123,7 +123,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 │  - OpenBB ODP (100+ providers)                  │
 │  - QuantLib (pricing/risk)                      │
 │  - Backtest engine                              │
-│  - AI agent orchestration (LangGraph)           │
+│  - AI agent orchestration (hand-rolled loop)     │
 │  - MCP server (external AI access)              │
 └───────────────┬─────────────────────────────────┘
                 │ Plugin SDK contracts
@@ -676,7 +676,7 @@ The Tauri + Next.js stack is proven viable for this scope — **Fincept Terminal
 
 - **github.com/Fincept-Corporation/FinceptTerminal** — AGPL-3.0 + Commercial License; reference for feature breadth, agent design, node editor
 - **github.com/OpenBB-finance/OpenBB** — AGPL-3.0; reference for data layer architecture, provider abstraction patterns, MCP server design
-- **github.com/TauricResearch/TradingAgents** — open source; reference for multi-agent orchestration patterns, LangGraph usage
+- **github.com/TauricResearch/TradingAgents** — open source; reference for multi-agent orchestration patterns
 
 **Critical reminder:** Fincept's dual-license explicitly prohibits commercial use without paid license, AND prohibits forks that strip their APIs. We do NOT copy their code. We READ their code as research material and WRITE our own implementations. Features aren't copyrightable; specific code is. We're safe pattern-matching what they ship.
 
