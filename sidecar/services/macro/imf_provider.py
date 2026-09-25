@@ -25,13 +25,14 @@ import httpx
 from models.macro_extended import (
     MacroCatalog,
     MacroCatalogEntry,
+    MacroProvider,
     MacroSearchResult,
     MacroSeriesExtended,
 )
 from models.market import MacroObservation
 from services.errors import ProviderError
 
-PROVIDER = "imf"
+PROVIDER: MacroProvider = "imf"
 
 _log = logging.getLogger(__name__)
 
