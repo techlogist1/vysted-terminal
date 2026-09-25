@@ -1198,3 +1198,15 @@ def test_emitted_keys_subset_of_brief_ts_mirror() -> None:
     assert not missing, (
         f"emitted but not declared on BriefDerivedMetrics (types/brief.ts): {missing}"
     )
+
+
+def test_prompt_keys_cover_every_derived_metric() -> None:
+    # R15-RESEARCH-036: _PROMPT_KEYS hand-re-lists every derived metric with no
+    # drift guard — a leg added without a matching entry renders a metric card
+    # but never reaches the synthesis prompt.
+    from services.research import semantics
+
+    data = _derived(_structured(price=400.0, fund=_rich_fund()))
+    emitted = set(data) - {"conflicts"}
+    missing = emitted - set(semantics._PROMPT_KEYS)
+    assert not missing, f"emitted but missing from _PROMPT_KEYS: {missing}"
