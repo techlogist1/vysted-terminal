@@ -105,8 +105,10 @@ export function doneFrameOf(event: LLMStreamEvent): number | undefined {
 }
 
 /** The runtime's `research:begin {run_id} depth={depth} query={…}` engine step
- *  (Team RUNTIME contract) — the frontend keys its in-flight brief state on it. */
-const RESEARCH_BEGIN_RE = /^research:begin\s+(\S+)\s+depth=(\S+)(?:\s+query=(.*))?$/;
+ *  (Team RUNTIME contract) — the frontend keys its in-flight brief state on it.
+ *  The query is the model's free text and may span lines, so its tail matches
+ *  any character, newlines included (R15-RESEARCH-031). */
+const RESEARCH_BEGIN_RE = /^research:begin\s+(\S+)\s+depth=(\S+)(?:\s+query=([\s\S]*))?$/;
 
 const BRIEF_STEP_KINDS = new Set<string>([
   "plan",
