@@ -43,6 +43,7 @@ from services import (
     fundamentals_store,
     locale,
     ownership_check,
+    symbol_resolver,
     yfinance_provider,
 )
 from services.errors import ProviderError
@@ -127,8 +128,16 @@ def _match_key(symbol: str) -> str:
 
 
 def symbols_match(requested: str, returned: str) -> bool:
-    """True if ``returned`` is the same instrument the caller asked for."""
-    return _match_key(requested) == _match_key(returned)
+    """True if ``returned`` is the same instrument the caller asked for.
+
+    A request addressed by a bare BSE scrip code (``506597.BO``) also matches the
+    code's canonical ticker (``AMAL``), the symbol the BSE lane labels its
+    result with (R15-LEAD-028)."""
+    key, got = _match_key(requested), _match_key(returned)
+    if key == got:
+        return True
+    canonical = symbol_resolver.bse_symbol_for_code(key) if key.isdigit() else None
+    return canonical is not None and _match_key(canonical) == got
 
 
 def validate_quote(
