@@ -77,6 +77,12 @@ export interface EarningsSurprise {
   revenue_estimate_mean: number | null;
   revenue_surprise_pct: number | null;
   currency: string;
+  /** The revenue fields' own currency (Yahoo's `financialCurrency`, falling
+   * back to `currency`) — a foreign reporter's statement-size revenue is
+   * denominated in the reporting currency, not the trading currency
+   * `currency` carries (R15-DATA-113). Optional: a pre-fix cache row can
+   * still lack it during rollout — fall back to `currency`. */
+  revenue_currency?: string;
   provider: string;
 }
 
@@ -105,6 +111,8 @@ export interface EarningsEstimateDetail {
   revenue_estimate_low: number | null;
   revenue_analyst_count: number | null;
   currency: string;
+  /** See {@link EarningsSurprise.revenue_currency} (R15-DATA-113). */
+  revenue_currency?: string;
   provider: string;
   /** ISO-8601 timestamp of the most recent estimate refresh from the
    * upstream provider. */
@@ -151,6 +159,8 @@ export interface EarningsHistoryEntry {
   revenue_actual: number | null;
   revenue_estimate_mean: number | null;
   currency: string;
+  /** See {@link EarningsSurprise.revenue_currency} (R15-DATA-113). */
+  revenue_currency?: string;
 }
 
 export interface EarningsHistoryResponse {

@@ -59,6 +59,10 @@ export function EpsEstimateGrid({ estimate }: Props) {
       </div>
     );
   }
+  // R15-DATA-113: revenue is stated in Yahoo's financialCurrency, which for a
+  // foreign reporter differs from the trading currency `currency` carries;
+  // fall back to `currency` for a pre-fix cached envelope that lacks it.
+  const revenueCurrency = estimate.revenue_currency ?? estimate.currency;
   return (
     <div data-testid="eps-estimate-grid">
       <DataTable
@@ -103,22 +107,25 @@ export function EpsEstimateGrid({ estimate }: Props) {
             ],
           },
           {
+            // R15-DATA-113: revenue is stated in the reporting currency
+            // (revenue_currency), which for a foreign reporter differs from
+            // the trading currency the EPS section above uses.
             label: "Revenue",
             rows: [
               {
                 id: "rev-mean",
                 label: "Mean",
-                value: revenue(estimate.revenue_estimate_mean, estimate.currency),
+                value: revenue(estimate.revenue_estimate_mean, revenueCurrency),
               },
               {
                 id: "rev-high",
                 label: "High",
-                value: revenue(estimate.revenue_estimate_high, estimate.currency),
+                value: revenue(estimate.revenue_estimate_high, revenueCurrency),
               },
               {
                 id: "rev-low",
                 label: "Low",
-                value: revenue(estimate.revenue_estimate_low, estimate.currency),
+                value: revenue(estimate.revenue_estimate_low, revenueCurrency),
               },
             ],
           },
