@@ -229,8 +229,13 @@ mod dev_keystore {
     /// "read → idle → read succeeds" pattern).
     const MIGRATE_SELF_DISMISS_WAIT_SECS: u64 = 140;
 
+    /// Event the renderer hears before the idle wait, carrying the seconds left,
+    /// so a dev first boot that blocks `keychain_migrate` does not look hung.
+    pub const WAITING_EVENT: &str = "keychain-migrate:waiting";
+
     pub fn migrate(app: &tauri::AppHandle, accounts: &[String]) -> Result<MigrateReport, String> {
-        migrate_collecting(&file_path(app), accounts, |account| {
+        use tauri::Emitter;
+        let read = |account: &str| {
             let r = super::os_keychain::get(account);
             let class = match &r {
                 Ok(Some(_)) => "found",
@@ -239,6 +244,10 @@ mod dev_keystore {
             };
             eprintln!("[keychain-migrate] {account} -> {class}");
             r
+        };
+        migrate_collecting(&file_path(app), accounts, read, |secs| {
+            let _ = app.emit(WAITING_EVENT, secs);
+            std::thread::sleep(std::time::Duration::from_secs(secs));
         })
     }
 
@@ -246,16 +255,18 @@ mod dev_keystore {
     /// (`read`), with the once-only guard checked BEFORE the first read. Split
     /// out so the guard + pass logic are unit-testable without the OS keychain.
     /// `read` is called AT MOST `accounts.len() + errored.len()` times on the
-    /// first migration, and ZERO times once `migrated` is set.
-    pub fn migrate_collecting<R>(
+    /// first migration, and ZERO times once `migrated` is set. `wait` is the idle
+    /// settle between the passes (production: announce it, then sleep).
+    pub fn migrate_collecting<R, W>(
         file: &Path,
         accounts: &[String],
         read: R,
+        wait: W,
     ) -> Result<MigrateReport, String>
     where
         R: Fn(&str) -> Result<Option<String>, String>,
+        W: FnOnce(u64),
     {
-        use std::time::Duration;
         // SHORT-CIRCUIT BEFORE ANY KEYCHAIN READ: once migrated, the keychain is
         // never touched again — every boot after the first does zero reads (so
         // zero SecurityAgent dialogs). The check MUST precede the pass-1 reads;
@@ -289,7 +300,7 @@ mod dev_keystore {
                 errored.len(),
                 MIGRATE_SELF_DISMISS_WAIT_SECS
             );
-            std::thread::sleep(Duration::from_secs(MIGRATE_SELF_DISMISS_WAIT_SECS));
+            wait(MIGRATE_SELF_DISMISS_WAIT_SECS);
             for account in &errored {
                 resolved.insert(account.clone(), read(account));
             }
@@ -433,7 +444,8 @@ mod tests {
                 reads_c.fetch_add(1, Ordering::SeqCst);
                 Ok(Some(format!("v-{a}")))
             };
-            let r1 = dev_keystore::migrate_collecting(&f, &accounts, &read).unwrap();
+            let no_wait = |_| panic!("no read errored, so there is nothing to wait for");
+            let r1 = dev_keystore::migrate_collecting(&f, &accounts, &read, no_wait).unwrap();
             assert_eq!(r1.migrated, 2);
             assert_eq!(
                 reads.load(Ordering::SeqCst),
@@ -442,7 +454,7 @@ mod tests {
             );
             // Second call: migrated flag set → guard short-circuits → ZERO reads.
             let before = reads.load(Ordering::SeqCst);
-            let r2 = dev_keystore::migrate_collecting(&f, &accounts, &read).unwrap();
+            let r2 = dev_keystore::migrate_collecting(&f, &accounts, &read, no_wait).unwrap();
             assert!(r2.already_done);
             assert_eq!(
                 reads.load(Ordering::SeqCst),
@@ -488,6 +500,35 @@ mod tests {
             })
             .unwrap();
             assert!(r3.already_done);
+            let _ = std::fs::remove_file(&f);
+        }
+
+        #[test]
+        fn on_wait_called_before_sleep() {
+            // R15-CODE-PLATFORM-057: the idle settle is announced (with its
+            // seconds) after the trigger pass and before any re-read.
+            use std::sync::atomic::{AtomicU32, Ordering};
+            let f = temp_file("on-wait");
+            let accounts = vec!["llm-provider:deepseek".to_string()];
+            let reads = AtomicU32::new(0);
+            let read = |_: &str| -> Result<Option<String>, String> {
+                match reads.fetch_add(1, Ordering::SeqCst) {
+                    0 => Err("ACL evaluation in flight".to_string()),
+                    _ => Ok(Some("sk-ds".to_string())),
+                }
+            };
+            let mut waited = Vec::new();
+            let report = dev_keystore::migrate_collecting(&f, &accounts, read, |secs| {
+                waited.push((secs, reads.load(Ordering::SeqCst)));
+            })
+            .unwrap();
+            assert_eq!(
+                waited,
+                vec![(140, 1)],
+                "one wait, after pass 1, before pass 2"
+            );
+            assert_eq!(reads.load(Ordering::SeqCst), 2);
+            assert_eq!(report.migrated, 1);
             let _ = std::fs::remove_file(&f);
         }
 

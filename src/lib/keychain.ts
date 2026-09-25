@@ -65,6 +65,9 @@ export async function deleteSecret(account: string): Promise<void> {
   await invoke<void>("keychain_delete", { account });
 }
 
+/** Emitted by `keychain_migrate` (payload: seconds) before its idle wait. */
+export const KEYCHAIN_MIGRATE_WAITING_EVENT = "keychain-migrate:waiting";
+
 /** Report from {@link migrateDevKeystore}. */
 export interface KeychainMigrateReport {
   /** `"dev-keystore"` in dev builds, `"os-keychain"` in release. */
@@ -126,6 +129,17 @@ export async function migrateDevKeystore(): Promise<KeychainMigrateReport | null
   // once-only guard, so a later explicit call is harmless).
   if (devKeystoreMigrationInFlight) return devKeystoreMigrationInFlight;
   devKeystoreMigrationInFlight = (async () => {
+    // The Rust side announces its idle settle (~140 s on a dev first boot) so a
+    // pending migration is not mistaken for a hang. No-op outside the Tauri shell.
+    const unlisten = await import("@tauri-apps/api/event")
+      .then(({ listen }) =>
+        listen<number>(KEYCHAIN_MIGRATE_WAITING_EVENT, (event) =>
+          console.info(
+            `[keychain-migrate] waiting ${event.payload}s for the keychain access check to settle, then re-reading`,
+          ),
+        ),
+      )
+      .catch(() => null);
     try {
       return await invoke<KeychainMigrateReport>("keychain_migrate", {
         accounts: devKeystoreMigrationAccounts(),
@@ -134,6 +148,8 @@ export async function migrateDevKeystore(): Promise<KeychainMigrateReport | null
       // Migration is best-effort; a denied dialog or missing store must not
       // break boot. The Settings UI remains the fallback for (re-)entering keys.
       return null;
+    } finally {
+      unlisten?.();
     }
   })().finally(() => {
     devKeystoreMigrationInFlight = null;
