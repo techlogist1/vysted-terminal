@@ -3562,3 +3562,19 @@ async def test_a_clause_beside_an_errored_symbol_is_replaced_alone(
         "The price_data tool returned no data for this in this turn, "
         "while TCS trades at a P/E of 29.8."
     )
+
+
+@pytest.mark.asyncio
+async def test_a_replaced_fenced_block_leaves_no_fence_markers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-036: the all-errored guard's note used to land inside the
+    model's ``` fence, so the panel rendered it as a code block. A replaced
+    fenced unit drops its markers: the note is prose."""
+    deltas = [
+        "After calling `fundamentals` for TATAMOTORS.NS, I got:\n\n```json\n",
+        '{"marketCap": 2300000000000, "pe": 8.4}\n```\n\nLet me know if you need more.',
+    ]
+    got = await _scripted_answer(monkeypatch, _TATA_ERR, {}, deltas, inputs=_TATA_IN)
+    assert got == f"{_FUND_NOTE_CAP}.\n\nLet me know if you need more."
+    assert "```" not in got
