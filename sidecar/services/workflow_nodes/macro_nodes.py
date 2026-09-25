@@ -14,31 +14,27 @@ nodes' error contract.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, get_args
 
+from models.macro_extended import MacroProvider
 from services import workflow_engine
 from services.macro import macro_router as macro_dispatcher
-
-_VALID_PROVIDERS = {"fred", "ecb", "imf", "world-bank"}
 
 
 async def fetch_macro_series(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
     """Fetch one macro time series for the workflow run."""
-    series_id = inputs.get("series_id") or config.get("series_id")
-    provider = inputs.get("provider") or config.get("provider")
+    series_id = workflow_engine.resolve(inputs, config, "series_id")
+    provider = workflow_engine.resolve(inputs, config, "provider")
+    supported = sorted(get_args(MacroProvider))
     if not series_id:
         raise ValueError(
             "data.fetch_macro_series: missing 'series_id' (provide via input or config)"
         )
     if not provider:
+        raise ValueError(f"data.fetch_macro_series: missing 'provider' (supply one of {supported})")
+    if str(provider).lower() not in supported:
         raise ValueError(
-            "data.fetch_macro_series: missing 'provider' "
-            f"(supply one of {sorted(_VALID_PROVIDERS)})"
-        )
-    if str(provider).lower() not in _VALID_PROVIDERS:
-        raise ValueError(
-            f"data.fetch_macro_series: unknown provider {provider!r}; "
-            f"supported: {sorted(_VALID_PROVIDERS)}"
+            f"data.fetch_macro_series: unknown provider {provider!r}; supported: {supported}"
         )
     series = await macro_dispatcher.get_series(str(series_id), str(provider).lower())
     return {"series": series.model_dump(mode="json")}

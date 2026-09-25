@@ -50,6 +50,21 @@ NodeHandler = Callable[[dict[str, Any], dict[str, Any]], Awaitable[dict[str, Any
 
 EventCallback = Callable[[WorkflowRunEvent], Awaitable[None]]
 
+
+def resolve(inputs: dict[str, Any], config: dict[str, Any], *keys: str, default: Any = None) -> Any:
+    """A node parameter by the one precedence rule every handler shares.
+
+    The first non-``None`` value among ``keys`` (aliases, in order) in the
+    upstream ``inputs``, then in the static ``config``, else ``default``. A
+    present ``0``/``""``/``[]`` is a value, never "missing".
+    """
+    for source in (inputs, config):
+        for key in keys:
+            if source.get(key) is not None:
+                return source[key]
+    return default
+
+
 #: Handler bound when a node's config sets no ``timeout_seconds``. Above
 #: ``flow.sleep``'s 300 s cap and a deep-research agent's wall budget.
 DEFAULT_NODE_TIMEOUT_SECONDS = 600.0

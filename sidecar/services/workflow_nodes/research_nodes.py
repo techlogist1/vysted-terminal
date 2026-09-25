@@ -44,7 +44,7 @@ async def fetch_earnings_calendar(inputs: dict[str, Any], config: dict[str, Any]
     accepts a comma-separated string or a list. ``days`` is clamped to
     ``[1, 60]``.
     """
-    raw_days = inputs.get("days") or config.get("days") or 7
+    raw_days = workflow_engine.resolve(inputs, config, "days", default=7)
     try:
         days = int(raw_days)
     except (TypeError, ValueError) as exc:
@@ -54,7 +54,7 @@ async def fetch_earnings_calendar(inputs: dict[str, Any], config: dict[str, Any]
     if days < 1 or days > 60:
         raise ValueError("data.fetch_earnings_calendar: 'days' must be in [1, 60]")
 
-    watchlist_value = inputs.get("watchlist") if "watchlist" in inputs else config.get("watchlist")
+    watchlist_value = workflow_engine.resolve(inputs, config, "watchlist")
     watchlist: list[str] | None
     if isinstance(watchlist_value, str):
         watchlist = [s.strip() for s in watchlist_value.split(",") if s.strip()]
@@ -79,7 +79,7 @@ async def fetch_earnings_calendar(inputs: dict[str, Any], config: dict[str, Any]
 
 async def fetch_earnings_history(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
     """Return past earnings reports for ``symbol``."""
-    symbol = inputs.get("symbol") or config.get("symbol")
+    symbol = workflow_engine.resolve(inputs, config, "symbol")
     if not symbol:
         raise ValueError(
             "data.fetch_earnings_history: missing 'symbol' (provide via input or config)"
@@ -98,7 +98,7 @@ async def fetch_earnings_history(inputs: dict[str, Any], config: dict[str, Any])
 
 async def fetch_analyst_history(inputs: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
     """Return rating changes for ``symbol`` (newest-first)."""
-    symbol = inputs.get("symbol") or config.get("symbol")
+    symbol = workflow_engine.resolve(inputs, config, "symbol")
     if not symbol:
         raise ValueError(
             "data.fetch_analyst_history: missing 'symbol' (provide via input or config)"
@@ -119,7 +119,7 @@ async def fetch_price_target_history(
     inputs: dict[str, Any], config: dict[str, Any]
 ) -> dict[str, Any]:
     """Return price-target timeline for ``symbol`` (newest-first)."""
-    symbol = inputs.get("symbol") or config.get("symbol")
+    symbol = workflow_engine.resolve(inputs, config, "symbol")
     if not symbol:
         raise ValueError(
             "data.fetch_price_target_history: missing 'symbol' (provide via input or config)"

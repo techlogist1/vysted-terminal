@@ -554,3 +554,47 @@ async def test_huge_pow_and_repeat_rejected_fast() -> None:
     # In-bound uses of the same operators still evaluate.
     out = await code_node.evaluate_code({}, {"expression": "2^10 + sum([1] * 3) + round(2.5)"})
     assert out == {"value": 1024 + 3 + 3}
+
+
+# ---------------------------------------------------------------------------
+# Domain node input/config precedence (R15-CODE-PLATFORM-067)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_zero_input_not_replaced_by_config_and_unknown_provider_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import sec_filings_provider
+    from services.macro import macro_router
+    from services.workflow_nodes import macro_nodes, research_nodes, sec_nodes
+
+    # A present 0 input is a value: it is validated, not swapped for config.
+    with pytest.raises(ValueError, match=r"\[1, 60\]"):
+        await research_nodes.fetch_earnings_calendar({"days": 0}, {"days": 7})
+
+    captured: dict[str, Any] = {}
+
+    async def _list(identifier: str, form_type: Any = None, limit: int = 30) -> Any:
+        captured.update(identifier=identifier, form=form_type, limit=limit)
+        raise RuntimeError("stop")
+
+    monkeypatch.setattr(sec_filings_provider, "list_insider_transactions", _list)
+    with pytest.raises(RuntimeError, match="stop"):
+        await sec_nodes.fetch_insider_transactions(
+            {"symbol": "AAPL", "limit": 0}, {"identifier": "MSFT", "limit": 15, "form": "4"}
+        )
+    assert captured == {"identifier": "AAPL", "form": "4", "limit": 0}
+
+    # An empty provider input is not silently replaced by the config's; an
+    # unknown one errors before any provider is dispatched.
+    async def _never(*_a: Any, **_k: Any) -> Any:
+        raise AssertionError("dispatched")
+
+    monkeypatch.setattr(macro_router, "get_series", _never)
+    with pytest.raises(ValueError, match="missing 'provider'"):
+        await macro_nodes.fetch_macro_series(
+            {"provider": ""}, {"series_id": "X", "provider": "fred"}
+        )
+    with pytest.raises(ValueError, match="unknown provider 'yodlee'"):
+        await macro_nodes.fetch_macro_series({}, {"series_id": "X", "provider": "yodlee"})
