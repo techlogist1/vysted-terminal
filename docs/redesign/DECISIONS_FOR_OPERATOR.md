@@ -362,3 +362,40 @@ are done-and-revertable like §1; these are yours to review or act on.
   **Recommendation:** (a) for rc1, and (c) after it, because (c) keeps FR-070 and never shows an
   uncorrected value without saying so.
 - **Undo:** nothing to undo. No code changed for the first-brief half.
+
+### 4.2 R15-AGENT-017 — the shipped default chat model fails the core host-action flow
+
+- **Blocked:** the shipped OpenRouter default (DeepSeek V4 Flash) returns `content_filter` with
+  zero tool calls on ordinary portfolio-write asks; `glm-5.1`/`kimi-k2.6` on the same key work
+  per R11's live evidence, but that needs a funded OpenRouter lane to re-prove before swapping
+  the default.
+- **Why operator-attended:** no funded OpenRouter lane (or another live key) is available in
+  this environment to run the eval loop's portfolio-write scenario against the candidate
+  replacement model.
+- **Recommendation:** fund the OpenRouter lane (or supply another key), run the eval loop's
+  portfolio-write scenario against `glm-5.1` and `kimi-k2.6`, and ship whichever passes as the
+  new default.
+
+### 4.3 R15-AGENT-049 — native web search has no per-run cap or spend meter off Anthropic
+
+- **Blocked:** `web_search_max_uses` is popped unused by every non-Anthropic adapter and the
+  loop counter only counts the local `web_search` tool (withheld on native tiers), so a
+  native-search run has no cap and BudgetGuard never sees its cost.
+- **Why operator-attended:** batch-9 could not exercise a live native-search lane: the OpenAI
+  `*-search-preview` models the per-model gate targets now 404 upstream, the OpenRouter paid
+  lane is unfunded, and no Gemini/Anthropic key is reachable here.
+- **Recommendation:** fund the OpenRouter lane or supply a reachable Gemini/Anthropic key, then
+  verify the per-round native-search counter and per-search cost land in BudgetGuard before
+  closing this entry.
+
+### 4.4 R15-UI-088 — in-webview drag gestures have no automated coverage
+
+- **Blocked:** dockview tab reorder and the node-editor's palette-to-canvas drop have been
+  carried as NEEDS-MANUAL-CHECK since R7; chrome-devtools MCP cannot synthesize the trusted
+  (`isTrusted`) events these gestures need, and there is no GUI in this environment to run a
+  real-event harness.
+- **Why operator-attended:** adding the Playwright suite (`fix_shape` on R15-UI-088) is code,
+  but running it against a real window to certify it needs the e2e runner call — a GUI round,
+  not available here.
+- **Recommendation:** once the Playwright suite lands, run it in a GUI-attended session (or CI
+  with a real display) and certify R15-UI-088 from that run's output.

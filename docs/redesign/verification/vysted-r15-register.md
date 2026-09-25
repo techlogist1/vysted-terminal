@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 631 entries + 76 rejections. critical: 16 . high: 112 . medium: 282 . low: 221
+887 raw findings -> 641 entries + 76 rejections. critical: 16 . high: 115 . medium: 287 . low: 223
 
-Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 225 . removed_with_feature: 14
+Status: blocked_tier4: 18 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 232 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -86,7 +86,7 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 - **R15-UI-085** [medium] About 19 readable text labels use text-charcoal-600 (#484848), about 1.98:1 on the panel surface and below the design's own 3:1 floor, and no contrast measurement exists for the shipped palette — _fixed_
 - **R15-UI-086** [medium] Command-palette action and panel rows never show their keyboard shortcut: about 0% carry one, against SC-009's >=90% (the only <kbd> is a literal 'Enter' on the Ask-agent row) — _fixed_
 - **R15-UI-087** [medium] FR-038's preference depth does not exist: no provider/model fallback order, no palette-behaviour options and no starter-cockpit composition. The settings were killed in R9 as theatre, and the behaviour behind them was never built — _fixed_
-- **R15-UI-088** [medium] In-webview drag gestures (dockview tab reorder, node-editor palette-to-canvas) have no automated coverage and have been carried as NEEDS-MANUAL-CHECK since R7 — _open_
+- **R15-UI-088** [medium] In-webview drag gestures (dockview tab reorder, node-editor palette-to-canvas) have no automated coverage and have been carried as NEEDS-MANUAL-CHECK since R7 — _blocked_tier4_
 - **R15-UI-091** [medium] Chart indicator defaults never produce the spec's named combos (EMA9/21 for intraday equity, EMA50/200 + week-anchored VWAP for crypto): the chart opens with an empty indicator set, the only live seeding has no timeframe dimension, and EMA is hard-fixed at period 20 — _fixed_
 - **R15-UI-092** [medium] Out-of-range citation markers are silently deleted from research briefs, so a cited-but-broken claim becomes indistinguishable from an uncited one (the inverse of FR-123 'broken citations shown'); no brief-anchored follow-up affordance either — _fixed_
 - **R15-AGENT-078** [low] Agent arrange appliers defer to requestAnimationFrame but report success synchronously, so on an occluded window the layout snapshot read in the same turn is stale and a throw in the callback escapes the host-action error path — _open_
@@ -123,7 +123,7 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 - **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _open_
 - **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _open_
 
-### Agent / chat (89)
+### Agent / chat (93)
 
 - **R15-AGENT-002** [high] Stop does not stop: aborting the chat stream leaves the in-flight tool task (research, LLM and web calls) running for minutes, spending the BYOK key and holding the single Ollama slot — _fixed_
 - **R15-AGENT-003** [high] At the 6-round tool cap the capped round's tool calls are streamed to the UI (and may be auto-applied as host actions) but never dispatched, and the turn ends with no answer text — _fixed_
@@ -139,7 +139,7 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 - **R15-AGENT-014** [high] Preinstalled agent-pack agents are never registered at boot, so the Quant Tutor is missing from the chat roster on a fresh install until the user toggles the plugin off and on — _fixed_
 - **R15-AGENT-015** [high] The node editor's Invoke Agent node silently drops the typed prompt: the form writes config.prompt but the handler reads prompt_template and falls back to '{context}' — _fixed_
 - **R15-AGENT-016** [high] Workflow runs carry no BYOK credentials, and the resulting LLM failure is recorded as a successful node whose output is '(no provider key configured)' — _fixed_
-- **R15-AGENT-017** [high] The shipped default chat model (DeepSeek V4 Flash via OpenRouter) returns content_filter with zero tool calls on ordinary portfolio-write asks, so the core host-action flow fails on the default — _open_
+- **R15-AGENT-017** [high] The shipped default chat model (DeepSeek V4 Flash via OpenRouter) returns content_filter with zero tool calls on ordinary portfolio-write asks, so the core host-action flow fails on the default — _blocked_tier4_
 - **R15-AGENT-018** [high] On the Ollama lane, tool calls that the model emits as literal JSON text are never rescued or executed: the chat renders the JSON blob as prose and the note/screen is silently never created — _fixed_
 - **R15-AGENT-019** [high] The intent gate classifies 'write a note', the composer's own /screener expansion, 'save' asks and everyday portfolio phrasings ('Delete TCS from my portfolio', 'I bought 10 INFY at 1500') as read, stripping the exact write tools they need — _open_
 - **R15-AGENT-020** [high] The agent's memory is write-only: it can write the user's notes but no tool, preamble or snapshot ever reads them back, and research-space memory is mostly the user's last three questions — _fixed_
@@ -175,7 +175,7 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 - **R15-AGENT-046** [medium] Tool-call ids are not unique (Ollama '' for every call, Gemini name_index reset per round, rescued leaks 'leaked-0', auto-briefs '__autobrief'), so on the default local lane no host action can be acked and applied changes are narrated as 'pending', while a stale ack falsely confirms later briefs for 10 minutes — _fixed_
 - **R15-AGENT-047** [medium] Tool-argument integrity is defended only in the OpenAI adapter; Groq and Ollama silently coerce malformed argument JSON to {} and Gemini passes args unchecked, so the model never learns its arguments were wrong — _fixed_
 - **R15-AGENT-048** [medium] Tool-arg repair makes unbounded, untimed, unmetered LLM round-trips inside the open SSE stream (one serial oneshot per failing call, each able to hang ~600 s) — _fixed_
-- **R15-AGENT-049** [medium] Native web search has no per-run cap off Anthropic and per-search billing is never metered, so a $10/1k-search lane is invisible to the spend ceiling and the UI — _open_
+- **R15-AGENT-049** [medium] Native web search has no per-run cap off Anthropic and per-search billing is never metered, so a $10/1k-search lane is invisible to the spend ceiling and the UI — _blocked_tier4_
 - **R15-AGENT-050** [medium] No prompt caching on the Anthropic lane, and the per-turn terminal preamble is folded into the one system string, so every round re-bills ~11.5k tokens of schemas and prompt at full price — _fixed_
 - **R15-AGENT-051** [medium] With two chart panels and the second focused, the context preamble labels charts[0] 'Focused chart' and contradicts the deixis line in the same system message — _fixed_
 - **R15-AGENT-057** [medium] syncPluginAgents ignores response.ok, so a rejected agent registration (422 unknown tool, 409 collision) is indistinguishable from success and a revised plugin agent never replaces the stale one — _fixed_
@@ -214,6 +214,10 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 - **R15-AGENT-089** [low] close_panel/focus_panel steps can never appear in the planner's plan: planner._coerce_steps drops them (absent from PLAN_ACTIONS) and the runtime's stageable set omits them, so R4 register S-17's fix is half-done — _open_
 - **R15-CODE-PLATFORM-076** [low] copilot.json's system prompt is 8751 bytes (2-3x every other agent) while running on the small local default qwen2.5:7b, inflating per-call token and latency cost — _open_
 - **R15-DATA-101** [low] market_overview returns region 'GLOBAL' with the US index set and no note in the payload — _open_
+- **R15-AGENT-090** [high] Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure — _open_
+- **R15-AGENT-091** [low] get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) — _open_
+- **R15-AGENT-092** [high] A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes — _open_
+- **R15-AGENT-093** [high] The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures — _open_
 
 ### Research / web search (53)
 
@@ -271,7 +275,7 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 - **R15-RESEARCH-041** [low] The 'structured data only - no web' brief banner can never fire: briefFromInput counts vysted:// and exchange rows as web availability, so zero-web DEEP/ULTRA briefs never get the promised affordance — _open_
 - **R15-RESEARCH-042** [low] The research cockpit's brief has no floor of >=3 cited sources (SC-016): nothing enforces or measures source count per brief, and with no web backend FAST publishes structured-only with fewer — _open_
 
-### Data on small or obscure stocks (123)
+### Data on small or obscure stocks (127)
 
 - **R15-DATA-001** [critical] Income / balance-sheet / cash-flow statements (and one /fundamentals identity) for Indian tickers that collide with a US ticker serve the US company's real financials under the Indian name (DAL->Delta, CHTR->Charter, SAFE->Safehold, CSL->Carlisle, ICON->Icon Energy, AMAL->Amalgamated, SMR->NuScale, TTC->Toro, SUMAX->a US muni fund) — _fixed_
 - **R15-DATA-002** [critical] A bare ticker that exists in both the US and Indian masters binds silently to the session region, and every data panel re-queries the bare symbol, so the user who picked NASDAQ:AMAL or NYSE:SMR gets Amal Ltd / SMR Jewels quote, ratios and 52w range (and, for SMR, NuScale statements under the same header) — _open_
@@ -396,6 +400,10 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 - **R15-LEAD-017** [low] CSL's shareholding-pattern (SHP) history carries a duplicate quarter row (2026-08-20) — _open_
 - **R15-LEAD-020** [low] exchange_financials.get_filed_periods caches only successful lookups, so a transient NSE miss falls back to Yahoo (flagged) and the very next call for the same symbol can serve NSE instead, showing a different provider on consecutive loads — _open_
 - **R15-LEAD-025** [low] The fundamentals warmer hits openbb-mcp hard at boot with no observed throttling on the default (non-IN) universe warm path — _open_
+- **R15-DATA-112** [medium] A row with no fundamentals currency (and a null market_cap) ranks FIRST in a market_cap-desc screen, breaking R15-UI-006's missing-values-last rule — _open_
+- **R15-DATA-113** [medium] Earnings-estimate revenue for a foreign reporter is labelled in the trading currency: WIT's revenue_estimate_mean (INR-sized) is served as currency USD — _open_
+- **R15-DATA-114** [medium] The options-chain provider re-probes today's F&O file on every request because a negative probe is never cached, so a transient error can 502 a request while a good cached day sits in cache — _open_
+- **R15-DATA-115** [medium] A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history — _open_
 
 ## All entries by severity
 
@@ -432,7 +440,7 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 | R15-AGENT-014 | high | agent | plugins | Preinstalled agent-pack agents are never registered at boot, so the Quant Tutor is missing from the chat roster on a fresh install until the user toggles the plugin off and on | fixed | COD-plugins-4 |
 | R15-AGENT-015 | high | agent | workflow-engine | The node editor's Invoke Agent node silently drops the typed prompt: the form writes config.prompt but the handler reads prompt_template and falls back to '{context}' | fixed | INT-blueprint-48-1 |
 | R15-AGENT-016 | high | agent | workflow-engine | Workflow runs carry no BYOK credentials, and the resulting LLM failure is recorded as a successful node whose output is '(no provider key configured)' | fixed | INT-blueprint-48-2 |
-| R15-AGENT-017 | high | agent | llm-adapters | The shipped default chat model (DeepSeek V4 Flash via OpenRouter) returns content_filter with zero tool calls on ordinary portfolio-write asks, so the core host-action flow fails on the default | open | INT-deferred-84-7 |
+| R15-AGENT-017 | high | agent | llm-adapters | The shipped default chat model (DeepSeek V4 Flash via OpenRouter) returns content_filter with zero tool calls on ordinary portfolio-write asks, so the core host-action flow fails on the default | blocked_tier4 | INT-deferred-84-7 |
 | R15-AGENT-018 | high | agent | llm-adapters | On the Ollama lane, tool calls that the model emits as literal JSON text are never rescued or executed: the chat renders the JSON blob as prose and the note/screen is silently never created | fixed | SURF-COMPOSER-CHAT-1 |
 | R15-AGENT-019 | high | agent | agent-runtime | The intent gate classifies 'write a note', the composer's own /screener expansion, 'save' asks and everyday portfolio phrasings ('Delete TCS from my portfolio', 'I bought 10 INFY at 1500') as read, stripping the exact write tools they need | open | SURF-COMPOSER-CHAT-5, SURF-PORTFOLIO-NOTES-5 |
 | R15-AGENT-020 | high | agent | agent-runtime | The agent's memory is write-only: it can write the user's notes but no tool, preamble or snapshot ever reads them back, and research-space memory is mostly the user's last three questions | fixed | WLD-agent-native-ux-1, WLD-harness-context-3 |
@@ -553,7 +561,7 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 | R15-AGENT-046 | medium | agent | agent-tools-catalog-ledger | Tool-call ids are not unique (Ollama '' for every call, Gemini name_index reset per round, rescued leaks 'leaked-0', auto-briefs '__autobrief'), so on the default local lane no host action can be acked and applied changes are narrated as 'pending', while a stale ack falsely confirms later briefs for 10 minutes | fixed | COD-llm-adapters-2-5, SURF-COMPOSER-CHAT-8, SURF-RESEARCH-BRIEFS-9, SURF-RESEARCH-BRIEFS-12, COD-llm-adapters-11 |
 | R15-AGENT-047 | medium | agent | llm-adapters | Tool-argument integrity is defended only in the OpenAI adapter; Groq and Ollama silently coerce malformed argument JSON to {} and Gemini passes args unchecked, so the model never learns its arguments were wrong | fixed | COD-llm-adapters-1 |
 | R15-AGENT-048 | medium | agent | llm-adapters | Tool-arg repair makes unbounded, untimed, unmetered LLM round-trips inside the open SSE stream (one serial oneshot per failing call, each able to hang ~600 s) | fixed | COD-llm-adapters-8 |
-| R15-AGENT-049 | medium | agent | agent-runtime | Native web search has no per-run cap off Anthropic and per-search billing is never metered, so a $10/1k-search lane is invisible to the spend ceiling and the UI | open | INT-spec-90-3 |
+| R15-AGENT-049 | medium | agent | agent-runtime | Native web search has no per-run cap off Anthropic and per-search billing is never metered, so a $10/1k-search lane is invisible to the spend ceiling and the UI | blocked_tier4 | INT-spec-90-3 |
 | R15-AGENT-050 | medium | agent | llm-adapters | No prompt caching on the Anthropic lane, and the per-turn terminal preamble is folded into the one system string, so every round re-bills ~11.5k tokens of schemas and prompt at full price | fixed | WLD-harness-context-5 |
 | R15-AGENT-051 | medium | agent | agent-runtime | With two chart panels and the second focused, the context preamble labels charts[0] 'Focused chart' and contradicts the deixis line in the same system message | fixed | COD-agent-runtime-2 |
 | R15-AGENT-052 | medium | ui | frontend-panels-shell-chrome | The panel-context bus's focus id (dockview ids) and publishers' event keys ('chart-chart', 'equity', 'backtest-panel') never match, so suggestion chips and the context badge never find the focused symbol and a focused Equity Overview is ignored | fixed | COD-frontend-panels-shell-chrome-1 |
@@ -808,7 +816,7 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 | R15-UI-085 | medium | ui | frontend-panels-shell-chrome | About 19 readable text labels use text-charcoal-600 (#484848), about 1.98:1 on the panel surface and below the design's own 3:1 floor, and no contrast measurement exists for the shipped palette | fixed | INT-deferred-42-4, INT-spec-180-217 |
 | R15-UI-086 | medium | ui | frontend-panels-shell-chrome | Command-palette action and panel rows never show their keyboard shortcut: about 0% carry one, against SC-009's >=90% (the only <kbd> is a literal 'Enter' on the Ask-agent row) | fixed | INT-spec-180-189 |
 | R15-UI-087 | medium | ui | frontend-panels-shell-chrome | FR-038's preference depth does not exist: no provider/model fallback order, no palette-behaviour options and no starter-cockpit composition. The settings were killed in R9 as theatre, and the behaviour behind them was never built | fixed | INT-spec-90-10 |
-| R15-UI-088 | medium | ui | workspace-layout | In-webview drag gestures (dockview tab reorder, node-editor palette-to-canvas) have no automated coverage and have been carried as NEEDS-MANUAL-CHECK since R7 | open | INT-deferred-42-2 |
+| R15-UI-088 | medium | ui | workspace-layout | In-webview drag gestures (dockview tab reorder, node-editor palette-to-canvas) have no automated coverage and have been carried as NEEDS-MANUAL-CHECK since R7 | blocked_tier4 | INT-deferred-42-2 |
 | R15-UI-091 | medium | ui | frontend-panels-data-surfaces | Chart indicator defaults never produce the spec's named combos (EMA9/21 for intraday equity, EMA50/200 + week-anchored VWAP for crypto): the chart opens with an empty indicator set, the only live seeding has no timeframe dimension, and EMA is hard-fixed at period 20 | fixed | INT-spec-135-154 |
 | R15-UI-092 | medium | ui | research-extraction-synthesis | Out-of-range citation markers are silently deleted from research briefs, so a cited-but-broken claim becomes indistinguishable from an uncited one (the inverse of FR-123 'broken citations shown'); no brief-anchored follow-up affordance either | fixed | INT-spec-135-173 |
 | R15-AGENT-065 | low | agent | plugins | Two documented-deferred copilot/customizability builds remain unbuilt: the 3-pane agent roster panel with hard persona hand-off, and the data-source connector hub (Plugin Manager shows only a count) | open | INT-deferred-0-12 |
@@ -1032,3 +1040,13 @@ Status: blocked_tier4: 15 . fixed: 363 . needs_gui: 9 . not_a_defect: 5 . open: 
 | R15-UI-089 | low | ui | plugins | Plugin data credentials (the optional NewsAPI key) are saved from a separate Marketplace form with no validation, unlike LLM keys, which are live-probed before save | open | INT-spec-90-8 |
 | R15-UI-093 | low | ui | frontend-panels-agent-shell | The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change | open | INT-spec-135-158 |
 | R15-UI-094 | low | ui | fundamentals-profile | The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) | open | INT-spec-135-174 |
+| R15-AGENT-090 | high | agent | agent-tools | Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure | open | rc1-scenarios:5, rc1-verifier:16 |
+| R15-DATA-112 | medium | data | screener | A row with no fundamentals currency (and a null market_cap) ranks FIRST in a market_cap-desc screen, breaking R15-UI-006's missing-values-last rule | open | rc1-verifier:15 |
+| R15-DATA-113 | medium | data | earnings | Earnings-estimate revenue for a foreign reporter is labelled in the trading currency: WIT's revenue_estimate_mean (INR-sized) is served as currency USD | open | rc1-fix-r2-triage:1, rc1-verifier:17 |
+| R15-AGENT-091 | low | agent | agent-tools | get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) | open | rc1-gate8:2 |
+| R15-AGENT-092 | high | agent | agent-runtime | A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes | open | rc1-verifier:4-adjacent |
+| R15-DATA-114 | medium | data | option-chain | The options-chain provider re-probes today's F&O file on every request because a negative probe is never cached, so a transient error can 502 a request while a good cached day sits in cache | open | batch-11-backlog-1 |
+| R15-AGENT-093 | high | agent | agent-runtime | The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures | open | batch-11-backlog-2 |
+| R15-CODE-AGENT-033 | medium | code | agent-eval | The agent-eval grader passes a trial whose tool call returned an error, because the tool's ok/error result is not carried in the vy eval stream | open | batch-11-backlog-3 |
+| R15-CODE-PLATFORM-077 | low | code | lifecycle-upgrade | Data-dir upgrade backups (backups/<old-build>/) are never pruned; each build change adds a full data-dir copy | open | batch-11-backlog-4 |
+| R15-DATA-115 | medium | data | market-data-providers | A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history | open | batch-11-backlog-5 |
