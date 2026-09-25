@@ -1806,6 +1806,9 @@ _CLAIM_NUMBERS = re.compile(
     re.IGNORECASE,
 )
 _ANY_NUMBER = re.compile(rf"\b{_NUM}\b", re.IGNORECASE)
+#: Without one of these, an N:M / N to M next to "ADR" is a price range or a
+#: clock time, not a ratio claim.
+_RATIO_CUE = re.compile(r"\b(?:ratio|represents?|equals?|each|converts?)\b|-for-", re.IGNORECASE)
 #: A sentence (with its trailing whitespace) of released prose.
 _SENTENCE = re.compile(r".*?(?:[.!?]\s+|\n\s*|\Z)", re.DOTALL)
 #: Where held prose may be released: after a sentence end or a line break.
@@ -1830,7 +1833,10 @@ def _ratio_claim_traced(sentence: str, tool_results: list[str]) -> bool:
     """
     if not _CLAIM_TERM.search(sentence):
         return True
-    claimed = {_norm_number(n) for match in _CLAIM_NUMBERS.findall(sentence) for n in match if n}
+    matches = _CLAIM_NUMBERS.findall(sentence)
+    if not _RATIO_CUE.search(sentence):
+        matches = [m for m in matches if m[0]]  # share counts only
+    claimed = {_norm_number(n) for match in matches for n in match if n}
     if not claimed:
         return True
     return any(

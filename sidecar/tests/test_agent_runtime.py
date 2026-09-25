@@ -2471,3 +2471,12 @@ async def test_an_adr_ratio_a_tool_result_carries_is_kept(monkeypatch: pytest.Mo
         monkeypatch, "web_search", result, ["Each ADS represents si", "x ordinary shares."]
     )
     assert answer == "Each ADS represents six ordinary shares."
+
+
+def test_an_adr_price_range_or_time_is_not_a_ratio_claim() -> None:
+    """R15-AGENT-090 review: an N to M / N:M beside "ADR" counts as a ratio
+    only with a ratio cue, so a price range or a clock time streams as is."""
+    kept = "SIFY's ADR traded from 5.20 to 7.10 this week, opening at 10:30 ET. "
+    assert agent_runtime._guard_ratio_claims(kept, []) == kept
+    claim = "The ADR ratio is 1:2. "
+    assert agent_runtime._guard_ratio_claims(claim, []) == agent_runtime.RATIO_UNAVAILABLE + " "
