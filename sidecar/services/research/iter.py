@@ -120,8 +120,7 @@ class _Report:
         cap = self.char_cap if self.char_cap > 0 else _REPORT_CHAR_CAP
         text = self.body.strip()
         if len(text) > cap:
-            # Keep the newest distilled content (the tail) on overflow.
-            text = "…\n" + text[-cap:]
+            text = _fit_report(text, cap)
         return text or "(no findings distilled yet)"
 
 
@@ -150,6 +149,45 @@ REPORT_SECTIONS = (
     "Dead ends",
     "Planned next",
 )
+
+
+_SECTION_HEADING_RX = re.compile(r"^#+\s*(" + "|".join(REPORT_SECTIONS) + r")\b", re.IGNORECASE)
+
+#: Over-cap trim order: the working notes lose their tail lines first, the
+#: cited facts last (R15-RESEARCH-035).
+_TRIM_ORDER = ("dead ends", "planned next", "open questions", "facts established")
+
+
+def _fit_report(text: str, cap: int) -> str:
+    """Bound an over-cap working report without losing the cited evidence first.
+
+    With the section contract (a ``Facts established`` heading present), Dead
+    ends, Planned next and Open questions drop their last lines before any fact
+    does; headings always stay. A report without that heading keeps the newest
+    distilled content (the tail), as before.
+    """
+    lines = text.split("\n")
+    owner: list[str] = []  # the section each body line belongs to; "" = keep
+    headings: set[str] = set()
+    section = ""
+    for line in lines:
+        match = _SECTION_HEADING_RX.match(line)
+        if match:
+            section = match.group(1).lower()
+            headings.add(section)
+        owner.append("" if match else section)
+    if "facts established" not in headings:
+        return "…\n" + text[-cap:]
+    dropped: set[int] = set()
+    size = len(text)
+    for name in _TRIM_ORDER:
+        for i in reversed(range(len(lines))):
+            if size <= cap:
+                break
+            if owner[i] == name:
+                size -= len(lines[i]) + 1
+                dropped.add(i)
+    return "\n".join(line for i, line in enumerate(lines) if i not in dropped)[:cap]
 
 
 async def _distill(

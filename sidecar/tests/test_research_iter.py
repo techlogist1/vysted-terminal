@@ -178,6 +178,32 @@ def test_iter_report_render_is_capped() -> None:
     assert len(llm.plan_prompts[0]) < _REPORT_CHAR_CAP * 2
 
 
+def test_over_cap_report_keeps_facts_established() -> None:
+    """R15-RESEARCH-035: an over-cap four-section report trims the working
+    notes (Dead ends / Planned next / Open questions) before any cited fact,
+    so the evidence survives into the next round and synthesis."""
+    facts = "\n".join(f"- Fact {i}: revenue grew {i}% [{i}]" for i in range(1, 30))
+    body = (
+        f"## Facts established\n{facts}\n"
+        "## Open questions\n" + "- still open?\n" * 150 + "## Dead ends\n"
+        "" + "- BSE search empty, do not retry\n" * 150 + "## Planned next\n"
+        "" + "- look up the latest concall transcript\n" * 150
+    )
+    assert len(body) > _REPORT_CHAR_CAP
+    rendered = iter_research._Report(task="q", body=body).render()
+    assert len(rendered) <= _REPORT_CHAR_CAP
+    assert facts in rendered  # every cited fact, whole
+    for heading in ("## Open questions", "## Dead ends", "## Planned next"):
+        assert heading in rendered
+    # Dead ends go first: Planned next still has lines while Dead ends has none.
+    assert "concall transcript" in rendered
+    assert "do not retry" not in rendered
+    # A headingless body keeps the newest content (the tail), as before.
+    free = "old line\n" * 1000 + "NEWEST"
+    tail = iter_research._Report(task="q", body=free).render()
+    assert tail.endswith("NEWEST") and len(tail) <= _REPORT_CHAR_CAP + 2
+
+
 def test_iter_distill_empty_keeps_shipping() -> None:
     """An empty distill (dead/echoing model) keeps the prior report and still ships."""
     brief = _run(
