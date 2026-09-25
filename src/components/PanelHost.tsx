@@ -1,14 +1,16 @@
 "use client";
 
-import { DockviewReact, type DockviewReadyEvent } from "dockview";
+import { type DockviewApi, DockviewReact, type DockviewReadyEvent } from "dockview";
 import {
   Component,
   Fragment,
   type FunctionComponent,
   type ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,7 @@ import { applyPanelConstraints, enforceConstraintsAfterRestore } from "@/lib/pan
 import { autosaveLayout, loadWorkspace, restoreLastSessionOrDefault } from "@/lib/workspace";
 import { useModulesStore } from "@/store/modules";
 import { usePanelContextBus } from "@/store/panel-context";
+import { usePluginsStore } from "@/store/plugins";
 import { useSettingsStore } from "@/store/settings";
 import { useWorkspaceStore } from "@/store/workspace";
 
@@ -117,6 +120,7 @@ export async function applyStartLayout(api: DockviewReadyEvent["api"]): Promise<
  */
 export function PanelHost() {
   const modules = useModulesStore((state) => state.modules);
+  const pluginsReady = usePluginsStore((state) => state.pluginsReady);
 
   // Built from all modules so the map is stable after registration. Props-less
   // function components satisfy dockview's panel signature directly.
@@ -125,31 +129,29 @@ export function PanelHost() {
     [modules],
   );
 
-  // Cleanup for the autosave subscription, set once the layout is ready.
-  const cleanupRef = useRef<(() => void) | null>(null);
-  // Whether this component is currently mounted. Set true on (re)mount, false on
-  // unmount — combined with the dockview-api-identity check below, it stops an
-  // in-flight async restore from a disposed mount (StrictMode/HMR) from wiring
-  // autosave to (or mutating) a disposed dockview api. Written only (never read)
-  // in cleanup, so it sidesteps the stale-ref-in-cleanup lint heuristic.
-  const mountedRef = useRef(false);
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      cleanupRef.current?.();
-      cleanupRef.current = null;
-    };
+  const [api, setApi] = useState<DockviewApi | null>(null);
+  // The launch restore, started once per dockview api (StrictMode re-runs the
+  // wiring effect on the same api; the restore must not run twice).
+  const restoreRef = useRef<{ api: DockviewApi; done: Promise<void> } | null>(null);
+
+  const handleReady = useCallback((event: DockviewReadyEvent) => {
+    useWorkspaceStore.getState().setDockviewApi(event.api);
+    // Dev-only handle for the test-automation rig (dead-stripped in a
+    // production build). Lets the rig inspect/drive the live layout.
+    if (process.env.NODE_ENV !== "production") {
+      (window as unknown as { __vystedDockview?: DockviewApi }).__vystedDockview = event.api;
+    }
+    setApi(event.api);
   }, []);
 
-  function handleReady(event: DockviewReadyEvent) {
-    const api = event.api;
-    useWorkspaceStore.getState().setDockviewApi(api);
-    // Dev-only handle for the test-automation rig (dead-stripped in the
-    // production static export). Lets the rig inspect/drive the live layout.
-    if (process.env.NODE_ENV !== "production") {
-      (window as unknown as { __vystedDockview?: typeof api }).__vystedDockview = api;
+  useEffect(() => {
+    if (!api) {
+      return;
     }
+    let disposed = false;
+    // A replaced api (StrictMode/HMR) or an unmount while the restore awaited
+    // means this api is disposed — never wire to or mutate it.
+    const isLive = () => !disposed && useWorkspaceStore.getState().dockviewApi === api;
     // Clamp minimum sizes for every panel — those placed by the default layout,
     // restored from a saved blob, opened from the palette, or proposed by the
     // agent. Subscribing before the restore means restored/default panels are
@@ -168,54 +170,62 @@ export function PanelHost() {
       }
       sweepTimer = setTimeout(() => {
         sweepTimer = null;
-        if (!mountedRef.current || useWorkspaceStore.getState().dockviewApi !== api) {
-          return;
+        if (isLive()) {
+          api.panels.forEach((panel) => enforceConstraintsAfterRestore(panel));
         }
-        api.panels.forEach((panel) => enforceConstraintsAfterRestore(panel));
       }, 80);
     };
     const fromJSONSub = api.onDidLayoutFromJSON(scheduleSweep);
-    const enabledPanelIds = new Set(
-      useModulesStore
-        .getState()
-        .enabledPanels()
-        .map((panel) => panel.id),
-    );
-    // Restore the last session (or default), THEN wire the layout autosave.
-    // `autosaveLayout` itself is gated on the restore settling.
-    void restoreLastSessionOrDefault(api, enabledPanelIds)
-      .then(() => applyStartLayout(api))
-      .finally(() => {
-        // If StrictMode/HMR unmounted us or replaced the dockview api while the
-        // restore awaited, this api is disposed — do not wire autosave to it (also
-        // closes the subscription/timer leak when unmount lands mid-restore).
-        if (!mountedRef.current || useWorkspaceStore.getState().dockviewApi !== api) {
-          if (sweepTimer !== null) {
-            clearTimeout(sweepTimer);
-          }
-          constraintsSub.dispose();
-          fromJSONSub.dispose();
+    const disposers = [
+      () => constraintsSub.dispose(),
+      () => fromJSONSub.dispose(),
+      () => {
+        if (sweepTimer !== null) {
+          clearTimeout(sweepTimer);
+        }
+      },
+    ];
+
+    // Restore the last session (or default) only once plugin modules have
+    // registered — a saved plugin panel restored earlier is stripped as an
+    // unknown component. THEN wire the layout autosave (`autosaveLayout`
+    // itself is gated on the restore settling).
+    if (pluginsReady) {
+      if (restoreRef.current?.api !== api) {
+        const enabledPanelIds = new Set(
+          useModulesStore
+            .getState()
+            .enabledPanels()
+            .map((panel) => panel.id),
+        );
+        restoreRef.current = {
+          api,
+          done: restoreLastSessionOrDefault(api, enabledPanelIds).then(() => applyStartLayout(api)),
+        };
+      }
+      void restoreRef.current.done.finally(() => {
+        if (!isLive()) {
           return;
         }
         scheduleSweep();
-        const subscription = api.onDidLayoutChange(() => autosaveLayout());
+        const layoutSub = api.onDidLayoutChange(() => autosaveLayout());
         // Track the focused panel into the shared context bus so the agent knows
         // what the user is "looking at" (FR-002/FR-007 — the deixis "this"/"it"
         // resolves to the focused panel; hand focus updates the agent's next turn).
         const focusSub = api.onDidActivePanelChange((panel) => {
           usePanelContextBus.getState().setFocusedSource(panel?.id ?? null);
         });
-        cleanupRef.current = () => {
-          if (sweepTimer !== null) {
-            clearTimeout(sweepTimer);
-          }
-          subscription.dispose();
-          focusSub.dispose();
-          constraintsSub.dispose();
-          fromJSONSub.dispose();
-        };
+        disposers.push(
+          () => layoutSub.dispose(),
+          () => focusSub.dispose(),
+        );
       });
-  }
+    }
+    return () => {
+      disposed = true;
+      disposers.forEach((dispose) => dispose());
+    };
+  }, [api, pluginsReady]);
 
   if (modules.length === 0) {
     return (

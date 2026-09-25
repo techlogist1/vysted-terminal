@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { applyStartLayout, PanelHost, withPanelErrorBoundaries } from "@/components/PanelHost";
 import type { VystedModule } from "@/lib/module-registry";
 import { useModulesStore } from "@/store/modules";
+import { usePluginsStore } from "@/store/plugins";
 import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 import { useWorkspaceStore } from "@/store/workspace";
 
@@ -185,6 +186,7 @@ describe("minimum sizes after fromJSON (R15-CODE-FRONTEND-025)", () => {
   beforeEach(() => {
     useModulesStore.setState({ modules: [], enabled: {} });
     useModulesStore.getState().registerModules([chartModule]);
+    usePluginsStore.getState().setPluginsReady(true);
     stubSidecar();
   });
 
@@ -208,5 +210,57 @@ describe("minimum sizes after fromJSON (R15-CODE-FRONTEND-025)", () => {
     const chart = api.getPanel("chart")!.api as { setSize: ReturnType<typeof vi.fn> };
     await waitFor(() => expect(chart.setSize).toHaveBeenCalledWith({ width: 360 }));
     expect(chart.setSize).not.toHaveBeenCalledWith({ height: expect.anything() });
+  });
+});
+
+describe("launch restore waits for plugin modules (R15-LIFECYCLE-029)", () => {
+  const pluginModule: VystedModule = {
+    id: "plugin:example",
+    title: "Example plugin",
+    panels: [{ id: "example", title: "Example", component: "example-panel" }],
+    commands: [],
+    panelComponents: { "example-panel": () => null },
+  };
+
+  beforeEach(() => {
+    useModulesStore.setState({ modules: [], enabled: {} });
+    useModulesStore.getState().registerModules([chartModule]);
+    usePluginsStore.getState().setPluginsReady(false);
+    stubSidecar({
+      name: "__autosave__",
+      enabledModules: {},
+      portfolios: [],
+      layout: {
+        grid: { root: { type: "branch", data: [] } },
+        panels: {
+          chart: { contentComponent: "chart-panel", width: 800, height: 600 },
+          example: { contentComponent: "example-panel", width: 400, height: 600 },
+        },
+      },
+    });
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  it("saved layout with a plugin panel restores intact when the plugin registers after bootstrap", async () => {
+    const api = makeFakeDockview();
+    dockview.api = api;
+    render(<PanelHost />);
+    await waitFor(() => expect(useWorkspaceStore.getState().dockviewApi).toBe(api));
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    // Plugins still bootstrapping: nothing restored yet.
+    expect(fetch).not.toHaveBeenCalled();
+    expect(api.fromJSON).not.toHaveBeenCalled();
+
+    // bootstrapPlugins() registers the plugin's module, then page.tsx marks ready.
+    useModulesStore.getState().appendModules([pluginModule]);
+    usePluginsStore.getState().setPluginsReady(true);
+
+    await waitFor(() => expect(api.fromJSON).toHaveBeenCalledTimes(1));
+    expect(Object.keys(api.fromJSON.mock.calls[0][0].panels).sort()).toEqual(["chart", "example"]);
+    expect(api.panels.map((panel) => panel.id).sort()).toEqual(["chart", "example"]);
   });
 });

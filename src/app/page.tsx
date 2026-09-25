@@ -35,10 +35,14 @@ import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalogStore } from "@/store/model-catalog";
 import { getRegisteredAction, resolveKeyboardAction } from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
+import { usePluginsStore } from "@/store/plugins";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { registerSavedWebhooks } from "@/store/workflow";
 import { useWorkspaceStore } from "@/store/workspace";
 import { StatusChrome } from "@/components/StatusChrome";
+
+/** How long the layout restore waits on plugin bootstrap before going ahead. */
+const PLUGINS_READY_FALLBACK_MS = 15_000;
 
 export default function Page() {
   // Bridge workflow ``action.notify_desktop`` intents to the OS notification
@@ -91,14 +95,30 @@ export default function Page() {
 
     let teardown: (() => void) | null = null;
     let alive = true;
-    void bootstrapPlugins().then((dispose) => {
-      if (!alive) {
-        dispose();
-        return;
-      }
-      teardown = dispose;
-      useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
-    });
+    // PanelHost restores the saved layout only once plugin modules have
+    // registered. ponytail: a fixed fallback so a hung bootstrap (e.g. a slow
+    // cold sidecar) can't hold the cockpit empty; a plugin panel saved in the
+    // layout is lost only when bootstrap outlives it.
+    const pluginsReadyFallback = setTimeout(
+      () => usePluginsStore.getState().setPluginsReady(true),
+      PLUGINS_READY_FALLBACK_MS,
+    );
+    void bootstrapPlugins()
+      .then((dispose) => {
+        if (!alive) {
+          dispose();
+          return;
+        }
+        teardown = dispose;
+        useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
+      })
+      .finally(() => {
+        // Settled either way (a failed bootstrap has nothing more to register).
+        if (alive) {
+          clearTimeout(pluginsReadyFallback);
+          usePluginsStore.getState().setPluginsReady(true);
+        }
+      });
 
     const unsubscribeEnabled = useModulesStore.subscribe((state, previous) => {
       if (state.enabled !== previous.enabled) {
@@ -124,6 +144,8 @@ export default function Page() {
     });
     return () => {
       alive = false;
+      clearTimeout(pluginsReadyFallback);
+      usePluginsStore.getState().setPluginsReady(false);
       unsubscribeEnabled();
       unsubscribeModules();
       unwireAutosave();
