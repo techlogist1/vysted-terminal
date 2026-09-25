@@ -1,0 +1,1103 @@
+{
+  "base_sha": "4097dac423bd6d6fb49245e7ee9e0ab2bc64f18a",
+  "max_writers": 16,
+  "exclude_ids": [],
+  "triage_sha": "e032be7dd164a504215055a1cd7b7b497dbd68e9",
+  "partitions": {
+    "P1": {
+      "totals": {
+        "entries": 62,
+        "sets": 9,
+        "effort_points": 88,
+        "opus_sets": 4,
+        "sonnet_sets": 5
+      },
+      "sets": [
+        {
+          "name": "W1",
+          "slug": "backtest",
+          "model": "sonnet",
+          "entries": [
+            "R15-AGENT-079",
+            "R15-CODE-PLATFORM-036",
+            "R15-CODE-PLATFORM-034",
+            "R15-CODE-PLATFORM-035",
+            "R15-UI-060",
+            "R15-UI-061"
+          ],
+          "files": [
+            "sidecar/services/backtest_dsl.py",
+            "sidecar/services/backtest_engine.py",
+            "sidecar/services/backtest_strategies.py",
+            "sidecar/routers/backtest.py",
+            "sidecar/models/backtest.py",
+            "types/backtest.ts",
+            "src/store/backtest.ts",
+            "src/store/backtest.test.ts",
+            "src/modules/backtest/BacktestResultView.tsx",
+            "src/modules/backtest/BacktestResultView.test.tsx",
+            "sidecar/tests/test_backtest_lows.py",
+            "sidecar/tests/test_backtest_engine.py"
+          ],
+          "brief": "R15-AGENT-079: backtest_dsl _accept_keyword (:235) compares token.text == word, so 'SMA(20) > 50 AND close > 1' fails at AND \u2192 compare token.text.lower() \u2192 acceptance test sidecar/tests/test_backtest_lows.py::test_uppercase_and_or_parse_like_lowercase\nR15-CODE-PLATFORM-036: CustomDslStrategy parses each rule twice (validate_definition compiles then discards, then compile_rule again) \u2192 validate_definition returns the compiled rules and the strategy uses them \u2192 acceptance test sidecar/tests/test_backtest_lows.py::test_each_rule_compiled_once\nR15-CODE-PLATFORM-034: walk-forward slices share their boundary date, so each boundary bar is traded in two slices while the UI shows disjoint periods \u2192 half-open slice filter (inclusive only on the last slice) \u2192 acceptance test sidecar/tests/test_backtest_lows.py::test_each_bar_in_exactly_one_slice\nR15-CODE-PLATFORM-035: the backtest bar-loader seam keeps dead scaffolding (raise-only _default_bar_loader, impossible `or` fallback, unreachable router handler, uncalled _encode_event_dict) and build-narrative docstrings \u2192 delete them, make bar_loader required, rewrite the docstrings \u2192 acceptance test sidecar/tests/test_backtest_lows.py::test_no_dead_backtest_scaffolding (grep) + test_backtest_engine.py green\nR15-UI-060: 'progress' and 'trade' SSE kinds are declared in three layers and never emitted, so the 0/N readout is frozen and ~38 lines of handlers are unreachable \u2192 emit 'progress' every K bars from the engine loop; delete the never-emitted 'trade' kind across models/backtest.py, types/backtest.ts, store/backtest.ts and BacktestResultView \u2192 acceptance test sidecar/tests/test_backtest_engine.py::test_event_sequence_has_progress_between_start_and_complete\nR15-UI-061: 'Trades' appears twice in the result header with two numbers (closed-only vs closed+open) \u2192 label the log 'Trades (N closed, M open)' \u2192 acceptance test src/modules/backtest/BacktestResultView.test.tsx '1 open + 0 closed shows Trades: 0 and Trades (0 closed, 1 open)'\nNOTES: Mirror: sidecar/models/backtest.py <-> types/backtest.ts owned together.",
+          "merge_order_hint": 1,
+          "effort_points": 8,
+          "new_files": [
+            "sidecar/tests/test_backtest_lows.py",
+            "src/modules/backtest/BacktestResultView.test.tsx"
+          ]
+        },
+        {
+          "name": "W2",
+          "slug": "runtime-catalog",
+          "model": "opus",
+          "entries": [
+            "R15-AGENT-070",
+            "R15-AGENT-071",
+            "R15-AGENT-073",
+            "R15-AGENT-089",
+            "R15-CODE-AGENT-018",
+            "R15-AGENT-066",
+            "R15-AGENT-067",
+            "R15-CODE-AGENT-026",
+            "R15-CODE-PLATFORM-076"
+          ],
+          "files": [
+            "sidecar/services/agent_runtime.py",
+            "sidecar/services/agent_tools/catalog.py",
+            "sidecar/services/planner.py",
+            "sidecar/agents/copilot.json",
+            "sidecar/tests/test_agent_runtime.py",
+            "sidecar/tests/test_planner.py",
+            "sidecar/tests/test_toolbelt_integrity.py",
+            "sidecar/tests/test_mcp_catalog_parity.py"
+          ],
+          "brief": "MODEL opus because: agent runtime state machine + the capability catalog (Constitution Principle II single source of truth); the copilot prompt trim needs a behaviour re-check on the small local qwen2.5:7b default\nR15-AGENT-070: agent_runtime.py:754 selects the args-derived research wall timeout by `event.name == \"research\"`, bypassing catalog.timeout_for (catalog.py:1850) \u2192 add Capability.timeout_from_args, set it on research, branch on the flag; a timeout_seconds set on research is honoured or rejected loudly \u2192 acceptance test sidecar/tests/test_agent_runtime.py::test_timeout_from_args_flag_not_name_selects_guard\nR15-AGENT-071: TERMINAL_CAPABILITIES_PREAMBLE (agent_runtime.py:146) and agents/copilot.json systemPrompt restate the tool catalog as prose (~1.5k tokens/turn, latent drift) \u2192 generate the capability sentence from catalog.default_grant_tool_ids() at load and drop the duplicate list from copilot.json \u2192 acceptance test sidecar/tests/test_agent_runtime.py::test_every_tool_named_in_prompts_resolves_in_catalog\nR15-AGENT-073: _resolve_model(spec, override) (agent_runtime.py:654) falls back to the agent's default model when only the provider is overridden, so provider=anthropic,model=None sends qwen2.5:7b \u2192 when the provider is overridden without a model use model_registry.default_model_for(provider), raise a stated error if none \u2192 acceptance test sidecar/tests/test_agent_runtime.py::test_provider_override_without_model_uses_provider_default\nR15-AGENT-089: planner._coerce_steps drops close_panel/focus_panel (absent from PLAN_ACTIONS) and _STAGEABLE_PLAN_ACTIONS (agent_runtime.py:73) omits them \u2192 derive the plannable and stageable sets from the catalog's host_action entries (minimum: add both ids to both constants) \u2192 acceptance test sidecar/tests/test_planner.py::test_coerce_steps_keeps_close_and_focus_panel_and_plan_marks_staged\nR15-CODE-AGENT-018: _STAGEABLE_PLAN_ACTIONS (:73) and the read-only gate _READ_SAFE_PANEL_ACTIONS (:88) are identical frozensets with different meanings and no stated relation (AGENT-089 above makes them diverge) \u2192 document the intended relation beside both and pin it \u2192 acceptance test sidecar/tests/test_toolbelt_integrity.py::test_stageable_and_read_safe_relation_is_pinned (beside the R10 leak check)\nR15-AGENT-066: catalog marks run_custom_backtest read-only, so the MCP listing advertises readOnlyHint=true although it writes the in-process backtest result cache \u2192 set read_only=False (or split no_order_path/no_side_effects and drive the hint from no_side_effects) \u2192 acceptance test sidecar/tests/test_mcp_catalog_parity.py::test_run_custom_backtest_not_read_only_on_mcp\nR15-AGENT-067: MCP projection is derived from tool kind plus one hand-listed exclusion (the dict-comprehension rewrite in catalog.py), so it excludes backtest_summary but projects its writer \u2192 restore mcp as an explicit per-entry decision and delete the rewrite rule \u2192 acceptance test sidecar/tests/test_mcp_catalog_parity.py::test_mcp_projection_is_explicit_per_entry (pins the explicit set)\nR15-CODE-AGENT-026: ToolKind.mcp_endpoint is documented MCP-only but the projection would set mcp=False for it; zero users \u2192 delete the enum member until a caller exists \u2192 acceptance test sidecar/tests/test_mcp_catalog_parity.py::test_toolkind_has_no_unprojected_mcp_endpoint\nR15-CODE-PLATFORM-076: copilot.json systemPrompt is 8751 bytes (2-3x any other agent) on the small local default \u2192 trim tool-usage prose the tool schemas already carry (together with AGENT-071), re-check behaviour \u2192 acceptance test sidecar/tests/test_agent_runtime.py::test_agent_system_prompts_within_byte_budget (every agents/*.json)\nNOTES: Merge before llm-router-mcp: AGENT-066/067 change what the MCP listing advertises.",
+          "merge_order_hint": 1,
+          "effort_points": 13,
+          "new_files": []
+        },
+        {
+          "name": "W3",
+          "slug": "actions-research",
+          "model": "opus",
+          "entries": [
+            "R15-CODE-FRONTEND-034",
+            "R15-CODE-FRONTEND-035",
+            "R15-RESEARCH-041",
+            "R15-CODE-RESEARCH-005",
+            "R15-CODE-RESEARCH-006",
+            "R15-RESEARCH-035",
+            "R15-RESEARCH-042"
+          ],
+          "files": [
+            "src/lib/host-actions.ts",
+            "src/lib/host-actions.test.ts",
+            "src/store/proposed-changes.ts",
+            "src/store/proposed-changes.test.ts",
+            "sidecar/services/research/deep.py",
+            "sidecar/services/research/iter.py",
+            "sidecar/services/research/verify.py",
+            "sidecar/services/research/depth.py",
+            "sidecar/services/research/_loop.py",
+            "sidecar/services/research/fast.py",
+            "sidecar/services/agent_tools/research.py",
+            "sidecar/services/agent_tools/deep_research.py",
+            "sidecar/tests/test_research_deep.py",
+            "sidecar/tests/test_research_iter.py",
+            "sidecar/tests/test_research_depth.py",
+            "sidecar/tests/test_research_fast.py"
+          ],
+          "brief": "MODEL opus because: research provenance semantics must agree across four sidecar derivation sites and the frontend brief ingest; host-action apply/ack outcome contract\nR15-CODE-FRONTEND-034: publishAckStatus (host-actions.ts:2097) derives kept_previous by label.startsWith('Kept') (sites :1707/:1715) \u2192 ApplyResult carries status 'applied'|'kept_previous'|'failed'; proposed-changes accept reads it; delete publishAckStatus \u2192 acceptance test src/store/proposed-changes.test.ts 'a reworded Kept label still acks kept_previous'\nR15-CODE-FRONTEND-035: host-actions write_note append re-implements the note join with different trimming instead of notes appendSymbolNote/appendGeneral \u2192 call the store seams and delete the inline join (notes.ts unchanged) \u2192 acceptance test src/lib/host-actions.test.ts 'write_note append with a trailing-whitespace addendum equals appendSymbolNote'\nR15-RESEARCH-041: webAvailable counts vysted:// and exchange-filing rows as web (host-actions.ts:287, research/deep.py:1054, research/iter.py:1225, agent_tools/research.py:235-239, agent_tools/deep_research.py:857) so the structured-only banner never fires \u2192 derive it from web-search-origin sources only at all five sites (one predicate per language) \u2192 acceptance test src/lib/host-actions.test.ts 'briefFromInput with only vysted:// + nsearchives rows -> webAvailable false' and sidecar/tests/test_research_iter.py::test_structured_only_sources_are_not_web_available\nR15-CODE-RESEARCH-005: iter.py and verify.py import ~14 underscore-private names from deep.py \u2192 move the shared round helpers to research/_loop.py as public names; deep.py keeps only its entry point \u2192 acceptance test sidecar/tests/test_research_deep.py::test_no_private_imports_from_deep\nR15-CODE-RESEARCH-006: depth.py claims one copy of the numbers but _MIN_HEAVY_ANGLES duplicates iter._MIN_ANGLES under a lockstep comment \u2192 one PANEL_MIN_ANGLES + DepthProfile.is_panel in depth.py read by deep_research.py's five sites and iter.py; fix the depth.py docstring \u2192 acceptance test sidecar/tests/test_research_depth.py::test_panel_threshold_single_source\nR15-RESEARCH-035: _Report.render truncates an over-cap distilled report from the head, so '## Facts established' is lost first \u2192 trim Dead ends / Planned next / Open questions first and keep Facts whole; headingless bodies keep today's behaviour \u2192 acceptance test sidecar/tests/test_research_iter.py::test_over_cap_report_keeps_facts_established\nR15-RESEARCH-042: nothing enforces or measures SC-016's >=3 cited sources per brief; FAST with no web backend publishes fewer silently \u2192 count distinct cited sources at brief assembly (fast.py, deep_research.py) and carry an honest 'N sources (below 3)' marker in structured + markdown \u2192 acceptance test sidecar/tests/test_research_fast.py::test_below_floor_marker and a recorded-backend basket asserting >=3\nNOTES: Issue outside scope: host-actions.ts:1664 default arrange with a null dockview api reports 'Reset the panel arrangement' success (batch-8 verifier note) - record in issues[], do not fix here.",
+          "merge_order_hint": 2,
+          "effort_points": 11,
+          "new_files": [
+            "sidecar/services/research/_loop.py"
+          ]
+        },
+        {
+          "name": "W4",
+          "slug": "chat-composer",
+          "model": "sonnet",
+          "entries": [
+            "R15-RESEARCH-040",
+            "R15-UI-093"
+          ],
+          "files": [
+            "src/modules/chat/DepthControl.tsx",
+            "src/modules/chat/DepthControl.test.tsx",
+            "src/store/search-settings.ts",
+            "src/store/search-settings.test.ts",
+            "src/modules/chat/mentions.ts",
+            "src/modules/chat/mentions.test.ts",
+            "src/modules/chat/MentionPicker.tsx"
+          ],
+          "brief": "R15-RESEARCH-040: hosted Tier B research shows its cost only after the run is billed; nothing estimates per run before dispatch (FR-073) \u2192 a one-line '~$x.xx est.' beside the depth stop when Tier B is active, from the pricing table search-settings already carries \u2192 acceptance test src/modules/chat/DepthControl.test.tsx 'Tier B + ULTRA renders an estimate before dispatch'\nR15-UI-093: the @-mention instrument picker shows symbol/exchange/name but never FR-101's '[exchange: price chg%]' \u2192 debounced batch quote fetch for the top-N visible candidates (via sidecarGet, resolver contract untouched) and render price + chg% in the row description \u2192 acceptance test src/modules/chat/mentions.test.ts 'a quoted candidate renders [NMS: 227.1 +0.8%]'",
+          "merge_order_hint": 2,
+          "effort_points": 4,
+          "new_files": [
+            "src/modules/chat/DepthControl.test.tsx"
+          ]
+        },
+        {
+          "name": "W5",
+          "slug": "portfolio",
+          "model": "sonnet",
+          "entries": [
+            "R15-UI-078",
+            "R15-CODE-PLATFORM-050",
+            "R15-CODE-PLATFORM-051",
+            "R15-CODE-PLATFORM-052",
+            "R15-UI-079"
+          ],
+          "files": [
+            "src/store/portfolios.ts",
+            "src/store/portfolios.test.ts",
+            "src/modules/portfolio/PortfolioPanel.tsx",
+            "src/modules/portfolio/PortfolioPanel.test.tsx",
+            "src/modules/portfolio/metrics.ts",
+            "src/modules/portfolio/metrics.test.ts",
+            "src/lib/csv.ts",
+            "src/lib/csv.test.ts"
+          ],
+          "brief": "R15-UI-078: form, agent path and restore apply different holding rules (blank cost saved as 0, 1e20 quantity, '1,000' gets a misleading 'required') \u2192 one validateHolding() in portfolios.ts (non-empty cost, 0<qty<=1e12, cost>=0, field-specific messages) used by normalizeHolding (so addHolding/updateHolding and the agent path inherit it) and the PortfolioPanel form \u2192 acceptance test src/store/portfolios.test.ts 'validateHolding rejects blank cost, qty>1e12, names the field for 1,000'\nR15-CODE-PLATFORM-050: metrics.ts computes on a snake_case Position adapter whose id is the array index and PortfolioPanel re-joins rows to holdings by index \u2192 buildPortfolioSummary takes Holding[] with real ids; delete the adapter, synthetic id and index join \u2192 acceptance test src/modules/portfolio/metrics.test.ts 'rows carry the real holding id'\nR15-CODE-PLATFORM-051: the P&L cell re-inlines the pnlTone ternary \u2192 call pnlTone(r.pnl) \u2192 acceptance test src/modules/portfolio/PortfolioPanel.test.tsx 'P&L cell tone equals pnlTone'\nR15-CODE-PLATFORM-052: updateHolding's interface comment says 'Patch' but it replaces \u2192 reword to 'Replace an existing holding's fields (not a partial merge)' \u2192 acceptance test: doc-only; existing replace test in src/store/portfolios.test.ts stays green\nR15-UI-079: csv.ts writes cells starting with = + - @ tab or CR verbatim (formula injection from agent-written notes) \u2192 prefix a single quote in the shared cell escaper, leaving plain numeric cells like -12.5 unprefixed \u2192 acceptance test src/lib/csv.test.ts formula-trigger table ('=HYPERLINK(..)', '+1', '@x', '\\t..')",
+          "merge_order_hint": 2,
+          "effort_points": 9,
+          "new_files": []
+        },
+        {
+          "name": "W6",
+          "slug": "runs-stores",
+          "model": "opus",
+          "entries": [
+            "R15-CODE-AGENT-017",
+            "R15-CODE-AGENT-029",
+            "R15-CODE-AGENT-031",
+            "R15-CODE-AGENT-032"
+          ],
+          "files": [
+            "sidecar/services/agents_store.py",
+            "sidecar/services/plugins_store.py",
+            "sidecar/services/portfolio_db.py",
+            "sidecar/services/runs_store.py",
+            "sidecar/routers/runs.py",
+            "sidecar/models/run.py",
+            "src/lib/delegate-runs.ts",
+            "src/lib/delegate-runs.test.ts",
+            "docs/SIDECAR_API.md",
+            "sidecar/tests/test_agents_store.py",
+            "sidecar/tests/test_plugins.py",
+            "sidecar/tests/test_portfolio.py",
+            "sidecar/tests/test_schema_version.py",
+            "sidecar/tests/test_runs_store.py",
+            "sidecar/tests/test_runs_router.py"
+          ],
+          "brief": "MODEL opus because: risk-adjacent: durable Delegate-run store, its wire contract and the 2 s poller (agent runtime state)\nR15-CODE-AGENT-017: agents_store.list_agents (:107) maps every row through _row_to_read, so one unparseable row 500s GET /custom-agents (surfacing as CORS) \u2192 skip and log the bad row, mirroring _discover_specs \u2192 acceptance test sidecar/tests/test_agents_store.py::test_unparseable_row_is_skipped_and_logged\nR15-CODE-AGENT-029: _ensure_schema is production-dead in agents_store:83, plugins_store:99, portfolio_db:63 and runs_store:201 (each _connect creates the table), kept alive only by idempotency tests incl. test_schema_version.py:34-51 \u2192 delete the four functions; convert (do not delete) those tests to exercise _connect() twice \u2192 acceptance test: `grep -rn _ensure_schema sidecar --include=*.py` empty and the converted idempotency tests green\nR15-CODE-AGENT-031: routers/runs.py _dual_case (:61-67) papers over a runs contract documented camelCase and consumed snake_case \u2192 pick snake_case (what delegate-runs.ts reads), delete _dual_case and the aliases, fix the docstring, add a runs section to docs/SIDECAR_API.md (lead updates the CLAUDE.md gotcha line at integration) \u2192 acceptance test sidecar/tests/test_runs_router.py::test_runs_rows_carry_only_snake_case_keys and src/lib/delegate-runs.test.ts costOf\nR15-CODE-AGENT-032: the runs table is unbounded and list_runs reads every row incl. checkpoint_json every 2 s, and update_run re-reads the row for a return value run_manager never uses \u2192 list_runs selects summary columns with LIMIT 100, prune terminal rows older than N days at first connect, update_run returns None (convert test_runs_store.py:64 to get_run), pollDelegateRuns gets an in-flight guard + timeout \u2192 acceptance test sidecar/tests/test_runs_store.py::test_list_runs_is_bounded_and_prunes_old_terminal_rows and src/lib/delegate-runs.test.ts 'skips a poll while one is in flight'\nNOTES: Mirror: sidecar/models/run.py <-> src/lib/delegate-runs.ts (the runs wire types live there, no types/*.ts).",
+          "merge_order_hint": 2,
+          "effort_points": 6,
+          "new_files": []
+        },
+        {
+          "name": "W7",
+          "slug": "rust-core",
+          "model": "opus",
+          "entries": [
+            "R15-CODE-PLATFORM-054",
+            "R15-CODE-PLATFORM-055",
+            "R15-CODE-PLATFORM-056",
+            "R15-CODE-PLATFORM-057",
+            "R15-CODE-PLATFORM-058",
+            "R15-CODE-PLATFORM-059",
+            "R15-CROSS-PLATFORM-007",
+            "R15-CROSS-PLATFORM-008",
+            "R15-CROSS-PLATFORM-011",
+            "R15-LIFECYCLE-037",
+            "R15-CODE-PLATFORM-074",
+            "R15-LIFECYCLE-038",
+            "R15-RELEASE-009"
+          ],
+          "files": [
+            "src-tauri/src/lib.rs",
+            "src-tauri/src/keychain.rs",
+            "src-tauri/src/openbb_mcp.rs",
+            "src-tauri/src/sec_edgar_mcp.rs",
+            "src-tauri/capabilities/default.json",
+            "sidecar/services/workspace_store.py",
+            "sidecar/routers/workspace.py",
+            "sidecar/tests/test_workspace.py",
+            "src/lib/keychain.ts",
+            "src/lib/keychain.test.ts",
+            "src/store/onboarding.ts",
+            "src/store/onboarding.test.ts",
+            "src/components/KeyEntryDialog.tsx",
+            "src/components/KeyEntryDialog.test.tsx",
+            "docs/MCP_INTEGRATION.md"
+          ],
+          "brief": "MODEL opus because: Tauri Rust core: env-var UB fix, sidecar health probe, keychain migration and atomic-write durability need root-causing and cargo verification\nR15-CODE-PLATFORM-054: the 'atomic, crash-safe' note/export write never fsyncs (File::flush is a no-op) \u2192 f.sync_all()? before rename plus a parent-dir sync on unix, inside the one write_atomic helper (CP-055) \u2192 acceptance test src-tauri/src/lib.rs tests::write_atomic_round_trip_leaves_no_tmp\nR15-CODE-PLATFORM-055: write_text_atomic and write_bytes_atomic are the same 22 lines twice \u2192 one private write_atomic(path, &[u8]) both commands call \u2192 acceptance test src-tauri/src/lib.rs tests::write_atomic_text_and_bytes\nR15-CODE-PLATFORM-056: dev keychain migration swallows a failed read and still sets migrated=true, so that secret is never retried \u2192 set migrated only when no read errored (or report failed accounts) \u2192 acceptance test src-tauri/src/keychain.rs tests::migrate_with_erroring_reader_leaves_unmigrated_and_retries\nR15-CODE-PLATFORM-057: dev keychain_migrate blocks an async worker ~140 s with no progress signal \u2192 emit a 'keychain-migrate:waiting' event with remaining seconds before the sleep (inline read kept, per the :354-359 comment); keychain.ts migrateDevKeystore listens and surfaces it \u2192 acceptance test src-tauri/src/keychain.rs tests::on_wait_called_before_sleep and src/lib/keychain.test.ts listener\nR15-CODE-PLATFORM-058: the app-data-dir + temp-fallback policy is hand-copied into resolve_data_dir, get_app_data_dir and dev_keystore::file_path \u2192 one pub(crate) app_data_dir(&AppHandle) called by all three \u2192 acceptance test: cargo test green and a single definition (grep)\nR15-CODE-PLATFORM-059: all three child-kill closures (lib.rs, openbb_mcp.rs, sec_edgar_mcp.rs) hold the MutexGuard through the if-let body \u2192 `let child = state.0.lock().unwrap().take(); if let Some(child) = child {..}` at the three sites \u2192 acceptance test: cargo clippy -D warnings green\nR15-CROSS-PLATFORM-007: atomic-rename writers have no Windows sharing-violation retry: workspace_store.save_workspace's os.replace turns a Defender/indexer handle into an unhandled 500 and the Rust writers leak '<name>.tmp.<pid>' \u2192 retry the replace 3-5x with ~50 ms backoff on PermissionError, final failure mapped to a typed 503 (routers/workspace.py); write_atomic removes the temp on final rename failure \u2192 acceptance test sidecar/tests/test_workspace.py::test_replace_retries_permission_error_then_succeeds and src-tauri/src/lib.rs tests::rename_failure_removes_tmp\nR15-CROSS-PLATFORM-008: the MCP supervisors call std::env::set_var/remove_var from parallel setup threads while GTK/WebKit may call getenv (UB on POSIX) \u2192 drop the env mutation and pass VYSTED_*_MCP_PORT/HOST via .env(...) on the main sidecar Command from the managed port state (0 -> omit) \u2192 acceptance test src-tauri/src/lib.rs tests::no_env_mutation_in_src (grep) and tests::sidecar_command_env_carries_mcp_ports\nR15-CROSS-PLATFORM-011: Linux without a Secret Service provider cannot store keys and, because the non-secret onboarding flag lives in the keychain, onboarding reappears every launch; the migrate wait is not cfg-gated \u2192 move the onboarding flag to a data-dir app-meta file via a small Tauri command in lib.rs (capabilities/default.json if a permission is needed), cfg(target_os=\"macos\") the migrate wait, KeyEntryDialog shows a typed 'secret store unavailable' state \u2192 acceptance test src/store/onboarding.test.ts 'rejecting keychain keeps seen:true once markSeen ran'\nR15-LIFECYCLE-037: mcp-endpoint.json is written on bind but never removed, so it advertises the previous port through the boot window and forever after a failed boot \u2192 clear_mcp_endpoint_file(data_dir) at the top of start_main_sidecar and in RunEvent::Exit; correct docs/MCP_INTEGRATION.md:53-54 (absorbs duplicate CODE-PLATFORM-074) \u2192 acceptance test src-tauri/src/lib.rs tests::clear_mcp_endpoint_file_removes_existing\nR15-CODE-PLATFORM-074: duplicate of LIFECYCLE-037 (same stale mcp-endpoint.json + the MCP_INTEGRATION.md 'never points at a dead port' sentence) \u2192 closed by the LIFECYCLE-037 commit \u2192 acceptance test src-tauri/src/lib.rs tests::clear_mcp_endpoint_file_removes_existing\nR15-LIFECYCLE-038: a bare TCP connect is logged as 'Python sidecar healthy' and used to publish the MCP discovery file \u2192 a minimal HTTP GET /health over std TcpStream expecting \"service\":\"vysted-sidecar\" before logging healthy / writing the file (MCP subprocesses keep the TCP probe) \u2192 acceptance test src-tauri/src/lib.rs tests::plain_tcp_listener_is_not_healthy\nR15-RELEASE-009: the smoke-test MCP bind budget (MCP_BIND_TIMEOUT_MS) is tied to MCP_PORT_WAIT_SECS x MCP_PORT_WAIT_ATTEMPTS only by a comment \u2192 a cargo test reads scripts/smoke-test-sidecars.mjs (read-only here; owned by scripts-gates) and asserts equality \u2192 acceptance test src-tauri/src/lib.rs tests::smoke_bind_budget_matches_supervisor\nNOTES: Merge after scripts-gates (RELEASE-009 parses MCP_BIND_TIMEOUT_MS; scripts-gates must keep that name). | Never edit src-tauri/tauri.conf.json (Tier-1).",
+          "merge_order_hint": 2,
+          "effort_points": 19,
+          "new_files": []
+        },
+        {
+          "name": "W8",
+          "slug": "tokens-market",
+          "model": "sonnet",
+          "entries": [
+            "R15-UI-075",
+            "R15-CODE-PLATFORM-070",
+            "R15-UI-076",
+            "R15-CODE-PLATFORM-049",
+            "R15-UI-089"
+          ],
+          "files": [
+            "src/app/globals.css",
+            "styles/tokens.css",
+            "scripts/audit-design-tokens.mjs",
+            "scripts/audit-design-tokens.test.mjs",
+            "src/store/symbols.ts",
+            "src/store/symbols.test.ts",
+            "src/store/chart-drawings.ts",
+            "src/store/chart-drawings.test.ts",
+            "src/lib/region.ts",
+            "src/lib/region.test.ts",
+            "src/store/marketplace.ts",
+            "src/store/marketplace.test.ts",
+            "src/modules/marketplace/MarketplacePanel.tsx",
+            "src/modules/marketplace/MarketplacePanel.test.tsx"
+          ],
+          "brief": "R15-UI-075: tokens.css asserts slashed zero but globals.css font-feature-settings (:114-116) lacks '\"zero\" 1' \u2192 add it \u2192 acceptance test scripts/audit-design-tokens.test.mjs 'body font-feature-settings enables zero'\nR15-CODE-PLATFORM-070: globals.css var() fallbacks are frozen at retired values (27 colour + ~10 type/weight/radius, incl. .notes-prose sizes and weight 590) \u2192 re-value or delete the stale fallbacks and extend scripts/audit-design-tokens.mjs to fail when a var(--x, fallback) disagrees with its tokens.css value \u2192 acceptance test scripts/audit-design-tokens.test.mjs 'a mismatched fallback fails the audit'\nR15-UI-076: the first-launch cockpit ignores the India-first default region: chart default SPY (store/chart-drawings.ts:50) and a US watchlist seed (store/symbols.ts) \u2192 derive both from the region via lib/region.ts (IN -> NIFTY 50/RELIANCE/TCS/HDFCBANK; US keeps SPY/QQQ), keeping the DEFAULT_SYMBOLS export name \u2192 acceptance test src/store/symbols.test.ts and src/store/chart-drawings.test.ts per-region defaults\nR15-CODE-PLATFORM-049: removing a credentialed non-broker plugin (vysted-news) never deletes its plugin-secret keychain entry and the legacy vysted-search-exa secret has no cleanup \u2192 remove() calls deleteSecret for each granted secret id (disable keeps it) plus a one-shot exa cleanup \u2192 acceptance test src/store/marketplace.test.ts 'remove(vysted-news) deletes each granted secret; disable does not'\nR15-UI-089: the Marketplace credential form saves the NewsAPI key with no validation, unlike LLM keys \u2192 an optional per-plugin validate hook (NewsAPI: one cheap read through the key) blocking the save on a definite auth failure \u2192 acceptance test src/modules/marketplace/MarketplacePanel.test.tsx 'invalid key is not marked configured'",
+          "merge_order_hint": 2,
+          "effort_points": 7,
+          "new_files": [
+            "src/store/symbols.test.ts"
+          ]
+        },
+        {
+          "name": "W9",
+          "slug": "docs-truth",
+          "model": "sonnet",
+          "entries": [
+            "R15-DOCS-007",
+            "R15-DOCS-009",
+            "R15-CODE-PLATFORM-060",
+            "R15-RELEASE-010",
+            "R15-DOCS-014",
+            "R15-DOCS-019",
+            "R15-DOCS-020",
+            "R15-DOCS-021",
+            "R15-DOCS-022",
+            "R15-DOCS-023",
+            "R15-AGENT-087"
+          ],
+          "files": [
+            "docs/BLUEPRINT.md",
+            "README.md",
+            "docs/CURRENT_STATE.md",
+            "docs/PLUGIN_DEVELOPMENT.md",
+            "specs/001-agent-native-redesign/spec.md",
+            "docs/redesign/R4_STALE_CODE_REGISTER.md",
+            "src/store/agent-mode.ts",
+            "src/store/agent-mode.test.ts"
+          ],
+          "brief": "R15-DOCS-007: BLUEPRINT \u00a74 (~:247/:251) describes the retired warm-amber palette and a light-theme option, and UC2/UC4 omit the MCP-unavailable degrade \u2192 neutral + single-accent wording, light option struck as deferred (FR-030), one-line degrade caveat under UC2/UC4 \u2192 acceptance test: grep BLUEPRINT.md has neither 'warm amber' nor 'light option'\nR15-DOCS-009: BLUEPRINT \u00a73.1 (:90) and \u00a73.2 (:126) name LangGraph as the orchestrator; the build uses a hand-rolled loop \u2192 strike LangGraph and describe the hand-rolled loop (the DECISIONS.md line is handed to the lead, who owns DECISIONS) \u2192 acceptance test: `grep -i langgraph docs/BLUEPRINT.md` empty\nR15-CODE-PLATFORM-060: BLUEPRINT (:76) promises a system tray the Rust layer does not have and no spec asks for \u2192 drop the claim from \u00a73.1 (a tray would need tauri.conf.json trayIcon, Tier-1) \u2192 acceptance test: grep BLUEPRINT.md has no 'system tray'\nR15-RELEASE-010: BLUEPRINT (:7, :31-32, \u00a76 :369/:382, \u00a77 :430/:601/:613/:621) states vysted.com / terminal.vysted.com as present fact; neither resolves \u2192 planned tense with README.md named as the install surface; the \u00a72 Locked domain row (:51) is untouched \u2192 acceptance test: reviewer diff shows every domain line outside \u00a72 in planned tense\nR15-DOCS-014: no BYOK provider has a documented first-token latency; the Phase-8 baseline still says 'Not measured' \u2192 write the first-token figures derivable from recorded r15 drive timestamps under docs/redesign/verification/r15 (never r15/local or R15_BRIEF*) into CURRENT_STATE.md, marking every other lane unmeasured \u2192 acceptance test: CURRENT_STATE.md carries a per-provider first-token row set with sources\nR15-DOCS-019: CURRENT_STATE.md body, \u00a77 and \u00a78 still report three gaps its \u00a70 banner marks closed (unreachable handlers, 5-id allow-list, Gemini multi-round) and the banner count is stale \u2192 annotate each 'closed by <commit>' and set the count from catalog.py at the sha \u2192 acceptance test: the three claims annotated; count equals the catalog's\nR15-DOCS-020: CURRENT_STATE \u00a73.10 calls the workflow desktop-notification slice unwired \u2192 name useDesktopNotificationBridge (src/lib/desktop-notification.ts) and its src/app/page.tsx mount \u2192 acceptance test: \u00a73.10 names both\nR15-DOCS-021: CURRENT_STATE \u00a76 omits delegate_runs.db and custom_agents.db and says 'all three SQLite stores have no migrations' \u2192 list every DB_FILENAME store at the sha (7) and name the runs_store._migrate ALTER guard \u2192 acceptance test: `grep -n DB_FILENAME sidecar/services/*.py` count equals the table rows\nR15-DOCS-022: PLUGIN_DEVELOPMENT.md Roadmap ('out of scope for v0.3.0') lists the Tauri-spawned subprocess pattern and node-editor consumer as future though both shipped (plugin agents too, via syncPluginAgents) \u2192 split into shipped-since-v0.3.0 vs still-open (filesystem/signed plugins) \u2192 acceptance test: reviewer diff\nR15-DOCS-023: README Status says the redesign 'is being specified' though P1-P3 shipped, and CURRENT_STATE.md:71 links a missing P1_P3_BUILD_REPORT.md \u2192 README Status defers to docs/CURRENT_STATE.md; retarget or drop the dead link (a ci-local link check would edit package.json, owned by scripts-gates; recorded as an issue) \u2192 acceptance test: no link to P1_P3_BUILD_REPORT.md remains\nR15-AGENT-087: spec FR-003/US3/SC-029 and the agent-mode.ts docblock still describe four hotkeyed modes (Ask/Edit/Build/Delegate, alt+1-4) while the app ships Agent/Delegate plus an autonomy axis \u2192 amend FR-003/US3/SC-029 with a pointer to REBUILD_SPEC.md:179, rewrite the docblock to match types/agent-modes.ts, close S-15 in R4_STALE_CODE_REGISTER.md \u2192 acceptance test: docs-only; src/store/agent-mode.test.ts stays green\nNOTES: Merge last: the docs describe the post-merge state. | BLUEPRINT \u00a72 (Locked table) is not edited by this set; DOCS-008 is blocked_tier4.",
+          "merge_order_hint": 3,
+          "effort_points": 11,
+          "new_files": []
+        }
+      ],
+      "verify_only": [
+        "R15-CODE-FRONTEND-033"
+      ],
+      "proposed_not_defect": [
+        {
+          "id": "R15-AGENT-065",
+          "reason": "A documented, deliberately deferred build (3-pane agent roster with hard persona hand-off; data-source connector hub) - a roadmap item, not a defect; CURRENT_STATE.md already carries the Deferred caveat. If the adjudicator keeps deferred builds open, re-file as effort L."
+        }
+      ]
+    },
+    "P2": {
+      "totals": {
+        "entries": 62,
+        "sets": 9,
+        "effort_points": 88,
+        "opus_sets": 3,
+        "sonnet_sets": 6
+      },
+      "sets": [
+        {
+          "name": "W1",
+          "slug": "research-semantics",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-RESEARCH-007",
+            "R15-RESEARCH-036",
+            "R15-CODE-RESEARCH-011",
+            "R15-CODE-RESEARCH-008"
+          ],
+          "files": [
+            "types/brief.ts",
+            "sidecar/services/research/semantics.py",
+            "sidecar/tests/test_research_semantics.py",
+            "sidecar/services/research/perplexity.py",
+            "sidecar/services/research/sonar.py",
+            "sidecar/tests/test_research_hosted_lanes.py"
+          ],
+          "brief": "R15-CODE-RESEARCH-007: types/brief.ts BriefDerivedMetrics omits four metrics the sidecar emits (dividend_per_share_ttm, dividend_declared, promoter_percent_exchange, institutions_percent_exchange) \u2192 add them as optional fields and a sidecar test that derive_semantics' emitted keys are a subset of a declared-keys list mirrored from types/brief.ts \u2192 acceptance test sidecar/tests/test_research_semantics.py::test_emitted_keys_subset_of_brief_ts_mirror\nR15-RESEARCH-036: _PROMPT_KEYS (semantics.py:1231) hand-re-lists every derived metric with no drift guard, so a forgotten leg renders a card but never reaches the synthesis prompt \u2192 pin set(derive_semantics(rich)['data']) - {'conflicts'} <= set(_PROMPT_KEYS) and add any key the pin exposes \u2192 acceptance test sidecar/tests/test_research_semantics.py::test_prompt_keys_cover_every_derived_metric\nR15-CODE-RESEARCH-011: _dividend_leg returns a positional 4-tuple unlike its (facts, conflicts) siblings and _dividend_ttm_leg threads a currency it discards (:382) \u2192 every leg returns (facts, conflicts); drop the unused param \u2192 acceptance test sidecar/tests/test_research_semantics.py::test_every_leg_returns_facts_and_conflicts\nR15-CODE-RESEARCH-008: perplexity.py and sonar.py are one hosted-research lane written twice and have drifted (402 handling only in sonar) \u2192 one lane class parameterised by (base_url, model_table, provenance_note, error_map) with two thin constructors \u2192 acceptance test sidecar/tests/test_research_hosted_lanes.py::test_both_lanes_map_the_same_status_set_incl_402\nNOTES: Mirror: types/brief.ts BriefDerivedMetrics <-> research/semantics.py output owned together.",
+          "merge_order_hint": 1,
+          "effort_points": 6,
+          "new_files": [
+            "sidecar/tests/test_research_hosted_lanes.py"
+          ]
+        },
+        {
+          "name": "W2",
+          "slug": "scripts-gates",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-PLATFORM-061",
+            "R15-CODE-PLATFORM-062",
+            "R15-LIFECYCLE-039",
+            "R15-RELEASE-008",
+            "R15-RELEASE-011",
+            "R15-CROSS-PLATFORM-010",
+            "R15-DOCS-012",
+            "R15-CODE-PLATFORM-064"
+          ],
+          "files": [
+            "package.json",
+            "pnpm-lock.yaml",
+            "vitest.config.ts",
+            "scripts/sidecar-staleness.mjs",
+            "scripts/sidecar-staleness.test.mjs",
+            "scripts/smoke-test-sidecars.mjs",
+            "scripts/smoke-test-sidecars.test.mjs",
+            "scripts/render_phase_6_e_screenshots.py",
+            "scripts/render_phase_6_sc_screenshots.py",
+            "docs/screenshots/v0.6.0/teammate-e/",
+            "docs/screenshots/v0.6.0/teammate-sc/",
+            "docs/mockups/"
+          ],
+          "brief": "R15-CODE-PLATFORM-061: newestMtime guards readdirSync but not statSync (sidecar-staleness.mjs:63), so a file deleted between readdir and stat crashes the ensure step \u2192 wrap the stat in the same 'contributes nothing' try/catch \u2192 acceptance test scripts/sidecar-staleness.test.mjs 'statSync ENOENT for one entry returns the other file's mtime'\nR15-CODE-PLATFORM-062: the BSE probe has an unreachable catch and _httpGetOk's blanket swallow discards 404-vs-offline \u2192 _httpGetOk returns {ok, status, error}; the warning names 'HTTP 404' vs 'offline: <err>'; delete the dead catch \u2192 acceptance test scripts/smoke-test-sidecars.test.mjs '404 and ENOTFOUND yield different shapes'\nR15-LIFECYCLE-039: the smoke-test PID ledger is one fixed-path multi-writer file with an unconditional clear, so a concurrent run's pre-flight tree-kills the other run's sidecars \u2192 per-run live-children-<node pid>.json; pre-flight globs and reaps only ledgers whose owner PID is dead \u2192 acceptance test scripts/smoke-test-sidecars.test.mjs 'two ledgers coexist; a live-owner ledger is left alone'\nR15-RELEASE-008: the sidecar smoke runs ~95 s of live-exchange probes on every run that can only console.warn \u2192 move them behind `pnpm probe:exchanges` (hard-failing, attended); the plain smoke stays hermetic; offline vs non-200 distinguished via CP-062 \u2192 acceptance test scripts/smoke-test-sidecars.test.mjs 'default run schedules no exchange probe'\nR15-RELEASE-011: vitest has no coverage threshold and nothing runs coverage \u2192 coverage {enabled: true, provider: 'v8', thresholds: {lines: <measured baseline>}} in vitest.config.ts so CI's existing vitest step and ci-local both enforce it with no workflow edit; add @vitest/coverage-v8 (package.json + pnpm-lock.yaml) \u2192 acceptance test: `pnpm vitest run` fails when the threshold is raised above the measured baseline\nR15-CROSS-PLATFORM-010: pnpm ci-local calls bare 'python' for its pip steps, absent on this Mac and stock Ubuntu \u2192 use the sidecar venv interpreter / python3 via build-python.mjs resolveBuildPython in the ci-local script \u2192 acceptance test: ci-local runs past the ruff step in a shell where `command -v python` fails\nR15-DOCS-012: PIL mock screenshots with invented rows in the retired amber palette sit in docs/screenshots/v0.6.0 (teammate-e, teammate-sc) next to real captures, with their dead generator scripts \u2192 delete both render_phase_6 scripts, move the mock PNGs to docs/mockups/ under mock-* names, strike the README claims \u2192 acceptance test: `git ls-files scripts/render_phase_6*` empty and the PNGs live under docs/mockups/\nR15-CODE-PLATFORM-064: the same generator scripts depend on an undeclared Pillow and silently collapse all fonts into load_default() \u2192 deleted with DOCS-012 (same commit) \u2192 acceptance test: `git ls-files scripts/render_phase_6*` empty\nNOTES: Keep the MCP_BIND_TIMEOUT_MS constant name in smoke-test-sidecars.mjs (rust-core's RELEASE-009 test parses it). | No .github/workflows edit; CODE-PLATFORM-063 (ruff over scripts/) is blocked_tier4.",
+          "merge_order_hint": 1,
+          "effort_points": 12,
+          "new_files": [
+            "docs/mockups/",
+            "scripts/smoke-test-sidecars.test.mjs"
+          ]
+        },
+        {
+          "name": "W3",
+          "slug": "tools-envelope",
+          "model": "sonnet",
+          "entries": [
+            "R15-AGENT-068",
+            "R15-CODE-AGENT-014",
+            "R15-CODE-AGENT-015",
+            "R15-CODE-AGENT-027",
+            "R15-CODE-AGENT-028",
+            "R15-AGENT-069",
+            "R15-DATA-101",
+            "R15-AGENT-072"
+          ],
+          "files": [
+            "sidecar/services/agent_tools/__init__.py",
+            "sidecar/services/agent_tools/analyst_tools.py",
+            "sidecar/services/agent_tools/backtest_summary.py",
+            "sidecar/services/agent_tools/compare_symbols.py",
+            "sidecar/services/agent_tools/disclosure_tools.py",
+            "sidecar/services/agent_tools/earnings_tools.py",
+            "sidecar/services/agent_tools/fundamentals.py",
+            "sidecar/services/agent_tools/macro_tools.py",
+            "sidecar/services/agent_tools/market_overview.py",
+            "sidecar/services/agent_tools/news_tool.py",
+            "sidecar/services/agent_tools/price_data.py",
+            "sidecar/services/agent_tools/quant_tools.py",
+            "sidecar/services/agent_tools/registry_v0_6_0.py",
+            "sidecar/services/agent_tools/resolve_symbol.py",
+            "sidecar/services/agent_tools/run_custom_backtest.py",
+            "sidecar/services/agent_tools/screener_tools.py",
+            "sidecar/services/agent_tools/sec_tools.py",
+            "sidecar/services/agent_tools/web_search.py",
+            "sidecar/services/action_ledger.py",
+            "sidecar/routers/agents.py",
+            "sidecar/agents/_schema.json",
+            "sidecar/tests/test_agent_tools_lows.py",
+            "sidecar/tests/test_sec_tools.py",
+            "sidecar/tests/test_compare_symbols.py",
+            "sidecar/tests/test_market_overview.py",
+            "sidecar/tests/test_agents_router.py"
+          ],
+          "brief": "R15-AGENT-068: nine read-only data-tool handlers re-implement validate/try/except/cap/envelope and earnings_upcoming's int() is unguarded, so days='seven' raises instead of the range message \u2192 one arg-coercion + envelope helper in agent_tools/__init__.py used by the analyst/earnings/sec handlers \u2192 acceptance test sidecar/tests/test_agent_tools_lows.py::test_earnings_upcoming_bad_days_returns_range_message\nR15-CODE-AGENT-014: invoke_tool (agent_tools/__init__.py:62) is a bare await while ~11 handler files hand-copy the {ok:false,error} envelope (news_tool adds a 'news fetch failed:' prefix) \u2192 move the ProviderError/Exception -> {ok:false,error} wrapper into invoke_tool and delete the per-handler copies in the files this set owns (research.py/deep_research.py are owned by actions-research and keep theirs; invoke_tool's wrapper is idempotent over them) \u2192 acceptance test sidecar/tests/test_agent_tools_lows.py::test_invoke_tool_wraps_provider_error_with_one_spelling\nR15-CODE-AGENT-015: sec_filings_list and sec_insider_transactions pass an unclamped model-supplied limit (100000, -1) upstream while siblings clamp \u2192 one _clamp_limit(args, key, default, maximum) helper used by every tool family \u2192 acceptance test sidecar/tests/test_sec_tools.py::test_limit_is_clamped_both_ways\nR15-CODE-AGENT-027: reset_for_tests (agent_tools/__init__.py:70) hardcodes backtest_summary as the only import-time registration, and action_ledger.KNOWN_STATUSES is exported but never enforced (routers/agents.py:51 re-lists a parallel Literal) \u2192 reset re-registers every import-time module generically; derive the route Literal from KNOWN_STATUSES \u2192 acceptance test sidecar/tests/test_agent_tools_lows.py::test_reset_for_tests_restores_every_import_time_tool\nR15-CODE-AGENT-028: register_v0_6_0_tools (agent_tools/__init__.py:120) is a pure pass-through to agent_tools/registry_v0_6_0.py \u2192 inline the module's body into register_v0_6_0_tools and delete registry_v0_6_0.py; keep the function name (app.py/main.py call it and are owned by workflow-backend) \u2192 acceptance test sidecar/tests/test_agent_tools_lows.py::test_no_agent_tools_registry_v0_6_0_module (plus test_no_trading_surface.py green)\nR15-AGENT-069: compare_symbols and market_overview promise 'never crashes the turn' but gather() omits return_exceptions and the result reads sit outside every try \u2192 return_exceptions=True and map each exception to a per-symbol {symbol, error} row \u2192 acceptance test sidecar/tests/test_compare_symbols.py::test_one_raising_symbol_yields_one_error_row and sidecar/tests/test_market_overview.py::test_one_raising_quote_yields_one_error_row\nR15-DATA-101: market_overview returns region 'GLOBAL' with the US index set and no note \u2192 add a 'note' naming the US proxy when the region has no index set of its own \u2192 acceptance test sidecar/tests/test_market_overview.py::test_global_region_carries_us_proxy_note\nR15-AGENT-072: persona 'tools' arrays are dead config (every first-party agent gets the catalog default grant) but agents/_schema.json documents them as allow-lists and GET /agents publishes them as such \u2192 redefine the field as specialty tools in _schema.json and expose the effective grant (spec tools \u222a catalog.default_grant_tool_ids()) as a separate field in routers/agents.py, without editing agent_runtime.py \u2192 acceptance test sidecar/tests/test_agents_router.py::test_agents_expose_effective_grant_separately_from_specialty_tools\nNOTES: Merge before llm-router-mcp (CODE-AGENT-023 converts the {ok:false} envelope to an MCP ToolError).",
+          "merge_order_hint": 1,
+          "effort_points": 12,
+          "new_files": [
+            "sidecar/tests/test_agent_tools_lows.py"
+          ]
+        },
+        {
+          "name": "W4",
+          "slug": "warm-screener",
+          "model": "opus",
+          "entries": [
+            "R15-LIFECYCLE-030",
+            "R15-LIFECYCLE-031",
+            "R15-LIFECYCLE-032",
+            "R15-LEAD-025",
+            "R15-CODE-DATA-019",
+            "R15-CODE-DATA-020",
+            "R15-DATA-107",
+            "R15-DATA-108"
+          ],
+          "files": [
+            "sidecar/services/fundamentals_warm.py",
+            "sidecar/services/screener.py",
+            "sidecar/models/screener.py",
+            "types/screener.ts",
+            "sidecar/routers/screener.py",
+            "sidecar/services/screener_universe_india.py",
+            "sidecar/tests/test_fundamentals_warm.py",
+            "sidecar/tests/test_screener.py",
+            "sidecar/tests/test_screener_router.py",
+            "sidecar/tests/test_screener_india.py"
+          ],
+          "brief": "MODEL opus because: R15-LEAD-025 is untriaged and not root-caused (measure-first); the warm loops are boot-lifecycle tasks\nR15-LIFECYCLE-030: the India boot seed runs twice concurrently: start_warm_fundamentals' _boot_seed and _sweep_loop's `seeded` first cycle \u2192 delete the seeded flag and seed call from _sweep_loop; start_warm_fundamentals owns it \u2192 acceptance test sidecar/tests/test_fundamentals_warm.py::test_in_boot_seeds_exactly_once\nR15-LIFECYCLE-031: the _boot_seed task handle is discarded (loop.create_task(_boot_seed())), so shutdown cannot cancel it, and the leak test runs in US where the branch never fires \u2192 keep it as _seed_task, cancel it in stop_warm_fundamentals, run the leak test with region 'IN' \u2192 acceptance test sidecar/tests/test_fundamentals_warm.py::test_start_stop_clean_no_leaked_tasks (region IN)\nR15-LIFECYCLE-032: _crawl_once gathers without return_exceptions (:383) and upsert_info sits outside the per-symbol try, so one sqlite error aborts the cycle and reports fetched=0 at DEBUG \u2192 move the upsert inside the try, gather(..., return_exceptions=True), log a cycle failure at WARNING \u2192 acceptance test sidecar/tests/test_fundamentals_warm.py::test_one_upsert_failure_counts_the_others\nR15-LEAD-025: verifier note: openbb-mcp is hit hard at boot on the default (non-IN) warm path. Code at the sha: the non-IN warm (screener._warm_once) uses yahoo_batch_provider v7 over snapshot universes (no openbb); the only warm openbb caller is the IN deep crawl via provider_registry.get_fundamentals (openbb-mcp rank 10) at _CRAWL_CONCURRENCY=1 + jitter \u2192 measure first: pin the boot-window openbb call budget (US: zero from start_warm_precompute/start_warm_fundamentals; IN: bounded by _CRAWL_CONCURRENCY); if US is non-zero, find the source and apply Semaphore + jittered sleep there; if the pin holds, record 'not reproduced at the sha' with the evidence \u2192 acceptance test sidecar/tests/test_fundamentals_warm.py::test_boot_window_openbb_call_budget\nR15-CODE-DATA-019: matched_criteria is computed and shipped on every screener row, read by nothing, and always empty under a group run \u2192 delete it from the engine, ScreenerResultRow (models/screener.py) and types/screener.ts in one commit (keep host-actions flattenLeaves) \u2192 acceptance test sidecar/tests/test_screener.py::test_result_row_has_no_matched_criteria\nR15-CODE-DATA-020: POST /screener/run maps every ValueError to 400 with a comment that teaches a false fact, misreporting internal model bugs as client errors \u2192 narrow to FormulaError with an honest comment \u2192 acceptance test sidecar/tests/test_screener_router.py::test_internal_error_is_500_formula_error_is_400\nR15-DATA-107: India master accessors pass positional tuples (_bse_lookup), so a field reorder would mislabel scrip_code as ISIN \u2192 NamedTuple returns with field access by name \u2192 acceptance test sidecar/tests/test_screener_india.py::test_india_symbol_meta_fields_by_name (scrip_code digits, isin 'INE')\nR15-DATA-108: sector_map_generated/sector_map_coverage re-parse the ~1 MB India sector master every call while the sibling is lru_cached \u2192 @lru_cache on _load_master plus cache_clear in the reset hook \u2192 acceptance test sidecar/tests/test_screener_india.py::test_sector_master_parsed_once\nNOTES: Mirror: sidecar/models/screener.py <-> types/screener.ts owned together.",
+          "merge_order_hint": 1,
+          "effort_points": 10,
+          "new_files": []
+        },
+        {
+          "name": "W5",
+          "slug": "data-resilience",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-DATA-007",
+            "R15-LEAD-017",
+            "R15-CODE-DATA-008",
+            "R15-CODE-DATA-010",
+            "R15-LEAD-020",
+            "R15-DATA-104",
+            "R15-LIFECYCLE-033",
+            "R15-LIFECYCLE-034",
+            "R15-LIFECYCLE-035"
+          ],
+          "files": [
+            "sidecar/services/corporate_disclosures.py",
+            "sidecar/services/bse_provider.py",
+            "sidecar/services/provider_registry.py",
+            "sidecar/services/data_cache.py",
+            "sidecar/services/exchange_financials.py",
+            "sidecar/services/earnings_provider.py",
+            "sidecar/routers/system.py",
+            "sidecar/services/searxng_manager.py",
+            "sidecar/tests/test_corporate_disclosures.py",
+            "sidecar/tests/test_provider_registry.py",
+            "sidecar/tests/test_data_cache.py",
+            "sidecar/tests/test_exchange_financials_negcache.py",
+            "sidecar/tests/test_earnings_provider.py",
+            "sidecar/tests/test_system_router.py",
+            "sidecar/tests/test_searxng_manager.py"
+          ],
+          "brief": "R15-CODE-DATA-007: the disclosure lane loops (announcements, shareholding) in corporate_disclosures catch only ProviderError, so any other lane exception 500s the route instead of a partial merge \u2192 widen both to except Exception (noqa BLE001), keeping the reason in errors \u2192 acceptance test sidecar/tests/test_corporate_disclosures.py::test_lane_keyerror_degrades_to_partial_merge (both routes)\nR15-LEAD-017: CSL's shareholding history carries a duplicate quarter row (2026-08-20); no dedupe exists at the lane boundary \u2192 dedupe the SHP series by (symbol, period_end) before return (bse_provider _fetch_shp_index or get_shareholding) \u2192 acceptance test sidecar/tests/test_corporate_disclosures.py::test_duplicate_quarter_rows_collapse_to_one\nR15-CODE-DATA-008: provider_registry's preference-order fallthrough catches only ProviderError, so a non-ProviderError skips the remaining candidates \u2192 catch Exception in _resolve_sync and _resolve_async, log the provider id, fall through, re-raise only when no candidate remains \u2192 acceptance test sidecar/tests/test_provider_registry.py::test_keyerror_provider_falls_through_to_next (sync + async)\nR15-CODE-DATA-010: data_cache.get never evicts: stale rows are read past TTL and left (docstring: 'NOT auto-evicted') \u2192 DELETE the expired row on the stale-read path and fix the docstring \u2192 acceptance test sidecar/tests/test_data_cache.py::test_stale_get_evicts_row\nR15-LEAD-020: exchange_financials.get_filed_periods caches only successful NSE lookups, so a transient miss falls back to Yahoo and the next call serves NSE (provider flips between loads) \u2192 cache a short-TTL negative marker beside the positive one \u2192 acceptance test sidecar/tests/test_exchange_financials_negcache.py::test_failed_then_succeeded_lookup_stays_stable_within_ttl\nR15-DATA-104: earnings get_upcoming fans out 3-4 Yahoo round trips per symbol with no semaphore or circuit check \u2192 Semaphore(8) around _one and a provider_health.is_open short-circuit (import only) \u2192 acceptance test sidecar/tests/test_earnings_provider.py::test_upcoming_concurrency_bounded_and_open_circuit_skips\nR15-LIFECYCLE-033: rig mutation endpoints POST /system/provider-health/trip and /reset ship ungated and can open the Yahoo breaker for the whole process \u2192 404 unless VYSTED_RIG_HOOKS=1 \u2192 acceptance test sidecar/tests/test_system_router.py::test_rig_hooks_404_without_flag\nR15-LIFECYCLE-034: the SearXNG one-click setup task has no exception boundary (write_settings OSError kills it mid-PULLING with no reason) and the module logger is unused \u2192 wrap _setup_locked's body: STATE_ERROR with a reason + _log.exception, and log docker non-zero exits \u2192 acceptance test sidecar/tests/test_searxng_manager.py::test_write_settings_oserror_reports_error_reason\nR15-LIFECYCLE-035: the managed-SearXNG error state is sticky for the process, so a container fixed by hand stays bypassed \u2192 carry last_error on the snapshot and let refresh() re-derive state \u2192 acceptance test sidecar/tests/test_searxng_manager.py::test_refresh_recovers_from_error_keeping_last_error\nNOTES: LIFECYCLE-033: the verification rig must set VYSTED_RIG_HOOKS=1; say so in the commit.",
+          "merge_order_hint": 2,
+          "effort_points": 9,
+          "new_files": [
+            "sidecar/tests/test_exchange_financials_negcache.py"
+          ]
+        },
+        {
+          "name": "W6",
+          "slug": "llm-router-mcp",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-AGENT-019",
+            "R15-CODE-AGENT-021",
+            "R15-CODE-AGENT-022",
+            "R15-CODE-AGENT-023"
+          ],
+          "files": [
+            "sidecar/routers/llm.py",
+            "sidecar/tests/test_llm_router.py",
+            "sidecar/services/mcp_server.py",
+            "sidecar/tests/test_mcp_server.py"
+          ],
+          "brief": "R15-CODE-AGENT-019: POST /llm/keys/validate returns the provider's raw exception text instead of humanize()'s message + action (services/errors.py) \u2192 return humanize(provider, exc).message and .action, raw text only in a detail field \u2192 acceptance test sidecar/tests/test_llm_router.py::test_validate_transport_failure_is_humanized\nR15-CODE-AGENT-021: routers/llm.py:57-62 says BYOK keys ride 'never the body' while /llm/chat and /llm/keys/validate (and agent invoke, models/agent.py:81) take the key in the JSON body \u2192 correct the docstring to the real per-route transport and pin no-echo on all three routes (moving the transport would rewrite the frontend client + SSE path outside this entry's scope; decision recorded) \u2192 acceptance test sidecar/tests/test_llm_router.py::test_no_llm_route_echoes_the_key\nR15-CODE-AGENT-022: GET /mcp/status reports the constant _PROTOCOL_VERSION='2025-06-18' (mcp_server.py:59) while the server negotiates newer \u2192 return mcp.types.LATEST_PROTOCOL_VERSION and delete the constant \u2192 acceptance test sidecar/tests/test_mcp_server.py::test_status_protocol_version_matches_initialize_handshake\nR15-CODE-AGENT-023: _make_catalog_tool returns catalog-tool failures as successful results with an {ok:false} body (isError unset) while Vysted-as-client keys failure off isError \u2192 raise fastmcp ToolError on failure (list tools too), keeping the message \u2192 acceptance test sidecar/tests/test_mcp_server.py::test_failing_catalog_tool_returns_is_error\nNOTES: Merge after runtime-catalog and tools-envelope.",
+          "merge_order_hint": 2,
+          "effort_points": 6,
+          "new_files": []
+        },
+        {
+          "name": "W7",
+          "slug": "mcp-client",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-AGENT-024",
+            "R15-CODE-AGENT-025",
+            "R15-CODE-DATA-013"
+          ],
+          "files": [
+            "sidecar/services/mcp_client.py",
+            "sidecar/services/openbb_mcp_provider.py",
+            "sidecar/services/sec_filings_provider.py",
+            "types/mcp.ts",
+            "sidecar/routers/sec_filings.py",
+            "sidecar/tests/test_mcp_client.py",
+            "sidecar/tests/test_sec_filings_router.py"
+          ],
+          "brief": "R15-CODE-AGENT-024: the env-var-discovered local MCP subprocess client is duplicated with divergences in openbb_mcp_provider and sec_filings_provider \u2192 LocalMcpSubprocess(server_id, port_env, host_env) in mcp_client.py owning discovery/status/health/call_tool_json; providers keep field mapping only \u2192 acceptance test sidecar/tests/test_mcp_client.py::test_local_mcp_subprocess_resolves_and_decodes_once\nR15-CODE-AGENT-025: McpClient.call_tool drops structuredContent, so sec_filings_provider's structured fallback is dead \u2192 pass structuredContent through and add it to McpToolCallResult in types/mcp.ts \u2192 acceptance test sidecar/tests/test_mcp_client.py::test_structured_content_only_result_decodes\nR15-CODE-DATA-013: GET /sec/filings/{accession}/sections (routers/sec_filings.py:124) is a caller-less pass-through whose docstring claims a cheaper path \u2192 delete the route (keep provider.get_filing_sections: get_filing uses it and it is tested) and the module-doc line \u2192 acceptance test sidecar/tests/test_sec_filings_router.py::test_sections_route_is_gone (404)",
+          "merge_order_hint": 2,
+          "effort_points": 5,
+          "new_files": []
+        },
+        {
+          "name": "W8",
+          "slug": "shell-page",
+          "model": "opus",
+          "entries": [
+            "R15-CODE-FRONTEND-025",
+            "R15-LIFECYCLE-029",
+            "R15-DOCS-006",
+            "R15-CROSS-PLATFORM-009",
+            "R15-CODE-FRONTEND-029",
+            "R15-CODE-FRONTEND-022",
+            "R15-LEAD-027",
+            "R15-UI-065",
+            "R15-UI-081",
+            "R15-CODE-FRONTEND-036",
+            "R15-AGENT-078",
+            "R15-CODE-FRONTEND-027",
+            "R15-CODE-FRONTEND-026"
+          ],
+          "files": [
+            "src/components/PanelHost.tsx",
+            "src/components/PanelHost.test.tsx",
+            "src/lib/panel-sizing.ts",
+            "src/lib/panel-sizing.test.ts",
+            "src/app/page.tsx",
+            "src/store/plugins.ts",
+            "src/lib/chart-theme.ts",
+            "src/components/SettingsPanel.tsx",
+            "src/modules/chat/ProposedChangesReview.tsx",
+            "src/lib/source-guards.test.ts",
+            "src/store/command-palette.ts",
+            "src/store/command-palette.test.ts",
+            "src/components/CommandPalette.tsx",
+            "src/components/CommandPalette.test.tsx",
+            "src/store/agents.ts",
+            "src/store/agents.test.ts",
+            "src/components/PluginManagerPanel.tsx",
+            "src/store/workspace.ts",
+            "src/store/workspace.test.ts",
+            "src/store/modules.ts",
+            "src/store/modules.test.ts",
+            "src/lib/layout-templates.ts",
+            "src/lib/layout-templates.test.ts",
+            "src/config/default-layout.ts",
+            "src/lib/open-panel-literals.test.ts",
+            "src/store/quant.ts",
+            "src/store/quant.test.ts",
+            "src/store/workflow.ts",
+            "src/store/workflow.test.ts",
+            "src/lib/desktop-notification.ts",
+            "src/lib/desktop-notification.test.ts"
+          ],
+          "brief": "MODEL opus because: risk-adjacent workspace/layout persistence (dockview restore gating, panel sizing on load) and the app shell; the defect classes are inseparable through page.tsx, SettingsPanel.tsx and PanelHost.tsx\nR15-CODE-FRONTEND-025: PANEL_MIN_SIZE (PanelHost.tsx:64) is enforced only on boot restore, so a named-layout load keeps sub-minimum panels; it has dead keys ('marketplace-panel', 'chat-sidebar') and misses brief-panel/notes-panel \u2192 move the table + grow sweep to a new src/lib/panel-sizing.ts and run the sweep from PanelHost on every dockview onDidLayoutFromJSON (covers boot and named loads without editing lib/workspace.ts) \u2192 acceptance test src/lib/panel-sizing.test.ts parity (every key a registered panel component and every panel has an entry) + src/components/PanelHost.test.tsx 'fromJSON with a sub-minimum panel grows it'\nR15-LIFECYCLE-029: PanelHost restores the saved layout (restoreLastSessionOrDefault, PanelHost.tsx:258) as soon as first-party modules register, before plugin modules exist \u2192 gate the restore on a pluginsReady flag in src/store/plugins.ts set by page.tsx when bootstrapPlugins() resolves (page.tsx:94), with a timeout fallback \u2192 acceptance test src/components/PanelHost.test.tsx 'saved layout with a plugin panel restores intact when the plugin registers after bootstrap'\nR15-DOCS-006: shell comments state false invariants: SSR/static-export rationale in a Vite SPA (page.tsx:49-52, PanelHost), a 'three-place accent lockstep' in chart-theme.ts the CSS abandoned, and 'ONE search surface' (SettingsPanel.tsx:78) \u2192 rewrite to the real reason (dockview needs registered components before onReady), name what actually moves together, delete the search claim \u2192 acceptance test src/lib/source-guards.test.ts: no 'static-export'/'SSR-safe' under src/\nR15-CROSS-PLATFORM-009: UI hints hardcode macOS glyphs (\u2318K, \u2318B, \u2318\u21b5, \u2318\u232b) on every OS in page.tsx, ProposedChangesReview.tsx and SettingsPanel.tsx, bypassing formatBinding \u2192 render formatBinding(getBinding('<action>').keys) at every site \u2192 acceptance test src/lib/source-guards.test.ts: no JSX string literal under src/ contains \u2318 outside src/store/keybindings.ts and comments\nR15-CODE-FRONTEND-029: the command-palette store carries dead commands/setCommands/query/setQuery/pushRecent (setCommands fed only by page.tsx :54/:100/:105/:110), the palette corpus is memoised once so agents/plugins that load while it is open never appear, and agents.ts carries dead error/refreshAll plus a `loading` that is never set true (read at SettingsPanel.tsx:621) \u2192 delete the dead surface and the page.tsx wiring, make the corpus a selector over the live stores, drop error/refreshAll/loading and have SettingsPanel read firstPartyStatus \u2192 acceptance test src/store/command-palette.test.ts (dead members absent) and src/components/CommandPalette.test.tsx 'custom agent added while open appears'\nR15-CODE-FRONTEND-022: the palette agent row re-parses the 'agent:' id prefix instead of reading the agentSummary it holds (command-palette.ts:225) \u2192 setActiveAgent(item.agentSummary.id) \u2192 acceptance test src/components/CommandPalette.test.tsx 'agent row selection uses agentSummary.id'\nR15-LEAD-027: the empty-query starter row 'suggested:chart' (command-palette.ts:108, 'Open Chart') duplicates the chart.open command row (modules/chart/index.ts) and shows no chord \u2192 drop starter rows whose target panel already has a registered command (dedupe in the corpus) \u2192 acceptance test src/store/command-palette.test.ts 'no two empty-query rows share a panelId'\nR15-UI-065: 'Open Marketplace' buttons pass the component id 'marketplace-panel' (PluginManagerPanel.tsx:72, SettingsPanel.tsx:1708) and openPanel silently ignores unknown ids \u2192 openPanel('marketplace'); openPanel logs console.error in dev for an unknown id \u2192 acceptance test src/lib/open-panel-literals.test.ts: every openPanel('literal') in src resolves via findPanel\nR15-UI-081: Settings \u2192 Modules toggles lie: openPanel resolves through findPanel over all modules (store/modules.ts), so a disabled module's panel still opens, and the panel-less 'AI Assistant' module's switch is wired to nothing \u2192 openPanel resolves through enabledModules() and returns false for a disabled module (layout restore unchanged); ModulesSection (SettingsPanel.tsx:1909) marks panel-less modules always-on or omits them \u2192 acceptance test src/store/workspace.test.ts 'disabled portfolio: openPanel returns false, no panel added' and src/store/modules.test.ts\nR15-CODE-FRONTEND-036: panel id<->component truth is hand-copied into six tables with no parity test and the two rail definitions disagree about portfolio \u2192 export one RAIL set used by store/workspace.ts and layout-templates.ts, derive PANEL from ARRANGEABLE \u2192 acceptance test src/lib/layout-templates.test.ts 'every ARRANGEABLE/PANEL/DEFAULT_PANELS {id, component} equals a registered PanelSpec'\nR15-AGENT-078: the arrange appliers wrap applyPlan in requestAnimationFrame (layout-templates.ts :290/:322/:391/:599) but report success synchronously, so an occluded window reads a stale layout and a throw escapes the host-action error path \u2192 delete the four rAF wrappers and apply synchronously as applyLayoutMode does \u2192 acceptance test src/lib/layout-templates.test.ts 'applyLayoutTemplate/applyCustomLayout apply without a rAF flush'\nR15-CODE-FRONTEND-027: stores reach the sidecar through hand-rolled fetch paths with divergent error policies: agents.refreshCustom (store/agents.ts:222) turns a non-2xx into a successful empty list; quant.ts:60 postJson and store/workflow.ts :277/:411 drop server detail, region headers and any timeout \u2192 switch them to the exported sidecarRequest/sidecarGet (sidecar-client.ts not edited here); refreshCustom non-2xx -> customStatus 'error'; the workflow SSE keeps its stream but merges the same headers \u2192 acceptance test src/store/agents.test.ts 'refreshCustom 404 -> customStatus error' and src/store/quant.test.ts region header present\nR15-CODE-FRONTEND-026: drainNotifications() (store/workflow.ts) clears every pending intent incl. ones appended while the bridge awaited a send \u2192 takeNotifications() atomically returns and clears before send; desktop-notification.ts uses it \u2192 acceptance test src/store/workflow.test.ts 'append a, take, append b -> b still pending'\nNOTES: Merge after client-plugins (sidecarRequest), workflow-backend (types/workflow.ts) and quant-macro (types/quant.ts).",
+          "merge_order_hint": 2,
+          "effort_points": 19,
+          "new_files": [
+            "src/lib/open-panel-literals.test.ts",
+            "src/lib/panel-sizing.test.ts",
+            "src/lib/panel-sizing.ts",
+            "src/lib/source-guards.test.ts",
+            "src/store/agents.test.ts"
+          ]
+        },
+        {
+          "name": "W9",
+          "slug": "workspace-persist",
+          "model": "opus",
+          "entries": [
+            "R15-CODE-FRONTEND-030",
+            "R15-CODE-FRONTEND-037",
+            "R15-LIFECYCLE-028",
+            "R15-UI-070",
+            "R15-CODE-FRONTEND-028"
+          ],
+          "files": [
+            "src/lib/workspace.ts",
+            "src/lib/workspace.test.ts",
+            "src/store/settings.ts",
+            "src/store/settings.test.ts",
+            "src/modules/platform/WorkspaceDialog.tsx",
+            "src/modules/platform/WorkspaceDialog.test.tsx",
+            "src/store/research-spaces.ts",
+            "src/store/research-spaces.test.ts",
+            "types/research-space.ts",
+            "src/store/agent-spaces.ts",
+            "src/store/agent-spaces.test.ts"
+          ],
+          "brief": "MODEL opus because: risk-adjacent: workspace blob persistence (serialize/deserialize/autosave) and transcript archives\nR15-CODE-FRONTEND-030: a module-level 'first setAll' latch (store/settings.ts:126) makes a mid-session settings import switch the active persona on a fresh install \u2192 setAll(bundle, {applyDefaultAgent: true}) passed only from restoreLastSessionOrDefault (lib/workspace.ts), delete the latch \u2192 acceptance test src/store/settings.test.ts 'fresh store, setActiveAgent(copilot), setAll({defaultAgentId: quant}) keeps copilot'\nR15-CODE-FRONTEND-037: deserializeWorkspace guards `Array.isArray(workspace.watchlist) && workspace.watchlist.length > 0` (lib/workspace.ts:364), so an emptied watchlist resurrects the defaults \u2192 guard on Array.isArray only \u2192 acceptance test src/lib/workspace.test.ts 'empty watchlist round-trips to []; a blob without the key keeps defaults'\nR15-LIFECYCLE-028: the debounced layout autosave has no flush on close, so a rearrange followed by quit inside the window is lost \u2192 wireAutosaveTriggers registers pagehide (and Tauri onCloseRequested where available) calling a flush that POSTs immediately with keepalive:true (no PanelHost edit) \u2192 acceptance test src/lib/workspace.test.ts 'pagehide with a pending autosave issues the POST immediately'\nR15-UI-070: the .vysted-workspace format exists but nothing in the UI exports or imports one \u2192 Export/Import buttons in WorkspaceDialog using the existing src/lib/export-artifact.ts write path and a file picker; import POSTs under a chosen name \u2192 acceptance test src/modules/platform/WorkspaceDialog.test.tsx export/import round-trip\nR15-CODE-FRONTEND-028: research-space capture (captureLiveTranscript, store/research-spaces.ts:49) archives failed, stopped or still-streaming partials as clean replies, and agent-space tabs are session-only (agent-spaces.ts says persistence is a follow-up) \u2192 skip pending messages, add optional status 'error'|'stopped' to ResearchSpaceTurn (types/research-space.ts) restored onto ChatMessage, and persist agent spaces (spaces + archived transcripts) in the workspace blob (serialize, autosave subscription in wireAutosaveTriggers, guarded deserialize for older blobs) \u2192 acceptance test src/store/research-spaces.test.ts errored round-trip and src/lib/workspace.test.ts 'agent spaces survive serialize -> deserialize'\nNOTES: The sidecar workspace store treats the blob as free-form (workspace_store.py:6), so no sidecar edit is needed. | Keep importing DEFAULT_SYMBOLS from src/store/symbols.ts by that name (tokens-market derives it per region).",
+          "merge_order_hint": 2,
+          "effort_points": 9,
+          "new_files": [
+            "src/modules/platform/WorkspaceDialog.test.tsx"
+          ]
+        }
+      ],
+      "verify_only": [
+        "R15-UI-082"
+      ],
+      "proposed_not_defect": []
+    },
+    "P3": {
+      "totals": {
+        "entries": 67,
+        "sets": 9,
+        "effort_points": 87,
+        "opus_sets": 3,
+        "sonnet_sets": 6
+      },
+      "sets": [
+        {
+          "name": "W1",
+          "slug": "client-plugins",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-PLATFORM-039",
+            "R15-DATA-109",
+            "R15-LIFECYCLE-027",
+            "R15-CODE-PLATFORM-045",
+            "R15-CODE-PLATFORM-046",
+            "R15-CODE-PLATFORM-047",
+            "R15-CODE-PLATFORM-048"
+          ],
+          "files": [
+            "src/lib/sidecar-client.ts",
+            "src/lib/sidecar-client.test.ts",
+            "src/lib/search-headers.ts",
+            "src/lib/search-headers.test.ts",
+            "src/lib/plugin-bootstrap.ts",
+            "src/lib/plugin-bootstrap.test.ts",
+            "src/lib/plugin-runtime.ts",
+            "src/lib/plugin-runtime.test.ts"
+          ],
+          "brief": "R15-CODE-PLATFORM-039: sidecarRequest (sidecar-client.ts:252) awaits buildSearchHeaders() on every call, an unmemoised keychain read on tier_b that ships the BYOK OpenRouter key to routes that never research (watchlist polls every 5 s); the comment names the dead Exa key \u2192 give buildSearchHeaders an includeKey option; the REST default path omits the key (tier/searxng/model headers stay), the SSE path keeps the full set; fix the comment \u2192 acceptance test src/lib/sidecar-client.test.ts 'tier_b GET /quotes sends no X-Vysted-Openrouter-Key and reads the keychain 0 times'\nR15-DATA-109: openCryptoStream (sidecar-client.ts:299) is fully built but never opened while crypto rows poll, so a maintainer assumes streaming is live \u2192 delete the caller-less client helper and state polling in the client comment; the sidecar /crypto/stream route stays (tested by test_crypto.py:37, part of the sidecar API) \u2192 acceptance test src/lib/sidecar-client.test.ts 'no openCryptoStream export' (grep over src empty)\nR15-LIFECYCLE-027: no timeout or AbortSignal anywhere in the shared client: a hung /health probe holds readyPromise past its 120 s budget, a hung route spins forever, and boot loads each plugin's persisted config twice, serially \u2192 AbortSignal.timeout(5000) on the health probe, an optional signal + generous default timeout on sidecarRequest, pass the already-loaded PluginPersistedConfig into loadPlugin \u2192 acceptance test src/lib/sidecar-client.test.ts 'never-settling fetch rejects resolveAndAwaitReady by the deadline' and src/lib/plugin-bootstrap.test.ts 'persistence.load once per plugin'\nR15-CODE-PLATFORM-045: the boot path bridges a plugin's panels and commands without checking loadPlugin succeeded \u2192 bridge only when snap.state === 'active' \u2192 acceptance test src/lib/plugin-bootstrap.test.ts 'initialize() throws -> no module or commands contributed'\nR15-CODE-PLATFORM-046: moduleForPlugin re-implements capability negotiation without the runtime's try/catch, so a throwing getPanels()/getCommands() rejects bootstrapPlugins() mid-loop \u2192 source panels/commands from runtime.collectPanels()/collectCommands() filtered by plugin id \u2192 acceptance test src/lib/plugin-bootstrap.test.ts 'getCommands() throws -> bootstrap resolves, plugin errored'\nR15-CODE-PLATFORM-047: healthCheckOne writes back a pre-await snapshot, reverting a disable/error transition that lands during the check to 'active' \u2192 re-read this.plugins.get(id) after the await and bail if gone or no longer active (or mutate only healthHistory) \u2192 acceptance test src/lib/plugin-runtime.test.ts 'disable during a pending healthCheck stays stopped'\nR15-CODE-PLATFORM-048: parseSemver strips '<' with the range operators (plugin-runtime.ts:135), inverting a '<x.y.z' requiredHostVersion into '>=' and the message hardcodes '>=' \u2192 drop '<' from the class so an unsupported operator fails loudly; message names the real operator \u2192 acceptance test src/lib/plugin-runtime.test.ts \"'<0.9.0' is rejected as unsupported\"\nNOTES: Merge before shell-page (FE-027 switches stores onto sidecarRequest; keep its signature backward compatible).",
+          "merge_order_hint": 1,
+          "effort_points": 11,
+          "new_files": []
+        },
+        {
+          "name": "W2",
+          "slug": "llm-chat",
+          "model": "opus",
+          "entries": [
+            "R15-AGENT-075",
+            "R15-AGENT-076",
+            "R15-AGENT-077",
+            "R15-CODE-AGENT-020",
+            "R15-CODE-AGENT-030",
+            "R15-CODE-PLATFORM-044",
+            "R15-CODE-PLATFORM-038",
+            "R15-CODE-FRONTEND-021",
+            "R15-CODE-FRONTEND-032",
+            "R15-RESEARCH-031"
+          ],
+          "files": [
+            "sidecar/services/llm/__init__.py",
+            "sidecar/services/llm/base.py",
+            "sidecar/services/llm/openai.py",
+            "sidecar/services/llm/ollama.py",
+            "sidecar/services/llm/gemini.py",
+            "sidecar/services/llm/groq.py",
+            "sidecar/services/llm/anthropic.py",
+            "sidecar/services/llm/oneshot.py",
+            "sidecar/services/llm/native_search.py",
+            "sidecar/services/errors.py",
+            "sidecar/models/llm.py",
+            "types/ai.ts",
+            "sidecar/services/budget_guard.py",
+            "sidecar/services/run_manager.py",
+            "src/modules/chat/streaming.ts",
+            "src/modules/chat/ChatSidebar.tsx",
+            "sidecar/tests/test_llm_lows.py",
+            "sidecar/tests/test_llm_ollama.py",
+            "sidecar/tests/test_llm_openai.py",
+            "sidecar/tests/test_budget_guard.py",
+            "sidecar/tests/test_run_manager.py",
+            "sidecar/tests/test_errors.py",
+            "src/modules/chat/ChatSidebar.test.tsx",
+            "src/modules/chat/streaming.test.ts"
+          ],
+          "brief": "MODEL opus because: cross-wire error/usage contract (models/llm.py <-> types/ai.ts mirror) through five adapters, the durable-run crash path in run_manager and the chat transcript state; needs root-causing across layers\nR15-AGENT-075: with openrouter/auto the OpenAI-compatible adapter never reads chunk.model, so the UI keeps 'openrouter/auto' and budget_guard prices at the requested slug \u2192 capture chunk.model, add optional served_model to LLMDoneEvent (models/llm.py) and the types/ai.ts done kind, streaming.ts carries it to the message, ChatSidebar shows it when it differs, budget_guard prices with it \u2192 acceptance test sidecar/tests/test_llm_lows.py::test_openrouter_auto_surfaces_served_model and sidecar/tests/test_budget_guard.py::test_prices_with_served_model\nR15-AGENT-076: ollama.py swallows a client-side tools-construction error and silently retries the round without tools (no logger in the module) \u2192 narrow the except to the validation error, log a warning and yield a notice event that tools were dropped \u2192 acceptance test sidecar/tests/test_llm_ollama.py::test_tools_construction_error_logs_and_emits_notice\nR15-AGENT-077: the tool-arg repair round and the native-search oneshot rebuild the adapter without the configured base_url \u2192 add base_url to oneshot.complete/complete_with_usage and thread self._base_url from openai.py and native_search.py \u2192 acceptance test sidecar/tests/test_llm_openai.py::test_repair_round_keeps_configured_base_url\nR15-CODE-AGENT-020: get_provider() (services/llm/__init__.py) silently discards base_url for gemini and groq though its signature accepts it \u2192 give both adapters a base_url constructor arg (AsyncGroq(base_url=), genai http_options) or raise ValueError \u2192 acceptance test sidecar/tests/test_llm_lows.py::test_get_provider_groq_gemini_honour_or_reject_base_url\nR15-CODE-AGENT-030: four adapters end validate_key with `except <ProviderError>: raise`, a no-op that reads as handling \u2192 delete the four clauses and move anthropic's intent comment into the base validate_key docstring \u2192 acceptance test sidecar/tests/test_llm_lows.py::test_validate_key_has_no_reraise_only_clause (existing test_validate_key_connect_error_is_unreachable stays green)\nR15-CODE-PLATFORM-044: LLMProvider.stream_chat is declared `async def -> AsyncIterator` (a coroutine) while all adapters and callers treat it as an async generator \u2192 drop `async` from the ABC declaration \u2192 acceptance test sidecar/tests/test_llm_lows.py::test_stream_chat_abc_is_not_a_coroutine_function\nR15-CODE-PLATFORM-038: the error struct is spelled six times across the wire, its `code` is consumed by nothing (ChatSidebar ErrorRow ~:1614 always offers Retry, also for auth/402/model_not_found) and run_manager's crash path (:365) bypasses humanize \u2192 HumanError.to_event() in services/errors.py used by every adapter, mirror action/detail/code into types/ai.ts and drop the casts, ErrorRow suppresses Retry and links Settings for auth/provider_402/model_not_found, run_manager records humanize(exc).message \u2192 acceptance test src/modules/chat/ChatSidebar.test.tsx 'no Retry for auth, provider_402, model_not_found' and sidecar/tests/test_run_manager.py::test_crashed_run_detail_is_humanized\nR15-CODE-FRONTEND-021: the chat context badge's visibility is gated on string equality with the copy 'Context: none' minted far away \u2192 describeContext returns {kind:'none'} | {kind:'panels', text} and the render branches on kind \u2192 acceptance test src/modules/chat/ChatSidebar.test.tsx 'ContextBadge hidden with no bus events, shown with one panel event (asserted on kind)'\nR15-CODE-FRONTEND-032: pending agent proposals survive /clear and a new conversation, so Cmd+Enter accept-all can apply stale mutations \u2192 call the existing proposed-changes rejectAll() (acks failed) from both /clear handlers and on space switch in ChatSidebar (proposed-changes.ts is owned by actions-research; no edit there) \u2192 acceptance test src/modules/chat/ChatSidebar.test.tsx '/clear rejects a pending write_note and acks it failed'\nR15-RESEARCH-031: RESEARCH_BEGIN_RE (streaming.ts:109) ends in `(.*)`, so a query containing a newline never matches and the brief panel never enters in-flight \u2192 `([\\s\\S]*)` (typed run_id/depth/query fields if already on the event) \u2192 acceptance test src/modules/chat/streaming.test.ts 'multi-line query research:begin fires beginRun with the full query'\nNOTES: Mirror: sidecar/models/llm.py <-> types/ai.ts owned together (served_model, error action/detail/code). | Pruning resolved entries in proposed-changes acceptBatch/rejectBatch (FE-032 fix_shape tail) sits in actions-research's file; recorded as an issue, not in this diff.",
+          "merge_order_hint": 1,
+          "effort_points": 14,
+          "new_files": [
+            "sidecar/tests/test_llm_lows.py"
+          ]
+        },
+        {
+          "name": "W3",
+          "slug": "provenance-data",
+          "model": "opus",
+          "entries": [
+            "R15-UI-067",
+            "R15-DATA-105",
+            "R15-UI-094",
+            "R15-UI-074",
+            "R15-CODE-DATA-022",
+            "R15-DATA-102",
+            "R15-DATA-103",
+            "R15-CODE-FRONTEND-023",
+            "R15-UI-064",
+            "R15-CODE-DATA-009",
+            "R15-LEAD-006",
+            "R15-CODE-DATA-017",
+            "R15-CODE-DATA-018",
+            "R15-LIFECYCLE-036"
+          ],
+          "files": [
+            "src/components/DataBadges.tsx",
+            "src/components/DataBadges.test.tsx",
+            "src/modules/equity-overview/EquityOverviewPanel.tsx",
+            "src/modules/equity-overview/EquityOverviewPanel.test.tsx",
+            "src/modules/watchlist/WatchlistPanel.tsx",
+            "src/modules/chart/ChartPanel.tsx",
+            "src/modules/chart/ChartPanel.test.tsx",
+            "src/store/chart-sync.ts",
+            "src/modules/research/brief-blocks.tsx",
+            "src/modules/research/brief-layout.test.tsx",
+            "types/data.ts",
+            "sidecar/models/market.py",
+            "sidecar/models/fundamentals.py",
+            "sidecar/routers/history.py",
+            "sidecar/routers/quotes.py",
+            "sidecar/services/fundamentals_store.py",
+            "sidecar/services/company_narrative.py",
+            "sidecar/services/provider_health.py",
+            "sidecar/services/yfinance_provider.py",
+            "sidecar/services/growth_check.py",
+            "sidecar/services/dividend_history.py",
+            "sidecar/services/earnings_quality.py",
+            "sidecar/services/symbol_resolver.py",
+            "sidecar/tests/test_history.py",
+            "sidecar/tests/test_fundamentals_store.py",
+            "sidecar/tests/test_company_narrative.py",
+            "sidecar/tests/test_fundamentals_models.py",
+            "sidecar/tests/test_provider_health.py",
+            "sidecar/tests/test_symbol_resolver.py",
+            "sidecar/tests/test_resolver_rename.py"
+          ],
+          "brief": "MODEL opus because: owns the types/data.ts <-> models/market.py + fundamentals.py mirror and the data-trust provenance labels (growth_basis, field_meta, freshness), plus the Yahoo rate-limit breaker predicate; DATA-102's producer change reaches yfinance_provider.py which CODE-DATA-009 also edits\nR15-UI-067: EquityOverview shadows the shared ProvenanceBadge, the shared badge signals 'synthetic' by colour only, Watchlist (:79-80) and Chart render StalenessBadge 'EOD' without asOf, and asOfDate (DataBadges.tsx:70-77) formats in UTC (a day off 00:00-05:29 IST) \u2192 one ProvenanceBadge with visible 'synthetic' text, asOf required when freshness is 'eod', local-date formatting (toLocaleDateString('en-CA')), Freshness imported from types/data \u2192 acceptance test src/components/DataBadges.test.tsx IST-midnight asOf case + visible synthetic text\nR15-DATA-105: routers/history.py:118-123 (and quotes.py) map a freshness_for exception to None, so the series renders with no badge \u2192 add an explicit 'unknown' Freshness (models/market.py + types/data.ts) that DataBadges still badges \u2192 acceptance test sidecar/tests/test_history.py::test_freshness_label_failure_yields_unknown and src/components/DataBadges.test.tsx 'renders unknown'\nR15-UI-094: the Equity Overview narrative is a flat summary + insights pair, not FR-124's five typed sections \u2192 extend the company_narrative prompt + parser to TAKE/BUSINESS/STORYLINE/BULL-BEAR/RISKS (each through _verify_text), add the fields to the narrative model (models/fundamentals.py) + types/data.ts, render typed blocks in EquityOverviewPanel \u2192 acceptance test sidecar/tests/test_company_narrative.py::test_five_section_fixture_parses_all_fields\nR15-UI-074: no reading surface caps line length (brief prose and the narrative run ~150 chars/line) \u2192 max-w-prose on the BriefBody root (brief-blocks.tsx) and the narrative prose container \u2192 acceptance test src/modules/equity-overview/EquityOverviewPanel.test.tsx and src/modules/research/brief-layout.test.tsx assert max-w-prose\nR15-CODE-DATA-022: FieldMeta.status is a closed union in TypeScript (incl. 'flagged') but an unvalidated str in Pydantic \u2192 Literal['ok','flagged','withheld','unavailable'] \u2192 acceptance test sidecar/tests/test_fundamentals_models.py::test_field_meta_status_rejects_unknown\nR15-DATA-102: growth_basis defaults to 'mrq_yoy' for every producer (models/fundamentals.py:161) and field_meta is filled only by yfinance, so provenance can be inherited rather than stated \u2192 default None; yfinance_provider sets 'mrq_yoy' explicitly where it produces MRQ growth (it already sets 'annual_yoy'); fundamentals_store.row_to_pair derives growth_basis/field_meta from the row's tier stamps \u2192 acceptance test sidecar/tests/test_fundamentals_store.py::test_row_to_pair_null_growth_row_states_no_basis_and_derives_field_meta\nR15-DATA-103: row_to_pair renders an unknown day-change as 0.0 and falls back to 'USD' ignoring the row's currency column \u2192 leave unknown change unset (Quote.change Optional in models/market.py + types/data.ts if needed) and fall back to the row currency \u2192 acceptance test sidecar/tests/test_fundamentals_store.py::test_null_change_row_keeps_change_unset_and_row_currency\nR15-CODE-FRONTEND-023: ChartPanel selects the sync bus's crosshair/visibleRange objects as React state and broadcasts on every move, re-rendering the whole panel with no peer chart \u2192 move the consumer effects onto useChartSyncBus.subscribe (no re-render) \u2192 acceptance test src/modules/chart/ChartPanel.test.tsx 'N crosshair moves on a lone chart cause 0 ChartPanel re-renders'\nR15-UI-064: '%' comparison normalises only the overlay onto a hidden left scale, overlay data skips the candle de-dup (dev assert, series leak), two single-line indicators share one colour \u2192 one toSeriesPoints (sort + dedupe) helper, show the left scale or normalise both, colour by running series index \u2192 acceptance test src/modules/chart/ChartPanel.test.tsx converter cases (dedupe, distinct SMA/EMA colours, visible scale)\nR15-CODE-DATA-009: five divergent 'is this a Yahoo rate limit' predicates (provider_health, yfinance_provider, growth_check, dividend_history, earnings_quality, symbol_resolver) feed one shared breaker \u2192 one provider_health.is_rate_limit(exc) = union of the predicates, imported at every site \u2192 acceptance test sidecar/tests/test_provider_health.py::test_is_rate_limit_union (YFRateLimitError, HTTPError('429 Too Many Requests'), *RateLimit* class) + grep that the sites import it\nR15-LEAD-006: _row_value is still defined twice (growth_check.py and earnings_quality.py) \u2192 keep one definition and import it \u2192 acceptance test: `grep -c '^def _row_value' sidecar/services/*.py` == 1; test_growth_check.py and test_earnings_quality.py green\nR15-CODE-DATA-017: the three Instrument builders in symbol_resolver default band=BAND_FUZZY, so autocomplete ships an exact-ticker row that resolution_policy.decide() would refuse to bind \u2192 delete the '= BAND_FUZZY' defaults and make autocomplete state its band \u2192 acceptance test sidecar/tests/test_symbol_resolver.py::test_autocomplete_exact_ticker_carries_exact_band_and_binds\nR15-CODE-DATA-018: Resolution.needs_disambiguation is a dead second-decision surface kept alive by tests (the DISAMBIGUATION_THRESHOLD re-export now has a live consumer) \u2192 delete the property and switch its test call sites to resolution_policy.decide(r).outcome == 'disambiguate' (same assertions) \u2192 acceptance test sidecar/tests/test_symbol_resolver.py and sidecar/tests/test_resolver_rename.py green with no needs_disambiguation reference\nR15-LIFECYCLE-036: a garbled bundled resolver master 500s every /resolve because the loader except (symbol_resolver.py:503) catches only FileNotFoundError/ModuleNotFoundError \u2192 add ValueError and OSError so it degrades to {} as documented \u2192 acceptance test sidecar/tests/test_symbol_resolver.py::test_garbled_master_degrades_to_no_match_not_500\nNOTES: Mirror: types/data.ts <-> sidecar/models/market.py + fundamentals.py owned together (Freshness 'unknown', FieldMeta.status, narrative sections, Quote.change). | Merge before panels-polish (BriefPanel renders ProvenanceBadge).",
+          "merge_order_hint": 1,
+          "effort_points": 18,
+          "new_files": [
+            "sidecar/tests/test_fundamentals_models.py",
+            "src/modules/research/brief-layout.test.tsx"
+          ]
+        },
+        {
+          "name": "W4",
+          "slug": "quant-macro",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-PLATFORM-040",
+            "R15-CODE-PLATFORM-041",
+            "R15-CODE-PLATFORM-042",
+            "R15-UI-063",
+            "R15-UI-062",
+            "R15-UI-077",
+            "R15-DATA-098",
+            "R15-CODE-PLATFORM-043",
+            "R15-DATA-099"
+          ],
+          "files": [
+            "sidecar/services/quant/monte_carlo.py",
+            "sidecar/services/quant/__init__.py",
+            "sidecar/models/quant.py",
+            "types/quant.ts",
+            "sidecar/services/quant/options.py",
+            "sidecar/services/quant/greeks.py",
+            "sidecar/services/quant/yield_curve.py",
+            "sidecar/routers/quant.py",
+            "src/modules/quant/OptionPricerPanel.tsx",
+            "src/modules/quant/GreeksDashboard.tsx",
+            "src/modules/quant/BondPricerPanel.tsx",
+            "src/modules/quant/YieldCurvePanel.tsx",
+            "src/lib/date-defaults.ts",
+            "src/lib/date-defaults.test.ts",
+            "src/modules/backtest/BacktestPanel.tsx",
+            "src/modules/backtest/BacktestPanel.test.tsx",
+            "src/modules/quant/OptionPricerPanel.test.tsx",
+            "src/modules/quant/GreeksDashboard.test.tsx",
+            "src/modules/quant/BondPricerPanel.test.tsx",
+            "src/modules/quant/YieldCurvePanel.test.tsx",
+            "sidecar/services/macro/fred_provider.py",
+            "sidecar/services/macro/imf_provider.py",
+            "sidecar/services/macro/ecb_provider.py",
+            "sidecar/services/macro/world_bank_provider.py",
+            "sidecar/tests/test_quant_options.py",
+            "sidecar/tests/test_quant_greeks.py",
+            "sidecar/tests/test_quant_router.py",
+            "sidecar/tests/test_quant_yield_curve.py",
+            "sidecar/tests/test_macro_providers.py"
+          ],
+          "brief": "R15-CODE-PLATFORM-040: services/quant/monte_carlo.py is 184 LOC of unreachable, untested bundled code whose docstring names callers that do not exist \u2192 delete it and its quant/__init__ docstring line \u2192 acceptance test: ruff + existing quant tests green; no import of services.quant.monte_carlo\nR15-CODE-PLATFORM-041: the binomial steps floor is stated three ways (panel >=1, model 1..100000, service >=3), so steps=2 passes the UI and 400s (same for MC paths) \u2192 floor only in models/quant.py validate_domain, drop the service check, the panel reads the same floor exported via types/quant.ts \u2192 acceptance test sidecar/tests/test_quant_options.py::test_validate_domain_rejects_steps_2_and_low_paths and src/modules/quant/OptionPricerPanel.test.tsx 'message before submit'\nR15-CODE-PLATFORM-042: greeks.compute_greeks duplicates price_european_bs line for line \u2192 build the pricing request, call price_european_bs and reshape \u2192 acceptance test sidecar/tests/test_quant_greeks.py::test_compute_greeks_equals_price_european_bs\nR15-UI-063: all four quant panels prefill past dates (OptionPricerPanel.tsx:260-261 '2026-05-16'/'2026-06-30', Greeks, Bond, YieldCurve) \u2192 one src/lib/date-defaults.ts deriving at mount (today, today+45d; bond issue today, maturity +10y) \u2192 acceptance test per panel with vi.useFakeTimers (OptionPricerPanel/GreeksDashboard/BondPricerPanel/YieldCurvePanel .test.tsx) + src/lib/date-defaults.test.ts\nR15-UI-062: BacktestPanel DEFAULT_END = '2025-12-31' (:18) silently omits the last ~9 months \u2192 derive at mount (end=today, start=end-2y) via the same date-defaults helper (same defect class as UI-063) \u2192 acceptance test src/modules/backtest/BacktestPanel.test.tsx vi.setSystemTime\nR15-UI-077: two instruments on one pillar crash the yield-curve bootstrap into an uncaught 500 without CORS headers \u2192 routers/quant.py maps it to a 400 naming the duplicate tenor; YieldCurvePanel validationError names the duplicate pillar \u2192 acceptance test sidecar/tests/test_quant_router.py::test_duplicate_pillar_is_400 and src/modules/quant/YieldCurvePanel.test.tsx\nR15-DATA-098: the yield curve emits a duplicated first point and extrapolates past the last instrument when step_days floors to 1 \u2192 build the grid in float over the max tenor and clamp \u2192 acceptance test sidecar/tests/test_quant_yield_curve.py::test_grid_distinct_and_within_max_tenor\nR15-CODE-PLATFORM-043: the four macro-provider PROVIDER constants are untyped str instead of the MacroProvider Literal \u2192 annotate PROVIDER: MacroProvider in fred/imf/ecb/world_bank \u2192 acceptance test sidecar/tests/test_macro_providers.py::test_provider_constants_are_macro_provider_values\nR15-DATA-099: FRED 'SA' (semiannual) and 'BW' (biweekly) are labelled quarterly/weekly though the contract has 'other' \u2192 map both to 'other' \u2192 acceptance test sidecar/tests/test_macro_providers.py::test_fred_sa_bw_map_to_other\nNOTES: Mirror: sidecar/models/quant.py <-> types/quant.ts owned together.",
+          "merge_order_hint": 1,
+          "effort_points": 9,
+          "new_files": [
+            "src/lib/date-defaults.test.ts",
+            "src/lib/date-defaults.ts"
+          ]
+        },
+        {
+          "name": "W5",
+          "slug": "workflow-backend",
+          "model": "opus",
+          "entries": [
+            "R15-CODE-PLATFORM-065",
+            "R15-CODE-PLATFORM-066",
+            "R15-CODE-PLATFORM-067",
+            "R15-CODE-PLATFORM-068",
+            "R15-CODE-PLATFORM-069",
+            "R15-CODE-PLATFORM-075"
+          ],
+          "files": [
+            "sidecar/routers/workflow.py",
+            "sidecar/services/workflow_nodes/code_node.py",
+            "sidecar/services/workflow_nodes/macro_nodes.py",
+            "sidecar/services/workflow_nodes/research_nodes.py",
+            "sidecar/services/workflow_nodes/sec_nodes.py",
+            "sidecar/services/workflow_nodes/quant_nodes.py",
+            "sidecar/services/workflow_nodes/screener_nodes.py",
+            "sidecar/services/workflow_nodes/registry_v0_6_0.py",
+            "sidecar/services/workflow_nodes/__init__.py",
+            "sidecar/services/workflow_nodes/builtin.py",
+            "sidecar/app.py",
+            "sidecar/main.py",
+            "sidecar/models/workflow.py",
+            "types/workflow.ts",
+            "sidecar/services/workflow_engine.py",
+            "src/modules/node-editor/node-registry.ts",
+            "src/modules/node-editor/node-registry.test.ts",
+            "sidecar/tests/test_workflow_router.py",
+            "sidecar/tests/test_workflow_builtin_nodes.py"
+          ],
+          "brief": "MODEL opus because: safety-adjacent: the server code node is an expression sandbox reachable via MCP run_workflow; boot-path registration change in app.py/main.py\nR15-CODE-PLATFORM-065: POST /workflow/run swallows WorkflowEngineError, so the SSE stream closes with zero frames and the editor guesses the cause \u2192 yield one run-error frame carrying str(exc) \u2192 acceptance test sidecar/tests/test_workflow_router.py::test_dangling_edge_yields_one_run_error_frame\nR15-CODE-PLATFORM-066: code_node._eval admits unbounded ** (ast.Pow: operator.pow at :49) and list/str *, evaluated synchronously on the event loop (7**10**7 blocked the sidecar 8.2 s) \u2192 bound Pow exponents and repetition sizes, evaluate via asyncio.to_thread under asyncio.wait_for \u2192 acceptance test sidecar/tests/test_workflow_builtin_nodes.py::test_huge_pow_and_repeat_rejected_fast (<50 ms)\nR15-CODE-PLATFORM-067: domain node adapters re-own the macro provider list (_VALID_PROVIDERS) and each `or` chain treats 0/''/[] inputs as missing \u2192 delete _VALID_PROVIDERS (macro_router's ProviderError validates) and add one resolve(inputs, config, key, default) where a present non-None input wins \u2192 acceptance test sidecar/tests/test_workflow_builtin_nodes.py::test_zero_input_not_replaced_by_config_and_unknown_provider_errors\nR15-CODE-PLATFORM-068: workflow node registration is split by release (registry_v0_6_0 aggregator, create_app vs main.py boot paths, hardcoded count, stale docstrings) \u2192 one register_all() in services/workflow_nodes called from create_app (main.py delegates; it keeps calling agent_tools.register_v0_6_0_tools(), owned by tools-envelope); delete the dead else and _encode_event_dict \u2192 acceptance test sidecar/tests/test_workflow_builtin_nodes.py::test_create_app_registers_every_builtin_node (count from the registry)\nR15-CODE-PLATFORM-069: plugin-contributed workflow nodes appear in the palette with no execution path and the engine docstring claims a shared registration surface \u2192 add GET /workflow/node-types; node-registry.ts badges/filters plugin nodes absent from it; correct the workflow_engine docstring \u2192 acceptance test src/modules/node-editor/node-registry.test.ts 'plugin node absent from the server list is not runnable'\nR15-CODE-PLATFORM-075: WorkflowRunRequest mode='resume-from'/resumeFrom are never read, so a resume request silently re-runs the whole graph \u2192 reject any mode other than 'full' with 400 and drop resumeFrom from models/workflow.py and types/workflow.ts \u2192 acceptance test sidecar/tests/test_workflow_router.py::test_resume_from_is_rejected_not_silently_rerun\nNOTES: Mirror: sidecar/models/workflow.py <-> types/workflow.ts owned together. | The client-side 'no terminal frame' guess in src/store/workflow.ts (owned by shell-page) stays as a fallback; removing it is an issue, not this diff.",
+          "merge_order_hint": 1,
+          "effort_points": 8,
+          "new_files": [
+            "sidecar/tests/test_workflow_router.py"
+          ]
+        },
+        {
+          "name": "W6",
+          "slug": "data-hygiene",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-DATA-011",
+            "R15-CODE-DATA-012",
+            "R15-CODE-DATA-021",
+            "R15-DOCS-013",
+            "R15-DATA-106"
+          ],
+          "files": [
+            "sidecar/routers/fundamentals.py",
+            "sidecar/routers/earnings.py",
+            "sidecar/routers/_cached.py",
+            "sidecar/services/research/range_check.py",
+            "sidecar/services/resolver_masters/enrich_nse_sectors.py",
+            "sidecar/tests/test_router_cached_helper.py",
+            "sidecar/tests/test_range_check.py",
+            "sidecar/tests/test_india_sector_map.py",
+            "sidecar/tests/test_earnings_router.py"
+          ],
+          "brief": "R15-CODE-DATA-011: routers/fundamentals.py repeats the ratings cache-read/validate/fetch/store block three times, each with a dead except ProviderError->502 the global handler already performs \u2192 one _cached(key, ttl, model, fetch) helper in a new sidecar/routers/_cached.py; delete the dead excepts \u2192 acceptance test sidecar/tests/test_router_cached_helper.py::test_corrupt_cache_entry_refetches_for_all_rating_routes\nR15-CODE-DATA-012: routers/earnings.py copy-pastes the same block four times \u2192 the four routes use the same _cached helper \u2192 acceptance test: existing sidecar/tests/test_earnings_router.py green and one data_cache.get call site in the router (asserted in test_router_cached_helper.py)\nR15-CODE-DATA-021: compute_range builds its 52-week window twice with the same predicate, deriving coverage_days and the bar count from different lists \u2192 one list of (ts, bar) pairs, both values derived from it \u2192 acceptance test: existing sidecar/tests/test_range_check.py pins the output\nR15-DOCS-013: the Range52w docstring lists 'yfinance' as a source lane the circularity guard makes unreachable \u2192 drop it and state only exchange-direct lanes can witness \u2192 acceptance test: existing test_range_check.py yfinance-returns-None case\nR15-DATA-106: enrich_nse_sectors.py still writes the orphaned 'industry' key and 4-key partial records the shipped-map test forbids, so the documented refresh would red CI \u2192 write industry_raw and full 7-key records \u2192 acceptance test sidecar/tests/test_india_sector_map.py::test_enrichment_writes_canonical_seven_keys (stubbed yf.Ticker, 2-record fixture)",
+          "merge_order_hint": 2,
+          "effort_points": 5,
+          "new_files": [
+            "sidecar/routers/_cached.py",
+            "sidecar/tests/test_router_cached_helper.py"
+          ]
+        },
+        {
+          "name": "W7",
+          "slug": "notes-datatable",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-FRONTEND-024",
+            "R15-CROSS-PLATFORM-006",
+            "R15-DOCS-010"
+          ],
+          "files": [
+            "src/lib/fuzzy.ts",
+            "src/lib/fuzzy.test.ts",
+            "src/modules/notes/notes-persistence.ts",
+            "src/modules/notes/NotesPanel.tsx",
+            "src/lib/safe-filename.ts",
+            "src/lib/safe-filename.test.ts",
+            "src/lib/dead-surface.test.ts",
+            "src/components/DataTable.tsx",
+            "src/modules/notes/NotesToolbar.tsx",
+            "src/modules/notes/NotesToolbar.test.tsx"
+          ],
+          "brief": "R15-CODE-FRONTEND-024: fuzzy.ts has tests but no consumer and notes-persistence exportNoteMd (:80) is unused (indicator-presets.ts was already removed at the sha) \u2192 delete fuzzy.ts together with its own unit test and delete exportNoteMd; keep the SC-032 per-note .md mirror write \u2192 acceptance test src/lib/dead-surface.test.ts: no fuzzyRank/exportNoteMd under src/\nR15-CROSS-PLATFORM-006: the note .md mirror and export filenames strip only / and \\ from a free-text symbol, so Windows-illegal names (NSE:RELIANCE, CON, a?b, x.) silently fail to write \u2192 one safeFilename() mapping [<>:\"/\\\\|?*\\x00-\\x1f] to '_', trimming trailing dots/spaces and suffixing reserved device names, used at both call sites (notes-persistence.ts, NotesPanel.tsx) \u2192 acceptance test src/lib/safe-filename.test.ts table over 'NSE:RELIANCE', 'CON', 'a?b', 'x.'\nR15-DOCS-010: DataTable and NotesToolbar header comments promise an amber active-state the code deliberately does not render, and NotesToolbar's active state is one faint luminance step \u2192 correct both comments to the neutral rule and give the active toolbar button the filled bg-charcoal-800 surface \u2192 acceptance test src/modules/notes/NotesToolbar.test.tsx 'active button carries the fill class'\nNOTES: fuzzy.test.ts is removed only because its module is deleted as the register's fix (dead code), not to get green.",
+          "merge_order_hint": 2,
+          "effort_points": 3,
+          "new_files": [
+            "src/lib/dead-surface.test.ts",
+            "src/lib/safe-filename.test.ts",
+            "src/lib/safe-filename.ts"
+          ]
+        },
+        {
+          "name": "W8",
+          "slug": "panels-polish",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-DATA-014",
+            "R15-CODE-DATA-015",
+            "R15-CODE-DATA-016",
+            "R15-UI-066",
+            "R15-UI-069",
+            "R15-UI-072",
+            "R15-LEAD-021",
+            "R15-UI-080"
+          ],
+          "files": [
+            "src/store/sec.ts",
+            "src/modules/sec/SecFilingsPanel.tsx",
+            "src/modules/sec/InsiderTradingTable.tsx",
+            "src/modules/sec/SecFilingsPanel.test.tsx",
+            "src/modules/earnings/EarningsCalendarPanel.tsx",
+            "src/modules/earnings/EarningsCalendarPanel.test.tsx",
+            "src/modules/earnings/EarningsSurpriseChart.tsx",
+            "src/modules/analyst-ratings/AnalystRatingsPanel.tsx",
+            "src/modules/analyst-ratings/IndividualAnalystTable.tsx",
+            "src/modules/analyst-ratings/RatingsHistoryTable.tsx",
+            "src/modules/analyst-ratings/format.ts",
+            "src/modules/analyst-ratings/format.test.ts",
+            "src/modules/analyst-ratings/AnalystRatingsPanel.test.tsx",
+            "src/components/EmptyState.tsx",
+            "src/components/EmptyState.test.tsx",
+            "src/modules/news/NewsFeedPanel.tsx",
+            "src/modules/macro/MacroPanel.tsx",
+            "src/modules/screener/ScreenerPanel.tsx",
+            "src/modules/chat/ModelControl.tsx",
+            "src/modules/chat/ModelControl.test.tsx",
+            "src/components/StatusChrome.tsx",
+            "src/components/StatusChrome.test.tsx",
+            "src/modules/research/BriefPanel.tsx",
+            "src/modules/research/BriefPanel.test.tsx"
+          ],
+          "brief": "R15-CODE-DATA-014: store/sec.ts select* helpers call getState() instead of being selectors, so panel reactivity rests on a separate hook plus `void x;` statements \u2192 delete the three helpers; subscribe per call site with useSecStore((s) => s.x[key] ?? EMPTY_X) using the existing frozen empties; remove the void lines \u2192 acceptance test src/modules/sec/SecFilingsPanel.test.tsx 'setState after mount re-renders the row count'\nR15-CODE-DATA-015: EarningsCalendarPanel duplicates its seven column widths between the skeleton and the loaded table \u2192 one COL_WIDTHS constant rendered by both colgroups \u2192 acceptance test src/modules/earnings/EarningsCalendarPanel.test.tsx 'skeleton and loaded colgroups share widths'\nR15-CODE-DATA-016: the analyst/earnings modules carry an unreachable error banner, an unwired 'analysts' sort key, a triplicated fmtDate that parses 'YYYY-MM-DD' as UTC midnight, duplicated rating label/colour maps and a false sort comment \u2192 one shared fmtDate (local-date parse) and one rating map in a new src/modules/analyst-ratings/format.ts; delete the dead branch and key; fix the comment \u2192 acceptance test src/modules/analyst-ratings/format.test.ts fmtDate under TZ=America/Los_Angeles\nR15-UI-066: EmptyState cannot express failure: error and empty share icon, tones and semantics with no role=alert \u2192 variant 'empty'|'error' (role=alert, distinct icon, retry cta) and migrate the News/Macro/AnalystRatings error call sites \u2192 acceptance test src/components/EmptyState.test.tsx 'variant error renders role=alert and a distinct icon'\nR15-UI-069: ScreenerPanel recomputes three ledger aggregates twice per render on every SSE progress frame \u2192 useMemo each over lastResult and render the memo \u2192 acceptance test: existing src/modules/screener/ScreenerPanel.test.tsx basis-count / skip-breakdown cases stay green\nR15-UI-072: the composer model selector (ModelControl.tsx) has no chevron \u2192 a ChevronDown beside the label \u2192 acceptance test src/modules/chat/ModelControl.test.tsx 'trigger contains a chevron icon'\nR15-LEAD-021: the sidecar status chip (StatusChrome.tsx:232) renders bare 'Sidecar error' and never the termination reason the panels show \u2192 append state.sidecarError to the chip label/title \u2192 acceptance test src/components/StatusChrome.test.tsx 'error status with a reason renders the reason in the chip title'\nR15-UI-080: vysted://price|fundamentals|news sources render in the brief Sources rail as external links with a favicon lookup \u2192 render vysted:// rows as non-link provenance chips (provider + as-of) \u2192 acceptance test src/modules/research/BriefPanel.test.tsx 'vysted:// source renders a chip, no <a target=_blank>, no favicon <img>'\nNOTES: Merge after provenance-data (ProvenanceBadge props).",
+          "merge_order_hint": 2,
+          "effort_points": 8,
+          "new_files": [
+            "src/modules/analyst-ratings/format.test.ts",
+            "src/modules/analyst-ratings/format.ts",
+            "src/modules/chat/ModelControl.test.tsx"
+          ]
+        },
+        {
+          "name": "W9",
+          "slug": "search-backends",
+          "model": "sonnet",
+          "entries": [
+            "R15-CODE-RESEARCH-009",
+            "R15-RESEARCH-039",
+            "R15-CODE-RESEARCH-010",
+            "R15-CODE-RESEARCH-012",
+            "R15-DATA-111"
+          ],
+          "files": [
+            "sidecar/services/search/ddg.py",
+            "sidecar/services/search/registry.py",
+            "sidecar/services/search/pacing.py",
+            "sidecar/services/search/brave.py",
+            "sidecar/services/search/mojeek.py",
+            "sidecar/services/search/html_serp.py",
+            "sidecar/services/search/keyless.py",
+            "sidecar/services/research/finance.py",
+            "sidecar/services/research/relevance.py",
+            "scripts/search-live-smoke.mjs",
+            "sidecar/tests/test_ddg_backend.py",
+            "sidecar/tests/test_brave_backend.py",
+            "sidecar/tests/test_mojeek_backend.py",
+            "sidecar/tests/test_research_relevance.py",
+            "sidecar/tests/test_keyless_backend.py"
+          ],
+          "brief": "R15-CODE-RESEARCH-009: DuckDuckGo is paced by two independent throttles (pacing.RequestQueue 3.0 s and ddg.py's _TokenBucket 20/min) and the Lite fallback double-spends the bucket \u2192 delete ddg.py's _TokenBucket and both acquires; route the bare-ddg lane through pacing.RequestQueue in registry._build_ddg \u2192 acceptance test sidecar/tests/test_ddg_backend.py::test_one_search_with_lite_fallback_takes_one_pacing_slot\nR15-RESEARCH-039: the 403-then-impersonate path discards a 429, so a hard-throttled engine reads 'unreachable' \u2192 return the FetchResult from _impersonated_fallback and run its status through the same rate-limit check \u2192 acceptance test sidecar/tests/test_ddg_backend.py::test_403_then_429_reports_rate_limited\nR15-CODE-RESEARCH-010: brave.py and mojeek.py are near-identical HTML-SERP scrapers with no shared base \u2192 one _HtmlSerpBackend in a new search/html_serp.py (endpoint, region map, selectors, skip hosts); brave/mojeek become configuration \u2192 acceptance test: existing sidecar/tests/test_brave_backend.py and test_mojeek_backend.py fixtures pass against the base\nR15-CODE-RESEARCH-012: relevance._host_matches re-implements finance._matches (suffix-aware host match) in a module that already imports finance \u2192 export finance.host_matches and delete the copies (relevance + the brave/mojeek variant via the new base) \u2192 acceptance test sidecar/tests/test_research_relevance.py::test_junk_filter_host_match_delegates_to_finance\nR15-DATA-111: a drifted keyless SERP parser returns an empty SUCCESS that records breaker success and reads 'no results' \u2192 in keyless.py a zero-row parse of a non-empty 200 page counts a breaker failure noted 'parser drift' and shows in tier_status; add an opt-in manual scripts/search-live-smoke.mjs (no CI change) \u2192 acceptance test sidecar/tests/test_keyless_backend.py::test_nonempty_page_zero_rows_counts_parser_drift_failure",
+          "merge_order_hint": 2,
+          "effort_points": 11,
+          "new_files": [
+            "scripts/search-live-smoke.mjs",
+            "sidecar/services/search/html_serp.py"
+          ]
+        }
+      ],
+      "verify_only": [
+        "R15-AGENT-086",
+        "R15-CODE-FRONTEND-031"
+      ],
+      "proposed_not_defect": []
+    }
+  },
+  "blocked_tier4": [
+    {
+      "id": "R15-CODE-PLATFORM-063",
+      "reason": "The ruff gate over scripts/ must land in .github/workflows/lint.yml (never-owned); ci-local mirrors CI byte-for-byte, so the package.json half alone would fork the two gates. Operator decision."
+    },
+    {
+      "id": "R15-DOCS-008",
+      "reason": "Rewrites the BLUEPRINT \u00a72 Locked-decisions table row (:55 'OpenBB ODP wrapped as runtime sidecar'); editing a Locked row needs operator sign-off (Tier-4) even when descriptive."
+    },
+    {
+      "id": "R15-DOCS-011",
+      "reason": "Needs a CLA-check workflow under .github/workflows (never-owned, Tier-1 CI) and finalised CLA/licensing text (Tier-4 licensing). Operator decision."
+    },
+    {
+      "id": "R15-RELEASE-012",
+      "reason": "The fix is an actions/cache step in .github/workflows/{build,test,lint}.yml (never-owned Tier-1 CI files). Operator decision."
+    }
+  ],
+  "deferred": [
+    {
+      "id": "R15-AGENT-085",
+      "reason": "Inseparable: a per-turn tool-provenance stream event spans agent_runtime.py (runtime-catalog) and types/ai.ts + streaming.ts + ChatSidebar.tsx (llm-chat); the alternative close (scope Constitution Principle VI to briefs/narratives) is a spec/constitution decision. Run after both merge."
+    },
+    {
+      "id": "R15-CROSS-PLATFORM-012",
+      "reason": "Inseparable: the --cache-dir split spans src-tauri/src/lib.rs (rust-core), sidecar/main.py (workflow-backend), sidecar/config.py, data_cache.py and searxng_manager.py (data-resilience) and fundamentals_store.py (provenance-data). Run after those merge."
+    },
+    {
+      "id": "R15-DOCS-024",
+      "reason": "needs_gui: requires a real Claude Desktop (mcp-remote/stdio) session and a capture; no headless lane can demonstrate it."
+    },
+    {
+      "id": "R15-LIFECYCLE-040",
+      "reason": "needs_gui: a packaged-app cold boot per platform must be launched and recorded in docs/redesign/DECISIONS.md (lead-owned); adding it to CI is Tier-1 .github. No headless writer can produce the record."
+    },
+    {
+      "id": "R15-UI-068",
+      "reason": "Inseparable: DataTable loading/empty slots + keyboard sort plus porting Screener, Watchlist, Earnings, Backtest and brief-blocks tables spans notes-datatable, provenance-data, panels-polish, backtest and warm-screener file ownership. Run after those merge."
+    },
+    {
+      "id": "R15-UI-071",
+      "reason": "Inseparable: the a11y gate (eslint-plugin-jsx-a11y + vitest-axe) plus the labelling pass touches inputs in panels owned by ~10 sets and package.json (scripts-gates). Run as a single post-merge pass."
+    },
+    {
+      "id": "R15-UI-073",
+      "reason": "Inseparable: splitting --color-warning re-classes 43 uses across 18 src files owned by ~10 sets (SettingsPanel/PluginManagerPanel: shell-page, ChartPanel: provenance-data, AgentsRail, tokens.css: tokens-market). Run as a single post-merge pass."
+    }
+  ],
+  "notes": [
+    "Lead at integration: update the CLAUDE.md 'GET /runs emits BOTH camelCase + snake_case' gotcha (CODE-AGENT-031 makes /runs snake_case only).",
+    "Lead at integration: append the DOCS-009 'LangGraph not used; hand-rolled agent loop' line to docs/redesign/DECISIONS.md.",
+    "Issue (not in any diff): host-actions.ts:1664 default arrange with a null dockview api reports success.",
+    "Issue: proposed-changes acceptBatch/rejectBatch never prune resolved entries (FE-032 fix_shape tail).",
+    "Issue: the client 'no terminal frame' guess text in src/store/workflow.ts stays as fallback after CP-065.",
+    "Issue: DOCS-023 ci-local markdown link check not added (package.json owned by scripts-gates).",
+    "LIFECYCLE-033: the verification rig must export VYSTED_RIG_HOOKS=1 for provider-health trip/reset.",
+    "notes-datatable deletes src/lib/fuzzy.test.ts together with its dead module (register fix), not to get green.",
+    "Merge order: hint 1 sets first (contract/mirror owners), hint 2 next, docs-truth (hint 3) last."
+  ]
+}
