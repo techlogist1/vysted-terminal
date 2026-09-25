@@ -132,6 +132,23 @@ def test_india_symbol_meta_joins_masters() -> None:
     assert screener_universe_india.india_symbol_meta("NOTASYMBOL123") is None
 
 
+def test_india_symbol_meta_fields_by_name() -> None:
+    """R15-DATA-107: the master rows are read by field name, so every
+    ``india-all`` symbol's scrip code, ISIN and group land in their own slots
+    on both the NSE (BSE-joined) and the BSE path."""
+    for symbol in screener_universe_india.load_india_universe("india-all").symbols:
+        meta = screener_universe_india.india_symbol_meta(symbol)
+        assert meta is not None, symbol
+        code, isin, group = meta["scrip_code"], meta["isin"], meta["group"]
+        assert code is None or code.isdigit(), (symbol, meta)
+        assert isin is None or not isin.isdigit(), (symbol, meta)
+        assert group is None or (group.isalpha() and len(group) <= 2), (symbol, meta)
+    tcs = screener_universe_india.india_symbol_meta("TCS.BO")
+    assert tcs is not None and tcs["exchange"] == "BSE"
+    assert tcs["scrip_code"].isdigit()
+    assert tcs["isin"].startswith("INE")
+
+
 # ---------------------------------------------------------------------------
 # Sector map — bundled JSON + the regenerate script's hand table
 # ---------------------------------------------------------------------------

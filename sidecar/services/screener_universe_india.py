@@ -24,7 +24,7 @@ import json
 import logging
 from functools import lru_cache
 from importlib import resources
-from typing import Any
+from typing import Any, NamedTuple
 
 from models.screener import ScreenerUniverse, ScreenerUniverseId
 from services.errors import ProviderError
@@ -51,11 +51,25 @@ def _load_master(filename: str) -> dict[str, Any]:
         raise ProviderError(f"missing bundled master {filename!r}") from exc
 
 
+class _NseRow(NamedTuple):
+    symbol: str
+    name: str
+    type: str
+
+
+class _BseRow(NamedTuple):
+    symbol: str
+    name: str
+    group: str
+    scrip_code: str
+    isin: str
+
+
 @lru_cache(maxsize=1)
-def _nse_rows() -> list[tuple[str, str, str]]:
-    """``[(SYMBOL, name, type)]`` for every NSE master row, master order."""
+def _nse_rows() -> list[_NseRow]:
+    """Every NSE master row, master order."""
     raw = _load_master("nse_instruments.json")
-    out: list[tuple[str, str, str]] = []
+    out: list[_NseRow] = []
     seen: set[str] = set()
     for row in raw.get("instruments", []):
         sym = str(row[0]).strip().upper()
@@ -64,16 +78,15 @@ def _nse_rows() -> list[tuple[str, str, str]]:
         seen.add(sym)
         name = str(row[1]).strip() if len(row) > 1 else ""
         typ = str(row[2]).strip().upper() if len(row) > 2 else "EQ"
-        out.append((sym, name, typ))
+        out.append(_NseRow(symbol=sym, name=name, type=typ))
     return out
 
 
 @lru_cache(maxsize=1)
-def _bse_rows() -> list[tuple[str, str, str, str, str]]:
-    """``[(SYMBOL, name, group, scrip_code, isin)]`` for Active BSE rows,
-    master (market-cap prominence) order."""
+def _bse_rows() -> list[_BseRow]:
+    """Active BSE master rows, master (market-cap prominence) order."""
     raw = _load_master("bse_instruments.json")
-    out: list[tuple[str, str, str, str, str]] = []
+    out: list[_BseRow] = []
     seen: set[str] = set()
     for row in raw.get("instruments", []):
         code = str(row[0]).strip() if len(row) > 0 else ""
@@ -85,23 +98,23 @@ def _bse_rows() -> list[tuple[str, str, str, str, str]]:
         if not sym or sym in seen or status != "Active":
             continue
         seen.add(sym)
-        out.append((sym, name, group, code, isin))
+        out.append(_BseRow(symbol=sym, name=name, group=group, scrip_code=code, isin=isin))
     return out
 
 
 @lru_cache(maxsize=1)
-def _nse_lookup() -> dict[str, tuple[str, str]]:
-    """``{SYMBOL: (name, type)}`` — hoisted so :func:`india_symbol_meta` is
+def _nse_lookup() -> dict[str, _NseRow]:
+    """``{SYMBOL: row}`` — hoisted so :func:`india_symbol_meta` is
     O(1). The boot seed calls it once per ``india-all`` symbol (~5,156);
     rebuilding both master dicts per call was O(n²) and blocked the event
     loop ~4 s at startup."""
-    return {sym: (name, typ) for sym, name, typ in _nse_rows()}
+    return {row.symbol: row for row in _nse_rows()}
 
 
 @lru_cache(maxsize=1)
-def _bse_lookup() -> dict[str, tuple[str, str, str, str]]:
-    """``{SYMBOL: (name, group, scrip_code, isin)}`` (see :func:`_nse_lookup`)."""
-    return {sym: (name, group, code, isin) for sym, name, group, code, isin in _bse_rows()}
+def _bse_lookup() -> dict[str, _BseRow]:
+    """``{SYMBOL: row}`` (see :func:`_nse_lookup`)."""
+    return {row.symbol: row for row in _bse_rows()}
 
 
 @lru_cache(maxsize=1)
@@ -167,20 +180,20 @@ def load_india_universe(universe_id: ScreenerUniverseId) -> ScreenerUniverse:
         return ScreenerUniverse(
             id="nse-all",
             label="NSE (all listed)",
-            symbols=[f"{sym}.NS" for sym, _name, _typ in _nse_rows()],
+            symbols=[f"{row.symbol}.NS" for row in _nse_rows()],
             asset_class="equity",
         )
     if universe_id == "bse-all":
         return ScreenerUniverse(
             id="bse-all",
             label="BSE (all active)",
-            symbols=[f"{sym}.BO" for sym, _n, _g, _c, _i in _bse_rows()],
+            symbols=[f"{row.symbol}.BO" for row in _bse_rows()],
             asset_class="equity",
         )
     if universe_id == "india-all":
-        nse_symbols = {sym for sym, _name, _typ in _nse_rows()}
-        symbols = [f"{sym}.NS" for sym, _name, _typ in _nse_rows()]
-        symbols += [f"{sym}.BO" for sym, _n, _g, _c, _i in _bse_rows() if sym not in nse_symbols]
+        nse_symbols = {row.symbol for row in _nse_rows()}
+        symbols = [f"{row.symbol}.NS" for row in _nse_rows()]
+        symbols += [f"{row.symbol}.BO" for row in _bse_rows() if row.symbol not in nse_symbols]
         return ScreenerUniverse(
             id="india-all",
             label="India (NSE + BSE)",
@@ -211,23 +224,22 @@ def india_symbol_meta(symbol: str) -> dict[str, Any] | None:
     bse = _bse_lookup()
 
     if suffix in (None, "NS") and base in nse:
-        name, _typ = nse[base]
         bse_row = bse.get(base)
         return {
             "exchange": "NSE",
-            "scrip_code": bse_row[2] if bse_row else None,
-            "isin": (bse_row[3] or None) if bse_row else None,
-            "name": name,
-            "group": bse_row[1] if bse_row else None,
+            "scrip_code": bse_row.scrip_code if bse_row else None,
+            "isin": (bse_row.isin or None) if bse_row else None,
+            "name": nse[base].name,
+            "group": bse_row.group if bse_row else None,
         }
     if suffix in (None, "BO") and base in bse:
-        name, group, code, isin = bse[base]
+        row = bse[base]
         return {
             "exchange": "BSE",
-            "scrip_code": code,
-            "isin": isin or None,
-            "name": name,
-            "group": group,
+            "scrip_code": row.scrip_code,
+            "isin": row.isin or None,
+            "name": row.name,
+            "group": row.group,
         }
     return None
 
