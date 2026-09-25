@@ -1946,6 +1946,70 @@ def _depositary_context(text: str, before: bool) -> bool:
     return bool(_CLAIM_TERM.search(last[-1])) if last else before
 
 
+_CITATION_CUE = re.compile(
+    r"\b(?:returned|returns|results?|output|data|according to|shows?|reports?|says)\b|[{\[]",
+    re.IGNORECASE,
+)
+_CURRENCY_FIGURE = re.compile(
+    r"(?:[$₹€£]|\b(?:Rs\.?|USD|INR))\s*\d"
+    r"|\d[\d,.]*\s*(?:cr|crore|m|mn|bn|billion|million|USD|INR)\b",
+    re.IGNORECASE,
+)
+_GENERIC_TOOL_REF = re.compile(r"\b(?:tool results?|tool output|the tool returned)\b", re.I)
+
+
+def _guard_tool_citations(
+    text: str, ok_tools: set[str], tool_ids: set[str], depth: int
+) -> tuple[str, int]:
+    """``text`` with each sentence that cites a tool no ok result came from
+    replaced (R15-LEAD-030): a reference to tool ``T`` (backticked, a bare id
+    with an underscore, or ``T`` then tool/returned/result/output/data or a
+    ``:``/``=`` dump) carrying a claim cue or a currency figure while ``T`` has
+    returned nothing ok this turn. ``depth``: the brackets a replaced dump left
+    open; the text until they balance is dropped. Returns the text and the
+    depth left open.
+    ponytail: a bare figure with no tool reference ("₹4,411 cr") is not
+    screened — derived arithmetic and a user's figure are legitimate; a
+    pre-call narration with a cue ("I'll fetch the `news` data") is replaced.
+    """
+    ids = "|".join(sorted(map(re.escape, tool_ids)))
+    bare = "|".join(sorted(re.escape(t) for t in tool_ids if "_" in t))
+    ref = re.compile(
+        rf"`({ids})`|\b({ids})(?:\s+(?:tool|returned|results?|output|data)\b|\s*[:=]\s*[{{\[])"
+        rf"|\b({bare})\b",
+        re.IGNORECASE,
+    )
+    out: list[str] = []
+    for match in _SENTENCE.finditer(text):
+        sentence = match.group()
+        if depth:
+            for i, ch in enumerate(sentence):
+                depth += (ch in "{[") - (ch in "}]")
+                if not depth:
+                    out.append(sentence[i + 1 :])
+                    break
+            continue
+        refs = [next(g for g in m.groups() if g).lower() for m in ref.finditer(sentence)]
+        untraced = [t for t in refs if t not in ok_tools]
+        generic = not refs and not ok_tools and _GENERIC_TOOL_REF.search(sentence)
+        if (untraced or generic) and (
+            _CITATION_CUE.search(sentence) or _CURRENCY_FIGURE.search(sentence)
+        ):
+            logger.info("tool-citation guard replaced an untraced claim: %r", sentence.strip())
+            note = (
+                f"The {untraced[0]} tool returned no data for this in this session."
+                if untraced
+                else "No tool returned data for this in this session."
+            )
+            lead = sentence[: len(sentence) - len(sentence.lstrip())]
+            depth = max(
+                sum(sentence.count(c) for c in "{[") - sum(sentence.count(c) for c in "}]"), 0
+            )
+            sentence = lead + note + sentence[len(sentence.rstrip()) :]
+        out.append(sentence)
+    return "".join(out), depth
+
+
 @dataclass
 class _TurnState:
     """What the rounds of one turn carry forward."""
@@ -1976,6 +2040,9 @@ class _TurnState:
     # The last released sentence named a depositary term, so the next one is
     # read in depositary context (R15-AGENT-090, the split-sentence claim).
     ratio_context: bool = False
+    # The tools that returned an ok result this turn: a sentence citing any
+    # other tool's result is replaced (R15-LEAD-030).
+    ok_tools: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -2169,10 +2236,14 @@ async def _consume_round(
     before any other event but a heartbeat, so the relay order is kept.
     """
     held: list[str] = []  # the provider's delta texts not yet released
+    dump_depth = 0  # brackets a replaced tool-result dump left open
+    tool_ids = set(catalog.CAPABILITY_CATALOG) | set(run.tool_ids)
 
     def _release(chunks: list[str]) -> list[LLMDeltaEvent]:
+        nonlocal dump_depth
         text = "".join(chunks)
         guarded = _guard_ratio_claims(text, turn.tool_results, turn.ratio_context)
+        guarded, dump_depth = _guard_tool_citations(guarded, turn.ok_tools, tool_ids, dump_depth)
         turn.ratio_context = _depositary_context(text, turn.ratio_context)
         if guarded.strip():
             rnd.streamed_text = True
@@ -2444,7 +2515,10 @@ async def _dispatch_round(
         )
         run.messages.append(tool_result_msg)
         turn.tool_results.append(result_str)
-        yield _tool_result_event(tool_call, result_str)
+        outcome = _tool_result_event(tool_call, result_str)
+        if outcome.ok:
+            turn.ok_tools.add(tool_call.name)
+        yield outcome
         if on_tool_result is not None:
             on_tool_result(tool_call, result_str)
         if tool_call.name in _host_ids and _result_status(result_str) == "awaiting_user_review":
