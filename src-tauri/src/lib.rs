@@ -1045,6 +1045,25 @@ mod tests {
     }
 
     #[test]
+    fn smoke_bind_budget_matches_supervisor() {
+        // R15-RELEASE-009: the smoke test's MCP bind budget is the supervisor's
+        // whole retry budget, so neither drifts from the other unnoticed.
+        let smoke = include_str!("../../scripts/smoke-test-sidecars.mjs");
+        let ms: u64 = smoke
+            .lines()
+            .find_map(|l| l.strip_prefix("const MCP_BIND_TIMEOUT_MS = "))
+            .expect("smoke test declares MCP_BIND_TIMEOUT_MS")
+            .trim_end_matches(';')
+            .replace('_', "")
+            .parse()
+            .unwrap();
+        assert_eq!(
+            ms,
+            MCP_PORT_WAIT_SECS * u64::from(MCP_PORT_WAIT_ATTEMPTS) * 1000
+        );
+    }
+
+    #[test]
     fn mcp_wait_budget_constants_drive_the_helper() {
         // Exercise the shipped constants through the helper on an unbound
         // port with a zeroed per-attempt budget (keeps the test instant)
