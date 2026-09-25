@@ -1118,8 +1118,17 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
             )}
 
             <section className="border-charcoal-700 rounded-none border">
-              <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
+              <h3 className="text-charcoal-200 border-charcoal-700 text-micro flex items-baseline justify-between border-b px-3 py-2">
                 Analyst ratings
+                {ratings?.as_of != null && (
+                  <span
+                    className="text-charcoal-500 text-caption"
+                    title={new Date(ratings.as_of).toLocaleString()}
+                    data-testid="equity-ratings-as-of"
+                  >
+                    As of {new Date(ratings.as_of).toLocaleString()}
+                  </span>
+                )}
               </h3>
               {ratings === null ? (
                 <EmptyState

@@ -162,3 +162,27 @@ def test_the_envelope_says_when_it_was_fetched_and_a_cache_hit_keeps_that_time(
     fetched = datetime.fromisoformat(fresh["as_of"])
     assert abs((datetime.now(UTC) - fetched).total_seconds()) < 5
     assert client.get(f"/fundamentals/AAPL/{path}").json()["as_of"] == fresh["as_of"]
+
+
+def test_base_ratings_envelope_carries_as_of_and_a_cache_hit_keeps_it(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-068: fundamentals.py:251 used to discard ``_cached``'s
+    fetched_at for the base GET /fundamentals/{symbol}/ratings consensus
+    envelope. A fresh call now carries a non-null ISO ``as_of``, and a
+    second call within the TTL (a cache hit) returns the SAME as_of — the
+    cache row's write time, not the read time."""
+    from datetime import UTC, datetime
+
+    from models.fundamentals import AnalystRating
+    from services import provider_registry
+
+    async def rating(symbol: str) -> AnalystRating:
+        return AnalystRating(symbol=symbol.upper(), provider="yfinance")
+
+    monkeypatch.setattr(provider_registry, "get_analyst_rating", rating)
+
+    fresh = client.get("/fundamentals/AAPL/ratings").json()
+    fetched = datetime.fromisoformat(fresh["as_of"])
+    assert abs((datetime.now(UTC) - fetched).total_seconds()) < 5
+    assert client.get("/fundamentals/AAPL/ratings").json()["as_of"] == fresh["as_of"]
