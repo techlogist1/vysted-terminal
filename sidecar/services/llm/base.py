@@ -129,7 +129,7 @@ class LLMProvider(ABC):
     """
 
     @abstractmethod
-    async def stream_chat(
+    def stream_chat(
         self,
         messages: list[LLMMessage],
         model: str,
@@ -137,6 +137,10 @@ class LLMProvider(ABC):
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
         """Stream a chat completion as discriminated :class:`LLMStreamEvent`s.
+
+        Declared as a plain ``def`` returning an async iterator: every adapter
+        implements it as an async generator (``async def`` + ``yield``) and
+        every caller iterates it with ``async for`` and no ``await``.
 
         Adapters MUST emit a final :class:`LLMDoneEvent` on clean completion or
         an :class:`LLMErrorEvent` on failure — the router relies on the
