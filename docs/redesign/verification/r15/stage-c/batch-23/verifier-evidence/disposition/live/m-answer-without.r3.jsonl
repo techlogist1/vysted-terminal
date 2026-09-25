@@ -1,0 +1,58 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_4f69a212b3df454f86bd9bdfde5810d4", "name": "portfolio_update_position", "input": {"note": "", "position_id": "sold 5 TCS shares", "purchased_at": "ISO date, YYYY-MM-DD", "quantity": -5, "symbol": "TCS", "asset_class": "equity", "cost_basis": 3100}}
+{"kind": "tool_result", "tool_call_id": "call_4f69a212b3df454f86bd9bdfde5810d4", "name": "portfolio_update_position", "ok": true, "error": null}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " sold"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " proposed"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " update"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proceeds"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " '"}
+{"kind": "delta", "text": "Portfolio"}
+{"kind": "delta", "text": "'"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " queue"}
+{"kind": "delta", "text": " once"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " accepted"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": "."}
+{"kind": "research_step", "tool_call_id": "call_4f69a212b3df454f86bd9bdfde5810d4", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_update_position TCS. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 2990, "output_tokens": 51, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

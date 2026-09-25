@@ -1,0 +1,143 @@
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " V"}
+{"kind": "delta", "text": "yst"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": " cop"}
+{"kind": "delta", "text": "ilot"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " here"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Unfortunately"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " must"}
+{"kind": "delta", "text": " inform"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " V"}
+{"kind": "delta", "text": "yst"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " no"}
+{"kind": "delta", "text": " brokerage"}
+{"kind": "delta", "text": " connection"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " means"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " execute"}
+{"kind": "delta", "text": " trades"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " manage"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " actual"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " track"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " hypothetical"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " positions"}
+{"kind": "delta", "text": " manually"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " add"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": " SB"}
+{"kind": "delta", "text": "IN"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "800"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "initial"}
+{"kind": "delta", "text": " balance"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " +"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": " x"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "800"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "So"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " new"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Keep"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " mind"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " manual"}
+{"kind": "delta", "text": " tracking"}
+{"kind": "delta", "text": " exercise"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " actual"}
+{"kind": "delta", "text": " investment"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " add"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " positions"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2743, "output_tokens": 140, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

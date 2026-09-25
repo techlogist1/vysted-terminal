@@ -1,0 +1,17 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " just"}
+{"kind": "delta", "text": " look"}
+{"kind": "delta", "text": " up"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "TC"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The market_overview tool returned no data for this in this turn."}
+{"kind": "done", "usage": {"input_tokens": 2738, "output_tokens": 37, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,10 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  25.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_6479b39d97344bd89bf162b8f3802930", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "INFY.NS", "timeframe": "1h"}}
+[  25.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_6479b39d97344bd89bf162b8f3802930", "name": "price_data", "ok": true, "error": null}
+[  31.9s] done: {"kind": "done", "usage": {"input_tokens": 3565, "output_tokens": 18, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+INFY.NS is trading at ₹1,000.20 as of now.
+
+=== ok · 31.9s · events {'heartbeat': 2, 'tool_use': 1, 'tool_result': 1, 'delta': 17, 'done': 1} · usage in=3565 out=18 · est $0.00000 · llama3.1:8b

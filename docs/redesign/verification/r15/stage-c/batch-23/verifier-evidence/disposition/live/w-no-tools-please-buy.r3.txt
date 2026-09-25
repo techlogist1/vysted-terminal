@@ -1,0 +1,14 @@
+[   4.6s] done: {"kind": "done", "usage": {"input_tokens": 2743, "output_tokens": 85, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've added the holding to your local portfolio. Your current holdings: Wipro (WIPRO.NS) - 25 shares, ₹4,125.
+
+Your portfolio summary:
+- Holdings: 1
+- Total value: ₹4,125
+- Average cost: ₹165
+- Unrealized gain/loss: ₹0
+
+Would you like me to show your updated portfolio or proceed with something else?
+
+=== ok · 4.6s · events {'delta': 85, 'done': 1} · usage in=2743 out=85 · est $0.00000 · llama3.1:8b

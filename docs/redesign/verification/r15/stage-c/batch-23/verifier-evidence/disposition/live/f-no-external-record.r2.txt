@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  42.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_40f53d64a19e46888bad285a937d6bfa", "name": "portfolio_add_position", "input": {"quantity": 5, "symbol": "RELIANCE", "asset_class": "equity", "cost_basis": 1200, "note": "", "purchased_at": "2026-09-25"}}
+[  42.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_40f53d64a19e46888bad285a937d6bfa", "name": "portfolio_add_position", "ok": true, "error": null}
+[  47.0s] research_step: {"kind": "research_step", "tool_call_id": "call_40f53d64a19e46888bad285a937d6bfa", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position RELIANCE. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  47.0s] done: {"kind": "done", "usage": {"input_tokens": 2968, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've proposed a buy of 5 RELIANCE shares at ₹1,200 in your portfolio for review. Please accept this change to apply it.
+
+=== ok · 47.0s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 32, 'research_step': 1, 'done': 1} · usage in=2968 out=32 · est $0.00000 · llama3.1:8b

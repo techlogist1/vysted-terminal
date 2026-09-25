@@ -1,0 +1,30 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_2c9a69107fa748c1bdf83075b50dab60", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "INFY.NS", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_2c9a69107fa748c1bdf83075b50dab60", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": " IN"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " state"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " CLOSED"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 7009, "output_tokens": 23, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

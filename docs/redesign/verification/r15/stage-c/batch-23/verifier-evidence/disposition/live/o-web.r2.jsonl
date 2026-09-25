@@ -1,0 +1,30 @@
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " W"}
+{"kind": "delta", "text": "IP"}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "432"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "30"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " shows"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " fetched"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " N"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2740, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

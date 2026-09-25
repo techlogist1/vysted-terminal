@@ -1,0 +1,44 @@
+MISS m-answer-without             n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Answer without any tools: I sold 5 TCS shares at ₹3,100 each. Restate my total proceeds.
+MISS m-do-not-call-a-tool         n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Do not call a tool. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.
+MISS m-curly-dont                 n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Don’t use any tools. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.
+MISS m-avoid-functions            n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Avoid calling any functions. I bought 40 ITC shares at ₹415, add them to my holdings and tell me what I spent.
+MISS m-skip-tools                 n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Skip the tools for this one — I hold 12 HDFCBANK at ₹1,600; add 3 more at ₹1,650, what is my average?
+MISS m-zero-tool-calls            n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Zero tool calls please: I want to add 7 INFY at ₹1,500 to my portfolio — just tell me the total cost.
+MISS m-from-given                 n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | I hold 40 HDFCBANK at ₹1,640; answer only from what I gave you: what is my cost basis?
+MISS m-refrain                    n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Refrain from calling any tools and restate my 5 TCS at ₹3,100.
+MISS m-without-functions-add      n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Without using functions, add 3 HDFCBANK at ₹1,650 to my holdings and tell me the total.
+MISS m-no-function-calls          n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | No function calls. I bought 15 WIPRO at ₹250; total cost?
+MISS m-curly-invoke               n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Please don’t invoke any tool — record nothing, just tell me 5 × ₹3,100.
+MISS f-hands-off-add              n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Hands off the tools: add 20 SBIN at ₹800 to my portfolio.
+MISS f-no-external-record         n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | No external calls. Record a buy of 5 RELIANCE at ₹1,200 in my portfolio.
+MISS f-dont-look-up-update        n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Don't look anything up; I sold 3 INFY at ₹1,010 — update my holdings.
+MISS f-without-function-delete    n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Without any function calls, delete my TCS position.
+MISS f-tools-off-price            n_tools=42 writes=[] price=True | Tools off for this one: what is TCS.NS trading at right now?
+MISS f-dont-touch-price           n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Please don't touch any tools, just tell me INFY.NS's current price.
+KEEP k-blindly                    n_tools=42 writes=[] price=True | Don't just use the tools blindly — check the TCS.NS price and explain the move.
+KEEP k-twice                      n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Never call the tools twice for one symbol; get the INFY.NS price.
+KEEP k-dont-need                  n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Don't call functions you don't need, just get me SBIN.NS's latest price.
+KEEP k-no-lookups-tcs             n_tools=42 writes=[] price=True | No lookups needed for TCS, I know it; what is ITC.NS trading at?
+KEEP k-search-tools               n_tools=42 writes=[] price=True | Never use the search tools, only the quote: INFY.NS price?
+KEEP k-arith                      n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Don't use the tools for arithmetic; get the TCS.NS price.
+KEEP k-again                      n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Do not call the tools again for TCS, just get INFY.NS price.
+OVER o-never-said                 n_tools= 0 writes=[] price=False | I never said don't use tools — get RELIANCE.NS price.
+OVER o-other-than                 n_tools= 0 writes=[] price=False | Don't use any tools other than price data: TCS.NS close?
+OVER o-but-do-fetch               n_tools= 0 writes=[] price=False | Don't use tools for the math, but do fetch the TCS.NS price.
+OVER o-except                     n_tools= 0 writes=[] price=False | No tools except price_data for TCS.NS
+OVER o-dont-need                  n_tools= 0 writes=[] price=False | Don't use tools you don't need; get the ITC.NS price.
+OVER o-twice                      n_tools= 0 writes=[] price=False | Don't call tools twice — what is HDFCBANK.NS at?
+OVER o-web                        n_tools= 0 writes=[] price=False | Do not use tools from the web, only the quote: WIPRO.NS price?
+L38  w-without-calling-add        n_tools= 0 writes=[] price=False | Without calling any tool, add 10 SBIN at ₹800 to my portfolio and tell me the total.
+L38  w-dont-use-add-infy          n_tools= 0 writes=[] price=False | Don't use any tools, add 7 INFY to my holdings
+L38  w-never-use-add              n_tools= 0 writes=[] price=False | Never use tools for this: add 5 TCS at ₹3,000 to my holdings.
+L38  w-caps-sell                  n_tools= 0 writes=[] price=False | DON'T USE TOOLS. Sell 5 ITC at ₹420 from my portfolio.
+L38  w-no-tool-calls-sold         n_tools= 0 writes=[] price=False | no tool calls — I sold 4 TCS at ₹3,200, update my position and tell me what I got.
+L38  w-no-tools-please-buy        n_tools= 0 writes=[] price=False | No tools please. I bought 25 WIPRO at ₹165 today — put them in my portfolio.
+L38  w-do-not-call-tools-delete   n_tools= 0 writes=[] price=False | Do not call tools. Remove my HDFCBANK holding.
+L37  p-sbi-short                  n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Get the latest price of SBIN.NS and state it in one sentence that calls the company SBI.
+L37  p-tcs-short                  n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Get the latest price of TCS.NS and state it in one sentence.
+L37  p-infy-now                   n_tools=42 writes=[] price=True | What is INFY.NS trading at right now? One line.
+L37  p-itc-current                n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Fetch ITC.NS with price_data and tell me its current price.
+L37  p-hdfc-latest                n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Latest HDFCBANK.NS price please, just the number and the date.
+L37  p-wipro-now                  n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Use price_data for WIPRO.NS and give me the current price and today's change.

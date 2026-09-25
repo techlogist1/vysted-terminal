@@ -1,0 +1,5 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "{\"name\": \"portfolio_update_position\", \"parameters\": {\"position_id\": None, \"symbol\": \"INFY\", \"quantity\": -3, \"cost_basis\": 1010}}"}
+{"kind": "done", "usage": {"input_tokens": 7480, "output_tokens": 39, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

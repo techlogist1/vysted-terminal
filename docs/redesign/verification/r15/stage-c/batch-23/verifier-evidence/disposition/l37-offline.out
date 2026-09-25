@@ -1,0 +1,6 @@
+STREAMS s-stale-bar-as-current: "The latest price of SBI is ₹1082.0.\n"
+STREAMS s-stale-bar-2: "SBIN.NS is trading at ₹1,035.10 right now.\n"
+STREAMS s-invented-10x-allok: "The current price of SBIN.NS is ₹9,830.\n"
+STREAMS s-invented-allok: "SBIN.NS last traded at ₹1,210.40.\n"
+STREAMS s-invented-errturn: "SBIN.NS last traded at ₹1,210.40.\n"
+HELD    t-true-current: "SBIN.NS last traded at ₹983.00.\n"

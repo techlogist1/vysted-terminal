@@ -1,0 +1,19 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_1b12410a3ee54f7882583e051c4a8e73", "name": "get_portfolio", "input": {}}
+[  38.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_1b12410a3ee54f7882583e051c4a8e73", "name": "get_portfolio", "ok": true, "error": null}
+[  43.1s] done: {"kind": "done", "usage": {"input_tokens": 2821, "output_tokens": 89, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I couldn't find any information about your portfolio or the shares you sold.
+
+However, I can help you calculate your proceeds based on the information you provided. You sold 5 TCS shares at ₹3,100 each.
+
+So, your proceeds would be:
+
+5 x ₹3,100 = ₹15,500
+
+Please note that this is an estimate and may not reflect any potential taxes or fees associated with the sale of your shares.
+
+=== ok · 43.1s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 89, 'done': 1} · usage in=2821 out=89 · est $0.00000 · llama3.1:8b

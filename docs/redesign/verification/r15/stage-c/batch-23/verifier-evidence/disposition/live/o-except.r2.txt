@@ -1,0 +1,10 @@
+[   4.9s] done: {"kind": "done", "usage": {"input_tokens": 2731, "output_tokens": 89, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+It seems like we're starting fresh in the Vysted terminal with very limited access to tools. 
+
+Currently, we have no data on any stocks except for TCS.NS. Let me see what I can do with just this one tool.
+
+If you'd like to know more about TCS.NS or need help with something specific related to it, please let me know and I'll try my best with the limited information available.
+
+=== ok · 4.9s · events {'delta': 89, 'done': 1} · usage in=2731 out=89 · est $0.00000 · llama3.1:8b

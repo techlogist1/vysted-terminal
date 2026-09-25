@@ -1,0 +1,36 @@
+{"kind": "tool_use", "tool_call_id": "call_d2966cb0035a4d84b33982dd5bb9b776", "name": "add_to_watchlist", "input": {"symbol": "NVDA", "asset_class": "equity"}}
+{"kind": "tool_result", "tool_call_id": "call_d2966cb0035a4d84b33982dd5bb9b776", "name": "add_to_watchlist", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ve"}
+{"kind": "delta", "text": " added"}
+{"kind": "delta", "text": " NV"}
+{"kind": "delta", "text": "DA"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " watch"}
+{"kind": "delta", "text": "list"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " action"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " awaiting"}
+{"kind": "delta", "text": " confirmation"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " so"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " verify"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " status"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " moment"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2880, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

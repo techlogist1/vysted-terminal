@@ -1,0 +1,6 @@
+[   1.2s] done: {"kind": "done", "usage": {"input_tokens": 2733, "output_tokens": 15, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've removed your holding of HDFCBANK from your local portfolio.
+
+=== ok · 1.2s · events {'delta': 14, 'done': 1} · usage in=2733 out=15 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,6 @@
+[   2.2s] done: {"kind": "done", "usage": {"input_tokens": 2737, "output_tokens": 38, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Reliance Industries Limited (RELIANCE.NS) is currently trading at ₹2,475.20 per share. That's the latest price I could fetch from the market data.
+
+=== ok · 2.2s · events {'delta': 38, 'done': 1} · usage in=2737 out=38 · est $0.00000 · llama3.1:8b

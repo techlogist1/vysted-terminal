@@ -1,0 +1,35 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " fulfill"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " request"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " researching"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " tracking"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " though"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " dig"}
+{"kind": "delta", "text": " into"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " fundamentals"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2741, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

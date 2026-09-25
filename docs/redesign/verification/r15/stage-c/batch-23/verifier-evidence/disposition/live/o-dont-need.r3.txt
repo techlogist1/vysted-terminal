@@ -1,0 +1,6 @@
+[   2.2s] done: {"kind": "done", "usage": {"input_tokens": 2738, "output_tokens": 37, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I'll just look up the latest price for ITC.NS. The market_overview tool returned no data for this in this turn.
+
+=== ok · 2.2s · events {'delta': 16, 'done': 1} · usage in=2738 out=37 · est $0.00000 · llama3.1:8b

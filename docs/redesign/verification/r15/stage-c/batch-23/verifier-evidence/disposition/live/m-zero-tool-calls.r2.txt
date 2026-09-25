@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  41.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_25317ad189da4c0e8b296d704f316201", "name": "portfolio_add_position", "input": {"symbol": "INFY", "quantity": 7, "cost_basis": 1500}}
+[  41.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_25317ad189da4c0e8b296d704f316201", "name": "portfolio_add_position", "ok": true, "error": null}
+[  45.7s] research_step: {"kind": "research_step", "tool_call_id": "call_25317ad189da4c0e8b296d704f316201", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position INFY. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  45.7s] done: {"kind": "done", "usage": {"input_tokens": 2928, "output_tokens": 39, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I've proposed adding 7 INFY at ₹1,500 to your portfolio for review. This will add a total cost of ₹10,500 to your holdings if you accept it.
+
+=== ok · 45.7s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 39, 'research_step': 1, 'done': 1} · usage in=2928 out=39 · est $0.00000 · llama3.1:8b

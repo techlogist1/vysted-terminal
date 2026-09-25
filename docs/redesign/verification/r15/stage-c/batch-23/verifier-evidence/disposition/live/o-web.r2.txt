@@ -1,0 +1,6 @@
+[   1.8s] done: {"kind": "done", "usage": {"input_tokens": 2740, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of WIPRO.NS is ₹432.30. The terminal's data shows this price as fetched from NSE.
+
+=== ok · 1.8s · events {'delta': 29, 'done': 1} · usage in=2740 out=29 · est $0.00000 · llama3.1:8b

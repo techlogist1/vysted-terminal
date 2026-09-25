@@ -1,0 +1,20 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_6ec3ce55b40f44538a818caf1a37687b", "name": "price_data", "input": {"range": "1d", "symbol": "ITC.NS", "timeframe": "1d", "asset_class": "equity"}}
+{"kind": "tool_result", "tool_call_id": "call_6ec3ce55b40f44538a818caf1a37687b", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "IT"}
+{"kind": "delta", "text": "C"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "269"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6843, "output_tokens": 14, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
