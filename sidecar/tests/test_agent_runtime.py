@@ -2394,3 +2394,80 @@ def test_compare_symbols_market_cap_reads_in_each_row_quote_currency() -> None:
     assert rows[0]["fundamentals"] == {"market_cap": "₹1,121,600 cr", "pe_ratio": 22.4}
     assert rows[1]["fundamentals"]["market_cap"] == "USD 156.00B"
     assert rows[2] == {"symbol": "ZZZZ", "error": "no quote"}
+
+
+async def _scripted_answer(
+    monkeypatch: pytest.MonkeyPatch, tool: str, result: dict[str, Any], deltas: list[str]
+) -> str:
+    """Round 1 calls ``tool`` (stubbed to return ``result``); round 2 streams
+    ``deltas``. Returns the joined answer the consumer saw."""
+    agent_runtime.reload()
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _RecordingRoundsProvider(
+        [
+            [LLMToolUseEvent(tool_call_id="t", name=tool, input={"symbol": "SIFY"}), done],
+            [*(LLMDeltaEvent(text=d) for d in deltas), done],
+        ]
+    )
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+
+    async def _tool(*_a: Any, **_k: Any) -> str:
+        return json.dumps(result)
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    return "".join(
+        [
+            e.text
+            async for e in agent_runtime.invoke_agent(
+                agent_id="copilot", prompt="SIFY ADR ratio?", api_key="sk-test", autonomy="ask"
+            )
+            if isinstance(e, LLMDeltaEvent)
+        ]
+    )
+
+
+_SIFY_FUNDAMENTALS = {
+    "ok": True,
+    "fundamentals": {
+        "symbol": "SIFY",
+        "financial_currency": "INR",
+        "shares_outstanding": 144869230,
+    },
+}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("deltas", "claim"),
+    [
+        (
+            ["One SIFY ADR repre", "sents 1", " ordinary share, per fundam", "entals data. Rev"],
+            "represents 1 ordinary share",
+        ),
+        (["Each ADS equals approximately 1448", "69230 ordinary shares.\nRev"], "144869230"),
+    ],
+)
+async def test_an_untraced_adr_ratio_claim_is_replaced(
+    monkeypatch: pytest.MonkeyPatch, deltas: list[str], claim: str
+) -> None:
+    """R15-AGENT-090: llama3.1:8b stated SIFY's ADR ratio (1:1, and one read off
+    ``shares_outstanding``) and cited "fundamentals data", which carries no ADR
+    field. The runtime replaces the claim sentence; the rest streams as is."""
+    answer = await _scripted_answer(
+        monkeypatch, "fundamentals", _SIFY_FUNDAMENTALS, [*deltas, "enue was ₹4,651 cr."]
+    )
+    assert agent_runtime.RATIO_UNAVAILABLE in answer
+    assert claim not in answer
+    assert "fundamentals data" not in answer
+    assert answer.endswith("Revenue was ₹4,651 cr.")
+
+
+@pytest.mark.asyncio
+async def test_an_adr_ratio_a_tool_result_carries_is_kept(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-090: a ratio the session's sources do carry ("Each Repr 6 Ords",
+    stated as a number word) passes the guard untouched."""
+    result = {"ok": True, "results": [{"title": "Sify Technologies Ltd ADS (Each Repr 6 Ords)"}]}
+    answer = await _scripted_answer(
+        monkeypatch, "web_search", result, ["Each ADS represents si", "x ordinary shares."]
+    )
+    assert answer == "Each ADS represents six ordinary shares."
