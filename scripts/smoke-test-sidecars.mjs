@@ -70,7 +70,14 @@
 // Run via: `node scripts/smoke-test-sidecars.mjs`
 
 import { spawn, execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { createServer, connect as netConnect } from "node:net";
 import { basename, join, resolve } from "node:path";
 import { tmpdir, platform } from "node:os";
@@ -111,22 +118,45 @@ const MCP_SETTLE_MS = 3_000;
 const _SMOKE_MARKER_ENV = "VYSTED_SMOKE_TEST_MARKER";
 const _SMOKE_MARKER = "vysted-smoke-test-v1";
 
-// Fixed (not per-run) path so a crashed prior run's ledger is discoverable
-// by the next run's pre-flight.
+// Fixed (not per-run) DIR so a crashed prior run's ledger is discoverable by
+// the next run's pre-flight, but each run's ledger FILE is named by its own
+// node PID (R15-LIFECYCLE-039): a single shared `live-children.json` meant
+// two concurrent runs on one host clobbered each other's writes, and one
+// run's pre-flight could tree-kill the OTHER run's still-live sidecars.
+// Per-run files let concurrent ledgers coexist; pre-flight only ever reaps a
+// ledger whose OWNING node process (the run that wrote it) is itself dead.
 const _STATE_DIR = join(tmpdir(), "vysted-smoke-test");
-const _STATE_FILE = join(_STATE_DIR, "live-children.json");
+const _STATE_FILE_RE = /^live-children-(\d+)\.json$/;
+const _STATE_FILE = join(_STATE_DIR, `live-children-${process.pid}.json`);
 
-/** Read the PID ledger; `[]` on any read/parse failure (never blocks a run). */
-function _readState() {
+/** Every per-run ledger file (this run's and any others') found in _STATE_DIR. */
+function _listStateFiles() {
   try {
-    const parsed = JSON.parse(readFileSync(_STATE_FILE, "utf8"));
+    return readdirSync(_STATE_DIR)
+      .filter((f) => _STATE_FILE_RE.test(f))
+      .map((f) => join(_STATE_DIR, f));
+  } catch {
+    return [];
+  }
+}
+
+/** The node PID that owns (wrote) a given ledger file, from its filename. */
+function _ownerPidOfStateFile(file) {
+  const m = _STATE_FILE_RE.exec(basename(file));
+  return m ? Number(m[1]) : null;
+}
+
+/** Read one ledger file; `[]` on any read/parse failure (never blocks a run). */
+function _readStateFile(file) {
+  try {
+    const parsed = JSON.parse(readFileSync(file, "utf8"));
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 }
 
-/** Persist the PID ledger; best-effort — a write failure must never fail the run. */
+/** Persist THIS run's ledger; best-effort — a write failure must never fail the run. */
 function _writeState(entries) {
   try {
     mkdirSync(_STATE_DIR, { recursive: true });
@@ -137,13 +167,13 @@ function _writeState(entries) {
 }
 
 function _recordChild(pid, binaryBaseName) {
-  const entries = _readState();
+  const entries = _readStateFile(_STATE_FILE);
   entries.push({ pid, binary: binaryBaseName, marker: _SMOKE_MARKER, spawnedAt: Date.now() });
   _writeState(entries);
 }
 
 function _forgetChild(pid) {
-  const entries = _readState().filter((e) => e.pid !== pid);
+  const entries = _readStateFile(_STATE_FILE).filter((e) => e.pid !== pid);
   _writeState(entries);
 }
 
@@ -171,6 +201,11 @@ function _registerCleanup() {
       _forgetChild(pid);
     }
     _LIVE_PIDS.clear();
+    try {
+      unlinkSync(_STATE_FILE); // this run's own ledger — now empty — don't litter tmp
+    } catch {
+      // Never written, or already gone — fine either way.
+    }
   };
   // `exit` runs synchronously and last — guarantees orphan cleanup on
   // any path including uncaught throws. SIGINT/SIGTERM let interactive
@@ -269,18 +304,24 @@ async function _confirmOwnedByMarker(entry) {
 
 /**
  * Scoped orphan pre-flight (CLAUDE.md Gotcha: "a pre-flight orphan check").
- * Reaps ONLY children a PRIOR RUN OF THIS SCRIPT recorded in `_STATE_FILE`
- * and failed to clean up (e.g. a hard crash, SIGKILL of the node process
- * itself). This is the replacement for the old blanket
+ * Reaps ONLY children a PRIOR RUN OF THIS SCRIPT recorded in its own ledger
+ * file and failed to clean up (e.g. a hard crash, SIGKILL of the node
+ * process itself). This is the replacement for the old blanket
  * `pgrep -f vysted-.*sidecar` scan: that scan matched every vysted-*sidecar*
  * process on the box BY NAME, including the operator's own running app, and
  * told the operator to `pkill -9 -f vysted-.*sidecar` to proceed — killing
  * the app they're using. This function never inspects, matches, or touches
  * any PID it did not itself write to its own ledger file in a previous run.
+ *
+ * A ledger's OWNER (the node PID in its filename) is checked FIRST
+ * (R15-LIFECYCLE-039): a ledger whose owner is still alive belongs to
+ * another smoke-test run in progress on this host and is left completely
+ * untouched — a single shared ledger used to let one run's pre-flight
+ * tree-kill another concurrent run's still-live sidecars.
  */
 async function _scopedOrphanPreflight() {
-  const entries = _readState();
-  if (entries.length === 0) {
+  const files = _listStateFiles();
+  if (files.length === 0) {
     console.log(
       "[smoke] pre-flight (ATTENDED-SAFE): no leaked children from a prior smoke-test " +
         "run's PID ledger — nothing to reap. (This check never inspects processes it did " +
@@ -291,40 +332,56 @@ async function _scopedOrphanPreflight() {
   }
   let reaped = 0;
   let stale = 0;
-  for (const entry of entries) {
-    if (!_isPidAlive(entry.pid)) {
-      stale += 1;
-      continue; // already gone — just a dangling ledger row
+  let liveOwners = 0;
+  for (const file of files) {
+    const ownerPid = _ownerPidOfStateFile(file);
+    if (ownerPid !== null && _isPidAlive(ownerPid)) {
+      // A different smoke-test run's process is still alive and owns this
+      // ledger — it may still be writing to it. Never touch it.
+      liveOwners += 1;
+      continue;
     }
-    const owned = await _confirmOwnedByMarker(entry);
-    if (owned) {
-      console.warn(
-        `[smoke] pre-flight: reaping a leaked child from a PRIOR RUN OF THIS SCRIPT ` +
-          `(pid=${entry.pid}, binary=${entry.binary}) — confirmed via this script's own ` +
-          `marker, tree-killing.`,
-      );
-      _killTree(entry.pid);
-      reaped += 1;
-    } else {
-      // Alive, but the marker/command-name doesn't match what we recorded —
-      // the PID was almost certainly reassigned to an unrelated process
-      // (possibly the operator's own app) since the ledger row was written.
-      // Never touch it; just drop the stale row.
-      console.log(
-        `[smoke] pre-flight: dropping stale ledger row for pid=${entry.pid} — a live ` +
-          `process now holds that PID but does not match this script's marker (PID reuse), ` +
-          `so it is left untouched.`,
-      );
-      stale += 1;
+    const entries = _readStateFile(file);
+    for (const entry of entries) {
+      if (!_isPidAlive(entry.pid)) {
+        stale += 1;
+        continue; // already gone — just a dangling ledger row
+      }
+      const owned = await _confirmOwnedByMarker(entry);
+      if (owned) {
+        console.warn(
+          `[smoke] pre-flight: reaping a leaked child from a PRIOR RUN OF THIS SCRIPT ` +
+            `(pid=${entry.pid}, binary=${entry.binary}) — confirmed via this script's own ` +
+            `marker, tree-killing.`,
+        );
+        _killTree(entry.pid);
+        reaped += 1;
+      } else {
+        // Alive, but the marker/command-name doesn't match what we recorded —
+        // the PID was almost certainly reassigned to an unrelated process
+        // (possibly the operator's own app) since the ledger row was written.
+        // Never touch it; just drop the stale row.
+        console.log(
+          `[smoke] pre-flight: dropping stale ledger row for pid=${entry.pid} — a live ` +
+            `process now holds that PID but does not match this script's marker (PID reuse), ` +
+            `so it is left untouched.`,
+        );
+        stale += 1;
+      }
+    }
+    try {
+      unlinkSync(file); // dead run, every row resolved above — its ledger is done
+    } catch {
+      // Already gone — fine.
     }
   }
-  _writeState([]); // every row has been resolved (reaped or dropped) above
   if (reaped > 0) {
     await sleep(500); // let the OS release file locks after the reap
   }
   console.log(
     `[smoke] pre-flight (ATTENDED-SAFE) complete: reaped ${reaped} leaked child(ren), ` +
-      `dropped ${stale} stale/unowned ledger row(s).`,
+      `dropped ${stale} stale/unowned ledger row(s), left ${liveOwners} ledger(s) owned by ` +
+      `a still-running concurrent smoke-test process untouched.`,
   );
 }
 
@@ -918,4 +975,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { _httpGetOk };
+export { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight };

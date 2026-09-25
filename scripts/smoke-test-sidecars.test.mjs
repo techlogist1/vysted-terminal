@@ -1,11 +1,23 @@
 // @vitest-environment node
+import { spawn } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const { _httpGetOk } = await import("./smoke-test-sidecars.mjs");
+const { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight } =
+  await import("./smoke-test-sidecars.mjs");
 
 afterEach(() => {
   vi.unstubAllGlobals();
 });
+
+/** Spawn-then-wait-for-exit so the returned PID is real but guaranteed dead. */
+function deadPid() {
+  return new Promise((resolveP) => {
+    const child = spawn(process.execPath, ["-e", ""]);
+    child.on("exit", () => resolveP(child.pid));
+  });
+}
 
 describe("_httpGetOk (R15-CODE-PLATFORM-062)", () => {
   it("a 404 and an offline host (ENOTFOUND-shaped failure) yield different shapes", async () => {
@@ -38,5 +50,34 @@ describe("_httpGetOk (R15-CODE-PLATFORM-062)", () => {
       status: 200,
       error: null,
     });
+  });
+});
+
+describe("_scopedOrphanPreflight (R15-LIFECYCLE-039)", () => {
+  it("two ledgers coexist; pre-flight reaps only the dead-owner one and leaves the live-owner ledger alone", async () => {
+    mkdirSync(_STATE_DIR, { recursive: true });
+    const dead = await deadPid();
+    const live = process.pid; // this test process — guaranteed alive throughout
+    const deadFile = join(_STATE_DIR, `live-children-${dead}.json`);
+    const liveFile = join(_STATE_DIR, `live-children-${live}.json`);
+    const liveContents = JSON.stringify([]);
+    writeFileSync(deadFile, JSON.stringify([]));
+    writeFileSync(liveFile, liveContents);
+
+    try {
+      expect(existsSync(deadFile)).toBe(true);
+      expect(existsSync(liveFile)).toBe(true);
+
+      await _scopedOrphanPreflight();
+
+      // The dead run's ledger is resolved and removed.
+      expect(existsSync(deadFile)).toBe(false);
+      // A concurrently-running smoke-test's ledger is never inspected or touched.
+      expect(existsSync(liveFile)).toBe(true);
+      expect(readFileSync(liveFile, "utf8")).toBe(liveContents);
+    } finally {
+      rmSync(deadFile, { force: true });
+      rmSync(liveFile, { force: true });
+    }
   });
 });
