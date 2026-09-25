@@ -254,36 +254,42 @@ turns, and persist the resulting workspace across relaunch.
 
 ---
 
-### User Story 3 — The four-mode agent spine (Priority: P1)
+### User Story 3 — The agent spine: two modes + inferred intent + autonomy axis (Priority: P1)
 
-The agent is not one chat box but **four intents on stable hotkeys**, mapped to finance
-verbs: **Ask** (read-only Q&A over the workspace), **Edit-panel** (a surgical change to
-the panel in focus — "add VWAP + 200-EMA", "add a P&L column", "filter to mid-caps"), and
-**Build** (compose multiple panels/a workflow — "build me a semiconductor cockpit"), and
-**Delegate** (an autonomous background task — a backtest critique, a multi-name research
-sweep, a condition monitor). The current mode, the active persona, and the active
-provider/model are always visible and switchable by keyboard.
+Collapsed from the original four-mode design to **two modes on stable hotkeys** plus an
+orthogonal autonomy axis (`REBUILD_SPEC.md:179`, `types/agent-modes.ts`): **Agent**
+(⌥1 — describe what you want; the request's intent — read, a surgical change to the
+panel in focus ("add VWAP + 200-EMA", "add a P&L column", "filter to mid-caps"), or a
+multi-panel build ("build me a semiconductor cockpit") — is classified server-side, no
+mode-picking) and **Delegate** (⌥2 — an autonomous background task: a backtest critique,
+a multi-name research sweep, a condition monitor). **Autonomy** (ASK/AUTO) is the
+separate "how much confirmation" axis, always visible alongside mode. The current mode,
+autonomy, the active persona, and the active provider/model are always visible and
+switchable by keyboard.
 
 **Why this priority**: Mode discoverability is the known failure of "Ask-vs-Agent" UIs
-(users pick wrong half the time). Making the intents explicit, visible, and consequence-
-labeled at the point of use is what makes agent-centrality usable rather than a trap.
+(users pick wrong half the time) — but four hand-picked intents created a live
+contradiction with the AUTO autonomy axis (see `REBUILD_SPEC.md:179`). Inferring
+read/edit/build from the request, and keeping autonomy orthogonal, keeps intents
+consequence-labeled at the point of use without forcing a picker.
 
-**Independent Test**: Each mode is independently exercisable: Edit-panel changes only the
-focused panel; Build stages a multi-panel result; Delegate runs in the background and
-appears in an agents rail with status; Ask never mutates. Mode/persona/provider switches
-are observable in the UI state.
+**Independent Test**: In Agent mode, a read-only request never mutates (server-side
+intent classification), a focused-panel edit request changes only that panel, and a
+multi-panel request stages a buildable result; Delegate runs in the background and
+appears in an agents rail with status. Mode/autonomy/persona/provider switches are
+observable in the UI state.
 
 **Acceptance Scenarios**:
 
-1. **Given** a focused chart, **When** the user invokes Edit-panel and asks for an
-   indicator, **Then** only that chart's configuration changes (scoped to the focus).
-2. **Given** Build mode, **When** the user asks for a themed cockpit, **Then** a
+1. **Given** a focused chart in Agent mode, **When** the user asks for an indicator,
+   **Then** only that chart's configuration changes (scoped to the focus).
+2. **Given** Agent mode, **When** the user asks for a themed cockpit, **Then** a
    stageable set of panels-to-create is proposed (not auto-applied — see US4).
 3. **Given** Delegate mode, **When** the user launches a background task, **Then** it
    appears in an agents rail with live status and can be brought to the foreground or
    cancelled, and it is bounded by a hard budget (see FR-026).
-4. **Given** any mode, **When** the user switches persona or provider via keyboard,
-   **Then** the change is reflected immediately and visibly.
+4. **Given** any mode, **When** the user switches autonomy, persona or provider via
+   keyboard, **Then** the change is reflected immediately and visibly.
 
 ---
 
@@ -821,9 +827,13 @@ portfolio in the UI changes the agent's read with zero divergence.
 - **FR-002**: The agent MUST be terminal-aware — it can read the focused symbol/timeframe/
   indicators, watchlist, portfolio, and open panels, and can open panels, set symbols, edit
   the watchlist, and stage actions.
-- **FR-003**: The system MUST present the agent as four explicit intents on stable global
-  hotkeys — **Ask** (read-only), **Edit-panel** (focused-panel change), **Build** (multi-
-  panel/workflow), **Delegate** (background) — with the active mode visible at all times.
+- **FR-003**: The system MUST present the agent on stable global hotkeys as **two modes**
+  — **Agent** (⌥1, inferred intent: read/edit/build classified server-side from the
+  request, no mode-picking) and **Delegate** (⌥2, autonomous budget-bounded background
+  task) — plus the orthogonal **autonomy axis** (ASK/AUTO), with the active mode and
+  autonomy always visible. Collapsed from the original four-mode design
+  (`REBUILD_SPEC.md:179`, `types/agent-modes.ts`); the read-only-vs-mutating safety line
+  moved from mode-selection to the server-side intent classifier.
 - **FR-004**: The active persona and active provider/model MUST be visible and switchable by
   keyboard at any time.
 - **FR-005**: Every capability invocable by the agent MUST also be reachable by hand (palette/
@@ -1421,7 +1431,7 @@ recommendation is given; the operator ratified each at clarify.
 - **SC-027** "tell me more about this" resolves the focused symbol 100%; host-action completeness audit
   (screener-filter/drawings/save reachable by agent and hand); re-read-after-mutation holds.
 - **SC-028** Exactly one research entry; 0 user-visible mode/angles/backend knobs; one deep loop (audit).
-- **SC-029** Model swap preserves context on every path; Enter sends in every composer; one mode system (audit).
+- **SC-029** Model swap preserves context on every path; Enter sends in every composer; one mode system — the two-mode + autonomy-axis spine (`REBUILD_SPEC.md:179`), not the original four modes (audit).
 - **SC-030** Every matrix surface renders its full state set incl market-closed + symbol-not-found; 0 silent
   `—`/raw-JSON/silent-skips (visual audit, US+India).
 - **SC-031** ⌘K groups+scopes; agents rank above symbols; AI-ask routes; symbols gated (no >3k flood) — pixel proof.
