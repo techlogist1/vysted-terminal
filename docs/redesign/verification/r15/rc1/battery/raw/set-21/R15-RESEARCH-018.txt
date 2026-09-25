@@ -1,0 +1,4 @@
+KAYNES   IN | What do recent SEC filings and insider trades show?     -> tools ['corporate_announcements', 'web_search']
+KAYNES   IN | What is the sector outlook for electronics manufacturin -> tools ['news', 'web_search']
+KAYNES   IN | Is there a second-quarter guidance change?              -> tools ['corporate_announcements', 'news', 'web_search']
+AAPL     US | What do recent SEC filings and insider trades show?     -> tools ['sec_filings_list', 'web_search']

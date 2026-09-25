@@ -1,0 +1,47 @@
+{
+    "id": "cdc82e45c06b499696cd8fd7c5df7499",
+    "agent_id": "copilot",
+    "agent_name": "Vysted Copilot",
+    "mode": "delegate",
+    "status": "error",
+    "cost": {
+        "tokens": 0,
+        "spend_usd": 0.0,
+        "steps": 0,
+        "spendUsd": 0.0
+    },
+    "budget": {
+        "max_tokens": 120000,
+        "max_spend_usd": 1.0,
+        "max_wall_seconds": 600.0,
+        "max_steps": 12,
+        "maxTokens": 120000,
+        "maxSpendUsd": 1.0,
+        "maxWallSeconds": 600.0,
+        "maxSteps": 12
+    },
+    "provider": "openrouter",
+    "model": "z-ai/glm-5.2:free",
+    "plan": null,
+    "activity": [],
+    "detail": "The requested model is not available on OpenRouter \u2014 pick another model.",
+    "question": null,
+    "created_at": 1790296254,
+    "updated_at": 1790296267,
+    "transcript": [
+        {
+            "role": "user",
+            "content": "First check the AAPL quote, then check the MSFT quote, then compare their P/E ratios."
+        }
+    ],
+    "checkpoint_messages": 1,
+    "answer": null,
+    "brief": null,
+    "host_actions": [],
+    "agentId": "copilot",
+    "agentName": "Vysted Copilot",
+    "createdAt": 1790296254,
+    "updatedAt": 1790296267,
+    "checkpointMessages": 1,
+    "hostActions": []
+}

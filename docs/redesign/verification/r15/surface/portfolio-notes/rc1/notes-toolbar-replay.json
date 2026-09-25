@@ -1,0 +1,50 @@
+{
+ "Heading 1": {
+  "html": "<h1>alpha beta gamma</h1><p><br class=\"ProseMirror-trailingBreak\"></p>",
+  "pressed": "true"
+ },
+ "Heading 2": {
+  "html": "<h2>alpha beta gamma</h2><p><br class=\"ProseMirror-trailingBreak\"></p>",
+  "pressed": "true"
+ },
+ "Heading 3": {
+  "html": "<h3>alpha beta gamma</h3><p><br class=\"ProseMirror-trailingBreak\"></p>",
+  "pressed": "true"
+ },
+ "Bold": {
+  "html": "<p><strong>alpha</strong> beta gamma</p>",
+  "pressed": "true"
+ },
+ "Italic": {
+  "html": "<p><em>alpha</em> beta gamma</p>",
+  "pressed": "true"
+ },
+ "Inline code": {
+  "html": "<p><code>alpha</code> beta gamma</p>",
+  "pressed": "true"
+ },
+ "Bullet list": {
+  "html": "<ul><li><p>alpha beta gamma</p></li></ul><p><br class=\"ProseMirror-trailingBreak\"></p>",
+  "pressed": "true"
+ },
+ "Numbered list": {
+  "html": "<ol><li><p>alpha beta gamma</p></li></ol><p><br class=\"ProseMirror-trailingBreak\"></p>",
+  "pressed": "true"
+ },
+ "Blockquote": {
+  "html": "<blockquote><p>alpha beta gamma</p></blockquote><p><br class=\"ProseMirror-trailingBreak\"></p>",
+  "pressed": "true"
+ },
+ "Code block": {
+  "html": "<pre><code>alpha beta gamma</code></pre><p><br class=\"ProseMirror-trailingBreak\"></p>",
+  "pressed": "true"
+ },
+ "Insert [[wikilink]]": {
+  "html": "<p><span class=\"notes-wikilink\" data-wikilink=\"ALPHA\" role=\"link\" tabindex=\"0\">[[ALPHA]]</span> beta gamma</p>",
+  "pressed": "false"
+ },
+ "Link(prompt stubbed)": "<p>alpha beta gamma</p>",
+ "Link(no prompt, as Tauri WKWebView)": {
+  "error": null
+ }
+}

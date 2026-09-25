@@ -1,0 +1,8 @@
+Source check: store/proposed-changes.ts:74 `export type ChangeOutcome = "applied" | "staged" |
+"failed"`; enqueue/accept both resolve to this typed outcome. ChatSidebar.tsx:300
+`changeOutcomeLine(id, status)` only returns "Applied: <title>" when `status === "applied"` (a
+"failed" status returns "Couldn't apply: ..." instead), and BOTH call sites (line 620 the direct
+enqueue path, line 1040 the slash-command path) call `changeOutcomeLine` off the resolved outcome
+rather than writing "Applied:" eagerly right after enqueue() fires.
+Verdict: holds (source-confirmed; no live browser this shard for the AUTO-mode failing-apply
+transcript case).

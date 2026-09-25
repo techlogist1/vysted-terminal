@@ -1,0 +1,5 @@
+list_runs order (newest first): ['run-c', 'run-b', 'run-a']
+ids reversed == newest-first: True
+json files under data-dir/backtests: ['run-a.json', 'run-b.json', 'run-c.json']
+after reset_for_tests (simulated restart), list still newest-first: ['run-c', 'run-b', 'run-a']
+get(oldest) is not None: True

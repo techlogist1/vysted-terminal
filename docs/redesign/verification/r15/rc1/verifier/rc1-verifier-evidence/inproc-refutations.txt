@@ -1,0 +1,30 @@
+## RESEARCH-002 _parse_verdict
+'UNVERIFIED - no source confirms the 23% operating margin.' -> unverified
+'Verdict: UNVERIFIED - no source confirms the 23% operating margin.' -> agree
+'**Verdict:** UNVERIFIED - no source confirms it.' -> agree
+'Answer: UNVERIFIED - evidence does not support the figure.' -> agree
+'[UNVERIFIED] the sources do not confirm this.' -> agree
+'The claim is UNVERIFIED; nothing I found confirms the 23% margin.' -> agree
+## RESEARCH-007 domain_tier (1=primary)
+https://medium.com/investor-diary/x -> 3
+https://www.investors.com/news/technology/nvidia-stock-buy-now/ -> 1
+https://ir.hotpennypicks.net/2024/xyz -> 1
+https://investors.github.io/pump -> 1
+https://ir.blogspot.in/post -> 1
+https://investor.apple.com/sec-filings/ -> 1
+https://www.reuters.com/markets/x -> 2
+## AGENT-019 classify_intent
+'Can you log 10 TCS at 3400 in my portfolio?' -> read READ-ONLY
+'Can you record that I hold 20 ITC at 410?' -> read READ-ONLY
+'What if you drop TCS from my holdings?' -> read READ-ONLY
+'Why not trim my INFY holding to 5 shares?' -> read READ-ONLY
+'Delete TCS from my portfolio' -> edit mutates
+'Add 5 shares of TCS to my portfolio at 3500' -> edit mutates
+## AGENT-027 humanize
+gemini 400 -> unknown | Something went wrong with Google Gemini. | Try again or switch provider in Settings.
+groq 400 -> unknown | Something went wrong with Groq. | Try again or switch provider in Settings.
+xai 403 -> auth | The xAI API key was rejected — check it in Settings. | Re-enter the API key in Settings.
+openai 429 -> insufficient_credit | Your OpenAI account is out of credit or quota. | Add credit or check your plan, or switch provider in Settings.
+ollama ReadTimeout -> network | Could not reach Ollama — check your network. | Check your internet connection and try again.
+Can you log 10 TCS at 3400 in my portfolio? read ['\\?\\s*$']
+Why not trim my INFY holding to 5 shares? read ['\\bwhy\\b', '\\?\\s*$']

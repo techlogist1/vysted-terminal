@@ -1,0 +1,17 @@
+[
+  {
+    "key": "rc1-fix-r2-triage:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Earnings estimates label a foreign reporter's revenue estimate in the trading currency: WIT's next-quarter revenue estimate 244,246,846,490 (INR-sized) is served as currency USD, and the earnings panel and earnings_estimates tool read it as ~USD 244B",
+    "repro": "In-process at b0f2b256 on a seed copy: await earnings_provider.get_estimate_detail('WIT') -> currency 'USD', revenue_estimate_mean 244246846490.0, eps_estimate_mean 0.035. Wipro's quarterly revenue is about INR 22,000 cr (2.2e11 INR, about USD 2.6B), so the revenue figure is in the reporting currency (Yahoo financialCurrency INR), while EPS is per ADS in USD. earnings_provider.py:168/199/505 sets currency from info['currency'] (trading) for every money field, and src/modules/earnings/EpsEstimateGrid.tsx:111 formats revenue_estimate_mean in estimate.currency. This is the R15-AGENT-001 / rc1-scenarios:5 class (statement-size money read in the trading currency) on a fourth surface. It is not fixed in fix round 2 because it needs a model field plus its types/ mirror plus the panel, which is outside the three findings under closure.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/fix-r2/evidence/earnings-estimate-currency.txt",
+    "suspected_files": [
+      "sidecar/services/earnings_provider.py:130-200,468-510",
+      "sidecar/models/earnings.py:88-110",
+      "types/ (EarningsEstimateDetail mirror)",
+      "src/modules/earnings/EpsEstimateGrid.tsx:111"
+    ]
+  }
+]

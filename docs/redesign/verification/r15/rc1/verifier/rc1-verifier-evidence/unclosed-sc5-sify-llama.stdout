@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  39.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_d2ab6e65f7b74a7b8b53eb40c54bfea5", "name": "financial_statements", "input": {"symbol": "SIFY", "period": "annual", "statement": "income"}}
+[  52.5s] heartbeat: {"kind": "heartbeat"}
+[  62.5s] heartbeat: {"kind": "heartbeat"}
+[  75.6s] done: {"kind": "done", "usage": {"input_tokens": 6668, "output_tokens": 81, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The number of ordinary shares one SIFY ADR represents is 2, since the SIFY ADR has 1:2 ratio.
+
+SIFY's TTM revenue in USD is not available in the provided data. The 'operating_revenue' value for the year ending 2026-03-31 is ₹4,488 cr, which is equivalent to approximately $587 million USD.
+
+=== ok · 75.6s · events {'heartbeat': 5, 'tool_use': 1, 'delta': 80, 'done': 1} · usage in=6668 out=81 · est $0.00000 · llama3.1:8b
+EXIT=0

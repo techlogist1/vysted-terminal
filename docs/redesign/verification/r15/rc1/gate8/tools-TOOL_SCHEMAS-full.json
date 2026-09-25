@@ -1,0 +1,1614 @@
+{
+ "price_data": {
+  "description": "Recent OHLCV bars + the latest quote for a symbol. Use to check price, recent action, volatility, or drawdown. Returns at most the newest 90 bars: bars_returned, bars_available and window_start say which window the bars actually cover, so compute a figure over that window (or a shorter range), not the one asked.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "Ticker, e.g. AAPL or BTC/USDT"
+    },
+    "timeframe": {
+     "type": "string",
+     "enum": [
+      "1d",
+      "1h",
+      "1wk",
+      "1mo"
+     ],
+     "default": "1d"
+    },
+    "range": {
+     "type": "string",
+     "default": "6mo",
+     "description": "e.g. 1mo, 6mo, 1y"
+    },
+    "asset_class": {
+     "type": "string",
+     "enum": [
+      "equity",
+      "crypto"
+     ],
+     "default": "equity"
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "resolve_symbol": {
+  "description": "Resolve a free-text company name or ticker to a concrete instrument (ticker, exchange, region, asset class), locale-aware \u2014 'Tata Steel' -> TATASTEEL on NSE, 'GOLDBEES' -> the NSE gold ETF. Returns disambiguation candidates when confidence is low. Call this FIRST when the user names a company so you load the right instrument and never dead-end on a name.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "query": {
+     "type": "string",
+     "description": "Company name or ticker, e.g. 'Tata Steel' or 'AAPL'."
+    },
+    "region": {
+     "type": "string",
+     "enum": [
+      "US",
+      "IN",
+      "GLOBAL"
+     ],
+     "description": "Optional locale override; defaults to the active region."
+    }
+   },
+   "required": [
+    "query"
+   ]
+  }
+ },
+ "compare_symbols": {
+  "description": "Compare 2-4 instruments side by side \u2014 latest quote, valuation (P/E, market cap, margins), and recent relative performance. Use when the user asks to compare names (e.g. 'NVDA vs AMD'). Pair it with arrange_layout(pattern='compare') to chart the pair together.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbols": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "2-4 tickers to compare, e.g. ['NVDA','AMD']."
+    },
+    "timeframe": {
+     "type": "string",
+     "enum": [
+      "1d",
+      "1h",
+      "1wk",
+      "1mo"
+     ],
+     "default": "1d"
+    },
+    "asset_class": {
+     "type": "string",
+     "enum": [
+      "equity",
+      "crypto"
+     ],
+     "default": "equity"
+    }
+   },
+   "required": [
+    "symbols"
+   ]
+  }
+ },
+ "fundamentals": {
+  "description": "Valuation ratios (P/E, P/B, market cap, margins) + a company profile for a symbol. Use for value/quality analysis.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "Equity ticker, e.g. AAPL"
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "financial_statements": {
+  "description": "One financial statement for a company \u2014 income, balance sheet or cash flow \u2014 annual (fiscal years) or quarterly (ISO period-end dates), newest first, capped at the newest 8 periods (periods_available says how many exist). Use for revenue, margin, debt or cash-flow series over years or quarters; fundamentals gives only point-in-time ratios.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "Ticker, e.g. AAPL or TCS.NS"
+    },
+    "statement": {
+     "type": "string",
+     "enum": [
+      "income",
+      "balance",
+      "cashflow"
+     ]
+    },
+    "period": {
+     "type": "string",
+     "enum": [
+      "annual",
+      "quarterly"
+     ],
+     "default": "annual"
+    }
+   },
+   "required": [
+    "symbol",
+    "statement"
+   ]
+  }
+ },
+ "news": {
+  "description": "Recent news headlines with sentiment, optionally filtered to a list of symbols. Use to check what's happening with a name.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbols": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Optional ticker filter, e.g. ['AAPL','MSFT']."
+    },
+    "limit": {
+     "type": "integer",
+     "default": 20
+    }
+   }
+  }
+ },
+ "market_overview": {
+  "description": "Locale-aware market-state snapshot in ONE call \u2014 call this FIRST for a broad market question ('how's the market today', 'what moved'). Resolves the user's benchmark indices (US: S&P 500 / Nasdaq / Dow + SPY/QQQ; IN: Nifty 50 / Sensex), fetches a live quote for each, and pulls recent market headlines. Returns {region, indices:[...], headlines:[...]}; headlines_error is set when the news feed is down (then say headlines are unavailable, not that there is no news). Synthesize from it \u2014 never answer market state from memory.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "region": {
+     "type": "string",
+     "enum": [
+      "US",
+      "IN",
+      "GLOBAL"
+     ],
+     "description": "Optional locale override; defaults to the active region."
+    }
+   }
+  }
+ },
+ "web_search": {
+  "description": "Search the web for current context to ground an answer \u2014 recent developments, analyst takes, macro events. Returns results + normalized citations (url/title/excerpt). Uses the user's configured search tier (their model's native search, a BYOK Exa key, or a local SearXNG). Cite what you use. If no backend is configured the result says so honestly \u2014 never fabricate a source.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "query": {
+     "type": "string",
+     "description": "The web search query."
+    },
+    "num_results": {
+     "type": "integer",
+     "default": 6
+    },
+    "category": {
+     "type": "string",
+     "enum": [
+      "general",
+      "news",
+      "financial"
+     ],
+     "default": "general",
+     "description": "Bias retrieval toward news/financial sources."
+    }
+   },
+   "required": [
+    "query"
+   ]
+  }
+ },
+ "research": {
+  "description": "The ONE research capability \u2014 call it for 'research X' / 'set me up to look at X' / 'go deeper on X'. Resolves the symbol, pulls price, fundamentals, recent news, and filings, and (depth permitting) runs a budget-bounded search\u2192read\u2192reflect loop, returning a provenance-tagged bundle + a synthesized cited brief that auto-publishes into the brief panel (you need NOT call publish_brief for a deep run). Depth ESCALATES IN PLACE \u2014 start at 'quick', deepen only when the user asks to 'go deeper':\n- depth='quick' (default): one fast pass \u2014 price/fundamentals/news/filings + one web round. Instant; use this for the first 'research X' (then arrange the research-cockpit, load the chart, and write the cited brief with publish_brief, mode='FAST').\n- depth='deep': the IterResearch loop (a central evolving report, rebuilt each round so context never bloats). Use when the user says 'go deeper' / wants a thorough multi-round answer \u2014 its brief auto-publishes, so you need NOT call publish_brief.\n- depth='heavy': the expert PANEL \u2014 several parallel research angles synthesized into one brief. Use only for the deepest ask ('go all out'). Higher cost.\nBounded by rounds + wall-clock; on the budget ceiling it synthesizes from what it has (never times out into nothing). mode/angles are INTERNAL \u2014 drive depth, not those. The Perplexity backend is opt-in-per-run + paid and is NEVER auto-selected.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "query": {
+     "type": "string",
+     "description": "The company name or ticker, optionally followed by a plain-language focus (e.g. 'Route Mobile \u2014 latest quarterly results'). LEAD with the instrument name; never a bare keyword list."
+    },
+    "depth": {
+     "type": "string",
+     "enum": [
+      "normal",
+      "deep",
+      "ultra",
+      "quick",
+      "heavy"
+     ],
+     "default": "normal",
+     "description": "'quick' (default) = one fast pass. 'deep' = the IterResearch evolving-report loop (use on 'go deeper'). 'heavy' = the expert panel of parallel angles (deepest, higher cost). Escalate in place \u2014 never start at heavy."
+    },
+    "rounds": {
+     "type": "integer",
+     "default": 3,
+     "description": "1-5 (deep/heavy only)."
+    },
+    "wall_seconds": {
+     "type": "integer",
+     "description": "30-360 seconds (deep/heavy only). Omit it: each depth sets its own budget (deep 180, heavy 360)."
+    },
+    "backend": {
+     "type": "string",
+     "enum": [
+      "native",
+      "perplexity"
+     ],
+     "default": "native",
+     "description": "INTERNAL. 'perplexity' (opt-in-per-run, paid, needs a Perplexity key) is NEVER auto-selected \u2014 only reachable on an explicit per-run opt-in. Otherwise the built-in 'native' loop."
+    }
+   },
+   "required": [
+    "query"
+   ]
+  }
+ },
+ "screener_run": {
+  "description": "Screen a universe of symbols against numeric/string criteria and return the matches. Use to find names that fit a thesis.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "formula": {
+     "type": "string",
+     "description": "Optional boolean formula evaluated server-side per symbol, AND-combined with criteria. Fields: any numeric screener field (pe_ratio, market_cap, roe, ...; aliases pe, marketCap, pb, ...). Operators: + - * /, comparisons, and/or/not; functions abs/min/max. E.g. 'pe < 15 and roe > 0.2' or 'market_cap / volume > 1e6'. Rows missing a referenced field are skipped and itemized in skip_details as missing_field:<f>."
+    },
+    "universe": {
+     "type": "string",
+     "enum": [
+      "sp500",
+      "nifty50",
+      "crypto-top50",
+      "nse-all",
+      "bse-all",
+      "india-all",
+      "custom"
+     ]
+    },
+    "criteria": {
+     "type": "array",
+     "description": "Discriminated-union filters, AND-combined. Four shapes: numeric threshold {\"field\":\"pe_ratio\",\"operator\":\"lt\",\"value\":15} (gt|lt|gte|lte; fractions for ratios \u2014 roe 0.15 = 15%); numeric between {\"field\":\"pe_ratio\",\"operator\":\"between\",\"value\":{\"min\":10,\"max\":20}}; string equality on sector/industry/currency {\"field\":\"sector\",\"operator\":\"eq\",\"value\":\"Technology\"}; set membership {\"field\":\"symbol\",\"operator\":\"in\",\"value\":[\"A\",\"B\"]} (set fields: symbol|sector|industry). For a sector-scoped screen ALWAYS filter server-side via the sector/industry criterion \u2014 post-filtering a limit-capped sweep client-side can silently drop matches.",
+     "items": {
+      "type": "object"
+     }
+    },
+    "group": {
+     "type": "object",
+     "description": "Optional AND/OR boolean tree (supersedes the flat AND-only 'criteria' when present). Shape: {\"combinator\":\"and\"|\"or\",\"criteria\":[<criterion>|<group>...]}. Nestable \u2014 a child may itself be a group. Use for OR sweeps, e.g. (P/E<15 AND ROE>0.2) OR dividend_yield>0.04."
+    },
+    "custom_symbols": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Required when universe is 'custom'."
+    },
+    "limit": {
+     "type": "integer",
+     "default": 50
+    }
+   },
+   "required": [
+    "universe",
+    "criteria"
+   ]
+  }
+ },
+ "macro_series": {
+  "description": "Fetch a macroeconomic time series (e.g. DGS10, CPIAUCSL, UNRATE) from a named provider.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "series_id": {
+     "type": "string",
+     "description": "Provider-native series id, e.g. DGS10 (FRED)"
+    },
+    "provider": {
+     "type": "string",
+     "enum": [
+      "fred",
+      "ecb",
+      "imf",
+      "world-bank"
+     ],
+     "description": "Which macro provider serves the series."
+    }
+   },
+   "required": [
+    "series_id",
+    "provider"
+   ]
+  }
+ },
+ "macro_search": {
+  "description": "Search a macro provider's catalog by free-text query.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "q": {
+     "type": "string",
+     "description": "Free-text query, e.g. 'unemployment'"
+    },
+    "provider": {
+     "type": "string",
+     "enum": [
+      "fred",
+      "ecb",
+      "imf",
+      "world-bank"
+     ]
+    },
+    "limit": {
+     "type": "integer",
+     "default": 10
+    }
+   },
+   "required": [
+    "q",
+    "provider"
+   ]
+  }
+ },
+ "earnings_upcoming": {
+  "description": "Scheduled earnings events in the next N days, optionally filtered to a watchlist of symbols.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "days": {
+     "type": "integer",
+     "default": 7,
+     "description": "Window length in days (1-60)."
+    },
+    "watchlist": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Optional symbol filter."
+    }
+   }
+  }
+ },
+ "earnings_history": {
+  "description": "Historical EPS surprises (actual vs estimate) for a symbol.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "earnings_estimates": {
+  "description": "Analyst estimate detail for a symbol's next upcoming report.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "analyst_history": {
+  "description": "Analyst rating-change history for a symbol (newest first).",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "analyst_individual": {
+  "description": "Per-firm currently-active analyst forecasts for a symbol.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "price_target_history": {
+  "description": "Price-target change timeline for a symbol (newest first).",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "sec_filings_list": {
+  "description": "List recent SEC filings (10-K, 10-Q, 8-K, DEF 14A, 3/4/5) for a company. Identify the company by symbol OR cik (provide at least one).",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "Ticker \u2014 provide this OR cik."
+    },
+    "cik": {
+     "type": "string",
+     "description": "CIK \u2014 provide this OR symbol."
+    },
+    "form_type": {
+     "type": "string",
+     "enum": [
+      "10-K",
+      "10-Q",
+      "8-K",
+      "DEF 14A",
+      "3",
+      "4",
+      "5"
+     ],
+     "description": "Optional form-type filter."
+    },
+    "limit": {
+     "type": "integer",
+     "default": 20
+    }
+   }
+  }
+ },
+ "sec_filing_content": {
+  "description": "Parsed sections of one SEC filing identified by accession number.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "accession": {
+     "type": "string",
+     "description": "SEC accession number, e.g. 0000320193-24-000123"
+    },
+    "identifier": {
+     "type": "string",
+     "description": "CIK or ticker that owns the filing."
+    },
+    "form_type": {
+     "type": "string",
+     "description": "Optional: the filing's form as sec_filings_list reported it (e.g. 10-K) \u2014 speeds up the lookup."
+    }
+   },
+   "required": [
+    "accession",
+    "identifier"
+   ]
+  }
+ },
+ "sec_insider_transactions": {
+  "description": "Recent insider transactions (Forms 3/4/5) for an issuer. Identify the issuer by symbol OR cik (provide at least one).",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "Ticker \u2014 provide this OR cik."
+    },
+    "cik": {
+     "type": "string",
+     "description": "CIK \u2014 provide this OR symbol."
+    },
+    "form": {
+     "type": "string",
+     "enum": [
+      "3",
+      "4",
+      "5"
+     ],
+     "description": "Optional form-type filter."
+    },
+    "limit": {
+     "type": "integer",
+     "default": 30
+    }
+   }
+  }
+ },
+ "corporate_announcements": {
+  "description": "Recent corporate announcements an Indian (NSE/BSE) listed company filed with its exchanges \u2014 results notices, board meetings, investor presentations, pledges, regulatory disclosures. Merged from BOTH exchange feeds and deduplicated, newest first; each item carries the exchange, category, attachment (PDF) URL, and timestamp. Use for 'what has the company itself disclosed lately' on Indian names \u2014 the India counterpart of sec_filings_list.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "NSE/BSE ticker, e.g. RELIANCE or TATASTEEL."
+    },
+    "exchange": {
+     "type": "string",
+     "enum": [
+      "NSE",
+      "BSE"
+     ],
+     "description": "Optional single-exchange filter; omit to merge both."
+    },
+    "limit": {
+     "type": "integer",
+     "default": 20
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "shareholding_pattern": {
+  "description": "Quarterly shareholding pattern for an NSE- or BSE-listed Indian company, newest quarter first: promoter(+group), public (incl. institutions) and the non-institutional float, the FII/DII/institutions split, and the promoter pledge (pledged or encumbered, percent of the promoter holding; 0 when the filing declares none, null when it declares nothing). source/split_source/split_as_of/split_basis state where each figure came from. Use to check promoter-stake and pledge trends and ownership shifts on Indian names.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "NSE/BSE ticker, e.g. RELIANCE."
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "corporate_actions": {
+  "description": "Corporate actions of an Indian (NSE/BSE) listed company from BOTH exchanges \u2014 dividends, bonuses, splits, rights issues and buybacks, newest ex-date first. Each row: kind, the exchange's verbatim purpose, ratio (e.g. '7:24'), amount_per_share, ex_date, record_date, payment_date and exchange ('NSE+BSE' when both carry it). Use for 'last dividend and its dates', bonus/split history or dilution on Indian names.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "NSE/BSE ticker, e.g. JONJUA."
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "exchange_deals": {
+  "description": "Bulk deals, block deals and SAST (SEBI Reg 29 substantial-acquisition) disclosures for an Indian (NSE/BSE) listed company, newest first \u2014 who bought or sold a large block, at what price, and (SAST) their holding after. Each row: kind, date, party, side, quantity, price, value, percent_after, exchange, source_url. NSE listings get all three (bulk/block over the last year); a BSE-only scrip gets BSE bulk/block. The India counterpart of sec_insider_transactions.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "NSE/BSE ticker, e.g. KOPRAN."
+    },
+    "kind": {
+     "type": "string",
+     "enum": [
+      "bulk",
+      "block",
+      "sast"
+     ],
+     "description": "Optional filter; omit for every kind."
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "earnings_call_transcript": {
+  "description": "The earnings-call (concall) transcript an Indian (NSE/BSE) listed company filed with its exchanges, read from the filed PDF: what management said on the call and in the Q&A. Returns text (the transcript's most finance-relevant pages when it is long), filing_date, url and source exchange; available: false with a reason when no transcript was filed in the feed window or the symbol is not NSE/BSE-listed. Omit quarter for the latest call.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "NSE/BSE ticker, e.g. TCS."
+    },
+    "quarter": {
+     "type": "string",
+     "description": "The quarter-end date the call discussed, YYYY-MM-DD (2026-06-30 for Apr-Jun 2026, Q1 FY27). Omit for the latest."
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "price_option": {
+  "description": "Price one option via Black-Scholes, binomial, or Monte-Carlo. Read-only math \u2014 no side effects.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "exercise": {
+     "type": "string",
+     "enum": [
+      "european",
+      "american"
+     ]
+    },
+    "payoff": {
+     "type": "string",
+     "enum": [
+      "call",
+      "put"
+     ]
+    },
+    "spot": {
+     "type": "number"
+    },
+    "strike": {
+     "type": "number"
+    },
+    "risk_free_rate": {
+     "type": "number",
+     "description": "Annualised, e.g. 0.04"
+    },
+    "dividend_yield": {
+     "type": "number",
+     "description": "Annualised, e.g. 0.0"
+    },
+    "volatility": {
+     "type": "number",
+     "description": "Annualised, e.g. 0.2"
+    },
+    "valuation_date": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    },
+    "expiry_date": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    },
+    "method": {
+     "type": "string",
+     "enum": [
+      "black-scholes",
+      "binomial",
+      "monte-carlo"
+     ]
+    },
+    "binomial_steps": {
+     "type": "integer",
+     "description": "For the binomial method."
+    },
+    "monte_carlo_paths": {
+     "type": "integer",
+     "description": "For Monte-Carlo."
+    },
+    "monte_carlo_seed": {
+     "type": "integer"
+    }
+   },
+   "required": [
+    "exercise",
+    "payoff",
+    "spot",
+    "strike",
+    "risk_free_rate",
+    "dividend_yield",
+    "volatility",
+    "valuation_date",
+    "expiry_date",
+    "method"
+   ]
+  }
+ },
+ "compute_greeks": {
+  "description": "Analytic Greeks (+ the Black-Scholes price) for a European vanilla option.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "payoff": {
+     "type": "string",
+     "enum": [
+      "call",
+      "put"
+     ]
+    },
+    "spot": {
+     "type": "number"
+    },
+    "strike": {
+     "type": "number"
+    },
+    "risk_free_rate": {
+     "type": "number"
+    },
+    "dividend_yield": {
+     "type": "number"
+    },
+    "volatility": {
+     "type": "number"
+    },
+    "valuation_date": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    },
+    "expiry_date": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    }
+   },
+   "required": [
+    "payoff",
+    "spot",
+    "strike",
+    "risk_free_rate",
+    "dividend_yield",
+    "volatility",
+    "valuation_date",
+    "expiry_date"
+   ]
+  }
+ },
+ "price_bond": {
+  "description": "Price a fixed-rate bond: clean/dirty price, accrued, duration, convexity.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "face_value": {
+     "type": "number",
+     "default": 1000.0
+    },
+    "coupon_rate": {
+     "type": "number",
+     "description": "Annual, e.g. 0.05"
+    },
+    "coupons_per_year": {
+     "type": "integer",
+     "enum": [
+      1,
+      2,
+      4
+     ]
+    },
+    "issue_date": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    },
+    "maturity_date": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    },
+    "settlement_date": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    },
+    "yield_to_maturity": {
+     "type": "number",
+     "description": "Annual, e.g. 0.045"
+    }
+   },
+   "required": [
+    "coupon_rate",
+    "coupons_per_year",
+    "issue_date",
+    "maturity_date",
+    "settlement_date",
+    "yield_to_maturity"
+   ]
+  }
+ },
+ "yield_curve_value": {
+  "description": "Bootstrap a yield curve from deposit/swap instruments and sample it.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "valuation_date": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    },
+    "instruments": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "type": {
+        "type": "string",
+        "enum": [
+         "deposit",
+         "swap"
+        ]
+       },
+       "tenor": {
+        "type": "integer"
+       },
+       "tenor_unit": {
+        "type": "string",
+        "enum": [
+         "months",
+         "years"
+        ]
+       },
+       "rate": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "type",
+       "tenor",
+       "tenor_unit",
+       "rate"
+      ]
+     }
+    },
+    "sample_count": {
+     "type": "integer",
+     "description": "Points to sample (>=2)."
+    }
+   },
+   "required": [
+    "valuation_date",
+    "instruments",
+    "sample_count"
+   ]
+  }
+ },
+ "option_chain": {
+  "description": "The listed option chain for one expiry with exchange-published open interest: per strike, call and put OI, change in OI, last/settle price, volume (and implied volatility on US listings). India F&O underlyings (NIFTY, BANKNIFTY, RELIANCE) come from the NSE F&O bhavcopy; US from yfinance. End-of-day research data dated by as_of, never live. Returns the strikes nearest spot (max_strikes) and every listed expiry.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string",
+     "description": "Underlying, e.g. NIFTY, RELIANCE or AAPL."
+    },
+    "expiry": {
+     "type": "string",
+     "description": "Expiry date YYYY-MM-DD; omit for the nearest."
+    },
+    "max_strikes": {
+     "type": "integer",
+     "default": 20,
+     "description": "Strikes nearest spot to return."
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "backtest_summary": {
+  "description": "Digest a cached backtest run (metrics, best/worst/recent trades, walk-forward slices) by its run_id.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "run_id": {
+     "type": "string",
+     "description": "Run id from backtest_engine."
+    }
+   },
+   "required": [
+    "run_id"
+   ]
+  }
+ },
+ "run_custom_backtest": {
+  "description": "Author and run a CUSTOM backtest strategy from declarative entry/exit rules over indicator comparisons (e.g. entry 'sma(20) > sma(50)', exit 'rsi(14) > 70'). Fields: open, high, low, close, volume. Functions: sma(n), ema(n), rsi(n), highest(n), lowest(n), stdev(n), change(n). Operators: + - * /, comparisons, and/or/not. Parsed server-side with a restricted grammar (never eval) and executed in the SIMULATED backtest engine. Returns the digest (metrics, best/worst/recent trades) plus the runId; the full result renders in the backtest panel and resolves via backtest_summary.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "entry": {
+     "type": "string",
+     "description": "Entry rule, e.g. 'sma(20) > sma(50)'."
+    },
+    "exit": {
+     "type": "string",
+     "description": "Exit rule, e.g. 'rsi(14) > 70'."
+    },
+    "symbols": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Tickers to trade."
+    },
+    "start_date": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    },
+    "end_date": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    },
+    "position_size": {
+     "type": "number",
+     "default": 100,
+     "description": "Fixed share quantity per trade."
+    },
+    "initial_capital": {
+     "type": "number",
+     "default": 100000
+    },
+    "walk_forward_slices": {
+     "type": "integer",
+     "minimum": 1,
+     "maximum": 10,
+     "default": 1
+    }
+   },
+   "required": [
+    "entry",
+    "exit",
+    "symbols",
+    "start_date",
+    "end_date"
+   ]
+  }
+ },
+ "get_terminal_state": {
+  "description": "Read what the user is currently looking at: open panels, the focused chart symbol + timeframe + indicators, the watchlist, and a portfolio summary. Call this whenever the user says 'this', 'it', 'my chart', 'my watchlist', or 'my portfolio'.",
+  "input_schema": {
+   "type": "object",
+   "properties": {}
+  }
+ },
+ "get_portfolio": {
+  "description": "Read the user's local (manually-entered) portfolio positions with P&L.",
+  "input_schema": {
+   "type": "object",
+   "properties": {}
+  }
+ },
+ "read_notes": {
+  "description": "Read the user's own notes (their thesis) for a scope. Call it before write_note with mode 'replace', and whenever the user refers to their notes, thesis or plan for a stock.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "scope": {
+     "type": "string",
+     "description": "'global' or a symbol, e.g. 'BDL'"
+    }
+   },
+   "required": [
+    "scope"
+   ]
+  }
+ },
+ "ask_user": {
+  "description": "Pause this background run and ask the user ONE question you cannot answer yourself: a missing choice, an ambiguity, or an approval. The run stops here and resumes with their answer as the next message. Ask only when you are blocked; otherwise decide, and say what you assumed.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "question": {
+     "type": "string",
+     "description": "The one question, in full."
+    }
+   },
+   "required": [
+    "question"
+   ]
+  }
+ },
+ "open_panel": {
+  "description": "Open or focus a terminal panel by id (chart, watchlist, news, portfolio, equity-overview, screener, macro, earnings, ...). For a symbol-aware panel (equity-overview, chart) ALWAYS pass `symbol` too, so the panel opens ON that company instead of empty \u2014 never open equity-overview for a named company without its symbol.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "panel": {
+     "type": "string"
+    },
+    "symbol": {
+     "type": "string",
+     "description": "Optional ticker to load into a symbol-aware panel (equity-overview, chart) as it opens, e.g. SAKSOFT.NS. Ignored by panels with no symbol."
+    },
+    "run_id": {
+     "type": "string",
+     "description": "For panel=backtest: the run id a run_custom_backtest call returned, to display that run."
+    }
+   },
+   "required": [
+    "panel"
+   ]
+  }
+ },
+ "set_chart_symbol": {
+  "description": "Load a symbol (and optional timeframe) into the chart panel.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string"
+    },
+    "timeframe": {
+     "type": "string",
+     "enum": [
+      "1d",
+      "1h",
+      "1wk",
+      "1mo"
+     ]
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "open_company_overview": {
+  "description": "Open the Equity Overview panel ON a company (fundamentals, statements, ratings) by ticker. Optional `highlight` names ONE metric to spotlight for the user (e.g. pe_ratio, market_cap, dividend_yield) \u2014 use it when explaining a specific metric ('what is a P/E ratio? show me on X').",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string"
+    },
+    "highlight": {
+     "type": "string",
+     "description": "Metric key to spotlight (optional)."
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "set_chart_indicators": {
+  "description": "Apply (or replace) the chart's technical indicators by key \u2014 e.g. sma, ema, rsi, macd, bollinger, vwap, volume. Use only the listed keys: one unknown key fails the whole set. Pass the full desired set (it replaces the current selection). When the user says 'add a 200-day average' or 'set me up to study NVDA', pick a sensible set for the asset class. Indicators are server-computed and overlay or drop into a sub-pane automatically.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "indicators": {
+     "type": "array",
+     "items": {
+      "type": "string",
+      "enum": [
+       "rsi",
+       "macd",
+       "ma",
+       "ema",
+       "sma",
+       "bollinger",
+       "volume",
+       "adx",
+       "stochastic",
+       "atr",
+       "obv",
+       "mfi",
+       "ichimoku",
+       "keltner",
+       "vwap",
+       "parabolic_sar",
+       "cci",
+       "williams_r",
+       "roc",
+       "wma",
+       "hma",
+       "dema",
+       "tema",
+       "kama",
+       "tsi",
+       "kst",
+       "awesome_oscillator",
+       "ppo",
+       "ultimate_oscillator",
+       "std_dev",
+       "bollinger_bandwidth",
+       "donchian",
+       "chaikin_volatility",
+       "ad_line",
+       "chaikin_money_flow",
+       "force_index",
+       "ease_of_movement",
+       "vpt",
+       "aroon",
+       "aroon_oscillator",
+       "vortex",
+       "mass_index",
+       "pivot_points",
+       "supertrend",
+       "linreg",
+       "std_error_bands",
+       "hlc3",
+       "ohlc4",
+       "median_price",
+       "volume_profile"
+      ]
+     },
+     "description": "Indicator keys, e.g. ['sma','volume','rsi','macd']. Replaces the current selection."
+    },
+    "symbol": {
+     "type": "string",
+     "description": "Optional \u2014 defaults to the focused chart's symbol."
+    },
+    "timeframe": {
+     "type": "string",
+     "enum": [
+      "1d",
+      "1h",
+      "1wk",
+      "1mo"
+     ]
+    }
+   },
+   "required": [
+    "indicators"
+   ]
+  }
+ },
+ "add_chart_drawing": {
+  "description": "Draw on the open chart, on the symbol and timeframe it shows: a horizontal-line at one price (support, resistance, a target) or a trendline between two bars. Each point's time is a bar timestamp exactly as price_data returns it for that timeframe; a horizontal-line takes one point and needs no time. Staged through the review gate like every host action.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "kind": {
+     "type": "string",
+     "enum": [
+      "horizontal-line",
+      "trendline"
+     ]
+    },
+    "points": {
+     "type": "array",
+     "minItems": 1,
+     "maxItems": 2,
+     "items": {
+      "type": "object",
+      "properties": {
+       "time": {
+        "type": "string",
+        "description": "Bar timestamp (ISO) from price_data."
+       },
+       "price": {
+        "type": "number"
+       }
+      },
+      "required": [
+       "price"
+      ]
+     }
+    },
+    "panelId": {
+     "type": "string",
+     "description": "Optional \u2014 defaults to the open chart panel."
+    }
+   },
+   "required": [
+    "kind",
+    "points"
+   ]
+  }
+ },
+ "add_to_watchlist": {
+  "description": "Add a symbol to the user's watchlist.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string"
+    },
+    "asset_class": {
+     "type": "string",
+     "enum": [
+      "equity",
+      "crypto"
+     ],
+     "default": "equity"
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "close_panel": {
+  "description": "Close a terminal panel by id (chart, watchlist, news, portfolio, equity-overview, screener, macro, earnings, ...). Use when the user asks to close, hide, or remove a panel.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "panel": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "panel"
+   ]
+  }
+ },
+ "focus_panel": {
+  "description": "Bring an already-open panel to the front and focus it, by id. Use when the user asks to focus, switch to, or surface a panel.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "panel": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "panel"
+   ]
+  }
+ },
+ "arrange_layout": {
+  "description": "Arrange the cockpit using a named template, for the user to review. 'auto' arranges the panels ALREADY OPEN around their content \u2014 a published brief gets the dominant column, the chart gets width, the watchlist parks in a side rail; pick 'auto' whenever the user asks to arrange/organise/tidy their windows without naming a layout. Templates: 'single-focus' (the chart alone, maximised: a quick look; places chart); 'research-cockpit' (the chart beside the company overview, the research brief and news: the flagship deep dive; places chart + equity-overview + brief + news); 'compare' (one maximised chart with the second ticker overlaid on it; pass two tickers as `symbols`; places chart); 'macro-scan' (the macro panel with the chart beside it and the screener below: a market overview; places macro + chart + screener). 'default' resets the panel arrangement (chart drawings and module choices are kept); 'focus' maximises one panel (pass `panel`); 'custom' places exactly the panels you name in `panels` ('put the chart here and news there') \u2014 use it for an ad-hoc arrangement no template fits. When the user says 'set me up to research X' pick 'research-cockpit'; for 'compare X vs Y' pick 'compare'. Choose the arrangement yourself \u2014 do not ask the user how to arrange.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "pattern": {
+     "type": "string",
+     "enum": [
+      "auto",
+      "default",
+      "focus",
+      "single-focus",
+      "research-cockpit",
+      "compare",
+      "macro-scan",
+      "custom"
+     ],
+     "default": "default"
+    },
+    "panel": {
+     "type": "string",
+     "description": "Required when pattern='focus'."
+    },
+    "symbol": {
+     "type": "string",
+     "description": "Primary symbol for single-focus / research-cockpit."
+    },
+    "symbols": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     },
+     "description": "Two tickers for pattern='compare'."
+    },
+    "panels": {
+     "type": "array",
+     "description": "For pattern='custom': the panels to place, in order. Each item is a panel name (chart|watchlist|news|portfolio|equity-overview|macro|screener|brief) OR {panel, direction:left|right|above|below, reference}. The first anchors; bare items tile coherently.",
+     "items": {
+      "type": [
+       "string",
+       "object"
+      ]
+     }
+    }
+   },
+   "required": [
+    "pattern"
+   ]
+  }
+ },
+ "publish_brief": {
+  "description": "Publish a synthesized research brief into the brief panel (the B+A research output). Pass the markdown body (with inline [n] citation markers), the sources, the mode (FAST|DEEP), and metadata. Use after gathering data with research (a deep/heavy research run auto-publishes, so you need not call this for it). If web sources were unavailable, set web_available=false and say so in the brief \u2014 never fabricate a source.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "markdown": {
+     "type": "string",
+     "description": "The brief body (markdown)."
+    },
+    "sources": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "properties": {
+       "url": {
+        "type": "string"
+       },
+       "title": {
+        "type": "string"
+       },
+       "excerpt": {
+        "type": "string"
+       },
+       "domain": {
+        "type": "string"
+       }
+      }
+     },
+     "description": "Cited sources, in [n] order."
+    },
+    "mode": {
+     "type": "string",
+     "enum": [
+      "FAST",
+      "DEEP"
+     ],
+     "default": "FAST"
+    },
+    "depth": {
+     "type": "string",
+     "enum": [
+      "quick",
+      "deep",
+      "heavy"
+     ],
+     "description": "The true depth TIER reached (quick < deep < heavy). Sets the brief's in-place 'Go deeper' escalation: omit it on a re-publish of the same run and the prior tier is preserved (a heavy run is never clobbered back to quick); set it explicitly to deepen."
+    },
+    "query": {
+     "type": "string"
+    },
+    "symbol": {
+     "type": "string"
+    },
+    "web_available": {
+     "type": "boolean",
+     "default": true
+    },
+    "note": {
+     "type": "string",
+     "description": "e.g. the honest no-web-search note."
+    },
+    "structured": {
+     "type": "object",
+     "description": "The provenance-tagged structured bundle (price/fundamentals/news/filings) from the research result \u2014 pass it through verbatim so the panel renders native metric cards. Optional; omit if you have none."
+    }
+   },
+   "required": [
+    "markdown"
+   ]
+  }
+ },
+ "write_screener_filters": {
+  "description": "Write/configure the screener's filter criteria into the panel for the user to REVIEW and run. This does NOT run the screener \u2014 it stages the filters in the screener panel; the user reviews them and clicks Run. Pass a flat `criteria` list (each: {field, operator, value} where operator is gt|lt|gte|lte|between|eq|in; numeric fields like pe_ratio, market_cap, roe, dividend_yield, debt_to_equity, price, volume \u2014 fractions for ratios e.g. roe 0.2 = 20%; string fields sector/industry/currency take operator \"eq\", e.g. {\"field\":\"sector\",\"operator\":\"eq\",\"value\":\"Technology\"} \u2014 filter sector-scoped screens server-side instead of post-filtering rows). For OR / nested logic, pass a `group` tree {combinator:'and'|'or', criteria:[... leaf or nested group]} which supersedes the flat list. Optionally set `universe` (sp500|nifty50|crypto-top50|nse-all|bse-all|india-all|custom) and `limit`. Use when the user asks to screen/scan for stocks by fundamentals.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "criteria": {
+     "type": "array",
+     "items": {
+      "type": "object"
+     },
+     "description": "Flat AND-combined leaf criteria, each {field, operator, value}."
+    },
+    "group": {
+     "type": "object",
+     "description": "Optional nested AND/OR tree {combinator, criteria:[...]} \u2014 supersedes the flat criteria. A child may itself be a group."
+    },
+    "formula": {
+     "type": "string",
+     "description": "Optional boolean formula evaluated server-side per symbol, AND-combined with the criteria \u2014 same grammar as screener_run's formula (e.g. 'pe < 15 and roe > 0.2')."
+    },
+    "run": {
+     "type": "boolean",
+     "description": "When true, ask the panel to RUN the staged screen immediately after the user's gate applies it (instead of waiting for a manual Run click)."
+    },
+    "universe": {
+     "type": "string",
+     "enum": [
+      "sp500",
+      "nifty50",
+      "crypto-top50",
+      "nse-all",
+      "bse-all",
+      "india-all",
+      "custom"
+     ],
+     "description": "Optional universe to screen."
+    },
+    "limit": {
+     "type": "integer",
+     "description": "Optional max rows (default 200)."
+    }
+   },
+   "required": [
+    "criteria"
+   ]
+  }
+ },
+ "portfolio_add_position": {
+  "description": "Add a position to the user's LOCAL (manually-tracked) portfolio \u2014 symbol, quantity, and per-share cost basis. Edits the user's local tracked portfolio (manual holdings). Vysted has no brokerage connection. Use when the user says they bought/hold something and want it tracked. If the user did not give the price they paid, ASK for it before calling \u2014 never invent, estimate or zero a cost basis.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string"
+    },
+    "quantity": {
+     "type": "number"
+    },
+    "cost_basis": {
+     "type": "number",
+     "description": "Per-share cost in the listing currency, as the user stated it. Ask the user if they did not say; never guess."
+    },
+    "asset_class": {
+     "type": "string",
+     "enum": [
+      "equity",
+      "crypto"
+     ],
+     "default": "equity"
+    },
+    "note": {
+     "type": "string",
+     "description": "Optional free-form note."
+    },
+    "purchased_at": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    }
+   },
+   "required": [
+    "symbol",
+    "quantity",
+    "cost_basis"
+   ]
+  }
+ },
+ "portfolio_update_position": {
+  "description": "Update an existing LOCAL portfolio position by its id (quantity, cost basis, note, \u2026). Read the current positions first with get_portfolio to learn the position_id. Edits the user's local tracked portfolio (manual holdings). Vysted has no brokerage connection. Send only the fields the user changed; for a new cost basis use the price the user gave \u2014 ask for it, never invent one.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "position_id": {
+     "type": "string"
+    },
+    "symbol": {
+     "type": "string"
+    },
+    "quantity": {
+     "type": "number"
+    },
+    "cost_basis": {
+     "type": "number",
+     "description": "Per-share cost in the listing currency."
+    },
+    "asset_class": {
+     "type": "string",
+     "enum": [
+      "equity",
+      "crypto"
+     ]
+    },
+    "note": {
+     "type": "string"
+    },
+    "purchased_at": {
+     "type": "string",
+     "description": "ISO date, YYYY-MM-DD"
+    }
+   },
+   "required": [
+    "position_id"
+   ]
+  }
+ },
+ "portfolio_delete_position": {
+  "description": "Delete a LOCAL portfolio position by its id (from get_portfolio). Edits the user's local tracked portfolio (manual holdings). Vysted has no brokerage connection.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "position_id": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "position_id"
+   ]
+  }
+ },
+ "write_note": {
+  "description": "Write to the user's notes surface. `scope` names the note bucket (e.g. 'global', or a symbol like 'NVDA' for that company's research note); mode 'append' adds to the existing note, 'replace' overwrites it. Use to capture analysis takeaways the user asks you to save.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "scope": {
+     "type": "string",
+     "description": "Note bucket \u2014 'global' or a symbol, e.g. 'NVDA'."
+    },
+    "text": {
+     "type": "string"
+    },
+    "mode": {
+     "type": "string",
+     "enum": [
+      "replace",
+      "append"
+     ],
+     "default": "append"
+    }
+   },
+   "required": [
+    "scope",
+    "text"
+   ]
+  }
+ },
+ "remove_from_watchlist": {
+  "description": "Remove a symbol from the user's watchlist.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "symbol": {
+     "type": "string"
+    }
+   },
+   "required": [
+    "symbol"
+   ]
+  }
+ },
+ "save_layout": {
+  "description": "Save the CURRENT cockpit layout as a named workspace the user can restore later. Omit `name` to update the active saved layout.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string"
+    }
+   }
+  }
+ },
+ "save_screen": {
+  "description": "Save a screener configuration (criteria/group/formula + universe) under a name so the user can re-run it later. Use after a screen the user likes \u2014 it persists the recipe, it does not run it.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string"
+    },
+    "criteria": {
+     "type": "array",
+     "items": {
+      "type": "object"
+     },
+     "description": "Flat AND-combined leaf criteria."
+    },
+    "group": {
+     "type": "object",
+     "description": "Optional nested AND/OR tree (supersedes criteria)."
+    },
+    "formula": {
+     "type": "string",
+     "description": "Optional boolean formula."
+    },
+    "universe": {
+     "type": "string",
+     "enum": [
+      "sp500",
+      "nifty50",
+      "crypto-top50",
+      "nse-all",
+      "bse-all",
+      "india-all",
+      "custom"
+     ]
+    }
+   },
+   "required": [
+    "name"
+   ]
+  }
+ },
+ "set_region": {
+  "description": "Switch the terminal's active market region (US / IN / GLOBAL) \u2014 drives locale-aware resolution, indices, and data routing. A settings change staged through the user's trust gate; use it only when the user asks to switch markets.",
+  "input_schema": {
+   "type": "object",
+   "properties": {
+    "region": {
+     "type": "string",
+     "enum": [
+      "US",
+      "IN",
+      "GLOBAL"
+     ]
+    }
+   },
+   "required": [
+    "region"
+   ]
+  }
+ }
+}

@@ -1,0 +1,112 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+
+import { usePanelContextBus } from "@/store/panel-context";
+import { usePortfoliosStore } from "@/store/portfolios";
+import { useSettingsStore } from "@/store/settings";
+import type { Quote } from "../../../types/data";
+import { PortfolioPanel } from "./PortfolioPanel";
+
+vi.mock("./api", () => ({
+  fetchPositionQuotes: vi.fn(),
+  fetchDailyCloses: vi.fn(),
+  benchmarkSymbolForCurrency: vi.fn(() => null),
+}));
+
+// Keep the real CSV builder; capture the download instead of touching the DOM.
+vi.mock("@/lib/csv", async (importActual) => ({
+  ...(await importActual<typeof import("@/lib/csv")>()),
+  downloadCsv: vi.fn(),
+}));
+
+const api = await import("./api");
+const mockFetchQuotes = vi.mocked(api.fetchPositionQuotes);
+const mockFetchDailyCloses = vi.mocked(api.fetchDailyCloses);
+const csvModule = await import("@/lib/csv");
+const mockDownloadCsv = vi.mocked(csvModule.downloadCsv);
+
+function quote(symbol: string, price: number, currency = "USD"): Quote {
+  return {
+    symbol,
+    price,
+    change: 0,
+    change_percent: 0,
+    volume: null,
+    currency,
+    market_state: null,
+    timestamp: "2026-05-15T00:00:00Z",
+    provider: "yfinance",
+  };
+}
+
+function resetStore() {
+  usePortfoliosStore.setState({
+    portfolios: [{ id: "default", name: "Portfolio", holdings: [] }],
+    activeId: "default",
+  });
+}
+
+function activeHoldings() {
+  const state = usePortfoliosStore.getState();
+  return state.portfolios.find((p) => p.id === state.activeId)?.holdings ?? [];
+}
+
+async function addHolding(symbol: string, quantity: string, costBasis: string) {
+  fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: symbol } });
+  fireEvent.change(screen.getByLabelText("Quantity"), { target: { value: quantity } });
+  fireEvent.change(screen.getByLabelText("Avg cost / share"), { target: { value: costBasis } });
+  await act(async () => {
+    fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
+  });
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  resetStore();
+  usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
+  // R11 (D57): money renders in the QUOTE's currency — the region is only the
+  // locale (grouping) + the fallback when no quote resolved. Region is pinned
+  // US here so number GROUPING is deterministic (en-US); the currency
+  // assertions below prove the instrument's symbol wins over the region
+  // (an INR quote renders ₹ under region US).
+  useSettingsStore.setState({ region: "US" });
+  mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 0 });
+  mockDownloadCsv.mockResolvedValue({ path: "/tmp/exports/csv/out.csv", fellBack: false });
+  // No history by default — existing tests that don't exercise the Risk
+  // section see it settle to "insufficient" rather than hang.
+  mockFetchDailyCloses.mockResolvedValue(null);
+});
+
+describe("recheck variant", () => {
+  it("a mid-flight holdings change: the stale fan-out settling late does not reopen the gate for the live one; a rejected fan-out reopens it", async () => {
+    vi.useFakeTimers();
+    try {
+      const pending: Array<{ res: (v: { quotes: Map<string, Quote>; failed: number }) => void; rej: (e: unknown) => void }> = [];
+      mockFetchQuotes.mockImplementation(
+        () => new Promise((res, rej) => { pending.push({ res, rej }); }),
+      );
+      render(<PortfolioPanel />);
+      await addHolding("aapl", "10", "150");
+      await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+      await addHolding("msft", "5", "300");
+      await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+      const n0 = mockFetchQuotes.mock.calls.length;
+      // settle every fan-out except the newest (live) one
+      for (const p of pending.slice(0, -1)) {
+        await act(async () => { p.res({ quotes: new Map(), failed: 0 }); await vi.advanceTimersByTimeAsync(0); });
+      }
+      for (let i = 0; i < 4; i++) {
+        await act(async () => { await vi.advanceTimersByTimeAsync(5_000); });
+      }
+      expect(mockFetchQuotes).toHaveBeenCalledTimes(n0);
+      // the live fan-out rejects -> gate reopens, next tick refetches exactly once
+      await act(async () => { pending[pending.length - 1].rej(new Error("boom")); await vi.advanceTimersByTimeAsync(0); });
+      await act(async () => { await vi.advanceTimersByTimeAsync(5_000); });
+      expect(mockFetchQuotes).toHaveBeenCalledTimes(n0 + 1);
+      await act(async () => { await vi.advanceTimersByTimeAsync(5_000); });
+      expect(mockFetchQuotes).toHaveBeenCalledTimes(n0 + 1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

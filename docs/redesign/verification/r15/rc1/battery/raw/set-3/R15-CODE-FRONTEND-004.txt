@@ -1,0 +1,17 @@
+--- POST Research: NVDA ---
+{"status":"saved","name":"Research: NVDA"}
+--- GET Research: NVDA ---
+{}
+--- POST Research: RELIANCE.NS ---
+{"status":"saved","name":"Research: RELIANCE.NS"}
+--- POST Research: M&M ---
+{"status":"saved","name":"Research: M&M"}
+--- POST My Layout (2) ---
+{"status":"saved","name":"My Layout (2)"}
+--- DELETE Research: NVDA ---
+
+--- path traversal attempt ../escape ---
+{"status":"saved","name":"../escape"}
+--- POST Hindi name ---
+{"status":"saved","name":"अनुसंधान: टीसीएस"}
+--- POST a/b{"status":"saved","name":"a/b\\c"}

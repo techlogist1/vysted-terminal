@@ -1,0 +1,16 @@
+_parse_verdict('UNVERIFIED - no source confirms the 23% operating margin.') = ('unverified', 'UNVERIFIED - no source confirms the 23% operating margin.')
+_parse_verdict('UNVERIFIED - evidence does not support the figure') = ('unverified', 'UNVERIFIED - evidence does not support the figure')
+_parse_verdict('UNVERIFIED - no matching figure') = ('unverified', 'UNVERIFIED - no matching figure')
+_parse_verdict('AGREE - the figure matches') = ('agree', 'AGREE - the figure matches')
+_parse_verdict('DISAGREE - the source says otherwise') = ('disagree', 'DISAGREE - the source says otherwise')
+
+_reflect_says_complete('Price action is not covered yet') = False
+_reflect_says_complete('COMPLETE') = True
+_reflect_says_complete('no gaps') = True
+_reflect_says_complete('Still missing valuation ratios') = False
+
+priority_note raised: AttributeError 'Src' object has no attribute 'url'
+
+SAME domain (SearXNG + native both cite example.com): independence = 1 domains = {'example.com'}
+DISTINCT domains (SearXNG example.com, native other.com): independence = 2 domains = {'other.com', 'example.com'}
+UNCITED native text (adds its own path): independence = 2 domains = {'example.com'}

@@ -1,0 +1,4 @@
+=== UI-087: provider fallback order in Settings ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.tsx:82: * `verification/R9_DEFECT_CATALOGUE.md`. R15-UI-087 brought the provider order,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.tsx:89: *      key rows in fallback order (drag or arrows; one designed grid,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.tsx:434:  /** Move one provider to position `to` of the fallback order. */

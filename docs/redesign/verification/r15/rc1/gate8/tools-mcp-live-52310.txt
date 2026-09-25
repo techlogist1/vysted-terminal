@@ -1,0 +1,40 @@
+analyst_history	Analyst rating-change history for a symbol (newest first).
+analyst_individual	Per-firm currently-active analyst forecasts for a symbol.
+compare_symbols	Compare 2-4 instruments side by side — latest quote, valuation (P/E, market cap, margins), and recent relative performance. Use when the use
+compute_greeks	Analytic Greeks (+ the Black-Scholes price) for a European vanilla option.
+corporate_actions	Corporate actions of an Indian (NSE/BSE) listed company from BOTH exchanges — dividends, bonuses, splits, rights issues and buybacks, newest
+corporate_announcements	Recent corporate announcements an Indian (NSE/BSE) listed company filed with its exchanges — results notices, board meetings, investor prese
+earnings_call_transcript	The earnings-call (concall) transcript an Indian (NSE/BSE) listed company filed with its exchanges, read from the filed PDF: what management
+earnings_estimates	Analyst estimate detail for a symbol's next upcoming report.
+earnings_history	Historical EPS surprises (actual vs estimate) for a symbol.
+earnings_upcoming	Scheduled earnings events in the next N days, optionally filtered to a watchlist of symbols.
+exchange_deals	Bulk deals, block deals and SAST (SEBI Reg 29 substantial-acquisition) disclosures for an Indian (NSE/BSE) listed company, newest first — wh
+financial_statements	One financial statement for a company — income, balance sheet or cash flow — annual (fiscal years) or quarterly (ISO period-end dates), newe
+fundamentals	Valuation ratios (P/E, P/B, market cap, margins) + a company profile for a symbol. Use for value/quality analysis.
+get_workspace	Return a saved workspace by id. Maps to GET /workspaces/{id}.
+invoke_agent	Invoke an agent and aggregate its streaming reply into a single string.
+list_agents	List the agents available in this Vysted sidecar.
+list_runs	List Delegate runs (status + cost-so-far). Maps to GET /runs.
+list_workflows	List every saved workflow.
+list_workspaces	List saved workspaces. Maps to GET /workspaces.
+macro_search	Search a macro provider's catalog by free-text query.
+macro_series	Fetch a macroeconomic time series (e.g. DGS10, CPIAUCSL, UNRATE) from a named provider.
+market_overview	Locale-aware market-state snapshot in ONE call — call this FIRST for a broad market question ('how's the market today', 'what moved'). Resol
+news	Recent news headlines with sentiment, optionally filtered to a list of symbols. Use to check what's happening with a name.
+option_chain	The listed option chain for one expiry with exchange-published open interest: per strike, call and put OI, change in OI, last/settle price, 
+price_bond	Price a fixed-rate bond: clean/dirty price, accrued, duration, convexity.
+price_data	Recent OHLCV bars + the latest quote for a symbol. Use to check price, recent action, volatility, or drawdown. Returns at most the newest 90
+price_option	Price one option via Black-Scholes, binomial, or Monte-Carlo. Read-only math — no side effects.
+price_target_history	Price-target change timeline for a symbol (newest first).
+research	The ONE research capability — call it for 'research X' / 'set me up to look at X' / 'go deeper on X'. Resolves the symbol, pulls price, fund
+resolve_symbol	Resolve a free-text company name or ticker to a concrete instrument (ticker, exchange, region, asset class), locale-aware — 'Tata Steel' -> 
+run_custom_backtest	Author and run a CUSTOM backtest strategy from declarative entry/exit rules over indicator comparisons (e.g. entry 'sma(20) > sma(50)', exit
+run_workflow	Run a workflow spec to completion and return the unary result.
+save_workflow	Create or update a saved workflow. Maps to ``POST /workflow/save``.
+screener_run	Screen a universe of symbols against numeric/string criteria and return the matches. Use to find names that fit a thesis.
+sec_filing_content	Parsed sections of one SEC filing identified by accession number.
+sec_filings_list	List recent SEC filings (10-K, 10-Q, 8-K, DEF 14A, 3/4/5) for a company. Identify the company by symbol OR cik (provide at least one).
+sec_insider_transactions	Recent insider transactions (Forms 3/4/5) for an issuer. Identify the issuer by symbol OR cik (provide at least one).
+shareholding_pattern	Quarterly shareholding pattern for an NSE- or BSE-listed Indian company, newest quarter first: promoter(+group), public (incl. institutions)
+web_search	Search the web for current context to ground an answer — recent developments, analyst takes, macro events. Returns results + normalized cita
+yield_curve_value	Bootstrap a yield curve from deposit/swap instruments and sample it.

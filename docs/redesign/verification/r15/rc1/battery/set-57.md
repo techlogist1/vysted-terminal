@@ -1,0 +1,13 @@
+# unplanned-12
+
+Candidate 4097dac4. Raw output: `raw/set-57/`.
+
+| id | repro run | observed | verdict |
+| --- | --- | --- | --- |
+| R15-CODE-PLATFORM-026 | `find scripts -iname "ensure-*.mjs"`; `wc -l scripts/ensure-*.mjs`; read `scripts/ensure-sidecar.mjs` | The three `ensure-*-sidecar.mjs` scripts are now 14-29 lines each (was ~190 lines with ~90 duplicated); `ensure-sidecar.mjs` imports `SIDECAR_SPECS`/`buildSidecar` from a new shared `scripts/sidecar-specs.mjs` and just calls `buildSidecar(SIDECAR_SPECS.find(...))` — one shared implementation, matching fix_shape's `build-sidecar.mjs`-exports-`buildSidecar({...})` shape (named `sidecar-specs.mjs` instead) | holds |
+| R15-CODE-PLATFORM-027 | `grep -n "ROOT\s*=" scripts/audit-design-tokens.mjs` | `const ROOT = resolve(import.meta.dirname, "..");` — exactly the fix_shape's prescribed fix, replacing the Windows-broken `new URL('..', import.meta.url).pathname` | holds |
+| R15-CODE-PLATFORM-028 | `grep -n include vitest.config.*`; `find scripts -iname "*.test.mjs"` | `vitest.config` include now lists `"scripts/**/*.test.mjs"`; 4 real test files exist in `scripts/`: `sidecar-specs.test.mjs`, `sidecar-freshness-gate.test.mjs`, `audit-design-tokens.test.mjs`, `sidecar-staleness.test.mjs` — matches fix_shape exactly (widened include + a staleness tmpdir test). Test presence and names verified by listing only; execution is the heavy lane's (ci_pinned would apply only if a claim needed the test run, none does here) | holds |
+| R15-RELEASE-005 | Read `scripts/sidecar-staleness.mjs:1-40` (`IGNORE_FILE` regex + header comment) | `IGNORE_FILE = /\.(pyc\|pyo\|log)$|^\.DS_Store$/i` — a deny-list (everything is a build input except bytecode/logs/OS litter), replacing the old allow-list that missed `.json.gz`. Header comment cites R15-RELEASE-005 directly: "An allow-list of extensions silently missed new data kinds: the bundled `.json.gz` fundamentals seeds never triggered a rebuild (R15-RELEASE-005)." A regenerated `.json.gz` now marks the binary stale like any other source file | holds |
+| R15-RELEASE-006 | `grep -n "SIDECAR_SPECS\|_assertAllFresh" scripts/smoke-test-sidecars.mjs` | `smoke-test-sidecars.mjs:80` imports `SIDECAR_SPECS`/`assertAllFresh`/`binaryPath`/`targetTriple` from the SAME `./sidecar-specs.mjs` the ensure scripts use, and `_assertAllFresh` loops `for (const spec of SIDECAR_SPECS)` — one shared spec table read by both the builder and the CI freshness gate, so they cannot drift apart | holds |
+
+Summary: 5 holds. No regressions. All five land together as one shared-module refactor (`scripts/sidecar-specs.mjs`), matching the register's own cross-reference note that RELEASE-005/006 and CODE-PLATFORM-026 land together.

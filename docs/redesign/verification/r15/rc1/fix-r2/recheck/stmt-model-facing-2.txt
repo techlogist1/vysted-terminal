@@ -1,0 +1,245 @@
+== SIFY income result.symbol=SIFY provider=openbb-mcp currency=INR note=None fundamentals=('SIFY', 'USD', 'INR', 'yfinance') period=2026-03-31
+   operating_revenue: raw=44877000000.0 model=₹4,488 cr
+   total_revenue: raw=44877000000.0 model=₹4,488 cr
+   cost_of_revenue: raw=26843000000.0 model=₹2,684 cr
+   gross_profit: raw=18034000000.0 model=₹1,803 cr
+   salaries_and_wages: raw=3182000000.0 model=₹318.20 cr
+   rent_and_landing_fees: raw=376000000.0 model=₹37.60 cr
+   insurance_and_claims: raw=161000000.0 model=₹16.10 cr
+   other_gand_a: raw=1193000000.0 model=₹119.30 cr
+   general_and_administrative_expense: raw=4912000000.0 model=₹491.20 cr
+   selling_and_marketing_expense: raw=553000000.0 model=₹55.30 cr
+   selling_general_and_admin_expense: raw=5465000000.0 model=₹546.50 cr
+   depreciation_income_statement: raw=None model=None
+   amortization_of_intangibles_income_statement: raw=None model=None
+   amortization: raw=None model=None
+   depreciation_and_amortization_in_income_statement: raw=7274000000.0 model=₹727.40 cr
+   depreciation_amortization_depletion_income_statement: raw=7274000000.0 model=₹727.40 cr
+   provision_for_doubtful_accounts: raw=164000000.0 model=₹16.40 cr
+   other_taxes: raw=233000000.0 model=₹23.30 cr
+   other_operating_expenses: raw=1885000000.0 model=₹188.50 cr
+   operating_expense: raw=15021000000.0 model=₹1,502 cr
+   operating_income: raw=3013000000.0 model=₹301.30 cr
+   interest_income_non_operating: raw=1000000.0 model=₹1,000,000.00
+   interest_expense_non_operating: raw=3963000000.0 model=₹396.30 cr
+   total_other_finance_cost: raw=None model=None
+   net_non_operating_interest_income_expense: raw=-3962000000.0 model=₹-396.20 cr
+   gain_on_sale_of_security: raw=34000000.0 model=₹3.40 cr
+   impairment_of_capital_assets: raw=None model=None
+   write_off: raw=26000000.0 model=₹2.60 cr
+   gain_on_sale_of_ppe: raw=None model=None
+   special_income_charges: raw=-26000000.0 model=₹-2.60 cr
+   other_non_operating_income_expenses: raw=None model=None
+   other_income_expense: raw=8000000.0 model=₹8,000,000.00
+   total_pre_tax_income: raw=-941000000.0 model=₹-94.10 cr
+   tax_provision: raw=425000000.0 model=₹42.50 cr
+   net_income_continuous_operations: raw=-1366000000.0 model=₹-136.60 cr
+   net_income_including_noncontrolling_interests: raw=-1366000000.0 model=₹-136.60 cr
+   minority_interests: raw=0.0 model=₹0.00
+   net_income: raw=-1366000000.0 model=₹-136.60 cr
+   net_income_attributable_to_common_shareholders: raw=-1366000000.0 model=₹-136.60 cr
+   diluted_ni_availto_com_stockholders: raw=-1366000000.0 model=₹-136.60 cr
+== SIFY cashflow result.symbol=SIFY provider=openbb-mcp currency=INR note=None fundamentals=('SIFY', 'USD', 'INR', 'yfinance') period=2026-03-31
+   net_income_from_continuing_operations: raw=3013000000.0 model=₹301.30 cr
+   gain_loss_on_sale_of_ppe: raw=-27000000.0 model=₹-2.70 cr
+   net_foreign_currency_exchange_gain_loss: raw=-37000000.0 model=₹-3.70 cr
+   operating_gains_losses: raw=-64000000.0 model=₹-6.40 cr
+   depreciation: raw=6808000000.0 model=₹680.80 cr
+   amortization_of_intangibles: raw=466000000.0 model=₹46.60 cr
+   amortization_cash_flow: raw=466000000.0 model=₹46.60 cr
+   depreciation_and_amortization: raw=7274000000.0 model=₹727.40 cr
+   depreciation_amortization_depletion: raw=7274000000.0 model=₹727.40 cr
+   deferred_income_tax: raw=None model=None
+   deferred_tax: raw=None model=None
+   provisionand_write_offof_assets: raw=164000000.0 model=₹16.40 cr
+   stock_based_compensation: raw=56000000.0 model=₹5.60 cr
+   other_non_cash_items: raw=-1000000.0 model=₹-1,000,000.00
+   changes_in_account_receivables: raw=-1831000000.0 model=₹-183.10 cr
+   change_in_receivables: raw=-1831000000.0 model=₹-183.10 cr
+   change_in_inventory: raw=1067000000.0 model=₹106.70 cr
+   change_in_prepaid_assets: raw=787000000.0 model=₹78.70 cr
+   change_in_account_payable: raw=-4764000000.0 model=₹-476.40 cr
+   change_in_payable: raw=-4764000000.0 model=₹-476.40 cr
+   change_in_payables_and_accrued_expense: raw=-4764000000.0 model=₹-476.40 cr
+   change_in_other_current_assets: raw=-1411000000.0 model=₹-141.10 cr
+   change_in_other_current_liabilities: raw=3530000000.0 model=₹353.00 cr
+   change_in_other_working_capital: raw=6000000.0 model=₹6,000,000.00
+   change_in_working_capital: raw=-2616000000.0 model=₹-261.60 cr
+   taxes_refund_paid: raw=-650000000.0 model=₹-65.00 cr
+   cash_flow_from_continuing_operating_activities: raw=7176000000.0 model=₹717.60 cr
+   operating_cash_flow: raw=7176000000.0 model=₹717.60 cr
+   capital_expenditure_reported: raw=None model=None
+   investments_in_property_plant_and_equipment: raw=-12890000000.0 model=₹-1,289 cr
+   sale_of_ppe: raw=27000000.0 model=₹2.70 cr
+   net_ppe_purchase_and_sale: raw=-12863000000.0 model=₹-1,286 cr
+   purchase_of_investment: raw=-138000000.0 model=₹-13.80 cr
+   sale_of_investment: raw=96000000.0 model=₹9.60 cr
+   net_investment_purchase_and_sale: raw=-42000000.0 model=₹-4.20 cr
+   interest_received_cfi: raw=None model=None
+   cash_flow_from_continuing_investing_activities: raw=-12905000000.0 model=₹-1,290 cr
+   investing_cash_flow: raw=-12905000000.0 model=₹-1,290 cr
+   long_term_debt_issuance: raw=9315000000.0 model=₹931.50 cr
+   long_term_debt_payments: raw=-429000000.0 model=₹-42.90 cr
+== INFY income result.symbol=INFY.NS provider=openbb-mcp currency=USD note=None fundamentals=('INFY.NS', 'INR', 'USD', 'yfinance') period=2026-03-31
+   operating_revenue: raw=20158000000.0 model=USD 20.16B
+   total_revenue: raw=20158000000.0 model=USD 20.16B
+   cost_of_revenue: raw=14079000000.0 model=USD 14.08B
+   gross_profit: raw=6079000000.0 model=USD 6.08B
+   salaries_and_wages: raw=1145000000.0 model=USD 1.15B
+   rent_and_landing_fees: raw=None model=None
+   insurance_and_claims: raw=37000000.0 model=USD 37.00M
+   other_gand_a: raw=419000000.0 model=USD 419.00M
+   general_and_administrative_expense: raw=1601000000.0 model=USD 1.60B
+   selling_and_marketing_expense: raw=225000000.0 model=USD 225.00M
+   selling_general_and_admin_expense: raw=1826000000.0 model=USD 1.83B
+   other_taxes: raw=35000000.0 model=USD 35.00M
+   other_operating_expenses: raw=129000000.0 model=USD 129.00M
+   operating_expense: raw=1990000000.0 model=USD 1.99B
+   operating_income: raw=4089000000.0 model=USD 4.09B
+   interest_income_non_operating: raw=351000000.0 model=USD 351.00M
+   interest_expense_non_operating: raw=47000000.0 model=USD 47.00M
+   net_non_operating_interest_income_expense: raw=304000000.0 model=USD 304.00M
+   gain_on_sale_of_security: raw=100000000.0 model=USD 100.00M
+   write_off: raw=4000000.0 model=USD 4.00M
+   special_income_charges: raw=-4000000.0 model=USD -4.00M
+   other_non_operating_income_expenses: raw=17000000.0 model=USD 17.00M
+   other_income_expense: raw=113000000.0 model=USD 113.00M
+   total_pre_tax_income: raw=4506000000.0 model=USD 4.51B
+   tax_provision: raw=1190000000.0 model=USD 1.19B
+   net_income_continuous_operations: raw=3316000000.0 model=USD 3.32B
+   net_income_including_noncontrolling_interests: raw=3316000000.0 model=USD 3.32B
+   minority_interests: raw=-3000000.0 model=USD -3.00M
+   net_income: raw=3313000000.0 model=USD 3.31B
+   net_income_attributable_to_common_shareholders: raw=3313000000.0 model=USD 3.31B
+   diluted_ni_availto_com_stockholders: raw=3313000000.0 model=USD 3.31B
+   basic_earnings_per_share: raw=0.81 model=0.81
+   diluted_earnings_per_share: raw=0.8 model=0.8
+   weighted_average_basic_shares_outstanding: raw=4112814745.0 model=4112814745.0
+   weighted_average_diluted_shares_outstanding: raw=4120108168.0 model=4120108168.0
+   total_operating_income_as_reported: raw=4085000000.0 model=USD 4.08B
+   rent_expense_supplemental: raw=None model=None
+   total_expenses: raw=16069000000.0 model=USD 16.07B
+   net_income_from_continuing_and_discontinued_operation: raw=3313000000.0 model=USD 3.31B
+   normalized_income: raw=3242344000.0 model=USD 3.24B
+== INFY.NS income result.symbol=INFY.NS provider=openbb-mcp currency=USD note=None fundamentals=('INFY.NS', 'INR', 'USD', 'yfinance') period=2026-03-31
+   operating_revenue: raw=20158000000.0 model=USD 20.16B
+   total_revenue: raw=20158000000.0 model=USD 20.16B
+   cost_of_revenue: raw=14079000000.0 model=USD 14.08B
+   gross_profit: raw=6079000000.0 model=USD 6.08B
+   salaries_and_wages: raw=1145000000.0 model=USD 1.15B
+   rent_and_landing_fees: raw=None model=None
+   insurance_and_claims: raw=37000000.0 model=USD 37.00M
+   other_gand_a: raw=419000000.0 model=USD 419.00M
+   general_and_administrative_expense: raw=1601000000.0 model=USD 1.60B
+   selling_and_marketing_expense: raw=225000000.0 model=USD 225.00M
+   selling_general_and_admin_expense: raw=1826000000.0 model=USD 1.83B
+   other_taxes: raw=35000000.0 model=USD 35.00M
+   other_operating_expenses: raw=129000000.0 model=USD 129.00M
+   operating_expense: raw=1990000000.0 model=USD 1.99B
+   operating_income: raw=4089000000.0 model=USD 4.09B
+   interest_income_non_operating: raw=351000000.0 model=USD 351.00M
+   interest_expense_non_operating: raw=47000000.0 model=USD 47.00M
+   net_non_operating_interest_income_expense: raw=304000000.0 model=USD 304.00M
+   gain_on_sale_of_security: raw=100000000.0 model=USD 100.00M
+   write_off: raw=4000000.0 model=USD 4.00M
+   special_income_charges: raw=-4000000.0 model=USD -4.00M
+   other_non_operating_income_expenses: raw=17000000.0 model=USD 17.00M
+   other_income_expense: raw=113000000.0 model=USD 113.00M
+   total_pre_tax_income: raw=4506000000.0 model=USD 4.51B
+   tax_provision: raw=1190000000.0 model=USD 1.19B
+   net_income_continuous_operations: raw=3316000000.0 model=USD 3.32B
+   net_income_including_noncontrolling_interests: raw=3316000000.0 model=USD 3.32B
+   minority_interests: raw=-3000000.0 model=USD -3.00M
+   net_income: raw=3313000000.0 model=USD 3.31B
+   net_income_attributable_to_common_shareholders: raw=3313000000.0 model=USD 3.31B
+   diluted_ni_availto_com_stockholders: raw=3313000000.0 model=USD 3.31B
+   basic_earnings_per_share: raw=0.81 model=0.81
+   diluted_earnings_per_share: raw=0.8 model=0.8
+   weighted_average_basic_shares_outstanding: raw=4112814745.0 model=4112814745.0
+   weighted_average_diluted_shares_outstanding: raw=4120108168.0 model=4120108168.0
+   total_operating_income_as_reported: raw=4085000000.0 model=USD 4.08B
+   rent_expense_supplemental: raw=None model=None
+   total_expenses: raw=16069000000.0 model=USD 16.07B
+   net_income_from_continuing_and_discontinued_operation: raw=3313000000.0 model=USD 3.31B
+   normalized_income: raw=3242344000.0 model=USD 3.24B
+== WIT income result.symbol=WIT provider=openbb-mcp currency=INR note=None fundamentals=('WIT', 'USD', 'INR', 'yfinance') period=2026-03-31
+   operating_revenue: raw=926240000000.0 model=₹92,624 cr
+   total_revenue: raw=926240000000.0 model=₹92,624 cr
+   cost_of_revenue: raw=656192000000.0 model=₹65,619 cr
+   gross_profit: raw=270048000000.0 model=₹27,005 cr
+   salaries_and_wages: raw=75733000000.0 model=₹7,573 cr
+   other_gand_a: raw=26608000000.0 model=₹2,661 cr
+   general_and_administrative_expense: raw=102341000000.0 model=₹10,234 cr
+   selling_and_marketing_expense: raw=7385000000.0 model=₹738.50 cr
+   selling_general_and_admin_expense: raw=109726000000.0 model=₹10,973 cr
+   depreciation_and_amortization_in_income_statement: raw=8358000000.0 model=₹835.80 cr
+   depreciation_amortization_depletion_income_statement: raw=8358000000.0 model=₹835.80 cr
+   provision_for_doubtful_accounts: raw=2838000000.0 model=₹283.80 cr
+   other_operating_expenses: raw=None model=None
+   operating_expense: raw=120922000000.0 model=₹12,092 cr
+   operating_income: raw=149126000000.0 model=₹14,913 cr
+   interest_income_non_operating: raw=28367000000.0 model=₹2,837 cr
+   interest_expense_non_operating: raw=7909000000.0 model=₹790.90 cr
+   total_other_finance_cost: raw=6668000000.0 model=₹666.80 cr
+   net_non_operating_interest_income_expense: raw=13790000000.0 model=₹1,379 cr
+   gain_on_sale_of_security: raw=9977000000.0 model=₹997.70 cr
+   earnings_from_equity_interest: raw=257000000.0 model=₹25.70 cr
+   gain_on_sale_of_ppe: raw=272000000.0 model=₹27.20 cr
+   special_income_charges: raw=272000000.0 model=₹27.20 cr
+   other_income_expense: raw=10506000000.0 model=₹1,051 cr
+   total_pre_tax_income: raw=173422000000.0 model=₹17,342 cr
+   tax_provision: raw=40767000000.0 model=₹4,077 cr
+   net_income_continuous_operations: raw=132655000000.0 model=₹13,266 cr
+   net_income_including_noncontrolling_interests: raw=132655000000.0 model=₹13,266 cr
+   minority_interests: raw=-681000000.0 model=₹-68.10 cr
+   net_income: raw=131974000000.0 model=₹13,197 cr
+   net_income_attributable_to_common_shareholders: raw=131974000000.0 model=₹13,197 cr
+   diluted_ni_availto_com_stockholders: raw=131974000000.0 model=₹13,197 cr
+   basic_earnings_per_share: raw=12.6 model=12.6
+   diluted_earnings_per_share: raw=12.56 model=12.56
+   weighted_average_basic_shares_outstanding: raw=10476506978.0 model=10476506978.0
+   weighted_average_diluted_shares_outstanding: raw=10476506978.0 model=10476506978.0
+   total_operating_income_as_reported: raw=151251000000.0 model=₹15,125 cr
+   total_expenses: raw=777114000000.0 model=₹77,711 cr
+   net_income_from_continuing_and_discontinued_operation: raw=131974000000.0 model=₹13,197 cr
+   normalized_income: raw=124134539900.0 model=₹12,413 cr
+== AAPL income result.symbol=AAPL provider=openbb-mcp currency=USD note=None fundamentals=('AAPL', 'USD', None, 'yfinance') period=2025-09-30
+   operating_revenue: raw=416161000000.0 model=USD 416.16B
+   total_revenue: raw=416161000000.0 model=USD 416.16B
+   cost_of_revenue: raw=220960000000.0 model=USD 220.96B
+   gross_profit: raw=195201000000.0 model=USD 195.20B
+   selling_general_and_admin_expense: raw=27601000000.0 model=USD 27.60B
+   research_and_development_expense: raw=34550000000.0 model=USD 34.55B
+   operating_expense: raw=62151000000.0 model=USD 62.15B
+   operating_income: raw=133050000000.0 model=USD 133.05B
+   interest_income_non_operating: raw=None model=None
+   interest_expense_non_operating: raw=None model=None
+   net_non_operating_interest_income_expense: raw=None model=None
+   other_non_operating_income_expenses: raw=-321000000.0 model=USD -321.00M
+   other_income_expense: raw=-321000000.0 model=USD -321.00M
+   total_pre_tax_income: raw=132729000000.0 model=USD 132.73B
+   tax_provision: raw=20719000000.0 model=USD 20.72B
+   net_income_continuous_operations: raw=112010000000.0 model=USD 112.01B
+   net_income_including_noncontrolling_interests: raw=112010000000.0 model=USD 112.01B
+   net_income: raw=112010000000.0 model=USD 112.01B
+   net_income_attributable_to_common_shareholders: raw=112010000000.0 model=USD 112.01B
+   diluted_ni_availto_com_stockholders: raw=112010000000.0 model=USD 112.01B
+   basic_earnings_per_share: raw=7.49 model=7.49
+   diluted_earnings_per_share: raw=7.46 model=7.46
+   weighted_average_basic_shares_outstanding: raw=14948500000.0 model=14948500000.0
+   weighted_average_diluted_shares_outstanding: raw=15004697000.0 model=15004697000.0
+   total_operating_income_as_reported: raw=133050000000.0 model=USD 133.05B
+   total_expenses: raw=283111000000.0 model=USD 283.11B
+   net_income_from_continuing_and_discontinued_operation: raw=112010000000.0 model=USD 112.01B
+   normalized_income: raw=112010000000.0 model=USD 112.01B
+   interest_income: raw=None model=None
+   interest_expense: raw=None model=None
+   net_interest_income: raw=None model=None
+   ebit: raw=133050000000.0 model=USD 133.05B
+   ebitda: raw=144748000000.0 model=USD 144.75B
+   reconciled_cost_of_revenue: raw=220960000000.0 model=USD 220.96B
+   reconciled_depreciation: raw=11698000000.0 model=USD 11.70B
+   net_income_from_continuing_operation_net_minority_interest: raw=112010000000.0 model=USD 112.01B
+   normalized_ebitda: raw=144748000000.0 model=USD 144.75B
+   tax_rate_for_calcs: raw=0.156 model=0.156
+   tax_effect_of_unusual_items: raw=0.0 model=USD 0.00

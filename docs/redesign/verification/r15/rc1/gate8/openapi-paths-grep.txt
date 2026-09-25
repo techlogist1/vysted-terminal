@@ -1,0 +1,2 @@
+GET /disclosures/shareholding
+GET /portfolio/positions

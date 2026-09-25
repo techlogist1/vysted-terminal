@@ -1,0 +1,2021 @@
+{
+ "slot": "P6",
+ "symbol": "ICON",
+ "manifest_name": "Icon Facilitators Ltd",
+ "exchange": "BSE",
+ "bse_code": "544426",
+ "collected_at": "2026-09-25T05:24:44+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=ICON",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "ICON",
+    "region": "IN",
+    "resolved": {
+     "symbol": "ICON",
+     "name": "Icon Facilitators Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "ICON.BO",
+     "confidence": 1.0,
+     "isin": "INE0Y0E01012",
+     "bse_code": "544426",
+     "industry": null,
+     "former_name": null,
+     "board": "SME",
+     "exchange_group": "M",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "ICON",
+      "name": "Icon Facilitators Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ICON.BO",
+      "confidence": 1.0,
+      "isin": "INE0Y0E01012",
+      "bse_code": "544426",
+      "industry": null,
+      "former_name": null,
+      "board": "SME",
+      "exchange_group": "M",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "ICON",
+      "name": "Icon Energy Corp",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "ICON",
+      "confidence": 1.0,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null,
+      "board": null,
+      "exchange_group": null,
+      "face_value": null
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=Icon+Facilitators+Ltd",
+   "status": 200,
+   "elapsed_ms": 629,
+   "body": {
+    "ok": true,
+    "query": "Icon Facilitators Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "ICON",
+     "name": "Icon Facilitators Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "ICON.BO",
+     "confidence": 1.0,
+     "isin": "INE0Y0E01012",
+     "bse_code": "544426",
+     "industry": null,
+     "former_name": null,
+     "board": "SME",
+     "exchange_group": "M",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "ICON",
+      "name": "Icon Facilitators Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ICON.BO",
+      "confidence": 1.0,
+      "isin": "INE0Y0E01012",
+      "bse_code": "544426",
+      "industry": null,
+      "former_name": null,
+      "board": "SME",
+      "exchange_group": "M",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "AARCON",
+      "name": "Aarcon Facilities Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "AARCON.BO",
+      "confidence": 0.7619,
+      "isin": "INE056J01015",
+      "bse_code": "532024",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "P",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "MODINSU",
+      "name": "Modern Insulators Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "MODINSU.BO",
+      "confidence": 0.6667,
+      "isin": "INE219W01012",
+      "bse_code": "515008",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "CROWN",
+      "name": "Crown Lifters Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "CROWN.NS",
+      "confidence": 0.619,
+      "isin": null,
+      "bse_code": null,
+      "industry": "Rental & Leasing Services",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": null,
+      "face_value": 10.0
+     },
+     {
+      "symbol": "NATFIT",
+      "name": "National Fittings Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "NATFIT.BO",
+      "confidence": 0.619,
+      "isin": "INE643C01015",
+      "bse_code": "531289",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "GKCONS",
+      "name": "GK Consultants Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "GKCONS.BO",
+      "confidence": 0.6154,
+      "isin": "INE131D01019",
+      "bse_code": "531758",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52313/resolve?q=544426",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "544426",
+    "region": "IN",
+    "resolved": {
+     "symbol": "ICON",
+     "name": "Icon Facilitators Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "ICON.BO",
+     "confidence": 1.0,
+     "isin": "INE0Y0E01012",
+     "bse_code": "544426",
+     "industry": null,
+     "former_name": null,
+     "board": "SME",
+     "exchange_group": "M",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "ICON",
+      "name": "Icon Facilitators Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ICON.BO",
+      "confidence": 1.0,
+      "isin": "INE0Y0E01012",
+      "bse_code": "544426",
+      "industry": null,
+      "former_name": null,
+      "board": "SME",
+      "exchange_group": "M",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/ICON?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 1488,
+   "body": {
+    "symbol": "ICON",
+    "price": 64.45,
+    "change": 0.0,
+    "change_percent": 0.0,
+    "volume": 1200.0,
+    "open": 64.45,
+    "high": 64.45,
+    "low": 64.45,
+    "prev_close": 63.06,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-24T00:00:00Z",
+    "provider": "bse",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/ICON",
+   "status": 200,
+   "elapsed_ms": 1595,
+   "body": {
+    "symbol": "ICON.BO",
+    "name": "Icon Facilitators Limited",
+    "sector": "Industrials",
+    "industry": "Specialty Business Services",
+    "sector_source": null,
+    "currency": null,
+    "financial_currency": null,
+    "ratio_price": null,
+    "market_cap": 506551200.0,
+    "pe_ratio": null,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": null,
+    "price_to_sales": null,
+    "ev_to_ebitda": null,
+    "book_value": null,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": null,
+    "beta": null,
+    "fifty_two_week_high": null,
+    "fifty_two_week_low": null,
+    "fifty_two_week_change": null,
+    "fifty_two_week_high_date": null,
+    "fifty_two_week_low_date": null,
+    "listing_date": null,
+    "first_trade_date": null,
+    "forward_pe_fiscal_year": null,
+    "roe": null,
+    "roa": null,
+    "gross_margin": null,
+    "operating_margin": null,
+    "profit_margin": null,
+    "debt_to_equity": null,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": null,
+    "basis": "standalone",
+    "revenue_ttm": null,
+    "net_income_ttm": null,
+    "free_cash_flow": null,
+    "shares_outstanding": null,
+    "revenue_growth": null,
+    "earnings_growth": null,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": null,
+    "held_percent_institutions": null,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": null,
+    "provider": "openbb-mcp",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/ICON/income",
+   "status": 200,
+   "elapsed_ms": 358,
+   "body": {
+    "symbol": "ICON.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2026-03-31": 642427000.0,
+       "2025-03-31": 580639000.0,
+       "2024-03-31": 498421000.0,
+       "2023-03-31": 429630000.0
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2026-03-31": 642427000.0,
+       "2025-03-31": 580639000.0,
+       "2024-03-31": 498421000.0,
+       "2023-03-31": 429630000.0
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2026-03-31": 5603000.0,
+       "2025-03-31": 5078000.0,
+       "2024-03-31": 4962000.0,
+       "2023-03-31": 5202000.0
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2026-03-31": 636824000.0,
+       "2025-03-31": 575561000.0,
+       "2024-03-31": 493459000.0,
+       "2023-03-31": 424428000.0
+      }
+     },
+     {
+      "label": "rent_and_landing_fees",
+      "values": {
+       "2026-03-31": 969000.0,
+       "2025-03-31": 2063000.0,
+       "2024-03-31": 935000.0,
+       "2023-03-31": 540000.0
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2026-03-31": 10203000.0,
+       "2025-03-31": 6131000.0,
+       "2024-03-31": 23574000.0,
+       "2023-03-31": 15174000.0
+      }
+     },
+     {
+      "label": "selling_and_marketing_expense",
+      "values": {
+       "2026-03-31": 1687000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 8000.0,
+       "2023-03-31": 202000.0
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2026-03-31": 11890000.0,
+       "2025-03-31": 6131000.0,
+       "2024-03-31": 23582000.0,
+       "2023-03-31": 15376000.0
+      }
+     },
+     {
+      "label": "depreciation_income_statement",
+      "values": {
+       "2026-03-31": 3591000.0,
+       "2025-03-31": 2103000.0,
+       "2024-03-31": 864000.0,
+       "2023-03-31": 1164000.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization_in_income_statement",
+      "values": {
+       "2026-03-31": 3591000.0,
+       "2025-03-31": 2103000.0,
+       "2024-03-31": 864000.0,
+       "2023-03-31": 1164000.0
+      }
+     },
+     {
+      "label": "other_operating_expenses",
+      "values": {
+       "2026-03-31": 21606000.0,
+       "2025-03-31": 12542000.0,
+       "2024-03-31": 837000.0,
+       "2023-03-31": 798000.0
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2026-03-31": 576073000.0,
+       "2025-03-31": 512163000.0,
+       "2024-03-31": 465388000.0,
+       "2023-03-31": 394436000.0
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2026-03-31": 60751000.0,
+       "2025-03-31": 63398000.0,
+       "2024-03-31": 28071000.0,
+       "2023-03-31": 29992000.0
+      }
+     },
+     {
+      "label": "interest_income_non_operating",
+      "values": {
+       "2026-03-31": 2199000.0,
+       "2025-03-31": 7000.0,
+       "2024-03-31": 61000.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "interest_expense_non_operating",
+      "values": {
+       "2026-03-31": 3233000.0,
+       "2025-03-31": 2860000.0,
+       "2024-03-31": 4131000.0,
+       "2023-03-31": 3378000.0
+      }
+     },
+     {
+      "label": "total_other_finance_cost",
+      "values": {
+       "2026-03-31": 325000.0,
+       "2025-03-31": 277000.0,
+       "2024-03-31": 211000.0,
+       "2023-03-31": 11000.0
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2026-03-31": -1359000.0,
+       "2025-03-31": -3130000.0,
+       "2024-03-31": -4281000.0,
+       "2023-03-31": -3389000.0
+      }
+     },
+     {
+      "label": "special_income_charges",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2026-03-31": 186000.0,
+       "2025-03-31": 16000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2026-03-31": 59579000.0,
+       "2025-03-31": 60267000.0,
+       "2024-03-31": 23790000.0,
+       "2023-03-31": 26603000.0
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2026-03-31": 15363000.0,
+       "2025-03-31": 15564000.0,
+       "2024-03-31": 6166000.0,
+       "2023-03-31": 7373000.0
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2026-03-31": 44216000.0,
+       "2025-03-31": 44703000.0,
+       "2024-03-31": 17624000.0,
+       "2023-03-31": 19230000.0
+      }
+     },
+     {
+      "label": "net_income_extraordinary",
+      "values": {
+       "2026-03-31": -678000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2026-03-31": 43538000.0,
+       "2025-03-31": 44703000.0,
+       "2024-03-31": 17624000.0,
+       "2023-03-31": 19230000.0
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2026-03-31": 43538000.0,
+       "2025-03-31": 44704000.0,
+       "2024-03-31": 17624000.0,
+       "2023-03-31": 19230000.0
+      }
+     },
+     {
+      "label": "otherunder_preferred_stock_dividend",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2026-03-31": 43538000.0,
+       "2025-03-31": 44704000.0,
+       "2024-03-31": 17624000.0,
+       "2023-03-31": 19230000.0
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2026-03-31": 43538000.0,
+       "2025-03-31": 44704000.0,
+       "2024-03-31": 17624000.0,
+       "2023-03-31": 19230000.0
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 5.687821,
+       "2024-03-31": 2.242353,
+       "2023-03-31": 2.446689
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 5.687821,
+       "2024-03-31": 2.242353,
+       "2023-03-31": 2.446689
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 7859600.0,
+       "2024-03-31": 7859600.0,
+       "2023-03-31": 7859600.0
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 7859600.0,
+       "2024-03-31": 7859600.0,
+       "2023-03-31": 7859600.0
+      }
+     },
+     {
+      "label": "rent_expense_supplemental",
+      "values": {
+       "2026-03-31": 969000.0,
+       "2025-03-31": 2063000.0,
+       "2024-03-31": 935000.0,
+       "2023-03-31": 540000.0
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2026-03-31": 581676000.0,
+       "2025-03-31": 517241000.0,
+       "2024-03-31": 470350000.0,
+       "2023-03-31": 399638000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2026-03-31": 44216000.0,
+       "2025-03-31": 44704000.0,
+       "2024-03-31": 17624000.0,
+       "2023-03-31": 19230000.0
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2026-03-31": 44216000.0,
+       "2025-03-31": 44697324.257056,
+       "2024-03-31": 17624000.0,
+       "2023-03-31": 19230000.0
+      }
+     },
+     {
+      "label": "interest_income",
+      "values": {
+       "2026-03-31": 2199000.0,
+       "2025-03-31": 7000.0,
+       "2024-03-31": 61000.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2026-03-31": 3233000.0,
+       "2025-03-31": 2860000.0,
+       "2024-03-31": 4131000.0,
+       "2023-03-31": 3378000.0
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2026-03-31": -1359000.0,
+       "2025-03-31": -3130000.0,
+       "2024-03-31": -4281000.0,
+       "2023-03-31": -3389000.0
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2026-03-31": 62812000.0,
+       "2025-03-31": 63127000.0,
+       "2024-03-31": 27921000.0,
+       "2023-03-31": 29981000.0
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2026-03-31": 66403000.0,
+       "2025-03-31": 65230000.0,
+       "2024-03-31": 28785000.0,
+       "2023-03-31": 31145000.0
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2026-03-31": 5603000.0,
+       "2025-03-31": 5078000.0,
+       "2024-03-31": 4962000.0,
+       "2023-03-31": 5202000.0
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2026-03-31": 3591000.0,
+       "2025-03-31": 2103000.0,
+       "2024-03-31": 864000.0,
+       "2023-03-31": 1164000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2026-03-31": 44216000.0,
+       "2025-03-31": 44704000.0,
+       "2024-03-31": 17624000.0,
+       "2023-03-31": 19230000.0
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 9000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 9000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2026-03-31": 66403000.0,
+       "2025-03-31": 65221000.0,
+       "2024-03-31": 28785000.0,
+       "2023-03-31": 31145000.0
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2026-03-31": 0.257859,
+       "2025-03-31": 0.258251,
+       "2024-03-31": 0.259185,
+       "2023-03-31": 0.277149
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 2324.257056,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/ICON/balance",
+   "status": 200,
+   "elapsed_ms": 528,
+   "body": {
+    "symbol": "ICON.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_financial",
+      "values": {
+       "2026-03-31": 62792000.0,
+       "2025-03-31": 21724000.0,
+       "2024-03-31": 25340000.0,
+       "2023-03-31": 2005000.0
+      }
+     },
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2026-03-31": 62792000.0,
+       "2025-03-31": 21724000.0,
+       "2024-03-31": 25340000.0,
+       "2023-03-31": 2005000.0
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 401000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2026-03-31": 62792000.0,
+       "2025-03-31": 22125000.0,
+       "2024-03-31": 25340000.0,
+       "2023-03-31": 2005000.0
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2026-03-31": 171320000.0,
+       "2025-03-31": 149534000.0,
+       "2024-03-31": 113889000.0,
+       "2023-03-31": 111451000.0
+      }
+     },
+     {
+      "label": "taxes_receivable",
+      "values": {
+       "2026-03-31": 16888000.0,
+       "2025-03-31": 14774000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 265000.0
+      }
+     },
+     {
+      "label": "other_receivables",
+      "values": {
+       "2026-03-31": 46612000.0,
+       "2025-03-31": 14544000.0,
+       "2024-03-31": 691000.0,
+       "2023-03-31": 240000.0
+      }
+     },
+     {
+      "label": "inventories",
+      "values": {
+       "2026-03-31": 4057000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2026-03-31": 20540000.0,
+       "2025-03-31": 18008000.0,
+       "2024-03-31": 17018000.0,
+       "2023-03-31": 19729000.0
+      }
+     },
+     {
+      "label": "other_current_assets",
+      "values": {
+       "2026-03-31": 73000.0,
+       "2025-03-31": 2497000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2026-03-31": 322282000.0,
+       "2025-03-31": 221482000.0,
+       "2024-03-31": 156938000.0,
+       "2023-03-31": 133690000.0
+      }
+     },
+     {
+      "label": "properties",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "buildings_and_improvements",
+      "values": {
+       "2026-03-31": 36197000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2026-03-31": 32729000.0,
+       "2025-03-31": 20176000.0,
+       "2024-03-31": 9777000.0,
+       "2023-03-31": 7189000.0
+      }
+     },
+     {
+      "label": "other_properties",
+      "values": {
+       "2026-03-31": 54309000.0,
+       "2025-03-31": 8996000.0,
+       "2024-03-31": 6087000.0,
+       "2023-03-31": 4384000.0
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2026-03-31": 68926000.0,
+       "2025-03-31": 20176000.0,
+       "2024-03-31": 15864000.0,
+       "2023-03-31": 11573000.0
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2026-03-31": -14618000.0,
+       "2025-03-31": -11027000.0,
+       "2024-03-31": -8925000.0,
+       "2023-03-31": -8061000.0
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2026-03-31": 54308000.0,
+       "2025-03-31": 9149000.0,
+       "2024-03-31": 6939000.0,
+       "2023-03-31": 3512000.0
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "available_for_sale_securities",
+      "values": {
+       "2026-03-31": 42500000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "investmentin_financial_assets",
+      "values": {
+       "2026-03-31": 42500000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_assets",
+      "values": {
+       "2026-03-31": 4281000.0,
+       "2025-03-31": 4925000.0,
+       "2024-03-31": 5239000.0,
+       "2023-03-31": 4916000.0
+      }
+     },
+     {
+      "label": "non_current_prepaid_assets",
+      "values": {
+       "2026-03-31": 642000.0,
+       "2025-03-31": 642000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "other_non_current_assets",
+      "values": {
+       "2026-03-31": 1000.0,
+       "2025-03-31": -5000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2026-03-31": 109469000.0,
+       "2025-03-31": 21114000.0,
+       "2024-03-31": 19709000.0,
+       "2023-03-31": 15628000.0
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2026-03-31": 431751000.0,
+       "2025-03-31": 242600000.0,
+       "2024-03-31": 176647000.0,
+       "2023-03-31": 149318000.0
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2026-03-31": 1945000.0,
+       "2025-03-31": 771000.0,
+       "2024-03-31": 985000.0,
+       "2023-03-31": 1387000.0
+      }
+     },
+     {
+      "label": "total_tax_payable",
+      "values": {
+       "2026-03-31": 16513000.0,
+       "2025-03-31": 15754000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "other_payable",
+      "values": {
+       "2026-03-31": 29593000.0,
+       "2025-03-31": 26519000.0,
+       "2024-03-31": 69604000.0,
+       "2023-03-31": 49216000.0
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2026-03-31": 48051000.0,
+       "2025-03-31": 43044000.0,
+       "2024-03-31": 70589000.0,
+       "2023-03-31": 50603000.0
+      }
+     },
+     {
+      "label": "current_provisions",
+      "values": {
+       "2026-03-31": 6385000.0,
+       "2025-03-31": 75000.0,
+       "2024-03-31": 50000.0,
+       "2023-03-31": 47000.0
+      }
+     },
+     {
+      "label": "pensionand_other_post_retirement_benefit_plans_current",
+      "values": {
+       "2026-03-31": 4453000.0,
+       "2025-03-31": 4214000.0,
+       "2024-03-31": 4546000.0,
+       "2023-03-31": 4017000.0
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2026-03-31": 1657000.0,
+       "2025-03-31": 2572000.0,
+       "2024-03-31": 8884000.0,
+       "2023-03-31": 12981000.0
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 1657000.0,
+       "2025-03-31": 2572000.0,
+       "2024-03-31": 8884000.0,
+       "2023-03-31": 12981000.0
+      }
+     },
+     {
+      "label": "current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 1932000.0,
+       "2025-03-31": 3637000.0,
+       "2024-03-31": 5093000.0,
+       "2023-03-31": 3755000.0
+      }
+     },
+     {
+      "label": "other_current_liabilities",
+      "values": {
+       "2026-03-31": 274000.0,
+       "2025-03-31": -1000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2026-03-31": 56367000.0,
+       "2025-03-31": 53467000.0,
+       "2024-03-31": 89162000.0,
+       "2023-03-31": 71403000.0
+      }
+     },
+     {
+      "label": "long_term_provisions",
+      "values": {
+       "2026-03-31": 13105000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2026-03-31": 4088000.0,
+       "2025-03-31": 41458000.0,
+       "2024-03-31": 15869000.0,
+       "2023-03-31": 24184000.0
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 4088000.0,
+       "2025-03-31": 41458000.0,
+       "2024-03-31": 15869000.0,
+       "2023-03-31": 24184000.0
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "non_current_pension_and_other_postretirement_benefit_plans",
+      "values": {
+       "2026-03-31": 13105000.0,
+       "2025-03-31": 13020000.0,
+       "2024-03-31": 12130000.0,
+       "2023-03-31": 11869000.0
+      }
+     },
+     {
+      "label": "other_non_current_liabilities",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 1000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 17193000.0,
+       "2025-03-31": 54479000.0,
+       "2024-03-31": 27999000.0,
+       "2023-03-31": 36053000.0
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 73560000.0,
+       "2025-03-31": 107946000.0,
+       "2024-03-31": 117161000.0,
+       "2023-03-31": 107456000.0
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2026-03-31": 78596000.0,
+       "2025-03-31": 57596000.0,
+       "2024-03-31": 100000.0,
+       "2023-03-31": 100000.0
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2026-03-31": 78596000.0,
+       "2025-03-31": 57596000.0,
+       "2024-03-31": 100000.0,
+       "2023-03-31": 100000.0
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2026-03-31": 179216000.0,
+       "2025-03-31": 20218000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2026-03-31": 100379000.0,
+       "2025-03-31": 56840000.0,
+       "2024-03-31": 59386000.0,
+       "2023-03-31": 41762000.0
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2026-03-31": 358191000.0,
+       "2025-03-31": 134654000.0,
+       "2024-03-31": 59486000.0,
+       "2023-03-31": 41862000.0
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2026-03-31": 358191000.0,
+       "2025-03-31": 134654000.0,
+       "2024-03-31": 59486000.0,
+       "2023-03-31": 41862000.0
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2026-03-31": 362279000.0,
+       "2025-03-31": 176112000.0,
+       "2024-03-31": 75355000.0,
+       "2023-03-31": 66046000.0
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2026-03-31": 358191000.0,
+       "2025-03-31": 134654000.0,
+       "2024-03-31": 59486000.0,
+       "2023-03-31": 41862000.0
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2026-03-31": 358191000.0,
+       "2025-03-31": 134654000.0,
+       "2024-03-31": 59486000.0,
+       "2023-03-31": 41862000.0
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2026-03-31": 265915000.0,
+       "2025-03-31": 168015000.0,
+       "2024-03-31": 67776000.0,
+       "2023-03-31": 62287000.0
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2026-03-31": 363936000.0,
+       "2025-03-31": 178684000.0,
+       "2024-03-31": 84239000.0,
+       "2023-03-31": 79027000.0
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2026-03-31": 358191000.0,
+       "2025-03-31": 134654000.0,
+       "2024-03-31": 59486000.0,
+       "2023-03-31": 41862000.0
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2026-03-31": 5745000.0,
+       "2025-03-31": 44030000.0,
+       "2024-03-31": 24753000.0,
+       "2023-03-31": 37165000.0
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 22306000.0,
+       "2024-03-31": null,
+       "2023-03-31": 35160000.0
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2026-03-31": 7859600.0,
+       "2025-03-31": 7859600.0,
+       "2024-03-31": 7859600.0,
+       "2023-03-31": 7859600.0
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2026-03-31": 7859600.0,
+       "2025-03-31": 7859600.0,
+       "2024-03-31": 7859600.0,
+       "2023-03-31": 7859600.0
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/ICON/cashflow",
+   "status": 200,
+   "elapsed_ms": 370,
+   "body": {
+    "symbol": "ICON.BO",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2026-03-31": 59579000.0,
+       "2025-03-31": 60268000.0,
+       "2024-03-31": 23790000.0,
+       "2023-03-31": 26603000.0
+      }
+     },
+     {
+      "label": "gain_loss_on_investment_securities",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": -9000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "pension_and_employee_benefit_expense",
+      "values": {
+       "2026-03-31": 324000.0,
+       "2025-03-31": 558000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2026-03-31": 3591000.0,
+       "2025-03-31": 2103000.0,
+       "2024-03-31": 864000.0,
+       "2023-03-31": 1164000.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2026-03-31": 3591000.0,
+       "2025-03-31": 2103000.0,
+       "2024-03-31": 864000.0,
+       "2023-03-31": 1164000.0
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2026-03-31": -202000.0,
+       "2025-03-31": 2844000.0,
+       "2024-03-31": 4342000.0,
+       "2023-03-31": 3389000.0
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2026-03-31": -57221000.0,
+       "2025-03-31": -60367000.0,
+       "2024-03-31": -2438000.0,
+       "2023-03-31": -31600000.0
+      }
+     },
+     {
+      "label": "change_in_inventory",
+      "values": {
+       "2026-03-31": -4057000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2026-03-31": 1174000.0,
+       "2025-03-31": -214000.0,
+       "2024-03-31": -402000.0,
+       "2023-03-31": 700000.0
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2026-03-31": 1138000.0,
+       "2025-03-31": -4908000.0,
+       "2024-03-31": 1489000.0,
+       "2023-03-31": -3765000.0
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2026-03-31": 4107000.0,
+       "2025-03-31": -27845000.0,
+       "2024-03-31": 20388000.0,
+       "2023-03-31": 1848000.0
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2026-03-31": -54859000.0,
+       "2025-03-31": -93334000.0,
+       "2024-03-31": 21168000.0,
+       "2023-03-31": -27303000.0
+      }
+     },
+     {
+      "label": "taxes_refund_paid",
+      "values": {
+       "2026-03-31": -16424000.0,
+       "2025-03-31": -11614000.0,
+       "2024-03-31": -6489000.0,
+       "2023-03-31": -7951000.0
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2026-03-31": -7990000.0,
+       "2025-03-31": -39174000.0,
+       "2024-03-31": 43675000.0,
+       "2023-03-31": -4099000.0
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2026-03-31": -48751000.0,
+       "2025-03-31": -4309000.0,
+       "2024-03-31": -4291000.0,
+       "2023-03-31": -1560000.0
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2026-03-31": -48751000.0,
+       "2025-03-31": -4309000.0,
+       "2024-03-31": -4291000.0,
+       "2023-03-31": -1560000.0
+      }
+     },
+     {
+      "label": "sale_of_investment",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 9000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2026-03-31": -42149000.0,
+       "2025-03-31": -408000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "interest_received_cfi",
+      "values": {
+       "2026-03-31": 2199000.0,
+       "2025-03-31": 7000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "net_other_investing_changes",
+      "values": {
+       "2026-03-31": 1000.0,
+       "2025-03-31": 9000.0,
+       "2024-03-31": null,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2026-03-31": -89979000.0,
+       "2025-03-31": -3573000.0,
+       "2024-03-31": -4291000.0,
+       "2023-03-31": -1560000.0
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2026-03-31": -38285000.0,
+       "2025-03-31": 19277000.0,
+       "2024-03-31": -8315000.0,
+       "2023-03-31": 4427000.0
+      }
+     },
+     {
+      "label": "net_short_term_debt_issuance",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": -6312000.0,
+       "2024-03-31": -4097000.0,
+       "2023-03-31": 3825000.0
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2026-03-31": -38285000.0,
+       "2025-03-31": 19277000.0,
+       "2024-03-31": -12412000.0,
+       "2023-03-31": 8252000.0
+      }
+     },
+     {
+      "label": "issuance_of_common_equity",
+      "values": {
+       "2026-03-31": 179998000.0,
+       "2025-03-31": 22714000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2026-03-31": 179998000.0,
+       "2025-03-31": 22714000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "interest_paid_cff",
+      "values": {
+       "2026-03-31": -2675000.0,
+       "2025-03-31": -2860000.0,
+       "2024-03-31": -4342000.0,
+       "2023-03-31": -3389000.0
+      }
+     },
+     {
+      "label": "net_other_financing_charges",
+      "values": {
+       "2026-03-31": -1000.0,
+       "2025-03-31": -9964000.0,
+       "2024-03-31": 705000.0,
+       "2023-03-31": 2575000.0
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2026-03-31": 139037000.0,
+       "2025-03-31": 39131000.0,
+       "2024-03-31": -16049000.0,
+       "2023-03-31": 7438000.0
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2026-03-31": 41068000.0,
+       "2025-03-31": -3616000.0,
+       "2024-03-31": 23335000.0,
+       "2023-03-31": 1779000.0
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2026-03-31": 21724000.0,
+       "2025-03-31": 25340000.0,
+       "2024-03-31": 2005000.0,
+       "2023-03-31": 226000.0
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2026-03-31": 62792000.0,
+       "2025-03-31": 21724000.0,
+       "2024-03-31": 25340000.0,
+       "2023-03-31": 2005000.0
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2026-03-31": -48751000.0,
+       "2025-03-31": -4309000.0,
+       "2024-03-31": -4291000.0,
+       "2023-03-31": -1560000.0
+      }
+     },
+     {
+      "label": "issuance_of_capital_stock",
+      "values": {
+       "2026-03-31": 179998000.0,
+       "2025-03-31": 22714000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2026-03-31": -56741000.0,
+       "2025-03-31": -43483000.0,
+       "2024-03-31": 39384000.0,
+       "2023-03-31": -5659000.0
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/ICON/ratings",
+   "status": 429,
+   "elapsed_ms": 72,
+   "body": {
+    "detail": "The data provider is throttled right now \u2014 try again shortly.",
+    "code": "rate_limited",
+    "action": "Wait a minute, then retry."
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=ICON",
+   "status": 502,
+   "elapsed_ms": 66,
+   "body": {
+    "detail": "The data provider returned an unexpected response.",
+    "code": "provider_error",
+    "action": "Retry, or try again later."
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=ICON&limit=25",
+   "status": 200,
+   "elapsed_ms": 315,
+   "body": {
+    "symbol": "ICON",
+    "exchange": null,
+    "count": 24,
+    "announcements": [
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c6f65fdc-b302-45b4-b412-bc2139712008.pdf",
+      "ts": "2026-09-22T11:39:11.193000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer\"s Report",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8f71db28-e67f-422b-9f0a-40e6c84a4019.pdf",
+      "ts": "2026-09-07T18:16:49.127000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of Postal_Ballot",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d4f0f448-63df-4b9a-ab88-6e7f43bf7031.pdf",
+      "ts": "2026-09-07T17:59:11.933000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7a8713d4-be8e-4086-b5e7-21482ffd7900.pdf",
+      "ts": "2026-09-03T15:16:50.113000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Letter To Shareholders Providing Web-Link Of Annual Report.",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/a328e524-d3ae-4311-a095-2056bdacec58.pdf",
+      "ts": "2026-09-02T14:28:01.490000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b5bcb4ff-9bbe-4676-818f-50fd9ee60dcd.pdf",
+      "ts": "2026-09-02T13:05:56.670000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Annual Report For The Financial Year 2025-26 And Notice Of 13Th Annual General Meeting",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/646392b4-1e4a-470f-863a-579513a25a19.pdf",
+      "ts": "2026-09-02T12:41:46.373000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9200e5ce-c209-4942-a388-0a1dc7160ad6.pdf",
+      "ts": "2026-08-26T14:38:33.510000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Disclosures under Reg. 29(2) of SEBI (SAST) Regulations, 2011",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/C34B9C0D_3B2A_46C1_8D38_FC19758417D0_172726.pdf",
+      "ts": "2026-08-11T17:27:31.783000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/aa874ac2-f038-41ac-b4c8-3d3552f8c43c.pdf",
+      "ts": "2026-08-05T13:46:32.263000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Notice of Postal Ballot",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/493e636f-6676-4c55-97f8-23dc346d81d4.pdf",
+      "ts": "2026-08-04T12:19:33.093000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Award_of_Order_Receipt_of_Order",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/98549b7a-c82b-4ae7-9b5d-9637dc9d9ca2.pdf",
+      "ts": "2026-07-28T11:29:24.257000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Icon Facilitators Limited - Employee Stock Option Scheme 2026",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7f48b7ab-59ef-4827-8deb-3c7c075adbf6.pdf",
+      "ts": "2026-07-27T17:55:22.103000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Considering And Approving ICON FACILITATORS LIMITED - EMPLOYEE STOCK OPTION SCHEME 2026",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/807dbb27-bae3-4be3-8c98-d852f6468d0b.pdf",
+      "ts": "2026-07-20T16:46:03.723000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/aeb2a5b7-dd3f-4aa1-8150-78cdccf0e7bb.pdf",
+      "ts": "2026-07-04T13:12:15.400000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Outcome Of Board Meeting Dated June 22, 2026",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/12e36585-f880-4a94-a471-02bda76350c8.pdf",
+      "ts": "2026-06-22T16:35:50.887000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Award_of_Order_Receipt_of_Order",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c67b8acc-d505-4b00-9a8c-36137a0857b7.pdf",
+      "ts": "2026-06-10T17:02:31.750000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3ecc8967-50bc-4e6b-9779-4f0deb2b40f8.pdf",
+      "ts": "2026-05-25T19:35:52.273000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Statement Of Deviation & Variation Pursuant To Regulation 32 Of The SEBI (Listing Obligations & Disclosure Requirements) Regulations, 2015 For The Year Ended March 31, 2026",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/695e4125-6f8f-488e-9408-6cdbf65c013f.pdf",
+      "ts": "2026-05-25T19:33:12.520000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Financial Results For Half Year And Year Ended March 31, 2026",
+      "category": "Result",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f92209af-51f0-4a28-b6ec-44e731155abf.pdf",
+      "ts": "2026-05-25T18:25:23.410000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Award_of_Order_Receipt_of_Order",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8498c2fe-53fc-492c-a4e4-a33e7ec77d86.pdf",
+      "ts": "2026-05-23T15:14:30.437000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Approval Of Audited Financial Results For Half Year And Year Ended March 31, 2026.",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/47ab7663-309c-436b-a6b1-0678d0a54c3f.pdf",
+      "ts": "2026-05-17T10:49:47.337000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Non-Applicability Of Regulation 24A Of SEBI (LODR) Regulations, 2015",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ffb649a5-90d5-4049-aa96-4de8db4be743.pdf",
+      "ts": "2026-04-22T11:14:33.473000+05:30"
+     },
+     {
+      "symbol": "ICON",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Award_of_Order_Receipt_of_Order",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f93b5435-4028-4a06-9b0a-152f072392e5.pdf",
+      "ts": "2026-04-18T12:51:11.700000+05:30"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {},
+    "windows": {
+     "BSE": {
+      "window_start": "2026-04-18",
+      "window_end": "2026-09-25"
+     }
+    },
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=ICON",
+   "status": 200,
+   "elapsed_ms": 250,
+   "body": {
+    "symbol": "ICON",
+    "count": 3,
+    "events": [
+     {
+      "symbol": "ICON",
+      "company": "Icon Facilitators Limited",
+      "purpose": "Employees Stock Option Plan",
+      "description": null,
+      "date": "2026-07-27",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ICON",
+      "company": "Icon Facilitators Limited",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-05-25",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ICON",
+      "company": "Icon Facilitators Limited",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-11-14",
+      "exchange": "BSE"
+     }
+    ],
+    "sources": [
+     "BSE"
+    ],
+    "errors": {},
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

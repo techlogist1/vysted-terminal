@@ -1,0 +1,6 @@
+"Write a note on Cochin Shipyard summarizing today's news": read_only=False n_tools=55 write_note=True portfolio_*=True save_layout=True write_screener_filters=True
+'Delete TCS from my portfolio': read_only=False n_tools=55 write_note=True portfolio_*=True save_layout=True write_screener_filters=True
+'My RELIANCE lot is actually 12 shares': read_only=False n_tools=55 write_note=True portfolio_*=True save_layout=True write_screener_filters=True
+'Remember that I prefer value stocks': read_only=False n_tools=55 write_note=True portfolio_*=True save_layout=True write_screener_filters=True
+'screen for high ROE low PE stocks': read_only=False n_tools=55 write_note=True portfolio_*=True save_layout=True write_screener_filters=True
+'what is P/E?': read_only=True n_tools=42 write_note=False portfolio_*=False save_layout=False write_screener_filters=False

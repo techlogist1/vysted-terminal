@@ -1,0 +1,2 @@
+391:fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+422:fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {

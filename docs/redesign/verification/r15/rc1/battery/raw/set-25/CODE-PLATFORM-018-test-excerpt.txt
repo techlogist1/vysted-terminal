@@ -1,0 +1,22 @@
+        return [p for p in pids if _alive(p)]
+    finally:
+        child.kill()
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX process tree (pgrep)")
+def test_watchdog_exit_leaves_no_pool_processes(tmp_path: Path) -> None:
+    """The stdin-EOF watchdog's os._exit skips the lifespan finally; the pool
+    workers and resource_tracker must not be orphaned (R15-CODE-PLATFORM-018)."""
+    leaked = _orphans_after("watchdog", tmp_path)
+    for pid in leaked:
+        os.kill(pid, signal.SIGKILL)
+    assert leaked == []
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX process tree (pgrep)")
+def test_pool_workers_die_with_a_killed_parent(tmp_path: Path) -> None:
+    """Tauri's RunEvent::Exit kills the sidecar outright; workers must follow."""
+    leaked = _orphans_after("kill", tmp_path)
+    for pid in leaked:
+        os.kill(pid, signal.SIGKILL)
+    assert leaked == []

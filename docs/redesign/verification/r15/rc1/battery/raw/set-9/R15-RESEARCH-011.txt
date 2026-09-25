@@ -1,0 +1,7 @@
+=== ownership_check.py:123-124 institutions_source/institutions_as_of wiring ===
+120-        as_of_quarter=latest.quarter_end.isoformat(),
+121-        source=source,
+122-        # A merged split names its own lane and quarter, not the NSE master's.
+123:        institutions_source=latest.split_source or source,
+
+=== same underlying data flow already confirmed by R15-DATA-021's direct _merge_bse_split test (see set-9/R15-DATA-021.txt) ===

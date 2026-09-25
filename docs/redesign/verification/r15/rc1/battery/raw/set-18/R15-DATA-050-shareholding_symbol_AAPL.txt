@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+date: Fri, 25 Sep 2026 00:26:22 GMT
+server: uvicorn
+content-length: 212
+content-type: application/json
+vary: Origin
+
+{"symbol":"AAPL","count":0,"patterns":[],"coverage":"not_applicable","note":"AAPL is not an NSE/BSE instrument; Indian exchange disclosures do not apply","provider":null,"major_shareholders":[],"source_url":null}

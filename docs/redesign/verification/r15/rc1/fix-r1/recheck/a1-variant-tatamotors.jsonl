@@ -1,0 +1,118 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_a482cb2140c9471c8ee0c2c7b957af5f", "name": "market_overview", "input": {}}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "ata"}
+{"kind": "delta", "text": " Motors"}
+{"kind": "delta", "text": "'"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "443"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " down"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " previous"}
+{"kind": "delta", "text": " close"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " N"}
+{"kind": "delta", "text": "ifty"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "50"}
+{"kind": "delta", "text": " index"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " declined"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "380"}
+{"kind": "delta", "text": " points"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "market"}
+{"kind": "delta", "text": "_over"}
+{"kind": "delta", "text": "view"}
+{"kind": "delta", "text": "**:"}
+{"kind": "delta", "text": " {"}
+{"kind": "delta", "text": " '"}
+{"kind": "delta", "text": "indices"}
+{"kind": "delta", "text": "':"}
+{"kind": "delta", "text": " [{\""}
+{"kind": "delta", "text": "symbol"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \"^"}
+{"kind": "delta", "text": "NSE"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "name"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "N"}
+{"kind": "delta", "text": "ifty"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "50"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "230"}
+{"kind": "delta", "text": "63"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "099"}
+{"kind": "delta", "text": "609"}
+{"kind": "delta", "text": "375"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "change"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "383"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "701"}
+{"kind": "delta", "text": "171"}
+{"kind": "delta", "text": "875"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "change"}
+{"kind": "delta", "text": "_percent"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "636"}
+{"kind": "delta", "text": "475"}
+{"kind": "delta", "text": "591"}
+{"kind": "delta", "text": "935"}
+{"kind": "delta", "text": "933"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "currency"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "IN"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": "\"}"}
+{"kind": "delta", "text": "],"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "head"}
+{"kind": "delta", "text": "lines"}
+{"kind": "delta", "text": "\":"}
+{"kind": "delta", "text": " [...]"}
+{"kind": "delta", "text": " }"}
+{"kind": "done", "usage": {"input_tokens": 5125, "output_tokens": 114, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

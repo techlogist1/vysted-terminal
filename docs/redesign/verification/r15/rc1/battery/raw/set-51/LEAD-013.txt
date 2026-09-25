@@ -1,0 +1,5 @@
+sidecar/services/screener_universes/sp500.json: 503 symbols.
+Register's ~15 delisted names (MMC, FI, ANSS, CTLT, DAY, DFS, HES, HOLX,
+IPG, JNPR, K, MRO, WBA, CTRA) -- ALL ABSENT now (were incorrectly present,
+causing rate_limited screener noise).
+Register's 3 missing current constituents (BXP, NVR, UDR) -- ALL PRESENT now.

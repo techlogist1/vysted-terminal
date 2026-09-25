@@ -1,0 +1,97 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_5548ba9569884b66a3f849c1f6f93e33", "name": "market_overview", "input": {"region": "IN"}}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " overview"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": " shows"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " N"}
+{"kind": "delta", "text": "ifty"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "50"}
+{"kind": "delta", "text": " index"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "23"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "063"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "383"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "70"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": " percent"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "64"}
+{"kind": "delta", "text": "%."}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " Sense"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": " index"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "73"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "580"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "54"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "247"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "71"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": " percent"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "67"}
+{"kind": "delta", "text": "%.\n\n"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " get"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Pay"}
+{"kind": "delta", "text": "tm"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " will"}
+{"kind": "delta", "text": " call"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": "`"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5275, "output_tokens": 93, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

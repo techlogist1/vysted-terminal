@@ -1,0 +1,6 @@
+SIFY USD 191700000.0 0.0
+SIFY hist {'symbol': 'SIFY', 'history': [{'fiscal_period': None, 'period_end': '2025-09-30', 'reported_date': '2025-11-04', 'eps_actual': -0.0071, 'eps_estimate_mean': -0.01, 'revenue_actual': None, 'revenue_estimate_mean': None, 'currency': 'USD'}], 'as_of': None}
+WIT USD 244246846490.0 0.035
+WIT hist {'symbol': 'WIT', 'history': [{'fiscal_period': None, 'period_end': '2026-06-30', 'reported_date': '2026-07-16', 'eps_actual': 0.03326, 'eps_estimate_mean': 0.035, 'revenue_actual': None, 'revenue_estimate_mean': None, 'currency': 'USD'}, {'fiscal_period': None, 'period_end': '2026-03-31', 'reported
+INFY INR 491465874980.0 19.58006
+INFY hist {'symbol': 'INFY.NS', 'history': [{'fiscal_period': None, 'period_end': '2026-06-30', 'reported_date': '2026-07-23', 'eps_actual': 19.17, 'eps_estimate_mean': 19.11846, 'revenue_actual': None, 'revenue_estimate_mean': None, 'currency': 'INR'}, {'fiscal_period': None, 'period_end': '2026-03-31', 'rep

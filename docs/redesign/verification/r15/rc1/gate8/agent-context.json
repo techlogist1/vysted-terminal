@@ -1,0 +1,64 @@
+{
+  "focused_source": null,
+  "by_source": {
+    "__terminal__": {
+      "focusedPanel": null,
+      "focusedSymbol": "SPY",
+      "charts": [],
+      "watchlist": {
+        "symbols": [
+          "SPY",
+          "BTC/USDT",
+          "ETH/USDT",
+          "NVDA",
+          "AAPL",
+          "RELIANCE"
+        ],
+        "selected": null
+      },
+      "portfolio": {
+        "positionCount": 2,
+        "totalValue": null,
+        "activePortfolioId": "default",
+        "activePortfolioName": "Portfolio",
+        "holdings": [
+          {
+            "id": "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
+            "symbol": "AAPL",
+            "quantity": 8,
+            "costBasis": 190,
+            "assetClass": "equity",
+            "marketValue": null,
+            "pnl": null
+          },
+          {
+            "id": "h-3d80897a-0672-40a2-a78e-253b6b5f693b",
+            "symbol": "INFY",
+            "quantity": 20,
+            "costBasis": 1500,
+            "assetClass": "equity",
+            "marketValue": null,
+            "pnl": null
+          }
+        ]
+      },
+      "brief": {
+        "phase": "archived",
+        "runId": "0029f0f597fe4d1fb211f799ff017e36",
+        "symbol": "SETFNIF50",
+        "createdAt": 1789310708439,
+        "sourceCount": 3,
+        "depth": "quick"
+      },
+      "otherPanels": [],
+      "openPanels": [],
+      "region": "IN",
+      "capturedAt": 1790293470486
+    },
+    "__notes__": {
+      "general": "",
+      "bySymbol": {}
+    }
+  },
+  "captured_at": 1790293470486
+}

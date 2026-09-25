@@ -1,0 +1,22 @@
+[
+  {
+    "key": "rc1-gate8:1",
+    "kind": "gate8",
+    "severity": "medium",
+    "register_id": null,
+    "title": "docs/PHASE_10_HANDOFF.md, which docs/README.md indexes as the 'Latest phase handoff', still tells users how to connect Kite for trading-account reads and has no D81 removal notice",
+    "repro": "Open docs/README.md:32 -> the index lists PHASE_10_HANDOFF.md as 'Latest phase handoff'. Open docs/PHASE_10_HANDOFF.md:116-140 -> '## 3. Broker + integrations hub - how to connect Kite': 'Settings -> Integrations lists Zerodha, Dhan, Angel One with a Connect button', a 4-step Kite OAuth walkthrough, 'New GET /brokers/{id}/positions|holdings|margins, POST /brokers/{id}/disconnect', 'The broker_portfolio agent tool lets the copilot analyse your real account'. No D81 note anywhere in the file (contrast CURRENT_STATE.md, BLUEPRINT.md, SAFETY_ARCHITECTURE.md and BROKER_INTEGRATIONS.md, which all carry one). None of these surfaces exist at 4097dac4 (openapi-paths.txt has no /brokers route; tools-*.txt has no broker_portfolio). The phase-handoff convention archives superseded handoffs under docs/archive/.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/gate8/grep-docs.classified.tsv",
+    "suspected_files": ["docs/PHASE_10_HANDOFF.md", "docs/README.md"]
+  },
+  {
+    "key": "rc1-gate8:2",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "get_portfolio holdings have no currency field, so the agent guesses one: llama3.1:8b gave a USD AAPL cost basis as ₹190",
+    "repro": "With holdings AAPL 8 @ 190 (USD) and INFY 20 @ 1500 (INR), portfolio panel closed, capture the context as the chat does (captureAgentContext) and ask the copilot 'What is in my portfolio?' (llama3.1:8b, --autonomy ask). The tool_use get_portfolio returns __terminal__.portfolio, whose holdings are {id, symbol, quantity, costBasis, assetClass, marketValue:null, pnl:null}. TerminalHolding in src/modules/chat/context-provider.ts has no currency field on either the store fallback or the panel-published path. The reply says 'Apple (AAPL) - 8 shares, cost basis: ₹190 per share'.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/gate8/agent-01-get-portfolio.stdout",
+    "suspected_files": ["src/modules/chat/context-provider.ts", "src/modules/portfolio/PortfolioPanel.tsx"]
+  }
+]

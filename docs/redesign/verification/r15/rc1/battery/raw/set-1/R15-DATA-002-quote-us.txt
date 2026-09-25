@@ -1,0 +1,1 @@
+{"symbol":"SMR","price":8.47,"change":-0.21999999999999886,"change_percent":-2.5316455696202405,"volume":33434732.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-24T20:03:44Z","provider":"yfinance","freshness":"eod"}

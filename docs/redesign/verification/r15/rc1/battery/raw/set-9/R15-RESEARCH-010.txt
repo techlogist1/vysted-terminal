@@ -1,0 +1,12 @@
+=== validation half (see set-7/R15-UI-008): live /llm/keys/validate on :52341, fake openrouter key ===
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+=== error half: sidecar/tests/test_research_model_lane.py:290 test_rejected_key_401_is_also_an_error_step (committed, not executed) ===
+def test_rejected_key_401_is_also_an_error_step(stub_openrouter) -> None:
+    """R15-RESEARCH-010 (error-step half): a 401 reaches the stream too."""
+    stub_openrouter.last["status"] = 401
+    out, sunk = _sunk_run(openrouter_key="sk-or-bogus")
+    assert out["ok"] is False
+    assert [s.detail for s in sunk if s.status == "error"] == [out["message"]]
+    assert "API key" in out["message"]
+    assert all("sk-or-bogus" not in s.detail for s in sunk)
+

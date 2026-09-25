@@ -1,0 +1,15 @@
+=== date context ===
+Fri Sep 25 05:52:09 IST 2026
+Thu Sep 24 20:22:09 EDT 2026
+Fri Sep 25 05:52:09 IST 2026
+=== AAPL under X-Vysted-Region: IN ===
+{"symbol":"AAPL","price":335.92,"change":-1.0160999999999945,"change_percent":-0.301570535184563,"volume":24364559.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-24T20:00:01Z","provider":"yfinance","freshness":"eod"}
+=== AAPL under X-Vysted-Region: US ===
+{"symbol":"AAPL","price":335.92,"change":-1.0160999999999945,"change_percent":-0.301570535184563,"volume":24364559.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-24T20:00:01Z","provider":"yfinance","freshness":"eod"}
+=== RELIANCE.NS under X-Vysted-Region: IN ===
+{"symbol":"RELIANCE","price":1219.2,"change":-28.799999999999955,"change_percent":-2.307692307692304,"volume":13923795.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-24T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+=== RELIANCE.NS under X-Vysted-Region: US ===
+{"symbol":"RELIANCE","price":1219.2,"change":-28.799999999999955,"change_percent":-2.307692307692304,"volume":13923795.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-24T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+
+=== code check: routers/quotes.py:44 uses instrument_region(quote.symbol, quote.provider), not config.get_region() ===
+=== code check: routers/history.py:117-119 uses instrument_region(series.symbol, series.provider), not config.get_region() (line 73's get_region() is a different codepath: the empty-series reason string, not the freshness label -- matches VERDICTS.md's greps note) ===

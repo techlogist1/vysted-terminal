@@ -1,0 +1,36 @@
+{
+  "positionCount": 3,
+  "totalValue": null,
+  "totalValueNote": "holdings span multiple currencies (INR, USD) — no cross-currency total; read per-holding values",
+  "activePortfolioId": "default",
+  "activePortfolioName": "Portfolio",
+  "holdings": [
+    {
+      "id": "h-23969a3e-649b-4229-9e61-4aa3e708e234",
+      "symbol": "RELIANCE",
+      "quantity": 10,
+      "costBasis": 1100,
+      "assetClass": "equity",
+      "marketValue": 12192,
+      "pnl": 1192
+    },
+    {
+      "id": "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
+      "symbol": "AAPL",
+      "quantity": 5,
+      "costBasis": 180,
+      "assetClass": "equity",
+      "marketValue": 1679.6000671386719,
+      "pnl": 779.6000671386719
+    },
+    {
+      "id": "h-3d80897a-0672-40a2-a78e-253b6b5f693b",
+      "symbol": "INFY",
+      "quantity": 20,
+      "costBasis": 1500,
+      "assetClass": "equity",
+      "marketValue": 20290,
+      "pnl": -9710
+    }
+  ]
+}

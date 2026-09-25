@@ -1,0 +1,83 @@
+[
+  {
+    "name": "enqueue under ask: staged, store + blob unchanged",
+    "ok": true,
+    "detail": {
+      "staged": "staged",
+      "change": {
+        "id": "change-1",
+        "toolCallId": "call_4cb2791d27a6482da818b64f6ccb18e2",
+        "action": {
+          "name": "portfolio_add_position",
+          "input": {
+            "asset_class": "equity",
+            "cost_basis": 3500,
+            "note": "",
+            "purchased_at": "2026-09-24",
+            "quantity": 5,
+            "symbol": "TCS"
+          }
+        },
+        "intent": {
+          "name": "portfolio_add_position",
+          "portfolioId": "default",
+          "holding": {
+            "symbol": "TCS",
+            "quantity": 5,
+            "costBasis": 3500,
+            "assetClass": "equity"
+          },
+          "problem": ""
+        },
+        "kind": "data-write",
+        "title": "Add 5 TCS @ ₹3,500 to the portfolio",
+        "before": "Portfolio: 2 positions",
+        "after": "Portfolio: +TCS ×5 @ ₹3,500 (3 total)",
+        "status": "pending",
+        "batchId": "gate8",
+        "createdAt": 1790293677597
+      }
+    }
+  },
+  {
+    "name": "accept() applies it; read back from blob",
+    "ok": true,
+    "detail": {
+      "res": "applied",
+      "added": [
+        {
+          "id": "h-da1ebaee-72bd-4478-bbc7-2b5ce09a1651",
+          "symbol": "TCS",
+          "quantity": 5,
+          "costBasis": 3500,
+          "assetClass": "equity"
+        }
+      ],
+      "after": [
+        {
+          "id": "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
+          "symbol": "AAPL",
+          "quantity": 8,
+          "costBasis": 190,
+          "assetClass": "equity",
+          "note": "added on dip"
+        },
+        {
+          "id": "h-3d80897a-0672-40a2-a78e-253b6b5f693b",
+          "symbol": "INFY",
+          "quantity": 20,
+          "costBasis": 1500,
+          "assetClass": "equity",
+          "note": "Core IT holding, review after Q2 results"
+        },
+        {
+          "id": "h-da1ebaee-72bd-4478-bbc7-2b5ce09a1651",
+          "symbol": "TCS",
+          "quantity": 5,
+          "costBasis": 3500,
+          "assetClass": "equity"
+        }
+      ]
+    }
+  }
+]

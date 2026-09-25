@@ -1,0 +1,30 @@
+[
+  {
+    "key": "rc1-drive-portfolio-notes:1",
+    "kind": "new_defect",
+    "severity": "high",
+    "register_id": null,
+    "title": "Portfolio quote auto-refresh has no overlap guard or request cancellation, causing an unbounded in-flight backlog once any symbol resolves slowly",
+    "repro": "Open the Portfolio panel with holdings that include a symbol not covered by fast providers (e.g. small/delisted NSE tickers that only nse_direct attempts, each call ~0.3-1.6s per fallthrough). QUOTE_REFRESH_MS=5000 fires setInterval(() => setQuotesNonce(n=>n+1), 5000) with no in-flight check; the fetch effect's `cancelled` flag only gates the .then()/.catch() state write, it never aborts the underlying fetch (no AbortController/signal anywhere in api.ts). Every 5s tick starts a brand-new full Promise.all fan-out on top of whatever is still in flight. Verified live: seeded my sidecar with a 100-holding portfolio including ~9 symbols with no EOD data (ABAN, ABINFRA, ABMINTLLTD, ACCURACY, ACSTECH, 3IINFOLTD, AARNAV, AARTECH, AARTISURF); the sidecar log shows an unbroken, non-decreasing cycle through the exact same 9 symbols for 4.5+ minutes (05:45:07 through past 05:50) with zero progress, continuing even after the originating test client process had fully exited (confirmed via ps aux / lsof -i :52324 -sTCP:ESTABLISHED showing no established connections at 05:50). A direct 20-symbol concurrent curl probe against my sidecar timed out at 60s; the identical RELIANCE.NS quote query against the separate, unrelated shared :52152 stack (same candidate code, no backlog) answered in 8ms, proving the hang is instance-specific accumulated backlog, not a systemic code defect in the provider itself. The sidecar self-recovered after the backlog eventually drained (~10 additional minutes idle, confirmed via a background watch probe: relianceQuote http=200 took=0s, RECOVERED) -- so this is a resource-exhaustion / temporary-DoS bug, not a permanent hang, but during the backlog window the panel's live quotes are completely unusable and the sidecar's worker pool is saturated by redundant retries of calls that were already known-unresolvable seconds earlier.",
+    "evidence_file": "docs/redesign/verification/r15/surface/portfolio-notes/rc1/sidecar-log-p8-wedged-window.log",
+    "suspected_files": [
+      "src/modules/portfolio/PortfolioPanel.tsx:136",
+      "src/modules/portfolio/PortfolioPanel.tsx:224-248",
+      "src/modules/portfolio/PortfolioPanel.tsx:255-259",
+      "src/modules/portfolio/api.ts:32-58"
+    ]
+  },
+  {
+    "key": "rc1-drive-portfolio-notes:2",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-UI-035",
+    "title": "P4/P4b delete-control harness replay needed a rewrite for a new ConfirmButton arm/confirm gate, not a regression in the fix itself",
+    "repro": "The census harness's P4 delete test used a single click on the delete control. On RC1 that control now rides the new shared ConfirmButton (arm/confirm, 4s window, src/components/ConfirmButton.tsx) introduced after census, so a single click only arms the button and the row is not removed. This initially looked like a reopened R15-UI-035 but is test-harness drift against an unrelated new safety primitive, not a regression in the stale-closure fix: handleDelete's useCallback dependency array now correctly includes active.id (PortfolioPanel.tsx ~line 528), confirmed by static read and by driving the double-click (arm then confirm) sequence against TCS.NS in a non-active portfolio, which deleted the correct row. Recorded as a low-severity harness-methodology note, not a product regression -- R15-UI-035 remains fixed.",
+    "evidence_file": "docs/redesign/verification/r15/surface/portfolio-notes/rc1/portfolio-replay.json",
+    "suspected_files": [
+      "src/modules/portfolio/PortfolioPanel.tsx:528",
+      "src/components/ConfirmButton.tsx"
+    ]
+  }
+]

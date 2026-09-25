@@ -1,0 +1,36 @@
+== exact_original_zomato step=1
+calls=[('price_data', {'symbol': 'ZOMATO.NS'})]
+shown="\nThere is no specific information about Zomato stock's current performance in the market overview. However, I can check the live data for you.\n\nLet me fetch the latest information on Zomato's stock price and performance.\n\n**Tool call:** `price_data"
+
+== exact_original_zomato step=3
+calls=[('price_data', {'symbol': 'ZOMATO.NS'})]
+shown="\nThere is no specific information about Zomato stock's current performance in the market overview. However, I can check the live data for you.\n\nLet me fetch the latest information on Zomato's stock price and performance.\n\n**Tool call:** `price_da"
+
+== exact_original_zomato step=7
+calls=[('price_data', {'symbol': 'ZOMATO.NS'})]
+shown="\nThere is no specific information about Zomato stock's current performance in the market overview. However, I can check the live data for you.\n\nLet me fetch the latest information on Zomato's stock price and performance.\n\n**Tool call:** `price_d"
+
+== variant_news_json_midanswer step=1
+calls=[('news', {'symbols': ['INFY.NS'], 'limit': 3})]
+shown='I can help with that. Here are the Infosys headlines.\n\n{"name": "news'
+
+== variant_news_json_midanswer step=2
+calls=[('news', {'symbols': ['INFY.NS'], 'limit': 3})]
+shown='I can help with that. Here are the Infosys headlines.\n\n{"name": "new'
+
+== variant_news_json_midanswer step=5
+calls=[('news', {'symbols': ['INFY.NS'], 'limit': 3})]
+shown='I can help with that. Here are the Infosys headlines.\n\n{"name": "'
+
+== variant_inline_fundamentals step=1
+calls=[('fundamentals', {'symbol': 'HDFCBANK.NS'})]
+shown="Sure. I'll run `fundamentals"
+
+== variant_inline_fundamentals step=4
+calls=[('fundamentals', {'symbol': 'HDFCBANK.NS'})]
+shown="Sure. I'll run `fundamentals"
+
+== neg_prose_no_call step=2
+calls=[]
+shown='Zomato (now Eternal) is a food delivery company. I can fetch its price if you like.'
+

@@ -1,0 +1,2 @@
+=== RESEARCH-010: OpenRouter canary key validate ===
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}

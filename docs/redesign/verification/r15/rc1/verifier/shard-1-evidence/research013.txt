@@ -1,0 +1,6 @@
+registered corporate_announcements: True
+RELIANCE leg provider= nse+bse ok= True | tool sources= ['NSE', 'BSE'] errors= {} count= 20
+TITANBIO leg provider= bse ok= True | tool sources= ['BSE'] errors= {} count= 20
+VALIANT leg provider= bse ok= True | tool sources= ['BSE'] errors= {} count= 15
+fake BSE-down provider= nse
+fake both-down-but-ok provider= ''

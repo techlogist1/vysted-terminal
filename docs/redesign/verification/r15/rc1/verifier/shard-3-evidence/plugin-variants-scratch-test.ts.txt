@@ -1,0 +1,110 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+const setSecretMock = vi.hoisted(() => vi.fn(async () => undefined));
+const getSecretMock = vi.hoisted(() => vi.fn(async (): Promise<string | null> => "v"));
+vi.mock("@/lib/keychain", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/keychain")>("@/lib/keychain");
+  return { ...actual, getSecret: getSecretMock, setSecret: setSecretMock, deleteSecret: vi.fn(async () => undefined) };
+});
+vi.mock("@/lib/sidecar-client", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+  return { ...actual, sidecarGet: vi.fn(async () => ({ newsapi: "ok" })) };
+});
+import { CATALOG_BY_ID } from "@/lib/marketplace";
+import { pluginHost } from "@/lib/plugin-bootstrap";
+import { PluginRuntime } from "@/lib/plugin-runtime";
+import { resetMarketplaceStoreForTests, useMarketplaceStore } from "@/store/marketplace";
+import { useModulesStore } from "@/store/modules";
+import { usePluginsStore } from "@/store/plugins";
+import { useWorkspaceStore } from "@/store/workspace";
+import { serializeWorkspace } from "@/lib/workspace";
+
+import { appendFileSync } from "node:fs";
+const vlog = (...a: unknown[]) => appendFileSync("/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vshard3/variant-out.txt", a.map(String).join(" ") + "\n");
+let detach: (() => void) | null = null;
+function fresh(persist?: Map<string, unknown>) {
+  const store = persist ?? new Map();
+  const runtime = new PluginRuntime({
+    hostVersion: "0.8.0",
+    host: pluginHost,
+    resolveSecrets: async (ids: string[]) => Object.fromEntries(ids.map((i) => [i, "v-" + i])),
+    persistence: {
+      load: async (id: string) => (store.get(id) as never) ?? null,
+      save: async (c: { pluginId: string }) => void store.set(c.pluginId, c),
+    } as never,
+  });
+  detach = usePluginsStore.getState().attachRuntime(runtime);
+  return { runtime, store };
+}
+beforeEach(async () => {
+  resetMarketplaceStoreForTests();
+  useModulesStore.setState({ modules: [], enabled: {} });
+  usePluginsStore.setState({ plugins: [], dataSources: [], agents: [], nodes: [], runtime: null });
+});
+afterEach(() => { detach?.(); detach = null; });
+
+describe("vshard3 variants", () => {
+  it("014 variant: configure() on an installed-but-DISABLED plugin keeps it stopped and never initializes", async () => {
+    fresh();
+    await useMarketplaceStore.getState().refresh();
+    await useMarketplaceStore.getState().install("vysted-news");
+    await useMarketplaceStore.getState().disable("vysted-news");
+    const init = vi.spyOn(CATALOG_BY_ID["vysted-news"].discovered.instance, "initialize");
+    try {
+      await useMarketplaceStore.getState().configure("vysted-news", { newsapi_key: "k2" });
+      expect(init).not.toHaveBeenCalled();
+      const st = useMarketplaceStore.getState().stateFor("vysted-news");
+      vlog("014-disabled", JSON.stringify(st));
+      expect(st.runtimeState).toBe("stopped");
+    } finally { init.mockRestore(); }
+  });
+
+  it("014 variant: re-configure of an ACTIVE panel plugin re-initializes with the new secret and does not duplicate its module", async () => {
+    fresh();
+    await useMarketplaceStore.getState().refresh();
+    const withPanels = Object.keys(CATALOG_BY_ID).filter((id) => (CATALOG_BY_ID[id].entry.credentialFields ?? []).length > 0);
+    vlog("credentialed plugins", withPanels);
+    const id = "vysted-news";
+    await useMarketplaceStore.getState().install(id);
+    const before = useModulesStore.getState().modules.filter((m) => m.id === `plugin:${id}`).length;
+    const init = vi.spyOn(CATALOG_BY_ID[id].discovered.instance, "initialize");
+    try {
+      await useMarketplaceStore.getState().configure(id, { newsapi_key: "k3" });
+      await useMarketplaceStore.getState().configure(id, { newsapi_key: "k4" });
+      expect(init).toHaveBeenCalledTimes(2);
+      const secrets = (init.mock.calls[1][0] as { secrets: Record<string, string> }).secrets;
+      vlog("014-secrets keys", Object.keys(secrets));
+      expect(Object.keys(secrets).length).toBeGreaterThan(0);
+      const after = useModulesStore.getState().modules.filter((m) => m.id === `plugin:${id}`).length;
+      vlog("014-module count before/after", before, after);
+      expect(after).toBe(before);
+    } finally { init.mockRestore(); }
+  });
+
+  it("013 variant: Settings > Modules toggling plugin:<id> off diverges from plugins.db and is lost on relaunch", async () => {
+    const { store } = fresh();
+    await useMarketplaceStore.getState().refresh();
+    await useMarketplaceStore.getState().install("vysted-example");
+    const modId = "plugin:vysted-example";
+    const hasModule = useModulesStore.getState().modules.some((m) => m.id === modId);
+    vlog("013 example module present:", hasModule, "enabled:", useModulesStore.getState().enabled[modId]);
+    // The Settings > Modules ToggleRow calls setModuleEnabled(module.id, false) for ANY module, plugin ones included.
+    useModulesStore.getState().setModuleEnabled(modId, false);
+    const mk = useMarketplaceStore.getState().stateFor("vysted-example");
+    vlog("013 after settings toggle: module enabled =", useModulesStore.getState().enabled[modId], "| marketplace", JSON.stringify(mk), "| plugins.db row enabled =", (store.get("vysted-example") as { enabled: boolean }).enabled);
+    // Persisted blob: plugin flags are dropped, so the user's Settings choice is not saved anywhere.
+    const fakeApi = { toJSON: () => ({ grid: {}, panels: {} }), panels: [] };
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    let blobFlag: unknown = "n/a";
+    try { blobFlag = serializeWorkspace("x").enabledModules[modId]; } catch (e) { blobFlag = String(e); }
+    vlog("013 workspace blob plugin flag:", blobFlag);
+    // Relaunch: fresh module store + fresh runtime over the same plugins.db.
+    detach?.(); detach = null;
+    resetMarketplaceStoreForTests();
+    useModulesStore.setState({ modules: [], enabled: {} });
+    usePluginsStore.setState({ plugins: [], dataSources: [], agents: [], nodes: [], runtime: null });
+    const { runtime } = fresh(store);
+    await runtime.loadPlugin(CATALOG_BY_ID["vysted-example"].discovered);
+    vlog("013 after relaunch: module enabled =", useModulesStore.getState().enabled[modId]);
+    expect(mk.enabled).toBe(true);
+  });
+});

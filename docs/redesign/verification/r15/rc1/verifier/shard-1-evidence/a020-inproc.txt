@@ -1,0 +1,12 @@
+ctx-a020.json NOTES LINE: ['User notes exist for: RELIANCE (read them with read_notes). Their note on RELIANCE: "My thesis: hold RELIANCE for the Jio and retail value unlock. EXIT if promoter pledge goes above 20% or if promoter holding drops below 45%."']
+  read_notes 'RELIANCE' -> ('RELIANCE', 'My thesis: hold RELIANCE for the Jio and retail value unlock. EXIT if promoter pledge goes above 20% or if promoter holding drops below 45%.')
+  read_notes 'reliance' -> ('RELIANCE', 'My thesis: hold RELIANCE for the Jio and retail value unlock. EXIT if promoter pledge goes above 20% or if promoter holding drops below 45%.')
+  read_notes 'DIXON' -> ('DIXON', '')
+  read_notes 'DIXON.NS' -> ('DIXON.NS', '')
+  read_notes 'global' -> ('global', '')
+ctx-a020v.json NOTES LINE: ['User notes exist for: global, DIXON (read them with read_notes).']
+  read_notes 'RELIANCE' -> ('RELIANCE', '')
+  read_notes 'reliance' -> ('RELIANCE', '')
+  read_notes 'DIXON' -> ('DIXON', 'Dixon thesis: buy below 12000 only if mobile EMS margin stays above 4 percent; target 18000.')
+  read_notes 'DIXON.NS' -> ('DIXON.NS', '')
+  read_notes 'global' -> ('global', 'Portfolio rule: never more than 8% in a single name.')

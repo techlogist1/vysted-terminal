@@ -1,0 +1,1 @@
+{"structured": {"fundamentals": {"data": {"currency": "INR"}}, "derived": {"data": {"market_cap": {"unit": "currency", "value": "₹289,504 cr"}, "pe_ratio": {"unit": "ratio", "value": 47.15}}}}}

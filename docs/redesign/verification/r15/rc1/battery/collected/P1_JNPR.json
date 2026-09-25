@@ -1,0 +1,2434 @@
+{
+ "slot": "P1",
+ "symbol": "JNPR",
+ "manifest_name": "Juniper Green Energy Ltd",
+ "exchange": "NSE+BSE",
+ "bse_code": "544853",
+ "collected_at": "2026-09-25T05:22:31+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=JNPR",
+   "status": 200,
+   "elapsed_ms": 46,
+   "body": {
+    "ok": true,
+    "query": "JNPR",
+    "region": "IN",
+    "resolved": {
+     "symbol": "JNPR",
+     "name": "Juniper Green Energy Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "JNPR.NS",
+     "confidence": 1.0,
+     "isin": "INE05C901015",
+     "bse_code": "544853",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "JNPR",
+      "name": "Juniper Green Energy Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JNPR.NS",
+      "confidence": 1.0,
+      "isin": "INE05C901015",
+      "bse_code": "544853",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "JNPR",
+      "name": "Juniper Green Energy Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JNPR.BO",
+      "confidence": 1.0,
+      "isin": "INE05C901015",
+      "bse_code": "544853",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 60.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=Juniper+Green+Energy+Ltd",
+   "status": 200,
+   "elapsed_ms": 1090,
+   "body": {
+    "ok": true,
+    "query": "Juniper Green Energy Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "JNPR",
+     "name": "Juniper Green Energy Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "JNPR.NS",
+     "confidence": 1.0,
+     "isin": "INE05C901015",
+     "bse_code": "544853",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "JNPR",
+      "name": "Juniper Green Energy Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JNPR.NS",
+      "confidence": 1.0,
+      "isin": "INE05C901015",
+      "bse_code": "544853",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "NTPCGREEN",
+      "name": "NTPC Green Energy Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "NTPCGREEN.NS",
+      "confidence": 0.7755,
+      "isin": "INE0ONG01011",
+      "bse_code": "544289",
+      "industry": "Power / Power Generation",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "TRUEGREEN",
+      "name": "True Green Bio Energy Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "TRUEGREEN.BO",
+      "confidence": 0.7755,
+      "isin": "INE672K01025",
+      "bse_code": "533407",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "ADANIGREEN",
+      "name": "Adani Green Energy Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ADANIGREEN.NS",
+      "confidence": 0.76,
+      "isin": "INE364U01010",
+      "bse_code": "541450",
+      "industry": "Power / Power Generation",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "KPIGREEN",
+      "name": "KPI Green Energy Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "KPIGREEN.NS",
+      "confidence": 0.75,
+      "isin": "INE542W01025",
+      "bse_code": "542323",
+      "industry": "Power / Power Generation",
+      "former_name": "KPIGLOBAL",
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 5.0
+     },
+     {
+      "symbol": "SOLARIUM",
+      "name": "Solarium Green Energy Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SOLARIUM.BO",
+      "confidence": 0.7347,
+      "isin": "INE0W0H01017",
+      "bse_code": "544354",
+      "industry": null,
+      "former_name": null,
+      "board": "SME",
+      "exchange_group": "M",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52313/resolve?q=544853",
+   "status": 200,
+   "elapsed_ms": 19,
+   "body": {
+    "ok": true,
+    "query": "544853",
+    "region": "IN",
+    "resolved": {
+     "symbol": "JNPR",
+     "name": "Juniper Green Energy Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "JNPR.BO",
+     "confidence": 1.0,
+     "isin": "INE05C901015",
+     "bse_code": "544853",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "JNPR",
+      "name": "Juniper Green Energy Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JNPR.BO",
+      "confidence": 1.0,
+      "isin": "INE05C901015",
+      "bse_code": "544853",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/JNPR?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 7030,
+   "body": {
+    "symbol": "JNPR",
+    "price": 257.7,
+    "change": -9.600000000000023,
+    "change_percent": -3.5914702581369333,
+    "volume": 807227.0,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-24T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/JNPR",
+   "status": 200,
+   "elapsed_ms": 12164,
+   "body": {
+    "symbol": "JNPR.NS",
+    "name": "Juniper Green Energy Limited",
+    "sector": "Utilities",
+    "industry": "Utilities - Renewable",
+    "sector_source": "yfinance",
+    "currency": "INR",
+    "financial_currency": null,
+    "ratio_price": 257.7,
+    "market_cap": 146630918144.0,
+    "pe_ratio": 283.18683,
+    "forward_pe": 20.73412,
+    "peg_ratio": null,
+    "price_to_book": 3.6803775,
+    "price_to_sales": 17.261621,
+    "ev_to_ebitda": 34.839,
+    "book_value": 70.02,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": 0.91,
+    "beta": null,
+    "fifty_two_week_high": 282.0,
+    "fifty_two_week_low": 232.11,
+    "fifty_two_week_change": 0.029224873,
+    "fifty_two_week_high_date": "2026-08-27",
+    "fifty_two_week_low_date": "2026-08-06",
+    "listing_date": "2026-08-06",
+    "first_trade_date": "2026-08-06",
+    "forward_pe_fiscal_year": "2027-03-31",
+    "roe": 0.015254317510265392,
+    "roa": null,
+    "gross_margin": 0.99194,
+    "operating_margin": 0.64203,
+    "profit_margin": 0.061479997,
+    "debt_to_equity": 4.01898,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": 0.027994966466572666,
+    "basis": "consolidated",
+    "revenue_ttm": 8494620160.0,
+    "net_income_ttm": 522289984.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 568998442.0,
+    "revenue_growth": 0.812,
+    "earnings_growth": 0.545,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.85939,
+    "held_percent_institutions": 0.038340002,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector_source": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ratio_price": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:59:53+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:59:53+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:59:53+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:59:53+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:59:53+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_book": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:59:53+00:00",
+      "reason": "P/B 3.68 disagrees by 14.1% with market cap / the provider's newest filed stockholders' equity (146,630,918,144 / 34,238,830,000 as of 2026-03-31 = 4.28) \u2014 the book value behind it may sit on a stale share count; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:59:53+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:59:53+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "book_value": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "book value per share 70.02 disagrees by 14.1% with the provider's newest filed stockholders' equity / shares outstanding (34,238,830,000 as of 2026-03-31 / 568,998,442 = 60.17) \u2014 it may sit on a stale share count; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_yield": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:59:53+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "beta": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:59:53+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "listing_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "first_trade_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe_fiscal_year": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "net income (TTM) / stockholders equity"
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roce": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "annual EBIT / (total assets - current liabilities)"
+     },
+     "basis": {
+      "status": "ok",
+      "provider": "exchange-filings",
+      "as_of": "2026-09-24T23:52:17.547708+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_ttm": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "TTM basis: the exchange filings do not cover the trailing year in four quarters (a half-yearly filer) \u2014 annual, not trailing-4Q; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "TTM basis: the exchange filings do not cover the trailing year in four quarters (a half-yearly filer) \u2014 annual, not trailing-4Q; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_institutions": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "yfinance institutions 3.83% disagrees with the NSE shareholding filing for the quarter ended 2026-08-05 (institutional holding: no institutional holding reported) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "insufficient dividend-history depth to affirm a trailing-12m zero",
+      "label": null,
+      "basis_note": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/JNPR/income",
+   "status": 200,
+   "elapsed_ms": 690,
+   "body": {
+    "symbol": "JNPR.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2026-03-31": 7092520000.0,
+       "2025-03-31": 4994230000.0,
+       "2024-03-31": 3798210000.0
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2026-03-31": 7092520000.0,
+       "2025-03-31": 4994230000.0,
+       "2024-03-31": 3798210000.0
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2026-03-31": 23230000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2026-03-31": 7069290000.0,
+       "2025-03-31": 4994230000.0,
+       "2024-03-31": 3798210000.0
+      }
+     },
+     {
+      "label": "rent_and_landing_fees",
+      "values": {
+       "2026-03-31": 6620000.0,
+       "2025-03-31": 1390000.0,
+       "2024-03-31": 1690000.0
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2026-03-31": 170770000.0,
+       "2025-03-31": 109240000.0,
+       "2024-03-31": 100770000.0
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2026-03-31": 170770000.0,
+       "2025-03-31": 109240000.0,
+       "2024-03-31": 100770000.0
+      }
+     },
+     {
+      "label": "depreciation_income_statement",
+      "values": {
+       "2026-03-31": 2367890000.0,
+       "2025-03-31": 1662720000.0,
+       "2024-03-31": 1219390000.0
+      }
+     },
+     {
+      "label": "amortization",
+      "values": {
+       "2026-03-31": 750000.0,
+       "2025-03-31": 1060000.0,
+       "2024-03-31": 2130000.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization_in_income_statement",
+      "values": {
+       "2026-03-31": 2368640000.0,
+       "2025-03-31": 1663780000.0,
+       "2024-03-31": 1221520000.0
+      }
+     },
+     {
+      "label": "other_operating_expenses",
+      "values": {
+       "2026-03-31": 580870000.0,
+       "2025-03-31": 491840000.0,
+       "2024-03-31": 274810000.0
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2026-03-31": 3346870000.0,
+       "2025-03-31": 2408120000.0,
+       "2024-03-31": 1622800000.0
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2026-03-31": 3722420000.0,
+       "2025-03-31": 2586110000.0,
+       "2024-03-31": 2175410000.0
+      }
+     },
+     {
+      "label": "interest_income_non_operating",
+      "values": {
+       "2026-03-31": 614910000.0,
+       "2025-03-31": 496830000.0,
+       "2024-03-31": 278580000.0
+      }
+     },
+     {
+      "label": "interest_expense_non_operating",
+      "values": {
+       "2026-03-31": 3823110000.0,
+       "2025-03-31": 2595970000.0,
+       "2024-03-31": 1888920000.0
+      }
+     },
+     {
+      "label": "total_other_finance_cost",
+      "values": {
+       "2026-03-31": 13920000.0,
+       "2025-03-31": 48120000.0,
+       "2024-03-31": 23040000.0
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2026-03-31": -3222120000.0,
+       "2025-03-31": -2147260000.0,
+       "2024-03-31": -1633380000.0
+      }
+     },
+     {
+      "label": "other_special_charges",
+      "values": {
+       "2026-03-31": 25560000.0,
+       "2025-03-31": 3290000.0,
+       "2024-03-31": 17470000.0
+      }
+     },
+     {
+      "label": "special_income_charges",
+      "values": {
+       "2026-03-31": -25560000.0,
+       "2025-03-31": -3290000.0,
+       "2024-03-31": -17470000.0
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2026-03-31": 28760000.0,
+       "2025-03-31": 32710000.0,
+       "2024-03-31": 6650000.0
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2026-03-31": 551940000.0,
+       "2025-03-31": 548980000.0,
+       "2024-03-31": 574950000.0
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2026-03-31": 147300000.0,
+       "2025-03-31": 184200000.0,
+       "2024-03-31": 174310000.0
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2026-03-31": 404640000.0,
+       "2025-03-31": 364780000.0,
+       "2024-03-31": 400640000.0
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2026-03-31": 404640000.0,
+       "2025-03-31": 364780000.0,
+       "2024-03-31": 400640000.0
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2026-03-31": 404640000.0,
+       "2025-03-31": 364780000.0,
+       "2024-03-31": 400640000.0
+      }
+     },
+     {
+      "label": "otherunder_preferred_stock_dividend",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2026-03-31": 404640000.0,
+       "2025-03-31": 364780000.0,
+       "2024-03-31": 400640000.0
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2026-03-31": 404640000.0,
+       "2025-03-31": 364780000.0,
+       "2024-03-31": 400640000.0
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 0.641091,
+       "2024-03-31": 0.704114
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 0.641091,
+       "2024-03-31": 0.704114
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 568998442.0,
+       "2024-03-31": 568998442.0
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 568998442.0,
+       "2024-03-31": 568998442.0
+      }
+     },
+     {
+      "label": "rent_expense_supplemental",
+      "values": {
+       "2026-03-31": 6620000.0,
+       "2025-03-31": 1390000.0,
+       "2024-03-31": 1690000.0
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2026-03-31": 3370100000.0,
+       "2025-03-31": 2408120000.0,
+       "2024-03-31": 1622800000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2026-03-31": 404640000.0,
+       "2025-03-31": 364780000.0,
+       "2024-03-31": 400640000.0
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2026-03-31": 266607570.388086,
+       "2025-03-31": 314260448.468068,
+       "2024-03-31": 382738544.916949
+      }
+     },
+     {
+      "label": "interest_income",
+      "values": {
+       "2026-03-31": 614910000.0,
+       "2025-03-31": 496830000.0,
+       "2024-03-31": 278580000.0
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2026-03-31": 3823110000.0,
+       "2025-03-31": 2595970000.0,
+       "2024-03-31": 1888920000.0
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2026-03-31": -3222120000.0,
+       "2025-03-31": -2147260000.0,
+       "2024-03-31": -1633380000.0
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2026-03-31": 4375050000.0,
+       "2025-03-31": 3144950000.0,
+       "2024-03-31": 2463870000.0
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2026-03-31": 6743690000.0,
+       "2025-03-31": 4808730000.0,
+       "2024-03-31": 3685390000.0
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2026-03-31": 23230000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2026-03-31": 2368640000.0,
+       "2025-03-31": 1663780000.0,
+       "2024-03-31": 1221520000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2026-03-31": 404640000.0,
+       "2025-03-31": 364780000.0,
+       "2024-03-31": 400640000.0
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2026-03-31": 188280000.0,
+       "2025-03-31": 76030000.0,
+       "2024-03-31": 25690000.0
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2026-03-31": 188280000.0,
+       "2025-03-31": 76030000.0,
+       "2024-03-31": 25690000.0
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2026-03-31": 6555410000.0,
+       "2025-03-31": 4732700000.0,
+       "2024-03-31": 3659700000.0
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2026-03-31": 0.266877,
+       "2025-03-31": 0.335531,
+       "2024-03-31": 0.303174
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2026-03-31": 50247570.388086,
+       "2025-03-31": 25510448.468068,
+       "2024-03-31": 7788544.916949
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/JNPR/balance",
+   "status": 200,
+   "elapsed_ms": 347,
+   "body": {
+    "symbol": "JNPR.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_financial",
+      "values": {
+       "2026-03-31": 1738230000.0,
+       "2025-03-31": 955520000.0,
+       "2024-03-31": 220720000.0
+      }
+     },
+     {
+      "label": "cash_equivalents",
+      "values": {
+       "2026-03-31": 9281640000.0,
+       "2025-03-31": 1800000000.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2026-03-31": 11019870000.0,
+       "2025-03-31": 2755520000.0,
+       "2024-03-31": 220720000.0
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2026-03-31": 5805250000.0,
+       "2025-03-31": 4128430000.0,
+       "2024-03-31": 3153490000.0
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2026-03-31": 16825120000.0,
+       "2025-03-31": 6883950000.0,
+       "2024-03-31": 3374210000.0
+      }
+     },
+     {
+      "label": "gross_accounts_receivable",
+      "values": {
+       "2026-03-31": 1119370000.0,
+       "2025-03-31": 723790000.0,
+       "2024-03-31": 625750000.0
+      }
+     },
+     {
+      "label": "allowance_for_doubtful_accounts_receivable",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2026-03-31": 1119370000.0,
+       "2025-03-31": 723790000.0,
+       "2024-03-31": 625750000.0
+      }
+     },
+     {
+      "label": "other_receivables",
+      "values": {
+       "2026-03-31": 142680000.0,
+       "2025-03-31": 205280000.0,
+       "2024-03-31": 63080000.0
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2026-03-31": 1172730000.0,
+       "2025-03-31": 677550000.0,
+       "2024-03-31": 199550000.0
+      }
+     },
+     {
+      "label": "restricted_cash",
+      "values": {
+       "2026-03-31": 18348900000.0,
+       "2025-03-31": 20960940000.0,
+       "2024-03-31": 6021810000.0
+      }
+     },
+     {
+      "label": "other_current_assets",
+      "values": {
+       "2026-03-31": 219870000.0,
+       "2025-03-31": 27500000.0,
+       "2024-03-31": null
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2026-03-31": 37828670000.0,
+       "2025-03-31": 29479010000.0,
+       "2024-03-31": 10284400000.0
+      }
+     },
+     {
+      "label": "properties",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "land_and_improvements",
+      "values": {
+       "2026-03-31": 11058170000.0,
+       "2025-03-31": 6335970000.0,
+       "2024-03-31": 3166090000.0
+      }
+     },
+     {
+      "label": "buildings_and_improvements",
+      "values": {
+       "2026-03-31": 431670000.0,
+       "2025-03-31": 295770000.0,
+       "2024-03-31": 37530000.0
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2026-03-31": 69868470000.0,
+       "2025-03-31": 43848100000.0,
+       "2024-03-31": 34143890000.0
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2026-03-31": 80573570000.0,
+       "2025-03-31": 26681280000.0,
+       "2024-03-31": 4708800000.0
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2026-03-31": 161931880000.0,
+       "2025-03-31": 77161120000.0,
+       "2024-03-31": 42056310000.0
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2026-03-31": -6758720000.0,
+       "2025-03-31": -4489750000.0,
+       "2024-03-31": -2919760000.0
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2026-03-31": 155173160000.0,
+       "2025-03-31": 72671370000.0,
+       "2024-03-31": 39136550000.0
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2026-03-31": 500000.0,
+       "2025-03-31": 1250000.0,
+       "2024-03-31": 1810000.0
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2026-03-31": 500000.0,
+       "2025-03-31": 1250000.0,
+       "2024-03-31": 1810000.0
+      }
+     },
+     {
+      "label": "available_for_sale_securities",
+      "values": {
+       "2026-03-31": 44500000.0,
+       "2025-03-31": 245200000.0,
+       "2024-03-31": 92980000.0
+      }
+     },
+     {
+      "label": "investmentin_financial_assets",
+      "values": {
+       "2026-03-31": 44500000.0,
+       "2025-03-31": 245200000.0,
+       "2024-03-31": 92980000.0
+      }
+     },
+     {
+      "label": "financial_assets",
+      "values": {
+       "2026-03-31": 144140000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_assets",
+      "values": {
+       "2026-03-31": 383830000.0,
+       "2025-03-31": 254410000.0,
+       "2024-03-31": 116720000.0
+      }
+     },
+     {
+      "label": "non_current_prepaid_assets",
+      "values": {
+       "2026-03-31": 539510000.0,
+       "2025-03-31": 306840000.0,
+       "2024-03-31": 111640000.0
+      }
+     },
+     {
+      "label": "other_non_current_assets",
+      "values": {
+       "2026-03-31": -10000.0,
+       "2025-03-31": null,
+       "2024-03-31": null
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2026-03-31": 157555860000.0,
+       "2025-03-31": 74089050000.0,
+       "2024-03-31": 39580040000.0
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2026-03-31": 195384530000.0,
+       "2025-03-31": 103568060000.0,
+       "2024-03-31": 49864440000.0
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2026-03-31": 210790000.0,
+       "2025-03-31": 141840000.0,
+       "2024-03-31": 90180000.0
+      }
+     },
+     {
+      "label": "other_payable",
+      "values": {
+       "2026-03-31": 21919850000.0,
+       "2025-03-31": 8798770000.0,
+       "2024-03-31": 2491170000.0
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2026-03-31": 22130640000.0,
+       "2025-03-31": 8940610000.0,
+       "2024-03-31": 2581350000.0
+      }
+     },
+     {
+      "label": "pensionand_other_post_retirement_benefit_plans_current",
+      "values": {
+       "2026-03-31": 89060000.0,
+       "2025-03-31": 90740000.0,
+       "2024-03-31": 63480000.0
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2026-03-31": 16788170000.0,
+       "2025-03-31": 1334840000.0,
+       "2024-03-31": 2614330000.0
+      }
+     },
+     {
+      "label": "current_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 86680000.0,
+       "2025-03-31": 191260000.0,
+       "2024-03-31": 68350000.0
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 16874850000.0,
+       "2025-03-31": 1526100000.0,
+       "2024-03-31": 2682680000.0
+      }
+     },
+     {
+      "label": "current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 4610000.0,
+       "2025-03-31": 620000.0,
+       "2024-03-31": 26250000.0
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2026-03-31": 39104650000.0,
+       "2025-03-31": 10558070000.0,
+       "2024-03-31": 5362750000.0
+      }
+     },
+     {
+      "label": "long_term_provisions",
+      "values": {
+       "2026-03-31": 772160000.0,
+       "2025-03-31": 680630000.0,
+       "2024-03-31": 504480000.0
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2026-03-31": 112417240000.0,
+       "2025-03-31": 53690450000.0,
+       "2024-03-31": 24102680000.0
+      }
+     },
+     {
+      "label": "long_term_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 8313160000.0,
+       "2025-03-31": 4490250000.0,
+       "2024-03-31": 2155940000.0
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 120730400000.0,
+       "2025-03-31": 58180700000.0,
+       "2024-03-31": 26258620000.0
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 476930000.0,
+       "2025-03-31": 503660000.0,
+       "2024-03-31": 389940000.0
+      }
+     },
+     {
+      "label": "non_current_pension_and_other_postretirement_benefit_plans",
+      "values": {
+       "2026-03-31": 61560000.0,
+       "2025-03-31": 46020000.0,
+       "2024-03-31": 31880000.0
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 122041050000.0,
+       "2025-03-31": 59411010000.0,
+       "2024-03-31": 27184920000.0
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 161145700000.0,
+       "2025-03-31": 69969080000.0,
+       "2024-03-31": 32547670000.0
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2026-03-31": 4889900000.0,
+       "2025-03-31": 4889900000.0,
+       "2024-03-31": 259060000.0
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2026-03-31": 4889900000.0,
+       "2025-03-31": 4889900000.0,
+       "2024-03-31": 259060000.0
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2026-03-31": 28534750000.0,
+       "2025-03-31": 28534750000.0,
+       "2024-03-31": 14772450000.0
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2026-03-31": 575040000.0,
+       "2025-03-31": 174460000.0,
+       "2024-03-31": 779060000.0
+      }
+     },
+     {
+      "label": "other_equity_interest",
+      "values": {
+       "2026-03-31": 239270000.0,
+       "2025-03-31": null,
+       "2024-03-31": 1500000000.0
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2026-03-31": 34238830000.0,
+       "2025-03-31": 33598980000.0,
+       "2024-03-31": 17316770000.0
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2026-03-31": 34238830000.0,
+       "2025-03-31": 33598980000.0,
+       "2024-03-31": 17316770000.0
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2026-03-31": 146656070000.0,
+       "2025-03-31": 87289430000.0,
+       "2024-03-31": 41419450000.0
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2026-03-31": 34238830000.0,
+       "2025-03-31": 33598980000.0,
+       "2024-03-31": 17316770000.0
+      }
+     },
+     {
+      "label": "capital_lease_obligations",
+      "values": {
+       "2026-03-31": 8399840000.0,
+       "2025-03-31": 4681510000.0,
+       "2024-03-31": 2224290000.0
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2026-03-31": 34238330000.0,
+       "2025-03-31": 33597730000.0,
+       "2024-03-31": 17314960000.0
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2026-03-31": -1275980000.0,
+       "2025-03-31": 18920940000.0,
+       "2024-03-31": 4921650000.0
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2026-03-31": 163444240000.0,
+       "2025-03-31": 88624270000.0,
+       "2024-03-31": 44033780000.0
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2026-03-31": 34238330000.0,
+       "2025-03-31": 33597730000.0,
+       "2024-03-31": 17314960000.0
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2026-03-31": 137605250000.0,
+       "2025-03-31": 59706800000.0,
+       "2024-03-31": 28941300000.0
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2026-03-31": 118185540000.0,
+       "2025-03-31": 52269770000.0,
+       "2024-03-31": 26496290000.0
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2026-03-31": 568998442.0,
+       "2025-03-31": 568998442.0,
+       "2024-03-31": 568998442.0
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2026-03-31": 568998442.0,
+       "2025-03-31": 568998442.0,
+       "2024-03-31": 568998442.0
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/JNPR/cashflow",
+   "status": 200,
+   "elapsed_ms": 375,
+   "body": {
+    "symbol": "JNPR.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2026-03-31": 551940000.0,
+       "2025-03-31": 548980000.0,
+       "2024-03-31": 574950000.0
+      }
+     },
+     {
+      "label": "gain_loss_on_sale_of_ppe",
+      "values": {
+       "2026-03-31": 17260000.0,
+       "2025-03-31": -740000.0,
+       "2024-03-31": 3570000.0
+      }
+     },
+     {
+      "label": "net_foreign_currency_exchange_gain_loss",
+      "values": {
+       "2026-03-31": 167850000.0,
+       "2025-03-31": 770000.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "gain_loss_on_investment_securities",
+      "values": {
+       "2026-03-31": -213840000.0,
+       "2025-03-31": -79320000.0,
+       "2024-03-31": -43160000.0
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2026-03-31": 2367890000.0,
+       "2025-03-31": 1662720000.0,
+       "2024-03-31": 1219390000.0
+      }
+     },
+     {
+      "label": "amortization_cash_flow",
+      "values": {
+       "2026-03-31": 750000.0,
+       "2025-03-31": 1060000.0,
+       "2024-03-31": 2130000.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2026-03-31": 2368640000.0,
+       "2025-03-31": 1663780000.0,
+       "2024-03-31": 1221520000.0
+      }
+     },
+     {
+      "label": "stock_based_compensation",
+      "values": {
+       "2026-03-31": 88660000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2026-03-31": 3227910000.0,
+       "2025-03-31": 2147260000.0,
+       "2024-03-31": 1647280000.0
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2026-03-31": -395580000.0,
+       "2025-03-31": -94920000.0,
+       "2024-03-31": -126270000.0
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2026-03-31": 68970000.0,
+       "2025-03-31": 51660000.0,
+       "2024-03-31": 18020000.0
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2026-03-31": -860000000.0,
+       "2025-03-31": -623970000.0,
+       "2024-03-31": -128220000.0
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2026-03-31": 1520000.0,
+       "2025-03-31": 330230000.0,
+       "2024-03-31": 79310000.0
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2026-03-31": -1131260000.0,
+       "2025-03-31": -311870000.0,
+       "2024-03-31": -142640000.0
+      }
+     },
+     {
+      "label": "taxes_refund_paid",
+      "values": {
+       "2026-03-31": -377240000.0,
+       "2025-03-31": -318180000.0,
+       "2024-03-31": -39270000.0
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2026-03-31": 4699920000.0,
+       "2025-03-31": 3650680000.0,
+       "2024-03-31": 3222250000.0
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2026-03-31": -66407620000.0,
+       "2025-03-31": -25732430000.0,
+       "2024-03-31": -8313590000.0
+      }
+     },
+     {
+      "label": "sale_of_ppe",
+      "values": {
+       "2026-03-31": 88850000.0,
+       "2025-03-31": 32340000.0,
+       "2024-03-31": 29280000.0
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2026-03-31": -66318770000.0,
+       "2025-03-31": -25700090000.0,
+       "2024-03-31": -8284310000.0
+      }
+     },
+     {
+      "label": "purchase_of_intangibles",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": -500000.0,
+       "2024-03-31": -1350000.0
+      }
+     },
+     {
+      "label": "net_intangibles_purchase_and_sale",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": -500000.0,
+       "2024-03-31": -1350000.0
+      }
+     },
+     {
+      "label": "purchase_of_business",
+      "values": {
+       "2026-03-31": -19830000.0,
+       "2025-03-31": -2500000.0,
+       "2024-03-31": -43010000.0
+      }
+     },
+     {
+      "label": "net_business_purchase_and_sale",
+      "values": {
+       "2026-03-31": -19830000.0,
+       "2025-03-31": -2500000.0,
+       "2024-03-31": -43010000.0
+      }
+     },
+     {
+      "label": "purchase_of_investment",
+      "values": {
+       "2026-03-31": -209560000.0,
+       "2025-03-31": -16480090000.0,
+       "2024-03-31": -7692240000.0
+      }
+     },
+     {
+      "label": "sale_of_investment",
+      "values": {
+       "2026-03-31": 761310000.0,
+       "2025-03-31": null,
+       "2024-03-31": null
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2026-03-31": 551750000.0,
+       "2025-03-31": -16480090000.0,
+       "2024-03-31": -7692240000.0
+      }
+     },
+     {
+      "label": "interest_received_cfi",
+      "values": {
+       "2026-03-31": 689160000.0,
+       "2025-03-31": 354990000.0,
+       "2024-03-31": 225470000.0
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2026-03-31": -65097690000.0,
+       "2025-03-31": -41828190000.0,
+       "2024-03-31": -15795440000.0
+      }
+     },
+     {
+      "label": "long_term_debt_issuance",
+      "values": {
+       "2026-03-31": 75598270000.0,
+       "2025-03-31": 37217900000.0,
+       "2024-03-31": 4974500000.0
+      }
+     },
+     {
+      "label": "long_term_debt_payments",
+      "values": {
+       "2026-03-31": -1371390000.0,
+       "2025-03-31": -950590000.0,
+       "2024-03-31": -835260000.0
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2026-03-31": 74226880000.0,
+       "2025-03-31": 36267310000.0,
+       "2024-03-31": 4139240000.0
+      }
+     },
+     {
+      "label": "short_term_debt_issuance",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": null,
+       "2024-03-31": 1251370000.0
+      }
+     },
+     {
+      "label": "short_term_debt_payments",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": -1713750000.0,
+       "2024-03-31": -24500000.0
+      }
+     },
+     {
+      "label": "net_short_term_debt_issuance",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": -1713750000.0,
+       "2024-03-31": 1226870000.0
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2026-03-31": 74226880000.0,
+       "2025-03-31": 34553560000.0,
+       "2024-03-31": 5366110000.0
+      }
+     },
+     {
+      "label": "issuance_of_common_equity",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 10659000000.0,
+       "2024-03-31": 7579440000.0
+      }
+     },
+     {
+      "label": "repurchase_of_common_equity",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": -369810000.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 10289190000.0,
+       "2024-03-31": 7579440000.0
+      }
+     },
+     {
+      "label": "interest_paid_cff",
+      "values": {
+       "2026-03-31": -3823910000.0,
+       "2025-03-31": -3053050000.0,
+       "2024-03-31": -1804930000.0
+      }
+     },
+     {
+      "label": "net_other_financing_charges",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 1500000000.0
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2026-03-31": 68661960000.0,
+       "2025-03-31": 40712210000.0,
+       "2024-03-31": 12313810000.0
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2026-03-31": 8264190000.0,
+       "2025-03-31": 2534700000.0,
+       "2024-03-31": -259380000.0
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2026-03-31": 2755520000.0,
+       "2025-03-31": 220720000.0,
+       "2024-03-31": 475490000.0
+      }
+     },
+     {
+      "label": "other_cash_adjustment_outside_changein_cash",
+      "values": {
+       "2026-03-31": 160000.0,
+       "2025-03-31": 100000.0,
+       "2024-03-31": 4610000.0
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2026-03-31": 11019870000.0,
+       "2025-03-31": 2755520000.0,
+       "2024-03-31": 220720000.0
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2026-03-31": -66407620000.0,
+       "2025-03-31": -25732930000.0,
+       "2024-03-31": -8314940000.0
+      }
+     },
+     {
+      "label": "issuance_of_capital_stock",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 10659000000.0,
+       "2024-03-31": 7579440000.0
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2026-03-31": 75598270000.0,
+       "2025-03-31": 37217900000.0,
+       "2024-03-31": 6225870000.0
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2026-03-31": -1371390000.0,
+       "2025-03-31": -2664340000.0,
+       "2024-03-31": -859760000.0
+      }
+     },
+     {
+      "label": "repurchase_of_capital_stock",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": -369810000.0,
+       "2024-03-31": 0.0
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2026-03-31": -61707700000.0,
+       "2025-03-31": -22082250000.0,
+       "2024-03-31": -5092690000.0
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/JNPR/ratings",
+   "status": 200,
+   "elapsed_ms": 827,
+   "body": {
+    "symbol": "JNPR.NS",
+    "consensus": "buy",
+    "target_mean": 330.0,
+    "target_high": 330.0,
+    "target_low": 330.0,
+    "strong_buy": 0,
+    "buy": 1,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=JNPR",
+   "status": 200,
+   "elapsed_ms": 284,
+   "body": {
+    "symbol": "JNPR",
+    "count": 1,
+    "patterns": [
+     {
+      "symbol": "JNPR",
+      "quarter_end": "2026-08-05",
+      "quarter_basis": null,
+      "promoter_percent": 85.94,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": 14.06,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": 0.0,
+      "submission_date": "2026-08-06",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1722538_08092026042505_WEB.xml",
+      "source": "NSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     }
+    ],
+    "coverage": "covered",
+    "note": null,
+    "provider": null,
+    "major_shareholders": [],
+    "source_url": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=JNPR&limit=25",
+   "status": 200,
+   "elapsed_ms": 1122,
+   "body": {
+    "symbol": "JNPR",
+    "exchange": null,
+    "count": 25,
+    "announcements": [
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Analyst/Institutional Investor Meet scheduled on September 24, 2026",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_18092026214224_2026_09_18_Regulation_30_JGEL_Analyst_Meet.pdf",
+      "ts": "2026-09-18T21:42:55+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about commissioning of Wind-Solar Hybrid Power Project",
+      "category": "Commencement of commercial production/operations",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_17092026222233_2026_09_17_JGEL_Reg_30_Letter_25_MW_Solar_Capacity_Beam_Eight.pdf",
+      "ts": "2026-09-17T22:22:56+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Credit Rating",
+      "category": "Credit Rating",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_16092026212617_2026_09_16_Regulation_30_JGEL_Credit_Rating.pdf",
+      "ts": "2026-09-16T21:27:29+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Credit Rating",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/fd99a26c-9b44-43e8-b3f6-d98aa7aea88d.pdf",
+      "ts": "2026-09-16T21:11:19.520000+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about commissioning of additional capacity",
+      "category": "Commencement of commercial production/operations",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_11092026203753_2026_09_11_JGEL_Reg_30_Letter_10_MW_Wind_Capacity_JGEL.pdf",
+      "ts": "2026-09-11T20:38:22+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about commissioning of additional capacity",
+      "category": "Commencement of commercial production/operations",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_10092026180722_2026_09_10_JGEL_Reg_30_Letter_35_MW_Wind_Capacity_JGEL.pdf",
+      "ts": "2026-09-10T18:07:56+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about commissioning of additional capacity",
+      "category": "Commencement of commercial production/operations",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_08092026193944_2026_09_08_JGEL_Reg_30_Letter_Commissioning_of_Additional_Capacity.pdf",
+      "ts": "2026-09-08T19:40:57+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "BSE",
+      "headline": "Intimation Under Regulation 30 (LODR) - Update On Commissioning Of Additional Capacity",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/be45938d-b2c9-413d-ad62-770c8d27d0b9.pdf",
+      "ts": "2026-09-08T19:28:50.910000+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange regarding change of Corporate Identity Number (CIN) of the Company",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_02092026190509_2026_09_02_Regulation_30_CIN_Update_Intimation_JGEL.pdf",
+      "ts": "2026-09-02T19:05:48+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Transcript of Earnings Conference Call Q1 FY2027",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_01092026220511_2026_09_01_Regulation_30_Transcript.pdf",
+      "ts": "2026-09-01T22:07:11+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Commencement of commercial production/operations",
+      "category": "Commencement of commercial production/operations",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_01092026011338_Reg_30_Letter_Commissioning_JGEL.pdf",
+      "ts": "2026-09-01T01:14:22+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "BSE",
+      "headline": "Intimation Under Regulation 30 (LODR) - Update On Commissioning Of Additional Capacity",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/6062761a-8eb0-4b64-94d2-de7e976af733.pdf",
+      "ts": "2026-09-01T01:01:54.763000+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Advertisement in Newspaper   Financial Results Q1 FY 2027",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_27082026191317_2026_08_27_Regulation_30_Newspaper_Publication_JGEL.pdf",
+      "ts": "2026-08-27T19:13:45+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Link of Recording",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_27082026184140_Audio_Recording_of_Earnings.pdf",
+      "ts": "2026-08-27T18:47:42+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Investor Presentation",
+      "category": "Investor Presentation",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_27082026011131_2026_08_27_Regulation_30_Investor_Presentation_Earnings_Call.pdf",
+      "ts": "2026-08-27T01:12:09+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange regarding a press release on the Financial Results for the quarter ended June 30, 2026.",
+      "category": "Press Release",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_27082026010423_2026_08_27_Regulation_30_Press_Release-FS_Q1_FY_2027.pdf",
+      "ts": "2026-08-27T01:09:16+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Investor Presentation",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/cf4afc58-6279-4f66-9f6d-b39fee03b80d.pdf",
+      "ts": "2026-08-27T00:40:47.720000+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Press Release / Media Release",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b64179d7-b995-44a6-8594-ceaab2ea0e6a.pdf",
+      "ts": "2026-08-27T00:33:17.413000+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Execution of Power Purchase Agreement with SJVN Limited",
+      "category": "Bagging/Receiving of orders/contracts",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_26082026223251_2026_08_26_Regulation_30_Disclosure_JGEL_PPA.pdf",
+      "ts": "2026-08-26T22:33:19+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "BSE",
+      "headline": "Unaudited Standalone And Consolidated Financial Results Of The Company For The Quarter Ended June 30, 2026",
+      "category": "Result",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/42e2fe83-1848-4a71-96c0-cf267fa1269e.pdf",
+      "ts": "2026-08-26T20:12:42.077000+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.",
+      "category": "Outcome of Board Meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_26082026195147_OutcomeFR.pdf",
+      "ts": "2026-08-26T19:53:41+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Earnings Conference Call to discuss the financial results of the Company for the quarter ended 30 June 2026",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_22082026214954_2026_08_22_Regulation_30_JGEL_Analyst_Meet.pdf",
+      "ts": "2026-08-22T21:50:19+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Consideration And Approval Of The Unaudited Standalone And Consolidated Financial Results Of The Company For The Quarter Ended June 30, 2026",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3e224cea-b8a5-452c-a92b-90d5c97cd9ee.pdf",
+      "ts": "2026-08-18T22:24:50.377000+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Receipt of Letter of Award from Solar Energy Corporation of India Limited awarding 230 MW Contracted Capacity of Firm and Dispatchable Renewable Energy Round-the-Clock (FDRE-RTC) Power Project.",
+      "category": "Bagging/Receiving of orders/contracts",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_15082026122500_2026_08_15_Regulation_30_Disclosure_JGEL_LoA.pdf",
+      "ts": "2026-08-15T12:26:04+05:30"
+     },
+     {
+      "symbol": "JNPR",
+      "exchange": "NSE",
+      "headline": "Juniper Green Energy Limited has informed the Exchange about Redemption of  Unsecured, Unrated, Unlisted, Redeemable, Non-Convertible Debentures",
+      "category": "Redemption",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/JGEL2025_13082026214909_Redemption_of_NCDs.pdf",
+      "ts": "2026-08-13T21:49:29+05:30"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "windows": {
+     "NSE": {
+      "window_start": "2026-08-13",
+      "window_end": "2026-09-25"
+     },
+     "BSE": {
+      "window_start": "2026-08-13",
+      "window_end": "2026-09-25"
+     }
+    },
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=JNPR",
+   "status": 200,
+   "elapsed_ms": 1583,
+   "body": {
+    "symbol": "JNPR",
+    "count": 1,
+    "events": [
+     {
+      "symbol": "JNPR",
+      "company": "Juniper Green Energy Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the unaudited standalone and consolidated financial results of the Company for the quarter ended June 30, 2026",
+      "date": "2026-08-26",
+      "exchange": "NSE+BSE"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

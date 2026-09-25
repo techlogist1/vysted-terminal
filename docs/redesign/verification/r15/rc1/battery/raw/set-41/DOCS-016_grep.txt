@@ -1,0 +1,42 @@
+17:## 0.x Trading removed (D81, 23 Sep 2026)
+21:> capability that no longer exists.** D81 (operator Tier-4 sign-off, 23 Sep 2026) removed trading from the product permanently: no broker
+78:>   — the write surface is the catalog's 19 host actions (`open_panel`/
+80:>   layout writers/`set_region`; no order action exists, D81) — none auto-apply
+89:>   were removed with trading (D81). MCP-as-framework for external
+100:>   broker reads that shipped here (FR-042/SC-012) were removed with trading (D81).
+111:> trading, D81.)
+138:  was removed permanently (D81, 23 Sep 2026). See §0.x above. The prose below
+139:  the removal notice describes the broker layer as it existed before D81;
+144:  unaffected by D81 since it never placed an order through Vysted); the seven
+145:  broker plugins that used to exist in the tree are gone (D81), not merely
+161:there is no kill-switch shortcut any more, D81). The Next.js frontend is a
+226:deleted with trading (D81); no global-shortcut plugin is registered any more.
+311:| —                   | _(none — the broker and safety routes were removed, D81, 23 Sep 2026)_                     | No broker, order or kill-switch route exists     | see §0.x                                                                   |
+421:fixtures are gone outright, D81 — not merely unwired.)
+423:### 3.5 Broker layer — removed (D81, 23 Sep 2026)
+430:### 3.6 Safety architecture — now the agent-write model (D81, 23 Sep 2026)
+569:host-actions.ts` — 19 host actions total), staged through the diff/accept
+573:  no order kind any more (D81). BYOK key resolved from the **agent's**
+578:  integration any more (D81); the surviving entries are data/agent plugins.
+597:gone — D81). Worse, `news`/`macro` pass custom validation but **are not keys
+669:host-actions.ts` — 19 host actions total) are per-invocation closures that
+677:any more — no broker connection exists to place one against (D81).
+691:`propose_order` tool exists any more (D81):
+732:removed permanently with trading (D81, 23 Sep 2026) — see §0.x and
+738:   JSDoc examples are BLOCKED-FOR-OPERATOR, not reopened by D81.
+750:   `sidecar/tests/test_no_trading_surface.py` (D81's Gate 8).
+768:There is no order audit log any more (D81); the append-only `audit_orders`
+770:upgraded from a pre-D81 install may still have a stale `audit_log.db` on
+786:per-broker namespace any more, D81). The `provider-keys` store tracks
+825:| Trading (broker connectivity, orders, simulated account)                               | **Removed permanently (D81, 23 Sep 2026)** — not deferred, not dead code; deleted                             | §0.x; SAFETY_ARCHITECTURE        |
+851:- **The sidecar + data layer.** ~94 REST routes (post-D81), the `provider_registry`
+856:  trust gate over the 19 host actions is the most trustworthy asset — preserve
+859:  preserve — that layer was removed permanently (D81, 23 Sep 2026).
+868:  behind it and never will be again (D81) — keep the ledger, do not reopen
+904:  (§5); there are no broker plugins left to decide the fate of (D81).
+915:product any more (D81) — nothing here should reopen it.
+has CAPABILITIES: False
+host_action capability count: 0
+[]
+host_action capability count: 19
+['add_chart_drawing', 'add_to_watchlist', 'arrange_layout', 'close_panel', 'focus_panel', 'open_company_overview', 'open_panel', 'portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position', 'publish_brief', 'remove_from_watchlist', 'save_layout', 'save_screen', 'set_chart_indicators', 'set_chart_symbol', 'set_region', 'write_note', 'write_screener_filters']

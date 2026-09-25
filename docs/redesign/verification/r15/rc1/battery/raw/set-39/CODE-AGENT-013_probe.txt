@@ -1,0 +1,4 @@
+internal_tool_ids: 56
+agent_selectable_tool_ids: 56
+default_grant_tool_ids: 55
+mcp_capabilities: 32

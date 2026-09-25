@@ -1,0 +1,50 @@
+=== src/lib/host-actions.test.ts:1209 (save_layout scope) ===
+  it("save_layout without a name updates the active saved layout", async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({}) }));
+    vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
+    useWorkspaceStore.setState({ name: "My desk", dockviewApi: { toJSON: () => ({}) } } as never);
+    try {
+      expect(describeHostAction("save_layout", {}).title).toBe('Update the saved layout "My desk"');
+      expect(await applyHostActionAsync("save_layout", {})).toBe('Saved the layout as "My desk"');
+      const init = (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1];
+      expect(JSON.parse(String(init.body)).name).toBe("My desk");
+      // With no saved layout active, a new "Agent layout" is created.
+      useWorkspaceStore.setState({ name: "default" });
+      expect(describeHostAction("save_layout", {}).title).toBe(
+        'Save the current layout as "Agent layout"',
+      );
+    } finally {
+      vi.unstubAllGlobals();
+      useWorkspaceStore.setState({ name: "default", dockviewApi: null } as never);
+    }
+
+=== src/store/notes.test.ts (scope:'global'/empty-symbol -> General bucket) ===
+  describe("appendGeneral (R10 write_note seam)", () => {
+    it("appends to an empty note without leading blank lines", () => {
+      useNotesStore.getState().appendGeneral("first paragraph");
+      expect(useNotesStore.getState().general).toBe("first paragraph");
+    });
+
+    it("appends with a double-newline separator when body exists", () => {
+      useNotesStore.getState().setGeneral("existing content");
+      useNotesStore.getState().appendGeneral("new paragraph");
+      expect(useNotesStore.getState().general).toBe("existing content\n\nnew paragraph");
+    });
+
+    it("appending empty text is a no-op (existing body unchanged)", () => {
+      useNotesStore.getState().setGeneral("body");
+      useNotesStore.getState().appendGeneral("   ");
+      expect(useNotesStore.getState().general).toBe("body");
+    });
+
+    it("does NOT trim leading indentation or trailing newlines from the existing body", () => {
+      // An agent write_note append must never destroy the user's formatting.
+      useNotesStore.getState().setGeneral("  indented note\n");
+      useNotesStore.getState().appendGeneral("appended");
+      expect(useNotesStore.getState().general).toBe("  indented note\n\n\nappended");
+    });
+  });
+    it("empty symbol falls back to the general bucket", () => {
+      useNotesStore.getState().appendSymbolNote("", "general content");
+      expect(useNotesStore.getState().general).toBe("general content");
+    });

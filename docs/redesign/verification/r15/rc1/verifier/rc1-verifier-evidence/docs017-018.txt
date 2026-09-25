@@ -1,0 +1,18 @@
+## DOCS-017/018: CURRENT_STATE.md §3.3 at 1d6511c8, chars 4495
+'nse_direct': 0 []
+'NSE': 0 []
+'BSE': 0 []
+'jugaad': 0 []
+'no-key default': 1 ['- **`yfinance_provider.py`** — no-key default for equities. Load-bearing']
+'sp500': 1 ['`sp500` (full S&P 500 — 506 symbols, a static snapshot dated 2026-06-04 that']
+'506': 1 ['`sp500` (full S&P 500 — 506 symbols, a static snapshot dated 2026-06-04 that']
+'503': 0 []
+'top 100': 0 []
+'AND-only': 0 []
+'reserved': 1 ['reserved/unimplemented.']
+'OR': 3 ['`custom`. Criteria support **nested AND/OR** via `CriterionGroup`', '(`models/screener.py`, `combinator: "and"|"or"`) — OR-grouping is no longer']
+'nse-all': 0 []
+'bse-all': 0 []
+'india-all': 0 []
+'nested': 1 ['`custom`. Criteria support **nested AND/OR** via `CriterionGroup`']
+sp500.json entries: 503

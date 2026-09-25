@@ -1,0 +1,16 @@
+# rc1-vshard-1 log
+- 2026-09-25 08:49:05 booted own sidecar :52601 from worktree 1d6511c (sh wrapper pid 97274, python 97277), data rc1-data-rc1-vshard-1
+- 2026-09-25 09:05:59 vy.py refuses non-GET outside 52100-52399; used scratch inv.sh mirroring vy.py payload (ollama llama3.1:8b, no key, region IN, tier_a) against :52601.
+- R007: original repro holds (medium/wordpress -> 3); variant investors.com (IBD news) + ir.<any host>/tumblr/github.io/blogspot.in -> TIER_PRIMARY, IBD owns [1] over Reuters.
+- R008: keyless chain bounded (ddg rate-limited 0.2s, chain 3.9s; ddg-hang variant 7.0s; all-hang 12.0s); 2 llama runs returned results, no timeout.
+- DATA-045: 12 redirect variants (loopback/metadata/nip.io/decimal/v6/v4-mapped/0.0.0.0/file/2-hop/pdf lane/curl_cffi lane) all blocked; canary never hit.
+- R011: split BSE stamp survives into semantics basis + fundamentals gate flag.
+- LEAD-002: warm 1.1-2.5s (5+3 symbols); cold ~15-17s but witness alone 1.1-1.8s.
+- R013: RELIANCE nse+bse, TITANBIO/VALIANT bse, fake BSE-down nse.
+- UI-090: AAPL@NSE hours eod; variant ^NSEI/^BSESN/VOD.L/bare IN ETF via yfinance -> US calendar -> 'live' after own exchange closed.
+- DATA-026: quarterly route incl. DHANBANK 2026-06-30; financial_statements capability in default grants.
+- 2026-09-25 09:17:42 AGENT-011: llama fumbled 3x (typo symbol / text call / stringified array); qwen2.5:7b local: run_custom_backtest -> synthetic open_panel(run_id) -> GET /backtest/runs/{id} 53 trades 752 equity pts; delegate run host_actions carries the auto open_panel.
+- AGENT-020: llama called read_notes(RELIANCE) unprompted; variant non-focused DIXON note answered correctly. In-process: suffix scope mismatch -> false 'no note' (low finding 3).
+- DATA-026: llama called financial_statements(DHANBANK.NS, income, quarterly) -> 6 quarters incl. 2026-06-30; net income matches screener.in (24.91 vs 25, 43.49 vs 43 ...).
+- UI-090 live at 09:17 IST: AAPL eod (holds), ^NSEI live tick -> eod (variant).
+- stopped own sidecar (killed sleep pid 97276; :52601 free) and canary http.server :52609.

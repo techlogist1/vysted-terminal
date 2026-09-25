@@ -1,0 +1,1 @@
+{"universe":"custom","criteria":[{"field":"pe_ratio","operator":"lt","value":20}],"limit":200,"sort_by":"market_cap","sort_dir":"desc","custom_symbols":["ZQXVWK","NOPEXX","FAKESYM"]}

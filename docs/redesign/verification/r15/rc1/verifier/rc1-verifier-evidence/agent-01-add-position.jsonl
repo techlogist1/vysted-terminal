@@ -1,0 +1,54 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_210efd671ed74be5a2c99856dde2b618", "name": "portfolio_add_position", "input": {"asset_class": "equity", "cost_basis": 3500, "note": "", "purchased_at": "", "quantity": 5, "symbol": "TCS"}}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " proposed"}
+{"kind": "delta", "text": " adding"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " tracked"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " cost"}
+{"kind": "delta", "text": " basis"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "350"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " ru"}
+{"kind": "delta", "text": "pees"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " To"}
+{"kind": "delta", "text": " confirm"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " proposal"}
+{"kind": "delta", "text": " bar"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " accept"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " when"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'re"}
+{"kind": "delta", "text": " ready"}
+{"kind": "delta", "text": "."}
+{"kind": "research_step", "tool_call_id": "call_210efd671ed74be5a2c99856dde2b618", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position TCS. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 2883, "output_tokens": 47, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

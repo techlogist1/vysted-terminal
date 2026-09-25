@@ -1,0 +1,16 @@
+Portfolio half. Committed pinned test:
+src/modules/portfolio/PortfolioPanel.test.tsx:240-249
+  it("R15-UI-090: an eod quote renders a staleness cue on its holding row", async () => {
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([["AAPL", { ...quote("AAPL", 200), freshness: "eod" as const }]]),
+      failed: 0,
+    });
+    render(<PortfolioPanel />);
+    await addHolding("aapl", "10", "150");
+    const badge = await screen.findByTestId("staleness-badge");
+    expect(badge).toHaveTextContent("EOD");
+  });
+
+Render code path confirmed present (PortfolioPanel.tsx:91-102): StalenessBadge
+imported from @/components/DataBadges, rendered from quote.freshness (no wire
+change) via useMarketSession(quote.market_state, quote.freshness).

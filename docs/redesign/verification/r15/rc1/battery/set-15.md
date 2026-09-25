@@ -1,0 +1,8 @@
+# batch-5/W1-india-disclosures-agent-surface
+
+| id | repro run | observed | verdict |
+|---|---|---|---|
+| R15-AGENT-020 | Live agent invoke via `vy.py invoke copilot` (llama3.1:8b, ollama), `--context` carrying `by_source.__notes__.bySymbol.BDL` = "Exit if promoter pledge exceeds 20 percent of holding.", prompt "Does the latest shareholding pledge on BDL break my thesis? Check my note on BDL first." Candidate own sidecar :52343. | `catalog.py:1179` registers `read_notes` (kind=per_invocation, domain=workspace, input `{scope}`) per the C2 contract. Model called `read_notes(scope="BDL")` then `shareholding_pattern(symbol="BDL")`, then `read_notes` again, and answered referencing the 20% pledge threshold from the note plus the live 74.93% pledge figure — the note reached the agent (write-only-memory gap closed as certified). (Note: the model's own arithmetic conclusion, "does not exceed 20%," is wrong — 74.93% > 20% — but that is llama3.1:8b reasoning quality, not a product defect; the certified claim is that the note is reachable, and it is.) | holds |
+| R15-DATA-026 | `GET /fundamentals/DHANBANK/income?period=quarterly` on the candidate's own sidecar (:52343, source from rc1-cand, seed data copy). | `periods` includes `2026-06-30` (Q1 FY27), `2026-03-31`, `2025-12-31`, `2025-09-30`, `2025-06-30`, `2025-03-31` — matches certification (quarterly ISO period-end dates, DHANBANK Q1 FY27 visible). `catalog.py:332` registers `financial_statements` capability with `symbol/statement/period` input schema. | holds |
+
+Evidence: `raw/set-15/R15-DATA-026.txt`, `raw/set-15/R15-AGENT-020.stdout.txt`, `raw/set-15/R15-AGENT-020.events.jsonl`.

@@ -1,0 +1,3 @@
+=== live GET /disclosures/announcements?symbol=JUMBO — count + newest row ===
+count: 17
+newest: 2026-07-31T17:43:26.770000+05:30 Scrutiniser https://www.bseindia.com/xml-data/corpfiling/AttachHis/e231bbb0-5ec2-4ee6-baf5-3de236542654.pdf

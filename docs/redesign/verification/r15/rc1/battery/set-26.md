@@ -1,0 +1,25 @@
+# batch-7/W4-research-funnel
+
+Own sidecar: candidate `4097dac4`, `127.0.0.1:52345` (same shard sidecar as sets 23-25/27),
+data dir `rc1-data-rc1-battery-5`. Backend entries: in-process Python re-runs against the
+candidate's `sidecar/.venv`, reusing the committed test modules' own fixture helpers by
+import (never running the pytest suite). `R15-UI-092` and `R15-RESEARCH-026` are pure
+frontend/vitest with no backend counterpart, so they are `ci_pinned`.
+
+| id | repro run | observed | verdict |
+|---|---|---|---|
+| R15-RESEARCH-019 | In-process `iter_research.run_iter_research` with `extract.fetch_page` monkey-patched to always return `{"ok": False, "error": "HTTP 403"}` (register/test_b7_research_visits.py repro). | `brief.steps` contains an `error` step with detail `"visit failed: https://ir.example.com/q4 (HTTP 403)"` — the failed visit is recorded, not silently dropped. | holds |
+| R15-DATA-075 | In-process `extract.fetch_page(BSE_LIVE, pdf_fetch=moved, ...)` where the stub 404s on `/AttachLive/` and 200s on `/AttachHis/` (test_search_extract.py repro). | `out["ok"] is True`, `calls == [AttachLive url, AttachHis url]` — the AttachLive 404 falls back to AttachHis exactly once. | holds |
+| R15-RESEARCH-033 | In-process `iter_research.run_heavy_research(angles=2, ...)` with `run_iter_research` patched so explorer 2 raises `ValueError("angle two exploded")` (test_b7_research_visits.py repro). | One `error` step `"explorer angle 2 (...) failed: ValueError: angle two exploded"`, present in both `brief.steps` and the `on_step` emitted list; also logged (stderr traceback observed). The brief still returns. | holds |
+| R15-RESEARCH-022 | In-process `KeylessSearchBackend` with every engine in `ENGINE_CHAIN` returning a 200 "Unusual traffic ... verify you are a human" row (test_keyless_backend.py repro). | `SearchError` raised, `reason="rate_limited"`, message names "blocked (challenge page)" for all three engines; `breaker_for("ddg")._failures == 1`, `state == "closed"` — a challenge page strikes the breaker once and the all-blocked chain raises, not a healthy empty answer. | holds |
+| R15-RESEARCH-023 | In-process `_backend({"ddg": ...}).search("q")` with the Route Mobile "(c) 2025 Route Mobile Limited. All rights reserved." row (test_keyless_backend.py repro). | The row survives: `resp.results` == `["https://www.routemobile.com/investors"]`. | holds |
+| R15-RESEARCH-038 | In-process: one engine (`ddg`) fails both its attempts within one search (test_keyless_backend.py repro). | `ddg.calls == 2`, `breaker_for("ddg").state == "closed"`, `_failures == 1` — one failed search records one failure, not two. | holds |
+| R15-RESEARCH-020 | In-process `SearxngBackend.search("q", options={"numResults": 3, ...})` against a 40-row stub (register/VERDICTS repro). | `len(resp.results) == 3`, `len(resp.citations) == 3` (was 40/8 before the fix). | holds |
+| R15-RESEARCH-021 | In-process `entity_match`/`row_relevant` for BAJFINANCE against "BAJFINANCE 200 DMA breakout...", "BAJFINANCE 52-week high...", and a fresh KPITTECH "200 DMA test" row. | All three score `1.0` / `True` (register had 0.0 for the first). | holds |
+| R15-RESEARCH-024 | In-process `web_search._dispatch` on a SearXNG stub row with `publishedDate`, then `deep._record_web` into a `ResearchBrief` source (backend half; test_b7_research_sources.py repro). | Citation and result rows carry `domain="reuters.com"`, `published_at="2026-02-26T21:05:00"`; the recorded `ResearchSource` carries the same — the runtime/backend half of the fix holds live. The Sources-rail rendering half is frontend-only; see `src/lib/brief-ingest.test.ts` / `src/modules/research/BriefPanel.test.tsx` (not re-run here, vitest suite). | holds |
+| R15-UI-038 | In-process `sonar._extract_sources` on a legacy Sonar body citing `https://www.sec.gov/a` (test_b7_research_sources.py repro). | `source.domain == "sec.gov"` (bare host, URL wins) and `source.provider == PROVENANCE_NOTE` — provenance moved off `domain`. | holds |
+| R15-UI-092 | Pure frontend (`brief-ingest.ts` / `brief-blocks.tsx`), no backend counterpart; never ran vitest per the role's rules. | Committed pin: `src/lib/brief-ingest.test.ts` and `src/modules/research/brief-blocks.test.ts` assert an out-of-range `[47]` renders an inert flagged `[?]` chip (aria "citation not in sources") and a "1 broken citation" Sources-header count, per VERDICTS.md's certified live check. | ci_pinned (src/lib/brief-ingest.test.ts, src/modules/research/brief-blocks.test.ts) |
+| R15-RESEARCH-026 | Pure frontend (`brief-blocks.tsx` / `lib/format.ts`), no backend counterpart; never ran vitest. | Committed pin: `src/modules/research/brief-blocks.test.ts` asserts the card grid routes through `formatCompactMoney`/`lib/format.ts` (an INR market cap renders "₹591B", a null currency renders the explicit "currency unknown" form) — the local shadow formatters are gone. | ci_pinned (src/modules/research/brief-blocks.test.ts) |
+
+Raw output: `raw/set-26/RESEARCH-019-033.txt`, `DATA-075.txt`, `RESEARCH-022-023.txt`,
+`RESEARCH-038.txt`, `RESEARCH-020.txt`, `RESEARCH-021.txt`, `RESEARCH-024-UI-038.txt`.

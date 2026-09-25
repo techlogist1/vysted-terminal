@@ -1,0 +1,5 @@
+n=1: equity_curve points = 8 (expected 8)
+n=2: equity_curve points = 8 (expected 8)
+n=4: equity_curve points = 8 (expected 8)
+sharpes: {1: 10.22076732247314, 2: 10.22076732247314, 4: 10.22076732247314}
+sharpe[1]==sharpe[2]: True  sharpe[1]==sharpe[4]: True

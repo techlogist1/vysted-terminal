@@ -1,0 +1,77 @@
+{"kind": "thinking", "text": "We"}
+{"kind": "thinking", "text": " need to add T"}
+{"kind": "thinking", "text": "CS and INF"}
+{"kind": "thinking", "text": "Y to watch"}
+{"kind": "thinking", "text": "list. Use add"}
+{"kind": "thinking", "text": "_to_w"}
+{"kind": "thinking", "text": "atchlist tool"}
+{"kind": "thinking", "text": "."}
+{"kind": "thinking", "text": " Probably"}
+{"kind": "thinking", "text": " need to resolve"}
+{"kind": "thinking", "text": " symbols? They"}
+{"kind": "thinking", "text": " are Indian stocks"}
+{"kind": "thinking", "text": ", default"}
+{"kind": "thinking", "text": " region IN"}
+{"kind": "thinking", "text": ". Use"}
+{"kind": "thinking", "text": " add_to_watch"}
+{"kind": "thinking", "text": "list for each."}
+{"kind": "thinking", "text": " We can"}
+{"kind": "thinking", "text": " call twice"}
+{"kind": "thinking", "text": " in"}
+{"kind": "thinking", "text": " one turn"}
+{"kind": "thinking", "text": "?"}
+{"kind": "thinking", "text": " Probably"}
+{"kind": "thinking", "text": " yes"}
+{"kind": "thinking", "text": ". We'll call"}
+{"kind": "thinking", "text": " add_to_watch"}
+{"kind": "thinking", "text": "list for TCS"}
+{"kind": "thinking", "text": " and then INF"}
+{"kind": "thinking", "text": "Y. Let's"}
+{"kind": "tool_use", "tool_call_id": "call_acdd553556db451bb241af85cc68a507", "name": "add_to_watchlist", "input": {"symbol": "TCS"}}
+{"kind": "thinking", "text": "We"}
+{"kind": "thinking", "text": " need to also"}
+{"kind": "thinking", "text": " add INF"}
+{"kind": "thinking", "text": "Y. We"}
+{"kind": "thinking", "text": " should"}
+{"kind": "thinking", "text": " call add_to_w"}
+{"kind": "thinking", "text": "atchlist for INF"}
+{"kind": "thinking", "text": "Y."}
+{"kind": "thinking", "text": " Also"}
+{"kind": "thinking", "text": " after"}
+{"kind": "thinking", "text": " dispatch"}
+{"kind": "thinking", "text": "ing, we should"}
+{"kind": "thinking", "text": " verify with get_term"}
+{"kind": "thinking", "text": "inal_state before"}
+{"kind": "thinking", "text": " claiming completion"}
+{"kind": "thinking", "text": ". Let's call"}
+{"kind": "thinking", "text": " both"}
+{"kind": "thinking", "text": " adds"}
+{"kind": "thinking", "text": ", then get state"}
+{"kind": "thinking", "text": "."}
+{"kind": "thinking", "text": " Since"}
+{"kind": "thinking", "text": " we need"}
+{"kind": "thinking", "text": " to output"}
+{"kind": "thinking", "text": " in"}
+{"kind": "thinking", "text": " one turn, we"}
+{"kind": "thinking", "text": " can call both adds"}
+{"kind": "thinking", "text": " sequentially"}
+{"kind": "thinking", "text": ", then get terminal"}
+{"kind": "thinking", "text": " state. We"}
+{"kind": "thinking", "text": "'ll need"}
+{"kind": "thinking", "text": " to make"}
+{"kind": "thinking", "text": " multiple"}
+{"kind": "thinking", "text": " tool calls. We"}
+{"kind": "thinking", "text": "'ll do them in"}
+{"kind": "thinking", "text": " order. Let's"}
+{"kind": "thinking", "text": " first add T"}
+{"kind": "thinking", "text": "CS ("}
+{"kind": "thinking", "text": "already done)"}
+{"kind": "thinking", "text": " then"}
+{"kind": "thinking", "text": " add INFY,"}
+{"kind": "thinking", "text": " then get state."}
+{"kind": "thinking", "text": " We"}
+{"kind": "thinking", "text": "'ll chain"}
+{"kind": "thinking", "text": " calls"}
+{"kind": "tool_use", "tool_call_id": "call_f8622651127341a29214298637a5c216", "name": "add_to_watchlist", "input": {"symbol": "INFY"}}
+{"kind": "error", "message": "OpenRouter returned a server error \u2014 it may be a temporary outage.", "action": "Try again in a few minutes.", "detail": "Upstream error from Nvidia: Service temporarily overloaded", "code": "provider_5xx"}
+{"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}

@@ -1,0 +1,157 @@
+{
+ "01-store-after-add": [
+  {
+   "id": "h-483e8862-8c4e-4f85-8527-a5f3acb7bb87",
+   "symbol": "RELIANCE",
+   "quantity": 10,
+   "costBasis": 1100,
+   "assetClass": "equity"
+  },
+  {
+   "id": "h-f2097fbf-fdef-455e-8163-2058cbaea327",
+   "symbol": "AAPL",
+   "quantity": 5,
+   "costBasis": 180,
+   "assetClass": "equity"
+  }
+ ],
+ "02-save-after-add": {
+  "status": 200,
+  "text": "{\"status\":\"saved\",\"name\":\"rc1-verifier-rt\"}"
+ },
+ "03-blob-after-add": {
+  "list": [
+   {
+    "id": "default",
+    "name": "Portfolio",
+    "holdings": [
+     {
+      "id": "h-483e8862-8c4e-4f85-8527-a5f3acb7bb87",
+      "symbol": "RELIANCE",
+      "quantity": 10,
+      "costBasis": 1100,
+      "assetClass": "equity"
+     },
+     {
+      "id": "h-f2097fbf-fdef-455e-8163-2058cbaea327",
+      "symbol": "AAPL",
+      "quantity": 5,
+      "costBasis": 180,
+      "assetClass": "equity"
+     }
+    ]
+   }
+  ],
+  "activeId": "default"
+ },
+ "04-independent-live-quotes": {
+  "RELIANCE": {
+   "symbol": "RELIANCE",
+   "price": 1219.2,
+   "change": -28.799999999999955,
+   "change_percent": -2.307692307692304,
+   "volume": 13923795,
+   "open": null,
+   "high": null,
+   "low": null,
+   "prev_close": null,
+   "currency": "INR",
+   "market_state": "REGULAR",
+   "timestamp": "2026-09-24T00:00:00Z",
+   "provider": "nse_direct",
+   "freshness": "eod"
+  },
+  "AAPL": {
+   "symbol": "AAPL",
+   "price": 335.9200134277344,
+   "change": -1.0160865722656354,
+   "change_percent": -0.30156654993799575,
+   "volume": 24686400,
+   "open": null,
+   "high": null,
+   "low": null,
+   "prev_close": null,
+   "currency": "USD",
+   "market_state": null,
+   "timestamp": "2026-09-24T20:00:01Z",
+   "provider": "yfinance",
+   "freshness": "eod"
+  }
+ },
+ "05-export": {
+  "path": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-verifier/exports/csv/vysted-portfolio-portfolio.csv",
+  "contents": "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note\nRELIANCE,10,1100,equity,INR,1219.2,12192,1192,10.836363636363638,,\nAAPL,5,180,equity,USD,335.9200134277344,1679.6000671386719,779.6000671386719,86.62222968207465,,"
+ },
+ "06-store-after-delete": [],
+ "07-save-after-delete": {
+  "status": 200,
+  "text": "{\"status\":\"saved\",\"name\":\"rc1-verifier-rt\"}"
+ },
+ "08-blob-after-delete": {
+  "list": [
+   {
+    "id": "default",
+    "name": "Portfolio",
+    "holdings": []
+   }
+  ],
+  "activeId": "default"
+ },
+ "a1-enqueue-outcome": "staged",
+ "a2-pending-change": {
+  "status": "pending",
+  "kind": "data-write",
+  "title": "Add 5 TCS @ ₹3,500 to the portfolio",
+  "before": "Portfolio: 0 positions",
+  "after": "Portfolio: +TCS ×5 @ ₹3,500 (1 total)"
+ },
+ "a3-store-while-pending": [],
+ "a4-blob-and-ledger-while-pending": {
+  "blobUnchanged": true,
+  "blobPortfolios": {
+   "list": [
+    {
+     "id": "default",
+     "name": "Portfolio",
+     "holdings": []
+    }
+   ],
+   "activeId": "default"
+  },
+  "ledgerUnchanged": true,
+  "ledger": []
+ },
+ "a5-accept-result": "applied",
+ "a6-store-after-accept": [
+  {
+   "id": "h-69eb9745-c7ac-4c83-8ca2-1b0afc3d37a1",
+   "symbol": "TCS",
+   "quantity": 5,
+   "costBasis": 3500,
+   "assetClass": "equity"
+  }
+ ],
+ "a7-save-after-accept": {
+  "status": 200,
+  "text": "{\"status\":\"saved\",\"name\":\"rc1-verifier-agent\"}"
+ },
+ "a8-blob-after-accept": {
+  "list": [
+   {
+    "id": "default",
+    "name": "Portfolio",
+    "holdings": [
+     {
+      "id": "h-69eb9745-c7ac-4c83-8ca2-1b0afc3d37a1",
+      "symbol": "TCS",
+      "quantity": 5,
+      "costBasis": 3500,
+      "assetClass": "equity"
+     }
+    ]
+   }
+  ],
+  "activeId": "default"
+ },
+ "a9-ledger-after-accept": []
+}

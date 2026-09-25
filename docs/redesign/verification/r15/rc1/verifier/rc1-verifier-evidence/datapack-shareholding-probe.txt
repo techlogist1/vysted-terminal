@@ -1,0 +1,5 @@
+GET /disclosures/shareholding?symbol=DAL&exchange=BSE -> 502 {"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+GET /disclosures/shareholding?symbol=DAL -> 502 {"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+GET /disclosures/shareholding?symbol=SMR.BO -> 502 {"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+GET /disclosures/shareholding?symbol=SMR -> 502 {"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+GET /disclosures/shareholding?symbol=RELIANCE -> 200 {"symbol":"RELIANCE","count":22,"patterns":[{"symbol":"RELIANCE","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":50.48,"fii_percent":null,"dii_percent":null,"institutions_percent":n

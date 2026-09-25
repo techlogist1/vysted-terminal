@@ -1,0 +1,6 @@
+tools with no required keys: 8 | full echo validates as args (pre-fix hole): 8
+echo accepted after fix: []
+fenced echo -> None
+prose echo  -> None
+tools with keyword-named properties: []
+legit news args -> {'symbols': ['AAPL']}

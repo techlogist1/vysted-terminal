@@ -1,0 +1,4 @@
+=== CODE-PLATFORM-011: bad max_tokens type ===
+{"detail":[{"type":"int_parsing","loc":["body","budget","max_tokens"],"msg":"Input should be a valid integer, unable to parse string as an integer","input":"abc"}]}
+=== cancel unknown run ===
+{"detail":"unknown run: 'run-does-not-exist-rc1b6'"}

@@ -1,0 +1,70 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_61695a65a385470982c1f9df4a684c67", "name": "resolve_symbol", "input": {"region": "IN", "query": "Zomato"}}
+{"kind": "tool_use", "tool_call_id": "call_f43340f299e7454d81b36aee3bc5b7c8", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "ZOMATO.NS", "timeframe": "1d"}}
+{"kind": "delta", "text": "Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " time"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " We"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " looking"}
+{"kind": "delta", "text": " up"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " N"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "as"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " renamed"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " E"}
+{"kind": "delta", "text": "TERNAL"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": " If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " Eternal"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " instead"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 3256, "output_tokens": 66, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

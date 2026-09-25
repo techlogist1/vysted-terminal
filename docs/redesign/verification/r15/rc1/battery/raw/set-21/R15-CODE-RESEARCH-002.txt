@@ -1,0 +1,33 @@
+Reused b6v_snap.py verbatim (same monkeypatch as VERDICTS.md: growth_check.should_cross_check -> boom,
+dividend_history.get_dividend_ttm -> aboom, market_cap_witness.get_market_cap_witness -> aboom), then
+called snapshot_structured(..., "RELIANCE", region="IN") against the candidate in-process.
+
+Result differed from VERDICTS.md's live numbers: `injected hits: []` (the monkeypatch never fired) and
+`price ok: False` / fundamentals ok: False in BOTH the baseline and injected runs (VERDICTS.md recorded
+price ok: True in both). Root-caused via a follow-up debug script (b4v_snap_debug.py, b4v_concurrent_check.py):
+  - price_data and fundamentals for RELIANCE each succeed FAST when called alone (~1-3s).
+  - Called concurrently via asyncio.gather (as snapshot_structured does), the pair takes ~18.3s -
+    both nse_direct calls serialize behind nse_provider.py's module-level throttle+lock
+    (_Throttle min_interval=1.0s+jitter, _lock: threading.Lock around the actual session.get, tagged
+    "R15-DATA-066" in a comment) - an intentional anti-bot pacer, not new to batch-6.
+  - fast.py's _WITNESS_LEG_TIMEOUT_S = 6.0 times-boxes price/fundamentals AND all 7 witness legs
+    (dividend/growth/ownership/declared/earnings/range/market-cap) - under concurrent India-region
+    fan-out, the shared nse_direct throttle serializes enough underlying HTTP calls that the LATER
+    legs in the queue exceed 6s and are dropped ("<leg> timed out after 6s - dropped").
+  - Because fund_leg.ok was False (timed out) in this run, `fund_data` was None, so the
+    `if isinstance(fund_data, dict):` guard in snapshot_structured (fast.py:350-351) skipped the
+    entire cross-check block before ever calling growth_check.should_cross_check - hence hits=[].
+    This is NOT a defect in R15-CODE-RESEARCH-002's isolation mechanism: source (fast.py:385-397)
+    still shows the per-leg `try/except Exception` + `asyncio.wait_for(..., _WITNESS_LEG_TIMEOUT_S)`
+    wrapping intact, and the live run itself is still evidence the "never raises" architecture holds -
+    snapshot_structured returned a clean {ok:False,...} shape for both legs with NO exception
+    propagating, exactly the graceful-degradation contract the fix (and the surrounding legs) promise.
+  - Filed separately as a new_defect (not a regression of R15-CODE-RESEARCH-002 specifically): the
+    nse_direct throttle contention across up to 9 concurrent legs routinely exceeds the shared 6s
+    witness timeout for India-region snapshots, which can silently drop price+fundamentals+every
+    witness card even under normal (non-degraded) network conditions - see findings.
+
+Verdict: holds — the isolate-legs mechanism (try/except + timeout, never raises) is source-confirmed
+intact and indirectly live-confirmed (no crash despite two real leg timeouts). The exact injected-fault
+repro from VERDICTS.md could not be re-triggered this run because a separate concurrency/throttle issue
+(new_defect, logged separately) prevented fund_data from ever reaching the cross-check gate.

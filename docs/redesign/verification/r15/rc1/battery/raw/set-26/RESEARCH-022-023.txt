@@ -1,0 +1,3 @@
+RESEARCH-022: reason= rate_limited msg= keyless web search has no engine available right now — DuckDuckGo: blocked (challenge page); Brave: blocked (challenge page); Mojeek: blocked (challenge page). Wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route.
+RESEARCH-022: breaker failures= 1 state= closed
+RESEARCH-023: urls= ['https://www.routemobile.com/investors']

@@ -1,0 +1,66 @@
+[
+  {
+    "key": "rc1-scenarios:1",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-DATA-008",
+    "title": "SIFY revenue_ttm/net_income_ttm are still served as INR amounts under currency \"USD\" on the RC1 candidate",
+    "repro": "GET http://127.0.0.1:52311/fundamentals/SIFY (own sidecar, candidate source 4097dac4, seed data dir)",
+    "evidence_file": "docs/redesign/verification/r15/rc1/logs/rc1-scenarios.md",
+    "suspected_files": [
+      "sidecar/routers/fundamentals.py",
+      "sidecar/services (Yahoo fundamentals provider \u2014 financialCurrency vs currency)"
+    ]
+  },
+  {
+    "key": "rc1-scenarios:2",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-DATA-015",
+    "title": "ELCIDIN's 52-week low is still served as the truncated single-venue 102,210 (true cross-venue low 87,003), with no window/venue label",
+    "repro": "GET http://127.0.0.1:52311/fundamentals/ELCIDIN (own sidecar, candidate source 4097dac4, seed data dir)",
+    "evidence_file": "docs/redesign/verification/r15/rc1/logs/rc1-scenarios.md",
+    "suspected_files": [
+      "sidecar/routers/fundamentals.py",
+      "sidecar/services (52-week range computation)"
+    ]
+  },
+  {
+    "key": "rc1-scenarios:3",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-AGENT-033",
+    "title": "Under ASK autonomy, arrange_layout is narrated as done (\"I've arranged your layout... You can now see...\") although the runtime's own notice said it was staged, not applied",
+    "repro": "vy invoke, provider ollama model llama3.1:8b, autonomy=ask, prompt \"Arrange my layout for fundamental research on TCS.\" -> tool_use arrange_layout -> research_step notice \"Staged for your review, not applied yet: arrange_layout TCS\" -> final text claims it is done. Same session's portfolio_add_position and write_note calls (rb2, rb3) correctly hedged (\"pending review\", \"proposed... to be reviewed\") on an identical staged notice, so this is scoped to arrange_layout, not a general model failure to read the notice.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/scenarios/ollama-rb4-arrange.jsonl",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py (per-tool narration guidance)",
+      "sidecar/services/agent_tools/catalog.py (arrange_layout description)"
+    ]
+  },
+  {
+    "key": "rc1-scenarios:4",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-DATA-015",
+    "title": "Agent-facing price_data for ELCIDIN still yields a self-contradictory 52-week low (current price below the stated \"low\"), and the model states both numbers as fact with no flag of the impossibility",
+    "repro": "vy invoke, provider ollama model llama3.1:8b, autonomy=ask, prompt \"What is ELCIDIN's 52-week low, and how far above it is the current price?\" -> tool_use price_data(symbol=ELCIDIN.NS, range=1y) -> final text: \"The 52-week low for ELCIDIN.NS is \u20b9106,505 and the current price is \u20b9104,830. The current price is \u20b91,675 below the 52-week low.\" A current price below a stated 52-week LOW is a logical impossibility (matches the R15-DATA-015 truncated/single-venue-range mechanism, reached here via the agent's price_data tool rather than /fundamentals directly) and the model narrates it as an unremarkable fact instead of flagging the contradiction \u2014 a direct skepticism-property failure, not merely a data bug.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/scenarios/ollama-sk3-elcidin.jsonl",
+    "suspected_files": [
+      "sidecar/services/agent_tools (price_data 52-week/range computation)",
+      "sidecar/agents/*.json (no instruction to sanity-check price vs range bounds)"
+    ]
+  },
+  {
+    "key": "rc1-scenarios:5",
+    "kind": "new_defect",
+    "severity": "high",
+    "title": "Agent fabricates SIFY's ADR ratio as 1:1 (true ratio is 1 ADS = 6 ordinary shares) with a fake 'fundamentals data' citation, on top of restating the same currency-mislabeled $46.5B revenue figure",
+    "repro": "vy invoke, provider openrouter model nvidia/nemotron-3-super-120b-a12b:free, autonomy=ask, prompt \"How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?\" -> tool_use resolve_symbol, fundamentals, financial_statements -> final text: \"SIFY's ADR is a 1:1 ratio\u2014each SIFY ADR represents one ordinary share of Sify Technologies Limited. The company's trailing twelve-month (TTM) revenue is $46.51 billion USD (\u20b946,506,049,536). [Source: fundamentals data for SIFY]\". Ground truth (battery pack P17_SIFY.json, face_value/shareholding notes, SEC 20-F-sourced): 1 ADS = 6 ordinary equity shares, a designated 'hostile trait' trap for this symbol precisely because getting the ratio wrong silently produces 6x-off per-share math. None of the three tools called (resolve_symbol/fundamentals/financial_statements) plausibly returns an ADR-ratio field, so the 1:1 figure is fabricated and falsely attributed to 'fundamentals data'; the $46.51B revenue claim for a company whose real TTM revenue is ~$492M (per the same battery pack) is also stated as flat fact with no plausibility check, even though SIFY is independently known to be loss-making (TTM net loss -$9.65M) which is starkly inconsistent with $46.5B revenue. CROSS-MODEL CONFIRMED: the same prompt on llama3.1:8b/Ollama (docs/redesign/verification/r15/rc1/scenarios/ollama-sk4-sify.jsonl) independently produced \"One SIFY ADR represents 1 ordinary share\" / \"The ADR for Sify Technologies represents 1 common share\" — same wrong ratio, different model, no shared prompt-injection cause; this is not a single model's quirk.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/scenarios/or-sk4-sify.jsonl",
+    "suspected_files": [
+      "sidecar/services/agent_tools (fundamentals/financial_statements handlers \u2014 no ADR-ratio field, no plausibility bound)",
+      "sidecar/agents/*.json (no instruction to refuse/hedge on data the tool result does not contain)"
+    ]
+  }
+]

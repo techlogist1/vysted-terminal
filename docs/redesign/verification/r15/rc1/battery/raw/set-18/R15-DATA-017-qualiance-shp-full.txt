@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+date: Fri, 25 Sep 2026 00:25:13 GMT
+server: uvicorn
+content-length: 688
+content-type: application/json
+vary: Origin
+
+{"symbol":"QUALIANCE","count":1,"patterns":[{"symbol":"QUALIANCE","quarter_end":"2026-09-10","quarter_basis":null,"promoter_percent":63.66,"fii_percent":null,"dii_percent":null,"institutions_percent":null,"public_percent":36.34,"public_basis":"incl. institutions","public_non_institutional_percent":null,"employee_trusts_percent":0.0,"submission_date":"2026-09-11","xbrl_url":"https://nsearchives.nseindia.com/corporate/xbrl/SHP_1724889_17092026123923_WEB.xml","source":"NSE","split_source":null,"split_as_of":null,"split_basis":null,"promoter_pledged_percent":null,"promoter_pledge_basis":null}],"coverage":"covered","note":null,"provider":null,"major_shareholders":[],"source_url":null}

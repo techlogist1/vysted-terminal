@@ -1,0 +1,21 @@
+=== live GET /llm/models?provider=openrouter (candidate sidecar :52341) ===
+source: live
+count: 460
+o3-deep-research present: False
+o4-mini-deep-research present: False
+
+=== source-level check: retired slugs dropped from src/store/search-settings.ts ===
+106: * 2026-06-11. `openai/o4-mini-deep-research` and `openai/o3-deep-research`
+
+=== deep_research.py error message on an unavailable model ===
+
+
+def _research_model_http_error(status: int, model: str) -> str:
+    """Translate an OpenRouter HTTP status into a clean, key-free human message."""
+    if status == 404:
+        return (
+            f"The research model {model} is no longer available on OpenRouter; pick "
+            "another in Settings > Research."
+        )
+    if status in (401, 403):
+        return (

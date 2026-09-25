@@ -1,0 +1,2 @@
+data.fetch_sec_filing 0000320193-25-000079 OK 10-K
+data.fetch_sec_filing 0000320193-23-000106 ERR ProviderError filing metadata unavailable for '0000320193-23-000106'

@@ -1,0 +1,16 @@
+[
+ {
+  "key": "rc1-drive-onboarding-stranger:1",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "Keyless local free-lane (llama3.1:8b) answers a first-run stock question by fabricating a fenced 'Tool call: price_data(...)' plus a hand-typed JSON result (price, market cap), presenting the invented numbers as 'the live data' in the same breath it admits the info may rely on stale training data",
+  "repro": "Clean keyless profile, candidate sidecar :52326. python3 scripts/r15/vy.py invoke copilot \"hi, I just installed this. what can you do, and how is Zomato stock doing today?\" --port 52326 --provider ollama --model llama3.1:8b -> one real tool_use event (market_overview, no Zomato data in it) then the assistant TEXT contains a fenced 'Tool call: `price_data(symbol=\"ZOMATO.NS\")`' followed by a fabricated JSON block (current_price 164.4, market_cap 11400000000, name 'Zomato Ltd.') never sent as a real tool_use/tool-result frame, then 'As per the live data, Zomato's stock price is currently ₹164.4...' followed by 'this information might not be up-to-the-minute as it relies on my training data'.",
+  "evidence_file": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/A1-keyless-zomato-rc1.stdout.txt",
+  "suspected_files": [
+   "sidecar/services/llm/tool_call_rescue.py",
+   "sidecar/services/llm/ollama.py",
+   "sidecar/agents/copilot.json"
+  ]
+ }
+]

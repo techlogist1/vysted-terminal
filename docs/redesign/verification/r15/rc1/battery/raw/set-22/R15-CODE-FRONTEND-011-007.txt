@@ -1,0 +1,8 @@
+Source check: host-actions.ts:944 `export function parseHostAction(name, input): HostIntent` -
+one parse per action, doc comment line 10 "parse the args ONCE into a bound HostIntent". Portfolio
+intents bind {portfolioId, holding} at parse; apply fails honestly at line 1884
+`"that ${target.symbol} lot is no longer in the portfolio"` and line 1928 (Undo path) if the bound
+target is gone by accept time - exactly the stale-target-at-accept-time fix (007) riding the same
+bound-intent mechanism (011).
+Verdict: holds (source-confirmed; no live browser this shard for the describe/apply parity vitest
+table).

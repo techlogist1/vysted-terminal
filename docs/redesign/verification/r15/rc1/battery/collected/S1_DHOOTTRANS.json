@@ -1,0 +1,2662 @@
+{
+ "slot": "S1",
+ "symbol": "DHOOTTRANS",
+ "manifest_name": "Dhoot Transmission Ltd",
+ "exchange": "NSE+BSE",
+ "bse_code": "544867",
+ "collected_at": "2026-09-25T05:37:47+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=DHOOTTRANS",
+   "status": 200,
+   "elapsed_ms": 10,
+   "body": {
+    "ok": true,
+    "query": "DHOOTTRANS",
+    "region": "IN",
+    "resolved": {
+     "symbol": "DHOOTTRANS",
+     "name": "Dhoot Transmission Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "DHOOTTRANS.NS",
+     "confidence": 1.0,
+     "isin": "INE01NH01023",
+     "bse_code": "544867",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 2.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "DHOOTTRANS",
+      "name": "Dhoot Transmission Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHOOTTRANS.NS",
+      "confidence": 1.0,
+      "isin": "INE01NH01023",
+      "bse_code": "544867",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 2.0
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "name": "Dhoot Transmission Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHOOTTRANS.BO",
+      "confidence": 1.0,
+      "isin": "INE01NH01023",
+      "bse_code": "544867",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 2.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=Dhoot+Transmission+Ltd",
+   "status": 200,
+   "elapsed_ms": 666,
+   "body": {
+    "ok": true,
+    "query": "Dhoot Transmission Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "DHOOTTRANS",
+     "name": "Dhoot Transmission Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "DHOOTTRANS.NS",
+     "confidence": 1.0,
+     "isin": "INE01NH01023",
+     "bse_code": "544867",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 2.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "DHOOTTRANS",
+      "name": "Dhoot Transmission Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHOOTTRANS.NS",
+      "confidence": 1.0,
+      "isin": "INE01NH01023",
+      "bse_code": "544867",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 2.0
+     },
+     {
+      "symbol": "ADANIENSOL",
+      "name": "Adani Energy Solutions Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ADANIENSOL.NS",
+      "confidence": 0.75,
+      "isin": "INE931S01010",
+      "bse_code": "539254",
+      "industry": "Power / Power Distribution",
+      "former_name": "ADANITRANS",
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "OMPOWER",
+      "name": "Om Power Transmission Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "OMPOWER.NS",
+      "confidence": 0.7451,
+      "isin": "INE25E901019",
+      "bse_code": "544750",
+      "industry": "Engineering & Construction",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "PIXTRANS",
+      "name": "Pix Transmissions Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "PIXTRANS.NS",
+      "confidence": 0.7234,
+      "isin": "INE751B01018",
+      "bse_code": "500333",
+      "industry": "Specialty Industrial Machinery",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "RAMAVISION",
+      "name": "Rama Vision Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "RAMAVISION.BO",
+      "confidence": 0.6486,
+      "isin": "INE763B01013",
+      "bse_code": "523289",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "KPIL",
+      "name": "Kalpataru Projects International Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "KPIL.NS",
+      "confidence": 0.6207,
+      "isin": "INE220B01022",
+      "bse_code": "522287",
+      "industry": "Construction / Civil Construction",
+      "former_name": "KALPATPOWR",
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 2.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52313/resolve?q=544867",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "544867",
+    "region": "IN",
+    "resolved": {
+     "symbol": "DHOOTTRANS",
+     "name": "Dhoot Transmission Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "DHOOTTRANS.BO",
+     "confidence": 1.0,
+     "isin": "INE01NH01023",
+     "bse_code": "544867",
+     "industry": null,
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 2.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "DHOOTTRANS",
+      "name": "Dhoot Transmission Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "DHOOTTRANS.BO",
+      "confidence": 1.0,
+      "isin": "INE01NH01023",
+      "bse_code": "544867",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 2.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/DHOOTTRANS?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 247,
+   "body": {
+    "symbol": "DHOOTTRANS",
+    "price": 1587.6,
+    "change": -27.800000000000182,
+    "change_percent": -1.7209359910858104,
+    "volume": 1317047.0,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-24T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/DHOOTTRANS",
+   "status": 200,
+   "elapsed_ms": 10505,
+   "body": {
+    "symbol": "DHOOTTRANS.NS",
+    "name": "Dhoot Transmission Limited",
+    "sector": "Consumer Cyclical",
+    "industry": "Auto Parts",
+    "sector_source": "yfinance",
+    "currency": "INR",
+    "financial_currency": null,
+    "ratio_price": 1587.6,
+    "market_cap": 324740513792.0,
+    "pe_ratio": 75.02836,
+    "forward_pe": 39.394543,
+    "peg_ratio": null,
+    "price_to_book": 12.290494,
+    "price_to_sales": 6.4882674,
+    "ev_to_ebitda": 40.522,
+    "book_value": 129.173,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": 21.16,
+    "beta": null,
+    "fifty_two_week_high": 1735.3,
+    "fifty_two_week_low": 1131.0,
+    "fifty_two_week_change": 0.36085248,
+    "fifty_two_week_high_date": "2026-09-15",
+    "fifty_two_week_low_date": "2026-08-17",
+    "listing_date": "2026-08-17",
+    "first_trade_date": "2026-08-17",
+    "forward_pe_fiscal_year": "2027-03-31",
+    "roe": 0.1778842144612384,
+    "roa": null,
+    "gross_margin": 0.31742,
+    "operating_margin": 0.12361,
+    "profit_margin": 0.08652,
+    "debt_to_equity": 0.37713,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": 0.21373302257599686,
+    "basis": "consolidated",
+    "revenue_ttm": 50050420736.0,
+    "net_income_ttm": 4330310144.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 204548057.0,
+    "revenue_growth": 0.497,
+    "earnings_growth": 0.179,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.39935002,
+    "held_percent_institutions": 0.53816,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector_source": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ratio_price": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T10:00:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T10:00:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "pe_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T10:00:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T10:00:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T10:00:00+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_book": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T10:00:00+00:00",
+      "reason": "P/B 12.29 disagrees by 7.9% with market cap / the provider's newest filed stockholders' equity (324,740,513,792 / 24,343,420,000 as of 2026-03-31 = 13.34) \u2014 the book value behind it may sit on a stale share count; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T10:00:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T10:00:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "book_value": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "book value per share 129.2 disagrees by 7.9% with the provider's newest filed stockholders' equity / shares outstanding (24,343,420,000 as of 2026-03-31 / 204,548,057 = 119.01) \u2014 it may sit on a stale share count; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_yield": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T10:00:00+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "beta": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T10:00:00+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "listing_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "first_trade_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe_fiscal_year": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "net income (TTM) / stockholders equity"
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roce": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "annual EBIT / (total assets - current liabilities)"
+     },
+     "basis": {
+      "status": "ok",
+      "provider": "exchange-filings",
+      "as_of": "2026-09-25T00:07:34.967603+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_ttm": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "TTM basis: the exchange filings do not cover the trailing year in four quarters (a half-yearly filer) \u2014 annual, not trailing-4Q; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "TTM basis: the exchange filings do not cover the trailing year in four quarters (a half-yearly filer) \u2014 annual, not trailing-4Q; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_insiders": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "yfinance insiders 39.94% disagrees with the NSE shareholding filing for the quarter ended 2026-08-14 (promoter group: 82.78%) beyond 3pp (insiders \u2260 promoter group); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_institutions": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "yfinance institutions 53.82% disagrees with the NSE shareholding filing for the quarter ended 2026-08-14 (institutional holding: no institutional holding reported) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T00:07:25.645100+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "insufficient dividend-history depth to affirm a trailing-12m zero",
+      "label": null,
+      "basis_note": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/DHOOTTRANS/income",
+   "status": 200,
+   "elapsed_ms": 253,
+   "body": {
+    "symbol": "DHOOTTRANS.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2026-03-31": 45074020000.0,
+       "2025-03-31": 34331300000.0,
+       "2024-03-31": 27905780000.0,
+       "2023-03-31": 21172970000.0
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2026-03-31": 45074020000.0,
+       "2025-03-31": 34331300000.0,
+       "2024-03-31": 27905780000.0,
+       "2023-03-31": 21172970000.0
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2026-03-31": 30075860000.0,
+       "2025-03-31": 22452230000.0,
+       "2024-03-31": 18147000000.0,
+       "2023-03-31": 14438550000.0
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2026-03-31": 14998160000.0,
+       "2025-03-31": 11879070000.0,
+       "2024-03-31": 9758780000.0,
+       "2023-03-31": 6734420000.0
+      }
+     },
+     {
+      "label": "rent_and_landing_fees",
+      "values": {
+       "2026-03-31": 27810000.0,
+       "2025-03-31": 26940000.0,
+       "2024-03-31": 17370000.0,
+       "2023-03-31": 39860000.0
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2026-03-31": 328900000.0,
+       "2025-03-31": 294770000.0,
+       "2024-03-31": 184590000.0,
+       "2023-03-31": 156430000.0
+      }
+     },
+     {
+      "label": "selling_and_marketing_expense",
+      "values": {
+       "2026-03-31": 467620000.0,
+       "2025-03-31": 300870000.0,
+       "2024-03-31": 221880000.0,
+       "2023-03-31": 203100000.0
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2026-03-31": 796520000.0,
+       "2025-03-31": 595640000.0,
+       "2024-03-31": 406470000.0,
+       "2023-03-31": 359530000.0
+      }
+     },
+     {
+      "label": "depreciation_income_statement",
+      "values": {
+       "2026-03-31": 1213020000.0,
+       "2025-03-31": 921200000.0,
+       "2024-03-31": 736570000.0,
+       "2023-03-31": 584580000.0
+      }
+     },
+     {
+      "label": "amortization",
+      "values": {
+       "2026-03-31": 12420000.0,
+       "2025-03-31": 11570000.0,
+       "2024-03-31": 27280000.0,
+       "2023-03-31": 27280000.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization_in_income_statement",
+      "values": {
+       "2026-03-31": 1225440000.0,
+       "2025-03-31": 932770000.0,
+       "2024-03-31": 763850000.0,
+       "2023-03-31": 611860000.0
+      }
+     },
+     {
+      "label": "other_operating_expenses",
+      "values": {
+       "2026-03-31": 3247450000.0,
+       "2025-03-31": 2287300000.0,
+       "2024-03-31": 1601300000.0,
+       "2023-03-31": 1198710000.0
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2026-03-31": 8953360000.0,
+       "2025-03-31": 6808190000.0,
+       "2024-03-31": 5350690000.0,
+       "2023-03-31": 4265430000.0
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2026-03-31": 6044800000.0,
+       "2025-03-31": 5070880000.0,
+       "2024-03-31": 4408090000.0,
+       "2023-03-31": 2468990000.0
+      }
+     },
+     {
+      "label": "interest_income_non_operating",
+      "values": {
+       "2026-03-31": 195810000.0,
+       "2025-03-31": 20750000.0,
+       "2024-03-31": 5750000.0,
+       "2023-03-31": 9180000.0
+      }
+     },
+     {
+      "label": "interest_expense_non_operating",
+      "values": {
+       "2026-03-31": 747960000.0,
+       "2025-03-31": 614760000.0,
+       "2024-03-31": 423470000.0,
+       "2023-03-31": 378950000.0
+      }
+     },
+     {
+      "label": "total_other_finance_cost",
+      "values": {
+       "2026-03-31": 183940000.0,
+       "2025-03-31": 92060000.0,
+       "2024-03-31": 97850000.0,
+       "2023-03-31": 85420000.0
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2026-03-31": -736090000.0,
+       "2025-03-31": -686070000.0,
+       "2024-03-31": -515570000.0,
+       "2023-03-31": -455190000.0
+      }
+     },
+     {
+      "label": "write_off",
+      "values": {
+       "2026-03-31": 24810000.0,
+       "2025-03-31": 60570000.0,
+       "2024-03-31": 1030000.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "other_special_charges",
+      "values": {
+       "2026-03-31": 199400000.0,
+       "2025-03-31": -212070000.0,
+       "2024-03-31": 18890000.0,
+       "2023-03-31": -1040000.0
+      }
+     },
+     {
+      "label": "special_income_charges",
+      "values": {
+       "2026-03-31": -224210000.0,
+       "2025-03-31": 151500000.0,
+       "2024-03-31": -19920000.0,
+       "2023-03-31": 1040000.0
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2026-03-31": 8600000.0,
+       "2025-03-31": 7030000.0,
+       "2024-03-31": 10140000.0,
+       "2023-03-31": 6110000.0
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2026-03-31": 5156870000.0,
+       "2025-03-31": 4575940000.0,
+       "2024-03-31": 3882260000.0,
+       "2023-03-31": 1993400000.0
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2026-03-31": 1188450000.0,
+       "2025-03-31": 1037070000.0,
+       "2024-03-31": 894780000.0,
+       "2023-03-31": 354340000.0
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2026-03-31": 3968420000.0,
+       "2025-03-31": 3538870000.0,
+       "2024-03-31": 2987480000.0,
+       "2023-03-31": 1639060000.0
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2026-03-31": 3968420000.0,
+       "2025-03-31": 3538870000.0,
+       "2024-03-31": 2987480000.0,
+       "2023-03-31": 1639060000.0
+      }
+     },
+     {
+      "label": "minority_interests",
+      "values": {
+       "2026-03-31": -1880000.0,
+       "2025-03-31": 160000.0,
+       "2024-03-31": -80000.0,
+       "2023-03-31": -3410000.0
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2026-03-31": 3966540000.0,
+       "2025-03-31": 3539030000.0,
+       "2024-03-31": 2987400000.0,
+       "2023-03-31": 1635650000.0
+      }
+     },
+     {
+      "label": "otherunder_preferred_stock_dividend",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2026-03-31": 3966540000.0,
+       "2025-03-31": 3539030000.0,
+       "2024-03-31": 2987400000.0,
+       "2023-03-31": 1635650000.0
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2026-03-31": 3966540000.0,
+       "2025-03-31": 3539030000.0,
+       "2024-03-31": 2987400000.0,
+       "2023-03-31": 1635650000.0
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2026-03-31": 19.391727,
+       "2025-03-31": 17.301704,
+       "2024-03-31": 14.604881,
+       "2023-03-31": 7.996409
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2026-03-31": 19.391727,
+       "2025-03-31": 17.301704,
+       "2024-03-31": 14.604881,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2026-03-31": 204548057.0,
+       "2025-03-31": 204548057.0,
+       "2024-03-31": 204548057.0,
+       "2023-03-31": 204548057.0
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2026-03-31": 204548057.0,
+       "2025-03-31": 204548057.0,
+       "2024-03-31": 204548057.0,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "rent_expense_supplemental",
+      "values": {
+       "2026-03-31": 27810000.0,
+       "2025-03-31": 26940000.0,
+       "2024-03-31": 17370000.0,
+       "2023-03-31": 39860000.0
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2026-03-31": 39029220000.0,
+       "2025-03-31": 29260420000.0,
+       "2024-03-31": 23497690000.0,
+       "2023-03-31": 18703980000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2026-03-31": 3966540000.0,
+       "2025-03-31": 3539030000.0,
+       "2024-03-31": 2987400000.0,
+       "2023-03-31": 1635650000.0
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2026-03-31": 4139078661.668803,
+       "2025-03-31": 3421865263.355726,
+       "2024-03-31": 3002728855.254414,
+       "2023-03-31": 1634794866.86064
+      }
+     },
+     {
+      "label": "interest_income",
+      "values": {
+       "2026-03-31": 195810000.0,
+       "2025-03-31": 20750000.0,
+       "2024-03-31": 5750000.0,
+       "2023-03-31": 9180000.0
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2026-03-31": 747960000.0,
+       "2025-03-31": 614760000.0,
+       "2024-03-31": 423470000.0,
+       "2023-03-31": 378950000.0
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2026-03-31": -736090000.0,
+       "2025-03-31": -686070000.0,
+       "2024-03-31": -515570000.0,
+       "2023-03-31": -455190000.0
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2026-03-31": 5904830000.0,
+       "2025-03-31": 5190700000.0,
+       "2024-03-31": 4305730000.0,
+       "2023-03-31": 2372350000.0
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2026-03-31": 7130270000.0,
+       "2025-03-31": 6123470000.0,
+       "2024-03-31": 5069580000.0,
+       "2023-03-31": 2984210000.0
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2026-03-31": 30075860000.0,
+       "2025-03-31": 22452230000.0,
+       "2024-03-31": 18147000000.0,
+       "2023-03-31": 14438550000.0
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2026-03-31": 1225440000.0,
+       "2025-03-31": 932770000.0,
+       "2024-03-31": 763850000.0,
+       "2023-03-31": 611860000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2026-03-31": 3966540000.0,
+       "2025-03-31": 3539030000.0,
+       "2024-03-31": 2987400000.0,
+       "2023-03-31": 1635650000.0
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2026-03-31": -224210000.0,
+       "2025-03-31": 151500000.0,
+       "2024-03-31": -19920000.0,
+       "2023-03-31": 1040000.0
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2026-03-31": -224210000.0,
+       "2025-03-31": 151500000.0,
+       "2024-03-31": -19920000.0,
+       "2023-03-31": 1040000.0
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2026-03-31": 7354480000.0,
+       "2025-03-31": 5971970000.0,
+       "2024-03-31": 5089500000.0,
+       "2023-03-31": 2983170000.0
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2026-03-31": 0.23046,
+       "2025-03-31": 0.226635,
+       "2024-03-31": 0.230479,
+       "2023-03-31": 0.177757
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2026-03-31": -51671338.331197,
+       "2025-03-31": 34335263.355726,
+       "2024-03-31": -4591144.745586,
+       "2023-03-31": 184866.86064
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/DHOOTTRANS/balance",
+   "status": 200,
+   "elapsed_ms": 397,
+   "body": {
+    "symbol": "DHOOTTRANS.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_financial",
+      "values": {
+       "2026-03-31": 807320000.0,
+       "2025-03-31": 416690000.0,
+       "2024-03-31": 254020000.0,
+       "2023-03-31": 359780000.0
+      }
+     },
+     {
+      "label": "cash_equivalents",
+      "values": {
+       "2026-03-31": 10035500000.0,
+       "2025-03-31": 47780000.0,
+       "2024-03-31": 50000000.0,
+       "2023-03-31": 7080000.0
+      }
+     },
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2026-03-31": 10842820000.0,
+       "2025-03-31": 464470000.0,
+       "2024-03-31": 304020000.0,
+       "2023-03-31": 366860000.0
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2026-03-31": 77810000.0,
+       "2025-03-31": 41110000.0,
+       "2024-03-31": 348490000.0,
+       "2023-03-31": 346440000.0
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2026-03-31": 10920630000.0,
+       "2025-03-31": 505580000.0,
+       "2024-03-31": 652510000.0,
+       "2023-03-31": 713300000.0
+      }
+     },
+     {
+      "label": "gross_accounts_receivable",
+      "values": {
+       "2026-03-31": 8019020000.0,
+       "2025-03-31": 6064400000.0,
+       "2024-03-31": 4209560000.0,
+       "2023-03-31": 2664580000.0
+      }
+     },
+     {
+      "label": "allowance_for_doubtful_accounts_receivable",
+      "values": {
+       "2026-03-31": -82350000.0,
+       "2025-03-31": -61020000.0,
+       "2024-03-31": -1460000.0,
+       "2023-03-31": -430000.0
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2026-03-31": 7936670000.0,
+       "2025-03-31": 6003380000.0,
+       "2024-03-31": 4208100000.0,
+       "2023-03-31": 2664150000.0
+      }
+     },
+     {
+      "label": "other_receivables",
+      "values": {
+       "2026-03-31": 121750000.0,
+       "2025-03-31": 35160000.0,
+       "2024-03-31": 17980000.0,
+       "2023-03-31": 11160000.0
+      }
+     },
+     {
+      "label": "raw_materials",
+      "values": {
+       "2026-03-31": 4456630000.0,
+       "2025-03-31": 3076960000.0,
+       "2024-03-31": 2397220000.0,
+       "2023-03-31": 1938610000.0
+      }
+     },
+     {
+      "label": "work_in_process",
+      "values": {
+       "2026-03-31": 465880000.0,
+       "2025-03-31": 329190000.0,
+       "2024-03-31": 251190000.0,
+       "2023-03-31": 245520000.0
+      }
+     },
+     {
+      "label": "finished_goods",
+      "values": {
+       "2026-03-31": 1469640000.0,
+       "2025-03-31": 846210000.0,
+       "2024-03-31": 690970000.0,
+       "2023-03-31": 453030000.0
+      }
+     },
+     {
+      "label": "inventories",
+      "values": {
+       "2026-03-31": 6392150000.0,
+       "2025-03-31": 4252360000.0,
+       "2024-03-31": 3339380000.0,
+       "2023-03-31": 2637160000.0
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2026-03-31": 703760000.0,
+       "2025-03-31": 586880000.0,
+       "2024-03-31": 563060000.0,
+       "2023-03-31": 455210000.0
+      }
+     },
+     {
+      "label": "restricted_cash",
+      "values": {
+       "2026-03-31": 37940000.0,
+       "2025-03-31": 22870000.0,
+       "2024-03-31": 22900000.0,
+       "2023-03-31": 14380000.0
+      }
+     },
+     {
+      "label": "current_deferred_assets",
+      "values": {
+       "2026-03-31": 86080000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2026-03-31": 26198980000.0,
+       "2025-03-31": 11406230000.0,
+       "2024-03-31": 8803930000.0,
+       "2023-03-31": 6495360000.0
+      }
+     },
+     {
+      "label": "properties",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "land_and_improvements",
+      "values": {
+       "2026-03-31": 1843070000.0,
+       "2025-03-31": 1098280000.0,
+       "2024-03-31": 1057740000.0,
+       "2023-03-31": 469120000.0
+      }
+     },
+     {
+      "label": "buildings_and_improvements",
+      "values": {
+       "2026-03-31": 5170660000.0,
+       "2025-03-31": 2592080000.0,
+       "2024-03-31": 1839200000.0,
+       "2023-03-31": 1628280000.0
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2026-03-31": 9602010000.0,
+       "2025-03-31": 6998110000.0,
+       "2024-03-31": 4926340000.0,
+       "2023-03-31": 3687230000.0
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2026-03-31": 598660000.0,
+       "2025-03-31": 2650640000.0,
+       "2024-03-31": 1154280000.0,
+       "2023-03-31": 424100000.0
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2026-03-31": 17214400000.0,
+       "2025-03-31": 13339110000.0,
+       "2024-03-31": 8977560000.0,
+       "2023-03-31": 6208730000.0
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2026-03-31": -2983460000.0,
+       "2025-03-31": -1931600000.0,
+       "2024-03-31": -1174730000.0,
+       "2023-03-31": -566170000.0
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2026-03-31": 14230940000.0,
+       "2025-03-31": 11407510000.0,
+       "2024-03-31": 7802830000.0,
+       "2023-03-31": 5642560000.0
+      }
+     },
+     {
+      "label": "goodwill",
+      "values": {
+       "2026-03-31": 151060000.0,
+       "2025-03-31": 133150000.0,
+       "2024-03-31": 126600000.0,
+       "2023-03-31": 122490000.0
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2026-03-31": 50520000.0,
+       "2025-03-31": 32430000.0,
+       "2024-03-31": 36470000.0,
+       "2023-03-31": 50230000.0
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2026-03-31": 201580000.0,
+       "2025-03-31": 165580000.0,
+       "2024-03-31": 163070000.0,
+       "2023-03-31": 172720000.0
+      }
+     },
+     {
+      "label": "investmentsin_associatesat_cost",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 63090000.0,
+       "2023-03-31": 68250000.0
+      }
+     },
+     {
+      "label": "long_term_equity_investment",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 63090000.0,
+       "2023-03-31": 68250000.0
+      }
+     },
+     {
+      "label": "financial_assets_designatedas_fair_value_through_profitor_loss_total",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 40140000.0,
+       "2024-03-31": 1010000.0,
+       "2023-03-31": 1010000.0
+      }
+     },
+     {
+      "label": "available_for_sale_securities",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 2720000.0,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "investmentin_financial_assets",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 40140000.0,
+       "2024-03-31": 3730000.0,
+       "2023-03-31": 1010000.0
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_assets",
+      "values": {
+       "2026-03-31": 257390000.0,
+       "2025-03-31": 206230000.0,
+       "2024-03-31": 177750000.0,
+       "2023-03-31": 113350000.0
+      }
+     },
+     {
+      "label": "non_current_prepaid_assets",
+      "values": {
+       "2026-03-31": 95160000.0,
+       "2025-03-31": 76430000.0,
+       "2024-03-31": 51830000.0,
+       "2023-03-31": 42560000.0
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2026-03-31": 14949270000.0,
+       "2025-03-31": 11956110000.0,
+       "2024-03-31": 8313050000.0,
+       "2023-03-31": 6116400000.0
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2026-03-31": 41148250000.0,
+       "2025-03-31": 23362340000.0,
+       "2024-03-31": 17116980000.0,
+       "2023-03-31": 12611760000.0
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2026-03-31": 6022430000.0,
+       "2025-03-31": 4200240000.0,
+       "2024-03-31": 3072230000.0,
+       "2023-03-31": 2675040000.0
+      }
+     },
+     {
+      "label": "other_payable",
+      "values": {
+       "2026-03-31": 1047620000.0,
+       "2025-03-31": 627740000.0,
+       "2024-03-31": 344600000.0,
+       "2023-03-31": 374740000.0
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2026-03-31": 7070050000.0,
+       "2025-03-31": 4827980000.0,
+       "2024-03-31": 3416830000.0,
+       "2023-03-31": 3049780000.0
+      }
+     },
+     {
+      "label": "pensionand_other_post_retirement_benefit_plans_current",
+      "values": {
+       "2026-03-31": 70920000.0,
+       "2025-03-31": 65240000.0,
+       "2024-03-31": 33830000.0,
+       "2023-03-31": 26160000.0
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2026-03-31": 5951070000.0,
+       "2025-03-31": 5095690000.0,
+       "2024-03-31": 3501510000.0,
+       "2023-03-31": 2553400000.0
+      }
+     },
+     {
+      "label": "current_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 182760000.0,
+       "2025-03-31": 113780000.0,
+       "2024-03-31": 105210000.0,
+       "2023-03-31": 89590000.0
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 6133830000.0,
+       "2025-03-31": 5209470000.0,
+       "2024-03-31": 3606720000.0,
+       "2023-03-31": 2642990000.0
+      }
+     },
+     {
+      "label": "current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 135440000.0,
+       "2025-03-31": 98730000.0,
+       "2024-03-31": 113260000.0,
+       "2023-03-31": 48370000.0
+      }
+     },
+     {
+      "label": "other_current_liabilities",
+      "values": {
+       "2026-03-31": 87970000.0,
+       "2025-03-31": 8890000.0,
+       "2024-03-31": 7110000.0,
+       "2023-03-31": 4950000.0
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2026-03-31": 13521120000.0,
+       "2025-03-31": 10244510000.0,
+       "2024-03-31": 7214500000.0,
+       "2023-03-31": 5792810000.0
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2026-03-31": 2462850000.0,
+       "2025-03-31": 2664870000.0,
+       "2024-03-31": 2047460000.0,
+       "2023-03-31": 1673290000.0
+      }
+     },
+     {
+      "label": "long_term_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 586230000.0,
+       "2025-03-31": 275040000.0,
+       "2024-03-31": 107300000.0,
+       "2023-03-31": 141710000.0
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 3049080000.0,
+       "2025-03-31": 2939910000.0,
+       "2024-03-31": 2154760000.0,
+       "2023-03-31": 1815000000.0
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 89270000.0,
+       "2025-03-31": 133360000.0,
+       "2024-03-31": 195300000.0,
+       "2023-03-31": 191420000.0
+      }
+     },
+     {
+      "label": "non_current_pension_and_other_postretirement_benefit_plans",
+      "values": {
+       "2026-03-31": 139270000.0,
+       "2025-03-31": 104740000.0,
+       "2024-03-31": 60780000.0,
+       "2023-03-31": 41060000.0
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 3277620000.0,
+       "2025-03-31": 3178010000.0,
+       "2024-03-31": 2410840000.0,
+       "2023-03-31": 2047480000.0
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 16798740000.0,
+       "2025-03-31": 13422520000.0,
+       "2024-03-31": 9625340000.0,
+       "2023-03-31": 7840290000.0
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2026-03-31": 376910000.0,
+       "2025-03-31": 175860000.0,
+       "2024-03-31": 172110000.0,
+       "2023-03-31": 172110000.0
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2026-03-31": 376910000.0,
+       "2025-03-31": 175860000.0,
+       "2024-03-31": 172110000.0,
+       "2023-03-31": 172110000.0
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2026-03-31": 19401950000.0,
+       "2025-03-31": 40770000.0,
+       "2024-03-31": 40277000.0,
+       "2023-03-31": 40770000.0
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2026-03-31": 14837020000.0,
+       "2025-03-31": 10860290000.0,
+       "2024-03-31": 7366660000.0,
+       "2023-03-31": 4403040000.0
+      }
+     },
+     {
+      "label": "treasury_stock",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 13130000.0,
+       "2023-03-31": 13130000.0
+      }
+     },
+     {
+      "label": "other_equity_interest",
+      "values": {
+       "2026-03-31": -10722380000.0,
+       "2025-03-31": -1373150000.0,
+       "2024-03-31": -233797000.0,
+       "2023-03-31": 4500000.0
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2026-03-31": 24343420000.0,
+       "2025-03-31": 9935680000.0,
+       "2024-03-31": 7482560000.0,
+       "2023-03-31": 4729860000.0
+      }
+     },
+     {
+      "label": "minority_interest",
+      "values": {
+       "2026-03-31": 6090000.0,
+       "2025-03-31": 4140000.0,
+       "2024-03-31": 9080000.0,
+       "2023-03-31": 41610000.0
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2026-03-31": 24349510000.0,
+       "2025-03-31": 9939820000.0,
+       "2024-03-31": 7491640000.0,
+       "2023-03-31": 4771470000.0
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2026-03-31": 26806270000.0,
+       "2025-03-31": 12600550000.0,
+       "2024-03-31": 9530020000.0,
+       "2023-03-31": 6403150000.0
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2026-03-31": 24343420000.0,
+       "2025-03-31": 9935680000.0,
+       "2024-03-31": 7482560000.0,
+       "2023-03-31": 4729860000.0
+      }
+     },
+     {
+      "label": "capital_lease_obligations",
+      "values": {
+       "2026-03-31": 768990000.0,
+       "2025-03-31": 388820000.0,
+       "2024-03-31": 212510000.0,
+       "2023-03-31": 231300000.0
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2026-03-31": 24141840000.0,
+       "2025-03-31": 9770100000.0,
+       "2024-03-31": 7319490000.0,
+       "2023-03-31": 4557140000.0
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2026-03-31": 12677860000.0,
+       "2025-03-31": 1161720000.0,
+       "2024-03-31": 1589430000.0,
+       "2023-03-31": 702550000.0
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2026-03-31": 32757340000.0,
+       "2025-03-31": 17696240000.0,
+       "2024-03-31": 13031530000.0,
+       "2023-03-31": 8956550000.0
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2026-03-31": 24141840000.0,
+       "2025-03-31": 9770100000.0,
+       "2024-03-31": 7319490000.0,
+       "2023-03-31": 4557140000.0
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2026-03-31": 9182910000.0,
+       "2025-03-31": 8149380000.0,
+       "2024-03-31": 5761480000.0,
+       "2023-03-31": 4457990000.0
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 7296090000.0,
+       "2024-03-31": 5244950000.0,
+       "2023-03-31": 3859830000.0
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/DHOOTTRANS/cashflow",
+   "status": 200,
+   "elapsed_ms": 237,
+   "body": {
+    "symbol": "DHOOTTRANS.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2026-03-31": 5156870000.0,
+       "2025-03-31": 4575940000.0,
+       "2024-03-31": 3882260000.0,
+       "2023-03-31": 1993400000.0
+      }
+     },
+     {
+      "label": "gain_loss_on_sale_of_business",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": -213350000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "gain_loss_on_sale_of_ppe",
+      "values": {
+       "2026-03-31": -3190000.0,
+       "2025-03-31": 1280000.0,
+       "2024-03-31": 18890000.0,
+       "2023-03-31": 40890000.0
+      }
+     },
+     {
+      "label": "net_foreign_currency_exchange_gain_loss",
+      "values": {
+       "2026-03-31": 5180000.0,
+       "2025-03-31": 11510000.0,
+       "2024-03-31": -2150000.0,
+       "2023-03-31": 2400000.0
+      }
+     },
+     {
+      "label": "gain_loss_on_investment_securities",
+      "values": {
+       "2026-03-31": 43270000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": -41930000.0
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2026-03-31": 1213020000.0,
+       "2025-03-31": 921200000.0,
+       "2024-03-31": 736570000.0,
+       "2023-03-31": 584580000.0
+      }
+     },
+     {
+      "label": "amortization_cash_flow",
+      "values": {
+       "2026-03-31": 12420000.0,
+       "2025-03-31": 11570000.0,
+       "2024-03-31": 27280000.0,
+       "2023-03-31": 27280000.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2026-03-31": 1225440000.0,
+       "2025-03-31": 932770000.0,
+       "2024-03-31": 763850000.0,
+       "2023-03-31": 611860000.0
+      }
+     },
+     {
+      "label": "stock_based_compensation",
+      "values": {
+       "2026-03-31": 25900000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2026-03-31": 600540000.0,
+       "2025-03-31": 653900000.0,
+       "2024-03-31": 488960000.0,
+       "2023-03-31": 430410000.0
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2026-03-31": -1847250000.0,
+       "2025-03-31": -1828280000.0,
+       "2024-03-31": -1525840000.0,
+       "2023-03-31": -287390000.0
+      }
+     },
+     {
+      "label": "change_in_inventory",
+      "values": {
+       "2026-03-31": -2052390000.0,
+       "2025-03-31": -884470000.0,
+       "2024-03-31": -689290000.0,
+       "2023-03-31": -484530000.0
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2026-03-31": 1669340000.0,
+       "2025-03-31": 1057270000.0,
+       "2024-03-31": 377950000.0,
+       "2023-03-31": 776870000.0
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2026-03-31": -318120000.0,
+       "2025-03-31": -45300000.0,
+       "2024-03-31": -91830000.0,
+       "2023-03-31": -42110000.0
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2026-03-31": 181430000.0,
+       "2025-03-31": 32710000.0,
+       "2024-03-31": 57110000.0,
+       "2023-03-31": -162480000.0
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2026-03-31": -2313720000.0,
+       "2025-03-31": -1640270000.0,
+       "2024-03-31": -1851960000.0,
+       "2023-03-31": -201700000.0
+      }
+     },
+     {
+      "label": "taxes_refund_paid",
+      "values": {
+       "2026-03-31": -1288530000.0,
+       "2025-03-31": -1149090000.0,
+       "2024-03-31": -889070000.0,
+       "2023-03-31": -474450000.0
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2026-03-31": 3476570000.0,
+       "2025-03-31": 3202140000.0,
+       "2024-03-31": 2410860000.0,
+       "2023-03-31": 2360010000.0
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2026-03-31": -3621120000.0,
+       "2025-03-31": -4215030000.0,
+       "2024-03-31": -3020040000.0,
+       "2023-03-31": -1499800000.0
+      }
+     },
+     {
+      "label": "sale_of_ppe",
+      "values": {
+       "2026-03-31": 217830000.0,
+       "2025-03-31": 219890000.0,
+       "2024-03-31": 155390000.0,
+       "2023-03-31": 136320000.0
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2026-03-31": -3403290000.0,
+       "2025-03-31": -3995140000.0,
+       "2024-03-31": -2864650000.0,
+       "2023-03-31": -1363480000.0
+      }
+     },
+     {
+      "label": "purchase_of_business",
+      "values": {
+       "2026-03-31": -9375120000.0,
+       "2025-03-31": -1138860000.0,
+       "2024-03-31": -238790000.0,
+       "2023-03-31": -227640000.0
+      }
+     },
+     {
+      "label": "sale_of_business",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 409270000.0,
+       "2024-03-31": 6090000.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_business_purchase_and_sale",
+      "values": {
+       "2026-03-31": -9375120000.0,
+       "2025-03-31": -729590000.0,
+       "2024-03-31": -232700000.0,
+       "2023-03-31": -227640000.0
+      }
+     },
+     {
+      "label": "purchase_of_investment",
+      "values": {
+       "2026-03-31": -220050000.0,
+       "2025-03-31": -431310000.0,
+       "2024-03-31": -554220000.0,
+       "2023-03-31": -200940000.0
+      }
+     },
+     {
+      "label": "sale_of_investment",
+      "values": {
+       "2026-03-31": 189710000.0,
+       "2025-03-31": 709620000.0,
+       "2024-03-31": 539080000.0,
+       "2023-03-31": 19190000.0
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2026-03-31": -30340000.0,
+       "2025-03-31": 278310000.0,
+       "2024-03-31": -15140000.0,
+       "2023-03-31": -181750000.0
+      }
+     },
+     {
+      "label": "interest_received_cfi",
+      "values": {
+       "2026-03-31": 182440000.0,
+       "2025-03-31": 18020000.0,
+       "2024-03-31": 3910000.0,
+       "2023-03-31": 1430000.0
+      }
+     },
+     {
+      "label": "net_other_investing_changes",
+      "values": {
+       "2026-03-31": 9380000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": 99920000.0
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2026-03-31": -12616930000.0,
+       "2025-03-31": -4428400000.0,
+       "2024-03-31": -3108580000.0,
+       "2023-03-31": -1671520000.0
+      }
+     },
+     {
+      "label": "long_term_debt_issuance",
+      "values": {
+       "2026-03-31": 433280000.0,
+       "2025-03-31": 2408230000.0,
+       "2024-03-31": 1871440000.0,
+       "2023-03-31": 617520000.0
+      }
+     },
+     {
+      "label": "long_term_debt_payments",
+      "values": {
+       "2026-03-31": -1263390000.0,
+       "2025-03-31": -1039850000.0,
+       "2024-03-31": -1517840000.0,
+       "2023-03-31": -735680000.0
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2026-03-31": -830110000.0,
+       "2025-03-31": 1368380000.0,
+       "2024-03-31": 353600000.0,
+       "2023-03-31": -118160000.0
+      }
+     },
+     {
+      "label": "short_term_debt_issuance",
+      "values": {
+       "2026-03-31": 2126240000.0,
+       "2025-03-31": 992910000.0,
+       "2024-03-31": 967960000.0,
+       "2023-03-31": 150000000.0
+      }
+     },
+     {
+      "label": "short_term_debt_payments",
+      "values": {
+       "2026-03-31": -735000000.0,
+       "2025-03-31": -150000000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": -55400000.0
+      }
+     },
+     {
+      "label": "net_short_term_debt_issuance",
+      "values": {
+       "2026-03-31": 1391240000.0,
+       "2025-03-31": 842910000.0,
+       "2024-03-31": 967960000.0,
+       "2023-03-31": 94600000.0
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2026-03-31": 561130000.0,
+       "2025-03-31": 2211290000.0,
+       "2024-03-31": 1321560000.0,
+       "2023-03-31": -23560000.0
+      }
+     },
+     {
+      "label": "issuance_of_common_equity",
+      "values": {
+       "2026-03-31": 19596230000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2026-03-31": 19596230000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "cash_dividends_paid",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": -8790000.0,
+       "2024-03-31": -3440000.0,
+       "2023-03-31": -17590000.0
+      }
+     },
+     {
+      "label": "interest_paid_cff",
+      "values": {
+       "2026-03-31": -878840000.0,
+       "2025-03-31": -691510000.0,
+       "2024-03-31": -524990000.0,
+       "2023-03-31": -441040000.0
+      }
+     },
+     {
+      "label": "net_other_financing_charges",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": -1730000.0,
+       "2024-03-31": -47080000.0,
+       "2023-03-31": null
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2026-03-31": 19123330000.0,
+       "2025-03-31": 1379770000.0,
+       "2024-03-31": 634250000.0,
+       "2023-03-31": -565090000.0
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2026-03-31": 9982970000.0,
+       "2025-03-31": 153510000.0,
+       "2024-03-31": -63470000.0,
+       "2023-03-31": 123400000.0
+      }
+     },
+     {
+      "label": "effect_of_exchange_rate_changes",
+      "values": {
+       "2026-03-31": 37030000.0,
+       "2025-03-31": 6940000.0,
+       "2024-03-31": 630000.0,
+       "2023-03-31": 280000.0
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2026-03-31": 464470000.0,
+       "2025-03-31": 304020000.0,
+       "2024-03-31": 366860000.0,
+       "2023-03-31": 231300000.0
+      }
+     },
+     {
+      "label": "other_cash_adjustment_outside_changein_cash",
+      "values": {
+       "2026-03-31": 358350000.0,
+       "2025-03-31": null,
+       "2024-03-31": 41570000.0,
+       "2023-03-31": 11880000.0
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2026-03-31": 10842820000.0,
+       "2025-03-31": 464470000.0,
+       "2024-03-31": 304020000.0,
+       "2023-03-31": 366860000.0
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2026-03-31": -3621120000.0,
+       "2025-03-31": -4215030000.0,
+       "2024-03-31": -3020040000.0,
+       "2023-03-31": -1499800000.0
+      }
+     },
+     {
+      "label": "issuance_of_capital_stock",
+      "values": {
+       "2026-03-31": 19596230000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2026-03-31": 2559520000.0,
+       "2025-03-31": 3401140000.0,
+       "2024-03-31": 2839400000.0,
+       "2023-03-31": 767520000.0
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2026-03-31": -1998390000.0,
+       "2025-03-31": -1189850000.0,
+       "2024-03-31": -1517840000.0,
+       "2023-03-31": -791080000.0
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2026-03-31": -144550000.0,
+       "2025-03-31": -1012890000.0,
+       "2024-03-31": -609180000.0,
+       "2023-03-31": 860210000.0
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/DHOOTTRANS/ratings",
+   "status": 200,
+   "elapsed_ms": 207,
+   "body": {
+    "symbol": "DHOOTTRANS.NS",
+    "consensus": "buy",
+    "target_mean": 1791.0,
+    "target_high": 1791.0,
+    "target_low": 1791.0,
+    "strong_buy": 0,
+    "buy": 1,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=DHOOTTRANS",
+   "status": 200,
+   "elapsed_ms": 171,
+   "body": {
+    "symbol": "DHOOTTRANS",
+    "count": 1,
+    "patterns": [
+     {
+      "symbol": "DHOOTTRANS",
+      "quarter_end": "2026-08-14",
+      "quarter_basis": null,
+      "promoter_percent": 82.78,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": 17.22,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": 0.0,
+      "submission_date": "2026-08-18",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1715828_18082026062824_WEB.xml",
+      "source": "NSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     }
+    ],
+    "coverage": "covered",
+    "note": null,
+    "provider": null,
+    "major_shareholders": [],
+    "source_url": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=DHOOTTRANS&limit=25",
+   "status": 200,
+   "elapsed_ms": 2490,
+   "body": {
+    "symbol": "DHOOTTRANS",
+    "exchange": null,
+    "count": 20,
+    "announcements": [
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Dhoot Transmission Limited has informed the Exchange about General Updates",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_12092026183141_SE_intimation_Change_in_CIN_12092026.pdf",
+      "ts": "2026-09-12T18:32:27+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Dhoot Transmission Limited has informed the Exchange about Transcript",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_10092026120212_DTL_SE_Earning_transcript_sd.pdf",
+      "ts": "2026-09-10T12:02:41+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Dhoot Transmission Limited has informed the Exchange about Copy of Newspaper Publication",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_05092026150448_DTL_SE_Intimation_Newspaper_advt_signed.pdf",
+      "ts": "2026-09-05T15:05:08+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Dhoot Transmission Limited has informed the Exchange about Link of Recording",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_04092026200140_SE_intimation_Audio_recording_F.pdf",
+      "ts": "2026-09-04T20:03:01+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "BSE",
+      "headline": "Unaudited Financial Results (Standalone And Consolidated)  - Q1 2026-27",
+      "category": "Result",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0d5cbbae-06e6-4d76-a645-88ebd3c5e369.pdf",
+      "ts": "2026-09-04T15:31:30.097000+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Dhoot Transmission Limited has informed the Exchange regarding a press release dated September 04, 2026, titled \"Dhoot Transmission Limited announces its results for Q1 FY27\".",
+      "category": "Press Release",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_04092026151017_SE_Press_Release_04092026.pdf",
+      "ts": "2026-09-04T15:10:47+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Dhoot Transmission Limited has informed the Exchange about Investor Presentation",
+      "category": "Investor Presentation",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_04092026150738_SE_Investor_Presentation_04092026.pdf",
+      "ts": "2026-09-04T15:07:56+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Outcome of the Board meeting",
+      "category": "Outcome of Board Meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_04092026150455_SE_intimation_BM___outcome.pdf",
+      "ts": "2026-09-04T15:05:11+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Dhoot Transmission Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_01092026202134_DTL_SE_Intimations_Conference_call_signed.pdf",
+      "ts": "2026-09-01T20:26:14+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Consideration Of Unaudited Financial (Standalone And Consolidated) Results - Q1 2026-27",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8a4d189f-b421-4e3b-9ccc-7c4bac65646f.pdf",
+      "ts": "2026-08-31T18:56:34.763000+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Dhoot Transmission Limited has informed the Exchange regarding ''.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_28082026211916_DTL_SE_Intimation_Investment_in_Step_down_signed.pdf",
+      "ts": "2026-08-28T21:20:34+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Acquisition",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/48308807-0eaf-4094-81e7-25f2408cc864.pdf",
+      "ts": "2026-08-28T21:16:34.117000+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Acquisition",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c844775b-d6a1-4bc6-bdc1-619e60a82502.pdf",
+      "ts": "2026-08-28T17:03:11.193000+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Dhoot Transmission Limited has informed the Exchange about Credit Rating",
+      "category": "Credit Rating",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_26082026124652_DTL_SE_Intimations_Credit_Rating_26082026.pdf",
+      "ts": "2026-08-26T12:47:37+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Credit Rating",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/dde9e014-acab-4d1f-9da6-ca70c65febc1.pdf",
+      "ts": "2026-08-26T12:33:59.647000+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "BSE",
+      "headline": "Disclosures of reasons for encumbrance by promoter of listed companies under Reg. 31(1) read with Regulation 28(3) of SEBI (SAST) Regulations, 2011.",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/436B7797_E272_4D4E_873E_8A1E1D2000C9_153535.pdf",
+      "ts": "2026-08-20T15:35:41.010000+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "BSE",
+      "headline": "Disclosures under Reg. 31(1) and 31(2) of SEBI (SAST) Regulations, 2011",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3F0828F5_E726_428E_AE83_4879FA9BF048_151451.pdf",
+      "ts": "2026-08-20T15:14:56.547000+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "BSE",
+      "headline": "Disclosures under Reg. 29(1) of SEBI (SAST) Regulations, 2011",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7934DA57_E323_49FB_BE30_34386334F2B8_170337.pdf",
+      "ts": "2026-08-19T17:03:44.270000+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "NSE",
+      "headline": "Dhoot Transmission Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+      "category": "Trading Window",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/DTL_17082026191149_DTL_SE_intimation_trading_window_closure.pdf",
+      "ts": "2026-08-17T19:12:10+05:30"
+     },
+     {
+      "symbol": "DHOOTTRANS",
+      "exchange": "BSE",
+      "headline": "Listing of Equity Shares of Dhoot Transmission Ltd",
+      "category": "New Listing",
+      "attachment_url": null,
+      "ts": "2026-08-17T08:05:18.933000+05:30"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "windows": {
+     "NSE": {
+      "window_start": null,
+      "window_end": "2026-09-25"
+     },
+     "BSE": {
+      "window_start": "2026-03-29",
+      "window_end": "2026-09-25"
+     }
+    },
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=DHOOTTRANS",
+   "status": 200,
+   "elapsed_ms": 401,
+   "body": {
+    "symbol": "DHOOTTRANS",
+    "count": 1,
+    "events": [
+     {
+      "symbol": "DHOOTTRANS",
+      "company": "Dhoot Transmission Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2026",
+      "date": "2026-09-04",
+      "exchange": "NSE+BSE"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

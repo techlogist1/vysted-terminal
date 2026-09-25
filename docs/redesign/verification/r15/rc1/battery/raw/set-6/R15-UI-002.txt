@@ -1,0 +1,14 @@
+  it("a ticker pick commands the chart through the always-consumed chart-command channel", () => {
+    const openPanel = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel } as never);
+    resetChartCommandStoreForTests();
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Ask anything/i), { target: { value: "nvda" } });
+    const symbolsGroup = screen.getByText("Symbols").closest("[cmdk-group]") as HTMLElement;
+    fireEvent.click(within(symbolsGroup).getByText("NVDA"));
+    expect(useChartCommandStore.getState().command?.symbol).toBe("NVDA");
+    // No chart on screen → one is opened so the command has a consumer.
+    expect(openPanel).toHaveBeenCalledWith("chart");
+  });
+});

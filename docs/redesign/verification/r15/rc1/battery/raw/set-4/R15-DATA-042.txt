@@ -1,0 +1,13 @@
+grep confirms committed vitest pin (src/modules/portfolio/PortfolioPanel.test.tsx L527):
+  it("R15-DATA-042: CSV export gets a Currency column and a blank Weight % when mixed", async () => {
+    ...
+    expect(lines[0]).toBe(
+      "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note",
+    );
+    expect(relianceRow[4]).toBe("INR"); expect(aaplRow[4]).toBe("USD");
+    // Weight % (index 9) is blank -- never a cross-currency ratio.
+    expect(relianceRow[9]).toBe(""); expect(aaplRow[9]).toBe("");
+  });
+Also backed by the contract-level test in metrics.test.ts (see R15-CODE-PLATFORM-053 below) which nulls
+s.concentration / row.weight at the buildPortfolioSummary level, not just the CSV formatter. Original
+register repro is UI-driven (add RELIANCE + AAPL holdings, click Export to CSV). Verdict: ci_pinned.

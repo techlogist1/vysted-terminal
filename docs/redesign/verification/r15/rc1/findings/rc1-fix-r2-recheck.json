@@ -1,0 +1,50 @@
+[
+ {
+  "key": "rc1-fix-r2-recheck:1",
+  "kind": "new_defect",
+  "severity": "high",
+  "register_id": null,
+  "title": "rc1-scenarios:5 not closed on llama3.1:8b: the SIFY ADR ratio is still fabricated as 1:1 (true 1 ADS = 6 shares); the currency half is fixed",
+  "repro": "Own sidecar :52337 at 1d6511c8, keyless seed copy. python3 scripts/r15/vy.py invoke copilot \"How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?\" --provider ollama --model llama3.1:8b --autonomy ask --port 52337, run twice. Run 2: financial_statements(SIFY, cashflow, quarterly) + fundamentals -> \"SIFY ADR represents 1 ordinary share. SIFY's TTM revenue is ₹4,651 cr.\" The revenue is now INR and correct. The ADR ratio is invented, because no tool returns one. Run 1 declined the ADR question honestly but called a ₹13,444 cr cash-flow reading 'TTM revenue'. The exact OR nemotron repro no longer reproduces (run 3: '6 ordinary shares', web-sourced, revenue ₹4,651 cr, no USD guess). Triage scoped the ADR half out twice as a model-capability limit, so the operator has to decide whether it stays out.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/fix-r2/recheck/sk5-ollama-2.stdout.txt; docs/redesign/verification/r15/rc1/fix-r2/recheck/sk5-ollama-1.stdout.txt; docs/redesign/verification/r15/rc1/fix-r2/recheck/sk5-or-3.stdout.txt",
+  "suspected_files": [
+   "sidecar/agents/copilot.json (grounding rule does not stop an unsourced ADR ratio)",
+   "no product source carries an ADR ratio"
+  ]
+ },
+ {
+  "key": "rc1-fix-r2-recheck:2",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "rc1-drive-onboarding-stranger:1 not closed: the leaked-call half is fixed, but keyless llama3.1:8b still presents an invented Zomato price as fetched, in prose with no call syntax (2 of 6 exact runs)",
+  "repro": "Own sidecar :52337 at 1d6511c8, keyless seed copy. python3 scripts/r15/vy.py invoke copilot \"hi, I just installed this. what can you do, and how is Zomato stock doing today?\" --port 52337 --provider ollama --model llama3.1:8b, 6 runs. In every run, each leaked JSON call was held and rescued into a real call, and no hand-typed tool result was streamed. Run 1: after two price_data ZOMATO.NS misses, \"the last successful fetch showed a price of ₹149.30 for Zomato (ZOMATO.NS) on 2023-12-01\"; no such fetch happened, and /quotes/ZOMATO.NS is not_found. Run 6: price_data ZEEL.NS (served close 78.17), then \"Zomato (ETERNAL.NS) is currently trading at ₹128.05 ... The last price I have is ₹131.10\"; nothing served that value, and ETERNAL.NS = ₹335.5. PLAN.md scoped this prose form out as model capability.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/fix-r2/recheck/a1-zomato-1.stdout.txt; docs/redesign/verification/r15/rc1/fix-r2/recheck/a1-zomato-6.stdout.txt; docs/redesign/verification/r15/rc1/fix-r2/recheck/hold-inprocess.txt",
+  "suspected_files": [
+   "sidecar/agents/copilot.json",
+   "sidecar/services/agent_runtime.py (no check that a stated price was served)"
+  ]
+ },
+ {
+  "key": "rc1-fix-r2-recheck:3",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "Leak hold starts after the marker's first tokens have streamed, so a dangling fragment such as '{\"name\": \"price_data' or '**Tool call:** `price_da' remains in the shown answer and in the history",
+  "repro": "In-process (candidate venv): OllamaProvider fed the original Zomato text at chunk sizes 1/3/7 shows '... **Tool call:** `price_data' / '`price_da' / '`price_d' before the held part is dropped. A JSON news leak shows '{\"name\": \"news' / '\"new' / '\"'. Live on :52337: in Zomato runs 1-4, every rescued round's text ends with a dangling '{\"name\": \"price_data'. LeakHold.feed recognises a marker only once '(' or the closing quote arrives. The line start that leak_start computes is already below _shown, so max(start, _shown) keeps the fragment. This is cosmetic, and it is better than before the fix, when the whole call and its fake result were shown.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/fix-r2/recheck/hold-inprocess.txt; docs/redesign/verification/r15/rc1/fix-r2/recheck/a1-zomato-1.stdout.txt; docs/redesign/verification/r15/rc1/fix-r2/recheck/a1-zomato-4.stdout.txt",
+  "suspected_files": [
+   "sidecar/services/llm/tool_call_rescue.py (LeakHold.feed / leak_start)"
+  ]
+ },
+ {
+  "key": "rc1-fix-r2-recheck:4",
+  "kind": "environment",
+  "severity": "low",
+  "register_id": null,
+  "title": "OpenRouter nemotron-3-super-120b free lane returned upstream 5xx ('Upstream error from Nvidia: Service temporarily overloaded') on 2 of 3 exact scenarios:5 runs",
+  "repro": "vy invoke copilot <SIFY prompt> --provider openrouter --model nvidia/nemotron-3-super-120b-a12b:free --port 52337. Runs 1 and 2 ended in error code provider_5xx, with the detail naming the upstream overload. Run 3 completed.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/fix-r2/recheck/sk5-or-1.stdout.txt; docs/redesign/verification/r15/rc1/fix-r2/recheck/sk5-or-2.stdout.txt",
+  "suspected_files": []
+ }
+]

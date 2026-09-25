@@ -1,0 +1,63 @@
+[
+ {
+  "id": "panel-screener",
+  "area": "screener",
+  "surface": "Screener panel shell",
+  "entry": "src/modules/screener/index.ts:16-32; src/modules/screener/ScreenerPanel.tsx:90",
+  "driven": "ok",
+  "evidence": "rc1/logs/screener.md#L1-L2 (scr_zero: evaluated=0/partial=true -> 'Nothing could be screened'/Retry, R15-UI-055 code at ScreenerResultsTable.tsx:535-545 cited); rc1/logs/screener.md#L3 (scr_wide: matched_count=2707 vs result_count=200 distinct, R15-UI-006); default-universe GET returns nifty50 for IN region, R15-CODE-DATA-004",
+  "census_verdict": "partial",
+  "rc1_verdict": "ok",
+  "regression": false,
+  "fixing_register_ids": ["R15-UI-055", "R15-UI-006", "R15-CODE-DATA-004"]
+ },
+ {
+  "id": "screener-criteria-builder",
+  "area": "screener",
+  "surface": "Screener criteria builder (AND/OR groups)",
+  "entry": "src/modules/screener/ScreenerCriteriaBuilder.tsx:390; src/modules/screener/CriterionGroupEditor.tsx:317",
+  "driven": "ok",
+  "evidence": "rc1-cand/src/modules/screener/ScreenerPresets.tsx:126-134 (apply() now calls applyFilters, comment cites R15-UI-007, resets group/advanced/formula); rc1-cand/src/modules/screener/CriterionGroupEditor.tsx:130-140 withNumericOperator carries threshold across operator switch, comment cites R15-UI-045 (code-level confirmation only — no jsdom rerun this pass, NOT a live DOM drive)",
+  "census_verdict": "partial",
+  "rc1_verdict": "ok (code-confirmed)",
+  "regression": false,
+  "fixing_register_ids": ["R15-UI-007", "R15-UI-045"]
+ },
+ {
+  "id": "screener-formula-input",
+  "area": "screener",
+  "surface": "Screener formula leaf (raw expression input)",
+  "entry": "src/modules/screener/ScreenerFormulaLeaf.tsx:46,202",
+  "driven": "ok",
+  "evidence": "rc1/logs/screener.md#L5 (formula/validate: 'pe < 20 and roe > 15%' -> unexpected char '%'; boolean-coercion 'min(pe<5,roe)>0.5' now REJECTED with explicit error, was silently accepted in census — R15-RESEARCH-025 fix confirmed live)",
+  "census_verdict": "ok",
+  "rc1_verdict": "ok (improved: boolean coercion now caught)",
+  "regression": false,
+  "fixing_register_ids": ["R15-RESEARCH-025"]
+ },
+ {
+  "id": "screener-results-table",
+  "area": "screener",
+  "surface": "Screener results table",
+  "entry": "src/modules/screener/ScreenerResultsTable.tsx:318",
+  "driven": "ok",
+  "evidence": "rc1/logs/screener.md#L1-L4: genuine zero-evaluated (throttled) -> distinct 'Nothing could be screened'/Retry empty state; genuine zero-MATCH (45 evaluated, 0 rows) -> 'No rows matched'/Reset empty state, correctly differentiated now (was one undifferentiated branch in census); matched_count/result_count distinct on a 2,707-match india-all run",
+  "census_verdict": "partial",
+  "rc1_verdict": "ok",
+  "regression": false,
+  "fixing_register_ids": ["R15-UI-055", "R15-UI-006"],
+  "notes": "row-click / CSV / narrow overflow still NEEDS-GUI (R15-UI-009 register status is needs_gui, unchanged)"
+ },
+ {
+  "id": "screener-presets",
+  "area": "screener",
+  "surface": "Screener saved/preset screens",
+  "entry": "src/modules/screener/ScreenerPresets.tsx:119,125,141",
+  "driven": "ok (code-confirmed)",
+  "evidence": "rc1-cand/src/modules/screener/ScreenerPresets.tsx:126-140 apply() now calls applyFilters({criteria, group, universe, formula}) which resets group/advanced/formula (was a bare setCriteria that left the old nested tree+formula riding along); rc1-cand/src/lib/workspace.ts:170-171,553-563 savedScreens now ride the workspace blob (R15-CODE-FRONTEND-018)",
+  "census_verdict": "broken",
+  "rc1_verdict": "ok (code-confirmed; no live jsdom re-run this pass)",
+  "regression": false,
+  "fixing_register_ids": ["R15-UI-007", "R15-CODE-FRONTEND-018"]
+ }
+]

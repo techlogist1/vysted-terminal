@@ -1,0 +1,1 @@
+{"price":10.450480455837951,"greeks":{"delta":0.6368289322734,"gamma":0.018762810744335095,"vega":37.52281014974059,"theta":-6.41418278744902,"rho":53.23034693751971},"method":"binomial","monte_carlo_std_error":null,"duration_ms":6233.422040997539}

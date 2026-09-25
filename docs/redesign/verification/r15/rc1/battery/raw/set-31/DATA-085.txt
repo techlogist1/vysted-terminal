@@ -1,0 +1,3 @@
+=== DATA-085: World Bank title ===
+title: GDP (current US$) — IND
+last obs: {'date': '2025-01-01T00:00:00Z', 'value': 3956067115771.63, 'is_projection': False}

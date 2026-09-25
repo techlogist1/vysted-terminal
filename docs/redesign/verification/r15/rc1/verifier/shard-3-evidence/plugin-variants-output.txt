@@ -1,0 +1,8 @@
+014-disabled {"pluginId":"vysted-news","installed":true,"enabled":false,"runtimeState":"stopped","configured":true}
+credentialed plugins vysted-news
+014-secrets keys plugin-secret:vysted-news:newsapi_key
+014-module count before/after 0 0
+013 example module present: true enabled: true
+013 after settings toggle: module enabled = false | marketplace {"pluginId":"vysted-example","installed":true,"enabled":true,"runtimeState":"active","configured":true} | plugins.db row enabled = true
+013 workspace blob plugin flag: undefined
+013 after relaunch: module enabled = true

@@ -1,0 +1,5 @@
+Source check: relevance.py:417 `index_tail = re.compile(r"-?\d{2,3}(?![a-z0-9])")` - the `\s`
+alternative was dropped (only a leading hyphen or a contiguous digit run now matches), and the check
+is gated behind `_foreign_shadow(...)` at lines 448/515/585 (India-target-only). Matches PLAN.md's
+fix exactly ("require a contiguous or hyphenated suffix, drop \s; gate behind _foreign_shadow").
+Verdict: holds (source-confirmed).

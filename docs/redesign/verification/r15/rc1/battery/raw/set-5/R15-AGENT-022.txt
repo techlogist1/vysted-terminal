@@ -1,0 +1,7 @@
+=== AGENT-022a portfolio_add_position null cost_basis ===
+tool: portfolio_add_position in: {'symbol': 'SUMAX', 'quantity': 10, 'cost_basis': None}
+out: {'__vysted_invalid_args__': 'invalid arguments for portfolio_add_position: missing cost_basis — ask the user for it; do not guess'}
+--
+=== AGENT-022b portfolio_update_position missing position_id ===
+tool: portfolio_update_position in: {'quantity': 5}
+out: {'__vysted_invalid_args__': 'invalid arguments for portfolio_update_position: missing position_id — ask the user for it; do not guess'}

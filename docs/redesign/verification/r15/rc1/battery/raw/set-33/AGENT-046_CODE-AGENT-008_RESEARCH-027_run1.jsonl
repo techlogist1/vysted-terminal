@@ -1,0 +1,41 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  51.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "name": "research", "input": {"depth": "quick", "query": "NVDA"}}
+[  51.8s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "engine", "detail": "research:begin 4da75dd0c33e4bd2915f21014ac1f539 depth=normal query=NVDA", "latency_ms": null, "status": "ok", "index": 1}
+[  51.8s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "plan", "detail": "resolving \"NVDA\"", "latency_ms": null, "status": "ok", "index": 2}
+[  51.8s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 NVDA", "latency_ms": 0, "status": "ok", "index": 3}
+[  51.8s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "tool", "detail": "pulling market data for NVDA", "latency_ms": null, "status": "ok", "index": 4}
+[  51.8s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "search", "detail": "searching the web for NVIDIA CORP", "latency_ms": null, "status": "ok", "index": 5}
+[  53.9s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "tool", "detail": "ownership cross-check", "latency_ms": 0, "status": "ok", "index": 6}
+[  53.9s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "tool", "detail": "declared dividend cross-check", "latency_ms": 0, "status": "ok", "index": 7}
+[  53.9s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "tool", "detail": "52-week range cross-check", "latency_ms": 0, "status": "ok", "index": 8}
+[  53.9s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "tool", "detail": "market-cap witness cross-check", "latency_ms": 0, "status": "ok", "index": 9}
+[  53.9s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "tool", "detail": "growth cross-check", "latency_ms": 7, "status": "ok", "index": 10}
+[  54.0s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "tool", "detail": "earnings quality cross-check", "latency_ms": 21, "status": "ok", "index": 11}
+[  54.5s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "tool", "detail": "dividend TTM cross-check", "latency_ms": 559, "status": "ok", "index": 12}
+[  57.8s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "tool", "detail": "filings timed out after 6s \u2014 dropped", "latency_ms": 6000, "status": "error", "index": 13}
+[  57.8s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "tool", "detail": "pulled 3/4 data sources", "latency_ms": 6010, "status": "ok", "index": 14}
+[  62.6s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "search", "detail": "0 web source(s)", "latency_ms": 10740, "status": "ok", "index": 15}
+[  62.6s] research_step: {"kind": "research_step", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 16}
+[  62.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_80dc50e027bd43f5a27a4b0169e43dee__autobrief", "name": "publish_brief", "input": {"query": "NVDA", "symbol": "NVDA", "mode": "fast", "depth": "quick", "execution": {"run_id": "4da75dd0c33e4bd2915f21014ac1f539", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790298933.068565, "finished_at": 1790298943.814368, "degraded_reason":
+[  72.6s] heartbeat: {"kind": "heartbeat"}
+[  82.6s] heartbeat: {"kind": "heartbeat"}
+[  91.9s] done: {"kind": "done", "usage": {"input_tokens": 5884, "output_tokens": 119, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Built you a brief on NVDA. It's at the top of the cockpit; click any ticker to dig in.
+
+* Current price: $224.58
+* Market cap: $5.42T
+* P/E ratio: 28.5
+* Forward P/E: 14.32
+* Dividend yield: 0.0044%
+* EPS: 7.88
+* Beta: 2.22
+
+Note that the dividend per share is flagged as potentially incorrect, as it exceeds the actual payout in the trailing 12 months by 48%.
+
+=== ok · 91.9s · events {'heartbeat': 7, 'tool_use': 2, 'research_step': 16, 'delta': 118, 'done': 1} · usage in=5884 out=119 · est $0.00000 · llama3.1:8b

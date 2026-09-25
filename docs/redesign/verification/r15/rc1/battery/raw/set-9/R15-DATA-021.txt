@@ -1,0 +1,7 @@
+2021-09-30: institutions_percent=None split_source=None (days from BSE quarter=1188)
+2022-06-30: institutions_percent=None split_source=None (days from BSE quarter=915)
+2022-12-31: institutions_percent=None split_source=None (days from BSE quarter=731)
+2023-06-30: institutions_percent=None split_source=None (days from BSE quarter=550)
+2023-12-31: institutions_percent=None split_source=None (days from BSE quarter=366)
+2024-06-30: institutions_percent=None split_source=None (days from BSE quarter=184)
+2024-09-30: institutions_percent=43.86 split_source=BSE (days from BSE quarter=92)

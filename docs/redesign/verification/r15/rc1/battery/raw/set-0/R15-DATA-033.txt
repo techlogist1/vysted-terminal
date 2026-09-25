@@ -1,0 +1,3 @@
+NaN quote price -> RAISED CorrectnessError: correctness gate: non-positive price nan for 'TEST' from 'nse'
+inf quote price -> RAISED CorrectnessError: correctness gate: non-positive price inf for 'TEST' from 'nse'
+NaN last close series -> RAISED CorrectnessError: correctness gate: non-positive last close nan for 'TEST' from 'nse'

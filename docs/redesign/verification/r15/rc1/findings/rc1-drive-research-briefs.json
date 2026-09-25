@@ -1,0 +1,13 @@
+[
+ {
+  "key": "rc1-drive-research-briefs:1",
+  "kind": "new_defect",
+  "severity": "medium",
+  "title": "DEEP brief's auto-generated 'web sources alone' coverage note is false when the up-front price/fundamentals snapshot times out but the research loop's own tool calls later populate structured sources",
+  "repro": "Own sidecar 127.0.0.1:52321 (rc1-cand source, data dir scratchpad/rc1-data-rc1-drive-research-briefs). scripts/r15/vy.py invoke copilot 'Bharat Dynamics — order book, margins and valuation' --provider openai --model gpt-4o-mini --autonomy auto --options '{\"research_depth\":\"deep\"}' --port 52321. The up-front structured snapshot fails (structured.price.ok=false, structured.fundamentals.ok=false, both 'timed out after 6s — dropped'), which correctly satisfies sidecar/services/research/deep.py:structured_feeds_available()==False and appends the WEB_ONLY_FLOOR_NOTE ('no structured price or fundamentals feed covered this instrument ... the coverage for this brief comes from web sources alone'). But later in the same run the researcher's own fundamentals/price tool calls succeed and get recorded into findings.structured_sources (vysted://price/BDL, vysted://fundamentals/BDL both appear in the published sources[] list at indices 6-7), and the brief's own lead figures cite them directly: '**Stock Price**: ₹1155.0 ... [6]' and '**Market Capitalization**: ... [6]' where source [6] = vysted://price/BDL. The note and the citations directly contradict each other: the note tells the user the brief is 'web sources alone' while the headline numbers are demonstrably structured-provenance, not web-scraped.",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/rc1/1-deep-bdl-4omini.stdout.txt",
+  "suspected_files": [
+   "sidecar/services/research/deep.py"
+  ]
+ }
+]

@@ -1,0 +1,209 @@
+[
+  {
+    "key": "rc1-scenarios:1",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-DATA-008",
+    "title": "SIFY revenue_ttm/net_income_ttm are still served as INR amounts under currency \"USD\" on the RC1 candidate",
+    "repro": "GET http://127.0.0.1:52311/fundamentals/SIFY (own sidecar, candidate source 4097dac4, seed data dir)",
+    "evidence_file": "docs/redesign/verification/r15/rc1/logs/rc1-scenarios.md",
+    "suspected_files": [
+      "sidecar/routers/fundamentals.py",
+      "sidecar/services (Yahoo fundamentals provider \u2014 financialCurrency vs currency)"
+    ]
+  },
+  {
+    "key": "rc1-scenarios:2",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-DATA-015",
+    "title": "ELCIDIN's 52-week low is still served as the truncated single-venue 102,210 (true cross-venue low 87,003), with no window/venue label",
+    "repro": "GET http://127.0.0.1:52311/fundamentals/ELCIDIN (own sidecar, candidate source 4097dac4, seed data dir)",
+    "evidence_file": "docs/redesign/verification/r15/rc1/logs/rc1-scenarios.md",
+    "suspected_files": [
+      "sidecar/routers/fundamentals.py",
+      "sidecar/services (52-week range computation)"
+    ]
+  },
+  {
+    "key": "rc1-scenarios:4",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-DATA-015",
+    "title": "Agent-facing price_data for ELCIDIN still yields a self-contradictory 52-week low (current price below the stated \"low\"), and the model states both numbers as fact with no flag of the impossibility",
+    "repro": "vy invoke, provider ollama model llama3.1:8b, autonomy=ask, prompt \"What is ELCIDIN's 52-week low, and how far above it is the current price?\" -> tool_use price_data(symbol=ELCIDIN.NS, range=1y) -> final text: \"The 52-week low for ELCIDIN.NS is \u20b9106,505 and the current price is \u20b9104,830. The current price is \u20b91,675 below the 52-week low.\" A current price below a stated 52-week LOW is a logical impossibility (matches the R15-DATA-015 truncated/single-venue-range mechanism, reached here via the agent's price_data tool rather than /fundamentals directly) and the model narrates it as an unremarkable fact instead of flagging the contradiction \u2014 a direct skepticism-property failure, not merely a data bug.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/scenarios/ollama-sk3-elcidin.jsonl",
+    "suspected_files": [
+      "sidecar/services/agent_tools (price_data 52-week/range computation)",
+      "sidecar/agents/*.json (no instruction to sanity-check price vs range bounds)"
+    ]
+  },
+  {
+    "key": "rc1-scenarios:3",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-AGENT-033",
+    "title": "Under ASK autonomy, arrange_layout is narrated as done (\"I've arranged your layout... You can now see...\") although the runtime's own notice said it was staged, not applied",
+    "repro": "vy invoke, provider ollama model llama3.1:8b, autonomy=ask, prompt \"Arrange my layout for fundamental research on TCS.\" -> tool_use arrange_layout -> research_step notice \"Staged for your review, not applied yet: arrange_layout TCS\" -> final text claims it is done. Same session's portfolio_add_position and write_note calls (rb2, rb3) correctly hedged (\"pending review\", \"proposed... to be reviewed\") on an identical staged notice, so this is scoped to arrange_layout, not a general model failure to read the notice.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/scenarios/ollama-rb4-arrange.jsonl",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py (per-tool narration guidance)",
+      "sidecar/services/agent_tools/catalog.py (arrange_layout description)"
+    ]
+  },
+  {
+    "key": "rc1-drive-portfolio-notes:2",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-UI-035",
+    "title": "P4/P4b delete-control harness replay needed a rewrite for a new ConfirmButton arm/confirm gate, not a regression in the fix itself",
+    "repro": "The census harness's P4 delete test used a single click on the delete control. On RC1 that control now rides the new shared ConfirmButton (arm/confirm, 4s window, src/components/ConfirmButton.tsx) introduced after census, so a single click only arms the button and the row is not removed. This initially looked like a reopened R15-UI-035 but is test-harness drift against an unrelated new safety primitive, not a regression in the stale-closure fix: handleDelete's useCallback dependency array now correctly includes active.id (PortfolioPanel.tsx ~line 528), confirmed by static read and by driving the double-click (arm then confirm) sequence against TCS.NS in a non-active portfolio, which deleted the correct row. Recorded as a low-severity harness-methodology note, not a product regression -- R15-UI-035 remains fixed.",
+    "evidence_file": "docs/redesign/verification/r15/surface/portfolio-notes/rc1/portfolio-replay.json",
+    "suspected_files": [
+      "src/modules/portfolio/PortfolioPanel.tsx:528",
+      "src/components/ConfirmButton.tsx"
+    ]
+  },
+  {
+    "key": "rc1-gate8:1",
+    "kind": "gate8",
+    "severity": "medium",
+    "register_id": null,
+    "title": "docs/PHASE_10_HANDOFF.md, which docs/README.md indexes as the 'Latest phase handoff', still tells users how to connect Kite for trading-account reads and has no D81 removal notice",
+    "repro": "Open docs/README.md:32 -> the index lists PHASE_10_HANDOFF.md as 'Latest phase handoff'. Open docs/PHASE_10_HANDOFF.md:116-140 -> '## 3. Broker + integrations hub - how to connect Kite': 'Settings -> Integrations lists Zerodha, Dhan, Angel One with a Connect button', a 4-step Kite OAuth walkthrough, 'New GET /brokers/{id}/positions|holdings|margins, POST /brokers/{id}/disconnect', 'The broker_portfolio agent tool lets the copilot analyse your real account'. No D81 note anywhere in the file (contrast CURRENT_STATE.md, BLUEPRINT.md, SAFETY_ARCHITECTURE.md and BROKER_INTEGRATIONS.md, which all carry one). None of these surfaces exist at 4097dac4 (openapi-paths.txt has no /brokers route; tools-*.txt has no broker_portfolio). The phase-handoff convention archives superseded handoffs under docs/archive/.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/gate8/grep-docs.classified.tsv",
+    "suspected_files": [
+      "docs/PHASE_10_HANDOFF.md",
+      "docs/README.md"
+    ]
+  },
+  {
+    "key": "rc1-datapack:1",
+    "kind": "new_defect",
+    "severity": "high",
+    "register_id": null,
+    "title": "Derived P/E fallback (price/EPS) serves a negative ratio as status:ok for loss-making companies instead of suppressing it",
+    "repro": "GET /fundamentals for a symbol with negative trailing EPS and no native P/E from the primary provider (e.g. SIFY, EPS -0.13; VERTEX, EPS -0.25). fundamentals.pe_ratio comes back as a negative number (SIFY -103.15, VERTEX -12.2) with field_meta.pe_ratio = {status:'ok', provider:'derived', basis_note:'price / EPS', reason:null}. No suppression/flag is applied despite eps < 0. Same defect class independently reproduced on 2 of 2 loss-making battery names checked (P17 SIFY, S3 VERTEX) -> a missing eps<=0 guard in the derived-ratio computation, not a one-off.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/battery/collected/P17_SIFY.json (calls.fundamentals.body: pe_ratio=-103.15384615384615, eps=-0.13, field_meta.pe_ratio); docs/redesign/verification/r15/rc1/battery/collected/S3_VERTEX.json (calls.fundamentals.body: pe_ratio=-12.2, eps=-0.25, field_meta.pe_ratio); census comparison docs/redesign/verification/r15/battery/diffs/P17_SIFY.json and S3_VERTEX.json record the pe field as correctly suppressed ('loss-making, PE n/a' / 'correctly null, not a number') at census time",
+    "suspected_files": [
+      "sidecar/services (fundamentals derived-ratio computation path -- not opened this drive, re-diff evidence only)"
+    ]
+  },
+  {
+    "key": "rc1-drive-portfolio-notes:1",
+    "kind": "new_defect",
+    "severity": "high",
+    "register_id": null,
+    "title": "Portfolio quote auto-refresh has no overlap guard or request cancellation, causing an unbounded in-flight backlog once any symbol resolves slowly",
+    "repro": "Open the Portfolio panel with holdings that include a symbol not covered by fast providers (e.g. small/delisted NSE tickers that only nse_direct attempts, each call ~0.3-1.6s per fallthrough). QUOTE_REFRESH_MS=5000 fires setInterval(() => setQuotesNonce(n=>n+1), 5000) with no in-flight check; the fetch effect's `cancelled` flag only gates the .then()/.catch() state write, it never aborts the underlying fetch (no AbortController/signal anywhere in api.ts). Every 5s tick starts a brand-new full Promise.all fan-out on top of whatever is still in flight. Verified live: seeded my sidecar with a 100-holding portfolio including ~9 symbols with no EOD data (ABAN, ABINFRA, ABMINTLLTD, ACCURACY, ACSTECH, 3IINFOLTD, AARNAV, AARTECH, AARTISURF); the sidecar log shows an unbroken, non-decreasing cycle through the exact same 9 symbols for 4.5+ minutes (05:45:07 through past 05:50) with zero progress, continuing even after the originating test client process had fully exited (confirmed via ps aux / lsof -i :52324 -sTCP:ESTABLISHED showing no established connections at 05:50). A direct 20-symbol concurrent curl probe against my sidecar timed out at 60s; the identical RELIANCE.NS quote query against the separate, unrelated shared :52152 stack (same candidate code, no backlog) answered in 8ms, proving the hang is instance-specific accumulated backlog, not a systemic code defect in the provider itself. The sidecar self-recovered after the backlog eventually drained (~10 additional minutes idle, confirmed via a background watch probe: relianceQuote http=200 took=0s, RECOVERED) -- so this is a resource-exhaustion / temporary-DoS bug, not a permanent hang, but during the backlog window the panel's live quotes are completely unusable and the sidecar's worker pool is saturated by redundant retries of calls that were already known-unresolvable seconds earlier.",
+    "evidence_file": "docs/redesign/verification/r15/surface/portfolio-notes/rc1/sidecar-log-p8-wedged-window.log",
+    "suspected_files": [
+      "src/modules/portfolio/PortfolioPanel.tsx:136",
+      "src/modules/portfolio/PortfolioPanel.tsx:224-248",
+      "src/modules/portfolio/PortfolioPanel.tsx:255-259",
+      "src/modules/portfolio/api.ts:32-58"
+    ]
+  },
+  {
+    "key": "rc1-scenarios:5",
+    "kind": "new_defect",
+    "severity": "high",
+    "title": "Agent fabricates SIFY's ADR ratio as 1:1 (true ratio is 1 ADS = 6 ordinary shares) with a fake 'fundamentals data' citation, on top of restating the same currency-mislabeled $46.5B revenue figure",
+    "repro": "vy invoke, provider openrouter model nvidia/nemotron-3-super-120b-a12b:free, autonomy=ask, prompt \"How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?\" -> tool_use resolve_symbol, fundamentals, financial_statements -> final text: \"SIFY's ADR is a 1:1 ratio\u2014each SIFY ADR represents one ordinary share of Sify Technologies Limited. The company's trailing twelve-month (TTM) revenue is $46.51 billion USD (\u20b946,506,049,536). [Source: fundamentals data for SIFY]\". Ground truth (battery pack P17_SIFY.json, face_value/shareholding notes, SEC 20-F-sourced): 1 ADS = 6 ordinary equity shares, a designated 'hostile trait' trap for this symbol precisely because getting the ratio wrong silently produces 6x-off per-share math. None of the three tools called (resolve_symbol/fundamentals/financial_statements) plausibly returns an ADR-ratio field, so the 1:1 figure is fabricated and falsely attributed to 'fundamentals data'; the $46.51B revenue claim for a company whose real TTM revenue is ~$492M (per the same battery pack) is also stated as flat fact with no plausibility check, even though SIFY is independently known to be loss-making (TTM net loss -$9.65M) which is starkly inconsistent with $46.5B revenue. CROSS-MODEL CONFIRMED: the same prompt on llama3.1:8b/Ollama (docs/redesign/verification/r15/rc1/scenarios/ollama-sk4-sify.jsonl) independently produced \"One SIFY ADR represents 1 ordinary share\" / \"The ADR for Sify Technologies represents 1 common share\" \u2014 same wrong ratio, different model, no shared prompt-injection cause; this is not a single model's quirk.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/scenarios/or-sk4-sify.jsonl",
+    "suspected_files": [
+      "sidecar/services/agent_tools (fundamentals/financial_statements handlers \u2014 no ADR-ratio field, no plausibility bound)",
+      "sidecar/agents/*.json (no instruction to refuse/hedge on data the tool result does not contain)"
+    ]
+  },
+  {
+    "key": "rc1-drive-onboarding-stranger:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Keyless local free-lane (llama3.1:8b) answers a first-run stock question by fabricating a fenced 'Tool call: price_data(...)' plus a hand-typed JSON result (price, market cap), presenting the invented numbers as 'the live data' in the same breath it admits the info may rely on stale training data",
+    "repro": "Clean keyless profile, candidate sidecar :52326. python3 scripts/r15/vy.py invoke copilot \"hi, I just installed this. what can you do, and how is Zomato stock doing today?\" --port 52326 --provider ollama --model llama3.1:8b -> one real tool_use event (market_overview, no Zomato data in it) then the assistant TEXT contains a fenced 'Tool call: `price_data(symbol=\"ZOMATO.NS\")`' followed by a fabricated JSON block (current_price 164.4, market_cap 11400000000, name 'Zomato Ltd.') never sent as a real tool_use/tool-result frame, then 'As per the live data, Zomato's stock price is currently \u20b9164.4...' followed by 'this information might not be up-to-the-minute as it relies on my training data'.",
+    "evidence_file": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/A1-keyless-zomato-rc1.stdout.txt",
+    "suspected_files": [
+      "sidecar/services/llm/tool_call_rescue.py",
+      "sidecar/services/llm/ollama.py",
+      "sidecar/agents/copilot.json"
+    ]
+  },
+  {
+    "key": "rc1-battery-4:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "nse_direct's process-wide throttle serializes concurrent snapshot_structured legs past their shared 6s witness timeout",
+    "repro": "In-process, candidate sidecar venv, PYTHONPATH=sidecar, VYSTED_DATA_DIR=<own seed copy>: `await asyncio.gather(agent_tools.invoke_tool('price_data', {'symbol': 'RELIANCE'}), agent_tools.invoke_tool('fundamentals', {'symbol': 'RELIANCE'}))` takes ~18.3s combined (both legs individually succeed in 1-3s when called alone, sequentially). Called through `services.research.fast.snapshot_structured(..., 'RELIANCE', region='IN')`, both legs report `{'ok': False, 'error': '... timed out after 6s \u2014 dropped'}` even though the underlying data is available and each fetch alone is fast. Root cause: services/nse_provider.py's module-level `_Throttle` (min_interval=1.0s+jitter) and `_lock` (threading.Lock around the actual session.get call) serialize ALL nse_direct HTTP calls process-wide (an intentional anti-bot pacer, tagged 'R15-DATA-066' in a comment, not new to batch-6). services/research/fast.py's `_WITNESS_LEG_TIMEOUT_S = 6.0` time-boxes price+fundamentals AND all 7 cross-check witness legs (dividend TTM, growth, ownership, declared dividend, earnings quality, 52-week range, market-cap witness) independently and concurrently via the same asyncio.gather fan-out \u2014 up to 9 concurrent tasks can all be waiting on the same serialized nse_direct resource at once, so later-queued legs routinely exceed the shared 6s budget purely from queueing, not from any real slowness or failure in the data itself.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/battery/raw/set-21/R15-CODE-RESEARCH-002.txt",
+    "suspected_files": [
+      "sidecar/services/research/fast.py",
+      "sidecar/services/nse_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-drive-research-briefs:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "title": "DEEP brief's auto-generated 'web sources alone' coverage note is false when the up-front price/fundamentals snapshot times out but the research loop's own tool calls later populate structured sources",
+    "repro": "Own sidecar 127.0.0.1:52321 (rc1-cand source, data dir scratchpad/rc1-data-rc1-drive-research-briefs). scripts/r15/vy.py invoke copilot 'Bharat Dynamics \u2014 order book, margins and valuation' --provider openai --model gpt-4o-mini --autonomy auto --options '{\"research_depth\":\"deep\"}' --port 52321. The up-front structured snapshot fails (structured.price.ok=false, structured.fundamentals.ok=false, both 'timed out after 6s \u2014 dropped'), which correctly satisfies sidecar/services/research/deep.py:structured_feeds_available()==False and appends the WEB_ONLY_FLOOR_NOTE ('no structured price or fundamentals feed covered this instrument ... the coverage for this brief comes from web sources alone'). But later in the same run the researcher's own fundamentals/price tool calls succeed and get recorded into findings.structured_sources (vysted://price/BDL, vysted://fundamentals/BDL both appear in the published sources[] list at indices 6-7), and the brief's own lead figures cite them directly: '**Stock Price**: \u20b91155.0 ... [6]' and '**Market Capitalization**: ... [6]' where source [6] = vysted://price/BDL. The note and the citations directly contradict each other: the note tells the user the brief is 'web sources alone' while the headline numbers are demonstrably structured-provenance, not web-scraped.",
+    "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/rc1/1-deep-bdl-4omini.stdout.txt",
+    "suspected_files": [
+      "sidecar/services/research/deep.py"
+    ]
+  },
+  {
+    "key": "battery-6-docs-017-incomplete",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DOCS-017",
+    "title": "CURRENT_STATE.md screener bullet still omits nse-all/bse-all/india-all universes despite fix_shape naming them",
+    "repro": "Read docs/CURRENT_STATE.md:358-365; grep -n universe docs/CURRENT_STATE.md shows zero nse-all/bse-all/india-all mentions, though they are real, live universes in sidecar/services/screener_universe_india.py (nse-all ~2675, bse-all, india-all ~5156). The certifying commit f10fb8ce1 (message names R15-DOCS-017) fixed the AND-only and top-100 claims but never added this third element its own fix_shape called for.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/battery/set-56.md"
+  },
+  {
+    "key": "rc1-gate8:2",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "get_portfolio holdings have no currency field, so the agent guesses one: llama3.1:8b gave a USD AAPL cost basis as \u20b9190",
+    "repro": "With holdings AAPL 8 @ 190 (USD) and INFY 20 @ 1500 (INR), portfolio panel closed, capture the context as the chat does (captureAgentContext) and ask the copilot 'What is in my portfolio?' (llama3.1:8b, --autonomy ask). The tool_use get_portfolio returns __terminal__.portfolio, whose holdings are {id, symbol, quantity, costBasis, assetClass, marketValue:null, pnl:null}. TerminalHolding in src/modules/chat/context-provider.ts has no currency field on either the store fallback or the panel-published path. The reply says 'Apple (AAPL) - 8 shares, cost basis: \u20b9190 per share'.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/gate8/agent-01-get-portfolio.stdout",
+    "suspected_files": [
+      "src/modules/chat/context-provider.ts",
+      "src/modules/portfolio/PortfolioPanel.tsx"
+    ]
+  },
+  {
+    "key": "rc1-datapack:2",
+    "kind": "environment",
+    "severity": "medium",
+    "register_id": null,
+    "title": "/disclosures/shareholding call status flipped bidirectionally (200<->502) between census and rc1 collection for the same BSE-only symbols",
+    "repro": "Compare calls.shareholding.status in docs/redesign/verification/r15/battery/collected/<slot>.json (census) vs docs/redesign/verification/r15/rc1/battery/collected/<slot>.json (rc1) for BSE-only slots. 15 slots flip 200->502 (P13 P14 P19 P20 P2 P3 P4 P5 P6 P7 P8 P9 S2 S3 S4); 6 flip 502->200 (P15 P17 P18 P1 S1). Concurrent with this rc1 sidecar's own Yahoo circuit-breaker churn (opens_total 26->28, throttles_total up to 287) from its background fundamentals_warm job, consistent with endpoint/rate-limit flakiness rather than a deterministic code regression.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/datapack.json (call_status_flips array)",
+    "suspected_files": []
+  },
+  {
+    "key": "rc1-datapack:3",
+    "kind": "environment",
+    "severity": "low",
+    "register_id": null,
+    "title": "P6 ICON and P18 ONC fundamentals returned fully null because this rc1 sidecar's own concurrent cache-warm job had the Yahoo circuit open at collection time",
+    "repro": "calls.fundamentals.body.polite.yahoo_open == false for P6 ICON and P18 ONC in the rc1 collected data; the call fell through to the openbb-mcp provider and every fundamentals field came back null. sidecar.log shows the background fundamentals_warm job hitting 429s and backing off ~543s concurrently with these two collector calls. Not usable as regression evidence -- would need a clean re-collect with the warm job paused.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/battery/collected/P6_ICON.json and P18_ONC.json (calls.fundamentals.body, calls.fundamentals.body.polite)",
+    "suspected_files": []
+  },
+  {
+    "key": "rc1-drive-failure-inducer:1",
+    "kind": "environment",
+    "severity": "low",
+    "register_id": null,
+    "title": "Shared SearXNG's DDG/Brave/Startpage engines are currently CAPTCHA'd/rate-limited (upstream, not candidate code)",
+    "repro": "GET http://127.0.0.1:52327/search/searxng/status (my sidecar, proxying the shared already-running SearXNG container) -> state:\"degraded\", reason:\"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA\"",
+    "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/rc1/rc1-nodocker-status.txt",
+    "suspected_files": []
+  }
+]

@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_b34dedd9b10e4df088cfc49bd2e26985", "name": "get_terminal_state", "input": {}}
+[  33.1s] heartbeat: {"kind": "heartbeat"}
+[  35.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_6548cb3ce89e4cdf94a231cbf38fd481", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "ZOMATO.NS", "timeframe": "1d"}}
+[  42.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_12d8ea00be904ae2b5d4b0f32387e143", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "ZOMATO.NS", "timeframe": "1d"}}
+[  46.1s] done: {"kind": "done", "usage": {"input_tokens": 2899, "output_tokens": 46, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Sorry to hear that we're unable to fetch the current price of Zomato's stock. It seems like our provider is experiencing a correctness gate issue for the symbol 'ZOMATO.NS'. I'll suggest an alternative: let me try fetching the data for you from another source.
+
+ {"name": "price_dataWe couldn't retrieve the latest price of Zomato stock. Our provider is missing the current data for this name.
+
+If you'd like to know more about the company or its past performance, I can help with that!
+
+=== ok · 46.1s · events {'heartbeat': 3, 'tool_use': 3, 'delta': 109, 'done': 1} · usage in=2899 out=46 · est $0.00000 · llama3.1:8b

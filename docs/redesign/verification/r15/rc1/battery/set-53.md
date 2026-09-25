@@ -1,0 +1,9 @@
+# unplanned-8
+
+Candidate 4097dac4. Raw output: `raw/set-53/`.
+
+| id | repro run | observed | verdict |
+| --- | --- | --- | --- |
+| R15-CODE-PLATFORM-023 | Register's own sidecar-side repro: `grep -rn 'value_at_risk\|\bVaR\b\|def.*beta\|correlation_matrix' sidecar/services sidecar/routers` and `grep -n 'sharpe\|sortino\|calmar' sidecar/services/*.py`; then `grep -n "sharpe\|sortino\|calmar\|VaR\|correlation\|beta" src/modules/portfolio/metrics.ts` and its test file | Sidecar-side grep still returns 0 hits for VaR/beta/correlation_matrix and sharpe/sortino/calmar still only inside `backtest_engine.py` — matching the register's own repro text exactly, because the fix intentionally landed CLIENT-SIDE per `fix_shape` option 1 ("client-side in metrics.ts over price history, since the sidecar portfolio store is slated for deletion"): `src/modules/portfolio/metrics.ts` now exports `sharpeRatio`, `sortinoRatio`, `calmarRatio`, `historicalVaR95`, `correlation`, `beta`, a `CorrelationMatrix`, and a `PortfolioRiskSummary` shape wiring all seven metrics (line 330-420ish). `metrics.test.ts` has two describe blocks explicitly named for this id: `"risk metric primitives (R15-CODE-PLATFORM-023)"` and `"computeCurrencyRisk (R15-CODE-PLATFORM-023)"`, covering each primitive, a MIN_RISK_HISTORY_DAYS null-guard, empty holdings, per-currency-bucket computation, and a null beta when the benchmark lacks history. Register's own closure_evidence note additionally records an independent cross-check: TCS.NS vs ^NSEI 1y closes run through metrics.ts under node AND an independent Python `statistics` reference agreed to within 1e-15 | holds |
+
+Summary: 1 hold. No regressions. (Sidecar-only grep — the register's literal repro command — necessarily still shows 0 hits post-fix because the fix deliberately moved risk analytics to the frontend, not the sidecar; verified the frontend implementation directly instead of treating the unchanged sidecar grep as a regression.)

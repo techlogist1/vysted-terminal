@@ -1,0 +1,28 @@
+{"kind": "thinking", "text": "The"}
+{"kind": "thinking", "text": " user is asking for"}
+{"kind": "thinking", "text": " SMR's latest"}
+{"kind": "thinking", "text": " quarterly revenue."}
+{"kind": "thinking", "text": " First"}
+{"kind": "thinking", "text": ", I need to"}
+{"kind": "thinking", "text": " resolve what"}
+{"kind": "thinking", "text": " SMR refers"}
+{"kind": "thinking", "text": " to. Since"}
+{"kind": "thinking", "text": " the session"}
+{"kind": "thinking", "text": " locale is IN ("}
+{"kind": "thinking", "text": "India), S"}
+{"kind": "thinking", "text": "MR could be an"}
+{"kind": "thinking", "text": " Indian stock"}
+{"kind": "thinking", "text": ". I should"}
+{"kind": "thinking", "text": " resolve the symbol first"}
+{"kind": "thinking", "text": " to"}
+{"kind": "thinking", "text": " ensure"}
+{"kind": "thinking", "text": " we"}
+{"kind": "thinking", "text": "'re"}
+{"kind": "thinking", "text": " looking at the correct"}
+{"kind": "thinking", "text": " instrument. Let's"}
+{"kind": "thinking", "text": " call resolve_symbol for"}
+{"kind": "thinking", "text": " \""}
+{"kind": "thinking", "text": "SMR\".\n"}
+{"kind": "tool_use", "tool_call_id": "call_d9e7945eea304ec4b5b3915393cca902", "name": "resolve_symbol", "input": {"query": "SMR", "region": "IN"}}
+{"kind": "error", "message": "OpenRouter returned a server error \u2014 it may be a temporary outage.", "action": "Try again in a few minutes.", "detail": "Upstream error from Nvidia: Service temporarily overloaded", "code": "provider_5xx"}
+{"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}

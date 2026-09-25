@@ -1,0 +1,8 @@
+=== annual default income ===
+periods: ['2026-03-31', '2025-03-31', '2024-03-31', '2023-03-31']
+=== quarterly balance ===
+periods: ['2026-06-30', '2026-03-31', '2025-12-31', '2025-09-30', '2025-06-30', '2025-03-31']
+=== quarterly cashflow ===
+periods: []
+=== invalid period param ===
+http_status=422

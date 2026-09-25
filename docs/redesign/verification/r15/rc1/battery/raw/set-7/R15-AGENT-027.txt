@@ -1,0 +1,9 @@
+openai status=429: code=insufficient_credit expected=insufficient_credit [OK] msg='Your OpenAI account is out of credit or quota.'
+openai status=400: code=context_overflow expected=context_overflow [OK] msg='The conversation is too long for this OpenAI model.'
+groq status=413: code=context_overflow expected=context_overflow [OK] msg='The conversation is too long for this Groq model.'
+ollama status=None: code=ollama_not_running expected=ollama_not_running [OK] msg='Ollama is not running.'
+gemini status=400: code=auth expected=auth [OK] msg='The Google Gemini API key was rejected — check it in Settings.'
+xai status=400: code=auth expected=auth [OK] msg='The xAI API key was rejected — check it in Settings.'
+anthropic status=400: code=context_overflow expected=context_overflow [OK] msg='The conversation is too long for this Anthropic model.'
+openrouter status=429: code=rate_limit expected=free_pool_busy [MISMATCH] msg='OpenRouter is rate-limiting your account — try again in a minute.'
+free_pool_busy OpenRouter's free-model pool is busy right now.

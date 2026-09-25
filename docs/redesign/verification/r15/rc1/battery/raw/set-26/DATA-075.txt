@@ -1,0 +1,1 @@
+DATA-075: ok= True calls= ['https://www.bseindia.com/xml-data/corpfiling/AttachLive/abc.pdf', 'https://www.bseindia.com/xml-data/corpfiling/AttachHis/abc.pdf'] expected= ['https://www.bseindia.com/xml-data/corpfiling/AttachLive/abc.pdf', 'https://www.bseindia.com/xml-data/corpfiling/AttachHis/abc.pdf']

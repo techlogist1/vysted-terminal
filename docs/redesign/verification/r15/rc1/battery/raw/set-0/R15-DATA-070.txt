@@ -1,0 +1,8 @@
+parse_struct_time(None): None
+parse_struct_time(bad): None
+parse_struct_time(good): 2026-09-20 10:00:00+00:00
+parse_iso(None): None
+parse_iso('not-a-date'): None
+parse_iso('2026-09-20T10:00:00Z'): 2026-09-20 10:00:00+00:00
+sort order: ['recent dated', 'old dated', 'undated item']
+undated published_at preserved as None: True

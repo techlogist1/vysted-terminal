@@ -1,0 +1,13 @@
+removed count: 4
+--- cleaned markdown ---
+## Findings
+
+Earnings growth: -0.4% (as reported)
+
+
+
+## Cross-check
+Below is the verified section.
+--- literal [n] remaining? --- False
+--- 'Merged Sources' remaining? --- False
+--- 'References:' remaining? --- False

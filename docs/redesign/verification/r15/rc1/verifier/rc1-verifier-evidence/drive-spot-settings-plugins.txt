@@ -1,0 +1,22 @@
+## settings-plugins spot-check on :52312 (candidate 1d6511c8)
+$ POST /llm/keys/validate openrouter fake canary
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+$ GET /news/sources/status (fake key header)
+{"newsapi":"unauthorized"}
+$ GET /news/sources/status (no key)
+{"newsapi":"absent"}
+$ POST /workspace name=../evil
+{"status":"saved","name":"../evil-rc1v"} HTTP200
+$ ls workspaces
+%2E%2E%2Fevil-rc1v.vysted-workspace
+__autosave__.vysted-workspace
+rc1-verifier-agent.vysted-workspace
+rc1-verifier-agent.vysted-workspace.bak
+rc1-verifier-rt.vysted-workspace
+rc1-verifier-rt.vysted-workspace.bak
+$ DELETE /workspace/..%2Fevil-rc1v
+HTTP204
+$ POST /workspace name=<234 chars>
+{"detail":"Workspace name 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+long-name HTTP400

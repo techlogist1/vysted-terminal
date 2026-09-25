@@ -1,0 +1,1 @@
+priority_note(unranked: [1]=primary filing, [2]=tier-1 press, [3]=general) = 'Citation preference — when several sources support a claim, cite the most authoritative: primary record (exchange/regulator/filings/IR): [1]; tier-1 press: [2].'

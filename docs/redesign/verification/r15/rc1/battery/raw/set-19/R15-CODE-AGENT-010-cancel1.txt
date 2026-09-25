@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+date: Fri, 25 Sep 2026 00:27:49 GMT
+server: uvicorn
+content-length: 18
+content-type: application/json
+vary: Origin
+
+{"cancelled":true}

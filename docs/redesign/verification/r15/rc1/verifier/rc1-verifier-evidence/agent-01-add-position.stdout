@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  52.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_210efd671ed74be5a2c99856dde2b618", "name": "portfolio_add_position", "input": {"asset_class": "equity", "cost_basis": 3500, "note": "", "purchased_at": "", "quantity": 5, "symbol": "TCS"}}
+[  56.5s] research_step: {"kind": "research_step", "tool_call_id": "call_210efd671ed74be5a2c99856dde2b618", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position TCS. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  56.5s] done: {"kind": "done", "usage": {"input_tokens": 2883, "output_tokens": 47, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I proposed adding 5 shares of TCS to your tracked portfolio at a cost basis of 3500 rupees per share for review. To confirm this change, please check the proposal bar and accept it when you're ready.
+
+=== ok · 56.5s · events {'heartbeat': 5, 'tool_use': 1, 'delta': 46, 'research_step': 1, 'done': 1} · usage in=2883 out=47 · est $0.00000 · llama3.1:8b

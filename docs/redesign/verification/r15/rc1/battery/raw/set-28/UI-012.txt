@@ -1,0 +1,4 @@
+=== UI-012: unknown agent ===
+{"detail":"unknown agent: 'nope'"}
+=== UI-012: bad mode 422 ===
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{"mode":"bogus-mode"}},{"type":"literal_error","loc":["body","mode"],"msg":"Input should be 'agent', 'ask', 'edit', 'build' or 'delegate'","input":"bogus-mode","ctx":{"expected":"'agent', 'ask', 'edit', 'build' or 'delegate'"}}]}

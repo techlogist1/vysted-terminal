@@ -1,0 +1,12 @@
+[
+  {
+    "key": "rc1-drive-failure-inducer:1",
+    "kind": "environment",
+    "severity": "low",
+    "register_id": null,
+    "title": "Shared SearXNG's DDG/Brave/Startpage engines are currently CAPTCHA'd/rate-limited (upstream, not candidate code)",
+    "repro": "GET http://127.0.0.1:52327/search/searxng/status (my sidecar, proxying the shared already-running SearXNG container) -> state:\"degraded\", reason:\"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA\"",
+    "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/rc1/rc1-nodocker-status.txt",
+    "suspected_files": []
+  }
+]

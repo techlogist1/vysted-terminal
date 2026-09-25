@@ -1,0 +1,8 @@
+ORIG AAPL (prev US close 09-23) @NSE hours: ('US', 'eod')
+ORIG AAPL @NSE hours, via openbb provider: ('US', 'eod')
+VARIANT ^NSEI yfinance (NSE close 09-24) @US hours: ('US', 'live')
+VARIANT ^BSESN yfinance @US hours: ('US', 'live')
+VARIANT VOD.L (LSE closed 16:30 BST=21:00 IST) @22:00 IST US open: ('US', 'live')
+VARIANT RELIANCE nse_direct @US hours: ('IN', 'eod')
+VARIANT RELIANCE.NS yfinance @US hours: ('IN', 'eod')
+VARIANT NIFTYBEES? bare IN ETF via yfinance w/o suffix @US hours: ('US', 'live')

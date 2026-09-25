@@ -1,0 +1,12 @@
+Source check: services/search/keyless.py:79 `INTERSTITIAL_MARKERS` split from :91
+`LOW_QUALITY_MARKERS` (:102 `*INTERSTITIAL_MARKERS` folds interstitial into the low-quality set for
+paragraph-level use, :115 `_has_marker(text, LOW_QUALITY_MARKERS)` for extract.py's paragraph path;
+:131 result-level filtering uses ONLY `INTERSTITIAL_MARKERS`). In `KeylessBackend.search` (170-227):
+`_filter_results(...)` runs BEFORE any breaker call; `if blocked and not results:` ->
+`breaker.record_failure()` + `any_rate_limited = True` + continue (never sets
+`any_engine_answered`); else -> `breaker.record_success()` + `any_engine_answered = True`. An
+all-blocked chain (every engine hits the `blocked and not results` branch) never sets
+`any_engine_answered`, so the final `if any_engine_answered:` short-circuit is skipped and the typed
+rate-limited error path is reached. Matches PLAN.md's fix exactly (filter before recording success;
+split marker lists).
+Verdict: holds (source-confirmed).

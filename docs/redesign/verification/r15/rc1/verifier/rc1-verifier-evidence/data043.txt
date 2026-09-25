@@ -1,0 +1,11 @@
+## DATA-043 2026-09-25T03:59:21Z
+limit=200 ->
+ keys ['basis_counts', 'coverage', 'duration_ms', 'evaluated_count', 'freshness', 'matched_count', 'partial', 'result_count', 'rows', 'skip_details', 'skipped_count', 'throttled', 'universe']
+ rows [('RELIANCE.NS', 'INR', 16551566639104.0), ('AAPL', 'USD', 4902477103104.0)]
+ notes {}
+limit=1 ->
+ keys ['basis_counts', 'coverage', 'duration_ms', 'evaluated_count', 'freshness', 'matched_count', 'partial', 'result_count', 'rows', 'skip_details', 'skipped_count', 'throttled', 'universe']
+ rows [('RELIANCE.NS', 'INR', 16551566639104.0)]
+ notes {}
+limit=200 {"universe": "custom", "evaluated_count": 2, "skipped_count": 0, "skip_details": [], "result_count": 2, "matched_count": 2, "duration_ms": 1.9460829789750278, "partial": false, "coverage": "screened 2 of 2 \u2014 0 unavailable \u00b7 spans INR, USD \u2014 ranked within each currency", "freshness": {"quotes_as_of": 1790308763.7164202, "valuation_as_of": 1790308763.716407, "deep_as_of": 1790308763.714723}, "basis_counts": {"live": 2}, "throttled": false}
+limit=1 {"universe": "custom", "evaluated_count": 2, "skipped_count": 0, "skip_details": [], "result_count": 1, "matched_count": 2, "duration_ms": 1.6738330014050007, "partial": false, "coverage": "screened 2 of 2 \u2014 0 unavailable", "freshness": {"quotes_as_of": 1790308763.7164202, "valuation_as_of": 1790308763.716407, "deep_as_of": 1790308763.714723}, "basis_counts": {"live": 1}, "throttled": false}

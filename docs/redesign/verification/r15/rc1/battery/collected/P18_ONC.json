@@ -1,0 +1,375 @@
+{
+ "slot": "P18",
+ "symbol": "ONC",
+ "manifest_name": "BeOne Medicines AG",
+ "exchange": "NASDAQ",
+ "bse_code": null,
+ "collected_at": "2026-09-25T05:36:24+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=ONC",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "ONC",
+    "region": "IN",
+    "resolved": {
+     "symbol": "ONC",
+     "name": "BeOne Medicines Ltd.",
+     "exchange": "US",
+     "region": "US",
+     "asset_class": "equity",
+     "yahoo_symbol": "ONC",
+     "confidence": 1.0,
+     "isin": null,
+     "bse_code": null,
+     "industry": null,
+     "former_name": null,
+     "board": null,
+     "exchange_group": null,
+     "face_value": null
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "ONC",
+      "name": "BeOne Medicines Ltd.",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "ONC",
+      "confidence": 1.0,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null,
+      "board": null,
+      "exchange_group": null,
+      "face_value": null
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=BeOne+Medicines+AG",
+   "status": 200,
+   "elapsed_ms": 566,
+   "body": {
+    "ok": true,
+    "query": "BeOne Medicines AG",
+    "region": "IN",
+    "resolved": null,
+    "needs_disambiguation": true,
+    "candidates": [
+     {
+      "symbol": "NORRIS",
+      "name": "Norris Medicines Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "NORRIS.BO",
+      "confidence": 0.6316,
+      "isin": "INE744C01029",
+      "bse_code": "524414",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "ONC",
+      "name": "BeOne Medicines Ltd.",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "ONC",
+      "confidence": 0.8421,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null,
+      "board": null,
+      "exchange_group": null,
+      "face_value": null
+     },
+     {
+      "symbol": "BEIGF",
+      "name": "BeOne Medicines Ltd.",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "BEIGF",
+      "confidence": 0.8421,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null,
+      "board": null,
+      "exchange_group": null,
+      "face_value": null
+     },
+     {
+      "symbol": "RVMD",
+      "name": "Revolution Medicines, Inc.",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "RVMD",
+      "confidence": 0.6364,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null,
+      "board": null,
+      "exchange_group": null,
+      "face_value": null
+     },
+     {
+      "symbol": "RVMDW",
+      "name": "Revolution Medicines, Inc.",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "RVMDW",
+      "confidence": 0.6364,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null,
+      "board": null,
+      "exchange_group": null,
+      "face_value": null
+     },
+     {
+      "symbol": "GENB",
+      "name": "Generate Biomedicines, Inc.",
+      "exchange": "US",
+      "region": "US",
+      "asset_class": "equity",
+      "yahoo_symbol": "GENB",
+      "confidence": 0.6222,
+      "isin": null,
+      "bse_code": null,
+      "industry": null,
+      "former_name": null,
+      "board": null,
+      "exchange_group": null,
+      "face_value": null
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/ONC?asset_class=equity",
+   "status": 429,
+   "elapsed_ms": 136,
+   "body": {
+    "detail": "The data provider is throttled right now \u2014 try again shortly.",
+    "code": "rate_limited",
+    "action": "Wait a minute, then retry."
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/ONC",
+   "status": 200,
+   "elapsed_ms": 1268,
+   "body": {
+    "symbol": "ONC",
+    "name": "BeOne Medicines AG",
+    "sector": "Healthcare",
+    "industry": "Biotechnology",
+    "sector_source": null,
+    "currency": null,
+    "financial_currency": null,
+    "ratio_price": null,
+    "market_cap": 40720584704.0,
+    "pe_ratio": null,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": null,
+    "price_to_sales": null,
+    "ev_to_ebitda": null,
+    "book_value": null,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": null,
+    "beta": 0.516,
+    "fifty_two_week_high": null,
+    "fifty_two_week_low": null,
+    "fifty_two_week_change": null,
+    "fifty_two_week_high_date": null,
+    "fifty_two_week_low_date": null,
+    "listing_date": null,
+    "first_trade_date": null,
+    "forward_pe_fiscal_year": null,
+    "roe": null,
+    "roa": null,
+    "gross_margin": null,
+    "operating_margin": null,
+    "profit_margin": null,
+    "debt_to_equity": null,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": null,
+    "basis": null,
+    "revenue_ttm": null,
+    "net_income_ttm": null,
+    "free_cash_flow": null,
+    "shares_outstanding": null,
+    "revenue_growth": null,
+    "earnings_growth": null,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": null,
+    "held_percent_institutions": null,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": null,
+    "provider": "openbb-mcp",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 49.4
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/ONC/income",
+   "status": 200,
+   "elapsed_ms": 538,
+   "body": {
+    "symbol": "ONC",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/ONC/balance",
+   "status": 200,
+   "elapsed_ms": 783,
+   "body": {
+    "symbol": "ONC",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/ONC/cashflow",
+   "status": 200,
+   "elapsed_ms": 657,
+   "body": {
+    "symbol": "ONC",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/ONC/ratings",
+   "status": 429,
+   "elapsed_ms": 76,
+   "body": {
+    "detail": "The data provider is throttled right now \u2014 try again shortly.",
+    "code": "rate_limited",
+    "action": "Wait a minute, then retry."
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=ONC",
+   "status": 200,
+   "elapsed_ms": 1212,
+   "body": {
+    "symbol": "ONC",
+    "count": 0,
+    "patterns": [],
+    "coverage": "not_applicable",
+    "note": "ONC is not an NSE/BSE instrument; Indian exchange disclosures do not apply",
+    "provider": null,
+    "major_shareholders": [],
+    "source_url": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=ONC&limit=25",
+   "status": 200,
+   "elapsed_ms": 4,
+   "body": {
+    "symbol": "ONC",
+    "exchange": null,
+    "count": 0,
+    "announcements": [],
+    "sources": [],
+    "errors": {},
+    "windows": {},
+    "coverage": "not_applicable",
+    "note": "ONC is not an NSE/BSE instrument; Indian exchange disclosures do not apply"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 62.6
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=ONC",
+   "status": 200,
+   "elapsed_ms": 6,
+   "body": {
+    "symbol": "ONC",
+    "count": 0,
+    "events": [],
+    "sources": [],
+    "errors": {},
+    "coverage": "not_applicable",
+    "note": "ONC is not an NSE/BSE instrument; Indian exchange disclosures do not apply"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

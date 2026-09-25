@@ -1,0 +1,5 @@
+groq/llama-3.3-70b-versatile with_function_tools=True: available=False expected=False [OK]
+groq/groq/compound with_function_tools=True: available=True expected=True [OK]
+gemini/gemini-2.5-pro with_function_tools=True: available=False expected=False [OK]
+gemini/gemini-3-pro-preview with_function_tools=True: available=True expected=True [OK]
+gemini/gemini-2.5-pro with_function_tools=False: available=True expected=True [OK]

@@ -339,3 +339,26 @@ are done-and-revertable like §1; these are yours to review or act on.
   agent allow-list (D21) is unchanged; hosted lanes report no window and still receive the full
   tool set. This replaces Ollama's silent head truncation with a deliberate subset.
   **Reversible** by having `LLMProvider.context_window` return `None` for Ollama.
+
+## 4. New items from the RC1 fix rounds
+
+### 4.1 rc1-battery-4:1 — FAST research drops an uncached Indian name's fundamentals card (FR-070 budget)
+
+- **What:** FAST (normal-depth) research boxes the price and fundamentals legs at 6 s so it meets
+  FR-070's "≤15 s typical". For an Indian listing it has not seen yet, the fundamentals leg needs
+  about 10 s even in a warm process: the provider takes 2-3 s, then the exchange-filed overlay
+  makes 6 paced NSE requests (the filings list plus 5 XBRL documents), and the anti-bot pacer
+  (R15-DATA-066) allows about one request per second. So the first FAST brief for every new
+  Indian name shows no fundamentals card and reports "pulled 2/4 data sources". A cold process also
+  drops price (the blocked quote-equity path costs two cookie warm-ups). Measured in
+  `docs/redesign/verification/r15/rc1/fix-r2/evidence/battery4-leg-profile.jsonl`.
+- **Done in fix round 2 (W3):** a timed-out overlay fetch still lands in the cache, so the
+  second brief for that name, and the model's own follow-up call, get the card.
+- **Yours to decide:** there are three ways to handle the first brief. (a) Accept the drop as the
+  honest degrade. This is the current state, and the model then fetches fundamentals itself.
+  (b) Give FAST's core legs a longer box, about 12 s, for Indian listings only, so FAST
+  runs about 18-20 s on a name's first brief. (c) Show the provider values at once with a stated
+  "exchange filings not yet checked" flag, and apply the overlay on the next run.
+  **Recommendation:** (a) for rc1, and (c) after it, because (c) keeps FR-070 and never shows an
+  uncorrected value without saying so.
+- **Undo:** nothing to undo. No code changed for the first-brief half.

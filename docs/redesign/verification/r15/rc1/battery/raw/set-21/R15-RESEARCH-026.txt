@@ -1,0 +1,8 @@
+Source check: src/modules/research/brief-blocks.tsx:36-50 now imports formatFractionPercent,
+formatInstrumentMoney, formatPercent, formatPrice, formatSignedMoney, formatUnit, instrumentCurrency
+from "@/lib/format" - no local shadow formatter remains in the file. format.ts:139-149
+`formatInstrumentMoney` returns `${...} · currency unknown` (line 149) when `instrumentCurrency
+(currency)` resolves to nothing, rather than silently defaulting to a currency. Matches PLAN.md's fix
+exactly ("delete the local formatters and route through lib/format.ts...an unknown currency is
+stated, not defaulted").
+Verdict: holds (source-confirmed).

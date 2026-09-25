@@ -1,0 +1,13 @@
+=== live GET /disclosures/shareholding?symbol=SMR (BSE 403-blocked this session) ===
+content-length: 125
+content-type: application/json
+vary: Origin
+
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+=== sidecar log line (the honest internal reason) ===
+2026-09-25 05:38:52,188 WARNING services.errors: unexpected provider response: disclosures: every shareholding source failed for 'SMR' (BSE: bse shareholding: index HTTP 403)
+2026-09-25 05:38:52,191 WARNING app: /disclosures/shareholding -> 502 provider_error: disclosures: every shareholding source failed for 'SMR' (BSE: bse shareholding: index HTTP 403)
+2026-09-25 05:39:51,844 WARNING services.errors: unexpected provider response: disclosures: every shareholding source failed for 'SMR' (BSE: bse shareholding: index HTTP 403)
+2026-09-25 05:39:51,844 WARNING app: /disclosures/shareholding -> 502 provider_error: disclosures: every shareholding source failed for 'SMR' (BSE: bse shareholding: index HTTP 403)
+2026-09-25 05:42:52,162 WARNING services.errors: unexpected provider response: disclosures: every shareholding source failed for 'SMR' (BSE: bse shareholding: index HTTP 403)
+2026-09-25 05:42:52,162 WARNING app: /disclosures/shareholding -> 502 provider_error: disclosures: every shareholding source failed for 'SMR' (BSE: bse shareholding: index HTTP 403)

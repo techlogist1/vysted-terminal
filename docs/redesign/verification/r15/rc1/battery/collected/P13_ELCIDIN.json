@@ -1,0 +1,1113 @@
+{
+ "slot": "P13",
+ "symbol": "ELCIDIN",
+ "manifest_name": "Elcid Investments Ltd",
+ "exchange": "NSE+BSE",
+ "bse_code": "503681",
+ "collected_at": "2026-09-25T05:29:55+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=ELCIDIN",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "ELCIDIN",
+    "region": "IN",
+    "resolved": {
+     "symbol": "ELCIDIN",
+     "name": "EL CID Investments Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "ELCIDIN.NS",
+     "confidence": 1.0,
+     "isin": "INE927X01018",
+     "bse_code": "503681",
+     "industry": "Investment Company",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "ELCIDIN",
+      "name": "EL CID Investments Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ELCIDIN.NS",
+      "confidence": 1.0,
+      "isin": "INE927X01018",
+      "bse_code": "503681",
+      "industry": "Investment Company",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "ELCIDIN",
+      "name": "EL CID Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ELCIDIN.BO",
+      "confidence": 1.0,
+      "isin": "INE927X01018",
+      "bse_code": "503681",
+      "industry": "Investment Company",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=Elcid+Investments+Ltd",
+   "status": 200,
+   "elapsed_ms": 905,
+   "body": {
+    "ok": true,
+    "query": "Elcid Investments Ltd",
+    "region": "IN",
+    "resolved": null,
+    "needs_disambiguation": true,
+    "candidates": [
+     {
+      "symbol": "ELCIDIN",
+      "name": "EL CID Investments Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ELCIDIN.NS",
+      "confidence": 0.8936,
+      "isin": "INE927X01018",
+      "bse_code": "503681",
+      "industry": "Investment Company",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "RAPIDIN",
+      "name": "Rapid Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "RAPIDIN.BO",
+      "confidence": 0.8571,
+      "isin": "INE154M01012",
+      "bse_code": "501351",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "SW1",
+      "name": "SW Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SW1.BO",
+      "confidence": 0.8205,
+      "isin": "INE948K01011",
+      "bse_code": "503659",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "NAPEROL",
+      "name": "Naperol Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "NAPEROL.BO",
+      "confidence": 0.8182,
+      "isin": "INE585A01020",
+      "bse_code": "500298",
+      "industry": "Investment Company",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "HEALINV",
+      "name": "Healthy Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "HEALINV.BO",
+      "confidence": 0.8182,
+      "isin": "INE160N01017",
+      "bse_code": "503689",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "HERCULES",
+      "name": "Hercules Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "HERCULES.BO",
+      "confidence": 0.8,
+      "isin": "INE688E01024",
+      "bse_code": "505720",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 1.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52313/resolve?q=503681",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "503681",
+    "region": "IN",
+    "resolved": {
+     "symbol": "ELCIDIN",
+     "name": "EL CID Investments Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "ELCIDIN.BO",
+     "confidence": 1.0,
+     "isin": "INE927X01018",
+     "bse_code": "503681",
+     "industry": "Investment Company",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "ELCIDIN",
+      "name": "EL CID Investments Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "ELCIDIN.BO",
+      "confidence": 1.0,
+      "isin": "INE927X01018",
+      "bse_code": "503681",
+      "industry": "Investment Company",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/ELCIDIN?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 374,
+   "body": {
+    "symbol": "ELCIDIN",
+    "price": 104830.0,
+    "change": -970.0,
+    "change_percent": -0.9168241965973535,
+    "volume": 3.0,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-24T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/ELCIDIN",
+   "status": 200,
+   "elapsed_ms": 10762,
+   "body": {
+    "symbol": "ELCIDIN.NS",
+    "name": "Elcid Investments Limited",
+    "sector": "Financial Services",
+    "industry": "Investment Company",
+    "sector_source": "resolver",
+    "currency": "INR",
+    "financial_currency": null,
+    "ratio_price": 104830.0,
+    "market_cap": null,
+    "pe_ratio": null,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": 0.2417262,
+    "price_to_sales": null,
+    "ev_to_ebitda": 18.953,
+    "book_value": 433672.47,
+    "dividend_yield": 0.0002384813507583707,
+    "dividend_per_share": null,
+    "eps": null,
+    "beta": -20934.227,
+    "fifty_two_week_high": 137000.0,
+    "fifty_two_week_low": 102210.0,
+    "fifty_two_week_change": -0.20914638,
+    "fifty_two_week_high_date": "2026-04-20",
+    "fifty_two_week_low_date": "2026-09-15",
+    "listing_date": "2026-04-20",
+    "first_trade_date": "2026-04-20",
+    "forward_pe_fiscal_year": null,
+    "roe": null,
+    "roa": null,
+    "gross_margin": 0.99796,
+    "operating_margin": 0.98775,
+    "profit_margin": 0.82733,
+    "debt_to_equity": null,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": null,
+    "basis": null,
+    "revenue_ttm": 1153875968.0,
+    "net_income_ttm": 954636992.0,
+    "free_cash_flow": null,
+    "shares_outstanding": null,
+    "revenue_growth": -0.202,
+    "earnings_growth": -0.185,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.84566003,
+    "held_percent_institutions": 0.0,
+    "dividend_per_share_ttm": 25.0,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector_source": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ratio_price": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:58:42+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "market_cap": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:58:42+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "pe_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:58:42+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:58:42+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:58:42+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:58:42+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_sales": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:58:42+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:58:42+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "trailing-12m dividends paid (25) / price (104830)",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "eps": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "52-week high 137,000.00 comes from the same provider 52-week window as the flagged low, and that window disagrees with the NSE + BSE exchange range 87,003.00-144,500.00 since 2025-09-10; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "52-week low 102,210.00 is 15% off the NSE + BSE exchange range 87,003.00-144,500.00 since 2025-09-10; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T09:58:42+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "listing_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "first_trade_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe_fiscal_year": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "debt_to_equity": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roce": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "insufficient statement data to derive ROCE",
+      "label": null,
+      "basis_note": null
+     },
+     "basis": {
+      "status": "unavailable",
+      "provider": "exchange-filings",
+      "as_of": "2026-09-24T23:59:42.993383+00:00",
+      "reason": "no NSE/BSE filing states a basis",
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "shares_outstanding": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_insiders": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "unreconciled: exchange shareholding unavailable (insiders \u2260 promoter group)",
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_institutions": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "unreconciled: exchange shareholding unavailable (provider institutions \u2260 exchange institutional holding)",
+      "label": null,
+      "basis_note": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T23:59:33.559594+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": "The fundamentals provider (yfinance) reports the company name 'Elcid Investments Limited' for ELCIDIN, which materially disagrees with the resolver's canonical name 'EL CID Investments Limited' (token-set similarity 25% < 50%). This can indicate a symbol rename or a mis-resolution; the identities are NOT reconciled automatically."
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/ELCIDIN/income",
+   "status": 200,
+   "elapsed_ms": 383,
+   "body": {
+    "symbol": "ELCIDIN.NS",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/ELCIDIN/balance",
+   "status": 200,
+   "elapsed_ms": 417,
+   "body": {
+    "symbol": "ELCIDIN.NS",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/ELCIDIN/cashflow",
+   "status": 200,
+   "elapsed_ms": 550,
+   "body": {
+    "symbol": "ELCIDIN.NS",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/ELCIDIN/ratings",
+   "status": 200,
+   "elapsed_ms": 388,
+   "body": {
+    "symbol": "ELCIDIN.NS",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=ELCIDIN",
+   "status": 502,
+   "elapsed_ms": 496,
+   "body": {
+    "detail": "The data provider returned an unexpected response.",
+    "code": "provider_error",
+    "action": "Retry, or try again later."
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=ELCIDIN&limit=25",
+   "status": 200,
+   "elapsed_ms": 1111,
+   "body": {
+    "symbol": "ELCIDIN",
+    "exchange": null,
+    "count": 24,
+    "announcements": [
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/edcafda8-466c-4da7-bd8f-a46927ac64fd.pdf",
+      "ts": "2026-09-18T11:21:05.450000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8ac2ae04-d96d-4e27-96e5-ff24523bb4a8.pdf",
+      "ts": "2026-09-04T14:11:34.457000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/21278969-71bf-4e97-a76e-b7ba6f63c987.pdf",
+      "ts": "2026-08-14T16:12:56.230000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Financial Results For The Quarter Ended June 30, 2026",
+      "category": "Result",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf707639-392a-44a3-b148-39496e4de068.pdf",
+      "ts": "2026-08-13T15:58:06.583000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Outcome Of The Board Meeting - Financial Results",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9dd60b36-6c7f-4106-82ea-0e0ba9a65153.pdf",
+      "ts": "2026-08-13T15:53:05.100000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Consideration Of Unaudited Standalone And Consolidated Financial Results Of The Company For The First Quarter Ended June 30, 2026.",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/23aaae89-2281-4328-b085-670ad88a92ca.pdf",
+      "ts": "2026-08-05T17:17:09.647000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/2d6ed5cf-9c5b-4ba9-96d1-383ebb15cbf7.pdf",
+      "ts": "2026-07-31T19:23:07.897000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7830c88a-3730-4ea0-9841-0790c4e99542.pdf",
+      "ts": "2026-07-31T19:21:29.030000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Disclosure Of The Votings Results Of The 45Th AGM Pursuant To Regulation 44(3) Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b69d8565-12ef-49a8-8728-47ec03a6a745.pdf",
+      "ts": "2026-07-31T19:19:38.393000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Proceedings Of The 45Th Annual General Meeting Of The Company",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b75ec55c-2d5c-4161-aad8-904ed1769b58.pdf",
+      "ts": "2026-07-31T19:16:38.200000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/584f87a7-853b-455b-a14b-e7c47e1cbbd5.pdf",
+      "ts": "2026-07-31T19:13:59.570000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/10c899f9-470a-471c-bdf3-8aae5deed3b3.pdf",
+      "ts": "2026-07-31T19:11:48.060000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e930a0cd-e227-4d9a-8d9c-3ee98efe2052.pdf",
+      "ts": "2026-07-08T12:05:04.807000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f9f04b33-4ce6-40d5-a3c5-dce155390550.pdf",
+      "ts": "2026-07-07T17:47:42.657000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d8c67933-fa70-4402-b7f6-3d32a69f9992.pdf",
+      "ts": "2026-07-07T14:52:09.917000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/76c69d6c-4d56-42c4-964e-e7810719708e.pdf",
+      "ts": "2026-07-06T14:53:01.777000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Compliance Under Regulation 30 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015 - Letter To Shareholders In Relation To Annual Report Of The Company For The Financial Year 2025-26",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bcaa0ca9-9e1f-4544-98db-d3619695db31.pdf",
+      "ts": "2026-07-06T14:18:22.380000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Record Date For The Payment Of Final Dividend 2025-26",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9d265149-3899-4a06-90eb-5805fa642a88.pdf",
+      "ts": "2026-07-06T14:12:42.860000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "45Th Annual General Meeting To Be Held On Friday, July 31, 2026",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ba06e02b-bc3b-4e0b-acc2-59baf3812030.pdf",
+      "ts": "2026-07-06T14:09:10.863000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/057a0c2c-31fa-4d74-958f-d400c7fa4b20.pdf",
+      "ts": "2026-06-18T14:58:53.490000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/57332755-9649-4fae-85e9-2aff5130162e.pdf",
+      "ts": "2026-05-28T17:16:22.410000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Compliances-Reg.24(A)-Annual Secretarial Compliance",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b4365b1e-3f19-460f-b0b0-f2cd06cc8701.pdf",
+      "ts": "2026-05-28T11:14:06.340000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c2ed4402-b514-4b28-9bd8-4c835ce02a78.pdf",
+      "ts": "2026-05-27T16:21:14.777000+05:30"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "exchange": "BSE",
+      "headline": "Appointment Of Internal Auditor For The Financial Year 2026-27",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8c74f8c1-1fcd-4121-b602-0dc4832fe5f8.pdf",
+      "ts": "2026-05-25T17:18:57.493000+05:30"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "windows": {
+     "NSE": {
+      "window_start": null,
+      "window_end": "2026-09-25"
+     },
+     "BSE": {
+      "window_start": "2026-05-25",
+      "window_end": "2026-09-25"
+     }
+    },
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=ELCIDIN",
+   "status": 200,
+   "elapsed_ms": 534,
+   "body": {
+    "symbol": "ELCIDIN",
+    "count": 10,
+    "events": [
+     {
+      "symbol": "ELCIDIN",
+      "company": "ELCID INV",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-08-13",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "company": "ELCID INV",
+      "purpose": "Dividend",
+      "description": null,
+      "date": "2026-05-25",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "company": "ELCID INV",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-05-25",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "company": "ELCID INV",
+      "purpose": "Results",
+      "description": null,
+      "date": "2026-01-28",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "company": "ELCID INV",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-11-07",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "company": "ELCID INV",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-08-08",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "company": "ELCID INV",
+      "purpose": "Dividend",
+      "description": null,
+      "date": "2025-05-28",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "company": "ELCID INV",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-05-28",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "company": "ELCID INV",
+      "purpose": "Results",
+      "description": null,
+      "date": "2025-01-30",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "ELCIDIN",
+      "company": "ELCID INV",
+      "purpose": "Results",
+      "description": null,
+      "date": "2024-11-12",
+      "exchange": "BSE"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

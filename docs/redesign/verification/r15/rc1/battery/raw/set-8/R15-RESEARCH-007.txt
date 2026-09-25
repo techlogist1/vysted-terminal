@@ -1,0 +1,11 @@
+medium.com/@someauthor/tcs-analysis: tier=3 expected=3 [OK]
+wordpress-blog.wordpress.com/2026/tcs: tier=3 expected=3 [OK]
+reuters.com/business/tcs-earnings: tier=2 expected=2 [OK]
+ir.substack.com/p/tcs-note: tier=3 expected=3 [OK]
+investor.medium.com/tcs: tier=3 expected=3 [OK]
+investors.infosys.com/quarterly-results: tier=1 expected=1 [OK]
+ir.tatamotors.com/financials: tier=1 expected=1 [OK]
+--- issue 4 check ---
+tcs.com/investor-relations/ tier= 3
+reliance.com/investors tier= 3
+infosys.com/investors/ tier= 3

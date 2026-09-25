@@ -1,0 +1,61 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_4ecb5380410a4545956fe35d7f3c1b20", "name": "add_to_watchlist", "input": {"asset_class": "equity", "symbol": "TCS"}}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_2e4af2d52cdf4e5283b598d81306fab7", "name": "add_to_watchlist", "input": {"symbol": "INFY", "asset_class": "equity"}}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " watch"}
+{"kind": "delta", "text": "list"}
+{"kind": "delta", "text": " now"}
+{"kind": "delta", "text": " includes"}
+{"kind": "delta", "text": " KP"}
+{"kind": "delta", "text": "ITTE"}
+{"kind": "delta", "text": "CH"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " CAM"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " To"}
+{"kind": "delta", "text": " see"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " updated"}
+{"kind": "delta", "text": " watch"}
+{"kind": "delta", "text": "list"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " focus"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " Watch"}
+{"kind": "delta", "text": "list"}
+{"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2989, "output_tokens": 38, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,35 @@
+=== live GET /fundamentals/JNPR field_meta.book_value ===
+{
+  "status": "flagged",
+  "provider": "yfinance",
+  "as_of": "2026-09-25T00:07:29.316503+00:00",
+  "reason": "book value per share 70.02 disagrees by 14.1% with the provider's newest filed stockholders' equity / shares outstanding (34,238,830,000 as of 2026-03-31 / 568,998,442 = 60.17) \u2014 it may sit on a stale share count; kept, flagged",
+  "label": null,
+  "basis_note": null
+}
+{
+  "status": "flagged",
+  "provider": "yfinance",
+  "as_of": "2026-09-24T09:59:53+00:00",
+  "reason": "P/B 3.68 disagrees by 14.1% with market cap / the provider's newest filed stockholders' equity (146,630,918,144 / 34,238,830,000 as of 2026-03-31 = 4.28) \u2014 the book value behind it may sit on a stale share count; kept, flagged",
+  "label": null,
+  "basis_note": null
+}
+=== live GET /fundamentals/JUMBO field_meta.book_value ===
+{
+  "status": "flagged",
+  "provider": "yfinance",
+  "as_of": "2026-09-25T00:07:34.604423+00:00",
+  "reason": "book value per share 54.36 disagrees by 4.6% with the provider's newest filed stockholders' equity / shares outstanding (477,377,000 as of 2026-03-31 / 8,373,700 = 57.01) \u2014 it may sit on a stale share count; kept, flagged",
+  "label": null,
+  "basis_note": null
+}
+=== control: live GET /fundamentals/TCS field_meta.book_value (no false positive) ===
+{
+  "status": "ok",
+  "provider": "yfinance",
+  "as_of": "2026-09-25T00:08:09.948141+00:00",
+  "reason": null,
+  "label": null,
+  "basis_note": null
+}

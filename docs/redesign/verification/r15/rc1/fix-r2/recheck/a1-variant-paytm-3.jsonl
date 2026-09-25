@@ -1,0 +1,79 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_339659c9ca6741e799fd803199ccf701", "name": "resolve_symbol", "input": {"query": "Paytm stock", "region": "IN"}}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " called"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "Pay"}
+{"kind": "delta", "text": "tm"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": "\"."}
+{"kind": "delta", "text": " However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " found"}
+{"kind": "delta", "text": " some"}
+{"kind": "delta", "text": " possible"}
+{"kind": "delta", "text": " matches"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " PAY"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Pay"}
+{"kind": "delta", "text": "tm"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " listed"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " N"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": " under"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " PAY"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": ".B"}
+{"kind": "delta", "text": "OM"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " Pay"}
+{"kind": "delta", "text": "tm"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " also"}
+{"kind": "delta", "text": " listed"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": " under"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Could"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " clarify"}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " one"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " referring"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2835, "output_tokens": 76, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

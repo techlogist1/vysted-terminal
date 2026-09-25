@@ -1,0 +1,27 @@
+== tools-CAPABILITY_CATALOG.txt
+portfolio_add_position	host_action
+portfolio_delete_position	host_action
+portfolio_update_position	host_action
+shareholding_pattern	read_handler
+== tools-KNOWN_TOOL_IDS.txt
+portfolio_add_position
+portfolio_delete_position
+portfolio_update_position
+shareholding_pattern
+== tools-TOOL_SCHEMAS.txt
+portfolio_add_position
+portfolio_delete_position
+portfolio_update_position
+shareholding_pattern
+== tools-default_grant.txt
+portfolio_add_position
+portfolio_delete_position
+portfolio_update_position
+shareholding_pattern
+== tools-mcp_list_tools.txt
+shareholding_pattern
+== tools-registered_tools.txt
+shareholding_pattern
+== app-routes.txt
+GET /disclosures/shareholding
+GET /portfolio/positions

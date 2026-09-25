@@ -1,0 +1,9 @@
+src/modules/chart/indicators.ts:416-434 indicatorByKey() now resolves base:param
+specs (ema:9, ema:21, vwap:week) against a base entry, keeping the full spec as
+the returned key -- so a request for EMA9/21 or a week-anchored VWAP is no
+longer dropped to the generic base indicator.
+Pinned tests: src/modules/chart/indicators.test.ts ("resolves a numeric
+base:param spec...", "distinct params on the same base resolve to distinct
+defs (ema:9 vs ema:21)", "resolves a non-numeric anchor spec (vwap:week)");
+src/lib/host-actions.test.ts:340 "set_chart_indicators keeps a base:param spec
+like ema:9 -- never dropped (R15-UI-091)".

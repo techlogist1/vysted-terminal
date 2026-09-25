@@ -1,0 +1,5 @@
+Source check: brief-ingest.ts `sanitizeCitationMarkers` (line ~409) replaces an out-of-range `[n]`
+marker with `BROKEN_CITE_MARKER` (an inert flagged token) instead of deleting it outright; a sibling
+`countBrokenCitations(markdown, sourceCount)` counts them for the Sources header. Matches PLAN.md's
+fix exactly ("keep an out-of-range marker as an inert flagged [?]..., show a broken-citation count").
+Verdict: holds (source-confirmed).

@@ -1,0 +1,2 @@
+R15-DATA-010 fixture Sortino: 6.352097860237519 (pre-fix was 261.93, textbook 6.35)
+R15-DATA-010 identical-losses Sortino: -7.48331477354789 (pre-fix was 0.0)

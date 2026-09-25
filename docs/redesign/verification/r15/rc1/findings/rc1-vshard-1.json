@@ -1,0 +1,41 @@
+[
+  {
+    "key": "rc1-vshard-1:1",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-RESEARCH-007",
+    "title": "The IR host-prefix rule still ranks non-primary sources as PRIMARY. investors.com (Investor's Business Daily, a news site) and ir./investors. subdomains on any host outside a 7-entry denylist (tumblr, github.io, blogspot.in, wixsite, any self-registered domain) get tier 1. IBD then takes marker [1] over Reuters and is labelled 'primary record'",
+    "repro": "sidecar/.venv/bin/python: domain_tier('https://www.investors.com/news/technology/nvidia-stock-buy-now/') -> 1; domain_tier('https://ir.hotpennypicks.net/2024/xyz-to-the-moon') -> 1; domain_tier('https://ir.tumblr.com/post/1') -> 1; domain_tier('https://investors.github.io/pump') -> 1; rank_sources([Reuters, IBD]) -> ['IBD','Reuters']; priority_note -> 'primary record (exchange/regulator/filings/IR): [1]; tier-1 press: [2]'. The original medium/wordpress repro now returns 3.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1.md",
+    "suspected_files": [
+      "sidecar/services/research/finance.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:2",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-UI-090",
+    "title": "Quote freshness still uses the wrong calendar for any instrument that is not detected as Indian. yfinance-served Indian indices (^NSEI, ^BSESN), bare-symbol Indian ETFs and non-US/IN listings (VOD.L, 7203.T) are dated against the US calendar, so after their own exchange closes they read 'live' for the whole US session",
+    "repro": "instrument_region() maps only nse_direct/nse/bse providers or a .NS/.BO suffix to IN; everything else is US. Live: GET /quotes/^NSEI (X-Vysted-Region: IN) -> provider yfinance, timestamp 2026-09-24T10:01Z. In-process: freshness_for(instrument_region('^NSEI','yfinance'), 2026-09-24, intraday=True, now=2026-09-24 20:30 IST) -> ('US','live'), but NSE closed at 15:30 IST. Same result for ^BSESN, VOD.L at 22:00 IST (LSE closed) and NIFTYBEES via yfinance. The market_overview tool uses ^NSEI/^BSESN for IN, and the portfolio benchmark is ^NSEI. Live during NSE hours (09:17 IST, 2026-09-25): GET /quotes/^NSEI -> timestamp 2026-09-25T03:47:07Z (a tick from the current session), freshness 'eod'. The live NIFTY tick is shown as not live, the mirror image of the same wrong-calendar bug.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1.md",
+    "suspected_files": [
+      "sidecar/services/locale.py",
+      "sidecar/routers/quotes.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:3",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "read_notes and write_note key a note by the exact uppercase scope string, so the same stock split across two forms (DIXON vs DIXON.NS) reads back as 'The user has no DIXON.NS note' even though a DIXON note exists",
+    "repro": "In-process, with __notes__.bySymbol={'DIXON': '...thesis...'}: agent_runtime._note_for(notes,'DIXON.NS') -> ('DIXON.NS',''), so read_notes answers empty:true, 'The user has no DIXON.NS note.' host-actions noteScope() uppercases write_note scope without normalising it, so write_note(scope='DIXON.NS') makes a second key beside the user's 'DIXON' note. In live llama3.1:8b runs the preamble scope list pointed the model at 'DIXON', so the core flow still worked.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1.md",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py",
+      "src/lib/host-actions.ts",
+      "src/store/notes.ts"
+    ]
+  }
+]

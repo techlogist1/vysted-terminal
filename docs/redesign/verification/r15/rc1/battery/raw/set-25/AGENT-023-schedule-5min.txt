@@ -1,0 +1,2 @@
+{"id":"sch-f5aaeeef3b84","workflowId":"b7v5-scheduled-aapl","trigger":{"kind":"interval","everyMinutes":5},"enabled":true,"createdAt":1790296296689,"lastFiredAt":null,"lastSeen":null,"lastStatus":null,"lastDetail":null}
+HTTP:200

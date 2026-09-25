@@ -1,0 +1,6 @@
+=== UI-085: text-charcoal-600 usage ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.tsx:530:                        className="text-charcoal-400 hover:text-charcoal-100 disabled:text-charcoal-600 rounded-control p-1"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.tsx:539:                        className="text-charcoal-400 hover:text-charcoal-100 disabled:text-charcoal-600 rounded-control p-1"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/chat/ChatSidebar.tsx:2158:              : "disabled:text-charcoal-600",
+count:
+       2

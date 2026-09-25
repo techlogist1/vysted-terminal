@@ -1,0 +1,7 @@
+heavy research explorer 2 (Competitive position, market, and demand for AAPL thesis) crashed
+Traceback (most recent call last):
+  File "<string>", line 37, in explorer
+    raise ValueError('angle two exploded')
+ValueError: angle two exploded
+RESEARCH-019: failed steps= 3 visit failed: https://ir.example.com/q4 (HTTP 403)
+RESEARCH-033: crashed steps= 1 explorer angle 2 (Competitive position, market, and demand for AAP) failed: ValueError: angle two exploded in emitted= True

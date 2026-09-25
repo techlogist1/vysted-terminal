@@ -1,0 +1,34 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_a8fe47d925ae4e75ad3895192c30904a", "name": "market_overview", "input": {"region": "IN"}}
+{"kind": "tool_use", "tool_call_id": "call_5c88f416dfc24c6f9516ae931ba62070", "name": "price_data", "input": {"range": "1mo", "symbol": "ZOMATO.NS"}}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "No"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Z"}
+{"kind": "delta", "text": "OM"}
+{"kind": "delta", "text": "ATO"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": " Our"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " y"}
+{"kind": "delta", "text": "finance"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5345, "output_tokens": 29, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

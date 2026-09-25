@@ -1,0 +1,340 @@
+{"kind": "tool_use", "tool_call_id": "call_7c2a2578a17b4f4c95663693e721c0ce", "name": "resolve_symbol", "input": {"query": "Bharat Dynamics"}}
+{"kind": "tool_use", "tool_call_id": "call_48d14d1614fd4d5a8e7ad5585bfe3e0d", "name": "financial_statements", "input": {"symbol": "BDL", "statement": "income", "period": "annual"}}
+{"kind": "tool_use", "tool_call_id": "call_26e2db0b19074a428b738fb491c934f6", "name": "fundamentals", "input": {"symbol": "BDL"}}
+{"kind": "tool_use", "tool_call_id": "call_71fd89191bb64e5c98f01fa56cd458cc", "name": "sec_filings_list", "input": {"symbol": "BDL", "form_type": "8-K"}}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Here's"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " summary"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " key"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " aspects"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Bharat"}
+{"kind": "delta", "text": " Dynamics"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "BD"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "):\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Order"}
+{"kind": "delta", "text": " Book"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Financial"}
+{"kind": "delta", "text": " Performance"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Annual"}
+{"kind": "delta", "text": " Figures"}
+{"kind": "delta", "text": ")\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Total"}
+{"kind": "delta", "text": " Revenue"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "FY"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "153"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "60"}
+{"kind": "delta", "text": " million"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Cost"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Revenue"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "224"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "94"}
+{"kind": "delta", "text": " million"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Gross"}
+{"kind": "delta", "text": " Profit"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "11"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "928"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "66"}
+{"kind": "delta", "text": " million"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Total"}
+{"kind": "delta", "text": " Operating"}
+{"kind": "delta", "text": " Expenses"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "22"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "667"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "18"}
+{"kind": "delta", "text": " million"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Operating"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "486"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "42"}
+{"kind": "delta", "text": " million"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "203"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "38"}
+{"kind": "delta", "text": " million"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " Per"}
+{"kind": "delta", "text": " Share"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "EPS"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "11"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "47"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Marg"}
+{"kind": "delta", "text": "ins"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Gross"}
+{"kind": "delta", "text": " Margin"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "47"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "92"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Operating"}
+{"kind": "delta", "text": " Margin"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "98"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Profit"}
+{"kind": "delta", "text": " Margin"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "18"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "83"}
+{"kind": "delta", "text": "%\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Val"}
+{"kind": "delta", "text": "uation"}
+{"kind": "delta", "text": " Metrics"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Market"}
+{"kind": "delta", "text": " Capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "42"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "338"}
+{"kind": "delta", "text": " million"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Price"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "81"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "97"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Price"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "Book"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "98"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Forward"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "37"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "99"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Dividend"}
+{"kind": "delta", "text": " Yield"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "42"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "90"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": ")\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Additional"}
+{"kind": "delta", "text": " Insights"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Revenue"}
+{"kind": "delta", "text": " Growth"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "TT"}
+{"kind": "delta", "text": "M"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "30"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "81"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Net"}
+{"kind": "delta", "text": " Income"}
+{"kind": "delta", "text": " Growth"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "TT"}
+{"kind": "delta", "text": "M"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "47"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Debt"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "Equ"}
+{"kind": "delta", "text": "ity"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "000"}
+{"kind": "delta", "text": "07"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Return"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " Equity"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": "E"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "28"}
+{"kind": "delta", "text": "%\n\n"}
+{"kind": "delta", "text": "This"}
+{"kind": "delta", "text": " overview"}
+{"kind": "delta", "text": " provides"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " snapshot"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " B"}
+{"kind": "delta", "text": "DL"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " health"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " order"}
+{"kind": "delta", "text": " book"}
+{"kind": "delta", "text": " status"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " valuation"}
+{"kind": "delta", "text": "metrics"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": " if"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": " details"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 20968, "output_tokens": 335, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.02554}

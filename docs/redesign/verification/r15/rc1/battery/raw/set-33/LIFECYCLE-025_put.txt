@@ -1,0 +1,2 @@
+{"id":"custom:zz-macro-hawk","name":"ZZ Macro Hawk","philosophy":"test","system_prompt":"test2","tools":["price_data","macro_series","news"],"default_provider":"ollama","default_model":null,"icon":null,"created_at":1790298926,"updated_at":1790298934}
+HTTP 200

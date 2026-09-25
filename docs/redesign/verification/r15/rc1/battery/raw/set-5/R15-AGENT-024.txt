@@ -1,0 +1,3 @@
+=== AGENT-024 write_screener_filters stringified criteria ===
+tool: write_screener_filters in: {'criteria': '[{"field":"pe","op":"lt","value":20},{"field":"roe","op":"gt","value":15},{"field":"market_cap","op":"gt","value":1000}]'}
+out: {'criteria': [{'field': 'pe', 'op': 'lt', 'value': 20}, {'field': 'roe', 'op': 'gt', 'value': 15}, {'field': 'market_cap', 'op': 'gt', 'value': 1000}]}
