@@ -31,11 +31,13 @@ def _isolated_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def _open_portfolio(_: Path) -> None:
-    portfolio_db._ensure_schema()
+    with portfolio_db._connect():
+        pass
 
 
 def _open_agents(_: Path) -> None:
-    agents_store._ensure_schema()
+    with agents_store._connect():
+        pass
 
 
 def _open_workflows(_: Path) -> None:
@@ -44,11 +46,13 @@ def _open_workflows(_: Path) -> None:
 
 
 def _open_plugins(_: Path) -> None:
-    plugins_store._ensure_schema()
+    with plugins_store._connect():
+        pass
 
 
 def _open_runs(_: Path) -> None:
-    runs_store._ensure_schema()
+    with runs_store._connect():
+        pass
 
 
 def _open_fundamentals(db: Path) -> None:

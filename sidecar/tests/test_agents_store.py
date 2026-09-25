@@ -49,9 +49,11 @@ def _sample_update() -> CustomAgentUpdate:
     )
 
 
-def test_ensure_schema_is_idempotent(temp_data_dir: object) -> None:
-    agents_store._ensure_schema()
-    agents_store._ensure_schema()
+def test_connect_is_idempotent(temp_data_dir: object) -> None:
+    with agents_store._connect():
+        pass
+    with agents_store._connect():
+        pass
     assert agents_store.list_agents() == []
 
 

@@ -83,12 +83,6 @@ def _connect() -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
-def _ensure_schema() -> None:
-    """Create the ``custom_agents`` table if it does not yet exist (idempotent)."""
-    with _connect():
-        pass
-
-
 def _row_to_read(row: sqlite3.Row) -> CustomAgentRead:
     """Map a database row to the ``CustomAgentRead`` Pydantic model."""
     tools_raw: Any = json.loads(row["tools_json"])

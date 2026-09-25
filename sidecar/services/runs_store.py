@@ -198,12 +198,6 @@ def _connect() -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
-def _ensure_schema() -> None:
-    """Create the ``runs`` table if it does not yet exist (idempotent)."""
-    with _connect():
-        pass
-
-
 def reset_for_tests() -> None:
     """Drop every row so a test starts from an empty store.
 

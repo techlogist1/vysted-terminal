@@ -38,9 +38,11 @@ def _sample_payload(plugin_id: str = "example-plugin") -> PluginConfigPayload:
 # --------------------------------------------------------------------------
 
 
-def test_ensure_schema_is_idempotent(temp_data_dir: object) -> None:
-    plugins_store._ensure_schema()
-    plugins_store._ensure_schema()
+def test_connect_is_idempotent(temp_data_dir: object) -> None:
+    with plugins_store._connect():
+        pass
+    with plugins_store._connect():
+        pass
     assert plugins_store.list_configs() == []
 
 
