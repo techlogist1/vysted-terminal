@@ -388,7 +388,10 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
                 keywords={[c.symbol, c.name, c.exchange]}
                 forceMount
                 onSelect={() => {
-                  loadSymbolIntoChart(c.symbol);
+                  // R15-DATA-002: the picked candidate's own region rides the
+                  // chart command so a cross-region ticker (AMAL: BSE/NASDAQ)
+                  // charts the listing the user actually selected.
+                  loadSymbolIntoChart(c.symbol, undefined, c.region);
                   onClose();
                 }}
                 className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"

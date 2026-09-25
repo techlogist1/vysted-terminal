@@ -314,13 +314,16 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
  * user clicking a ticker chip in the brief. Opens a chart first if none is on
  * screen (so the command has a consumer), then commands it directly. Fit-aware:
  * it retargets the EXISTING chart, never spawns a panel per call.
+ * `region` (optional) is the region of the listing the caller picked, so a
+ * ticker shared across markets (AMAL: BSE and NASDAQ) charts the picked
+ * company (R15-DATA-002).
  */
-export function loadSymbolIntoChart(symbol: string, timeframe?: string): void {
+export function loadSymbolIntoChart(symbol: string, timeframe?: string, region?: string): void {
   if (!symbol) {
     return;
   }
   ensureChartOpen();
-  useChartCommandStore.getState().loadSymbol(symbol, timeframe || undefined);
+  useChartCommandStore.getState().loadSymbol(symbol, timeframe || undefined, region);
 }
 
 /**

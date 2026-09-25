@@ -277,6 +277,11 @@ function ChartPanel(props: ChartPanelProps = {}) {
   const [chartDefaultsAtMount] = useState(() => useSettingsStore.getState().chartDefaults);
   const [symbolInput, setSymbolInput] = useState(restored?.symbol ?? chartDefaultsAtMount.symbol);
   const [symbol, setSymbol] = useState(restored?.symbol ?? chartDefaultsAtMount.symbol);
+  // The region of the listing a host command picked (R15-DATA-002) — a ticker
+  // shared across markets (AMAL: BSE/NASDAQ) fetches the picked company's data,
+  // not the session-default region's. Absent for a manually typed or
+  // sync-broadcast symbol, which carry no picked-listing context.
+  const [symbolRegion, setSymbolRegion] = useState<string | undefined>(undefined);
   const [timeframe, setTimeframe] = useState<Timeframe>(() => {
     if (restored && isTimeframe(restored.timeframe)) {
       return restored.timeframe;
@@ -452,7 +457,18 @@ function ChartPanel(props: ChartPanelProps = {}) {
       setPriceError(null);
       setCandlesKey(null);
       try {
-        const series = await sidecarApi.history(symbol, timeframe, undefined, assetClassOf(symbol));
+        // Only widen the call when a region was actually picked (R15-DATA-002)
+        // — an explicit trailing `undefined` still shows up as a 5th call arg,
+        // which would spuriously fail every existing 4-arg mock assertion.
+        const series = symbolRegion
+          ? await sidecarApi.history(
+              symbol,
+              timeframe,
+              undefined,
+              assetClassOf(symbol),
+              symbolRegion,
+            )
+          : await sidecarApi.history(symbol, timeframe, undefined, assetClassOf(symbol));
         if (cancelled) {
           return;
         }
@@ -502,7 +518,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
     return () => {
       cancelled = true;
     };
-  }, [symbol, timeframe, retryNonce]);
+  }, [symbol, timeframe, retryNonce, symbolRegion]);
 
   // --- indicator data -----------------------------------------------------
   const clearIndicatorSeries = useCallback(() => {
@@ -890,6 +906,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
       }
       setSymbol(broadcast.symbol);
       setSymbolInput(broadcast.symbol);
+      setSymbolRegion(undefined);
     };
     handleBroadcast(symbolBroadcast);
   }, [syncSubscriptions.symbol, symbolBroadcast, panelId]);
@@ -902,9 +919,10 @@ function ChartPanel(props: ChartPanelProps = {}) {
   useEffect(() => {
     // Indirect through a handler (matches the symbol-sync effect above) so the
     // store→local-state sync isn't flagged as a direct setState-in-effect.
-    const applyCommand = (cmd: { symbol: string; timeframe?: string }) => {
+    const applyCommand = (cmd: { symbol: string; timeframe?: string; region?: string }) => {
       setSymbol(cmd.symbol);
       setSymbolInput(cmd.symbol);
+      setSymbolRegion(cmd.region);
       if (cmd.timeframe && (TIMEFRAMES as readonly string[]).includes(cmd.timeframe)) {
         setTimeframe(cmd.timeframe as Timeframe);
       }
@@ -1131,6 +1149,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
     if (next.length > 0) {
       setSymbol(next);
       setSymbolInput(next);
+      setSymbolRegion(undefined);
       broadcastSymbol(panelId, next);
     }
   }, [broadcastSymbol, panelId, symbolInput]);

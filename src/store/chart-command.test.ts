@@ -29,6 +29,15 @@ describe("useChartCommandStore", () => {
       loadSymbol("AAPL");
       expect(useChartCommandStore.getState().command).toMatchObject({ symbol: "AAPL", seq: 2 });
     });
+
+    it("carries an optional region (R15-DATA-002)", () => {
+      const { loadSymbol } = useChartCommandStore.getState();
+      loadSymbol("AMAL", undefined, "US");
+      expect(useChartCommandStore.getState().command).toMatchObject({
+        symbol: "AMAL",
+        region: "US",
+      });
+    });
   });
 
   describe("reportActiveSymbol", () => {

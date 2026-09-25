@@ -343,12 +343,17 @@ export const sidecarApi = {
     timeframe = "1d",
     range?: string,
     assetClass = "equity",
+    region?: string,
   ): Promise<OHLCVSeries> =>
-    sidecarGet<OHLCVSeries>(`/history/${encodeURIComponent(symbol)}`, {
-      timeframe,
-      range,
-      asset_class: assetClass,
-    }),
+    sidecarGet<OHLCVSeries>(
+      `/history/${encodeURIComponent(symbol)}`,
+      {
+        timeframe,
+        range,
+        asset_class: assetClass,
+      },
+      regionHeader(region),
+    ),
 
   cryptoExchanges: (): Promise<{ exchanges: string[] }> =>
     sidecarGet<{ exchanges: string[] }>("/crypto/exchanges"),
