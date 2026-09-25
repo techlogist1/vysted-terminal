@@ -260,7 +260,7 @@ _BODY_RULES: tuple[
     ),
     (
         None,
-        frozenset({400, 429}),
+        frozenset({400, 403, 429}),
         ("credit", "quota", "billing"),
         "insufficient_credit",
         "Your {label} account is out of credit or quota.",
@@ -269,7 +269,14 @@ _BODY_RULES: tuple[
     (
         None,
         frozenset({400}),
-        ("not a valid model", "invalid model", "model not found", "model_not_found"),
+        (
+            "not a valid model",
+            "invalid model",
+            "model not found",
+            "model_not_found",
+            "decommissioned",
+            "model_decommissioned",
+        ),
         "model_not_found",
         "The requested model is not available on {label} — pick another model.",
         "Choose a different model in Settings.",
@@ -285,7 +292,15 @@ _BODY_RULES: tuple[
     (
         None,
         frozenset({400}),
-        ("context length", "context_length", "maximum context", "context window", "too long"),
+        (
+            "context length",
+            "context_length",
+            "maximum context",
+            "context window",
+            "too long",
+            "input token count",
+            "exceeds the maximum number of tokens",
+        ),
         "context_overflow",
         "The conversation is too long for this {label} model.",
         "Start a new chat or pick a model with a larger context window.",
@@ -450,8 +465,17 @@ def humanize(
     if exc is not None:
         cls_name = type(exc).__name__.lower()
 
-        # Timeout / connection errors
+        # Timeout / connection errors. Ollama runs on the local machine, not
+        # over the internet, so a timeout/connect failure there is never a
+        # network problem — it means the local server isn't answering.
         if any(kw in cls_name for kw in ("timeout", "timedout", "connect")):
+            if provider_id == "ollama":
+                return HumanError(
+                    message="Ollama is not responding.",
+                    action="Make sure Ollama is running (`ollama serve`), then try again.",
+                    detail=raw,
+                    code="ollama_not_running",
+                )
             return HumanError(
                 message=f"Could not reach {label} — check your network.",
                 action="Check your internet connection and try again.",
