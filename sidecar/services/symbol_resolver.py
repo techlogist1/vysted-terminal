@@ -96,7 +96,6 @@ from services.resolution_policy import (
     BAND_NAME_EXACT,
     BAND_PREFIX,
     BAND_SUBSTRING,
-    decide,
     same_instrument,
 )
 from services.resolver_masters import regenerate_bse_master, regenerate_nse_master
@@ -289,12 +288,6 @@ class Resolution:
     @property
     def confidence(self) -> float:
         return self.best.score if self.best else 0.0
-
-    @property
-    def needs_disambiguation(self) -> bool:
-        # Delegates to the ONE policy so this surface and the agent tool can
-        # never disagree (the pre-R10 two-truths defect).
-        return self.best is not None and decide(self).outcome == "disambiguate"
 
 
 def instrument_payload(instrument: Instrument) -> dict[str, object]:

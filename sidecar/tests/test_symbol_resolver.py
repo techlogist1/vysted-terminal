@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from services import provider_health, symbol_resolver
-from services.resolution_policy import BAND_EXACT_TICKER
+from services.resolution_policy import BAND_EXACT_TICKER, decide
 
 
 @pytest.fixture(autouse=True)
@@ -94,7 +94,7 @@ def test_iconikspev_resolves_deterministically_to_bse(monkeypatch) -> None:  # n
     assert r.best.region == "IN"
     assert r.best.yahoo_symbol == "ICONIKSPEV.BO"
     assert r.confidence >= 0.99
-    assert not r.needs_disambiguation
+    assert decide(r).outcome != "disambiguate"
     # The same identity carries its real scrip code for bhavcopy routing.
     assert symbol_resolver.bse_scrip_code("ICONIKSPEV") == "511260"
     assert symbol_resolver.is_bse_symbol("ICONIKSPEV")
@@ -113,7 +113,7 @@ def test_bare_bse_scrip_code_resolves(monkeypatch) -> None:  # noqa: ANN001
     assert r.best.symbol == "BOMOXY-B1"  # Bombay Oxygen Investments (BSE-only)
     assert r.best.yahoo_symbol == "BOMOXY-B1.BO"
     assert r.confidence >= 0.99
-    assert not r.needs_disambiguation
+    assert decide(r).outcome != "disambiguate"
     # Round-trips to the same scrip code regardless of the exact symbol spelling.
     assert symbol_resolver.bse_scrip_code(r.best.symbol) == "509470"
     # The explicit ``.BO`` form of the numeric code resolves the same way.
@@ -222,8 +222,6 @@ def test_live_lookup_collects_all_quotes_india_first_and_never_binds(monkeypatch
         def __init__(self, *_a: object, **_k: object) -> None: ...
 
     import yfinance as yf
-
-    from services.resolution_policy import decide
 
     monkeypatch.setattr(yf, "Search", _FakeSearch)
     rows = symbol_resolver._live_lookup("Something", "IN")
@@ -433,7 +431,7 @@ def test_marquee_alias_two_word_generic_key(monkeypatch) -> None:  # noqa: ANN00
     r = symbol_resolver.resolve("tata stock", "IN")
     assert r.best is not None
     assert r.best.band == 5  # marquee
-    assert r.needs_disambiguation
+    assert decide(r).outcome == "disambiguate"
     assert [c.symbol for c in r.candidates][:2] == ["TCS", "TMCV"]
 
 
@@ -728,7 +726,7 @@ def test_same_ticker_different_companies_keep_their_own_identity(
     assert bse.isin == bse_isin and bse.bse_code is not None
     assert nse.isin != bse.isin
     assert nse.bse_code is None and nse.industry is None
-    assert res.needs_disambiguation
+    assert decide(res).outcome == "disambiguate"
 
 
 # ---------------------------------------------------------------------------
@@ -751,7 +749,7 @@ def test_former_name_resolves_a_us_rename(monkeypatch) -> None:  # noqa: ANN001
     assert r.best is not None
     assert r.best.symbol == "ONC"
     assert r.best.former_name == "BeiGene, Ltd."
-    assert r.needs_disambiguation
+    assert decide(r).outcome == "disambiguate"
     assert r.candidates[0].symbol == "ONC"
 
 
