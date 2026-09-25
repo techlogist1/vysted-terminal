@@ -49,6 +49,7 @@ import pandas as pd
 import yfinance as yf
 
 from services import provider_health
+from services.growth_check import _row_value
 
 logger = logging.getLogger(__name__)
 
@@ -129,30 +130,6 @@ def is_applicable(symbol: str) -> bool:
     caveat) plus the presence of the statement line items.
     """
     return isinstance(symbol, str) and bool(symbol)
-
-
-def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
-    """The first present row's value at ``column``, as float; NaN/missing → None.
-
-    Mirrors :func:`services.growth_check._row_value` (case-insensitive label
-    match, duplicate-row tolerant) so the two Yahoo statement readers behave
-    identically.
-    """
-    lowered = {str(label).strip().lower(): label for label in frame.index}
-    for candidate in labels:
-        actual = lowered.get(candidate.lower())
-        if actual is None:
-            continue
-        value = frame.loc[actual, column]
-        if isinstance(value, pd.Series):
-            value = value.iloc[0]
-        if value is None or pd.isna(value):
-            return None
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return None
-    return None
 
 
 def compute_earnings_quality(frame: pd.DataFrame | None) -> EarningsQuality | None:
