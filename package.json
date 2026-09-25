@@ -18,7 +18,7 @@
     "sec-edgar-mcp-sidecar:build": "node scripts/ensure-sec-edgar-mcp-sidecar.mjs --force",
     "sidecars:build": "node scripts/ensure-all-sidecars.mjs --force",
     "probe:exchanges": "node scripts/smoke-test-sidecars.mjs --require-network",
-    "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typecheck && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && python3 -m pip install ruff==0.15.12 && ruff check sidecar && ruff format --check sidecar && pnpm test && cargo test --manifest-path src-tauri/Cargo.toml && cd sidecar && python3 -m pip install -r requirements-dev.txt && pytest",
+    "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typecheck && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && python3 -m pip install ruff==0.15.12 && ruff check sidecar && ruff format --check sidecar && vitest run --coverage && cargo test --manifest-path src-tauri/Cargo.toml && cd sidecar && python3 -m pip install -r requirements-dev.txt && pytest",
     "tauri": "tauri",
     "tauri:mcp": "tauri dev --features dev-tools",
     "tauri:dev": "pnpm tauri:mcp"

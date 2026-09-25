@@ -1,8 +1,10 @@
 // @vitest-environment node
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+const REPO_ROOT = join(import.meta.dirname, "..");
 
 const { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight, _shouldProbeExchanges } =
   await import("./smoke-test-sidecars.mjs");
@@ -102,5 +104,40 @@ describe("ci-local's pip installs (R15-CROSS-PLATFORM-010)", () => {
     expect(ciLocal).not.toMatch(/(^|[^\w])python(?!3)(\W|$)/);
     expect(ciLocal).toContain("python3 -m pip install ruff==");
     expect(ciLocal).toContain("python3 -m pip install -r requirements-dev.txt");
+  });
+});
+
+describe("coverage gate (R15-RELEASE-011)", () => {
+  it("vitest.config.ts wires a self-bootstrapping v8 threshold, and ci-local runs with --coverage", () => {
+    const cfg = readFileSync(join(REPO_ROOT, "vitest.config.ts"), "utf8");
+    expect(cfg).toMatch(/provider:\s*"v8"/);
+    expect(cfg).toMatch(/lines:\s*[\d.]+/);
+    expect(cfg).toMatch(/autoUpdate:\s*true/);
+
+    const pkg = JSON.parse(readFileSync(join(REPO_ROOT, "package.json"), "utf8"));
+    expect(pkg.scripts["ci-local"]).toContain("vitest run --coverage");
+  });
+
+  it("a threshold raised above the measured coverage fails the run (no more silent 0%-coverage regressions)", () => {
+    const vitestBin = join(REPO_ROOT, "node_modules", ".bin", "vitest");
+    const coverageDir = join(REPO_ROOT, "coverage-release-011-pin-test");
+    try {
+      const result = spawnSync(
+        vitestBin,
+        [
+          "run",
+          "scripts/sidecar-staleness.test.mjs",
+          "--coverage",
+          "--coverage.thresholds.lines=100",
+          "--coverage.thresholds.autoUpdate=false",
+          `--coverage.reportsDirectory=${coverageDir}`,
+        ],
+        { cwd: REPO_ROOT, encoding: "utf8", timeout: 60_000 },
+      );
+      expect(result.status).not.toBe(0);
+      expect(result.stdout + result.stderr).toMatch(/does not meet global threshold/);
+    } finally {
+      rmSync(coverageDir, { recursive: true, force: true });
+    }
   });
 });
