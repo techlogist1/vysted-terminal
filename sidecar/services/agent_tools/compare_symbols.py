@@ -4,7 +4,7 @@ Fetches a quote + fundamentals + a 6-month relative-performance window for
 2–4 symbols concurrently and ranks them by trailing return, so an agent can
 answer "how do AAPL, MSFT and NVDA compare?" in one call instead of fanning
 out to ``price_data``/``fundamentals`` per ticker. Registered via
-:func:`register` from :func:`services.agent_tools.registry_v0_6_0`.
+:func:`register` from :func:`services.agent_tools.register_v0_6_0_tools`.
 
 Failure isolation: each symbol is fetched in its own task wrapped so one
 provider failure surfaces as a per-symbol ``error`` field rather than tanking

@@ -1,7 +1,7 @@
 """v0.6.0 agent tools — macro data (Teammate M).
 
 Registers two tools agents can call once :func:`register` runs from
-:mod:`services.agent_tools.registry_v0_6_0`:
+:func:`services.agent_tools.register_v0_6_0_tools`:
 
   - ``macro_series`` — fetch one series from a named provider.
   - ``macro_search`` — search a provider's catalog by free-text query.

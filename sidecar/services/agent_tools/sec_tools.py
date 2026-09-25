@@ -12,8 +12,8 @@ reads through the data_cache TTL layer. Tool ids are deliberately
 namespaced ``sec_*`` (no ``place_*`` / ``submit_*`` / ``execute_*`` /
 ``auto_approve`` substrings — the §6.5 grep check passes).
 
-Registered via :func:`register` from the Phase 6 aggregator in
-:mod:`services.agent_tools.registry_v0_6_0`.
+Registered via :func:`register` from the Phase 6 aggregator,
+:func:`services.agent_tools.register_v0_6_0_tools`.
 """
 
 from __future__ import annotations
