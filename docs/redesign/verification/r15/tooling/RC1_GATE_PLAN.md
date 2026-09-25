@@ -39,6 +39,18 @@ Ports: shared stack :52152-54 (read-only for drives). Own sidecars on:
 
 `rc1-cand` is read-only except for preflight, the heavy lane, and the GUI agent's debug build in phase 5.
 
+## Round 2 tuning (25 Sep 2026)
+
+Round 1 failed partly on harness causes (`R15_GATE_RC1.md`, `rc1/FINDINGS.md`). Changes, with phases, models, efforts, labels, paths and the fix loop unchanged:
+
+- Lane limits are args: `drive_limit` (default 3) and `batt_limit` (default 2), integers 1..16. The global limiter stays 32.
+- Local-model lock (in COMMON): every Ollama call takes `mkdir /tmp/vysted-r15-ollama.lock`, retried every 5 s for up to 15 min (a lock dir older than 20 min is stale), and releases it via an EXIT trap. A call that cannot get the lock is `lock_timeout`, a harness cause. The scenarios agent runs its Ollama scenarios one at a time and records `ran` / `lock_timeout` / `upstream_5xx` per scenario.
+- Battery coverage: the indexer reads the register at the candidate (`git show <sha>:…/vysted-r15-register.json`), puts every `fixed` id in exactly one set and every set in one shard, and returns `shard` per set plus the id→shard map. The script uses those shard numbers when they are contiguous from 0 (≤8), else it shards by batch as before. Shards write raw output per id as they go, write their findings file even when partial, and end with a COVERAGE line. The collator lists ids with no raw file per shard and marks the battery `incomplete` (never `pass`) when any exist. The return's `battery` gains `status` and `no_raw`.
+- Verifier rubric: (a) only `open` critical/high/medium entries at the sha fail the register criterion; `blocked_tier4`, `needs_gui`, `not_a_defect` and `removed_with_feature` are listed as operator-attended; a `fixed` entry with no certification is `fixed-uncertified` unless the verifier's own probe reproduces it. (b) A sample entry is refuted only when its own repro reproduces its defect at the sha. A nearby different defect is an adjacent finding with its own severity. Docs are refuted only on a factual mismatch with the code. Each refutation records the command, the checkout sha and the output. (c) Every FAIL/DEFERRED gate item names its cause: product defect, harness/environment, or operator-attended.
+- `skip_gui: true`: the sheet lists every `needs_gui` id (from the register at the sha) as operator-attended, reason "computer-use grant does not cover the built app".
+
+The stage-c batch script also takes `adj_note` and `planner_note` (default `''`). A non-empty note is appended to the adjudicator or planner prompt as a final `LEAD NOTE FOR THIS BATCH: <text>` paragraph. An empty note appends nothing, so resumed prompts stay byte-identical.
+
 ## Evidence (all under `docs/redesign/verification/r15/rc1/`)
 
 | File | Proves |
