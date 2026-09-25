@@ -787,17 +787,7 @@ export async function loadWorkspace(name: string): Promise<void> {
   if (!trimmed) {
     throw new WorkspaceError("A workspace name is required.");
   }
-  const response = await fetch(await workspaceUrl(trimmed));
-  if (!response.ok) {
-    throw await sidecarFailure(`Could not load workspace "${trimmed}"`, response);
-  }
-  let workspace: SerializedWorkspace;
-  try {
-    workspace = (await response.json()) as SerializedWorkspace;
-  } catch {
-    throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
-  }
-  workspace = migrateWorkspace(workspace);
+  const workspace = migrateWorkspace(await fetchSavedWorkspace(trimmed, "load"));
   const layoutRestored = applyLayoutSlice(workspace);
   // Entering a research space scopes the Notes panel to its ticker, as creating
   // one does (the notes themselves are global and stay as they are).
@@ -820,6 +810,62 @@ export async function loadWorkspace(name: string): Promise<void> {
       );
     }
   }
+}
+
+/** GET one saved workspace body from the sidecar. */
+async function fetchSavedWorkspace(
+  name: string,
+  action: "load" | "export",
+): Promise<SerializedWorkspace> {
+  const response = await fetch(await workspaceUrl(name));
+  if (!response.ok) {
+    throw await sidecarFailure(`Could not ${action} workspace "${name}"`, response);
+  }
+  try {
+    return (await response.json()) as SerializedWorkspace;
+  } catch {
+    throw new WorkspaceError(`Could not parse workspace "${name}" (malformed JSON).`);
+  }
+}
+
+/** A saved workspace as `.vysted-workspace` file text, for export (R15-UI-070). */
+export async function exportWorkspace(name: string): Promise<string> {
+  return JSON.stringify(await fetchSavedWorkspace(userWorkspaceName(name), "export"), null, 2);
+}
+
+/**
+ * Parse an imported `.vysted-workspace` file. Only the shape a load needs is
+ * checked — every slice's restore already guards its own field.
+ */
+export function parseWorkspaceFile(text: string): SerializedWorkspace {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new WorkspaceError("The file is not valid JSON.");
+  }
+  const layout = (parsed as { layout?: unknown } | null)?.layout;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || !layout) {
+    throw new WorkspaceError("The file is not a Vysted workspace (it has no panel layout).");
+  }
+  return parsed as SerializedWorkspace;
+}
+
+/** Save an imported workspace on the sidecar under `name`, replacing any with that name. */
+export async function importWorkspace(
+  name: string,
+  workspace: SerializedWorkspace,
+): Promise<string> {
+  const trimmed = userWorkspaceName(name);
+  const response = await fetch(await workspaceUrl(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: trimmed, workspace: { ...workspace, name: trimmed } }),
+  });
+  if (!response.ok) {
+    throw await sidecarFailure(`Could not import workspace "${trimmed}"`, response);
+  }
+  return trimmed;
 }
 
 /**
