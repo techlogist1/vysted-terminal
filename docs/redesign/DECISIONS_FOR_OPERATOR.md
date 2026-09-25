@@ -481,4 +481,4 @@ are done-and-revertable like §1; these are yours to review or act on.
 - **Risk of not doing it:** the release ships an agent that can, on a tool failure with a local
   model, print a made-up price. Offline fresh-case fabrication on the residual classes is 6/19
   after batch-20 (14/19 before); 0 on every pinned shape.
-- **Status: open, pending batch-21**
+- **Status: open, pending batch-22** — batch-21 (merged `86ae79c4`) took the verifier's fresh cases to 19/20 (base 11/20) and the live entry prompt to 0 fabricated figures; the seventh residual is short-name aliases (SBI, Airtel, L&T) and an unclosed-fence regression. The lead amended its stop rule once, for a regression plus closed-list gaps rather than a new prose class; an eighth failure is final and lands here for disposition.
