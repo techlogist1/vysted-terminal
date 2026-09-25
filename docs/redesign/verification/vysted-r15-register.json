@@ -13867,8 +13867,8 @@
     "COD-scripts-build-12"
    ],
    "tier4": true,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, Tier-4 only for the lint.yml half; ci-local half is package.json, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-063/"
+   "status": "blocked_tier4",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Tier-4 only for the lint.yml half; ci-local half is package.json, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-063/; blocked_tier4 (lows partition, 25 Sep): .github/workflows/lint.yml (widen the ruff scope to include scripts/) — DECISIONS_FOR_OPERATOR §4.5"
   },
   {
    "id": "R15-CODE-PLATFORM-064",
@@ -14930,8 +14930,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, §2 Locked table wording; describes an already-made v0.4.0 decision, so a doc correction not a reversal, but the operator should sign the §2 edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-008/"
+   "status": "blocked_tier4",
+   "note": "triage@e032be7: still_reproduces, confidence 5, §2 Locked table wording; describes an already-made v0.4.0 decision, so a doc correction not a reversal, but the operator should sign the §2 edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-008/; blocked_tier4 (lows partition, 25 Sep): docs/BLUEPRINT.md §2 Locked-decisions table (line 55) — DECISIONS_FOR_OPERATOR §4.6"
   },
   {
    "id": "R15-DOCS-009",
@@ -15003,8 +15003,8 @@
    ],
    "tier4": true,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, Tier-4: touches CI workflows + licensing, operator sign-off, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-011/"
+   "status": "blocked_tier4",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Tier-4: touches CI workflows + licensing, operator sign-off, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-011/; blocked_tier4 (lows partition, 25 Sep): .github/workflows/ (new CLA-check workflow) and the CLA/licensing text it enforces — DECISIONS_FOR_OPERATOR §4.7"
   },
   {
    "id": "R15-DOCS-012",
@@ -15222,8 +15222,8 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, doc + one manual GUI session, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-024/"
+   "status": "needs_gui",
+   "note": "triage@e032be7: still_reproduces, confidence 4, doc + one manual GUI session, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-024/; needs_gui (lows partition, 25 Sep): run a real Claude Desktop session over mcp-remote/stdio, invoke a Vysted tool, and capture what the slash picker actually shows."
   },
   {
    "id": "R15-LEAD-006",
@@ -15684,8 +15684,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, documentation of a manual gate; touches no code, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-040/"
+   "status": "needs_gui",
+   "note": "triage@e032be7: still_reproduces, confidence 4, documentation of a manual gate; touches no code, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-040/; needs_gui (lows partition, 25 Sep): launch the packaged-app bundle on each platform (Windows included) and record the cold-boot MCP-spawn check in DECISIONS.md."
   },
   {
    "id": "R15-RELEASE-008",
@@ -15801,8 +15801,8 @@
    ],
    "tier4": true,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, Tier-4: CI workflow edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-012/"
+   "status": "blocked_tier4",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Tier-4: CI workflow edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-012/; blocked_tier4 (lows partition, 25 Sep): .github/workflows/build.yml, test.yml, lint.yml (actions/cache step) — DECISIONS_FOR_OPERATOR §4.8"
   },
   {
    "id": "R15-RESEARCH-031",

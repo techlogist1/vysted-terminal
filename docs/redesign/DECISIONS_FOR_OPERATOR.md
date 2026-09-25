@@ -399,3 +399,62 @@ are done-and-revertable like §1; these are yours to review or act on.
   not available here.
 - **Recommendation:** once the Playwright suite lands, run it in a GUI-attended session (or CI
   with a real display) and certify R15-UI-088 from that run's output.
+
+### 4.5 R15-CODE-PLATFORM-063 — scripts/*.py sit outside every ruff gate in CI and ci-local
+
+- **Blocked:** the fix widens the ruff scope from `sidecar` to `sidecar scripts` in
+  `.github/workflows/lint.yml:87-89` (plus the mirrored path in `package.json`'s `ci-local`
+  script) so the 12 tracked `scripts/*.py` files (r15 tooling, `scripts/rig/`, the screenshot
+  generators) stop being an unlinted blind spot.
+- **Why operator-attended:** `.github/workflows/lint.yml` is a never-owned Tier-1 CI workflow
+  file; no agent may edit it without sign-off.
+- **Recommendation:** change the two `ruff check`/`ruff format --check` invocations in
+  `lint.yml:87-89` from `sidecar` to `sidecar scripts`, and widen the same path in
+  `package.json`'s `ci-local` entry so the two gates stay byte-for-byte in sync.
+- **Risk of not doing it:** real lint violations in `scripts/` (ruff already reports F541/F841
+  there today) keep shipping unseen, since neither CI nor `ci-local` ever scans that directory.
+- **Status: open, blocked_tier4**
+
+### 4.6 R15-DOCS-008 — BLUEPRINT §2/§3.1 still describe OpenBB as an in-process runtime-sidecar wrap
+
+- **Blocked:** the fix rewrites `docs/BLUEPRINT.md:55`, a row inside the `## 2. Locked Decisions
+  Summary` table ("Data layer | OpenBB ODP wrapped as runtime sidecar"), plus the matching §3.1
+  prose at `:84`. v0.4.0 already retired the in-process OpenBB plugin in favor of the
+  out-of-process `openbb-mcp` subprocess, so this is a correction, not a new reversal — but it
+  still edits a Locked-table row.
+- **Why operator-attended:** `docs/BLUEPRINT.md` §2 is this project's Locked-decisions section;
+  no agent may reopen or edit it unilaterally, even descriptively.
+- **Recommendation:** reword line 55 to describe the `openbb-mcp` subprocess spawned by the
+  Tauri core (not an in-process wrap), and update the §3.1 sentence at line 84 to match; no
+  other §2 row changes.
+- **Risk of not doing it:** BLUEPRINT.md keeps asserting a data-layer process model v0.4.0
+  already retired, so anyone treating it as ground truth (including a future agent) will design
+  against the wrong process boundary.
+- **Status: open, blocked_tier4**
+
+### 4.7 R15-DOCS-011 — CONTRIBUTING.md promises a CLA that no CI gate enforces
+
+- **Blocked:** the fix needs a new CLA-check workflow under `.github/workflows/` plus finalized
+  CLA/licensing text for `CONTRIBUTING.md:95` ("The formal CLA process is still being
+  finalized") to reference.
+- **Why operator-attended:** `.github/workflows/` additions are Tier-1 CI, and CLA/licensing
+  text is a Tier-4 licensing decision — both never-owned by an agent.
+- **Recommendation:** before contributions reopen (they are closed today, `CONTRIBUTING.md:3`),
+  add a CLA-assistant (or PR-body check) workflow and finalize + commit the CLA text it enforces.
+- **Risk of not doing it:** low while contributions stay closed; reopening them without the gate
+  would let a PR merge with no CLA statement, contrary to BLUEPRINT §4/§6.1.
+- **Status: open, blocked_tier4**
+
+### 4.8 R15-RELEASE-012 — CI never caches the three PyInstaller sidecar binaries
+
+- **Blocked:** the fix adds an `actions/cache` step, keyed on `hashFiles` of
+  `sidecar/requirements*.txt`, `sidecar/**/*.py` and `scripts/ensure-*.mjs`, around the
+  `ensure-all-sidecars` step in `.github/workflows/build.yml`, `test.yml` and `lint.yml`.
+- **Why operator-attended:** all three are never-owned Tier-1 CI workflow files.
+- **Recommendation:** add the cache step in each of the three workflows; the existing
+  staleness gate (`scripts/sidecar-staleness.mjs`) already forces a rebuild on a stale cache
+  restore, so this is safe to land as written.
+- **Risk of not doing it:** pure CI cost/time, open since v0.7.0 (`BLOCKERS.md:337-339`) — every
+  push pays ~9 cold sidecar builds (3 workflows x 3 OSes, ~20-25 min each) with no correctness
+  risk.
+- **Status: open, blocked_tier4**
