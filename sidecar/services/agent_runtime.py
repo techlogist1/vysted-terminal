@@ -2240,10 +2240,14 @@ class _GuardContext:
     pending: bool
     errored: set[str]
     grounding: figure_grounding.Grounding
-    #: Symbol subjects of this turn's errored calls, to the tool that errored,
-    #: and the subjects some call returned ok for.
+    #: Subjects of this turn's errored calls, by every alias
+    #: (:func:`figure_grounding.aliases`), to the tool that errored, and the
+    #: aliases of the subjects some call returned ok for.
     errored_subjects: dict[str, str]
     ok_subjects: set[str]
+    #: The alias the paragraph named last: a clause naming no subject of its
+    #: own speaks of it. Carried across releases, reset at a blank line.
+    subject: str | None = None
 
 
 def _clauses(sentence: str, ctx: _GuardContext) -> tuple[list[_Ref], list[tuple[int, int]]]:
@@ -2290,6 +2294,14 @@ def _clauses(sentence: str, ctx: _GuardContext) -> tuple[list[_Ref], list[tuple[
     return refs, clauses
 
 
+def _named_subject(text: str, ctx: _GuardContext) -> str | None:
+    """The subject alias ``text`` names last, or None when it names none."""
+    aliases = sorted({*ctx.errored_subjects, *ctx.ok_subjects})
+    ends = {a: figure_grounding.mention_end(text, a) for a in aliases}
+    alias = max(ends, key=lambda a: ends[a], default=None)
+    return alias if alias is not None and ends[alias] >= 0 else None
+
+
 def _errored_note(errored: set[str]) -> str:
     names = sorted(errored)
     plural = "s" if len(names) > 1 else ""
@@ -2314,14 +2326,22 @@ def _judge_clause(
     2b); or, with no tool named, when it credits "the tool" while none has
     returned ok, or dumps a result while none has returned ok and a call is
     pending (a dump needs no figure: a call with no result yet has no output
-    to paste). A negative report is always true."""
+    to paste). A negative report streams when it carries no ungrounded
+    figure; one that does is replaced like any other, the note being the
+    acknowledgement ("Although the tool failed, the close was ₹742.35").
+    A clause naming no subject of its own speaks of the one its paragraph
+    named last (``ctx.subject``)."""
     brackets = [i for i in (clause.find("{"), clause.find("[")) if i >= 0]
     prose = clause[: min(brackets, default=len(clause))]
-    if _NEGATIVE.search(prose):
-        return None
+    own = _named_subject(context + clause + tail, ctx)
+    inherited = ctx.subject
+    if own is not None:
+        ctx.subject = own
     figs = figure_grounding.figures(clause + tail)
     ungrounded = [f for f in figs if not ctx.grounding.grounded(f)]
     if figs and not ungrounded:
+        return None
+    if _NEGATIVE.search(prose) and not ungrounded:
         return None
     bad = [r for r in inside if r.tool not in ctx.ok_tools]
     shaped = len(prose) < len(clause) or tail.lstrip().startswith(("{", "[")) or _result_block(tail)
@@ -2341,6 +2361,10 @@ def _judge_clause(
                 context + clause + tail, subject
             ):
                 return f"the {tool} tool returned no data for this in this turn"
+        if own is None and inherited in ctx.errored_subjects and inherited not in ctx.ok_subjects:
+            return (
+                f"the {ctx.errored_subjects[inherited]} tool returned no data for this in this turn"
+            )
     if (
         not inside
         and (ctx.pending or not ctx.ok_tools)
@@ -2479,7 +2503,8 @@ def _guard_tool_citations(
     """``text`` with every unit (:func:`_units`) the guard rejects replaced by
     its note (R15-LEAD-030). Consecutive replaced units of one paragraph
     collapse to one note: ``last_note`` is the note the previous release ended
-    on, and the note this one ends on is returned."""
+    on, and the note this one ends on is returned. ``ctx.subject`` is carried
+    the same way and reset where a blank line ends the paragraph."""
     out: list[str] = []
     for unit in _units(text):
         guarded, note = _guard_unit(text, unit, ctx)
@@ -2488,7 +2513,10 @@ def _guard_tool_citations(
             trailing = whole[len(whole.rstrip()) :]
             guarded = trailing if "\n" in trailing else ""
         out.append(guarded)
-        last_note = note if _BLANK_LINE.search(whole, len(whole.rstrip())) is None else None
+        paragraph_end = _BLANK_LINE.search(whole, len(whole.rstrip())) is not None
+        last_note = None if paragraph_end else note
+        if paragraph_end:
+            ctx.subject = None
     return "".join(out), last_note
 
 
@@ -2535,10 +2563,14 @@ class _TurnState:
     # Every value the model was given this turn (user messages, runtime
     # context, tool results): a figure none carries is fabricated (R15-LEAD-030).
     grounding: figure_grounding.Grounding = field(default_factory=figure_grounding.Grounding)
-    # The symbols this turn's tool calls were about, by outcome: an ungrounded
-    # figure beside the symbol of an errored call is replaced naming that tool.
+    # The subjects this turn's tool calls were about, by every alias and by
+    # outcome: an ungrounded figure beside an errored call's subject, by
+    # symbol or company name, is replaced naming that tool.
     ok_subjects: set[str] = field(default_factory=set)
     errored_subjects: dict[str, str] = field(default_factory=dict)
+    # The user's messages of the run: a company-name word they wrote is an
+    # alias of its subject (figure_grounding.aliases).
+    user_text: str = ""
 
 
 @dataclass
@@ -2744,12 +2776,13 @@ async def _consume_round(
     """
     held: list[str] = []  # the provider's delta texts not yet released
     last_note: str | None = None  # the note the last released unit ended on
+    last_subject: str | None = None  # the subject alias the paragraph named last
     tool_ids = set(catalog.CAPABILITY_CATALOG) | set(run.tool_ids)
     ref = _tool_reference(tool_ids)
     canon = {re.sub(r"[\s_-]", "", t.lower()): t for t in tool_ids}
 
     def _release(chunks: list[str]) -> list[LLMDeltaEvent]:
-        nonlocal last_note
+        nonlocal last_note, last_subject
         text = "".join(chunks)
         guarded = _guard_ratio_claims(text, turn.tool_results, turn.ratio_context)
         # A tool called this round has no result yet: prose after the call
@@ -2764,8 +2797,10 @@ async def _consume_round(
             grounding=turn.grounding,
             errored_subjects=turn.errored_subjects,
             ok_subjects=turn.ok_subjects,
+            subject=last_subject,
         )
         guarded, last_note = _guard_tool_citations(guarded, ctx, last_note)
+        last_subject = ctx.subject
         turn.ratio_context = _depositary_context(text, turn.ratio_context)
         if guarded.strip():
             rnd.streamed_text = True
@@ -3047,16 +3082,21 @@ async def _dispatch_round(
         turn.grounding.add_result(result_str)
         turn.grounding.add_text(tool_result_msg.content)
         outcome = _tool_result_event(tool_call, result_str)
+        aliases = {
+            alias
+            for base in figure_grounding.subjects(tool_call.input)
+            for alias in figure_grounding.aliases(base, turn.user_text)
+        }
         if outcome.ok:
             turn.ok_tools.add(tool_call.name)
             turn.ok_this_turn.add(tool_call.name)
-            turn.ok_subjects |= figure_grounding.subjects(tool_call.input)
+            turn.ok_subjects |= aliases
         else:
             turn.errored_tools.add(tool_call.name)
             if tool_call.name not in turn.ok_this_turn:
                 turn.ok_tools.discard(tool_call.name)
-            for subject in figure_grounding.subjects(tool_call.input):
-                turn.errored_subjects.setdefault(subject, tool_call.name)
+            for alias in aliases:
+                turn.errored_subjects.setdefault(alias, tool_call.name)
         yield outcome
         if on_tool_result is not None:
             on_tool_result(tool_call, result_str)
@@ -3183,6 +3223,8 @@ async def invoke_agent(
     for message in run.messages:
         if message.role != "assistant" and message.content != spec.system_prompt:
             turn.grounding.seed(message.content)
+        if message.role == "user":
+            turn.user_text += message.content + "\n"
     idle = LOCAL_IDLE_TIMEOUT_S if run.provider_id == "ollama" else IDLE_TIMEOUT_S
     while True:
         rnd = _open_round(run, turn)

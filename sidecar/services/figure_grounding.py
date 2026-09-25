@@ -17,6 +17,8 @@ from decimal import Decimal, InvalidOperation
 from itertools import combinations
 from typing import Any
 
+from services import symbol_resolver
+
 #: Decimal exponent of each scale word ("₹4,411 cr" = 4411 × 10^7).
 _SCALES = {
     "k": 3,
@@ -227,23 +229,63 @@ def subjects(tool_input: Any) -> set[str]:
     }
 
 
+def _distinctive(word: str) -> bool:
+    return len(word) >= 4 and word.isalpha() and word not in symbol_resolver._generic_tokens()
+
+
+def aliases(base: str, user_text: str = "") -> set[str]:
+    """What prose may call the subject ``base`` by (R15-LEAD-030): the symbol
+    base; its company name from the resolver masters, lower-cased with the
+    corporate suffix stripped ("infosys", "state bank of india"); the name's
+    first two words when it has three or more ("state bank"); its first word
+    when distinctive (four or more letters, not common across the masters:
+    "wipro", never "tata"); and any distinctive name word ``user_text`` holds.
+    ponytail: the private master readers avoid a clash with pending
+    symbol_resolver edits (a public accessor can replace them); a first-word
+    alias that is also a common word ("state") over-replaces only an
+    ungrounded figure beside a call that errored, which fails safe."""
+    out = {base}
+    names = [
+        symbol_resolver._nse_master().get(base, ("",))[0],
+        symbol_resolver._bse_master().get(base, ("",))[0],
+        symbol_resolver._us_master().get(base, ""),
+    ]
+    for name in filter(None, names):
+        stripped = symbol_resolver._strip_corporate_suffix(name.lower())
+        words = stripped.split()
+        out.add(stripped)
+        if len(words) >= 3:
+            out.add(" ".join(words[:2]))
+        if _distinctive(words[0]):
+            out.add(words[0])
+        out |= {w for w in words if _distinctive(w) and mentions(user_text, w)}
+    return out
+
+
+def mention_end(text: str, subject: str) -> int:
+    """Where the last mention of ``subject`` in ``text`` ends, or -1: a whole
+    word or phrase, with or without an exchange suffix, in any case."""
+    phrase = re.escape(subject).replace(r"\ ", r"\s+")
+    end = -1
+    for m in re.finditer(
+        rf"(?<![A-Za-z0-9]){phrase}(?:\.[A-Za-z]{{1,4}})?(?![A-Za-z0-9])", text, re.IGNORECASE
+    ):
+        end = m.end()
+    return end
+
+
 def mentions(text: str, subject: str) -> bool:
-    """Whether ``text`` names ``subject`` as a word, with or without an
-    exchange suffix, in any case."""
-    return bool(
-        re.search(
-            rf"(?<![A-Za-z0-9]){re.escape(subject)}(?:\.[A-Za-z]{{1,4}})?(?![A-Za-z0-9])",
-            text,
-            re.IGNORECASE,
-        )
-    )
+    """Whether ``text`` names ``subject`` (see :func:`mention_end`)."""
+    return mention_end(text, subject) >= 0
 
 
 __all__ = [
     "Figure",
     "Grounding",
+    "aliases",
     "derived",
     "figures",
+    "mention_end",
     "mentions",
     "numbers",
     "payload_numbers",
