@@ -1,0 +1,10 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  27.1s] done: {"kind": "done", "usage": {"input_tokens": 6054, "output_tokens": 73, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You are asking why I, as a terminal copilot, didn't use the available tools to answer your question. 
+
+Unfortunately, the problem statement doesn't contain any questions related to using the tools or explaining why certain actions weren't taken with the available functions. If you'd like to provide more context or ask another question, I'd be happy to assist.
+
+=== ok · 27.1s · events {'heartbeat': 2, 'delta': 73, 'done': 1} · usage in=6054 out=73 · est $0.00000 · llama3.1:8b

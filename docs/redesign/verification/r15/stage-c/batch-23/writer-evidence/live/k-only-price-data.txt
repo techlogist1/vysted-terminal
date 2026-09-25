@@ -1,0 +1,25 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  36.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_be92ca1196254ab7873a40ff0947e28b", "name": "price_data", "input": {"asset_class": "equity", "range": "1y", "symbol": "TCS.NS"}}
+[  41.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_be92ca1196254ab7873a40ff0947e28b", "name": "price_data", "ok": true, "error": null}
+[  51.9s] heartbeat: {"kind": "heartbeat"}
+[  61.9s] heartbeat: {"kind": "heartbeat"}
+[  71.9s] heartbeat: {"kind": "heartbeat"}
+[  79.0s] done: {"kind": "done", "usage": {"input_tokens": 7027, "output_tokens": 102, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of TCS.NS is ₹2082.0.
+
+Here are the details of the last trade:
+
+* Date: Today
+* Open: ₹2075.0
+* High: ₹2085.0
+* Low: ₹2059.6
+* Close: ₹2073.1
+* Volume: 6392736
+
+Note that these values are based on data from price_data for the last trade. If you would like more information, please let me know.
+
+=== ok · 79.0s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 102, 'done': 1} · usage in=7027 out=102 · est $0.00000 · llama3.1:8b

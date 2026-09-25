@@ -1,0 +1,25 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_97e1f769a51449199d9434202d55f47e", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: ['TCS.NS', 'INFY.NS'] is not of type 'string'; call again with valid args"}}
+[  37.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_97e1f769a51449199d9434202d55f47e", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: ['TCS.NS', 'INFY.NS'] is not of type 'string'; call again with valid args"}
+[  45.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_7aed75201f434b40a9ea653a11dcbbc8", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+[  48.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_7aed75201f434b40a9ea653a11dcbbc8", "name": "price_data", "ok": true, "error": null}
+[  58.1s] heartbeat: {"kind": "heartbeat"}
+[  68.1s] heartbeat: {"kind": "heartbeat"}
+[  78.1s] heartbeat: {"kind": "heartbeat"}
+[  79.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_1d2a3c26cb5c4bdf97f6d5464d5ad633", "name": "price_data", "input": {"symbol": "INFY.NS"}}
+[  82.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_1d2a3c26cb5c4bdf97f6d5464d5ad633", "name": "price_data", "ok": true, "error": null}
+[  92.3s] heartbeat: {"kind": "heartbeat"}
+[ 102.3s] heartbeat: {"kind": "heartbeat"}
+[ 112.3s] heartbeat: {"kind": "heartbeat"}
+[ 122.3s] heartbeat: {"kind": "heartbeat"}
+[ 125.4s] done: {"kind": "done", "usage": {"input_tokens": 11339, "output_tokens": 38, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+It seems like I need to call the `price_data` tool separately for each stock. Let me try that.
+
+For TCS.NS:
+The current prices for TCS.NS and INFY.NS are ₹2082.0 and ₹1000.2 respectively, as of 2026-09-25.
+
+=== ok · 125.4s · events {'heartbeat': 10, 'tool_use': 3, 'tool_result': 3, 'delta': 67, 'done': 1} · usage in=11339 out=38 · est $0.00000 · llama3.1:8b
