@@ -311,6 +311,111 @@ def test_call_tool_structured_content_defaults_to_none(monkeypatch: pytest.Monke
     asyncio.run(_go())
 
 
+def test_local_mcp_subprocess_resolves_and_decodes_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A :class:`LocalMcpSubprocess` resolves its endpoint from env vars,
+    reports status, and ``call_tool_json`` decodes text+structuredContent
+    through the caller's ``decode`` exactly once, updating health flags."""
+
+    async def _go() -> None:
+        monkeypatch.setenv("TEST_MCP_PORT", "9876")
+        subprocess = mcp_client.LocalMcpSubprocess(
+            "sec-edgar", port_env="TEST_MCP_PORT", host_env="TEST_MCP_HOST"
+        )
+        assert subprocess.resolve_endpoint() == "http://127.0.0.1:9876/mcp"
+        assert subprocess.is_available() is True
+
+        status = await subprocess.status("sec-edgar-mcp")
+        assert status == {
+            "available": True,
+            "provider": "sec-edgar-mcp",
+            "endpoint": "http://127.0.0.1:9876/mcp",
+            "lastToolCallOk": None,
+            "lastError": None,
+        }
+
+        calls: list[str] = []
+
+        def _decode(result: dict[str, Any], name: str) -> Any:
+            calls.append(name)
+            return result.get("structuredContent") or {
+                b["text"]: True for b in result["content"] if b["type"] == "text"
+            }
+
+        client = mcp_client.McpClient("sec-edgar", transport="http", endpoint="http://x/mcp")
+        client._session = _FakeSession()
+
+        class _Result:
+            isError = False
+            content: list[Any] = []
+            structuredContent = {"decoded": "once"}
+
+        async def _fake_call(self: Any, name: str, args: dict[str, Any]) -> Any:
+            return _Result()
+
+        monkeypatch.setattr(_FakeSession, "call_tool", _fake_call)
+
+        async def _fake_get_client(*_a: Any, **_k: Any) -> mcp_client.McpClient:
+            return client
+
+        monkeypatch.setattr(mcp_client, "get_client", _fake_get_client)
+
+        decoded = await subprocess.call_tool_json("t", {}, decode=_decode)
+        assert decoded == {"decoded": "once"}
+        assert calls == ["t"]  # decode ran exactly once
+        assert subprocess.last_tool_call_ok is True
+        assert subprocess.last_error is None
+
+    asyncio.run(_go())
+
+
+def test_local_mcp_subprocess_port_zero_is_not_available() -> None:
+    """A port of ``"0"`` (Tauri's graceful-degrade signal) is treated the
+    same as an unset env var, not as a real endpoint."""
+    subprocess = mcp_client.LocalMcpSubprocess(
+        "x", port_env="UNSET_TEST_PORT_ZERO", host_env="UNSET_TEST_HOST_ZERO"
+    )
+    assert subprocess.resolve_endpoint() is None
+    assert subprocess.is_available() is False
+
+
+def test_local_mcp_subprocess_call_failure_marks_unhealthy(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A decode failure counts as a failed call (R15-DATA-083): the health
+    flags record it, wrapped as a :class:`ProviderError`."""
+
+    async def _go() -> None:
+        monkeypatch.setenv("TEST_MCP_PORT_2", "1234")
+        subprocess = mcp_client.LocalMcpSubprocess(
+            "openbb-mcp", port_env="TEST_MCP_PORT_2", host_env="TEST_MCP_HOST_2"
+        )
+        client = mcp_client.McpClient("openbb-mcp", transport="http", endpoint="http://x/mcp")
+        client._session = _FakeSession()
+
+        class _Result:
+            isError = False
+            content: list[Any] = []
+            structuredContent = None
+
+        async def _fake_call(self: Any, name: str, args: dict[str, Any]) -> Any:
+            return _Result()
+
+        def _decode(result: dict[str, Any], name: str) -> Any:
+            raise ValueError("bad payload")
+
+        monkeypatch.setattr(_FakeSession, "call_tool", _fake_call)
+
+        async def _fake_get_client(*_a: Any, **_k: Any) -> mcp_client.McpClient:
+            return client
+
+        monkeypatch.setattr(mcp_client, "get_client", _fake_get_client)
+
+        with pytest.raises(ProviderError):
+            await subprocess.call_tool_json("t", {}, decode=_decode)
+        assert subprocess.last_tool_call_ok is False
+        assert subprocess.last_error is not None
+
+    asyncio.run(_go())
+
+
 def test_list_tools_returns_dicts(monkeypatch: pytest.MonkeyPatch) -> None:
     """``list_tools`` returns dicts whose ``name`` field matches the MCP server's."""
 

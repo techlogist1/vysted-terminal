@@ -26,6 +26,8 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
+from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
 
@@ -293,3 +295,104 @@ async def reset_clients() -> None:
         _clients.clear()
     for client in clients:
         await client.close()
+
+
+# ---------------------------------------------------------------------------
+# LocalMcpSubprocess — shared shape for a Tauri-spawned, env-var-discovered
+# local MCP server (openbb-mcp, sec-edgar-mcp, ...).
+# ---------------------------------------------------------------------------
+
+
+class LocalMcpSubprocess:
+    """Discovery + status + health-tracked calls for one local MCP subprocess.
+
+    ``openbb_mcp_provider`` and ``sec_filings_provider`` each re-implemented
+    this (env-var endpoint discovery, ``is_available``, ``status``, the cached
+    client, and the last-call health flags) with small divergences
+    (R15-CODE-AGENT-024). This owns that shared shape; a provider keeps only
+    its own tool names and ``decode`` — the JSON-body extraction from a raw
+    ``call_tool`` result, which differs per upstream server.
+    """
+
+    def __init__(self, server_id: str, *, port_env: str, host_env: str) -> None:
+        self.server_id = server_id
+        self.port_env = port_env
+        self.host_env = host_env
+        self._available: bool | None = None
+        self.last_tool_call_ok: bool | None = None
+        self.last_error: str | None = None
+
+    def resolve_endpoint(self) -> str | None:
+        """Return the Streamable-HTTP endpoint, or ``None`` if not bundled.
+
+        A port of ``"0"`` is the Tauri core's graceful-degrade signal (it
+        spawned the child but the bind failed) and is treated the same as
+        "not set".
+        """
+        port = os.environ.get(self.port_env)
+        if not port or port == "0":
+            return None
+        host = os.environ.get(self.host_env, "127.0.0.1")
+        return f"http://{host}:{port}/mcp"
+
+    def is_available(self) -> bool:
+        """Return whether the subprocess is reachable in this build."""
+        if self._available is None:
+            self._available = self.resolve_endpoint() is not None
+        return bool(self._available)
+
+    async def status(self, provider: str) -> dict[str, Any]:
+        """Status payload for a plugin-manager ``GET .../status`` route.
+
+        Configured is not enough: after a failed call the provider is down
+        until the next call succeeds (R15-LIFECYCLE-005).
+        """
+        endpoint = self.resolve_endpoint()
+        available = endpoint is not None and self.last_tool_call_ok is not False
+        return {
+            "available": available,
+            "provider": provider,
+            "endpoint": endpoint,
+            "lastToolCallOk": self.last_tool_call_ok,
+            "lastError": self.last_error,
+        }
+
+    async def _get_client(self) -> McpClient:
+        endpoint = self.resolve_endpoint()
+        if endpoint is None:
+            raise ProviderError(
+                f"{self.server_id} subprocess is not running — {self.port_env} not set."
+            )
+        return await get_client(self.server_id, transport="http", endpoint=endpoint)
+
+    async def call_tool_json(
+        self,
+        name: str,
+        arguments: dict[str, Any],
+        *,
+        decode: Callable[[dict[str, Any], str], Any],
+    ) -> Any:
+        """Invoke ``name``, decode via the caller's ``decode``, and track health.
+
+        One try over the call AND the decode: an ``isError`` / undecodable
+        payload is a failed call too, so the health flags record it
+        (R15-DATA-083).
+        """
+        client = await self._get_client()
+        try:
+            decoded = decode(await client.call_tool(name, arguments), name)
+        except Exception as exc:
+            self.last_tool_call_ok = False
+            self.last_error = f"{type(exc).__name__}: {exc}"
+            if isinstance(exc, ProviderError):
+                raise
+            raise ProviderError(f"{self.server_id} call {name!r} failed: {exc}") from exc
+        self.last_tool_call_ok = True
+        self.last_error = None
+        return decoded
+
+    def reset_for_tests(self) -> None:
+        """Clear cached availability + health state. Used only from tests."""
+        self._available = None
+        self.last_tool_call_ok = None
+        self.last_error = None
