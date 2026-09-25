@@ -1839,7 +1839,12 @@ _MARKED = re.compile(
     # A count of something other than shares ("two possible matches", "3
     # analyst ratings"): a lower-case plural noun, one adjective allowed. A
     # function word ending in s is no noun: "6 of its shares", "was 6 this year".
-    rf"|\b{_NUM}\s+(?-i:(?:[a-z]+\s+)?(?!(?:shares?|ords?|units?|stocks?|equities|securities"
+    # Nor is a qualifier of the shares themselves: "6 class A ordinary shares",
+    # "2 bonus shares" (R15-AGENT-090). ponytail: a number two words before
+    # "shares" ("3 analysts covering shares") reads as a share count.
+    rf"|\b{_NUM}\s+(?-i:(?!(?:[a-z]+\s+){{1,2}}(?:[A-Z]\s+)?"
+    r"(?:(?:ordinary|equity|common|preferred)\s+)?shares?\b)"
+    r"(?:[a-z]+\s+)?(?!(?:shares?|ords?|units?|stocks?|equities|securities"
     r"|is|was|has|as|its|his|this|thus|plus)\b)[a-z]+(?:s|es)\b)"
     # A volume/count, unless stated as N ordinary shares (not "outstanding"):
     # "equals approximately 144869230 ordinary shares" was a live fabrication.

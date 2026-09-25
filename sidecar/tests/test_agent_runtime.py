@@ -2684,6 +2684,39 @@ def test_a_function_word_after_a_count_does_not_mark_it(claim: str) -> None:
     )
 
 
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "Each ADS represents 6 class A shares. ",
+        "Each ADS represents 6 class A ordinary shares. ",
+        "Each ADR represents 2 bonus shares. ",
+        "The ADR stands for 4 class B common shares. ",
+        "Each ADS represents 3 series C shares. ",
+        "Each ADR equals 8 bonus class A shares. ",
+        "Each ADS represents 4 class A preferred shares. ",
+        "Each ADR represents 5 founder shares. ",
+        "Each ADS represents 2 deferred shares. ",
+    ],
+)
+def test_a_qualifier_before_shares_does_not_mark_the_count(claim: str) -> None:
+    """R15-AGENT-090 batch 16: the plural-noun marker read a class qualifier
+    ('class', 'bonus') as the counted noun, so live 'Each ADS represents 6 class
+    A shares.' streamed unguarded."""
+    result = json.dumps(_SIFY_FUNDAMENTALS)
+    assert (
+        agent_runtime._guard_ratio_claims(claim, [result]) == agent_runtime.RATIO_UNAVAILABLE + " "
+    )
+
+
+def test_a_lower_case_class_qualified_source_traces_its_count() -> None:
+    """R15-AGENT-090 batch 16: the source side reads the same marker, so a cover
+    statement in lower case sourced no count and the TRUE claim was replaced."""
+    statement = "American Depositary Shares, each representing six class A ordinary shares"
+    result = json.dumps({"ok": True, "ads_ratio": {"statement": statement}})
+    sentence = "Each ADS represents 6 class A ordinary shares. "
+    assert agent_runtime._guard_ratio_claims(sentence, [result]) == sentence
+
+
 _SIFY_FUNDAMENTALS_WITH_DEPOSITARY = {
     **_SIFY_FUNDAMENTALS,
     "ads_ratio": {
