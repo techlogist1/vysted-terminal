@@ -74,7 +74,7 @@ All reads were made at the sha with `git show 4d893147…:<path>` / `git cat-fil
 ## Checked and correct
 
 - **Line 1 header:** the required string, exactly.
-- **Banned words:** `grep -ci laya` = 0 and `grep -ci low-latency` = 0. No key, token or keystore content (a secret-shape grep returned nothing). Trading appears only as removed (D81) or as operator leftovers, never as a feature.
+- **Banned words:** `grep -ci <banned word>` = 0 and `grep -ci low-latency` = 0. No key, token or keystore content (a secret-shape grep returned nothing). Trading appears only as removed (D81) or as operator leftovers, never as a feature.
 - **Versions:** all five cited version lines read 0.8.0 (FACTS Versions table). The draft correctly says 0.9.0 lands with the version-branch merge right after `r15-rc1`, and never claims that `r15-rc1` exists. `git tag --merged 4d893147 --sort=-creatordate` → newest is `r13-bedrock`; `git tag -l 'r15*'` → none.
 - **Licence split:** PolyForm Strict 1.0.0 + commercial; `types/plugin.ts` and the example plugin Apache-2.0; `0c63d465` = "chore(license): relicense core to PolyForm Strict 1.0.0".
 - **Register table:** every cell equals the recompute from the JSON at the sha (c 16/0/0/0/0/0; h 105/0/4/6/1/0; m 258/1/5/15/9/5; l 12/205/2/4/4/0; total 391/206/11/25/14/5 = 652). The only open critical/high/medium entry is R15-LEAD-035 (medium, agent-tools).

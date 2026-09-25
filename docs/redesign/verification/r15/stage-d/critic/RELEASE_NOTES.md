@@ -74,7 +74,7 @@ All claims were read at sha `4d893147def983623de681effd1bfbae2e7441c5` (`git sho
 ## Checked and correct
 
 - **Line 1 marker:** exact.
-- **Grep checks:** `grep -ci laya` gives 0 and `grep -ci 'low-latency'` gives 0. The draft contains no key, token or keystore content; the updater pubkey in `tauri.conf.json` is not reproduced.
+- **Grep checks:** `grep -ci <banned word>` gives 0 and `grep -ci 'low-latency'` gives 0. The draft contains no key, token or keystore content; the updater pubkey in `tauri.conf.json` is not reproduced.
 - **Trading removal:**
   - No trading surface is described as a feature.
   - `sidecar/services/kill_switch.py`, `src-tauri/src/kill_switch.rs`, `sidecar/models/audit_log.py` and `registry_v0_6_5.py` are all absent at the sha.

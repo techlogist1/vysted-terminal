@@ -181,6 +181,6 @@ Scratch: `scratchpad/stage-d-4d89314/crit-v080.txt` (the grep output for #3).
   `:669`, `:760` and `:1008` match, and there is no `## v0.8.0` heading.
 - `Cargo.toml:34` keyring features; `test_search_extract.py:467` has `encoding="utf-8"`; the
   `test_tests_encoding.py` docstring names R15-CROSS-PLATFORM-002.
-- Hygiene: `grep -i -c laya` gives 0, and the phrase banned by scope change 2 is absent. No trading feature is
+- Hygiene: `grep -i -c <banned word>` gives 0, and the phrase banned by scope change 2 is absent. No trading feature is
   described or proposed; the only hit is the CHANGELOG heading "trading removed". No key, token or keystore content
   appears; `TAURI_SIGNING_PRIVATE_KEY` occurs only as a quoted variable name.

@@ -134,7 +134,7 @@ walk-through is the keyless copilot: without a pulled Ollama model it has nothin
 ## Checked and correct
 
 - Line 1 is exactly `<!-- DRAFT at 4d893147def983623de681effd1bfbae2e7441c5 by the Stage D docs wave; refresh before rc2 -->`.
-- `grep -ic laya` returns 0. The banned "low-latency…" phrase returns 0. The draft contains no
+- `grep -ic <banned word>` returns 0. The banned "low-latency…" phrase returns 0. The draft contains no
   key, token, keystore content or secret shape.
 - Every path the draft names exists at 4d893147. `git cat-file -e` passed for 28 paths,
   including `specs/001-agent-native-redesign/spec.md`,
