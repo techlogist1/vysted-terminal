@@ -2973,6 +2973,56 @@ async def test_a_figureless_dump_written_before_the_calls_result_arrives_is_drop
     assert answer == "} \n\nNo tool returned data for this in this turn.\n" + after
 
 
+@pytest.mark.asyncio
+async def test_a_tool_id_inside_narrated_call_json_is_no_citation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-030 batch-19 t-live-rel-list-replay: llama3.1:8b narrated its own
+    calls as a text JSON array (``"name": "price_data"`` as a string value)
+    before the native call, then listed the ok prices. A tool id inside a JSON
+    string is a mention, not a citation: no note lands ahead of the true list."""
+    agent_runtime.reload()
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    narration = (
+        '[{"name": "price_data", "parameters": {"symbol": "RELIANCE.NS", "range": "1mo"}},\n'
+        '{"name": "price_data", "parameters": {"symbol": "SBIN.NS", "range": "1mo"}}]'
+    )
+    opener = "I will provide a JSON array of function calls:\n\n"
+    listing = "\u2022 RELIANCE.NS: \u20b91226.4\n\u2022 SBIN.NS: \u20b9983.0"
+    call = LLMToolUseEvent(tool_call_id="t", name="price_data", input={"symbol": "RELIANCE.NS"})
+    provider = _RecordingRoundsProvider(
+        [
+            [
+                LLMDeltaEvent(text=opener),
+                LLMDeltaEvent(text=narration[:60]),
+                LLMDeltaEvent(text=narration[60:] + "\n"),
+                call,
+                done,
+            ],
+            [LLMDeltaEvent(text=listing), done],
+        ]
+    )
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+
+    async def _tool(*_a: Any, **_k: Any) -> str:
+        return json.dumps({"ok": True, "symbol": "RELIANCE.NS", "latest_price": 1226.4})
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    answer = "".join(
+        [
+            e.text
+            async for e in agent_runtime.invoke_agent(
+                agent_id="copilot",
+                prompt="RELIANCE and SBIN prices?",
+                api_key="sk-test",
+                autonomy="ask",
+            )
+            if isinstance(e, LLMDeltaEvent)
+        ]
+    )
+    assert answer == f"{opener}{narration}\n{listing}"
+
+
 _SIFY_OPENER = (
     "It looks like I made an error in my previous response. To answer your question, I'll "
     "try calling the `financial_statements` tool with the correct arguments.\n\n"
