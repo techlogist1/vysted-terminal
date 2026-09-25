@@ -1,0 +1,66 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_da988c0a3f8049deb34e87035c0a275e", "name": "price_data", "input": {"symbol": "HCLTECH.NS"}}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_da988c0a3f8049deb34e87035c0a275e", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " were"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " H"}
+{"kind": "delta", "text": "CL"}
+{"kind": "delta", "text": "TE"}
+{"kind": "delta", "text": "CH"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " historical"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " close"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "127"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "07"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": "+"}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 7039, "output_tokens": 57, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

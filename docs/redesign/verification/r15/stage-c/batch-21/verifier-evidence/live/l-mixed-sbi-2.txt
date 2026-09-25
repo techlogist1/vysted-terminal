@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  36.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_dde34de737654a17a2444541976dbb7b", "name": "price_data", "input": {"symbol": "TCS.NS", "timeframe": "1mo"}}
+[  38.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e203c8cedb05472199279155889b311a", "name": "price_data", "input": {"symbol": "SBIN.ZZ", "timeframe": "1mo"}}
+[  49.9s] heartbeat: {"kind": "heartbeat"}
+[  54.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_dde34de737654a17a2444541976dbb7b", "name": "price_data", "ok": false, "error": "timeout"}
+[  55.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_e203c8cedb05472199279155889b311a", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'SBIN.ZZ' from 'yfinance'"}
+[  58.4s] done: {"kind": "done", "usage": {"input_tokens": 2943, "output_tokens": 24, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The price_data tool returned no data for this in this turn.
+
+
+=== ok · 58.4s · events {'heartbeat': 4, 'tool_use': 2, 'tool_result': 2, 'delta': 1, 'done': 1} · usage in=2943 out=24 · est $0.00000 · llama3.1:8b

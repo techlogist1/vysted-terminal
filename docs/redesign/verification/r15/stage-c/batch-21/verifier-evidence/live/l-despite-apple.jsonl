@@ -1,0 +1,35 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_a2babefa0e1d40a7b12322ce65302052", "name": "fundamentals", "input": {"__vysted_invalid_args__": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_use", "tool_call_id": "call_eb8ef7af552a44fc96dd9ce4e17979bb", "name": "fundamentals", "input": {"__vysted_invalid_args__": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}}
+{"kind": "tool_use", "tool_call_id": "call_3189649be98442f9ac2ace8d5ffd6315", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+{"kind": "tool_result", "tool_call_id": "call_a2babefa0e1d40a7b12322ce65302052", "name": "fundamentals", "ok": false, "error": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}
+{"kind": "tool_result", "tool_call_id": "call_eb8ef7af552a44fc96dd9ce4e17979bb", "name": "fundamentals", "ok": false, "error": "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}
+{"kind": "tool_result", "tool_call_id": "call_3189649be98442f9ac2ace8d5ffd6315", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Apple"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "38"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "955"}
+{"kind": "delta", "text": "067"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "96"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6055, "output_tokens": 24, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,28 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_2c860cf228124daea9532a2ac9b3d799", "name": "price_data", "input": {"symbol": "TCS.NS", "timeframe": "1d"}}
+{"kind": "tool_use", "tool_call_id": "call_1013c08a44dd458298c0a527eb54c580", "name": "price_data", "input": {"symbol": "SBIN.ZZ", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_2c860cf228124daea9532a2ac9b3d799", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_1013c08a44dd458298c0a527eb54c580", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'SBIN.ZZ' from 'yfinance'"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "208"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "BI"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " no"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 7114, "output_tokens": 17, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
