@@ -127,18 +127,108 @@ _READ_SIGNALS = (
     r"\?\s*$",
 )
 
-# R15-LEAD-035: an explicit instruction not to call any tool at all, checked
-# BEFORE the signal table so it overrides every action cue elsewhere in the
-# same turn (e.g. "sold", "<qty> X at Y"). Deliberately narrow: it must NOT
-# match an instruction to skip one NAMED tool ("without calling the
-# fundamentals tool, use price_data") — "tool(s)" must follow the verb (with
-# only an optional "any" between), never a named tool.
-_NO_TOOL_CUE = re.compile(
-    r"\bwithout (?:calling|using|running|invoking)(?: any)? tools?\b"
-    r"|\b(?:don'?t|do not|never) (?:call|use)(?: any)? tools?\b"
-    r"|\bno tool(?:s\b|\s*calls?\b)"
-    r"|\b(?:just|only) answer from what (?:i )?(?:gave|told) you\b"
+# R15-LEAD-035 (batch-22, normalised matcher): an explicit instruction not to
+# call any tool at all, checked BEFORE the signal table so it overrides every
+# action cue elsewhere in the same turn (e.g. "sold", "<qty> X at Y"). Batch-21's
+# closed phrase list missed "without any tools" (no verb), "a tool" (singular,
+# no "s"/"calls" suffix) and curly-apostrophe "don't". This is a normalised,
+# per-clause matcher instead: curly apostrophes fold to straight, and the match
+# is scoped to one clause (never crosses `.;!?` or a newline). Deliberately
+# narrow: it must NOT match an instruction to skip one NAMED tool ("without
+# calling the news tool, use price_data" — the determiners-only gap between verb
+# and object rejects it) or an OBJECT followed by an exception clause ("no tools
+# except price_data").
+
+
+def _alt(phrases: tuple[str, ...]) -> str:
+    """A regex alternation for a fixed phrase list, internal spaces -> `\\s+`."""
+    return "|".join(p.replace(" ", r"\s+") for p in phrases)
+
+
+_NEG = _alt(
+    (
+        "please don't",
+        "refrain from",
+        "do not",
+        "don't",
+        "without",
+        "never",
+        "avoid",
+        "skip",
+        "no",
+        "not",
+    )
 )
+_VERB = _alt(
+    (
+        "rely on",
+        "look up",
+        "lookup",
+        "calling",
+        "calls",
+        "call",
+        "using",
+        "uses",
+        "use",
+        "invoking",
+        "invoke",
+        "running",
+        "run",
+        "fetch",
+        "search",
+    )
+)
+_DET = _alt(("any", "a", "an", "the", "your", "external"))
+_OBJ = _alt(("external data", "functions", "function", "tools", "tool", "lookups", "searches"))
+
+_NEG2 = _alt(("no", "without", "zero"))
+_OBJ2 = _alt(
+    ("external data", "function calls", "tool calls", "tool use", "tools", "lookups", "searches")
+)
+
+_NO_EXCEPTION = r"(?!\s*(?:except|other than|besides|but)\b)"
+
+# NEG -> up to 3 filler words -> VERB -> determiners only -> OBJECT.
+_NO_TOOL_NEG_VERB_OBJ = re.compile(
+    rf"\b(?:{_NEG})\b(?:\s+\w+){{0,3}}\s+\b(?:{_VERB})\b(?:\s+(?:{_DET}))*\s+\b(?:{_OBJ})\b{_NO_EXCEPTION}"
+)
+# NEG -> OBJECT, no verb ("no tools", "without any tool calls").
+_NO_TOOL_NEG_OBJ = re.compile(
+    rf"\b(?:{_NEG2})\b(?:\s+(?:{_DET}))*\s+\b(?:{_OBJ2})\b{_NO_EXCEPTION}"
+)
+# OBJECT -> VERB-noun ("no tool calls", "without any function usage").
+_NO_TOOL_OBJ_VERB = re.compile(
+    rf"\b(?:no|without|zero)\b(?:\s+any)?\s+(?:tool|function)\s+(?:calls?|use|usage)\b{_NO_EXCEPTION}"
+)
+_NO_TOOL_FREE = re.compile(r"\btool[- ]free\b")
+# Standalone cues.
+_NO_TOOL_FROM_GIVEN = re.compile(
+    r"\b(?:answer|just|only)\b.*\bfrom\b.*"
+    r"\b(?:what i gave you|what i told you|the above|my numbers|this message)\b"
+)
+_NO_TOOL_FROM_MEMORY = re.compile(r"\bfrom memory only\b")
+_NO_TOOL_NO_LOOKUP = re.compile(r"\bwithout looking anything up\b")
+
+
+def _no_tool_cue_matches(lowered: str) -> bool:
+    """Whether any clause of ``lowered`` carries an explicit no-tool instruction."""
+    normalized = lowered.replace("’", "'").replace("‘", "'")
+    for clause in re.split(r"[.;!?\n]+", normalized):
+        clause = clause.strip()
+        if not clause:
+            continue
+        if (
+            _NO_TOOL_NEG_VERB_OBJ.search(clause)
+            or _NO_TOOL_NEG_OBJ.search(clause)
+            or _NO_TOOL_OBJ_VERB.search(clause)
+            or _NO_TOOL_FREE.search(clause)
+            or _NO_TOOL_FROM_GIVEN.search(clause)
+            or _NO_TOOL_FROM_MEMORY.search(clause)
+            or _NO_TOOL_NO_LOOKUP.search(clause)
+        ):
+            return True
+    return False
+
 
 _SIGNAL_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("research", _RESEARCH_SIGNALS),
@@ -209,7 +299,7 @@ def classify_intent(text: str, _context: dict[str, Any] | None = None) -> Intent
         return IntentResult("read", 0.0, [], False)
     lowered = raw.lower()
 
-    if _NO_TOOL_CUE.search(lowered):
+    if _no_tool_cue_matches(lowered):
         # A positive read cue that overrides every action cue in the same turn
         # (R15-LEAD-035) — the caller strips the whole tool surface on it.
         return IntentResult("read", 0.95, ["no-tool"], False)
