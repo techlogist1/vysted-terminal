@@ -999,7 +999,13 @@ export function MarkdownBody({
   return (
     <>
       {blocks.map((block, i) => (
-        <motion.div key={i} {...childProps}>
+        // Reading blocks cap their line length (R9 §7 max-w-prose); tables and
+        // code keep the panel width they need.
+        <motion.div
+          key={i}
+          {...childProps}
+          className={block.kind === "table" || block.kind === "code" ? undefined : "max-w-prose"}
+        >
           {block.kind === "heading" ? (
             <HeadingBlock level={block.level} text={block.text} ctx={ctx} />
           ) : block.kind === "paragraph" ? (

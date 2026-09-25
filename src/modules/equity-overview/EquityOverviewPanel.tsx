@@ -398,7 +398,8 @@ function NarrativeSection({
           </div>
         </div>
       ) : narrative?.summary != null ? (
-        <div className="flex flex-col gap-3 px-3 py-3">
+        // Reading surface: capped line length (R9 §7 max-w-prose), never ~150ch.
+        <div data-testid="narrative-body" className="flex max-w-prose flex-col gap-3 px-3 py-3">
           {/* Primary tier — the narrative prose. */}
           <p className="text-charcoal-100 text-prose leading-relaxed">
             <VerifiedProse text={narrative.summary} />
