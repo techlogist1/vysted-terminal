@@ -17,6 +17,7 @@ from typing import Any
 
 from models.llm import LLMUsage
 from services.budget_guard import BudgetGuard
+from services.research.deep import _reflect_says_complete
 from services.research.models import ResearchBrief, ResearchSource
 from services.research.verify import _parse_verdict, cross_check
 
@@ -209,6 +210,31 @@ def test_parse_verdict_reads_the_leading_verdict_word_not_the_reason() -> None:
     ):
         assert _parse_verdict(reply)[0] == "unverified", reply
     assert _parse_verdict("**AGREE** — reuters.com and bloomberg.com match")[0] == "agree"
+
+
+def test_parse_verdict_reads_a_labelled_verdict_word() -> None:
+    """R15-RESEARCH-002 (rc1 refutation audit): a 'Verdict:'/'Answer:' label, a
+    bracketed word, a list-numbered word, or a mid-line standalone uppercase
+    word must all decide as the verdict word — never a marker in the reason."""
+    for reply in (
+        "Verdict: UNVERIFIED - no source confirms the 23% operating margin.",
+        "**Verdict:** UNVERIFIED - no source confirms it.",
+        "Answer: UNVERIFIED - evidence does not support the figure.",
+        "[UNVERIFIED] the sources do not confirm this.",
+        "The claim is UNVERIFIED; nothing I found confirms the 23% margin.",
+        "1. UNVERIFIED - no source confirms",
+    ):
+        assert _parse_verdict(reply)[0] == "unverified", reply
+    assert _parse_verdict("Verdict: DISAGREE - sources agree on 21% not 23%")[0] == "disagree"
+    assert _parse_verdict("Verdict: AGREE - reuters confirms")[0] == "agree"
+
+
+def test_reflect_says_complete_class_pin_on_bracket_and_list_marker() -> None:
+    """Class pin (R15-RESEARCH-002): the same leading_token fix that unblocks
+    labelled verdict words must also unblock a bracketed or list-numbered
+    reflect word, a case the fix was not written against directly."""
+    assert _reflect_says_complete("[GAPS] revenue covered but margins are not") is False
+    assert _reflect_says_complete("1. COMPLETE - all dimensions covered") is True
 
 
 def test_dead_llm_degrades_to_unverified_never_raises() -> None:

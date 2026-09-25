@@ -117,15 +117,30 @@ _VERDICT_TOKENS = {
 }
 
 
+#: Priority order for a standalone uppercase verdict word found mid-line (not
+#: the leading token) — checked before the marker scan so a reason like "the
+#: claim is UNVERIFIED; nothing confirms it" never reads as an agreement.
+_STANDALONE_VERDICT_WORDS = (
+    ("UNVERIFIED", _VERDICT_UNVERIFIED),
+    ("DISAGREE", _VERDICT_DISAGREE),
+    ("AGREE", _VERDICT_AGREE),
+)
+
+
 def _parse_verdict(text: str) -> tuple[str, str]:
     """Parse an LLM verdict completion to ``(verdict, detail)`` — conservative.
 
     The prompt mandates a leading verdict word, so that word decides
     (:func:`~services.research.deep.leading_token`): the reason after it
     routinely says "no source confirms" or "does not support", which must never
-    read as an agreement. Only a reply that does not lead with a verdict word
-    falls back to the marker scan. Anything ambiguous or empty is UNVERIFIED (a
-    verification round must never upgrade a claim it could not actually check).
+    read as an agreement. A reply that labels the word instead of leading with
+    it ("Verdict: UNVERIFIED", "1. UNVERIFIED", "[UNVERIFIED]") still reads via
+    :func:`~services.research.deep.leading_token`. Failing that, an uppercase
+    standalone verdict word anywhere in the line (UNVERIFIED > DISAGREE > AGREE)
+    decides next — this is still a real verdict word, not a marker substring.
+    Only a reply with none of that falls back to the marker scan. Anything
+    ambiguous or empty is UNVERIFIED (a verification round must never upgrade a
+    claim it could not actually check).
     """
     first_line = text.strip().splitlines()[0].strip() if text.strip() else ""
     low = first_line.lower()
@@ -134,6 +149,9 @@ def _parse_verdict(text: str) -> tuple[str, str]:
     head = _VERDICT_TOKENS.get(leading_token(first_line))
     if head is not None:
         return head, first_line
+    for word, verdict in _STANDALONE_VERDICT_WORDS:
+        if re.search(rf"\b{word}\b", first_line):
+            return verdict, first_line
     if any(marker in low for marker in _DISAGREE_MARKERS):
         return _VERDICT_DISAGREE, first_line
     if any(marker in low for marker in _AGREE_MARKERS):
