@@ -41,6 +41,22 @@ async def test_get_stale_returns_none() -> None:
 
 
 @pytest.mark.asyncio
+async def test_stale_get_evicts_row() -> None:
+    """R15-CODE-DATA-010: a stale row is DELETED on the read that finds it
+    stale, not left sitting past its TTL forever."""
+    await data_cache.set("k", "v")
+    # Backdate updated_at so the row is stale under a real (>0) ttl, without
+    # racing the clock.
+    data_cache._get_conn().execute(  # type: ignore[attr-defined]
+        "UPDATE cache SET updated_at = updated_at - 3600 WHERE key = ?", ("k",)
+    )
+    assert await data_cache.size() == 1
+    got = await data_cache.get("k", ttl_seconds=60)
+    assert got is None
+    assert await data_cache.size() == 0
+
+
+@pytest.mark.asyncio
 async def test_set_upsert_overwrites_value_and_bumps_timestamp() -> None:
     await data_cache.set("k", "old")
     before = time.time()

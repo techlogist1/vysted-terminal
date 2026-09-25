@@ -200,9 +200,9 @@ async def get(key: str, ttl_seconds: float) -> Any | None:
         key: opaque string key; callers are responsible for namespacing.
         ttl_seconds: maximum allowed staleness in seconds. The row's
             ``updated_at`` must satisfy ``now - updated_at <= ttl_seconds``
-            for a hit; otherwise the row is treated as stale and ``None``
-            is returned (the row is NOT auto-evicted — a subsequent
-            :func:`set` overwrites it).
+            for a hit; otherwise the row is treated as stale, DELETED
+            (R15-CODE-DATA-010: a stale row is never left to sit past its
+            TTL), and ``None`` is returned.
 
     Returns the decoded JSON value (any shape ``json.loads`` returns) on
     hit, or ``None`` on miss / stale.
@@ -235,6 +235,7 @@ async def get_with_meta(key: str, ttl_seconds: float) -> tuple[Any, float] | Non
     value_text, updated_at = row
     updated_at = float(updated_at)
     if time.time() - updated_at > ttl_seconds:
+        await _run(lambda conn: conn.execute("DELETE FROM cache WHERE key = ?", (key,)))
         return None
     try:
         return json.loads(value_text), updated_at
