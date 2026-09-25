@@ -1,0 +1,96 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_2290d0f9a26646f79d8bf3db835e619f", "name": "price_data", "input": {"symbol": "MSFT", "timeframe": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_2290d0f9a26646f79d8bf3db835e619f", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "_data"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " returned"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " following"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " MS"}
+{"kind": "delta", "text": "FT"}
+{"kind": "delta", "text": " today"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "09"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": "):\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " most"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " quote"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": " set"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " see"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " closing"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "497"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "93"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "09"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": " set"}
+{"kind": "delta", "text": " only"}
+{"kind": "delta", "text": " goes"}
+{"kind": "delta", "text": " back"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "05"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "18"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " there"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " recent"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " MS"}
+{"kind": "delta", "text": "FT"}
+{"kind": "delta", "text": " today"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6475, "output_tokens": 89, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

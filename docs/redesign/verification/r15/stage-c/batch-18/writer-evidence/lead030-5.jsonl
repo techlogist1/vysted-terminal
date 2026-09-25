@@ -1,0 +1,263 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_393cb67c88af455f98d5b6c7eb7e05bf", "name": "financial_statements", "input": {"period": "quarterly", "statement": "income", "symbol": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_393cb67c88af455f98d5b6c7eb7e05bf", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " directly"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " received"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " focused"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " income"}
+{"kind": "delta", "text": " statements"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " Indian"}
+{"kind": "delta", "text": " Ru"}
+{"kind": "delta", "text": "pees"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "IN"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " use"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": " rate"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " convert"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "According"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " quarterly"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "06"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "30"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "746"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "20"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Using"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": " rate"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "82"}
+{"kind": "delta", "text": " IN"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " estimate"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "TT"}
+{"kind": "delta", "text": "M"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Tr"}
+{"kind": "delta", "text": "ailing"}
+{"kind": "delta", "text": " Twelve"}
+{"kind": "delta", "text": " Months"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " typically"}
+{"kind": "delta", "text": " calculated"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " sum"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " revenues"}
+{"kind": "delta", "text": " over"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " past"}
+{"kind": "delta", "text": " four"}
+{"kind": "delta", "text": " quarters"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "03"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "31"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "702"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "30"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "31"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "695"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "20"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "09"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "30"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "629"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "For"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "06"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "30"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "657"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Total"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "248"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "approximately"}
+{"kind": "delta", "text": ")\n\n"}
+{"kind": "delta", "text": "Con"}
+{"kind": "delta", "text": "verting"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " exchange"}
+{"kind": "delta", "text": " rate"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " get"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "Total"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " \u2248"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "248"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": " \u00d7"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": " /"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "82"}
+{"kind": "delta", "text": " IN"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " \u2248"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "30"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "28"}
+{"kind": "delta", "text": " million"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " estimate"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " may"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " reflect"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " actual"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6876, "output_tokens": 255, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

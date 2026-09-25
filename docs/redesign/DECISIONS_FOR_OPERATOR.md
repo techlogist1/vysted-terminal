@@ -400,7 +400,7 @@ are done-and-revertable like §1; these are yours to review or act on.
 - **Recommendation:** once the Playwright suite lands, run it in a GUI-attended session (or CI
   with a real display) and certify R15-UI-088 from that run's output.
 
-### 4.5 R15-CODE-PLATFORM-063 — scripts/*.py sit outside every ruff gate in CI and ci-local
+### 4.5 R15-CODE-PLATFORM-063 — `scripts/*.py` sit outside every ruff gate in CI and ci-local
 
 - **Blocked:** the fix widens the ruff scope from `sidecar` to `sidecar scripts` in
   `.github/workflows/lint.yml:87-89` (plus the mirrored path in `package.json`'s `ci-local`
@@ -417,8 +417,8 @@ are done-and-revertable like §1; these are yours to review or act on.
 
 ### 4.6 R15-DOCS-008 — BLUEPRINT §2/§3.1 still describe OpenBB as an in-process runtime-sidecar wrap
 
-- **Blocked:** the fix rewrites `docs/BLUEPRINT.md:55`, a row inside the `## 2. Locked Decisions
-  Summary` table ("Data layer | OpenBB ODP wrapped as runtime sidecar"), plus the matching §3.1
+- **Blocked:** the fix rewrites `docs/BLUEPRINT.md:55`, a row inside the
+  `## 2. Locked Decisions Summary` table ("Data layer | OpenBB ODP wrapped as runtime sidecar"), plus the matching §3.1
   prose at `:84`. v0.4.0 already retired the in-process OpenBB plugin in favor of the
   out-of-process `openbb-mcp` subprocess, so this is a correction, not a new reversal — but it
   still edits a Locked-table row.

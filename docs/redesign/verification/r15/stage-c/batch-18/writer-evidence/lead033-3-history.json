@@ -1,0 +1,10 @@
+[
+ {
+  "role": "user",
+  "content": "What is NVDA's P/E ratio?"
+ },
+ {
+  "role": "assistant",
+  "content": "NVDA's P/E ratio is 28.39.\n\n(Note: I have truncated the output as it was too long and included only the relevant information.)\n\n[tool steps: Using fundamentals]"
+ }
+]

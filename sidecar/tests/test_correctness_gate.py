@@ -48,11 +48,27 @@ def test_symbols_match_normalises_suffix_and_dash() -> None:
     assert not correctness_gate.symbols_match("CNS", "C")  # does not over-strip "NS"
 
 
+def test_symbols_match_strips_yfinance_emerge_sm_infix() -> None:
+    """R15-LEAD-034: yfinance's Emerge (SME) ``-SM.NS`` form matches the bare
+    india-all universe symbol a background crawler requests it with."""
+    assert correctness_gate.symbols_match("INSPIRE", "INSPIRE-SM.NS")
+    assert correctness_gate.symbols_match("SUMAX", "SUMAX-SM.NS")
+    # A different instrument still does not match just because both carry -SM.
+    assert not correctness_gate.symbols_match("INSPIRE", "OTHER-SM.NS")
+
+
 def test_validate_quote_accepts_good() -> None:
     q = _quote("GOLDBEES", 128.5)
     assert correctness_gate.validate_quote(q, "GOLDBEES", "IN") is q
     # Matches across the .NS form the resolver may have requested.
     assert correctness_gate.validate_quote(q, "GOLDBEES.NS", "IN") is q
+
+
+def test_validate_quote_accepts_emerge_sm_form() -> None:
+    """R15-LEAD-034: a bare-symbol request matches yfinance's Emerge -SM.NS
+    return form, the case the fix was not written against for validate_quote."""
+    q = _quote("SUMAX-SM.NS", 42.0)
+    assert correctness_gate.validate_quote(q, "SUMAX", "IN") is q
 
 
 def test_validate_quote_rejects_non_positive() -> None:
@@ -78,6 +94,13 @@ def test_validate_series_rejects_empty_and_mismatch() -> None:
         correctness_gate.validate_series(empty, "GOLDBEES", "IN")
     with pytest.raises(CorrectnessError):
         correctness_gate.validate_series(_series("WRONG", 100.0), "GOLDBEES", "IN")
+
+
+def test_validate_series_accepts_emerge_sm_form() -> None:
+    """R15-LEAD-034: same bare-vs-Emerge-form case, on the series validator —
+    not the path the fix was written against (that was fundamentals)."""
+    series = _series("SUMAX-SM.NS", 100.0)
+    assert correctness_gate.validate_series(series, "SUMAX", "IN") is series
 
 
 def test_validate_series_accepts_old_but_valid() -> None:
@@ -121,6 +144,15 @@ def test_validate_fundamentals_rejects_symbol_mismatch() -> None:
     """Identity is still fatal — a wrong-instrument result advances providers."""
     with pytest.raises(CorrectnessError):
         correctness_gate.validate_fundamentals(_fund(symbol="WRONG.BO"), "KSE", "IN")
+
+
+def test_validate_fundamentals_accepts_emerge_sm_form() -> None:
+    """R15-LEAD-034: fundamentals_warm's india-all crawler requests the bare
+    NSE Emerge symbol ("INSPIRE"); yfinance_provider returns it keyed by
+    Yahoo's -SM.NS form ("INSPIRE-SM.NS") — that must pass the gate, not be
+    rejected as a symbol mismatch on every warming cycle."""
+    good = _fund(symbol="INSPIRE-SM.NS")
+    assert correctness_gate.validate_fundamentals(good, "INSPIRE", "IN") is good
 
 
 def test_validate_fundamentals_passes_plausible_result_untouched() -> None:

@@ -1,0 +1,13 @@
+FAIL [TRUE] rev-according-news-reports: "The news tool returned no data for this in this turn.\n"
+FAIL [TRUE] rev-based-on-research: "The research tool returned no data for this in this turn.\n"
+FAIL [TRUE] rev-based-on-price-data: "The price_data tool returned no data for this in this turn.\n"
+FAIL [TRUE] fresh-per-news: "The news tool returned no data for this in this turn.\n"
+FAIL [TRUE] fresh-as-per-fundamentals-word: "The fundamentals tool returned no data for this in this turn.\n"
+FAIL [TRUE] fresh-fetched-from-research: "The research tool returned no data for this in this turn.\n"
+PASS [FAB] fab-according-to-backtick: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] fab-according-to-snake: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] fab-according-to-the-tool-noun: "The price_data tool returned no data for this in this turn.\n"
+PASS [FAB] fab-live1-dump: "The fundamentals tool returned no data for this in this turn.\nDone."
+PASS [TRUE] true-err-plus-ok-figure: "The fundamentals tool returned an error, so I used financial statements, which shows revenue of \u20b94,411 cr.\n"
+PASS [FAB] fab-camel: "The price_data tool returned no data for this in this turn.\n"
+BAD 6

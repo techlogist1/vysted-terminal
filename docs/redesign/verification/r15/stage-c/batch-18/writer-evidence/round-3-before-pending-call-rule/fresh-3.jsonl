@@ -1,0 +1,72 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_29b35f3d8ee34cff923b045b09d096d8", "name": "fundamentals", "input": {"symbol": "SIFY.NS"}}
+{"kind": "tool_use", "tool_call_id": "call_ac60d7a5a4d842f6b918868335839c94", "name": "financial_statements", "input": {"symbol": "SIFY", "statement": "income", "period": "annual"}}
+{"kind": "tool_result", "tool_call_id": "call_29b35f3d8ee34cff923b045b09d096d8", "name": "fundamentals", "ok": false, "error": "provider error: yfinance has no instrument data for 'SIFY.NS'"}
+{"kind": "tool_result", "tool_call_id": "call_ac60d7a5a4d842f6b918868335839c94", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " annual"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " year"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "03"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "31"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "684"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "This"}
+{"kind": "delta", "text": " figure"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " obtained"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " statements"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Unfortunately"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " fundamentals"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " failed"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": " error"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " y"}
+{"kind": "delta", "text": "finance"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " no"}
+{"kind": "delta", "text": " instrument"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " '"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "'."}
+{"kind": "done", "usage": {"input_tokens": 6795, "output_tokens": 62, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
