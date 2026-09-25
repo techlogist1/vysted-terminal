@@ -1798,11 +1798,10 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       }
       const notes = useNotesStore.getState();
       const current = notes.noteFor(scope);
-      const next = append && current.trim() ? `${current.replace(/\s+$/, "")}\n\n${text}` : text;
-      if (scope === "") {
-        notes.setGeneral(next);
+      if (append) {
+        notes.appendSymbolNote(scope, text);
       } else {
-        notes.setSymbolNote(scope, next);
+        notes.setSymbolNote(scope, text);
       }
       useWorkspaceStore.getState().openPanel("notes");
       return done(`${append ? "Appended to" : "Wrote"} the ${noteScopeLabel(scope)} note`, {

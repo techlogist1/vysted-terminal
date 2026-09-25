@@ -1235,6 +1235,25 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(useNotesStore.getState().general).toBe("My thesis.\n\nAgent takeaway.");
   });
 
+  it("write_note append with a trailing-whitespace addendum equals appendSymbolNote", () => {
+    // host-actions appends through the notes store seam, so the agent's append
+    // and the store's own append can never disagree on trimming (R15-CODE-FRONTEND-035).
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    const seed = { general: "Macro view.\n", bySymbol: { NVDA: "Thesis.  " }, focusSymbol: "" };
+    const addendum = "  Q4 beat.\n\n";
+    useNotesStore.setState(seed);
+    useNotesStore.getState().appendSymbolNote("NVDA", addendum);
+    useNotesStore.getState().appendGeneral(addendum);
+    const viaSeams = { ...useNotesStore.getState().bySymbol };
+    const generalViaSeam = useNotesStore.getState().general;
+    useNotesStore.setState(seed);
+    applyHostAction("write_note", { scope: "nvda", text: addendum, mode: "append" });
+    applyHostAction("write_note", { scope: "general", text: addendum, mode: "append" });
+    expect(useNotesStore.getState().bySymbol).toEqual(viaSeams);
+    expect(useNotesStore.getState().general).toBe(generalViaSeam);
+    expect(viaSeams.NVDA).toBe("Thesis.  \n\nQ4 beat.");
+  });
+
   it("save_layout without a name updates the active saved layout", async () => {
     const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({}) }));
     vi.stubGlobal("fetch", fetchMock as unknown as typeof fetch);
