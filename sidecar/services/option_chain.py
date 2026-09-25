@@ -103,6 +103,18 @@ def _cache_key(day: date) -> str:
     return _CACHE_KEY.format(ymd=day.strftime("%Y%m%d"))
 
 
+#: How long a probe of TODAY's file (a 404 — not yet published — or a
+#: transport/HTTP failure) is remembered, so a burst of requests in the same
+#: window does not re-probe NSE for a file that is not going to change within
+#: a few minutes (R15-DATA-114).
+_PROBE_TTL_SECONDS = 5 * 60.0
+_PROBE_KEY = "nse_fo_bhavcopy:probe:{ymd}"
+
+
+def _probe_key(day: date) -> str:
+    return _PROBE_KEY.format(ymd=day.strftime("%Y%m%d"))
+
+
 async def _fetch_fo_day(day: date) -> tuple[str, dict[str, list[Packed]] | None]:
     """``("ok", rows)``, ``("missing", None)`` on a 404, else ``("failed", None)``."""
     try:
@@ -127,9 +139,19 @@ async def fetch_latest_fo(max_lookback_days: int = 7) -> FoBhavcopy | None:
 
     Weekends are skipped without a request; a 404 walks back a day (cached as a
     holiday only for a past non-trading day, never today, whose file lands
-    after the close); a blocked or failed day stops the walk.
+    after the close); a blocked or failed older day stops the walk.
+
+    TODAY's probe (404 — not yet published — or a transport/HTTP failure) is
+    cached briefly (:data:`_PROBE_TTL_SECONDS`) so a burst of requests only
+    hits NSE once, and a *failed* (not merely missing) today-probe does not
+    abort the walk: it serves the newest already-cached day instead, and
+    stops making further network calls for older days too — a transient
+    upstream failure should not shadow a good cached day, but it also
+    shouldn't be treated as a green light to keep probing a broken upstream
+    (R15-DATA-114).
     """
     today = nse_bhavcopy._ist_today()
+    upstream_down = False
     for offset in range(max_lookback_days + 1):
         day = today - timedelta(days=offset)
         if day.weekday() >= 5:
@@ -139,10 +161,23 @@ async def fetch_latest_fo(max_lookback_days: int = 7) -> FoBhavcopy | None:
             return FoBhavcopy(trade_date=day, rows=cached["rows"])
         if cached is not None:
             continue  # a cached holiday marker
+
+        if day == today:
+            probed = await data_cache.get(_probe_key(day), _PROBE_TTL_SECONDS)
+            if probed is not None:
+                upstream_down = bool(probed.get("failed"))
+                continue
+        elif upstream_down:
+            continue  # today's probe failed outright: cache-only from here
+
         status, rows = await _fetch_fo_day(day)
         if status == "ok" and rows:
             await data_cache.set(_cache_key(day), {"rows": rows})
             return FoBhavcopy(trade_date=day, rows=rows)
+        if day == today:
+            await data_cache.set(_probe_key(day), {"failed": status == "failed"})
+            upstream_down = status == "failed"
+            continue
         if status == "failed":
             return None
         if day < today and not _is_trading_day(day, REGION_IN):

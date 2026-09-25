@@ -169,3 +169,56 @@ async def test_agent_tool_trims_to_strikes_nearest_spot(nse_calls: list[str]) ->
     assert sorted({c["strike"] for c in out["result"]["contracts"]}) == [23000, 23100]
     missing = await quant_tools._option_chain({"symbol": "GOLDBEES"})
     assert missing["ok"] is False and missing["error"].startswith("not_found")
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-114: today's negative probe (404 or a transport/HTTP failure) is
+# cached briefly, and a failed (not merely missing) today-probe walks back
+# cache-only instead of returning None while a good cached day sits unused.
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def option_chain_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    data_cache.reset_for_tests(tmp_path / "cache.db")
+    monkeypatch.setattr(nse_bhavcopy, "_ist_today", lambda: date(2026, 9, 25))
+    yield
+    data_cache.reset_for_tests(None)
+
+
+@pytest.mark.asyncio
+async def test_failed_today_probe_falls_back_to_a_cached_previous_day(
+    option_chain_cache: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    yesterday = date(2026, 9, 24)
+    cached_rows = {"NIFTY": [["2026-10-01", 23000, "call", 100, 10, 1.0, 1.0, 5, 23000.0]]}
+    await data_cache.set(option_chain._cache_key(yesterday), {"rows": cached_rows})
+
+    async def fake_fetch(day: date) -> tuple[str, None]:
+        # Cache-only from here: the walk must never re-probe an older day
+        # once today's probe has failed outright.
+        assert day == date(2026, 9, 25)
+        return "failed", None
+
+    monkeypatch.setattr(option_chain, "_fetch_fo_day", fake_fetch)
+    result = await option_chain.fetch_latest_fo()
+    assert result is not None
+    assert result.trade_date == yesterday
+    assert result.rows == cached_rows
+
+
+@pytest.mark.asyncio
+async def test_two_calls_with_todays_404_probe_the_network_once(
+    option_chain_cache: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[date] = []
+
+    async def fake_fetch(day: date) -> tuple[str, None]:
+        calls.append(day)
+        return "missing", None
+
+    monkeypatch.setattr(option_chain, "_fetch_fo_day", fake_fetch)
+    first = await option_chain.fetch_latest_fo(max_lookback_days=0)
+    second = await option_chain.fetch_latest_fo(max_lookback_days=0)
+    assert first is None and second is None
+    assert calls == [date(2026, 9, 25)]  # the second call reused the cached probe
