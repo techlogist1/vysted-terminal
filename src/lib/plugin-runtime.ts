@@ -129,10 +129,14 @@ function defaultContext(context?: PluginRuntimeContext): Required<PluginRuntimeC
 }
 
 /** Parse a `major.minor.patch` semver into a numeric triple (pre-release/build ignored).
- *  Strips a leading range operator (`>=`, `>`, `^`, `~`, `=`, `<`) first so a manifest
- *  written as `">=0.8.0"` parses to its floor `[0,8,0]` instead of `[0,0,0]`. */
+ *  Strips a leading `>=`/`>`/`^`/`~`/`=` first so a manifest written as `">=0.8.0"`
+ *  parses to its floor `[0,8,0]` instead of `[0,0,0]`. `<` is deliberately NOT
+ *  stripped (R15-CODE-PLATFORM-048): every comparison this feeds
+ *  ({@link hostSatisfies}) is `>=`, so silently stripping `<` would parse
+ *  `"<0.9.0"` as `0.9.0` and then apply `>=`, inverting the manifest's actual
+ *  constraint — an unsupported operator must fail loudly instead. */
 function parseSemver(version: string): [number, number, number] {
-  const cleaned = version.trim().replace(/^[\^~>=<\s]+/, "");
+  const cleaned = version.trim().replace(/^[\^~>=\s]+/, "");
   const core = cleaned.split("+")[0].split("-")[0];
   const parts = core.split(".").map((p) => Number.parseInt(p, 10));
   return [
@@ -146,9 +150,14 @@ function parseSemver(version: string): [number, number, number] {
  * True iff `host` >= `required` by major.minor.patch comparison. The host
  * (Vysted Terminal) satisfies a plugin's `requiredHostVersion` only when it is
  * at least that version. Deliberately simple — Vysted versions are plain
- * `x.y.z`; ranges/caret/tilde are not part of the manifest contract.
+ * `x.y.z`; ranges/caret/tilde are not part of the manifest contract. A `<`
+ * prefix is an unsupported range operator, not a satisfiable requirement —
+ * always false, regardless of the host version.
  */
 export function hostSatisfies(host: string, required: string): boolean {
+  if (required.trim().startsWith("<")) {
+    return false;
+  }
   const [h0, h1, h2] = parseSemver(host);
   const [r0, r1, r2] = parseSemver(required);
   if (h0 !== r0) return h0 > r0;
@@ -424,7 +433,14 @@ export class PluginRuntime {
       return `manifest version "${manifest.version}" does not match plugin instance version "${instance.version}"`;
     }
     if (!hostSatisfies(this.context.hostVersion, manifest.requiredHostVersion)) {
-      return `plugin requires host version >= ${manifest.requiredHostVersion} but host is ${this.context.hostVersion}`;
+      // Name the real operator (R15-CODE-PLATFORM-048): hardcoding ">=" here
+      // read as if a "<0.9.0" manifest asked for ">= <0.9.0" — nonsense that
+      // hid the fact that "<" is simply unsupported.
+      const required = manifest.requiredHostVersion.trim();
+      const detail = required.startsWith("<")
+        ? `"${required}" (an unsupported range operator — only a floor, ">=", is supported)`
+        : `>= ${required}`;
+      return `plugin requires host version ${detail} but host is ${this.context.hostVersion}`;
     }
     return null;
   }
