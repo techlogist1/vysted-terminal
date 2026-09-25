@@ -260,6 +260,57 @@ def test_call_tool_maps_text_blocks_to_dicts(monkeypatch: pytest.MonkeyPatch) ->
     asyncio.run(_go())
 
 
+def test_call_tool_passes_structured_content_through(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``call_tool`` no longer drops ``structuredContent`` (R15-CODE-AGENT-025):
+    a result with no text block but a structured body decodes through a
+    provider's structured-content fallback instead of "no content"."""
+
+    async def _go() -> None:
+        client = mcp_client.McpClient("ok", transport="http", endpoint="http://127.0.0.1:0/mcp/")
+
+        class _Result:
+            isError = False
+            content: list[Any] = []
+            structuredContent = {"x": 1}
+
+        async def _fake_call(self: Any, name: str, args: dict[str, Any]) -> Any:
+            return _Result()
+
+        monkeypatch.setattr(_FakeSession, "call_tool", _fake_call)
+        client._session = _FakeSession()
+        result = await client.call_tool("any", {})
+        assert result["structuredContent"] == {"x": 1}
+
+        from services import sec_filings_provider
+
+        decoded = sec_filings_provider._decode_tool_result(result, "any")
+        assert decoded == {"x": 1}
+
+    asyncio.run(_go())
+
+
+def test_call_tool_structured_content_defaults_to_none(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A ``CallToolResult`` lookalike with no ``structuredContent`` attribute
+    (older/minimal fakes) does not blow up the mapping."""
+
+    async def _go() -> None:
+        client = mcp_client.McpClient("ok", transport="http", endpoint="http://127.0.0.1:0/mcp/")
+
+        class _Result:
+            isError = False
+            content: list[Any] = []
+
+        async def _fake_call(self: Any, name: str, args: dict[str, Any]) -> Any:
+            return _Result()
+
+        monkeypatch.setattr(_FakeSession, "call_tool", _fake_call)
+        client._session = _FakeSession()
+        result = await client.call_tool("any", {})
+        assert result["structuredContent"] is None
+
+    asyncio.run(_go())
+
+
 def test_list_tools_returns_dicts(monkeypatch: pytest.MonkeyPatch) -> None:
     """``list_tools`` returns dicts whose ``name`` field matches the MCP server's."""
 

@@ -76,6 +76,12 @@ export interface McpToolCallResult {
   isError?: boolean;
   /** Content blocks; text blocks are the primary form, but tools may emit other kinds. */
   content: McpContentBlock[];
+  /**
+   * Structured JSON a FastMCP 3.x tool with an `output_schema` replies with,
+   * alongside or instead of a text block. `unknown` because its shape is the
+   * tool's own schema, not something this file can type generically.
+   */
+  structuredContent?: unknown;
 }
 
 /** One content block in an MCP tool result. */

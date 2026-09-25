@@ -240,7 +240,15 @@ class McpClient:
                 # Future-proof: stringify any unknown block so callers always
                 # have something to log even if the spec adds new block kinds.
                 content.append({"type": "text", "text": str(block)})
-        return {"isError": bool(result.isError), "content": content}
+        return {
+            "isError": bool(result.isError),
+            "content": content,
+            # FastMCP 3.x tools with an ``output_schema`` reply with structured
+            # content alongside (or instead of) a text block; pass it through so
+            # a caller whose decode falls back to it (e.g. sec_filings_provider)
+            # sees real data instead of "no content" (R15-CODE-AGENT-025).
+            "structuredContent": getattr(result, "structuredContent", None),
+        }
 
 
 # ---------------------------------------------------------------------------
