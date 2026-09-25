@@ -709,6 +709,9 @@ def _native_search_enabled(
 #: After the R4 collapse (FR-115) there is ONE research tool; depth (quick/deep/
 #: heavy) is an internal arg on it, so every depth auto-publishes through here.
 _RESEARCH_TOOLS = ("research",)
+#: Tools whose result carries a raw ``Fundamentals`` dump the model reads only
+#: through its money displays (R15-AGENT-001 class).
+_FUNDAMENTALS_TOOLS = ("fundamentals", "compare_symbols")
 
 
 LocalToolHandler = Any  # async (dict) -> dict, bound per-invocation
@@ -957,8 +960,9 @@ def _fit_to_window(messages: list[LLMMessage], tool_ids: list[str], window: int)
 def _model_facing_content(tool_name: str, result_str: str, window: int | None = None) -> str:
     """The tool message the MODEL reads, split from the raw result (D-B3-5).
 
-    A research result's money scalars become their semantics displays, so a
-    small model cannot mis-scale a raw rupee float (R15-AGENT-001). A tool whose
+    A research, fundamentals or compare result's money scalars become their
+    semantics displays, so a small model cannot mis-scale a raw rupee float or
+    read a statement size in the wrong currency (R15-AGENT-001). A tool whose
     catalog entry is ``untrusted_text`` (web, news, disclosures, research) is
     fenced with ``wrap_untrusted``, so injected instructions in a page read as
     data in a turn that also holds write tools (R15-AGENT-021). The panel view
@@ -969,6 +973,10 @@ def _model_facing_content(tool_name: str, result_str: str, window: int | None = 
         from services.agent_tools import research
 
         content = research.model_content(content)
+    elif tool_name in _FUNDAMENTALS_TOOLS:
+        from services.agent_tools import research
+
+        content = research.fundamentals_content(content)
     # Size cap (R15-AGENT-008): a share of the window when the lane has one,
     # else a ceiling no normal result reaches. Cut before the untrusted fence
     # so the fence stays whole.

@@ -1,7 +1,8 @@
 """Rescue a tool call a model leaked as plain text.
 
 Some models answer a tool-capable turn by writing the call as JSON in the
-assistant text (``{"name": "write_note", "parameters": {...}}``) instead of
+assistant text (``{"name": "write_note", "parameters": {...}}``), or as call
+syntax (``price_data(symbol="ZOMATO.NS")``), instead of
 using the provider's native tool-call channel: DeepSeek's documented
 text-fall-through, many OpenRouter-routed models, and local Ollama models such
 as llama3.1:8b. Adapter-agnostic: each adapter calls :func:`rescue_leaked_tool_call`
@@ -13,6 +14,7 @@ a function call out of a text-only response (no litellm import).
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 import uuid
@@ -83,12 +85,44 @@ def _leaked_args(obj: dict[str, Any]) -> dict[str, Any]:
     return args
 
 
+def _call_syntax(text: str, offered: set[str]) -> tuple[str, dict[str, Any]] | None:
+    """The first ``offered_name(k=<literal>, ...)`` call written into ``text``.
+
+    llama3.1:8b also leaks a call as Python call syntax
+    (``price_data(symbol="ZOMATO.NS")``). Each candidate is parsed with ``ast``
+    and every argument must be a keyword with a literal value, so a bare-name
+    mention such as ``research(X)``, a positional argument, or an expression
+    never fires a call.
+    """
+    for match in re.finditer(r"\b([A-Za-z_]\w*)\(", text):
+        name = match.group(1)
+        if name not in offered:
+            continue
+        start = match.start(1)
+        close = match.end()
+        while (close := text.find(")", close)) != -1:
+            try:
+                call = ast.parse(text[start : close + 1], mode="eval").body
+            except (SyntaxError, ValueError):
+                close += 1
+                continue
+            keywords = call.keywords if isinstance(call, ast.Call) and not call.args else []
+            if keywords and all(kw.arg for kw in keywords):
+                try:
+                    return name, {str(kw.arg): ast.literal_eval(kw.value) for kw in keywords}
+                except (ValueError, TypeError):
+                    pass
+            break
+    return None
+
+
 def rescue_leaked_tool_call(text: str, offered: set[str]) -> LLMToolUseEvent | None:
     """Recover a tool call written into ``text``, or ``None`` if there is none.
 
     ``offered`` is the set of tool names sent this round. A candidate whose
-    ``name`` is not in it stays text. The rescued call gets a fresh unique id,
-    because the leaked JSON carries none the runtime could trust to be unique.
+    ``name`` is not in it stays text. JSON candidates are tried first, then
+    keyword-literal call syntax (:func:`_call_syntax`). The rescued call gets a
+    fresh unique id, because leaked text carries none the runtime could trust.
     """
     if not text or not offered:
         return None
@@ -113,6 +147,11 @@ def rescue_leaked_tool_call(text: str, offered: set[str]) -> LLMToolUseEvent | N
             tool_call_id=f"leaked_{uuid.uuid4().hex}",
             name=name,
             input=_leaked_args(obj),
+        )
+    called = _call_syntax(text, offered)
+    if called is not None:
+        return LLMToolUseEvent(
+            tool_call_id=f"leaked_{uuid.uuid4().hex}", name=called[0], input=called[1]
         )
     return None
 

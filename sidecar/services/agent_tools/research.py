@@ -478,9 +478,53 @@ def model_content(result_str: str) -> str:
     return json.dumps(view, default=str, ensure_ascii=False)
 
 
+def fundamentals_content(result_str: str) -> str:
+    """The model-facing ``fundamentals`` / ``compare_symbols`` result (R15-AGENT-001 class).
+
+    Both carry a raw ``Fundamentals`` dump, and a model read ``revenue_ttm =
+    46506049536.0`` next to ``currency: USD`` as "$46.5B USD" when SIFY reports
+    in INR. The money sizes become :func:`semantics.display_value` strings:
+    statement sizes in ``financial_currency`` (else ``currency``), ``market_cap``
+    in the trading ``currency`` (a compare row's ``quote.currency`` when the dump
+    names none). Every other field is kept.
+    """
+    from services.research.semantics import display_value
+
+    try:
+        payload = json.loads(result_str)
+    except (json.JSONDecodeError, ValueError, TypeError):
+        return result_str
+    if not isinstance(payload, dict):
+        return result_str
+    rows = payload.get("symbols")
+    changed = False
+    for holder in [payload, *(rows if isinstance(rows, list) else [])]:
+        fund = holder.get("fundamentals") if isinstance(holder, dict) else None
+        if not isinstance(fund, dict):
+            continue
+        quote = holder.get("quote")
+        currency = fund.get("currency") or (
+            quote.get("currency") if isinstance(quote, dict) else None
+        )
+        statement_currency = fund.get("financial_currency") or currency
+        for key in (*_STATEMENT_MONEY_FIELDS, "market_cap"):
+            if _is_number(fund.get(key)):
+                code = statement_currency if key in _STATEMENT_MONEY_FIELDS else currency
+                fund[key] = display_value(fund[key], "currency", code)
+                changed = True
+    return json.dumps(payload, default=str, ensure_ascii=False) if changed else result_str
+
+
 def register() -> None:
     """Register the ``research`` tool in the package registry."""
     register_tool("research", _research)
 
 
-__all__ = ["_research", "brief_for", "model_content", "model_view", "register"]
+__all__ = [
+    "_research",
+    "brief_for",
+    "fundamentals_content",
+    "model_content",
+    "model_view",
+    "register",
+]
