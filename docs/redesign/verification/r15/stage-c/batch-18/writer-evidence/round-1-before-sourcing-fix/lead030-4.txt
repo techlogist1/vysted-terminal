@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_d531ec6f82f246069e9bb6aa6eef8968", "name": "financial_statements", "input": {"symbol": "SIFY", "statement": "income", "period": "quarterly"}}
+[  25.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_d531ec6f82f246069e9bb6aa6eef8968", "name": "financial_statements", "ok": true, "error": null}
+[  35.9s] heartbeat: {"kind": "heartbeat"}
+[  45.9s] heartbeat: {"kind": "heartbeat"}
+[  59.3s] done: {"kind": "done", "usage": {"input_tokens": 6876, "output_tokens": 66, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+According to the financial statements provided by the tool, SIFY's Total Revenue for the TTM (Trailing Twelve Months) is ₹2,111.40 cr.
+
+Note: The result is in Indian Rupees (INR). 
+
+ Tool used: financial_statements with period='quarterly' and statement='income'.
+
+=== ok · 59.3s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 65, 'done': 1} · usage in=6876 out=66 · est $0.00000 · llama3.1:8b

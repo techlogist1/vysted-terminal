@@ -1,0 +1,99 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_580ea748a5be41318428030955ae9155", "name": "fundamentals", "input": {"symbol": "SIFY.NS"}}
+{"kind": "tool_use", "tool_call_id": "call_c7f7e476ace8465fbd3ca12f8c07f274", "name": "financial_statements", "input": {"period": "annual", "statement": "income", "symbol": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_580ea748a5be41318428030955ae9155", "name": "fundamentals", "ok": false, "error": "provider error: yfinance has no instrument data for 'SIFY.NS'"}
+{"kind": "tool_result", "tool_call_id": "call_c7f7e476ace8465fbd3ca12f8c07f274", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " annual"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " unavailable"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " fundamentals"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " statements"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " also"}
+{"kind": "delta", "text": " failed"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " relevant"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " user"}
+{"kind": "delta", "text": " asked"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " annual"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " but"}
+{"kind": "delta", "text": " neither"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " fundamental"}
+{"kind": "delta", "text": " nor"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " statement"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " necessary"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Therefore"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " figure"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " state"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " came"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " one"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " searching"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " databases"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6795, "output_tokens": 88, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

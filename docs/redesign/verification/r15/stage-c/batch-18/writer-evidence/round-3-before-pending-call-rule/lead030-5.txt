@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  24.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_997d8dda673948e4a93f7fd380b8974f", "name": "financial_statements", "input": {"period": "quarterly", "statement": "income", "symbol": "SIFY.US"}}
+[  25.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_997d8dda673948e4a93f7fd380b8974f", "name": "financial_statements", "ok": true, "error": null}
+[  28.6s] done: {"kind": "done", "usage": {"input_tokens": 2898, "output_tokens": 38, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I couldn't retrieve the TTM revenue for SIFY. The yfinance tool does not have a recent data entry for this symbol. 
+
+Let me try with the fundamentals tool instead:
+
+=== ok · 28.6s · events {'heartbeat': 2, 'tool_use': 1, 'tool_result': 1, 'delta': 38, 'done': 1} · usage in=2898 out=38 · est $0.00000 · llama3.1:8b
