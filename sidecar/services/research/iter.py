@@ -72,7 +72,7 @@ from services.research.deep import (
     structured_source_gathered,
     visit_failure_step,
 )
-from services.research.fast import snapshot_structured
+from services.research.fast import DEEP_SNAPSHOT_LEG_TIMEOUT_S, snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
 from services.research.semantics import prompt_block
 from services.research.target import (
@@ -360,7 +360,11 @@ async def run_iter_research(
     if target is not None:
         if snapshot is None:
             snapshot = await snapshot_structured(
-                tool_call, target.symbol, region=region, canonical_name=target.name
+                tool_call,
+                target.symbol,
+                region=region,
+                canonical_name=target.name,
+                leg_timeout_s=DEEP_SNAPSHOT_LEG_TIMEOUT_S,
             )
         structured.update(snapshot)
         record_snapshot_sources(findings, target.symbol, structured)
@@ -970,7 +974,11 @@ async def run_heavy_research(
     snapshot: dict[str, Any] | None = None
     if target is not None:
         snapshot = await snapshot_structured(
-            tool_call, target.symbol, region=region, canonical_name=target.name
+            tool_call,
+            target.symbol,
+            region=region,
+            canonical_name=target.name,
+            leg_timeout_s=DEEP_SNAPSHOT_LEG_TIMEOUT_S,
         )
         # R13 filings floor: pull exchange announcements ONCE for the whole panel
         # and share via the snapshot dict — every angle's structured floor (and

@@ -655,3 +655,28 @@ def test_heavy_panel_drops_the_note_when_an_angle_cites_structured_data() -> Non
     assert brief.structured["fundamentals"]["ok"] is False
     assert "vysted://fundamentals/AAPL" in {s.url for s in brief.sources}
     assert "Coverage note" not in brief.markdown
+
+
+def test_deep_snapshot_is_not_held_to_the_fast_leg_box(monkeypatch: pytest.MonkeyPatch) -> None:
+    """rc1-battery-4:1 — the DEEP caller passes its own snapshot leg box, so a
+    price leg slower than FAST's FR-070 box still backs the metric cards."""
+    from services.research import fast
+
+    monkeypatch.setattr(fast, "_WITNESS_LEG_TIMEOUT_S", 0.05)
+
+    class _SlowPrice(_FakeToolCall):
+        async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+            if name == "price_data":
+                await asyncio.sleep(0.2)
+            return await super().__call__(name, args)
+
+    brief = asyncio.run(
+        run_iter_research(
+            "Apple outlook",
+            region="US",
+            tool_call=_SlowPrice(),
+            llm_call=_FakeLLM(reflect_complete=True),
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert brief.structured["price"]["ok"] is True
