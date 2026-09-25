@@ -109,8 +109,9 @@ interface PortfoliosState {
   setActive: (id: string) => void;
   /** Append a holding to a portfolio; its new id, or null when the input is invalid. */
   addHolding: (portfolioId: string, input: HoldingInput) => string | null;
-  /** Patch an existing holding; false when the input is invalid or that
-   *  portfolio holds no such holding (nothing changes either way). */
+  /** Replace an existing holding's fields (not a partial merge); false when
+   *  the input is invalid or that portfolio holds no such holding (nothing
+   *  changes either way). */
   updateHolding: (portfolioId: string, holdingId: string, input: HoldingInput) => boolean;
   /** Remove a holding. */
   removeHolding: (portfolioId: string, holdingId: string) => void;
