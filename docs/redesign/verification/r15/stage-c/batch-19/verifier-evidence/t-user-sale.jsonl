@@ -1,0 +1,53 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_c2a7e317edd14083a2bdb79beea6d225", "name": "portfolio_update_position", "input": {"asset_class": "equity", "cost_basis": 3100, "position_id": "manual entry (not provided)", "quantity": -5, "symbol": "TCS"}}
+{"kind": "tool_result", "tool_call_id": "call_c2a7e317edd14083a2bdb79beea6d225", "name": "portfolio_update_position", "ok": true, "error": null}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " sold"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " proceeds"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " sale"}
+{"kind": "delta", "text": " would"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " *"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Please"}
+{"kind": "delta", "text": " review"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " accept"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " update"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": "."}
+{"kind": "research_step", "tool_call_id": "call_c2a7e317edd14083a2bdb79beea6d225", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_update_position TCS. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 2963, "output_tokens": 48, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

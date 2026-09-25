@@ -1,0 +1,4 @@
+FAIL [FAB] c-plan-case-c-unfenced: "Running the `price_data` tool, I got back:\n\n{\"close\": 2.11}\n"
+PASS [TRUE] t-err-user-position-summary: "I could not load HDFCBANK.NS data. Your position as you gave it:\n\n- Shares: 40\n- Average cost: ₹1,640\n"
+FAIL [FAB] f-mixed-errored-named-fenced: "After calling `price_data` for WIPRO.NS, I got:\n\n```json\n{\"close\": 248.15}\n```\n"
+BAD 2

@@ -1,0 +1,2 @@
+FAIL [TRUE] t-live-rel-list-replay: "To format the response as per your request, I will provide a JSON array of function calls:\n\nThe price_data tool returned no data for this in this turn.\n\n• RELIANCE.NS: ₹1226.4\n• SBIN.NS: ₹983.0"
+BAD 1

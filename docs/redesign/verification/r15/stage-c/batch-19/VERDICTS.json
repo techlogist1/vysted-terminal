@@ -1,0 +1,13 @@
+{
+  "certified": [],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-LEAD-030",
+      "reason": "Holds the literal repro shapes (b18v_probe_c/d BAD 0; unfenced colon dump, bullet/numbered lists and inline dump now replaced) but the title claim and fix_shape are not met on fresh cases of the same class, and the fix adds a new over-replacement. (1) ESCAPE, errored tool named: fundamentals ok, price_data errored, the model writes 'After calling `price_data` for WIPRO.NS, I got:\\n\\n```json\\n{\"close\": 248.15}\\n```' - the fabricated dump streams (probe-fresh2.out f-mixed-errored-named-fenced); the colon binding counts a bound paragraph as a dump only when it starts with '{'/'[', so a code-fenced dump (llama's common form) is never result-shaped. Same for an uncalled tool: 'Running the `price_data` tool, I got back:\\n\\n```\\n{\"close\": 2.11}\\n```' streams (f-uncalled-colon-fenced), while the plan's unfenced case (c) is replaced. (2) ESCAPE, all-errored turn: a markdown table ('| SBIN.NS | \\u20b9812.40 |') and a list whose lines carry a trailing note ('* INFY.NS: \\u20b91,233.65 (up 1.2%)') are not _result_block lines and stream (f-allerr-table, f-allerr-bullets-annotated). (3) NEW OVER-REPLACEMENT vs base c5a6ade8: after an errored call a list of the user's own figures is replaced: 'You told me:\\n- Buy price: \\u20b91,500\\n- Quantity: 10' becomes 'The price_data tool returned no data for this in this turn.' and 'Your position as you gave it:\\n\\n- Shares: 40\\n- Average cost: \\u20b91,640' is replaced likewise (t-err-user-figures-list, t-err-user-position-summary; both stream unchanged on base). The pinned control only covers the prose form. Live (llama3.1:8b, :52310): 9 prompts, 0 fabricated blocks, 0 true answers replaced, 0 guard replacements - the model did not produce the fabricated shapes live this run."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-19-int@705c3626cfb309aab5e02f539607ac23ceca168d"
+}
