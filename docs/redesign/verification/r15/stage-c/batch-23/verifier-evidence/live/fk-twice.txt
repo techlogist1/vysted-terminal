@@ -1,0 +1,10 @@
+[   4.3s] done: {"kind": "done", "usage": {"input_tokens": 2738, "output_tokens": 79, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I'll just look at the context and check if we have the INFY.NS price already. 
+
+INFY.NS is currently trading at ₹443.85 per share, up 1.12% from its previous close of ₹439.55. This is based on the latest data fetched with price_data.
+
+Would you like to see more details about this stock or move on?
+
+=== ok · 4.3s · events {'delta': 79, 'done': 1} · usage in=2738 out=79 · est $0.00000 · llama3.1:8b

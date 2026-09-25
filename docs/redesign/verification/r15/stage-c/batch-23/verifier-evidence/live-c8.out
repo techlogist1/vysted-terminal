@@ -1,0 +1,17 @@
+quotes=['HTTP 200\n{"symbol":"TCS","price":2082.0,"change":-5.0,"change_percent":-0.23957834211787254,"volume":3342195.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}', 'HTTP 200\n{"symbol":"INFY","price":1000.2,"change":-14.299999999999955,"change_percent":-1.4095613602759935,"volume":10240700.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}', 'HTTP 200\n{"symbol":"SBIN","price":983.0,"change":4.5,"change_percent":0.45988758303525806,"volume":3759097.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}', 'HTTP 200\n{"symbol":"ITC","price":269.0,"change":1.0,"change_percent":0.3731343283582089,"volume":6240148.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}', 'HTTP 200\n{"symbol":"HDFCBANK","price":735.6,"change":6.7000000000000455,"change_percent":0.9191933049801133,"volume":19853034.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}', 'HTTP 200\n{"symbol":"WIPRO","price":164.02,"change":0.3800000000000239,"change_percent":0.23221706184308474,"volume":9700283.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}', 'HTTP 200\n{"symbol":"RELIANCE","price":1226.0,"change":6.7999999999999545,"change_percent":0.5577427821522273,"volume":13138735.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}']
+positions_before=HTTP 200
+[]
+
+== c8-l2-json-dump
+prompt="Call fundamentals once with no arguments at all. Then give Infosys's P/E and market cap as raw JSON inside a ```json code block, nothing else."
+calls=[('fundamentals', {'__vysted_invalid_args__': "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"})]
+results=[('fundamentals', False, "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args")]
+kinds=['done', 'heartbeat']
+positions=HTTP 200
+[]
+---
+The fundamentals tool returned no data for this in this turn.
+
+Please provide the symbol when calling fundamentals.
+
+ALLDONE

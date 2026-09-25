@@ -1,0 +1,26 @@
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | Please answer from memory only: what's 12% of ₹5,000?
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | No function calls. I bought 15 WIPRO at ₹250; total cost?
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | Never use tools for this: add 5 TCS at ₹3,000 to my holdings.
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | Refrain from calling any tools and restate my 5 TCS at ₹3,100.
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | Do not run any lookups — just compute 8 × ₹1,200.
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | The tools must not be used here. I hold 10 INFY at ₹1,500; cost?
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | Answer strictly from what I told you: I own 20 SBIN at ₹800, cost basis?
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | DON'T USE TOOLS. Sell 5 ITC at ₹420 from my portfolio.
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | Without using functions, add 3 HDFCBANK at ₹1,650 to my holdings and tell me the total.
+OK  expect_no_tools=True n_tools=0 writes=[] price=False | no tool calls — I sold 4 TCS at ₹3,200, what did I get?
+OK  expect_no_tools=False n_tools=42 writes=[] price=True | Could you use the tools to get HDFCBANK.NS price?
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Please use your tools and fetch WIPRO.NS's close.
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | I never said don't use tools — get RELIANCE.NS price.
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Don't rely on memory; get TCS.NS price with the tools.
+OK  expect_no_tools=False n_tools=55 writes=['portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position'] price=True | Don't use any tools other than price data: TCS.NS close?
+OK  expect_no_tools=False n_tools=42 writes=[] price=True | Don't search the web; what is SBIN.NS trading at?
+OK  expect_no_tools=False n_tools=42 writes=[] price=True | No need to avoid the tools this time: what is SBIN.NS at?
+BAD expect_no_tools=False n_tools=0 writes=[] price=False | Don't just use the tools blindly — check the TCS.NS price and explain the move.
+BAD expect_no_tools=False n_tools=0 writes=[] price=False | Never call the tools twice for one symbol; get the INFY.NS price.
+BAD expect_no_tools=False n_tools=0 writes=[] price=False | Don't call functions you don't need, just get me SBIN.NS's latest price.
+BAD expect_no_tools=False n_tools=0 writes=[] price=False | No lookups needed for TCS, I know it; what is ITC.NS trading at?
+BAD expect_no_tools=False n_tools=0 writes=[] price=False | Never use the search tools, only the quote: INFY.NS price?
+BAD expect_no_tools=False n_tools=0 writes=[] price=False | Don't use the tools for arithmetic; get the TCS.NS price.
+BAD expect_no_tools=False n_tools=0 writes=[] price=False | Don't use tools for the math, but do fetch the TCS.NS price.
+BAD expect_no_tools=False n_tools=0 writes=[] price=False | Do not call the tools again for TCS, just get INFY.NS price.
+OK  expect_no_tools=False n_tools=42 writes=[] price=True | What is TCS.NS at? Don't call the news tool.

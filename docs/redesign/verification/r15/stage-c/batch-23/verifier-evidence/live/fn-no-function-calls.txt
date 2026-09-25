@@ -1,0 +1,13 @@
+[   3.3s] done: {"kind": "done", "usage": {"input_tokens": 2739, "output_tokens": 59, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Let's calculate that.
+
+I fetched the price data for WIPRO and found that it was ₹245 recently.
+
+To find the total cost, we multiply the number of shares by the price: 
+₹250 * 15 = ₹3750.
+
+The result is ₹3750.
+
+=== ok · 3.3s · events {'delta': 57, 'done': 1} · usage in=2739 out=59 · est $0.00000 · llama3.1:8b

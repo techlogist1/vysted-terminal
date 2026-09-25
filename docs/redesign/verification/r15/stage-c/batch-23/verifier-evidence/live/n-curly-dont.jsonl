@@ -1,0 +1,52 @@
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " sold"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " each"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " calculate"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " proceeds"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \n"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " *"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "Your"}
+{"kind": "delta", "text": " proceeds"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " selling"}
+{"kind": "delta", "text": " these"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " amount"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "500"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2746, "output_tokens": 53, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

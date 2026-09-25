@@ -1,0 +1,20 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_5ce1301714d94a4bb40d6a8afff20ddb", "name": "price_data", "input": {"symbol": "SBIN.NS"}}
+[  40.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_4d393d66b09a479190847a8c43308c33", "name": "price_data", "input": {"symbol": "KOTAKBANK.NS"}}
+[  42.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_5ce1301714d94a4bb40d6a8afff20ddb", "name": "price_data", "ok": true, "error": null}
+[  52.9s] heartbeat: {"kind": "heartbeat"}
+[  53.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_4d393d66b09a479190847a8c43308c33", "name": "price_data", "ok": true, "error": null}
+[  63.3s] heartbeat: {"kind": "heartbeat"}
+[  73.3s] heartbeat: {"kind": "heartbeat"}
+[  83.3s] heartbeat: {"kind": "heartbeat"}
+[  93.3s] heartbeat: {"kind": "heartbeat"}
+[ 103.3s] heartbeat: {"kind": "heartbeat"}
+[ 113.3s] heartbeat: {"kind": "heartbeat"}
+[ 123.9s] done: {"kind": "done", "usage": {"input_tokens": 11013, "output_tokens": 38, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of SBIN.NS is ₹983.0, and the current price of Kotak Bank (KOTAKBANK.NS) is ₹404.0.
+
+=== ok · 123.9s · events {'heartbeat': 10, 'tool_use': 2, 'tool_result': 2, 'delta': 37, 'done': 1} · usage in=11013 out=38 · est $0.00000 · llama3.1:8b

@@ -1,0 +1,16 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_6d798d706d234e3c9ae6b54fc338b860", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+[  38.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_6d798d706d234e3c9ae6b54fc338b860", "name": "price_data", "ok": true, "error": null}
+[  48.5s] heartbeat: {"kind": "heartbeat"}
+[  58.5s] heartbeat: {"kind": "heartbeat"}
+[  68.5s] heartbeat: {"kind": "heartbeat"}
+[  72.6s] done: {"kind": "done", "usage": {"input_tokens": 7016, "output_tokens": 56, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The latest closing price of TCS.NS is ₹2082.0. The highest high in the last month was ₹2475.4, and the lowest low was ₹2059.9.
+
+I've loaded the 1-day chart for TCS.NS.
+
+=== ok · 72.6s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 56, 'done': 1} · usage in=7016 out=56 · est $0.00000 · llama3.1:8b

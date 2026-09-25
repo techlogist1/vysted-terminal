@@ -1,0 +1,53 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_167bd583283743148adccdcadcbedf61", "name": "price_data", "input": {"symbol": "WIPRO.NS"}}
+{"kind": "tool_use", "tool_call_id": "call_d20877e6b94c4387a192ff6d7c4d5132", "name": "price_data", "input": {"symbol": "BIGBLUE.ZZ"}}
+{"kind": "tool_use", "tool_call_id": "call_4bb7dde6bedd4a0993c043817f2d6c9c", "name": "price_data", "input": {"symbol": "IBM"}}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_167bd583283743148adccdcadcbedf61", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_d20877e6b94c4387a192ff6d7c4d5132", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'BIGBLUE.ZZ' from 'yfinance'"}
+{"kind": "tool_result", "tool_call_id": "call_4bb7dde6bedd4a0993c043817f2d6c9c", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "W"}
+{"kind": "delta", "text": "IP"}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "164"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "02"}
+{"kind": "delta", "text": " IN"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " BIG"}
+{"kind": "delta", "text": "BLUE"}
+{"kind": "delta", "text": ".Z"}
+{"kind": "delta", "text": "Z"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " no"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "IBM"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "225"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "509"}
+{"kind": "delta", "text": "995"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 10549, "output_tokens": 37, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
