@@ -357,6 +357,32 @@ async def test_invoke_agent_composes_system_and_context(monkeypatch: pytest.Monk
     assert provider.captured_kwargs["api_key"] == "sk-test"
 
 
+@pytest.mark.asyncio
+async def test_provider_override_without_model_uses_provider_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-073: a caller that overrides only the provider gets that
+    provider's registry default, never the agent's own (ollama) model."""
+    from services import model_registry
+
+    agent_runtime.reload()
+    spec = agent_runtime.get_agent("copilot")
+    assert spec is not None and spec.default_provider == "ollama"
+
+    async def _model_sent(provider: str | None) -> str:
+        fake = _FakeProvider()
+        _patch_provider(monkeypatch, fake)
+        async for _ in agent_runtime.invoke_agent(
+            agent_id="copilot", prompt="hi", api_key="k", provider=provider, model=None
+        ):
+            pass
+        assert fake.captured_kwargs is not None
+        return fake.captured_kwargs["model"]
+
+    assert await _model_sent("anthropic") == model_registry.default_model_for("anthropic")
+    assert await _model_sent(None) == spec.default_model
+
+
 def test_terminal_preamble_anchors_to_active_research_space() -> None:
     """The terminal preamble leads with the research-space symbol + its prior-
     research memory so the agent 'remembers' what it investigated there (S-19)."""

@@ -720,15 +720,19 @@ def _resolve_provider_id(spec: AgentSpec, override: LLMProviderId | None) -> LLM
     return override or spec.default_provider
 
 
-def _resolve_model(spec: AgentSpec, override: str | None) -> str:
+def _resolve_model(spec: AgentSpec, provider_id: str, override: str | None) -> str:
+    """The turn's model: the override, else the agent's own model when the turn
+    runs on the agent's provider, else the registry default for ``provider_id``
+    (a provider override without a model never inherits the agent's model,
+    R15-AGENT-073)."""
     if override:
         return override
-    if spec.default_model:
+    if spec.default_model and provider_id == spec.default_provider:
         return spec.default_model
-    # Per-provider default from the single-source registry
-    # (config/model_registry.json). A last-resort fallback covers a provider
-    # somehow absent from the registry so a model id is never empty.
-    return model_registry.default_model_for(spec.default_provider) or "gpt-4.1-mini"
+    model = model_registry.default_model_for(provider_id)
+    if not model:
+        raise ValueError(f"no default model for provider {provider_id!r}; pass a model")
+    return model
 
 
 #: Hard cap on tool-call rounds in a single invocation. Strategy Critic
@@ -1846,7 +1850,7 @@ async def plan_delegate_run(
     if provider_id not in _PLANNER_PROVIDERS:
         return None
     return await _compound_plan(
-        provider_id, _resolve_model(spec, model), api_key, prompt, context_snapshot
+        provider_id, _resolve_model(spec, provider_id, model), api_key, prompt, context_snapshot
     )
 
 
@@ -2294,7 +2298,7 @@ def _prepare_run(
     """Resolve the turn's provider, model, tools and messages; publish the run's
     task-local settings; pop every option the runtime owns (R15-CODE-AGENT-009)."""
     provider_id = _resolve_provider_id(spec, provider)
-    resolved_model = _resolve_model(spec, model)
+    resolved_model = _resolve_model(spec, provider_id, model)
     opts = dict(options or {})
     history, folded = _coerce_history(opts.pop("history", None))
     tool_ids, read_only, retired_tools = _resolve_tool_surface(spec, mode, prompt)
