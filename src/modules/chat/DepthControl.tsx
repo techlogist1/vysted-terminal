@@ -6,6 +6,7 @@ import { motion, useReducedMotion, type Transition } from "framer-motion";
 import { DUR, EASE_DETENT } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { RESEARCH_DEPTHS, RESEARCH_DEPTH_LABEL, type ResearchDepth } from "@/store/research-depth";
+import { formatResearchCostEstimate, useSearchSettingsStore } from "@/store/search-settings";
 
 /**
  * Research-depth heat tokens (R9 law §4) — the ONE designed color family
@@ -44,6 +45,11 @@ const PULSE_TRANSITION: Transition = { duration: 1.8, ease: "easeInOut", repeat:
  * At the ladder's icons step (`expandable={false}`) the pill renders the
  * active stop only and a click CYCLES Normal → Deep → Ultra — every stop
  * stays reachable down to the 280px dock floor.
+ *
+ * When Tier B (a hosted research model) is the active research tier, a
+ * one-line "~$x.xx est." rides beside the active stop's label — a per-run
+ * planning figure from the pricing table `search-settings` carries, shown
+ * BEFORE dispatch rather than only after the run is billed (FR-073).
  */
 export function DepthControl({
   depth,
@@ -64,17 +70,23 @@ export function DepthControl({
   const [focused, setFocused] = useState(false);
   const live = liveDepth !== null && liveDepth === depth;
 
+  const researchTier = useSearchSettingsStore((s) => s.researchTier);
+  const researchModels = useSearchSettingsStore((s) => s.researchModels);
+  const costEstimate =
+    researchTier === "tier_b" ? formatResearchCostEstimate(researchModels[depth]) : null;
+
   if (!expandable) {
     const next = nextResearchDepth(depth);
     return (
       <button
         type="button"
-        aria-label={`Research depth: ${RESEARCH_DEPTH_LABEL[depth]} — switch to ${RESEARCH_DEPTH_LABEL[next]}`}
+        aria-label={`Research depth: ${RESEARCH_DEPTH_LABEL[depth]} — switch to ${RESEARCH_DEPTH_LABEL[next]}${costEstimate ? `, ${costEstimate}` : ""}`}
         title={`Research depth — ${RESEARCH_DEPTH_LABEL[depth]} (click to cycle Normal → Deep → Ultra)`}
         onClick={() => onChange(next)}
         className="text-caption flex h-7 shrink-0 cursor-pointer items-center px-2 font-mono"
       >
         <DepthLabel depth={depth} active live={live} reduceMotion={!!reduceMotion} />
+        {costEstimate && <span className="text-charcoal-500 ml-1">{costEstimate}</span>}
       </button>
     );
   }
@@ -138,6 +150,9 @@ export function DepthControl({
               live={active && live}
               reduceMotion={!!reduceMotion}
             />
+            {active && costEstimate && (
+              <span className="text-charcoal-500 relative z-10 ml-1">{costEstimate}</span>
+            )}
           </button>
         );
       })}
