@@ -1981,21 +1981,40 @@ def _depositary_context(text: str, before: bool) -> bool:
     return bool(_CLAIM_TERM.search(last[-1])) if last else before
 
 
-_CITATION_CUE = re.compile(
-    r"\b(?:returned|returns|results?|output|data|according to|shows?|reports?|says)\b|[{\[]",
-    re.IGNORECASE,
-)
 _CURRENCY_FIGURE = re.compile(
     r"(?:[$₹€£]|\b(?:Rs\.?|USD|INR))\s*\d"
     r"|\d[\d,.]*\s*(?:cr|crore|m|mn|bn|billion|million|USD|INR)\b",
     re.IGNORECASE,
 )
 _GENERIC_TOOL_REF = re.compile(r"\b(?:tool results?|tool output|the tool returned)\b", re.I)
-#: A sentence that reports what a tool gave, as against one that plans a call.
-_RESULT_VERB = re.compile(r"\b(?:returned|shows?|showed|reports?|says|according to)\b", re.I)
-_INTENT_CUE = re.compile(
-    r"\b(?:let me|let['’]s|I['’]ll|I will|I['’]m going to|I am going to|I need to|we['’]ll"
-    r"|next,? I|going to|about to)\b",
+#: A verb whose subject reports what it gave ("<tool> returned/shows ...").
+_RESULT_VERBS = (
+    r"(?:returned|returns|shows?|showed|reports?|reported|says|said|gives?|gave|indicates?"
+    r"|indicated|provides?|provided|yields?|yielded|lists?|listed|outputs?|came back|responded"
+    r"|reads?)"
+)
+_RESULT_VERB = re.compile(rf"\b{_RESULT_VERBS}\b", re.IGNORECASE)
+#: What makes a tool reference a citation, matched right after it: the tool is
+#: the subject of a result verb (a tool/output noun and a ", which" bridge
+#: allowed: "`fundamentals`, which returned"), or it opens a ``:``/``=`` dump.
+_ATTRIBUTES = re.compile(
+    r"(?:\s+(?:tool|results?|output|data|response|call))?(?:['’]s\s+(?:output|results?|data))?"
+    rf"(?:\s*[:=]|(?:,?\s+(?:which|that)\s+|\s+){_RESULT_VERBS}\b)",
+    re.IGNORECASE,
+)
+#: A negative report about a tool ("returned an error", "had nothing", "I
+#: don't have price data yet") is true of a tool with no ok result: kept.
+_NEGATIVE = re.compile(
+    r"\b(?:error(?:ed|s)?|fail(?:ed|s|ure)?|nothing|no (?:data|results?|values?|figures?)"
+    r"|not available|unavailable|unable|empty|missing|none|n/a|timed out|invalid"
+    r"|(?:could|can|did|does|do|was|were|is|has|have|had)\s?n['’]?o?t)\b",
+    re.IGNORECASE,
+)
+#: Where one sentence's clauses part. Each clause is judged on its own, so an
+#: error mention of one tool never drags a sibling clause's true figure along.
+_CLAUSE_BREAK = re.compile(
+    r";\s+|\s+[—–]\s+|,?\s+(?:but|so|and|while|whereas|yet|however|though|although|then"
+    r"|instead|except)\s+",
     re.IGNORECASE,
 )
 #: The ``depth`` of a round whose replaced citation ended in ``:``/``=`` with no
@@ -2003,32 +2022,34 @@ _INTENT_CUE = re.compile(
 DUMP_PENDING = -1
 
 
+def _tool_reference(tool_ids: set[str]) -> re.Pattern[str]:
+    """A reference to a tool of ``tool_ids``, the id in the group that matched:
+    backticked; a bare snake_case id; or a humanised id (``[\\s_-]?`` between
+    the parts, so "price data", "price-data", "Price Data" and "PriceData" all
+    name ``price_data``) that a tool/returned/results/output/data noun or a
+    ``:``/``=`` follows, or that "according to"/"per"/"the output of" leads in."""
+    ids = "|".join(sorted(re.escape(t).replace("_", r"[\s_-]?") for t in tool_ids))
+    bare = "|".join(sorted(re.escape(t) for t in tool_ids if "_" in t))
+    return re.compile(
+        rf"`(?P<tick>{ids})`"
+        rf"|(?:according to|as per|per|based on|(?:output|results?|data|response)\s+(?:of|from))"
+        rf"\s+(?:the\s+)?`?(?P<lead>{ids})\b"
+        rf"|\b(?P<noun>{ids})(?=\s+(?:tool|returned|results?|output|data)\b|\s*[:=])"
+        rf"|\b(?P<bare>{bare})\b",
+        re.IGNORECASE,
+    )
+
+
 def _guard_tool_citations(
     text: str, ok_tools: set[str], tool_ids: set[str], depth: int
 ) -> tuple[str, int]:
-    """``text`` with each sentence that cites a tool no ok result came from
-    replaced (R15-LEAD-030): a reference to tool ``T`` (backticked, a bare id
-    with an underscore, or ``T`` then tool/returned/result/output/data or a
-    ``:``/``=`` dump; in the first two and last, ``T`` may be humanised, as
-    "Price Data" or "price-data") carrying a claim cue or a currency figure
-    while ``T`` has returned nothing ok. A figure-less, bracket-less intent
-    ("Let me fetch the `news` data") with no result verb is kept. ``depth``:
-    the brackets a replaced dump left open, or :data:`DUMP_PENDING`; the text
-    until they balance is dropped. Returns the text and the depth left open.
-    ponytail: a bare figure with no tool reference ("₹4,411 cr") is not
-    screened — derived arithmetic and a user's figure are legitimate.
-    """
-
-    def _names(ids: list[str]) -> str:
-        return "|".join(sorted(re.escape(t).replace("_", r"[\s_-]") for t in ids))
-
-    ids = _names(list(tool_ids))
-    bare = "|".join(sorted(re.escape(t) for t in tool_ids if "_" in t))
-    ref = re.compile(
-        rf"`({ids})`|\b({ids})(?:\s+(?:tool|returned|results?|output|data)\b|\s*[:=]\s*[{{\[])"
-        rf"|\b({bare})\b",
-        re.IGNORECASE,
-    )
+    """``text`` with each clause that attributes a result to a tool no ok
+    result came from replaced (R15-LEAD-030; :func:`_guard_sentence` decides
+    a sentence). ``depth``: the brackets a replaced dump left open, or
+    :data:`DUMP_PENDING`; the text until they balance is dropped. Returns the
+    text and the depth left open."""
+    ref = _tool_reference(tool_ids)
+    canon = {t.replace("_", ""): t for t in tool_ids}  # "PriceData" -> price_data
     out: list[str] = []
     for match in _SENTENCE.finditer(text):
         sentence = match.group()
@@ -2047,38 +2068,101 @@ def _guard_tool_citations(
                     out.append(sentence[i + 1 :])
                     break
             continue
-        refs: list[str] = []
-        blanked = sentence
-        for m in ref.finditer(sentence):
-            group = next(i for i in range(1, 4) if m.group(i))
-            refs.append(re.sub(r"[\s-]", "_", m.group(group).lower()))
-            start, end = m.span(group)
-            blanked = blanked[:start] + " " * (end - start) + blanked[end:]
-        untraced = [t for t in refs if t not in ok_tools]
-        generic = not refs and not ok_tools and _GENERIC_TOOL_REF.search(sentence)
-        figure = _CURRENCY_FIGURE.search(sentence)
-        intent = (
-            not figure
-            and not any(c in sentence for c in "{[")
-            and not _RESULT_VERB.search(sentence)
-            and _INTENT_CUE.search(sentence)
-        )
-        if (untraced or generic) and not intent and (_CITATION_CUE.search(blanked) or figure):
-            logger.info("tool-citation guard replaced an untraced claim: %r", sentence.strip())
-            note = (
-                f"The {untraced[0]} tool returned no data for this in this turn."
-                if untraced
-                else "No tool returned data for this in this turn."
-            )
-            lead = sentence[: len(sentence) - len(sentence.lstrip())]
-            depth = max(
-                sum(sentence.count(c) for c in "{[") - sum(sentence.count(c) for c in "}]"), 0
-            )
-            if not depth and sentence.rstrip().endswith((":", "=")):
-                depth = DUMP_PENDING
-            sentence = lead + note + sentence[len(sentence.rstrip()) :]
+        sentence, depth = _guard_sentence(sentence, ok_tools, ref, canon)
         out.append(sentence)
     return "".join(out), depth
+
+
+def _guard_sentence(
+    sentence: str, ok_tools: set[str], ref: re.Pattern[str], canon: dict[str, str]
+) -> tuple[str, int]:
+    """``sentence`` with each clause that attributes a result to a tool not in
+    ``ok_tools`` replaced, and the bracket depth a replaced dump left open
+    (``canon``: each id without its underscores, to the id).
+
+    The decision is by attribution, not co-occurrence: a clause (the sentence
+    between :data:`_CLAUSE_BREAK` conjunctions, a cited tool after a comma
+    starting its own) is replaced when it names such a tool ``T`` (``ref``,
+    :func:`_tool_reference`) and either ``T`` is cited as a source
+    (:data:`_ATTRIBUTES` after it, or a lead-in before it) or the clause
+    carries a currency figure or a bracket dump and names no ok tool, and the
+    clause is not a negative report (:data:`_NEGATIVE`). So "The fundamentals
+    tool returned an error, so I used financial statements, which shows
+    revenue of ₹4,411 cr." is kept whole, and "The news tool had nothing, but
+    fundamentals returned: {...}" loses only its second clause and the dump.
+    A figure-less mention in no such form ("Let me fetch the `news` data") is
+    an intent, kept. With no tool named at all, a generic "the tool returned
+    $X" is replaced only while no tool has returned ok.
+    ponytail: a bare figure with no tool reference ("₹4,411 cr") is not
+    screened — derived arithmetic and a user's figure are legitimate; a
+    lowercase humanised name before a bare verb ("financial statements show")
+    is plain English, not a reference, so such a fabrication passes.
+    """
+    # A dump belongs to the clause that opened it: clauses part only before it.
+    brackets = [i for i in (sentence.find("{"), sentence.find("[")) if i >= 0]
+    cut = min(brackets, default=len(sentence))
+    breaks = [m.span() for m in _CLAUSE_BREAK.finditer(sentence, 0, cut)]
+    refs: list[tuple[int, str, bool]] = []  # (start, tool id, cited)
+    for m in ref.finditer(sentence):
+        group = m.lastgroup or "bare"
+        start, end = m.span(group)
+        cited = group == "lead" or bool(_ATTRIBUTES.match(sentence, end))
+        tool = re.sub(r"[\s_-]", "", m.group(group).lower())
+        refs.append((start, canon.get(tool, tool), cited))
+        # "Although news had nothing, fundamentals returned: {": a cited tool
+        # after a comma starts its own clause.
+        comma = re.search(r",\s+(?=(?:the\s+)?$)", sentence[:start])
+        if cited and comma and start < cut:
+            breaks.append(comma.span())
+    breaks.sort()
+    clauses: list[tuple[int, int]] = []
+    pos = 0
+    for start, end in breaks:
+        if start > pos:
+            clauses.append((pos, start))
+        pos = max(pos, end)
+    clauses.append((pos, len(sentence)))
+    pieces: list[str] = []
+    replaced = False
+    depth = 0
+    for index, (start, end) in enumerate(clauses):
+        if index:
+            pieces.append(sentence[clauses[index - 1][1] : start])  # the conjunction
+        clause = sentence[start:end]
+        prose = clause[: max(cut - start, 0)] if cut < end else clause
+        inside = [r for r in refs if start <= r[0] < end]
+        bad = [r for r in inside if r[1] not in ok_tools]
+        figure = bool(_CURRENCY_FIGURE.search(clause)) or len(prose) < len(clause)
+        negative = bool(_NEGATIVE.search(prose))
+        if negative:
+            pieces.append(clause)
+            continue
+        if bad and (any(r[2] for r in bad) or (figure and len(bad) == len(inside))):
+            note = f"the {bad[0][1]} tool returned no data for this in this turn"
+        elif (
+            not inside
+            and not ok_tools
+            and _GENERIC_TOOL_REF.search(prose)
+            and (figure or _RESULT_VERB.search(prose))
+        ):
+            note = "no tool returned data for this in this turn"
+        else:
+            pieces.append(clause)
+            continue
+        logger.info("tool-citation guard replaced an untraced claim: %r", clause.strip())
+        replaced = True
+        if index == 0:
+            note = note[0].upper() + note[1:]
+        lead = clause[: len(clause) - len(clause.lstrip())]
+        if index < len(clauses) - 1:
+            pieces.append(lead + note)
+            continue
+        depth = max(sum(clause.count(c) for c in "{[") - sum(clause.count(c) for c in "}]"), 0)
+        body = clause.rstrip()
+        if not depth and body.endswith((":", "=")):
+            depth = DUMP_PENDING
+        pieces.append(lead + note + "." + clause[len(body) :])
+    return ("".join(pieces) if replaced else sentence), depth
 
 
 @dataclass

@@ -2398,26 +2398,30 @@ def test_compare_symbols_market_cap_reads_in_each_row_quote_currency() -> None:
 
 async def _scripted_answer(
     monkeypatch: pytest.MonkeyPatch,
-    tool: str | None,
+    tool: str | dict[str, dict[str, Any]] | None,
     result: dict[str, Any],
     deltas: list[str],
     history: list[dict[str, str]] | None = None,
 ) -> str:
-    """Round 1 calls ``tool`` (stubbed to return ``result``); round 2 streams
-    ``deltas``. With no ``tool`` the only round streams them. ``history`` rides
-    the invoke options as the client sends it. Returns the joined answer the
-    consumer saw."""
+    """Round 1 calls ``tool`` (stubbed to return ``result``; or each tool of a
+    {name: result} dict); round 2 streams ``deltas``. With no ``tool`` the only
+    round streams them. ``history`` rides the invoke options as the client
+    sends it. Returns the joined answer the consumer saw."""
     agent_runtime.reload()
+    results = tool if isinstance(tool, dict) else {tool: result} if tool else {}
     done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
     rounds: list[list[Any]] = [[*(LLMDeltaEvent(text=d) for d in deltas), done]]
-    if tool is not None:
-        call = LLMToolUseEvent(tool_call_id="t", name=tool, input={"symbol": "SIFY"})
-        rounds.insert(0, [call, done])
+    if results:
+        calls = [
+            LLMToolUseEvent(tool_call_id=name, name=name, input={"symbol": "SIFY"})
+            for name in results
+        ]
+        rounds.insert(0, [*calls, done])
     provider = _RecordingRoundsProvider(rounds)
     monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
 
-    async def _tool(*_a: Any, **_k: Any) -> str:
-        return json.dumps(result)
+    async def _tool(call: LLMToolUseEvent, *_a: Any, **_k: Any) -> str:
+        return json.dumps(results[call.name])
 
     monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
     return "".join(
@@ -2682,6 +2686,87 @@ async def test_a_figure_less_pre_call_narration_is_kept(
     no result verb is not a citation; a recap with a figure still is."""
     got = await _scripted_answer(monkeypatch, tool, result, [sentence])
     assert got == (answer or sentence)
+
+
+_NEWS_OK = {"ok": True, "articles": []}
+_FUND_NOTE = "the fundamentals tool returned no data for this in this turn"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("tools", "sentence", "answer"),
+    [
+        ({"financial_statements": _FS_OK}, "PriceData returned a close of $2.11.", _PRICE_NOTE),
+        (
+            {"news": _NEWS_OK, "fundamentals": _ERRORED},
+            'The news tool had nothing, but fundamentals returned: {"revenue": "$1320 m"}',
+            f"The news tool had nothing, but {_FUND_NOTE}.",
+        ),
+        (
+            {"news": _NEWS_OK, "fundamentals": _ERRORED},
+            'Although the news tool had nothing, the fundamentals tool returned: {"rev": "$1 bn"}',
+            f"Although the news tool had nothing, {_FUND_NOTE}.",
+        ),
+        (
+            {},
+            "Based on the earnings history, EPS came in at $0.42 last quarter.",
+            "The earnings_history tool returned no data for this in this turn.",
+        ),
+        (
+            {"financial_statements": _FS_OK},
+            'The output of the fundamentals call: {"revenue": "$1320 m"}',
+            "The fundamentals tool returned no data for this in this turn.",
+        ),
+    ],
+)
+async def test_a_figure_attributed_to_a_tool_with_no_ok_result_is_replaced(
+    monkeypatch: pytest.MonkeyPatch, tools: dict[str, dict[str, Any]], sentence: str, answer: str
+) -> None:
+    """R15-LEAD-030 batch-17 probe3 ``fab-camelcase``: 'PriceData returned a
+    close of $2.11.' streamed. A camel-cased id is the same tool; and when one
+    clause truly reports an ok tool's error while the next attributes a dump
+    or figure to an errored tool, only the attributing clause is replaced."""
+    assert await _scripted_answer(monkeypatch, tools, {}, [sentence]) == answer
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("tools", "sentence"),
+    [
+        (
+            {"fundamentals": _ERRORED, "financial_statements": _FS_OK},
+            "The fundamentals tool returned an error, so I used financial statements, "
+            "which shows revenue of ₹4,411 cr.",
+        ),
+        (
+            {"fundamentals": _ERRORED, "price_data": {"ok": True, "latest_price": 13.41}},
+            "fundamentals failed, but price_data shows $13.41.",
+        ),
+        (
+            {"fundamentals": _ERRORED, "financial_statements": _FS_OK},
+            "I could not get fundamentals data; financial statements report ₹4,411 cr of revenue.",
+        ),
+        (
+            {"price_data": _ERRORED, "fundamentals": _SIFY_FUNDAMENTALS},
+            "The `price_data` call errored on SIFY.NS, yet the fundamentals tool reports "
+            "revenue of $1320 m.",
+        ),
+        (
+            {"news": _ERRORED, "financial_statements": _FS_OK},
+            "No luck with `news`; according to `financial_statements`, revenue was ₹4,411 cr.",
+        ),
+    ],
+)
+async def test_a_true_error_mention_beside_an_ok_tools_figure_is_kept(
+    monkeypatch: pytest.MonkeyPatch, tools: dict[str, dict[str, Any]], sentence: str
+) -> None:
+    """R15-LEAD-030 batch-17 probe2 ``err-mention-plus-true-figure``: fundamentals
+    errored and financial_statements returned ok, and the true sentence that
+    mentioned both was replaced whole, losing the ok-sourced figure. A
+    citation is judged by attribution, clause by clause: a negative report
+    about a tool with no ok result is true, and the figure belongs to the ok
+    tool, so the sentence streams verbatim."""
+    assert await _scripted_answer(monkeypatch, tools, {}, [sentence]) == sentence
 
 
 @pytest.mark.asyncio
