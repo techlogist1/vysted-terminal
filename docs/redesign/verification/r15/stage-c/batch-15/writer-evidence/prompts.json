@@ -1,0 +1,17 @@
+{
+  "entry": "R15-AGENT-090",
+  "provider": "ollama",
+  "model": "llama3.1:8b",
+  "autonomy": "ask",
+  "sidecar": "from source, port 52325, keyless",
+  "transcripts": {
+    "sify-1.jsonl": "How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?",
+    "sify-2.jsonl": "How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?",
+    "sify-3.jsonl": "How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?",
+    "sify-4.jsonl": "How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?",
+    "sify-5.jsonl": "How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?",
+    "fresh-1.jsonl": "What is the ADS to ordinary share ratio for Sify Technologies (SIFY)?",
+    "fresh-2.jsonl": "If I buy 100 SIFY ADRs on Nasdaq, how many underlying equity shares do I own?",
+    "fresh-3.jsonl": "Explain SIFY's depositary receipt structure: how many Indian shares back each ADS, and who is the depositary?"
+  }
+}
