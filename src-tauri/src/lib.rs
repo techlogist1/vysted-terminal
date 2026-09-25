@@ -255,11 +255,37 @@ fn write_mcp_endpoint_file(data_dir: &str, port: u16) {
     }
 }
 
+/// The env the main sidecar learns the MCP children's ports from, set on its own
+/// `Command` (never the process-wide env: `set_var` while GTK/WebKit threads
+/// may call `getenv` is UB on POSIX, R15-CROSS-PLATFORM-008). An unavailable
+/// child gets an empty port, which the Python providers read as "not running"
+/// and which masks any value inherited from the launching shell.
+fn mcp_port_env(openbb: Option<u16>, sec_edgar: Option<u16>) -> Vec<(&'static str, String)> {
+    let mut env = Vec::new();
+    for (port_var, host_var, port) in [
+        ("VYSTED_OPENBB_MCP_PORT", "VYSTED_OPENBB_MCP_HOST", openbb),
+        (
+            "VYSTED_SEC_EDGAR_MCP_PORT",
+            "VYSTED_SEC_EDGAR_MCP_HOST",
+            sec_edgar,
+        ),
+    ] {
+        match port {
+            Some(port) => {
+                env.push((port_var, port.to_string()));
+                env.push((host_var, "127.0.0.1".to_string()));
+            }
+            None => env.push((port_var, String::new())),
+        }
+    }
+    env
+}
+
 /// Spawn + supervise the main Python sidecar. NEVER panics: every failure arm
 /// records its reason in `SidecarStatus` (the renderer shows it at once) and
 /// returns, leaving the UI open in a disconnected state — the boot path
 /// previously `.expect()`-panicked here (no window, no error).
-fn start_main_sidecar(app: &AppHandle, port: u16) {
+fn start_main_sidecar(app: &AppHandle, port: u16, openbb: Option<u16>, sec_edgar: Option<u16>) {
     let status = app.state::<SidecarStatus>();
     if port == 0 {
         status.fail("The data engine could not start: no free local port.".to_string());
@@ -267,7 +293,9 @@ fn start_main_sidecar(app: &AppHandle, port: u16) {
     }
     let data_dir = app_data_dir(app).to_string_lossy().to_string();
     let command = match app.shell().sidecar("vysted-sidecar") {
-        Ok(command) => command.args(["--port", &port.to_string(), "--data-dir", &data_dir]),
+        Ok(command) => command
+            .args(["--port", &port.to_string(), "--data-dir", &data_dir])
+            .envs(mcp_port_env(openbb, sec_edgar)),
         Err(err) => {
             status.fail(format!("The data engine could not start ({err})."));
             return;
@@ -338,20 +366,20 @@ fn start_main_sidecar(app: &AppHandle, port: u16) {
 }
 
 /// Run the boot on one background thread and return at once: start both MCP
-/// children (each `start_*` returns its bind-wait step), then the main
-/// sidecar, then both bind waits concurrently.
+/// children (each `start_*` returns its port and its bind-wait step), then the
+/// main sidecar with both ports, then both bind waits concurrently.
 fn spawn_boot<A, SA, B, SB, M>(start_a: A, start_b: B, start_main: M) -> thread::JoinHandle<()>
 where
-    A: FnOnce() -> SA + Send + 'static,
+    A: FnOnce() -> (Option<u16>, SA) + Send + 'static,
     SA: FnOnce() + Send,
-    B: FnOnce() -> SB + Send + 'static,
+    B: FnOnce() -> (Option<u16>, SB) + Send + 'static,
     SB: FnOnce() + Send,
-    M: FnOnce() + Send + 'static,
+    M: FnOnce(Option<u16>, Option<u16>) + Send + 'static,
 {
     thread::spawn(move || {
-        let supervise_a = start_a();
-        let supervise_b = start_b();
-        start_main();
+        let (port_a, supervise_a) = start_a();
+        let (port_b, supervise_b) = start_b();
+        start_main(port_a, port_b);
         thread::scope(|scope| {
             scope.spawn(supervise_a);
             supervise_b();
@@ -580,9 +608,9 @@ pub fn run() {
             app.manage(SidecarStatus::new(port));
 
             // Boot the three children off the main thread so the window paints
-            // at once (R15-LIFECYCLE-001): the MCP starts pick their ports and
-            // set the ``VYSTED_*_MCP_PORT`` env vars the main sidecar inherits,
-            // the main sidecar spawns straight after, and only then do the two
+            // at once (R15-LIFECYCLE-001): the MCP starts pick their ports, the
+            // main sidecar spawns straight after with them in its own env, and
+            // only then do the two
             // MCP bind waits run (concurrently). Every step is non-fatal (an
             // MCP registers port=0; the main sidecar records Failed(reason)).
             let (openbb, sec, main) = (
@@ -593,21 +621,21 @@ pub fn run() {
             spawn_boot(
                 move || {
                     let port = openbb_mcp::start(&openbb);
-                    move || {
+                    (port, move || {
                         if let Some(port) = port {
                             openbb_mcp::supervise(&openbb, port);
                         }
-                    }
+                    })
                 },
                 move || {
                     let port = sec_edgar_mcp::start(&sec);
-                    move || {
+                    (port, move || {
                         if let Some(port) = port {
                             sec_edgar_mcp::supervise(&sec, port);
                         }
-                    }
+                    })
                 },
-                move || start_main_sidecar(&main, port),
+                move |openbb_port, sec_port| start_main_sidecar(&main, port, openbb_port, sec_port),
             );
 
             // macOS modes-as-tools menu (Layout → Fundamental / Technical / Macro /
@@ -674,13 +702,20 @@ mod tests {
         let boot = super::spawn_boot(
             move || {
                 start_a();
-                sup_a
+                (Some(1), sup_a)
             },
             move || {
                 start_b();
-                sup_b
+                (None, sup_b)
             },
-            main,
+            move |a, b| {
+                assert_eq!(
+                    (a, b),
+                    (Some(1), None),
+                    "the main start gets both MCP ports"
+                );
+                main();
+            },
         );
         assert!(
             began.elapsed().as_millis() < 200,
@@ -775,6 +810,36 @@ mod tests {
         assert_eq!(meta["onboarding-complete"], "cloud");
         assert_eq!(meta["onboarding-banner-dismissed"], "dismissed");
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn sidecar_command_env_carries_mcp_ports() {
+        // R15-CROSS-PLATFORM-008: the ports ride the main sidecar's own env; an
+        // unavailable child gets an empty port (read as "not running").
+        let env = super::mcp_port_env(Some(50001), None);
+        let get = |k: &str| {
+            env.iter()
+                .find(|(key, _)| *key == k)
+                .map(|(_, v)| v.as_str())
+        };
+        assert_eq!(get("VYSTED_OPENBB_MCP_PORT"), Some("50001"));
+        assert_eq!(get("VYSTED_OPENBB_MCP_HOST"), Some("127.0.0.1"));
+        assert_eq!(get("VYSTED_SEC_EDGAR_MCP_PORT"), Some(""));
+        assert_eq!(get("VYSTED_SEC_EDGAR_MCP_HOST"), None);
+    }
+
+    #[test]
+    fn no_env_mutation_in_src() {
+        // R15-CROSS-PLATFORM-008: nothing in the core mutates the process env.
+        let needles = [["set", "_var("].concat(), ["remove", "_var("].concat()];
+        let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        for entry in std::fs::read_dir(src).unwrap() {
+            let path = entry.unwrap().path();
+            let text = std::fs::read_to_string(&path).unwrap();
+            for needle in &needles {
+                assert!(!text.contains(needle.as_str()), "{path:?} calls {needle}");
+            }
+        }
     }
 
     #[test]

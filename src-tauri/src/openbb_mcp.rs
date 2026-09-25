@@ -15,9 +15,10 @@
 //! This module owns the child process lifecycle:
 //!
 //! - :fn:`start` is called from ``lib.rs``'s boot thread. It picks a free
-//!   port, sets the ``VYSTED_OPENBB_MCP_PORT`` env var so the Python
-//!   sidecar's ``openbb_mcp_provider`` learns the port without an explicit
-//!   handshake, spawns the bundled binary, drains the child's stdout/stderr
+//!   port (``lib.rs`` hands it to the main sidecar as
+//!   ``VYSTED_OPENBB_MCP_PORT`` on that child's own environment, so the
+//!   Python ``openbb_mcp_provider`` learns it without a handshake), spawns
+//!   the bundled binary, drains the child's stdout/stderr
 //!   so its pipes never block, and manages the ``CommandChild`` in Tauri
 //!   state. :fn:`supervise` then waits for the bind (after the main sidecar
 //!   has been spawned).
@@ -55,19 +56,16 @@ pub fn get_openbb_mcp_port(port: tauri::State<'_, OpenbbMcpPort>) -> u16 {
 }
 
 /// Register this build as "openbb-mcp unavailable": port=0 + no child.
-/// The Python sidecar's ``openbb_mcp_provider`` reads the missing/zero
+/// The Python sidecar's ``openbb_mcp_provider`` reads the empty
 /// ``VYSTED_OPENBB_MCP_PORT`` and falls back to yfinance.
 fn register_unavailable(app: &AppHandle) {
-    std::env::remove_var("VYSTED_OPENBB_MCP_PORT");
-    std::env::remove_var("VYSTED_OPENBB_MCP_HOST");
     app.manage(OpenbbMcpPort(0));
     app.manage(OpenbbMcpProcess(Mutex::new(None)));
 }
 
-/// Start the openbb-mcp subprocess: pick its port, publish it in the env var,
-/// spawn it and keep its handle in Tauri state. Fast — no bind wait (that is
-/// :fn:`supervise`), so the main sidecar can spawn right after with the env
-/// var already set (R15-LIFECYCLE-001). Returns the port to supervise, or
+/// Start the openbb-mcp subprocess: pick its port, spawn it and keep its handle
+/// in Tauri state. Fast — no bind wait (that is :fn:`supervise`), so the main
+/// sidecar can spawn right after with the port in its env (R15-LIFECYCLE-001). Returns the port to supervise, or
 /// ``None`` once registered unavailable. Never panics — when the bundled
 /// binary is missing (a dev build that skipped ``pnpm
 /// openbb-mcp-sidecar:build``) the main sidecar falls back to yfinance for
@@ -88,12 +86,6 @@ pub fn start(app: &AppHandle) -> Option<u16> {
             return None;
         }
     };
-
-    // Hand the port to the Python sidecar via env var, set before the main
-    // sidecar spawn so it is inherited by the time the sidecar imports
-    // ``services.openbb_mcp_provider``.
-    std::env::set_var("VYSTED_OPENBB_MCP_PORT", port.to_string());
-    std::env::set_var("VYSTED_OPENBB_MCP_HOST", "127.0.0.1");
 
     let sidecar = match app
         .shell()
