@@ -383,6 +383,38 @@ async def test_row_to_pair_roundtrip_and_priceless_quote() -> None:
     assert seeded_quote is None
 
 
+@pytest.mark.asyncio
+async def test_row_to_pair_null_growth_row_states_no_basis_and_derives_field_meta() -> None:
+    """R15-DATA-102: a seed row whose growth is NULL states no growth basis
+    (never the inherited 'mrq_yoy'), and every served value carries field_meta
+    derived from the tier that wrote it — the snapshot's own as-of for a
+    seed-only value, the v7 stamp for a v7-written one; an info-tier row keeps
+    the growth basis its producer stated."""
+    seed_at = 1_750_000_000.0
+    await store.seed_fundamentals(
+        [{"symbol": "CCC.NS", "pe_ratio": 12.0, "roe": 0.2, "seed_as_of": seed_at}]
+    )
+    seeded, _ = store.row_to_pair((await store.fetch_rows(["CCC.NS"]))["CCC.NS"])
+    assert seeded.revenue_growth is None and seeded.growth_basis is None
+    assert seeded.field_meta is not None
+    assert seeded.field_meta["roe"].provider == "seed"
+    assert seeded.field_meta["roe"].as_of == datetime.fromtimestamp(seed_at, tz=UTC).isoformat()
+
+    await store.upsert_v7("CCC.NS", _fund("CCC.NS", pe_ratio=14.0), None)
+    v7_row = (await store.fetch_rows(["CCC.NS"]))["CCC.NS"]
+    v7_fund, _ = store.row_to_pair(v7_row)
+    assert v7_fund.field_meta is not None
+    assert v7_fund.field_meta["pe_ratio"].provider == "test"
+    assert v7_fund.field_meta["pe_ratio"].as_of == (
+        datetime.fromtimestamp(v7_row["v7_updated_at"], tz=UTC).isoformat()
+    )
+    assert v7_fund.field_meta["roe"].provider == "seed"  # no live tier wrote it
+
+    await store.upsert_info("DDD", _fund("DDD", revenue_growth=0.1, growth_basis="annual_yoy"))
+    info_fund, _ = store.row_to_pair((await store.fetch_rows(["DDD"]))["DDD"])
+    assert info_fund.growth_basis == "annual_yoy"
+
+
 def test_null_change_row_keeps_change_unset_and_row_currency() -> None:
     """R15-DATA-103: a row whose day change is unknown (the bhavcopy lane with
     no prior close writes NULL) keeps the change unset — never a fabricated
