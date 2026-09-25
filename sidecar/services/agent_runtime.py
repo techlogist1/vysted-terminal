@@ -650,6 +650,13 @@ def _history_tools(history: list[LLMMessage], known: set[str]) -> set[str]:
     return tools
 
 
+#: What the model is told in place of the trailers it no longer sees.
+_EARLIER_TOOLS_NOTE = (
+    "Earlier turns of this chat called these tools: {tools}. Their results are not "
+    "shown here; call a tool again before quoting its output."
+)
+
+
 def _without_step_trailers(history: list[LLMMessage]) -> list[LLMMessage]:
     """``history`` with the client's ``[tool steps: ...]`` lines taken out of
     its verbatim assistant turns (a turn left empty is dropped): bookkeeping
@@ -2286,9 +2293,13 @@ def _prepare_run(
     history, folded = _coerce_history(opts.pop("history", None))
     tool_ids, read_only, retired_tools = _resolve_tool_surface(spec, mode, prompt)
     # The trailers seed the tools a follow-up may cite, then leave the history
-    # the provider sees (R15-LEAD-033: llama3.1:8b quoted them as its prose).
+    # the provider sees (R15-LEAD-033: llama3.1:8b quoted them as its prose);
+    # the model learns which tools ran from a system line instead.
     cited_tools = _history_tools(history, set(catalog.CAPABILITY_CATALOG) | set(tool_ids))
     history = _without_step_trailers(history)
+    if cited_tools:
+        note = _EARLIER_TOOLS_NOTE.format(tools=", ".join(sorted(cited_tools)))
+        history.insert(0, LLMMessage(role="system", content=note))
 
     # Web-search tier dispatch (FR-080/081/WS5). On the NATIVE tier, ride the
     # model's own server-side search when THIS model supports it (the adapter
