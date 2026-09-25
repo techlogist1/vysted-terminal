@@ -104,6 +104,20 @@ describe("marketplace store — install/enable/configure/remove (FR-050/US10/SC-
     expect(useModulesStore.getState().enabled["plugin:vysted-example"]).toBe(false);
   });
 
+  it("remove(vysted-news) deletes each granted secret; disable does not (R15-CODE-PLATFORM-049)", async () => {
+    await useMarketplaceStore.getState().install("vysted-news");
+    await useMarketplaceStore.getState().configure("vysted-news", { newsapi_key: "my-secret" });
+
+    deleteSecretMock.mockClear();
+    await useMarketplaceStore.getState().disable("vysted-news");
+    expect(deleteSecretMock).not.toHaveBeenCalled();
+
+    await useMarketplaceStore.getState().enable("vysted-news");
+    deleteSecretMock.mockClear();
+    await useMarketplaceStore.getState().remove("vysted-news");
+    expect(deleteSecretMock).toHaveBeenCalledWith("plugin-secret:vysted-news:newsapi_key");
+  });
+
   it("configure writes BYOK creds to the keychain under the plugin-secret namespace (FR-034/FR-036)", async () => {
     await useMarketplaceStore.getState().install("vysted-news");
     setSecretMock.mockClear();

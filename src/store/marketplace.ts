@@ -181,7 +181,18 @@ export const useMarketplaceStore = create<MarketplaceState>((set, get) => ({
     if (!runtime) return;
     set((s) => ({ busy: { ...s.busy, [pluginId]: true } }));
     try {
+      // R15-CODE-PLATFORM-049: removePlugin only patches installed/enabled and
+      // unloads — it never touches the keychain, so a removed plugin's granted
+      // secrets were orphaned there forever. disable() correctly leaves them
+      // (it's reversible, the plugin stays installed); remove() is the one
+      // irreversible transition, so it deletes every grant.
+      const config = await runtime.readConfig(pluginId).catch(() => null);
       await runtime.removePlugin(pluginId);
+      if (config) {
+        await Promise.all(
+          config.grantedSecretIds.map((account) => deleteSecret(account).catch(() => undefined)),
+        );
+      }
       usePluginsStore.getState().refreshFromRuntime();
       await get().refresh();
     } finally {
