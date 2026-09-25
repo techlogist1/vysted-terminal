@@ -228,7 +228,9 @@ class Capability:
 # readOnlyHint=true, R15-AGENT-066) is projected. Per-invocation reads are
 # request-scoped and host actions mutate the cockpit behind the in-app
 # proposed-changes gate, so neither is projected. Exposing writes through a
-# host-side queue is a future operator decision.
+# host-side queue is a future operator decision. The exposed set is pinned by
+# name in test_mcp_catalog_parity, so each new read_handler is an explicit
+# expose-or-exclude decision (R15-AGENT-067).
 _MCP_INTERNAL_ONLY: frozenset[str] = frozenset({"backtest_summary", "run_custom_backtest"})
 
 
