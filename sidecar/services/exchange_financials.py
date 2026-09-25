@@ -358,6 +358,17 @@ def _fetch(listing: str) -> FiledPeriods | None:
     return _bse_periods(bare)
 
 
+def _fetch_and_cache(key: str) -> FiledPeriods | None:
+    """Runs inside the ``to_thread`` worker: the cache write lives here, not
+    after the ``await``, so a caller cancelled mid-fetch (FAST's budget box)
+    still lands the result the worker thread finishes computing — otherwise
+    every later call repeats the same paced NSE walk (rc1-battery-4:1)."""
+    filed = _fetch(key)
+    if filed is not None:
+        _cache[key] = (time.monotonic(), filed)
+    return filed
+
+
 async def get_filed_periods(listing: str) -> FiledPeriods | None:
     """The exchange-filed periods for an NSE/BSE ``listing`` (``FUSION.NS``,
     ``DAL.BO``), or ``None`` — any other listing, no filings, or any failure.
@@ -369,13 +380,10 @@ async def get_filed_periods(listing: str) -> FiledPeriods | None:
     if hit is not None and time.monotonic() - hit[0] < _TTL_SECONDS:
         return hit[1]
     try:
-        filed = await asyncio.to_thread(_fetch, key)
+        return await asyncio.to_thread(_fetch_and_cache, key)
     except Exception as exc:  # noqa: BLE001 — a witness must never break the payload
         logger.debug("exchange-filed results unavailable for %s: %s", listing, exc)
         return None
-    if filed is not None:
-        _cache[key] = (time.monotonic(), filed)
-    return filed
 
 
 def _fetch_basis(listing: str) -> str | None:

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import threading
 from datetime import date
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from services import (
     symbol_resolver,
     yfinance_provider,
 )
+from services.exchange_financials import FiledPeriods
 from services.symbol_resolver import Resolution
 
 _FIXTURES = Path(__file__).parent / "fixtures"
@@ -213,3 +215,42 @@ def test_a_quarterly_filer_with_a_yahoo_gap_is_not_half_yearly(
     meta = body["field_meta"]["revenue_ttm"]
     assert (meta["provider"], meta["reason"]) == ("nse", None)
     assert body["revenue_ttm"] == pytest.approx(18_710_600_000)
+
+
+# --- rc1-battery-4:1: a cancelled caller's fetch still lands in the cache ----------
+
+
+def test_a_cancelled_caller_still_caches_the_worker_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """FAST's budget box cancels the fundamentals leg before the paced NSE walk
+    finishes; the worker thread keeps running and must cache its result there
+    (not after the caller's ``await``), so the next call is served from cache
+    instead of repeating the whole paced fetch."""
+    release = threading.Event()
+    calls: list[str] = []
+    worker: threading.Thread | None = None
+    stub = FiledPeriods(venue="nse", basis="standalone", periods=())
+
+    def fake_fetch(listing: str) -> FiledPeriods | None:
+        nonlocal worker
+        worker = threading.current_thread()
+        calls.append(listing)
+        release.wait(timeout=5)
+        return stub
+
+    monkeypatch.setattr(exchange_financials, "_fetch", fake_fetch)
+
+    async def scenario() -> None:
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(exchange_financials.get_filed_periods("X.NS"), 0.05)
+
+    asyncio.run(scenario())
+    release.set()
+    assert worker is not None
+    worker.join(timeout=5)
+    assert not worker.is_alive()
+
+    result = asyncio.run(exchange_financials.get_filed_periods("X.NS"))
+    assert result is stub
+    assert calls == ["X.NS"]  # _fetch ran exactly once
