@@ -742,7 +742,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                         "type": "string",
                         "description": (
                             "Optional: the filing's form as sec_filings_list reported it "
-                            "(e.g. 10-K) — speeds up the lookup."
+                            "(e.g. 10-K). Needed to find an older filing — without it, "
+                            "only the issuer's most recent filings of any form are searched."
                         ),
                     },
                 },

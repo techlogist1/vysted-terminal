@@ -574,9 +574,16 @@ async def list_filings(
 #: filing's SGML from EDGAR, so a window's cost grows per row: 200+ rows time
 #: out or fail ("cannot unpack non-iterable NoneType") and 400 hangs past the
 #: client timeout. The lookup opens with base's 40-row request and widens once.
-# ponytail: an unhinted filing past row 100 is not_found; the form hint (a
-# form-filtered list) is how deeper filings resolve.
 _FILING_WINDOWS = (40, 100)
+
+#: Periodic-report forms tried, form-filtered at the smallest window only, when
+#: no explicit ``form_type`` hint locates the accession in the unfiltered
+#: windows above (R15-LEAD-010) — the annual/quarterly forms a heavy
+#: Form-4/144 filer's recency stream pushes past row 100.
+# ponytail: bounded to these 3 extra 40-row calls; an unhinted filing of a
+# rarer form still outside all of the above (e.g. an 8-K) is not_found — the
+# caller's form hint is how that one resolves.
+_PERIODIC_FORMS = ("10-K", "10-Q", "20-F")
 
 
 async def get_filing(
@@ -601,7 +608,10 @@ async def get_filing(
     that form-filtered list first (what the panel showed), then, with no hint
     or on a miss, over the unfiltered list. Each pass opens with a 40-row
     window and widens to 100 only when a full window misses. A failed hinted
-    lookup falls back to the unfiltered list; a failed unfiltered one raises.
+    lookup falls back to the unfiltered list. With no hint, once the unfiltered
+    list also misses, the lookup tries each periodic-report form's own
+    40-row list (``_PERIODIC_FORMS``) before raising — a heavy Form-4/144
+    filer's 10-K/10-Q can sit well past row 100 of the raw recency stream.
     """
     if not accession:
         raise ProviderError("accession is required")
@@ -614,9 +624,14 @@ async def get_filing(
     # Metadata FIRST — the sectioning call below needs the filing's REAL
     # form_type (a 10-Q sectioned as "10-K" mis-parses its headings), and a
     # miss here must raise, not synthesise a filing (§6 D-B2, R15-DATA-007).
+    passes: list[tuple[dict[str, str], tuple[int, ...]]] = (
+        ([({"form_type": form_type}, _FILING_WINDOWS)] if form_type else [])
+        + [({}, _FILING_WINDOWS)]
+        + ([] if form_type else [({"form_type": f}, _FILING_WINDOWS[:1]) for f in _PERIODIC_FORMS])
+    )
     match = None
-    for form_filter in ([{"form_type": form_type}] if form_type else []) + [{}]:
-        for limit in _FILING_WINDOWS:
+    for form_filter, windows in passes:
+        for limit in windows:
             try:
                 list_payload = await _call_tool(
                     "get_recent_filings",
@@ -625,7 +640,7 @@ async def get_filing(
             except ProviderError:
                 if not form_filter:
                     raise
-                break  # the hinted list failed: fall back to the unfiltered list
+                break  # this filtered list failed: fall through to the next pass
             _, _, _, filings = _filings_from_payload(list_payload, fallback_cik=identifier)
             match = next((f for f in filings if f.accession == accession), None)
             if match is not None or len(filings) < limit:
@@ -651,14 +666,16 @@ async def get_filing_sections(
     accession: str,
     *,
     cik_or_symbol: str | None = None,
+    form_type: str | None = None,
 ) -> list[FilingSection]:
     """Return just the sections list for an accession.
 
     Thin wrapper over :func:`get_filing` so the panel's section-only
     navigation rail can hit a cheaper route without re-fetching the
-    metadata row.
+    metadata row. ``form_type`` (R15-LEAD-010) is the same lookup hint
+    ``get_filing`` takes — forward it when the caller has it.
     """
-    detail = await get_filing(accession, cik_or_symbol=cik_or_symbol)
+    detail = await get_filing(accession, cik_or_symbol=cik_or_symbol, form_type=form_type)
     return list(detail.sections)
 
 

@@ -209,7 +209,7 @@ export function SecFilingsPanel() {
               <ul
                 role="listbox"
                 data-testid="sec-symbol-suggestions"
-                className="border-charcoal-700 bg-charcoal-900 absolute top-full left-0 z-20 mt-1 max-h-56 w-64 overflow-y-auto border shadow-lg"
+                className="border-charcoal-700 bg-charcoal-900 absolute top-full left-0 z-20 mt-1 max-h-56 w-64 overflow-y-auto border shadow-lg" /* tokens-ok: dropdown scroll cap — layout, not rhythm */
               >
                 {searchResults.map((row) => (
                   <li key={row.cik}>
@@ -223,7 +223,7 @@ export function SecFilingsPanel() {
                         e.preventDefault();
                         pickCompany(row);
                       }}
-                      className="hover:bg-charcoal-800 text-caption flex w-full flex-col items-start gap-0.5 px-2 py-1.5 text-left normal-case"
+                      className="hover:bg-charcoal-800 text-caption flex w-full flex-col items-start gap-0.5 px-2 py-1 text-left normal-case"
                     >
                       <span className="text-charcoal-100">{row.name}</span>
                       <span className="text-charcoal-500 text-micro">{row.ticker ?? row.cik}</span>
