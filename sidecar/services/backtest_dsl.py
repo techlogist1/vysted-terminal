@@ -234,7 +234,7 @@ class _Parser:
 
     def _accept_keyword(self, word: str) -> _Token | None:
         token = self._peek()
-        if token is not None and token.kind == "ident" and token.text == word:
+        if token is not None and token.kind == "ident" and token.text.lower() == word:
             self.index += 1
             return token
         return None
