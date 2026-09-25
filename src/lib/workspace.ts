@@ -1059,7 +1059,20 @@ export function autosaveLayout(): void {
   }, AUTOSAVE_DEBOUNCE_MS);
 }
 
-async function flushAutosave(): Promise<void> {
+/**
+ * Send a scheduled autosave now instead of after the debounce — the page is
+ * going away (R15-LIFECYCLE-028). `keepalive` lets the POST outlive the page.
+ */
+function flushPendingAutosave(): void {
+  if (autosaveTimer === null) {
+    return;
+  }
+  clearTimeout(autosaveTimer);
+  autosaveTimer = null;
+  void flushAutosave({ keepalive: true });
+}
+
+async function flushAutosave(init: { keepalive?: boolean } = {}): Promise<void> {
   if (autosaveInFlight) {
     autosaveQueued = true;
     return;
@@ -1071,6 +1084,7 @@ async function flushAutosave(): Promise<void> {
   try {
     const payload = buildWorkspacePayload(AUTOSAVE_LAYOUT_NAME);
     const response = await fetch(await workspaceUrl(), {
+      ...init,
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: AUTOSAVE_LAYOUT_NAME, workspace: payload }),
@@ -1100,11 +1114,16 @@ async function flushAutosave(): Promise<void> {
 
 /**
  * Wire every {@link PERSISTED_SLICES} trigger to {@link autosaveLayout} (the
- * dockview layout's own trigger is wired by PanelHost). Returns the teardown.
+ * dockview layout's own trigger is wired by PanelHost), and flush a pending
+ * autosave when the page is hidden for good. Returns the teardown.
  */
 export function wireAutosaveTriggers(): () => void {
   const unsubscribes = PERSISTED_SLICES.map((slice) => slice.subscribe(autosaveLayout));
-  return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+  window.addEventListener("pagehide", flushPendingAutosave);
+  return () => {
+    unsubscribes.forEach((unsubscribe) => unsubscribe());
+    window.removeEventListener("pagehide", flushPendingAutosave);
+  };
 }
 
 /** Test helper: back to the pre-restore state (autosave gated, nothing pending). */

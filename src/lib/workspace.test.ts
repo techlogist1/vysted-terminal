@@ -1374,6 +1374,26 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
     expect(useWorkspaceStore.getState().lastAutosaveError).toBeNull();
   });
 
+  it("R15-LIFECYCLE-028: pagehide with a pending autosave issues the POST immediately", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    stubSidecar(null);
+    await restoreLastSessionOrDefault(api as never, new Set());
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockClear();
+    unwire = wireAutosaveTriggers();
+
+    useSymbolsStore.getState().addSymbol("INFY", "equity");
+    window.dispatchEvent(new Event("pagehide"));
+    await vi.advanceTimersByTimeAsync(0); // microtasks only — the debounce has not elapsed
+
+    const posts = fetchMock.mock.calls.filter(([, init]) => init?.method === "POST");
+    expect(posts).toHaveLength(1);
+    expect(posts[0][1]?.keepalive).toBe(true);
+    await vi.advanceTimersByTimeAsync(600);
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
+  });
+
   it("hides the reserved __autosave__ slot and refuses reserved names (R15-UI-046)", async () => {
     const api = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: api as never });
