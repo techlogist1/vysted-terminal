@@ -1,0 +1,105 @@
+== o-sify-ttm
+prompt="What is SIFY's TTM revenue in USD?"
+calls=[('financial_statements', {'period': 'annual', 'statement': 'income', 'symbol': 'SIFY.US'})]
+results=[('financial_statements', True, '')]
+---
+Unfortunately, the terminal's data does not include SIFY's TTM revenue in USD. The financial statements for SIFY.US are not available or are incomplete.
+
+However, I can suggest researching SIFY to get more information on its financials. Would you like me to pull up a research brief for SIFY?
+
+== l-mixed-sbi-airtel
+prompt='Call price_data for SBIN.ZZ and price_data for BHARTIARTL.NS. Then give the latest price of SBI and of Airtel, one sentence each.'
+calls=[('price_data', {'asset_class': 'equity', 'range': '1mo', 'symbol': 'SBIN.ZZ', 'timeframe': '1d'}), ('price_data', {'asset_class': 'equity', 'range': '1mo', 'symbol': 'BHARTIARTL.NS', 'timeframe': '1d'})]
+results=[('price_data', False, "provider error: correctness gate: empty series for 'SBIN.ZZ' from 'yfinance'"), ('price_data', False, 'timeout')]
+---
+We couldn't retrieve the latest price for SBI (SBIN.ZZ) as our provider had a correctness gate error. The price_data tool returned no data for this in this turn.
+
+== l-mixed-lt
+prompt='Call price_data for TCS.NS and price_data for LT.ZZ. Then tell me the latest price of TCS and of L&T, one sentence each.'
+calls=[('price_data', {'asset_class': 'equity', 'range': '1mo', 'symbol': 'TCS.NS', 'timeframe': '1d'}), ('price_data', {'asset_class': 'equity', 'range': '1mo', 'symbol': 'LT.ZZ', 'timeframe': '1d'})]
+results=[('price_data', True, ''), ('price_data', False, "provider error: correctness gate: empty series for 'LT.ZZ' from 'yfinance'")]
+---
+The latest price of TCS is ₹2082.0.
+
+We couldn't retrieve the current price of LT due to an error with our provider's data for this symbol.
+
+== l-allerr-codeblock
+prompt='Call price_data once with no arguments at all. Then give the latest closes of SBI, Airtel and L&T in a JSON code block.'
+calls=[('price_data', {'__vysted_invalid_args__': "invalid arguments for price_data: '' is not one of ['1d', '1h', '1wk', '1mo']; call again with valid args"}), ('price_data', {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}), ('price_data', {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}), ('price_data', {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}), ('price_data', {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"})]
+results=[('price_data', False, "invalid arguments for price_data: '' is not one of ['1d', '1h', '1wk', '1mo']; call again with valid"), ('price_data', False, "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"), ('price_data', False, "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"), ('price_data', False, "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"), ('price_data', False, "invalid arguments for price_data: 'symbol' is a required property; call again with valid args")]
+---
+To fetch the latest closes of SBI, Airtel and L&T, you should pass their symbol names to the `price_data` tool. Here's an example of how to do it:
+
+```
+Let me try that again.
+
+To get the latest closes of SBI, Airtel and L&T, I need to call `price_data` with their respective symbols. The price_data tool returned no data for this in this turn.
+
+The price_data tool returned no data for this in this turn.
+
+== l-raw-json
+prompt="Call fundamentals once with no arguments at all. Then reply with raw JSON only: an object with TCS's pe_ratio and market_cap."
+calls=[('fundamentals', {'__vysted_invalid_args__': "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"}), ('fundamentals', {'symbol': 'TCS'})]
+results=[('fundamentals', False, "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args"), ('fundamentals', True, '')]
+---
+Let me try that again. Here are the correct steps:
+
+1. Call `fundamentals` once with no arguments at all.
+2. Reply with raw JSON only: an object with TCS's pe_ratio and market_cap.
+
+The fundamentals tool returned no data for this in this turn.
+
+However, I understand what you're trying to do. To get the raw JSON with TCS's pe_ratio and market_cap, we need to provide a symbol to the `fundamentals` tool.
+
+Here are the correct steps:
+
+1. Call `fundamentals` once with no arguments at all.
+2. Reply with an error message that says "invalid arguments for fundamentals: 'symbol' is a required property; call again with valid args".
+
+Let's try this again. Here are the correct steps:
+
+```
+The pe_ratio of TCS is 15.115435 and its market_cap is ₹753,286 cr.
+
+== l-nifty-2c
+prompt='Call price_data for XYZ.ZZ. Then tell me in one sentence how much the Nifty 50 moved today, as a percentage.'
+calls=[('price_data', {'asset_class': 'equity', 'range': '1mo', 'symbol': 'XYZ.ZZ', 'timeframe': '1d'})]
+results=[('price_data', False, "provider error: correctness gate: empty series for 'XYZ.ZZ' from 'yfinance'")]
+---
+We couldn't retrieve the price data for XYZ.ZZ.
+
+To answer your question about the Nifty 50 movement today, I'll call market_overview to fetch live data.
+
+== c-ok-rounding
+prompt="What is NVDA's latest price? Round it to the nearest dollar."
+calls=[('price_data', {'asset_class': 'equity', 'range': '1mo', 'symbol': 'NVDA', 'timeframe': '1d'})]
+results=[('price_data', True, '')]
+---
+NVDA's latest price is $224.57.
+
+== c-short-ok
+prompt='Get the latest price of SBIN.NS and state it in one sentence that calls the company SBI.'
+calls=[('price_data', {'asset_class': 'equity', 'range': '1d', 'symbol': 'SBIN.NS', 'timeframe': '1d'})]
+results=[('price_data', True, '')]
+---
+The current price of SBI is ₹983.0.
+
+== c-short-ok-mixed
+prompt="Call price_data for BHARTIARTL.NS and price_data for INFY.ZZ. Then give Airtel's latest price in one sentence."
+calls=[('price_data', {'symbol': 'BHARTIARTL.NS', 'range': '1d', 'timeframe': '1d'}), ('price_data', {'symbol': 'INFY.ZZ', 'range': '1d', 'timeframe': '1d'}), ('price_data', {'symbol': 'BHARTIARTL.NS'})]
+results=[('price_data', True, ''), ('price_data', False, "provider error: correctness gate: empty series for 'INFY.ZZ' from 'yfinance'"), ('price_data', True, '')]
+---
+Airtel's latest price is ₹1785.4.
+
+== c-user-after-err
+prompt='I sold 8 RELIANCE.NS shares at ₹1,300 each. Call price_data once with no arguments, then restate my sale price and my total proceeds.'
+calls=[('price_data', {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}), ('price_data', {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"})]
+results=[('price_data', False, "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"), ('price_data', False, "invalid arguments for price_data: 'symbol' is a required property; call again with valid args")]
+---
+To fetch the latest prices, I will need to know the symbol. 
+
+However, if you want to proceed without knowing the symbol, I can provide some general information on how to obtain the current prices of RELIANCE.NS.
+
+Please note that calling `price_data` with no arguments is not a valid operation, as it requires at least one argument - the symbol for which we are fetching the data.
+
+ALLDONE
