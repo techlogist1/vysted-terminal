@@ -2450,10 +2450,12 @@ def _guard_sentence(
     return lead + note + "." + _note_break(sentence), note
 
 
-def _fence_body(text: str) -> str:
-    """The lines between a fenced block's markers."""
+def _fence_body(text: str, closed: bool) -> str:
+    """The lines after a fenced block's opener, up to its closer when the
+    stream saw one: a fence still open when the stream ends keeps its last
+    line (R15-LEAD-036)."""
     lines = text.strip().split("\n")
-    return "\n".join(lines[1:-1] if len(lines) > 1 else [])
+    return "\n".join(lines[1 : -1 if closed else None])
 
 
 def _guard_unit(text: str, unit: _Unit, ctx: _GuardContext) -> tuple[str, str | None]:
@@ -2478,7 +2480,7 @@ def _guard_unit(text: str, unit: _Unit, ctx: _GuardContext) -> tuple[str, str | 
     for seg in unit.segs[1 if unit.intro else 0 :]:
         row = text[seg.start : seg.end]
         if seg.kind in ("fence", "json"):
-            body = _fence_body(row) if seg.kind == "fence" else row
+            body = _fence_body(row, seg.closed) if seg.kind == "fence" else row
             note = _judge_clause(tail_clause, tail_refs, body, ctx, intro_text)
             rows.append((row, None if note else row, note, True))
             continue

@@ -4053,6 +4053,75 @@ _TCS_OK_SBIN_ERR = [
 ]
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("calls", "deltas", "answer"),
+    [
+        (  # batch-21 unclosed.out u-tilde-unclosed / fresh2.out f036-unclosed-tilde
+            [("fundamentals", {"symbol": "TCS.NS"}, _ERR)],
+            ['Output:\n\n~~~json\n{"pe": 31.7}\n'],
+            f"{_FUND_NOTE_CAP}.\n\n",
+        ),
+        (  # batch-21 unclosed.out u-backtick-unclosed
+            [("fundamentals", {"symbol": "TCS.NS"}, _ERR)],
+            ['Output:\n\n```json\n{"pe": 31.7}\n'],
+            f"{_FUND_NOTE_CAP}.\n\n",
+        ),
+        (  # batch-21 unclosed.out u-backtick-unclosed-prose
+            [("price_data", {"symbol": "SBIN.NS"}, _ERR)],
+            ["Here:\n\n```\nSBIN.NS last close ₹812.40\n"],
+            f"{_PRICE_NOTE}\n\n",
+        ),
+        (  # an unclosed dump with no intro and no trailing newline
+            [("fundamentals", {"symbol": "TCS.NS"}, _ERR)],
+            ['~~~json\n{"pe": 31.7}'],
+            f"{_FUND_NOTE_CAP}.\n",
+        ),
+        (  # mixed: the unclosed fence speaks of the errored subject
+            [
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+                ("quote", {"symbol": "WIPRO.NS"}, _ERR),
+            ],
+            ["TCS closed at ₹3,235.50.\n\n~~~\nWIPRO.NS close: 248.15\n"],
+            f"TCS closed at ₹3,235.50.\n\n{_QUOTE_NOTE}\n\n",
+        ),
+        (  # mixed: the stream ends mid-table on the errored subject
+            _TCS_OK_SBIN_ERR,
+            ["TCS closed at ₹3,235.50.\n\n| Stock | Close |\n|---|---|\n| SBI | ₹812.40"],
+            f"TCS closed at ₹3,235.50.\n\n{_QUOTE_NOTE}\n",
+        ),
+        (  # mixed: the stream ends mid-list on the errored subject
+            _TCS_OK_SBIN_ERR,
+            ["TCS closed at ₹3,235.50.\n\n- SBIN.NS: ₹812.40"],
+            f"TCS closed at ₹3,235.50.\n\n{_QUOTE_NOTE}",
+        ),
+    ],
+)
+async def test_an_unclosed_block_at_the_end_of_the_stream_is_judged_whole(
+    monkeypatch: pytest.MonkeyPatch,
+    calls: list[tuple[str, dict[str, Any], dict[str, Any]]],
+    deltas: list[str],
+    answer: str,
+) -> None:
+    """R15-LEAD-036 batch-22: a fence the stream ended inside was judged
+    without its last line, taken for the closer, so a one-line dump
+    ("~~~json\\n{"pe": 31.7}\\n") had an empty body and streamed. A fence
+    still open at the end is judged whole and replaced like a closed one,
+    markers included; so is a table or list the stream ends inside."""
+    assert await _scripted_calls(monkeypatch, calls, deltas) == answer
+
+
+@pytest.mark.asyncio
+async def test_an_unclosed_fence_on_an_ok_subject_streams_intact(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-036 batch-22 control: an unclosed fence whose figures an ok
+    call carries streams as written, beside an errored call."""
+    calls = [("price_data", {"symbol": "TCS.NS"}, _TCS_PX), ("quote", {"symbol": "WIPRO.NS"}, _ERR)]
+    deltas = ["~~~\nTCS.NS 3235.5\n"]
+    assert await _scripted_calls(monkeypatch, calls, deltas) == deltas[0]
+
+
 _BIG_BLUE_RESOLVED = {
     "ok": True,
     "query": "Big Blue",
