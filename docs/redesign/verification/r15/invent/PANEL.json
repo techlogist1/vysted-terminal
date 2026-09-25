@@ -1,2139 +1,2950 @@
 {
-  "stage": "E",
-  "head": "ac227f43",
-  "branch": "004-r4-experience-rebuild",
-  "judges": {
-    "a": "JUDGE A \u2014 sceptical power user (strongest tier, adversarial)",
-    "b": null
+ "stage": "E",
+ "head": "913235f3",
+ "branch": "004-r4-experience-rebuild",
+ "judges": [
+  {
+   "key": "a",
+   "name": "Judge A: the sceptical power user",
+   "tier": "strongest tier, adversarial",
+   "angle": "the sceptical power user"
   },
-  "ranking_rule": "user_value * (feasibility/5) / days; ties (<0.1) broken by lifecycle then moat_fit; days = backlog estimate unless Judge A verified a smaller residual at HEAD",
-  "rows": [
-    {
-      "id": "BL-01",
-      "title": "Witnessed by default",
-      "size": "S",
-      "days": 3,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 5.0,
-        "moat_fit": 5.0,
-        "feasibility": 5.0,
-        "demo_quality": 4.0,
-        "lifecycle": 4.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "Already landed at HEAD: correctness_gate.apply_witnesses runs on GET /fundamentals (routers/fundamentals.py:137) and EquityOverviewPanel renders the disagreement and witness figure in the cell tooltip. Nothing left to build but tooltip-to-inline polish.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 5,
-        "moat_fit": 5,
-        "feasibility": 5,
-        "demo_quality": 4,
-        "lifecycle": 4,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "Verified at HEAD: routers/fundamentals.py:137 runs correctness_gate.apply_witnesses on GET /fundamentals and the overview cell carries the disagreement. Nothing S-sized remains. Dead."
-    },
-    {
-      "id": "BL-02",
-      "title": "A disclosure feed you can build on",
-      "size": "S",
-      "days": 3,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 3.0,
-        "feasibility": 5.0,
-        "demo_quality": 1.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 1.0,
-      "kill": false,
-      "reason": "Mostly landed (180-day paged window, AttachHis, per-lane AnnouncementWindow); the residual is serving the private _kind plus dual timestamps, a one-day wire change with nothing to screenshot.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 3,
-        "feasibility": 5,
-        "demo_quality": 1,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-03",
-      "title": "Reasons about you: your position and your notes in every answer",
-      "size": "S-M",
-      "days": 3,
-      "resized_reason": "read_notes and the snapshot holdings already exist at HEAD; residual is a preamble line and a brief card",
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 4.0,
-        "feasibility": 5.0,
-        "demo_quality": 4.0,
-        "lifecycle": 5.0
-      },
-      "value_per_day": 1.333,
-      "kill": false,
-      "reason": "read_notes already exists and the agent can call get_portfolio; the residual is a preamble position line and a brief metric, which saves one tool call rather than an hour.",
-      "small_build_candidate": true,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 4,
-        "feasibility": 5,
-        "demo_quality": 4,
-        "lifecycle": 5,
-        "kill": false,
-        "small_build_candidate": true
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-04",
-      "title": "The Watch: wake sweep and a 'while you were away' card that states its blind spots",
-      "size": "M",
-      "days": 8,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 5.0,
-        "moat_fit": 5.0,
-        "feasibility": 3.0,
-        "demo_quality": 4.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.375,
-      "kill": false,
-      "reason": "A sleeping laptop sweeps only on wake, when the user is already looking; classifier rot and small-cap boilerplate make it a babysit item at twice the S budget.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 5,
-        "moat_fit": 5,
-        "feasibility": 3,
-        "demo_quality": 4,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-05",
-      "title": "Number firewall with a rupee scale witness",
-      "size": "M",
-      "days": 8,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 5.0,
-        "feasibility": 3.0,
-        "demo_quality": 4.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.3,
-      "kill": false,
-      "reason": "False orphans on legitimate multi-step arithmetic teach users to ignore the strike within a week; tolerance tuning is open-ended and M-sized.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 5,
-        "feasibility": 3,
-        "demo_quality": 4,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-06",
-      "title": "Page receipts",
-      "size": "S-M",
-      "days": 5,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 4.0,
-        "feasibility": 4.0,
-        "demo_quality": 3.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.64,
-      "kill": false,
-      "reason": "Scanned small-cap filings have no text layer, so the receipt reads 'scanned, from the aggregator' on exactly the names this product targets; S-M, not S.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 4,
-        "feasibility": 4,
-        "demo_quality": 3,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-07",
-      "title": "Coverage honesty: say what the app could not see",
-      "size": "S-M",
-      "days": 4,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 4.0,
-        "feasibility": 4.0,
-        "demo_quality": 4.0,
-        "lifecycle": 5.0
-      },
-      "value_per_day": 0.8,
-      "kill": false,
-      "reason": "It changes no number; a user who sees 'Statements: unavailable' every day on SME names learns to ignore the strip. StatusChrome already reads provider-health, so only the brief block and strip are new.",
-      "small_build_candidate": true,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 4,
-        "feasibility": 4,
-        "demo_quality": 4,
-        "lifecycle": 5,
-        "kill": false,
-        "small_build_candidate": true
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-08",
-      "title": "Start recording: point-in-time EOD and fundamentals observations",
-      "size": "S-M",
-      "days": 4,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 4.0,
-        "demo_quality": 1.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.6,
-      "kill": false,
-      "reason": "Nothing visible for months; a laptop closed for a week walks the archive on wake from the user's IP, and one bhavcopy format change writes silent gaps unless the marker is perfect.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 4,
-        "demo_quality": 1,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-09",
-      "title": "Tripwires: kill criteria compiled once, watched for free",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 5.0,
-        "moat_fit": 5.0,
-        "feasibility": 2.0,
-        "demo_quality": 3.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.333,
-      "kill": false,
-      "reason": "No sweep exists (BL-04 unbuilt), so armed rules are checked only when the app opens, which is when the user would look anyway; the field vocabulary becomes a contract to maintain.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 5,
-        "moat_fit": 5,
-        "feasibility": 2,
-        "demo_quality": 3,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-10",
-      "title": "Red Pen: paste anyone's numbers, get a marked-up verdict",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 5.0,
-        "feasibility": 2.0,
-        "demo_quality": 5.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.267,
-      "kill": false,
-      "reason": "Most tips are narrative, not numbers; the checker says CANNOT CHECK on the tips that matter, and the BL-05 grammar it needs does not exist (company_narrative._NUMBER_RE reads $ and K/M/B/T only).",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 5,
-        "feasibility": 2,
-        "demo_quality": 5,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-11",
-      "title": "Proof Open: the first minute is a demonstration",
-      "size": "S",
-      "days": 2,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 4.0,
-        "feasibility": 5.0,
-        "demo_quality": 5.0,
-        "lifecycle": 4.0
-      },
-      "value_per_day": 1.0,
-      "kill": false,
-      "reason": "Marketing shaped as onboarding: the same disagreement already rides the overview tooltip, so the serious investor gains nothing after minute one; an all-agree large cap makes it look empty.",
-      "small_build_candidate": true,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 4,
-        "feasibility": 5,
-        "demo_quality": 5,
-        "lifecycle": 4,
-        "kill": false,
-        "small_build_candidate": true
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-12",
-      "title": "Turn receipt",
-      "size": "S",
-      "days": 2,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 3.0,
-        "feasibility": 5.0,
-        "demo_quality": 3.0,
-        "lifecycle": 5.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "Core already at HEAD: the composer ContextMeter and the per-message tokens/$ footer (R15-AGENT-040, ChatSidebar.tsx:1402/1543, chat-history.ts usage/spendUsd) expose cost and forgetting; the residual tools/sources/checks line is line creep.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 3,
-        "feasibility": 5,
-        "demo_quality": 3,
-        "lifecycle": 5,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "Judge verified the ContextMeter and per-message tokens/$ footer at HEAD; the residual tools/sources/checks line duplicates the transcript and the sources tray. Dead."
-    },
-    {
-      "id": "BL-13",
-      "title": "Cap-table X-ray: names, beneficial owners, encumbrance, holder counts, pledge trend",
-      "size": "M",
-      "days": 7,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 5.0,
-        "moat_fit": 5.0,
-        "feasibility": 3.0,
-        "demo_quality": 4.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.429,
-      "kill": false,
-      "reason": "PAN is not disclosed so 'same name string' is all it can say; the BSE-only XBRL lane leaves NSE-only SME names, the target, with today's summary. M, not S.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 5,
-        "moat_fit": 5,
-        "feasibility": 3,
-        "demo_quality": 4,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-14",
-      "title": "Corporate-action chain",
-      "size": "S-M",
-      "days": 5,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 3.0,
-        "feasibility": 4.0,
-        "demo_quality": 4.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.48,
-      "kill": false,
-      "reason": "The parser it promised already landed (CorporateAction kind/ratio/ex_date across NSE+BSE, R15-DATA-025); what remains is chart markers, factor receipts and a toggle, and a wrongly applied factor rewrites price history.",
-      "small_build_candidate": true,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 3,
-        "feasibility": 4,
-        "demo_quality": 4,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": true
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-15",
-      "title": "Results-day first take (deterministic results-grid extraction)",
-      "size": "M",
-      "days": 4,
-      "resized_reason": "the exchange_financials reframe (filed revenue/PAT/EPS with URL and filing date already at HEAD), not the PDF grid",
-      "scores": {
-        "user_value": 5.0,
-        "moat_fit": 4.0,
-        "feasibility": 4.0,
-        "demo_quality": 5.0,
-        "lifecycle": 4.0
-      },
-      "value_per_day": 1.0,
-      "kill": false,
-      "reason": "As written (PDF grid, archetype dictionary, page receipts) it is M with four unmet deps; only the reframe onto exchange_financials (filed revenue/PAT/EPS with XBRL URL and filing date already at HEAD) is S, and it loses per-cell page receipts.",
-      "small_build_candidate": true,
-      "judge_a": {
-        "user_value": 5,
-        "moat_fit": 4,
-        "feasibility": 4,
-        "demo_quality": 5,
-        "lifecycle": 4,
-        "kill": false,
-        "small_build_candidate": true
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-16",
-      "title": "Guidance ledger: what management said against what printed",
-      "size": "M-L",
-      "days": 10,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 5.0,
-        "moat_fit": 5.0,
-        "feasibility": 2.0,
-        "demo_quality": 4.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.2,
-      "kill": false,
-      "reason": "Most target small caps hold no calls; where they do, hedged language makes HIT/MISS a judgement the verbatim gate cannot make, and every transcript costs BYOK tokens. M-L.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 5,
-        "moat_fit": 5,
-        "feasibility": 2,
-        "demo_quality": 4,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-17",
-      "title": "Tip Ledger",
-      "size": "M",
-      "days": 8,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 3.0,
-        "demo_quality": 5.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.225,
-      "kill": false,
-      "reason": "The serious investor this product targets does not trade Telegram tips; a wrong resolve on a renamed SME ticker yields a confident, libel-shaped scorecard. M, writes the book.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 3,
-        "demo_quality": 5,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-18",
-      "title": "Brief diff: ask again, see what changed",
-      "size": "S",
-      "days": 3,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 4.0,
-        "feasibility": 4.0,
-        "demo_quality": 4.0,
-        "lifecycle": 5.0
-      },
-      "value_per_day": 1.067,
-      "kill": false,
-      "reason": "Price-derived metrics change daily so the strip is never empty; re-research is rare enough that the prior is weeks stale and 'everything changed'. Lead with filing facts or it is the wall it replaces.",
-      "small_build_candidate": true,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 4,
-        "feasibility": 4,
-        "demo_quality": 4,
-        "lifecycle": 5,
-        "kill": false,
-        "small_build_candidate": true
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-19",
-      "title": "Undo and ghost edits",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 2.0,
-        "feasibility": 4.0,
-        "demo_quality": 2.0,
-        "lifecycle": 4.0
-      },
-      "value_per_day": 0.4,
-      "kill": false,
-      "reason": "Undo-from-review with a pre-image already exists (proposed-changes.ts undo, status 'undone') and AUTO no longer touches data-writes; Cmd-Z and ghost rows are polish any app has.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 2,
-        "feasibility": 4,
-        "demo_quality": 2,
-        "lifecycle": 4,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-20",
-      "title": "Trust bench and 'Audit me'",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 4.0,
-        "demo_quality": 4.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.4,
-      "kill": false,
-      "reason": "Truth packs rot within a quarter and the page hands rivals copy; the user gains nothing beyond the witness flags the overview already shows. An agent-day per release of upkeep.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 4,
-        "demo_quality": 4,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-21",
-      "title": "The Figure and the Why key",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 4.0,
-        "demo_quality": 3.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.4,
-      "kill": false,
-      "reason": "A lineage card is a tooltip with more rows; the witness verdicts it would render already ride the cell tooltip, and every metric must declare lineage forever.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 4,
-        "demo_quality": 3,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-22",
-      "title": "Evidence locker",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 5.0,
-        "feasibility": 3.0,
-        "demo_quality": 2.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.4,
-      "kill": false,
-      "reason": "Storing pypdf's extraction of a scanned PDF preserves garbage faithfully; 'changed under you' fires on pypdf drift unless bytes are hashed. Depends on unbuilt BL-06.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 5,
-        "feasibility": 3,
-        "demo_quality": 2,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-23",
-      "title": "Gatekeeper exits",
-      "size": "S",
-      "days": 3,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 4.0,
-        "feasibility": 4.0,
-        "demo_quality": 4.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 1.067,
-      "kill": false,
-      "reason": "The notify half needs the unbuilt Watch; only an on-open timeline card with the 180-day cluster rule over the now-paged feed stands alone, and SUBCATNAME drift needs a visible unclassified bucket.",
-      "small_build_candidate": true,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 4,
-        "feasibility": 4,
-        "demo_quality": 4,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": true
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-24",
-      "title": "Exit Door: can I actually get out",
-      "size": "S-M",
-      "days": 4,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 5.0,
-        "moat_fit": 3.0,
-        "feasibility": 3.0,
-        "demo_quality": 4.0,
-        "lifecycle": 4.0
-      },
-      "value_per_day": 0.75,
-      "kill": false,
-      "reason": "BhavRow has no delivery column; a total-volume version overstates exit capacity 2-3x on operator names, reassuring exactly when it should not. The honest version needs the recorder and the delivery fallback.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 5,
-        "moat_fit": 3,
-        "feasibility": 3,
-        "demo_quality": 4,
-        "lifecycle": 4,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-25",
-      "title": "Filing clock",
-      "size": "S",
-      "days": 3,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 4.0,
-        "demo_quality": 3.0,
-        "lifecycle": 5.0
-      },
-      "value_per_day": 0.8,
-      "kill": false,
-      "reason": "FiledPeriod.filed and quarter end already give the days-to-results series, but five periods is not a trend; 'results 44 days after quarter end' is noise the user cannot act on for quarters.",
-      "small_build_candidate": true,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 4,
-        "demo_quality": 3,
-        "lifecycle": 5,
-        "kill": false,
-        "small_build_candidate": true
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-26",
-      "title": "Living model",
-      "size": "M",
-      "days": 8,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 4.0,
-        "feasibility": 2.0,
-        "demo_quality": 4.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.2,
-      "kill": false,
-      "reason": "A worse Excel: the user who keeps a model already has Excel; actuals auto-fill only for names with parseable filings and the xlsx writer is a new sidecar dependency.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 4,
-        "feasibility": 2,
-        "demo_quality": 4,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-27",
-      "title": "Rulebook: it holds you to your own words",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 3.0,
-        "demo_quality": 3.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.3,
-      "kill": false,
-      "reason": "It annotates, never blocks, for the disciplined minority who already keep their rules; a mis-compiled rule nags on every add. Depends on unbuilt BL-24.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 3,
-        "demo_quality": 3,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-28",
-      "title": "Red-flag rule packs",
-      "size": "M",
-      "days": 7,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 5.0,
-        "feasibility": 2.0,
-        "demo_quality": 4.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.229,
-      "kill": false,
-      "reason": "'Steps matched' sequences also describe honest turnarounds; the operator reviewing every rule of every pack is babysitting by design. Three unbuilt dependencies.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 5,
-        "feasibility": 2,
-        "demo_quality": 4,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-29",
-      "title": "Track record: the app keeps score on itself and its providers",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 3.0,
-        "demo_quality": 2.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.3,
-      "kill": false,
-      "reason": "Value accrues only from repeated briefs on the same symbol; most users never re-brief a name enough to grade anything, and no claims ledger or migration story exists in the sidecar today.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 3,
-        "demo_quality": 2,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-30",
-      "title": "The number changed: drift ledger",
-      "size": "S-M",
-      "days": 4,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 2.0,
-        "demo_quality": 1.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.3,
-      "kill": false,
-      "reason": "Nothing to say for weeks (no recorder exists), then false alarms on TTM rolls get it muted the week it starts talking.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 2,
-        "demo_quality": 1,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-31",
-      "title": "Seven Pages: annual-report reader",
-      "size": "M",
-      "days": 7,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 4.0,
-        "feasibility": 3.0,
-        "demo_quality": 4.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.343,
-      "kill": false,
-      "reason": "Micro-cap annual reports are often scans; it reads '3 of your 7 pages' on the names it exists for, each run costs real BYOK tokens, and the AR locator endpoint is unverified.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 4,
-        "feasibility": 3,
-        "demo_quality": 4,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-32",
-      "title": "Alerts with a track record",
-      "size": "S-M",
-      "days": 4,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 3.0,
-        "feasibility": 2.0,
-        "demo_quality": 3.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.3,
-      "kill": false,
-      "reason": "Alerts are what every dashboard has; the dry-run over a 180-day tape is shallow enough to be false comfort, and the tripwire engine it rides does not exist.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 3,
-        "feasibility": 2,
-        "demo_quality": 3,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-33",
-      "title": "Operator radar",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 4.0,
-        "feasibility": 2.0,
-        "demo_quality": 3.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.267,
-      "kill": false,
-      "reason": "Hand-tuned thresholds with no recorded history false-positive on every genuine re-rating; a nervous user sells winners. ASM/GSM and BSE delivery lanes are unconfirmed.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 4,
-        "feasibility": 2,
-        "demo_quality": 3,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-34",
-      "title": "Honesty card and trial ledger for backtests",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 2.0,
-        "feasibility": 3.0,
-        "demo_quality": 3.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.2,
-      "kill": false,
-      "reason": "Backtesting is peripheral to the witnessed-research user and it sits on an admitted critical metrics defect (COD-backtest-1); honest deflation of a number the target user never computes.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 2,
-        "feasibility": 3,
-        "demo_quality": 3,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-35",
-      "title": "Priced in: what the market cap already assumes",
-      "size": "S",
-      "days": 3,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 3.0,
-        "feasibility": 3.0,
-        "demo_quality": 4.0,
-        "lifecycle": 4.0
-      },
-      "value_per_day": 0.8,
-      "kill": false,
-      "reason": "Its history column reads the vendor statements that serve another company on SME ticker collisions (DAT-P3-1 family still open, the -SM.NS gate in flight); a sensitivity grid on witnessed TTM alone is the only honest v1.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 3,
-        "feasibility": 3,
-        "demo_quality": 4,
-        "lifecycle": 4,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-36",
-      "title": "Forkable research (.vybrief) and the receipt bundle",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 4.0,
-        "feasibility": 2.0,
-        "demo_quality": 2.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.133,
-      "kill": false,
-      "reason": "A file format is a forever promise for a feature retail users do not use; as a diagnostics bundle it is a zip nobody has asked for yet. Depends on unbuilt BL-05 and BL-22.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 4,
-        "feasibility": 2,
-        "demo_quality": 2,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-37",
-      "title": "Calm protocol",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 2.0,
-        "demo_quality": 4.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.2,
-      "kill": false,
-      "reason": "Fires only while the app is open during market hours, when the sleeping-laptop user is not there; 'looks like the market' minutes before a filing lands is exactly wrong.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 2,
-        "demo_quality": 4,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-38",
-      "title": "Instant cockpit",
-      "size": "M",
-      "days": 5,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 1.0,
-        "feasibility": 3.0,
-        "demo_quality": 2.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "A boot-speed cache any desktop app has; the win sits in the defect fixes (the port wait now runs on thread::spawn in lib.rs), and a mirror risks a cached price reading as live during market hours. Not demoable in a screenshot.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 1,
-        "feasibility": 3,
-        "demo_quality": 2,
-        "lifecycle": 3,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "Boot speed cannot be shown in a populated screenshot or a transcript, and a two-writer price mirror is a live-vs-cached drift surface during market hours. Dead."
-    },
-    {
-      "id": "BL-39",
-      "title": "Earned autonomy",
-      "size": "S",
-      "days": 3,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 2.0,
-        "feasibility": 4.0,
-        "demo_quality": 2.0,
-        "lifecycle": 4.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "The whitelist that carried the value already landed (AUTO_APPLIED_KINDS = panel/chart/watchlist; data-writes never auto-apply). The residual tally nudges the user toward less oversight, which the row itself names as its risk.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 2,
-        "feasibility": 4,
-        "demo_quality": 2,
-        "lifecycle": 4,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "AUTO_APPLIED_KINDS already excludes data-writes at HEAD; the residual tally argues for less oversight, which the row itself names as its risk. Dead."
-    },
-    {
-      "id": "BL-40",
-      "title": "GO bar and learned routines",
-      "size": "S-M",
-      "days": 4,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 2.0,
-        "feasibility": 4.0,
-        "demo_quality": 3.0,
-        "lifecycle": 4.0
-      },
-      "value_per_day": 0.6,
-      "kill": false,
-      "reason": "Bloomberg mnemonics in a product whose spine is the composer; the palette already fuzzy-matches a symbol and 'shareholding' in two keystrokes, and the routine-learning half nags.",
-      "small_build_candidate": true,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 2,
-        "feasibility": 4,
-        "demo_quality": 3,
-        "lifecycle": 4,
-        "kill": false,
-        "small_build_candidate": true
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-41",
-      "title": "Page One",
-      "size": "S",
-      "days": 3,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 3.0,
-        "feasibility": 2.0,
-        "demo_quality": 4.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.4,
-      "kill": false,
-      "reason": "Three boxes of items that do not exist yet (BL-18, BL-35, BL-15); the filler scorer punishes the qualitative context small-cap research lives on.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 3,
-        "feasibility": 2,
-        "demo_quality": 4,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-42",
-      "title": "Pre-print card and your forecast record",
-      "size": "S-M",
-      "days": 5,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 2.0,
-        "demo_quality": 4.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.24,
-      "kill": false,
-      "reason": "Asking the user for three numbers the evening before is homework most will skip, and n<4 quarters shows nothing for a year; three unbuilt dependencies.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 2,
-        "demo_quality": 4,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-43",
-      "title": "One number, one truth",
-      "size": "S",
-      "days": 3,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 3.0,
-        "feasibility": 2.0,
-        "demo_quality": 3.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.4,
-      "kill": false,
-      "reason": "Covers only what <Fig> has adopted, which is nothing today; timing skew between panels fires more often than a real disagreement.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 3,
-        "feasibility": 2,
-        "demo_quality": 3,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-44",
-      "title": "Surprise without analysts (SUE)",
-      "size": "S-M",
-      "days": 4,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 3.0,
-        "feasibility": 3.0,
-        "demo_quality": 3.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.45,
-      "kill": false,
-      "reason": "A seasonal random walk on eight lumpy small-cap quarters gives a sigma with n=4 effective; surprise against an expectation nobody held. The vendor second source is the collision lane.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 3,
-        "feasibility": 3,
-        "demo_quality": 3,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-45",
-      "title": "Proceeds ledger",
-      "size": "S-M",
-      "days": 5,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 3.0,
-        "demo_quality": 4.0,
-        "lifecycle": 4.0
-      },
-      "value_per_day": 0.36,
-      "kill": false,
-      "reason": "Issues below the monitoring-agency threshold, most micro-caps, have no MAR to parse; PDF table parsing is never four days once scans and merged cells appear.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 3,
-        "demo_quality": 4,
-        "lifecycle": 4,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-46",
-      "title": "Cheap-paper calendar",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 4.0,
-        "feasibility": 2.0,
-        "demo_quality": 3.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.267,
-      "kill": false,
-      "reason": "LLM extraction of per-tranche lock-ins from a scanned allotment letter degrades to 'enter manually', after which the calendar holds what the user typed. Two unbuilt dependencies.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 4,
-        "feasibility": 2,
-        "demo_quality": 3,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-47",
-      "title": "Peer set and read-across",
-      "size": "M",
-      "days": 7,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 2.0,
-        "feasibility": 3.0,
-        "demo_quality": 4.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.257,
-      "kill": false,
-      "reason": "A comps table is on every site; the read-across half needs typed edges the user curates by hand and reviews yearly, which is babysitting.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 2,
-        "feasibility": 3,
-        "demo_quality": 4,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-48",
-      "title": "Dodge ledger and who's in the room",
-      "size": "M",
-      "days": 7,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 2.0,
-        "demo_quality": 4.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.171,
-      "kill": false,
-      "reason": "Small-cap transcript coverage is thin; a deterministic DEFLECTED label on a legitimate no-guidance answer is an accusation with a rule attached.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 2,
-        "demo_quality": 4,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-49",
-      "title": "User-addable MCP servers",
-      "size": "S-M",
-      "days": 5,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 3.0,
-        "feasibility": 3.0,
-        "demo_quality": 2.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "Its surviving motivating examples are screener.in scrapers the ledger says not to add; it opens a prompt-injection path (WLD-harness-context-4 still open) for a feature with no honest data source behind it.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 3,
-        "feasibility": 3,
-        "demo_quality": 2,
-        "lifecycle": 2,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "Boundary: its surviving examples are scrapers of a source the ledger says not to add, so no keyless honest data source; it opens an injection path while WLD-harness-context-4 is open. The plugin system stays; this is not it. Dead."
-    },
-    {
-      "id": "BL-50",
-      "title": "Factor X-ray",
-      "size": "S-M",
-      "days": 5,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 2.0,
-        "feasibility": 2.0,
-        "demo_quality": 3.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "Factor-exposure strips are standard portfolio-tool fare; its ranks launder the still-open statement-lane collisions (DAT-P3-1 family) into confident percentiles, and the momentum/volatility legs need months of recorded EOD that do not exist.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 2,
-        "feasibility": 2,
-        "demo_quality": 3,
-        "lifecycle": 3,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "Percentiles over the still-open statement-lane collisions (DAT-P3-1 family) are confident wrong percentiles; momentum and volatility legs need recorded months that do not exist. Dead."
-    },
-    {
-      "id": "BL-51",
-      "title": "Incubator: frozen rules with an out-of-sample record",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 3.0,
-        "feasibility": 2.0,
-        "demo_quality": 2.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.133,
-      "kill": false,
-      "reason": "Months of wall-clock before an out-of-sample record means anything, for a systematic seat that is not the product's user; the recorder it needs does not exist.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 3,
-        "feasibility": 2,
-        "demo_quality": 2,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-52",
-      "title": "As-of screens",
-      "size": "S",
-      "days": 3,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 4.0,
-        "feasibility": 2.0,
-        "demo_quality": 1.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": 0.267,
-      "kill": false,
-      "reason": "There is no recorded history to run a screen 'as of'; it is a chip on an empty table for months.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 4,
-        "feasibility": 2,
-        "demo_quality": 1,
-        "lifecycle": 3,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-53",
-      "title": "Between the prints",
-      "size": "M",
-      "days": 7,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 1.0,
-        "demo_quality": 3.0,
-        "lifecycle": 1.0
-      },
-      "value_per_day": 0.086,
-      "kill": false,
-      "reason": "An hour a month of per-filer spec curation is the definition of babysitting, and most small caps file nothing between prints. Three unbuilt dependencies.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 1,
-        "demo_quality": 3,
-        "lifecycle": 1,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-54",
-      "title": "Annual-report redline",
-      "size": "M",
-      "days": 8,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 5.0,
-        "feasibility": 2.0,
-        "demo_quality": 4.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": 0.2,
-      "kill": false,
-      "reason": "Fused table cells and scanned ARs produce garbage hunks that look like findings; the side-by-side is only as good as pypdf on a micro-cap PDF. Two unbuilt dependencies.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 5,
-        "feasibility": 2,
-        "demo_quality": 4,
-        "lifecycle": 2,
-        "kill": false,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": null
-    },
-    {
-      "id": "BL-55",
-      "title": "Accounts linter with reasoned suppressions",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 4.0,
-        "moat_fit": 4.0,
-        "feasibility": 1.0,
-        "demo_quality": 3.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "Depends on the blocked statement lane (WLD-T-4, DAT-P3-1/P4-1/P5-1/P6-1 admitted critical, still open) and on the unbuilt BL-09 engine; it reports no-data on exactly the names it exists for.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 4,
-        "moat_fit": 4,
-        "feasibility": 1,
-        "demo_quality": 3,
-        "lifecycle": 3,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "Rides the blocked statement lane and the unbuilt BL-09 engine; reports no-data on the SME names it exists for. Dead."
-    },
-    {
-      "id": "BL-56",
-      "title": "Personas on probation",
-      "size": "M",
-      "days": 6,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 1.0,
-        "moat_fit": 2.0,
-        "feasibility": 3.0,
-        "demo_quality": 2.0,
-        "lifecycle": 3.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "Gives the user nothing usable for months (n<10 refuses to score), carries 'predictions in a finance app' optics, and grades persona cosplay that is not the serious investor's workflow; BL-41's falsifier captures the discipline.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 1,
-        "moat_fit": 2,
-        "feasibility": 3,
-        "demo_quality": 2,
-        "lifecycle": 3,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "Refuses to score below n=10, so nothing usable for months; persona cosplay is not the serious investor's workflow and the falsifier in BL-41 keeps the discipline. Dead."
-    },
-    {
-      "id": "BL-57",
-      "title": "Rule forge: event studies from any predictive sentence",
-      "size": "L",
-      "days": 14,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 3.0,
-        "moat_fit": 4.0,
-        "feasibility": 1.0,
-        "demo_quality": 3.0,
-        "lifecycle": 2.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "L band (14 days) on an unprobed cross-sectional announcement archive that does not exist; with the per-symbol fetcher it is an anecdote detector for months. Depends on unbuilt BL-08 and BL-34.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 3,
-        "moat_fit": 4,
-        "feasibility": 1,
-        "demo_quality": 3,
-        "lifecycle": 2,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "L band (14 days) on a cross-sectional announcement archive the app does not have; breaches the S-band rule outright and depends on the unbuilt recorder. Dead."
-    },
-    {
-      "id": "BL-58",
-      "title": "'I noticed you bought'",
-      "size": "S-M",
-      "days": 4,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 3.0,
-        "feasibility": 4.0,
-        "demo_quality": 3.0,
-        "lifecycle": 4.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "The watching half that made it interesting was struck with trading; what survives is a 'why did you buy' journal prompt any notes app provides, and it still needs the open COD-host-actions-proposed-changes-2 fix.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 3,
-        "feasibility": 4,
-        "demo_quality": 3,
-        "lifecycle": 4,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "Boundary: the watching half was struck with trading; what survives is a journal prompt any notes app has, still gated on an open proposed-changes fix. Dead."
-    },
-    {
-      "id": "Candidate: Filing watcher (System 1 triage in front of the BYOK model)",
-      "title": "Filing watcher (System 1 triage in front of the BYOK model)",
-      "size": null,
-      "days": null,
-      "resized_reason": null,
-      "scores": {
-        "user_value": 2.0,
-        "moat_fit": 3.0,
-        "feasibility": 1.0,
-        "demo_quality": 1.0,
-        "lifecycle": 1.0
-      },
-      "value_per_day": null,
-      "kill": true,
-      "reason": "Its own MEASURE pass says the zero-shot checkpoint loses to the sidecar's existing $0 regex on composer_intent and ties majority on holding_relevance; the path forward is a fine-tune (a funded model lane) plus a new local inference runtime with no Windows/CUDA route, breaching the no-new-heavy-dependency and keyless-default boundaries. Unsized, no code, no UI.",
-      "small_build_candidate": false,
-      "judge_a": {
-        "user_value": 2,
-        "moat_fit": 3,
-        "feasibility": 1,
-        "demo_quality": 1,
-        "lifecycle": 1,
-        "kill": true,
-        "small_build_candidate": false
-      },
-      "judge_b": null,
-      "synthesis_rationale": "Boundary: its own MEASURE pass loses to the sidecar's $0 regex; the path forward is a fine-tune (a funded model lane) and a new local inference runtime with no Windows/CUDA route (a heavy dependency). The receipts-per-item idea lives on in BL-04/BL-23. Dead."
-    }
-  ],
-  "survivors": [
-    {
-      "rank": 1,
-      "id": "BL-03",
-      "title": "Reasons about you: your position and your notes in every answer",
-      "value_per_day": 1.333,
-      "line": "The position line and a brief card from the holdings the snapshot already carries; zero tokens, closes WLD-agent-native-ux-1."
-    },
-    {
-      "rank": 2,
-      "id": "BL-18",
-      "title": "Brief diff: ask again, see what changed",
-      "value_per_day": 1.067,
-      "line": "Pure frontend diff strip between two briefs of the same symbol; lead with filing facts, collapse market-moved values."
-    },
-    {
-      "rank": 3,
-      "id": "BL-11",
-      "title": "Proof Open: the first minute is a demonstration",
-      "value_per_day": 1.0,
-      "line": "Two days that make the witness claim verifiable keyless; only after BL-07's coverage strip or an all-agree large cap reads empty."
-    },
-    {
-      "rank": 4,
-      "id": "BL-15",
-      "title": "Results-day first take (deterministic results-grid extraction)",
-      "value_per_day": 1.0,
-      "line": "Only as the exchange_financials reframe: filed QoQ/YoY variance with the XBRL/BSE receipt, no PDF grid, no LLM; substrate for BL-16/25/42/44."
-    },
-    {
-      "rank": 5,
-      "id": "BL-23",
-      "title": "Gatekeeper exits",
-      "value_per_day": 1.067,
-      "line": "Standalone on-open timeline card of gatekeeper exits over the paged feed; the notify half waits for BL-04 and the private _kind must be served first."
-    },
-    {
-      "rank": 6,
-      "id": "BL-02",
-      "title": "A disclosure feed you can build on",
-      "value_per_day": 1.0,
-      "line": "Mostly landed; the residual is serving the private _kind plus dual timestamps."
-    },
-    {
-      "rank": 7,
-      "id": "BL-07",
-      "title": "Coverage honesty: say what the app could not see",
-      "value_per_day": 0.8,
-      "line": "Zero-token 'what I could not see' block plus a quiet coverage strip reading the existing provider-health GET."
-    },
-    {
-      "rank": 8,
-      "id": "BL-25",
-      "title": "Filing clock",
-      "value_per_day": 0.8,
-      "line": "Days-to-results series from FiledPeriod.filed; honest but slow to become actionable."
-    },
-    {
-      "rank": 9,
-      "id": "BL-35",
-      "title": "Priced in: what the market cap already assumes",
-      "value_per_day": 0.8,
-      "line": "Only a sensitivity grid on witnessed TTM is honest while the collision lane is open."
-    },
-    {
-      "rank": 10,
-      "id": "BL-24",
-      "title": "Exit Door: can I actually get out",
-      "value_per_day": 0.75,
-      "line": "Exit capacity needs delivery volume the bhavcopy row lacks; a total-volume version overstates and must wait for the recorder."
-    },
-    {
-      "rank": 11,
-      "id": "BL-40",
-      "title": "GO bar and learned routines",
-      "value_per_day": 0.6,
-      "line": "Palette already fuzzy-matches; the mnemonic bar is habit for a different product."
-    },
-    {
-      "rank": 12,
-      "id": "BL-06",
-      "title": "Page receipts",
-      "value_per_day": 0.64,
-      "line": "Page receipts read 'scanned' on the micro-caps this product targets; S-M."
-    },
-    {
-      "rank": 13,
-      "id": "BL-08",
-      "title": "Start recording: point-in-time EOD and fundamentals observations",
-      "value_per_day": 0.6,
-      "line": "Recorder shows nothing for months and walks the archive from the user's IP on wake."
-    },
-    {
-      "rank": 14,
-      "id": "BL-19",
-      "title": "Undo and ghost edits",
-      "value_per_day": 0.4,
-      "line": "Undo-from-review already exists; ghost rows are polish."
-    },
-    {
-      "rank": 15,
-      "id": "BL-14",
-      "title": "Corporate-action chain",
-      "value_per_day": 0.48,
-      "line": "Parser landed (R15-DATA-025); chart markers and a factor toggle remain, with price-history rewrite risk."
-    },
-    {
-      "rank": 16,
-      "id": "BL-44",
-      "title": "Surprise without analysts (SUE)",
-      "value_per_day": 0.45,
-      "line": "Seasonal random walk on eight lumpy quarters gives sigma at n=4."
-    },
-    {
-      "rank": 17,
-      "id": "BL-22",
-      "title": "Evidence locker",
-      "value_per_day": 0.4,
-      "line": "Locker preserves pypdf garbage faithfully; needs BL-06 and byte hashing."
-    },
-    {
-      "rank": 18,
-      "id": "BL-21",
-      "title": "The Figure and the Why key",
-      "value_per_day": 0.4,
-      "line": "A lineage card is a tooltip with more rows; every metric must declare lineage forever."
-    },
-    {
-      "rank": 19,
-      "id": "BL-41",
-      "title": "Page One",
-      "value_per_day": 0.4,
-      "line": "Three boxes of items that do not exist yet."
-    },
-    {
-      "rank": 20,
-      "id": "BL-43",
-      "title": "One number, one truth",
-      "value_per_day": 0.4,
-      "line": "Covers only what <Fig> has adopted, which is nothing today."
-    },
-    {
-      "rank": 21,
-      "id": "BL-13",
-      "title": "Cap-table X-ray: names, beneficial owners, encumbrance, holder counts, pledge trend",
-      "value_per_day": 0.429,
-      "line": "Highest value per the forensic seat, but BSE-only XBRL leaves NSE-only SME names on today's summary; M."
-    },
-    {
-      "rank": 22,
-      "id": "BL-20",
-      "title": "Trust bench and 'Audit me'",
-      "value_per_day": 0.4,
-      "line": "Truth packs rot quarterly and hand rivals copy."
-    },
-    {
-      "rank": 23,
-      "id": "BL-45",
-      "title": "Proceeds ledger",
-      "value_per_day": 0.36,
-      "line": "Proceeds ledger needs MAR PDFs most micro-caps do not file."
-    },
-    {
-      "rank": 24,
-      "id": "BL-05",
-      "title": "Number firewall with a rupee scale witness",
-      "value_per_day": 0.3,
-      "line": "The scale witness is right; orphan tolerance tuning is open-ended, M."
-    },
-    {
-      "rank": 25,
-      "id": "BL-27",
-      "title": "Rulebook: it holds you to your own words",
-      "value_per_day": 0.3,
-      "line": "Annotates, never blocks; depends on unbuilt BL-24."
-    },
-    {
-      "rank": 26,
-      "id": "BL-32",
-      "title": "Alerts with a track record",
-      "value_per_day": 0.3,
-      "line": "Alerts with a dry-run over a 180-day tape; rides the unbuilt tripwire engine."
-    },
-    {
-      "rank": 27,
-      "id": "BL-04",
-      "title": "The Watch: wake sweep and a 'while you were away' card that states its blind spots",
-      "value_per_day": 0.375,
-      "line": "The Watch is the spine's hub; M at twice the S budget and a sleeping-laptop sweep only on wake."
-    },
-    {
-      "rank": 28,
-      "id": "BL-31",
-      "title": "Seven Pages: annual-report reader",
-      "value_per_day": 0.343,
-      "line": "Seven Pages costs BYOK tokens per run and reads scans poorly."
-    },
-    {
-      "rank": 29,
-      "id": "BL-09",
-      "title": "Tripwires: kill criteria compiled once, watched for free",
-      "value_per_day": 0.333,
-      "line": "Compiled kill criteria are the moat, but without BL-04's sweep they are checked only on open."
-    },
-    {
-      "rank": 30,
-      "id": "BL-29",
-      "title": "Track record: the app keeps score on itself and its providers",
-      "value_per_day": 0.3,
-      "line": "Value only from repeated briefs on the same name; no claims ledger exists."
-    },
-    {
-      "rank": 31,
-      "id": "BL-30",
-      "title": "The number changed: drift ledger",
-      "value_per_day": 0.3,
-      "line": "Nothing to say for weeks, then TTM-roll false alarms."
-    },
-    {
-      "rank": 32,
-      "id": "BL-10",
-      "title": "Red Pen: paste anyone's numbers, get a marked-up verdict",
-      "value_per_day": 0.267,
-      "line": "Needs BL-05's grammar; most tips are narrative and read CANNOT CHECK."
-    },
-    {
-      "rank": 33,
-      "id": "BL-46",
-      "title": "Cheap-paper calendar",
-      "value_per_day": 0.267,
-      "line": "Lock-in extraction from scanned allotment letters degrades to manual entry."
-    },
-    {
-      "rank": 34,
-      "id": "BL-52",
-      "title": "As-of screens",
-      "value_per_day": 0.267,
-      "line": "A chip on an empty table until the recorder has months of history."
-    },
-    {
-      "rank": 35,
-      "id": "BL-47",
-      "title": "Peer set and read-across",
-      "value_per_day": 0.257,
-      "line": "Comps table is everywhere; read-across edges are hand-curated babysitting."
-    },
-    {
-      "rank": 36,
-      "id": "BL-42",
-      "title": "Pre-print card and your forecast record",
-      "value_per_day": 0.24,
-      "line": "Homework the evening before results; n<4 quarters shows nothing for a year."
-    },
-    {
-      "rank": 37,
-      "id": "BL-17",
-      "title": "Tip Ledger",
-      "value_per_day": 0.225,
-      "line": "Tip Ledger is for a user this product does not target; libel-shaped on a wrong resolve."
-    },
-    {
-      "rank": 38,
-      "id": "BL-37",
-      "title": "Calm protocol",
-      "value_per_day": 0.2,
-      "line": "Fires only while the app is open in market hours; wrong minutes before a filing."
-    },
-    {
-      "rank": 39,
-      "id": "BL-34",
-      "title": "Honesty card and trial ledger for backtests",
-      "value_per_day": 0.2,
-      "line": "Backtesting is peripheral to the witnessed-research user; sits on an open critical metrics defect."
-    },
-    {
-      "rank": 40,
-      "id": "BL-33",
-      "title": "Operator radar",
-      "value_per_day": 0.267,
-      "line": "Hand-tuned thresholds with no recorded history false-positive on re-ratings."
-    },
-    {
-      "rank": 41,
-      "id": "BL-28",
-      "title": "Red-flag rule packs",
-      "value_per_day": 0.229,
-      "line": "Rule packs need three unbuilt deps and operator review of every rule."
-    },
-    {
-      "rank": 42,
-      "id": "BL-16",
-      "title": "Guidance ledger: what management said against what printed",
-      "value_per_day": 0.2,
-      "line": "Guidance ledger needs transcripts most small caps do not hold and BYOK tokens per transcript."
-    },
-    {
-      "rank": 43,
-      "id": "BL-54",
-      "title": "Annual-report redline",
-      "value_per_day": 0.2,
-      "line": "Redline is only as good as pypdf on a micro-cap PDF; two unbuilt deps."
-    },
-    {
-      "rank": 44,
-      "id": "BL-26",
-      "title": "Living model",
-      "value_per_day": 0.2,
-      "line": "A worse Excel with a new xlsx sidecar dependency."
-    },
-    {
-      "rank": 45,
-      "id": "BL-48",
-      "title": "Dodge ledger and who's in the room",
-      "value_per_day": 0.171,
-      "line": "Deterministic DEFLECTED on a legitimate no-guidance answer is an accusation."
-    },
-    {
-      "rank": 46,
-      "id": "BL-51",
-      "title": "Incubator: frozen rules with an out-of-sample record",
-      "value_per_day": 0.133,
-      "line": "Months of wall-clock before an out-of-sample record means anything; not the product's user."
-    },
-    {
-      "rank": 47,
-      "id": "BL-36",
-      "title": "Forkable research (.vybrief) and the receipt bundle",
-      "value_per_day": 0.133,
-      "line": "A file format is a forever promise for a feature retail users do not use."
-    },
-    {
-      "rank": 48,
-      "id": "BL-53",
-      "title": "Between the prints",
-      "value_per_day": 0.086,
-      "line": "An hour a month of per-filer spec curation is babysitting by definition."
-    }
-  ],
-  "top": {
-    "id": "BL-03",
-    "title": "Reasons about you: your position and your notes in every answer",
-    "size_band": "S",
-    "days": 3,
-    "boundary_check": "passed: reads the user's tracked portfolio only, no write, no Tier-4 file, no new capability, keyless, no new dependency, design system on",
-    "files": [
-      "sidecar/services/agent_runtime.py (_render_terminal_preamble, line 404; Portfolio line 460)",
-      "src/modules/research/brief-blocks.tsx (deriveMetrics line 412; BriefBody call site line 1061)",
-      "src/modules/research/BriefPanel.tsx (deriveMetrics call site line 641)",
-      "src/store/portfolios.ts (usePortfoliosStore line 121: holdingFor selector)",
-      "sidecar/tests/test_agent_runtime.py",
-      "src/modules/research/brief-blocks.test.ts"
-    ],
-    "acceptance_test": "test_terminal_preamble_renders_focused_position: focused TANLA with holding 500 @ 812, marketValue 405000, pnl -17500, totalValue 812000 -> preamble contains 'Your position in TANLA: 500 units, avg cost 812, 49.9% of book, unrealised P&L -17,500' and 'Held: TANLA, ...'; marketValue null -> 'not marked-to-market' and no percentage; no matching holding -> no line",
-    "demo": "chat transcript 'should I add to TANLA?' quoting the position before reasoning with no get_portfolio step, plus a populated brief screenshot showing the 'Your position' card",
-    "out_of_scope": [
-      "new agent tool or catalog entry",
-      "read_notes/notes line changes",
-      "gather_fast or BriefStructured wire change",
-      "types/data.ts or sidecar/models mirror",
-      "any portfolio write",
-      "positions for symbols only mentioned in the message",
-      "MCP projection of the position"
-    ]
-  },
-  "runners_up": [
-    {
-      "id": "BL-15",
-      "title": "Results-day first take (deterministic results-grid extraction)",
-      "framing": "exchange_financials reframe only",
-      "size_band": "S",
-      "days": 4,
-      "files": [
-        "sidecar/services/agent_tools/ (results_flash handler)",
-        "sidecar/services/agent_tools/catalog.py",
-        "sidecar/services/research/fast.py (snapshot_structured line 268)",
-        "types/brief.ts + sidecar/models mirror",
-        "src/modules/research/brief-blocks.tsx",
-        "sidecar/tests/test_capability_catalog.py",
-        "sidecar/tests/test_mcp_catalog_parity.py"
-      ],
-      "pin": "pytest on fixtures/nse/filed_results_fusion_20260924.json, fixtures/bse/filed_results_539681_dal_20260924.json, filed_results_542446_jonjua_20260924.json asserting QoQ/YoY deltas, basis and venue labels, hole -> no block",
-      "demo": "populated brief for an NSE small cap with the variance table and XBRL link"
-    },
-    {
-      "id": "BL-18",
-      "title": "Brief diff: ask again, see what changed",
-      "size_band": "S",
-      "days": 3,
-      "files": [
-        "src/lib/brief-diff.ts (new)",
-        "src/lib/workspace.ts",
-        "src/modules/research/brief-blocks.tsx"
-      ],
-      "pin": "vitest vectors: flipped metric, new source, unchanged collapse, older-blob restore",
-      "demo": "second brief on the same symbol with the 'Changed since' strip populated"
-    }
-  ],
-  "killed": [
-    "BL-01",
-    "BL-12",
-    "BL-38",
-    "BL-39",
-    "BL-49",
-    "BL-50",
-    "BL-55",
-    "BL-56",
-    "BL-57",
-    "BL-58",
-    "Candidate: Filing watcher (System 1 triage in front of the BYOK model)"
-  ],
-  "counts": {
-    "judged": 59,
-    "killed": 11,
-    "survivors": 48,
-    "disagreements_resolved": 0
+  {
+   "key": "b",
+   "name": "Judge B: the maintainer and demo-day critic",
+   "tier": "Fable 5.1, strongest tier, high effort",
+   "angle": "the maintainer and demo-day critic, adversarial, independent"
   }
+ ],
+ "supersedes": "first run: Judge A alone (Judge B returned null); this rewrite carries both judges",
+ "ranking_rule": "avg user_value * (avg feasibility/5) / days; ties (<0.1) broken by lifecycle then moat_fit; days = backlog estimate unless a judge verified a smaller residual at HEAD (BL-03: 3, BL-15: 4 as the exchange_financials reframe)",
+ "kill_rule": "killed by both = dead; killed by one = re-read and decided with rationale (BL-02, BL-12, BL-39, BL-55 upheld)",
+ "disagreements": [
+  {
+   "id": "BL-15",
+   "criterion": "feasibility",
+   "judge_a": 4,
+   "judge_b": 2
+  },
+  {
+   "id": "BL-15",
+   "criterion": "lifecycle",
+   "judge_a": 4,
+   "judge_b": 1
+  },
+  {
+   "id": "BL-42",
+   "criterion": "demo_quality",
+   "judge_a": 4,
+   "judge_b": 2
+  },
+  {
+   "id": "BL-49",
+   "criterion": "feasibility",
+   "judge_a": 3,
+   "judge_b": 1
+  },
+  {
+   "id": "BL-54",
+   "criterion": "demo_quality",
+   "judge_a": 4,
+   "judge_b": 2
+  }
+ ],
+ "disagreement_resolutions": {
+  "BL-15": "judges scored different objects (A the exchange_financials reframe, B the row as written); panel ranks the reframe at the averaged scores; not a runner-up",
+  "BL-42": "resolved toward B: a populated shot needs the unbuilt results extractor",
+  "BL-49": "resolved toward B: WLD-T-5 is blocked_tier4, a Tier-4 boundary; killed by both",
+  "BL-54": "resolved toward B for the target names: scans dominate micro-cap annual reports"
+ },
+ "rows": [
+  {
+   "id": "BL-01",
+   "title": "Witnessed by default",
+   "size": "S",
+   "days": 3,
+   "judge_a": {
+    "user_value": 5,
+    "moat_fit": 5,
+    "feasibility": 5,
+    "demo_quality": 4,
+    "lifecycle": 4,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "Nothing to build; the zero-token witness route and the overview disclosure the row promised are already shipped by the defect lane.",
+    "kill_reason": "Already landed at HEAD: correctness_gate.apply_witnesses runs on GET /fundamentals (routers/fundamentals.py:137) and EquityOverviewPanel renders the disagreement and witness figure in the cell tooltip. Nothing left to build but tooltip-to-inline polish."
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 5,
+    "demo_quality": 4,
+    "lifecycle": 4,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "The zero-token overview witness already exists at HEAD; building this row again re-does a fixed defect and the only delta is where the second number sits.",
+    "kill_reason": "Largely shipped by R15-DATA-004 (Stage C batch 2): routers/fundamentals.py:137 runs correctness_gate.apply_witnesses on the plain GET and EquityOverviewPanel.tsx:157-168 renders a 'flagged' chip with the exchange figure in the tooltip. The residual (exchange value inline instead of tooltip) is a half-day polish ticket, not a build."
+   },
+   "scores": {
+    "user_value": 4.5,
+    "moat_fit": 4.5,
+    "feasibility": 5.0,
+    "demo_quality": 4.0,
+    "lifecycle": 4.0
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "both",
+   "rank": null,
+   "reason": "Killed by both. Verified at HEAD: routers/fundamentals.py:137 runs correctness_gate.apply_witnesses on GET /fundamentals and the overview cell carries the flagged chip with the exchange figure. Only tooltip-to-inline polish remains.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-02",
+   "title": "A disclosure feed you can build on",
+   "size": "S",
+   "days": 3,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 5,
+    "demo_quality": 1,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Mostly landed (180-day paged window, AttachHis, per-lane AnnouncementWindow); the residual is serving the private _kind plus dual timestamps, a one-day wire change with nothing to screenshot.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 3,
+    "feasibility": 5,
+    "demo_quality": 1,
+    "lifecycle": 3,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "The 'silent 30-day empty 200' value claim no longer holds at HEAD; what remains is two model fields, and a feed with no UI cannot be screenshotted anyway.",
+    "kill_reason": "Shipped by R15-DATA-019 (batch 3): _BSE_ANN_WINDOW_DAYS=180 paged by count, AttachLive->AttachHis fallback, and AnnouncementWindow states the covered range. Residual (submission timestamp, SUBCATNAME as a public field) is a defect ticket."
+   },
+   "scores": {
+    "user_value": 3.5,
+    "moat_fit": 3.0,
+    "feasibility": 5.0,
+    "demo_quality": 1.0,
+    "lifecycle": 3.0
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "B",
+   "rank": null,
+   "reason": "Killed by Judge B, upheld. Verified at HEAD: corporate_disclosures.py:120 _BSE_ANN_WINDOW_DAYS = 180 paged by count, AttachHis fallback (:114), window stated. The residual is two Announcement fields with nothing to screenshot (both judges score demo 1).",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-03",
+   "title": "Reasons about you: your position and your notes in every answer",
+   "size": "S-M",
+   "days": 3,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 5,
+    "demo_quality": 4,
+    "lifecycle": 5,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "read_notes already exists and the agent can call get_portfolio; the residual is a preamble position line and a brief metric, which saves one tool call rather than an hour.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 5,
+    "moat_fit": 5,
+    "feasibility": 5,
+    "demo_quality": 4,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "read_notes and the note excerpt already ship (R15-AGENT-020); the residual is one per-symbol position line, and a preamble line is only as good as an 8b model's attention to it.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 4.5,
+    "moat_fit": 4.5,
+    "feasibility": 5.0,
+    "demo_quality": 4.0,
+    "lifecycle": 4.5
+   },
+   "value_per_day": 1.5,
+   "kill": false,
+   "killed_by": null,
+   "rank": 1,
+   "reason": "The position line and a renderer-side brief card from the holdings the snapshot already carries; zero tokens, keyless, closes WLD-agent-native-ux-1. Top survivor.",
+   "small_build_candidate": true
+  },
+  {
+   "id": "BL-04",
+   "title": "The Watch: wake sweep and a 'while you were away' card that states its blind spots",
+   "size": "M",
+   "days": 8,
+   "judge_a": {
+    "user_value": 5,
+    "moat_fit": 5,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A sleeping laptop sweeps only on wake, when the user is already looking; classifier rot and small-cap boilerplate make it a babysit item at twice the S budget.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 5,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Classifier tables, two exchange JSON shapes and per-launch fan-out from a laptop IP rot fastest of anything here; a quiet small-cap demo shows an empty card.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 5.0,
+    "moat_fit": 4.5,
+    "feasibility": 3.0,
+    "demo_quality": 3.5,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.375,
+   "kill": false,
+   "killed_by": null,
+   "rank": 28,
+   "reason": "The Watch is the spine's hub; M at twice the S budget and a sleeping-laptop sweep only on wake.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-05",
+   "title": "Number firewall with a rupee scale witness",
+   "size": "M",
+   "days": 8,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 5,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "False orphans on legitimate multi-step arithmetic teach users to ignore the strike within a week; tolerance tuning is open-ended and M-sized.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Tolerance-tuned strikes on legitimate arithmetic train users to ignore the firewall within a week; the 8-day estimate hides a unit-header parser nobody has prototyped.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 4.0,
+    "moat_fit": 4.5,
+    "feasibility": 3.0,
+    "demo_quality": 3.5,
+    "lifecycle": 2.5
+   },
+   "value_per_day": 0.3,
+   "kill": false,
+   "killed_by": null,
+   "rank": 27,
+   "reason": "The scale witness is right; orphan tolerance tuning is open-ended, M.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-06",
+   "title": "Page receipts",
+   "size": "S-M",
+   "days": 5,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Scanned small-cap filings have no text layer, so the receipt reads 'scanned, from the aggregator' on exactly the names this product targets; S-M, not S.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 3,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Scanned BSE PDFs have no text layer, so the receipt most small-cap users see reads 'scanned: no page'; the chip is invisible until a keyed research run.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 4.0,
+    "moat_fit": 4.0,
+    "feasibility": 4.0,
+    "demo_quality": 3.0,
+    "lifecycle": 3.5
+   },
+   "value_per_day": 0.64,
+   "kill": false,
+   "killed_by": null,
+   "rank": 11,
+   "reason": "Page receipts read 'scanned' on the micro-caps this product targets; S-M.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-07",
+   "title": "Coverage honesty: say what the app could not see",
+   "size": "S-M",
+   "days": 4,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 4,
+    "lifecycle": 5,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "It changes no number; a user who sees 'Statements: unavailable' every day on SME names learns to ignore the strip. StatusChrome already reads provider-health, so only the brief block and strip are new.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 3,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Two surfaces for one idea: the strip is more chrome on a busy header, and a coverage block that prints every run becomes boilerplate nobody reads. Honest S only if the strip is dropped.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 4.0,
+    "moat_fit": 4.0,
+    "feasibility": 4.0,
+    "demo_quality": 3.5,
+    "lifecycle": 4.5
+   },
+   "value_per_day": 0.8,
+   "kill": false,
+   "killed_by": null,
+   "rank": 7,
+   "reason": "Zero-token 'what I could not see' block; Judge B: honest S only if the header strip is dropped.",
+   "small_build_candidate": true
+  },
+  {
+   "id": "BL-08",
+   "title": "Start recording: point-in-time EOD and fundamentals observations",
+   "size": "S-M",
+   "days": 4,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 1,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Nothing visible for months; a laptop closed for a week walks the archive on wake from the user's IP, and one bhavcopy format change writes silent gaps unless the marker is perfect.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 1,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Nothing to screenshot; 40 MB a year of rows no surface reads for months, and a bhavcopy format change writes gap markers no user ever sees.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 4.0,
+    "feasibility": 4.0,
+    "demo_quality": 1.0,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.6,
+   "kill": false,
+   "killed_by": null,
+   "rank": 12,
+   "reason": "Recorder shows nothing for months and walks the archive from the user's IP on wake.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-09",
+   "title": "Tripwires: kill criteria compiled once, watched for free",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 5,
+    "moat_fit": 5,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "No sweep exists (BL-04 unbuilt), so armed rules are checked only when the app opens, which is when the user would look anyway; the field vocabulary becomes a contract to maintain.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 5,
+    "moat_fit": 5,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Depends on a Watch that does not exist; llama3.1:8b compiling prose to rules will mis-parameterise, and an 'armed' rule the user cannot inspect is false comfort.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 5.0,
+    "moat_fit": 5.0,
+    "feasibility": 2.0,
+    "demo_quality": 3.0,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.333,
+   "kill": false,
+   "killed_by": null,
+   "rank": 22,
+   "reason": "Compiled kill criteria are the moat, but without BL-04's sweep they are checked only on open.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-10",
+   "title": "Red Pen: paste anyone's numbers, get a marked-up verdict",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 5,
+    "feasibility": 2,
+    "demo_quality": 5,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Most tips are narrative, not numbers; the checker says CANNOT CHECK on the tips that matter, and the BL-05 grammar it needs does not exist (company_narrative._NUMBER_RE reads $ and K/M/B/T only).",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 5,
+    "feasibility": 3,
+    "demo_quality": 5,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Binding pasted claims to {symbol, metric, period} with the keyless 8b model mis-binds basis and period; a CONTRADICTED on a basis mismatch is worse than no verdict.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 4.0,
+    "moat_fit": 5.0,
+    "feasibility": 2.5,
+    "demo_quality": 5.0,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.333,
+   "kill": false,
+   "killed_by": null,
+   "rank": 15,
+   "reason": "Needs BL-05's grammar; most tips are narrative and read CANNOT CHECK.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-11",
+   "title": "Proof Open: the first minute is a demonstration",
+   "size": "S",
+   "days": 2,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 4,
+    "feasibility": 5,
+    "demo_quality": 5,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "Marketing shaped as onboarding: the same disagreement already rides the overview tooltip, so the serious investor gains nothing after minute one; an all-agree large cap makes it look empty.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 5,
+    "feasibility": 5,
+    "demo_quality": 5,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "The demo decays the day an exchange lane breaks, and every keyless first run now waits ~8 s on NSE's cookie dance before the user has typed anything.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.5,
+    "moat_fit": 4.5,
+    "feasibility": 5.0,
+    "demo_quality": 5.0,
+    "lifecycle": 3.5
+   },
+   "value_per_day": 1.25,
+   "kill": false,
+   "killed_by": null,
+   "rank": 3,
+   "reason": "Two days on the witnessed GET that now exists; the best single screenshot in the set, but the serious investor gains little after minute one and it decays with an exchange lane. Runner-up 2.",
+   "small_build_candidate": true
+  },
+  {
+   "id": "BL-12",
+   "title": "Turn receipt",
+   "size": "S",
+   "days": 2,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 5,
+    "demo_quality": 3,
+    "lifecycle": 5,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "The two things it claimed to expose are already exposed; what remains duplicates the transcript's tool calls and the brief's sources tray.",
+    "kill_reason": "Core already at HEAD: the composer ContextMeter and the per-message tokens/$ footer (R15-AGENT-040, ChatSidebar.tsx:1402/1543, chat-history.ts usage/spendUsd) expose cost and forgetting; the residual tools/sources/checks line is line creep."
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 5,
+    "demo_quality": 3,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "ContextMeter, per-message usage and spend already ship (R15-AGENT-040/012); what remains is a tools/sources line that reads as a debug footer.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.0,
+    "moat_fit": 3.0,
+    "feasibility": 5.0,
+    "demo_quality": 3.0,
+    "lifecycle": 4.5
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "A",
+   "rank": null,
+   "reason": "Killed by Judge A, upheld. Verified at HEAD: ContextMeter (ChatSidebar.tsx:1402/1545) and per-message spendUsd (streaming.ts:96) expose cost and forgetting; the residual tools/sources line is the line creep the row itself warns against.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-13",
+   "title": "Cap-table X-ray: names, beneficial owners, encumbrance, holder counts, pledge trend",
+   "size": "M",
+   "days": 7,
+   "judge_a": {
+    "user_value": 5,
+    "moat_fit": 5,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "PAN is not disclosed so 'same name string' is all it can say; the BSE-only XBRL lane leaves NSE-only SME names, the target, with today's summary. M, not S.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 5,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "SEBI SHP taxonomy revisions silently break the parser (it happened once already); same-name matching without PAN yields confident false identity. Pledge is already modelled (R15-DATA-023).",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 5.0,
+    "moat_fit": 4.5,
+    "feasibility": 3.0,
+    "demo_quality": 4.0,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.429,
+   "kill": false,
+   "killed_by": null,
+   "rank": 23,
+   "reason": "Highest value per the forensic seat, but BSE-only XBRL leaves NSE-only SME names on today's summary; M.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-14",
+   "title": "Corporate-action chain",
+   "size": "S-M",
+   "days": 5,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 4,
+    "demo_quality": 4,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "The parser it promised already landed (CorporateAction kind/ratio/ex_date across NSE+BSE, R15-DATA-025); what remains is chart markers, factor receipts and a toggle, and a wrongly applied factor rewrites price history.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 3,
+    "feasibility": 4,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "R15-DATA-025 already parses bonus/split/rights with ratios from both exchanges; the residual adjusted-series toggle needs a recorder that does not exist plus canvas work.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.5,
+    "moat_fit": 3.0,
+    "feasibility": 4.0,
+    "demo_quality": 3.5,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.56,
+   "kill": false,
+   "killed_by": null,
+   "rank": 13,
+   "reason": "Parser landed (R15-DATA-025); chart markers and a factor toggle remain, with price-history rewrite risk.",
+   "small_build_candidate": true
+  },
+  {
+   "id": "BL-15",
+   "title": "Results-day first take (deterministic results-grid extraction)",
+   "size": "M",
+   "days": 4,
+   "judge_a": {
+    "user_value": 5,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 5,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "As written (PDF grid, archetype dictionary, page receipts) it is M with four unmet deps; only the reframe onto exchange_financials (filed revenue/PAT/EPS with XBRL URL and filing date already at HEAD) is S, and it loses per-cell page receipts.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 5,
+    "moat_fit": 5,
+    "feasibility": 2,
+    "demo_quality": 4,
+    "lifecycle": 1,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "One fixture per grid layout per filer archetype is a permanent curation job; a row-matcher miss on a lender produces a confident wrong variance table.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 5.0,
+    "moat_fit": 4.5,
+    "feasibility": 3.0,
+    "demo_quality": 4.5,
+    "lifecycle": 2.5
+   },
+   "value_per_day": 0.75,
+   "kill": false,
+   "killed_by": null,
+   "rank": 9,
+   "reason": "Only as the exchange_financials reframe (filed QoQ/YoY with the XBRL/BSE receipt): scored as written by Judge B (feasibility 2, lifecycle 1), as the reframe by Judge A; see section 3.",
+   "small_build_candidate": true
+  },
+  {
+   "id": "BL-16",
+   "title": "Guidance ledger: what management said against what printed",
+   "size": "M-L",
+   "days": 10,
+   "judge_a": {
+    "user_value": 5,
+    "moat_fit": 5,
+    "feasibility": 2,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Most target small caps hold no calls; where they do, hedged language makes HIT/MISS a judgement the verbatim gate cannot make, and every transcript costs BYOK tokens. M-L.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 5,
+    "moat_fit": 5,
+    "feasibility": 2,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "M-L on three unbuilt substrates; transcript coverage is thin exactly on small caps, and the verbatim gate needs page receipts that do not exist.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 5.0,
+    "moat_fit": 5.0,
+    "feasibility": 2.0,
+    "demo_quality": 4.0,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.2,
+   "kill": false,
+   "killed_by": null,
+   "rank": 41,
+   "reason": "Guidance ledger needs transcripts most small caps do not hold and BYOK tokens per transcript.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-17",
+   "title": "Tip Ledger",
+   "size": "M",
+   "days": 8,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 5,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "The serious investor this product targets does not trade Telegram tips; a wrong resolve on a renamed SME ticker yields a confident, libel-shaped scorecard. M, writes the book.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 5,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A wrong resolve on a renamed SME ticker yields a confident wrong scorecard about a source the user trusts; corporate-action correctness becomes a forever tax.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.5,
+    "moat_fit": 4.5,
+    "feasibility": 3.0,
+    "demo_quality": 4.5,
+    "lifecycle": 2.5
+   },
+   "value_per_day": 0.263,
+   "kill": false,
+   "killed_by": null,
+   "rank": 30,
+   "reason": "Tip Ledger is for a user this product does not target; libel-shaped on a wrong resolve.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-18",
+   "title": "Brief diff: ask again, see what changed",
+   "size": "S",
+   "days": 3,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 4,
+    "lifecycle": 5,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "Price-derived metrics change daily so the strip is never empty; re-research is rare enough that the prior is weeks stale and 'everything changed'. Lead with filing facts or it is the wall it replaces.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 3,
+    "feasibility": 5,
+    "demo_quality": 4,
+    "lifecycle": 5,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "Price-derived metrics change daily so the strip always says something changed; the diff is only as stable as the brief's structured keys, which vary by model.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 4.0,
+    "moat_fit": 3.5,
+    "feasibility": 4.5,
+    "demo_quality": 4.0,
+    "lifecycle": 5.0
+   },
+   "value_per_day": 1.2,
+   "kill": false,
+   "killed_by": null,
+   "rank": 2,
+   "reason": "Pure frontend diff strip between two briefs of the same symbol; lead with filing facts, collapse market-moved values. Runner-up 1.",
+   "small_build_candidate": true
+  },
+  {
+   "id": "BL-19",
+   "title": "Undo and ghost edits",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 2,
+    "feasibility": 4,
+    "demo_quality": 2,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Undo-from-review with a pre-image already exists (proposed-changes.ts undo, status 'undone') and AUTO no longer touches data-writes; Cmd-Z and ghost rows are polish any app has.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 4,
+    "demo_quality": 2,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Session undo already ships in ProposedChangesReview (R15-AGENT-041); Cmd-Z and ghost rows are polish, and ghost renderers are a per-panel tax forever.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 2.5,
+    "feasibility": 4.0,
+    "demo_quality": 2.0,
+    "lifecycle": 3.5
+   },
+   "value_per_day": 0.4,
+   "kill": false,
+   "killed_by": null,
+   "rank": 14,
+   "reason": "Undo-from-review already exists; ghost rows are polish.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-20",
+   "title": "Trust bench and 'Audit me'",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Truth packs rot within a quarter and the page hands rivals copy; the user gains nothing beyond the witness flags the overview already shows. An agent-day per release of upkeep.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 5,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 1,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Truth packs rot with every rename and delisting; a committed TRUST.md whose failures never shrink is a stunt that hands rivals copy.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 4.5,
+    "feasibility": 3.5,
+    "demo_quality": 4.0,
+    "lifecycle": 1.5
+   },
+   "value_per_day": 0.35,
+   "kill": false,
+   "killed_by": null,
+   "rank": 34,
+   "reason": "Truth packs rot quarterly and hand rivals copy.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-21",
+   "title": "The Figure and the Why key",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A lineage card is a tooltip with more rows; the witness verdicts it would render already ride the cell tooltip, and every metric must declare lineage forever.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Every metric must declare lineage or the card says 'not recorded', which on day one is most cards; a new primitive needs an R9 conformance review.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 4.0,
+    "feasibility": 3.5,
+    "demo_quality": 3.0,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.35,
+   "kill": false,
+   "killed_by": null,
+   "rank": 17,
+   "reason": "A lineage card is a tooltip with more rows; every metric must declare lineage forever.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-22",
+   "title": "Evidence locker",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 5,
+    "feasibility": 3,
+    "demo_quality": 2,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Storing pypdf's extraction of a scanned PDF preserves garbage faithfully; 'changed under you' fires on pypdf drift unless bytes are hashed. Depends on unbuilt BL-06.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 2,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Disk growth and LRU policy for a feature most users never notice; a 'document changed' diff on scanned PDFs is unreadable.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.5,
+    "moat_fit": 4.5,
+    "feasibility": 3.0,
+    "demo_quality": 2.0,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.35,
+   "kill": false,
+   "killed_by": null,
+   "rank": 16,
+   "reason": "Locker preserves pypdf garbage faithfully; needs BL-06 and byte hashing.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-23",
+   "title": "Gatekeeper exits",
+   "size": "S",
+   "days": 3,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 4,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "The notify half needs the unbuilt Watch; only an on-open timeline card with the 180-day cluster rule over the now-paged feed stands alone, and SUBCATNAME drift needs a visible unclassified bucket.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 4,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Depends on the unbuilt Watch for the notify path; as a read handler over the 180-day feed it would be dependency-free and S, but the row as written is not.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 4.0,
+    "moat_fit": 4.0,
+    "feasibility": 4.0,
+    "demo_quality": 4.0,
+    "lifecycle": 3.5
+   },
+   "value_per_day": 1.067,
+   "kill": false,
+   "killed_by": null,
+   "rank": 4,
+   "reason": "Standalone on-open timeline card over the paged 180-day feed is S and dependency-free; the notify half waits for BL-04.",
+   "small_build_candidate": true
+  },
+  {
+   "id": "BL-24",
+   "title": "Exit Door: can I actually get out",
+   "size": "S-M",
+   "days": 4,
+   "judge_a": {
+    "user_value": 5,
+    "moat_fit": 3,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "BhavRow has no delivery column; a total-volume version overstates exit capacity 2-3x on operator names, reassuring exactly when it should not. The honest version needs the recorder and the delivery fallback.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 5,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "BhavRow has no delivery field and the recorder does not exist; from one cached session the glyph is a guess that reads as a sell signal.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 5.0,
+    "moat_fit": 3.5,
+    "feasibility": 3.0,
+    "demo_quality": 4.0,
+    "lifecycle": 3.5
+   },
+   "value_per_day": 0.75,
+   "kill": false,
+   "killed_by": null,
+   "rank": 8,
+   "reason": "Exit capacity needs delivery volume the bhavcopy row lacks; a total-volume version overstates and must wait for the recorder.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-25",
+   "title": "Filing clock",
+   "size": "S",
+   "days": 3,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 3,
+    "lifecycle": 5,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "FiledPeriod.filed and quarter end already give the days-to-results series, but five periods is not a trend; 'results 44 days after quarter end' is noise the user cannot act on for quarters.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 4,
+    "demo_quality": 3,
+    "lifecycle": 5,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "The 180-day window yields two data points per name; the 3-quarter drift rule cannot fire for a year, and submission timestamps are not on the Announcement model.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 4.0,
+    "feasibility": 4.0,
+    "demo_quality": 3.0,
+    "lifecycle": 5.0
+   },
+   "value_per_day": 0.8,
+   "kill": false,
+   "killed_by": null,
+   "rank": 6,
+   "reason": "Days-to-results series from FiledPeriod.filed; honest but slow to become actionable.",
+   "small_build_candidate": true
+  },
+  {
+   "id": "BL-26",
+   "title": "Living model",
+   "size": "M",
+   "days": 8,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A worse Excel: the user who keeps a model already has Excel; actuals auto-fill only for names with parseable filings and the xlsx writer is a new sidecar dependency.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A worse Excel; the xlsx writer is a new sidecar dependency against the footprint target, and it stands on an unbuilt results extractor.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.5,
+    "moat_fit": 3.5,
+    "feasibility": 2.0,
+    "demo_quality": 3.5,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.175,
+   "kill": false,
+   "killed_by": null,
+   "rank": 43,
+   "reason": "A worse Excel with a new xlsx sidecar dependency.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-27",
+   "title": "Rulebook: it holds you to your own words",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "It annotates, never blocks, for the disciplined minority who already keep their rules; a mis-compiled rule nags on every add. Depends on unbuilt BL-24.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Nagging by design; an 8b model mis-compiles prose rules, and the disciplined minority who write rules are the users who least need the nag.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 4.0,
+    "feasibility": 3.0,
+    "demo_quality": 3.0,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.3,
+   "kill": false,
+   "killed_by": null,
+   "rank": 25,
+   "reason": "Annotates, never blocks; depends on unbuilt BL-24.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-28",
+   "title": "Red-flag rule packs",
+   "size": "M",
+   "days": 7,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 5,
+    "feasibility": 2,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "'Steps matched' sequences also describe honest turnarounds; the operator reviewing every rule of every pack is babysitting by design. Three unbuilt dependencies.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 1,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "The corpus is a liability: a rule firing on a real listed company reads as an accusation whatever the copy says, and the operator reviews every rule forever.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.5,
+    "moat_fit": 4.5,
+    "feasibility": 2.5,
+    "demo_quality": 3.5,
+    "lifecycle": 1.5
+   },
+   "value_per_day": 0.25,
+   "kill": false,
+   "killed_by": null,
+   "rank": 44,
+   "reason": "Rule packs need three unbuilt deps and operator review of every rule.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-29",
+   "title": "Track record: the app keeps score on itself and its providers",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 2,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Value accrues only from repeated briefs on the same symbol; most users never re-brief a name enough to grade anything, and no claims ledger or migration story exists in the sidecar today.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 2,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Value accrues over months and needs a results extractor to grade against; a ledger that grows forever in a repo with no migration story.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 4.0,
+    "feasibility": 3.0,
+    "demo_quality": 2.0,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.3,
+   "kill": false,
+   "killed_by": null,
+   "rank": 31,
+   "reason": "Value only from repeated briefs on the same name; no claims ledger exists.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-30",
+   "title": "The number changed: drift ledger",
+   "size": "S-M",
+   "days": 4,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 1,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Nothing to say for weeks (no recorder exists), then false alarms on TTM rolls get it muted the week it starts talking.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 1,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Needs weeks of recorder observations before it can say anything; the per-field tolerance bands tuned in month one are exactly what rots.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 4.0,
+    "feasibility": 2.5,
+    "demo_quality": 1.0,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.375,
+   "kill": false,
+   "killed_by": null,
+   "rank": 29,
+   "reason": "Nothing to say for weeks, then TTM-roll false alarms.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-31",
+   "title": "Seven Pages: annual-report reader",
+   "size": "M",
+   "days": 7,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Micro-cap annual reports are often scans; it reads '3 of your 7 pages' on the names it exists for, each run costs real BYOK tokens, and the AR locator endpoint is unverified.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 3,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A 250-page AR read is token-heavy and beyond llama3.1:8b; the section locator is unverified and scanned ARs dominate the target names.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 4.0,
+    "moat_fit": 3.5,
+    "feasibility": 3.0,
+    "demo_quality": 3.5,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.343,
+   "kill": false,
+   "killed_by": null,
+   "rank": 33,
+   "reason": "Seven Pages costs BYOK tokens per run and reads scans poorly.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-32",
+   "title": "Alerts with a track record",
+   "size": "S-M",
+   "days": 4,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Alerts are what every dashboard has; the dry-run over a 180-day tape is shallow enough to be false comfort, and the tripwire engine it rides does not exist.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 2,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Generic alerts on a tripwire engine that does not exist; a shallow dry-run history is the false comfort it claims to remove.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 3.0,
+    "feasibility": 2.0,
+    "demo_quality": 2.5,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.3,
+   "kill": false,
+   "killed_by": null,
+   "rank": 26,
+   "reason": "Alerts with a dry-run over a 180-day tape; rides the unbuilt tripwire engine.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-33",
+   "title": "Operator radar",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Hand-tuned thresholds with no recorded history false-positive on every genuine re-rating; a nervous user sells winners. ASM/GSM and BSE delivery lanes are unconfirmed.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A false alarm on a genuine re-rating costs the user money; it needs the recorder, delivery data and thresholds that are all unbuilt or tuned.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 4.0,
+    "moat_fit": 4.0,
+    "feasibility": 2.0,
+    "demo_quality": 3.0,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.267,
+   "kill": false,
+   "killed_by": null,
+   "rank": 32,
+   "reason": "Hand-tuned thresholds with no recorded history false-positive on re-ratings.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-34",
+   "title": "Honesty card and trial ledger for backtests",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 2,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Backtesting is peripheral to the witnessed-research user and it sits on an admitted critical metrics defect (COD-backtest-1); honest deflation of a number the target user never computes.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 2,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Backtesting is peripheral to witnessed research for this user; a trial ledger that punishes exploration gets switched off.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.0,
+    "moat_fit": 2.0,
+    "feasibility": 3.0,
+    "demo_quality": 3.0,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.2,
+   "kill": false,
+   "killed_by": null,
+   "rank": 39,
+   "reason": "Backtesting is peripheral to the witnessed-research user; sits on an open critical metrics defect.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-35",
+   "title": "Priced in: what the market cap already assumes",
+   "size": "S",
+   "days": 3,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 3,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Its history column reads the vendor statements that serve another company on SME ticker collisions (DAT-P3-1 family still open, the -SM.NS gate in flight); a sensitivity grid on witnessed TTM alone is the only honest v1.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 4,
+    "moat_fit": 2,
+    "feasibility": 4,
+    "demo_quality": 4,
+    "lifecycle": 5,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "A reverse DCF is a calculator any spreadsheet has; the history column is thin for SME names via yfinance, and a sensitivity grid looks like regulated research.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 4.0,
+    "moat_fit": 2.5,
+    "feasibility": 3.5,
+    "demo_quality": 4.0,
+    "lifecycle": 4.5
+   },
+   "value_per_day": 0.933,
+   "kill": false,
+   "killed_by": null,
+   "rank": 5,
+   "reason": "Only a sensitivity grid on witnessed TTM is honest while the collision lane is open; Judge B calls the reverse DCF a spreadsheet calculator.",
+   "small_build_candidate": true
+  },
+  {
+   "id": "BL-36",
+   "title": "Forkable research (.vybrief) and the receipt bundle",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 2,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A file format is a forever promise for a feature retail users do not use; as a diagnostics bundle it is a zip nobody has asked for yet. Depends on unbuilt BL-05 and BL-22.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 2,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A file format is a forever promise; few individual investors share research bundles, and replay breaks the day a provider dies.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.0,
+    "moat_fit": 4.0,
+    "feasibility": 2.0,
+    "demo_quality": 2.0,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.133,
+   "kill": false,
+   "killed_by": null,
+   "rank": 45,
+   "reason": "A file format is a forever promise for a feature retail users do not use.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-37",
+   "title": "Calm protocol",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 4,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Fires only while the app is open during market hours, when the sleeping-laptop user is not there; 'looks like the market' minutes before a filing lands is exactly wrong.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Only fires while the app is open in market hours on a laptop that sleeps; composes three unbuilt items.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 3.5,
+    "feasibility": 2.0,
+    "demo_quality": 3.5,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.2,
+   "kill": false,
+   "killed_by": null,
+   "rank": 37,
+   "reason": "Fires only while the app is open in market hours; wrong minutes before a filing.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-38",
+   "title": "Instant cockpit",
+   "size": "M",
+   "days": 5,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 1,
+    "feasibility": 3,
+    "demo_quality": 2,
+    "lifecycle": 3,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "Speed cannot be screenshotted and the two-writer mirror is a new drift surface for a first impression that the defect lane already improved.",
+    "kill_reason": "A boot-speed cache any desktop app has; the win sits in the defect fixes (the port wait now runs on thread::spawn in lib.rs), and a mirror risks a cached price reading as live during market hours. Not demoable in a screenshot."
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 2,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "Fixing the boot freeze captures most of the win; the mirror adds a two-writer drift problem for a first impression the user sees once a day.",
+    "kill_reason": "Depends on COD-rust-core-1 (R15-LIFECYCLE-001), still needs_gui, not fixed: the main thread blocks ~35 s on the MCP port-wait at every cold boot, so nothing can paint early whatever is mirrored to disk."
+   },
+   "scores": {
+    "user_value": 2.5,
+    "moat_fit": 1.5,
+    "feasibility": 2.5,
+    "demo_quality": 2.5,
+    "lifecycle": 3.0
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "both",
+   "rank": null,
+   "reason": "Killed by both. Boot speed is not demoable in a populated screenshot or a transcript; the two-writer price mirror is a live-vs-cached drift surface; the port wait already moved off the main thread (lib.rs:316 thread::spawn).",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-39",
+   "title": "Earned autonomy",
+   "size": "S",
+   "days": 3,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 2,
+    "feasibility": 4,
+    "demo_quality": 2,
+    "lifecycle": 4,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "The product offering to stop asking is the product asking to be trusted more; polish on a fixed defect.",
+    "kill_reason": "The whitelist that carried the value already landed (AUTO_APPLIED_KINDS = panel/chart/watchlist; data-writes never auto-apply). The residual tally nudges the user toward less oversight, which the row itself names as its risk."
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 4,
+    "demo_quality": 2,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A 23-of-23 tally cannot be populated for a screenshot; it reads as the product nudging toward less oversight for a whitelist (autoApplies) that already exists.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.0,
+    "moat_fit": 2.5,
+    "feasibility": 4.0,
+    "demo_quality": 2.0,
+    "lifecycle": 4.0
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "A",
+   "rank": null,
+   "reason": "Killed by Judge A, upheld. AUTO_APPLIED_KINDS already excludes data-writes at HEAD (src/store/agent-autonomy.ts); a 23-of-23 tally cannot be populated for a screenshot and reads as the product asking for less oversight, the row's own named risk.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-40",
+   "title": "GO bar and learned routines",
+   "size": "S-M",
+   "days": 4,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 2,
+    "feasibility": 4,
+    "demo_quality": 3,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": true,
+    "strongest_objection": "Bloomberg mnemonics in a product whose spine is the composer; the palette already fuzzy-matches a symbol and 'shareholding' in two keystrokes, and the routine-learning half nags.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 2,
+    "feasibility": 4,
+    "demo_quality": 3,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Bloomberg mnemonics for a terminal-native minority; routine learning is nag risk and mnemonic collisions with real NSE symbols are certain.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 2.0,
+    "feasibility": 4.0,
+    "demo_quality": 3.0,
+    "lifecycle": 4.0
+   },
+   "value_per_day": 0.6,
+   "kill": false,
+   "killed_by": null,
+   "rank": 10,
+   "reason": "Palette already fuzzy-matches; the mnemonic bar is habit for a different product.",
+   "small_build_candidate": true
+  },
+  {
+   "id": "BL-41",
+   "title": "Page One",
+   "size": "S",
+   "days": 3,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 4,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Three boxes of items that do not exist yet (BL-18, BL-35, BL-15); the filler scorer punishes the qualitative context small-cap research lives on.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A composition of three unbuilt items; the filler score costs an extra LLM call and punishes useful qualitative context.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 3.0,
+    "feasibility": 2.0,
+    "demo_quality": 3.5,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.4,
+   "kill": false,
+   "killed_by": null,
+   "rank": 19,
+   "reason": "Three boxes of items that do not exist yet.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-42",
+   "title": "Pre-print card and your forecast record",
+   "size": "S-M",
+   "days": 5,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 4,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Asking the user for three numbers the evening before is homework most will skip, and n<4 quarters shows nothing for a year; three unbuilt dependencies.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 2,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Everything it shows comes from two unbuilt substrates; on scanned results the print column reads 'unparsed'.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 4.0,
+    "feasibility": 2.0,
+    "demo_quality": 3.0,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.24,
+   "kill": false,
+   "killed_by": null,
+   "rank": 35,
+   "reason": "Homework the evening before results; n<4 quarters shows nothing for a year.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-43",
+   "title": "One number, one truth",
+   "size": "S",
+   "days": 3,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Covers only what <Fig> has adopted, which is nothing today; timing skew between panels fires more often than a real disagreement.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 2,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Only covers what <Fig> has adopted, which today is nothing; timing-skew false positives between panels.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.5,
+    "moat_fit": 3.0,
+    "feasibility": 2.0,
+    "demo_quality": 2.5,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.333,
+   "kill": false,
+   "killed_by": null,
+   "rank": 20,
+   "reason": "Covers only what <Fig> has adopted, which is nothing today.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-44",
+   "title": "Surprise without analysts (SUE)",
+   "size": "S-M",
+   "days": 4,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A seasonal random walk on eight lumpy small-cap quarters gives a sigma with n=4 effective; surprise against an expectation nobody held. The vendor second source is the collision lane.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A statistic on an unbuilt extractor; a mis-extracted PAT gives a confident wrong sigma, and the vendor second source is thin on SME names.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 3.0,
+    "feasibility": 2.5,
+    "demo_quality": 3.0,
+    "lifecycle": 2.5
+   },
+   "value_per_day": 0.375,
+   "kill": false,
+   "killed_by": null,
+   "rank": 21,
+   "reason": "Seasonal random walk on eight lumpy quarters gives sigma at n=4.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-45",
+   "title": "Proceeds ledger",
+   "size": "S-M",
+   "days": 5,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 4,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Issues below the monitoring-agency threshold, most micro-caps, have no MAR to parse; PDF table parsing is never four days once scans and merged cells appear.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 3,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "PDF table parsing of Monitoring Agency Reports is not 'the cheapest parser'; sub-threshold small caps have no report at all.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.5,
+    "moat_fit": 3.5,
+    "feasibility": 3.0,
+    "demo_quality": 3.5,
+    "lifecycle": 3.5
+   },
+   "value_per_day": 0.3,
+   "kill": false,
+   "killed_by": null,
+   "rank": 24,
+   "reason": "Proceeds ledger needs MAR PDFs most micro-caps do not file.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-46",
+   "title": "Cheap-paper calendar",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "LLM extraction of per-tranche lock-ins from a scanned allotment letter degrades to 'enter manually', after which the calendar holds what the user typed. Two unbuilt dependencies.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 2,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Narrow forensic audience; an LLM extraction of multi-tranche lock-in dates the user must accept once per issue, on an unbuilt Watch.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.5,
+    "moat_fit": 4.0,
+    "feasibility": 2.0,
+    "demo_quality": 2.5,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.233,
+   "kill": false,
+   "killed_by": null,
+   "rank": 36,
+   "reason": "Lock-in extraction from scanned allotment letters degrades to manual entry.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-47",
+   "title": "Peer set and read-across",
+   "size": "M",
+   "days": 7,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 2,
+    "feasibility": 3,
+    "demo_quality": 4,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A comps table is on every site; the read-across half needs typed edges the user curates by hand and reviews yearly, which is babysitting.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 2,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "A comps table is any screener; edges go stale and the read-across half is pro-seat only.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.0,
+    "moat_fit": 2.0,
+    "feasibility": 2.5,
+    "demo_quality": 3.5,
+    "lifecycle": 2.5
+   },
+   "value_per_day": 0.214,
+   "kill": false,
+   "killed_by": null,
+   "rank": 40,
+   "reason": "Comps table is everywhere; read-across edges are hand-curated babysitting.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-48",
+   "title": "Dodge ledger and who's in the room",
+   "size": "M",
+   "days": 7,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Small-cap transcript coverage is thin; a deterministic DEFLECTED label on a legitimate no-guidance answer is an accusation with a rule attached.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Transcript coverage is thin on small caps; labelling a legitimate no-guidance answer as a dodge is a reputational error.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.5,
+    "moat_fit": 3.5,
+    "feasibility": 2.0,
+    "demo_quality": 3.5,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.143,
+   "kill": false,
+   "killed_by": null,
+   "rank": 46,
+   "reason": "Deterministic DEFLECTED on a legitimate no-guidance answer is an accusation.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-49",
+   "title": "User-addable MCP servers",
+   "size": "S-M",
+   "days": 5,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 3,
+    "demo_quality": 2,
+    "lifecycle": 2,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "No legitimate server to plug in and a new injection path into the main loop; extensibility DNA is not a reason to ship an empty socket.",
+    "kill_reason": "Its surviving motivating examples are screener.in scrapers the ledger says not to add; it opens a prompt-injection path (WLD-harness-context-4 still open) for a feature with no honest data source behind it."
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 1,
+    "demo_quality": 2,
+    "lifecycle": 2,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "Opens a fresh injection path for a gap the refute downgraded to medium; the app cannot audit a remote server's read-only claim.",
+    "kill_reason": "Depends on WLD-T-5 (R15-AGENT-064), status blocked_tier4: a user-controlled subprocess/tool layer is a core-architecture decision the operator has not made. Surviving motivating examples are ToS-grey screener scrapers."
+   },
+   "scores": {
+    "user_value": 2.0,
+    "moat_fit": 3.0,
+    "feasibility": 2.0,
+    "demo_quality": 2.0,
+    "lifecycle": 2.0
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "both",
+   "rank": null,
+   "reason": "Killed by both. Boundary: WLD-T-5 is blocked_tier4 (a user-controlled tool/subprocess layer is a core-architecture decision the operator has not made); its surviving examples are scrapers of a source the ledger says not to add; opens an injection path while WLD-harness-context-4 is open.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-50",
+   "title": "Factor X-ray",
+   "size": "S-M",
+   "days": 5,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 2,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "A percentile over wrong fundamentals is a confident wrong percentile.",
+    "kill_reason": "Factor-exposure strips are standard portfolio-tool fare; its ranks launder the still-open statement-lane collisions (DAT-P3-1 family) into confident percentiles, and the momentum/volatility legs need months of recorded EOD that do not exist."
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 2,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "Nothing agent-first or witnessed about a percentile; thin BSE-only coverage renders 'unranked' for the very names this user holds.",
+    "kill_reason": "A factor-exposure strip is a feature every portfolio-analytics dashboard ships; percentile ranks over vendor fundamentals launder errors into confident numbers and the momentum/volatility legs need months of recorded EOD that does not exist."
+   },
+   "scores": {
+    "user_value": 2.5,
+    "moat_fit": 2.0,
+    "feasibility": 2.0,
+    "demo_quality": 3.0,
+    "lifecycle": 2.5
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "both",
+   "rank": null,
+   "reason": "Killed by both. A factor strip every portfolio dashboard ships; percentiles over the still-open statement-lane collisions are confident wrong percentiles; momentum/volatility legs need recorded months that do not exist.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-51",
+   "title": "Incubator: frozen rules with an out-of-sample record",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 2,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Months of wall-clock before an out-of-sample record means anything, for a systematic seat that is not the product's user; the recorder it needs does not exist.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 4,
+    "feasibility": 3,
+    "demo_quality": 1,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Months of wall-clock before any number; serves the systematic seat only and the recorder it needs is unbuilt.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.0,
+    "moat_fit": 3.5,
+    "feasibility": 2.5,
+    "demo_quality": 1.5,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.167,
+   "kill": false,
+   "killed_by": null,
+   "rank": 38,
+   "reason": "Months of wall-clock before an out-of-sample record means anything; not the product's user.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-52",
+   "title": "As-of screens",
+   "size": "S",
+   "days": 3,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 1,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "There is no recorded history to run a screen 'as of'; it is a chip on an empty table for months.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 3,
+    "demo_quality": 1,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Worthless until the recorder has months of history; nothing to screenshot for a year, by the row's own admission.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.0,
+    "moat_fit": 3.5,
+    "feasibility": 2.5,
+    "demo_quality": 1.0,
+    "lifecycle": 3.0
+   },
+   "value_per_day": 0.333,
+   "kill": false,
+   "killed_by": null,
+   "rank": 18,
+   "reason": "A chip on an empty table until the recorder has months of history.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-53",
+   "title": "Between the prints",
+   "size": "M",
+   "days": 7,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 1,
+    "demo_quality": 3,
+    "lifecycle": 1,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "An hour a month of per-filer spec curation is the definition of babysitting, and most small caps file nothing between prints. Three unbuilt dependencies.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 2,
+    "lifecycle": 1,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "An hour a month of per-filer spec curation across 30 names is the definition of rot; many small caps file nothing between prints.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 2.5,
+    "moat_fit": 3.5,
+    "feasibility": 1.5,
+    "demo_quality": 2.5,
+    "lifecycle": 1.0
+   },
+   "value_per_day": 0.107,
+   "kill": false,
+   "killed_by": null,
+   "rank": 47,
+   "reason": "An hour a month of per-filer spec curation is babysitting by definition.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-54",
+   "title": "Annual-report redline",
+   "size": "M",
+   "days": 8,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 5,
+    "feasibility": 2,
+    "demo_quality": 4,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Fused table cells and scanned ARs produce garbage hunks that look like findings; the side-by-side is only as good as pypdf on a micro-cap PDF. Two unbuilt dependencies.",
+    "kill_reason": ""
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 2,
+    "demo_quality": 2,
+    "lifecycle": 2,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Scanned ARs and fused table cells produce garbage hunks that look like findings; the heaviest reader item on two unbuilt substrates.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.5,
+    "moat_fit": 4.5,
+    "feasibility": 2.0,
+    "demo_quality": 3.0,
+    "lifecycle": 2.0
+   },
+   "value_per_day": 0.175,
+   "kill": false,
+   "killed_by": null,
+   "rank": 42,
+   "reason": "Redline is only as good as pypdf on a micro-cap PDF; two unbuilt deps.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-55",
+   "title": "Accounts linter with reasoned suppressions",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 4,
+    "moat_fit": 4,
+    "feasibility": 1,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "A linter whose inputs are another company's numbers is worse than no linter.",
+    "kill_reason": "Depends on the blocked statement lane (WLD-T-4, DAT-P3-1/P4-1/P5-1/P6-1 admitted critical, still open) and on the unbuilt BL-09 engine; it reports no-data on exactly the names it exists for."
+   },
+   "judge_b": {
+    "user_value": 3,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 3,
+    "lifecycle": 3,
+    "kill": false,
+    "small_build_candidate": false,
+    "strongest_objection": "Its statement prereqs are now fixed, but micro-cap statement coverage via yfinance is still thin and it depends on an unbuilt tripwire engine.",
+    "kill_reason": ""
+   },
+   "scores": {
+    "user_value": 3.5,
+    "moat_fit": 3.5,
+    "feasibility": 1.5,
+    "demo_quality": 3.0,
+    "lifecycle": 3.0
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "A",
+   "rank": null,
+   "reason": "Killed by Judge A, upheld. The statement-lane collision is not fixed at HEAD (the -SM.NS keying is still being planned in stage-c/batch-18/PLAN.md:84-87), so Judge B's 'prereqs now fixed' does not verify; it also depends on the unbuilt BL-09 engine and is M band.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-56",
+   "title": "Personas on probation",
+   "size": "M",
+   "days": 6,
+   "judge_a": {
+    "user_value": 1,
+    "moat_fit": 2,
+    "feasibility": 3,
+    "demo_quality": 2,
+    "lifecycle": 3,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "Scoring twelve billionaire prompts is a toy the target user never opens.",
+    "kill_reason": "Gives the user nothing usable for months (n<10 refuses to score), carries 'predictions in a finance app' optics, and grades persona cosplay that is not the serious investor's workflow; BL-41's falsifier captures the discipline."
+   },
+   "judge_b": {
+    "user_value": 1,
+    "moat_fit": 3,
+    "feasibility": 2,
+    "demo_quality": 1,
+    "lifecycle": 2,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "A Brier score on persona cosplay is a curiosity, not research; small-cap resolution coverage is too thin to ever reach n.",
+    "kill_reason": "Nothing usable for months (n>=10 gate), predictions-optics risk in a finance app, and the row parks itself; BL-41's falsifier covers the same discipline for the research agent."
+   },
+   "scores": {
+    "user_value": 1.0,
+    "moat_fit": 2.5,
+    "feasibility": 2.5,
+    "demo_quality": 1.5,
+    "lifecycle": 2.5
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "both",
+   "rank": null,
+   "reason": "Killed by both. Nothing usable below n=10 for months; predictions optics in a finance app; persona cosplay is not the serious investor's workflow; BL-41's falsifier keeps the discipline.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-57",
+   "title": "Rule forge: event studies from any predictive sentence",
+   "size": "L",
+   "days": 14,
+   "judge_a": {
+    "user_value": 3,
+    "moat_fit": 4,
+    "feasibility": 1,
+    "demo_quality": 3,
+    "lifecycle": 2,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "Event studies need a cross-section; the app has a per-symbol feed and no recorder.",
+    "kill_reason": "L band (14 days) on an unprobed cross-sectional announcement archive that does not exist; with the per-symbol fetcher it is an anecdote detector for months. Depends on unbuilt BL-08 and BL-34."
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 1,
+    "demo_quality": 2,
+    "lifecycle": 2,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "The honest result is 'not distinguishable from noise' on every demo, which is correct and demos terribly.",
+    "kill_reason": "L-sized (14 days) on an unprobed cross-sectional announcement archive with a per-symbol fetcher; an anecdote detector for months, parked by its own row."
+   },
+   "scores": {
+    "user_value": 2.5,
+    "moat_fit": 3.5,
+    "feasibility": 1.0,
+    "demo_quality": 2.5,
+    "lifecycle": 2.0
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "both",
+   "rank": null,
+   "reason": "Killed by both. L band (14 days) on a cross-sectional announcement archive the app does not have; breaches the S-band rule outright; depends on the unbuilt recorder.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "BL-58",
+   "title": "'I noticed you bought'",
+   "size": "S-M",
+   "days": 4,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 4,
+    "demo_quality": 3,
+    "lifecycle": 4,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "A decision journal is a note; the review months later grades reasons against six months of small-cap noise.",
+    "kill_reason": "The watching half that made it interesting was struck with trading; what survives is a 'why did you buy' journal prompt any notes app provides, and it still needs the open COD-host-actions-proposed-changes-2 fix."
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 2,
+    "feasibility": 4,
+    "demo_quality": 2,
+    "lifecycle": 4,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "'Ask when you add it' is a form field; the frozen snapshot is a note the user could write.",
+    "kill_reason": "With the broker-diff core struck, what survives is a buy-reason note plus a periodic review, a feature every portfolio app ships; the row calls itself a nice-to-have."
+   },
+   "scores": {
+    "user_value": 2.0,
+    "moat_fit": 2.5,
+    "feasibility": 4.0,
+    "demo_quality": 2.5,
+    "lifecycle": 4.0
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "both",
+   "rank": null,
+   "reason": "Killed by both. Boundary: the watching half was struck with trading; what survives is a buy-reason note any notes app has, gated on an open proposed-changes fix.",
+   "small_build_candidate": false
+  },
+  {
+   "id": "CAND-filing-watcher",
+   "title": "Filing watcher (System 1 triage in front of the BYOK model)",
+   "size": null,
+   "days": null,
+   "judge_a": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 1,
+    "demo_quality": 1,
+    "lifecycle": 1,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "A model that loses to a regex is not a triage layer; the receipts-per-item design survives without it as a deterministic classifier (BL-04/BL-23).",
+    "kill_reason": "Its own MEASURE pass says the zero-shot checkpoint loses to the sidecar's existing $0 regex on composer_intent and ties majority on holding_relevance; the path forward is a fine-tune (a funded model lane) plus a new local inference runtime with no Windows/CUDA route, breaching the no-new-heavy-dependency and keyless-default boundaries. Unsized, no code, no UI."
+   },
+   "judge_b": {
+    "user_value": 2,
+    "moat_fit": 3,
+    "feasibility": 1,
+    "demo_quality": 1,
+    "lifecycle": 1,
+    "kill": true,
+    "small_build_candidate": false,
+    "strongest_objection": "A model in front of the model that is beaten by a regex; per-backend temperature fits are lifecycle cost with no measured payoff.",
+    "kill_reason": "Needs a new local inference backend (MLX, no Windows/CUDA route) and a fine-tune lane, both boundary breaches; its own MEASURE pass shows zero-shot loses to the sidecar's existing $0 regex heuristic on composer_intent and ties majority-class on holding_relevance, with calibration making ECE worse."
+   },
+   "scores": {
+    "user_value": 2.0,
+    "moat_fit": 3.0,
+    "feasibility": 1.0,
+    "demo_quality": 1.0,
+    "lifecycle": 1.0
+   },
+   "value_per_day": null,
+   "kill": true,
+   "killed_by": "both",
+   "rank": null,
+   "reason": "Killed by both. Boundary: its own MEASURE pass loses to the sidecar's $0 regex; the path forward is a fine-tune (a funded model lane) plus a new local inference runtime with no Windows/CUDA route (a heavy dependency). Receipts-per-item lives on in BL-04/BL-23.",
+   "small_build_candidate": false
+  }
+ ],
+ "survivors": [
+  {
+   "rank": 1,
+   "id": "BL-03",
+   "title": "Reasons about you: your position and your notes in every answer",
+   "value_per_day": 1.5,
+   "lifecycle": 4.5,
+   "line": "The position line and a renderer-side brief card from the holdings the snapshot already carries; zero tokens, keyless, closes WLD-agent-native-ux-1. Top survivor."
+  },
+  {
+   "rank": 2,
+   "id": "BL-18",
+   "title": "Brief diff: ask again, see what changed",
+   "value_per_day": 1.2,
+   "lifecycle": 5.0,
+   "line": "Pure frontend diff strip between two briefs of the same symbol; lead with filing facts, collapse market-moved values. Runner-up 1."
+  },
+  {
+   "rank": 3,
+   "id": "BL-11",
+   "title": "Proof Open: the first minute is a demonstration",
+   "value_per_day": 1.25,
+   "lifecycle": 3.5,
+   "line": "Two days on the witnessed GET that now exists; the best single screenshot in the set, but the serious investor gains little after minute one and it decays with an exchange lane. Runner-up 2."
+  },
+  {
+   "rank": 4,
+   "id": "BL-23",
+   "title": "Gatekeeper exits",
+   "value_per_day": 1.067,
+   "lifecycle": 3.5,
+   "line": "Standalone on-open timeline card over the paged 180-day feed is S and dependency-free; the notify half waits for BL-04."
+  },
+  {
+   "rank": 5,
+   "id": "BL-35",
+   "title": "Priced in: what the market cap already assumes",
+   "value_per_day": 0.933,
+   "lifecycle": 4.5,
+   "line": "Only a sensitivity grid on witnessed TTM is honest while the collision lane is open; Judge B calls the reverse DCF a spreadsheet calculator."
+  },
+  {
+   "rank": 6,
+   "id": "BL-25",
+   "title": "Filing clock",
+   "value_per_day": 0.8,
+   "lifecycle": 5.0,
+   "line": "Days-to-results series from FiledPeriod.filed; honest but slow to become actionable."
+  },
+  {
+   "rank": 7,
+   "id": "BL-07",
+   "title": "Coverage honesty: say what the app could not see",
+   "value_per_day": 0.8,
+   "lifecycle": 4.5,
+   "line": "Zero-token 'what I could not see' block; Judge B: honest S only if the header strip is dropped."
+  },
+  {
+   "rank": 8,
+   "id": "BL-24",
+   "title": "Exit Door: can I actually get out",
+   "value_per_day": 0.75,
+   "lifecycle": 3.5,
+   "line": "Exit capacity needs delivery volume the bhavcopy row lacks; a total-volume version overstates and must wait for the recorder."
+  },
+  {
+   "rank": 9,
+   "id": "BL-15",
+   "title": "Results-day first take (deterministic results-grid extraction)",
+   "value_per_day": 0.75,
+   "lifecycle": 2.5,
+   "line": "Only as the exchange_financials reframe (filed QoQ/YoY with the XBRL/BSE receipt): scored as written by Judge B (feasibility 2, lifecycle 1), as the reframe by Judge A; see section 3."
+  },
+  {
+   "rank": 10,
+   "id": "BL-40",
+   "title": "GO bar and learned routines",
+   "value_per_day": 0.6,
+   "lifecycle": 4.0,
+   "line": "Palette already fuzzy-matches; the mnemonic bar is habit for a different product."
+  },
+  {
+   "rank": 11,
+   "id": "BL-06",
+   "title": "Page receipts",
+   "value_per_day": 0.64,
+   "lifecycle": 3.5,
+   "line": "Page receipts read 'scanned' on the micro-caps this product targets; S-M."
+  },
+  {
+   "rank": 12,
+   "id": "BL-08",
+   "title": "Start recording: point-in-time EOD and fundamentals observations",
+   "value_per_day": 0.6,
+   "lifecycle": 3.0,
+   "line": "Recorder shows nothing for months and walks the archive from the user's IP on wake."
+  },
+  {
+   "rank": 13,
+   "id": "BL-14",
+   "title": "Corporate-action chain",
+   "value_per_day": 0.56,
+   "lifecycle": 3.0,
+   "line": "Parser landed (R15-DATA-025); chart markers and a factor toggle remain, with price-history rewrite risk."
+  },
+  {
+   "rank": 14,
+   "id": "BL-19",
+   "title": "Undo and ghost edits",
+   "value_per_day": 0.4,
+   "lifecycle": 3.5,
+   "line": "Undo-from-review already exists; ghost rows are polish."
+  },
+  {
+   "rank": 15,
+   "id": "BL-10",
+   "title": "Red Pen: paste anyone's numbers, get a marked-up verdict",
+   "value_per_day": 0.333,
+   "lifecycle": 3.0,
+   "line": "Needs BL-05's grammar; most tips are narrative and read CANNOT CHECK."
+  },
+  {
+   "rank": 16,
+   "id": "BL-22",
+   "title": "Evidence locker",
+   "value_per_day": 0.35,
+   "lifecycle": 3.0,
+   "line": "Locker preserves pypdf garbage faithfully; needs BL-06 and byte hashing."
+  },
+  {
+   "rank": 17,
+   "id": "BL-21",
+   "title": "The Figure and the Why key",
+   "value_per_day": 0.35,
+   "lifecycle": 3.0,
+   "line": "A lineage card is a tooltip with more rows; every metric must declare lineage forever."
+  },
+  {
+   "rank": 18,
+   "id": "BL-52",
+   "title": "As-of screens",
+   "value_per_day": 0.333,
+   "lifecycle": 3.0,
+   "line": "A chip on an empty table until the recorder has months of history."
+  },
+  {
+   "rank": 19,
+   "id": "BL-41",
+   "title": "Page One",
+   "value_per_day": 0.4,
+   "lifecycle": 3.0,
+   "line": "Three boxes of items that do not exist yet."
+  },
+  {
+   "rank": 20,
+   "id": "BL-43",
+   "title": "One number, one truth",
+   "value_per_day": 0.333,
+   "lifecycle": 3.0,
+   "line": "Covers only what <Fig> has adopted, which is nothing today."
+  },
+  {
+   "rank": 21,
+   "id": "BL-44",
+   "title": "Surprise without analysts (SUE)",
+   "value_per_day": 0.375,
+   "lifecycle": 2.5,
+   "line": "Seasonal random walk on eight lumpy quarters gives sigma at n=4."
+  },
+  {
+   "rank": 22,
+   "id": "BL-09",
+   "title": "Tripwires: kill criteria compiled once, watched for free",
+   "value_per_day": 0.333,
+   "lifecycle": 2.0,
+   "line": "Compiled kill criteria are the moat, but without BL-04's sweep they are checked only on open."
+  },
+  {
+   "rank": 23,
+   "id": "BL-13",
+   "title": "Cap-table X-ray: names, beneficial owners, encumbrance, holder counts, pledge trend",
+   "value_per_day": 0.429,
+   "lifecycle": 2.0,
+   "line": "Highest value per the forensic seat, but BSE-only XBRL leaves NSE-only SME names on today's summary; M."
+  },
+  {
+   "rank": 24,
+   "id": "BL-45",
+   "title": "Proceeds ledger",
+   "value_per_day": 0.3,
+   "lifecycle": 3.5,
+   "line": "Proceeds ledger needs MAR PDFs most micro-caps do not file."
+  },
+  {
+   "rank": 25,
+   "id": "BL-27",
+   "title": "Rulebook: it holds you to your own words",
+   "value_per_day": 0.3,
+   "lifecycle": 3.0,
+   "line": "Annotates, never blocks; depends on unbuilt BL-24."
+  },
+  {
+   "rank": 26,
+   "id": "BL-32",
+   "title": "Alerts with a track record",
+   "value_per_day": 0.3,
+   "lifecycle": 3.0,
+   "line": "Alerts with a dry-run over a 180-day tape; rides the unbuilt tripwire engine."
+  },
+  {
+   "rank": 27,
+   "id": "BL-05",
+   "title": "Number firewall with a rupee scale witness",
+   "value_per_day": 0.3,
+   "lifecycle": 2.5,
+   "line": "The scale witness is right; orphan tolerance tuning is open-ended, M."
+  },
+  {
+   "rank": 28,
+   "id": "BL-04",
+   "title": "The Watch: wake sweep and a 'while you were away' card that states its blind spots",
+   "value_per_day": 0.375,
+   "lifecycle": 2.0,
+   "line": "The Watch is the spine's hub; M at twice the S budget and a sleeping-laptop sweep only on wake."
+  },
+  {
+   "rank": 29,
+   "id": "BL-30",
+   "title": "The number changed: drift ledger",
+   "value_per_day": 0.375,
+   "lifecycle": 2.0,
+   "line": "Nothing to say for weeks, then TTM-roll false alarms."
+  },
+  {
+   "rank": 30,
+   "id": "BL-17",
+   "title": "Tip Ledger",
+   "value_per_day": 0.263,
+   "lifecycle": 2.5,
+   "line": "Tip Ledger is for a user this product does not target; libel-shaped on a wrong resolve."
+  },
+  {
+   "rank": 31,
+   "id": "BL-29",
+   "title": "Track record: the app keeps score on itself and its providers",
+   "value_per_day": 0.3,
+   "lifecycle": 2.0,
+   "line": "Value only from repeated briefs on the same name; no claims ledger exists."
+  },
+  {
+   "rank": 32,
+   "id": "BL-33",
+   "title": "Operator radar",
+   "value_per_day": 0.267,
+   "lifecycle": 2.0,
+   "line": "Hand-tuned thresholds with no recorded history false-positive on re-ratings."
+  },
+  {
+   "rank": 33,
+   "id": "BL-31",
+   "title": "Seven Pages: annual-report reader",
+   "value_per_day": 0.343,
+   "lifecycle": 2.0,
+   "line": "Seven Pages costs BYOK tokens per run and reads scans poorly."
+  },
+  {
+   "rank": 34,
+   "id": "BL-20",
+   "title": "Trust bench and 'Audit me'",
+   "value_per_day": 0.35,
+   "lifecycle": 1.5,
+   "line": "Truth packs rot quarterly and hand rivals copy."
+  },
+  {
+   "rank": 35,
+   "id": "BL-42",
+   "title": "Pre-print card and your forecast record",
+   "value_per_day": 0.24,
+   "lifecycle": 3.0,
+   "line": "Homework the evening before results; n<4 quarters shows nothing for a year."
+  },
+  {
+   "rank": 36,
+   "id": "BL-46",
+   "title": "Cheap-paper calendar",
+   "value_per_day": 0.233,
+   "lifecycle": 3.0,
+   "line": "Lock-in extraction from scanned allotment letters degrades to manual entry."
+  },
+  {
+   "rank": 37,
+   "id": "BL-37",
+   "title": "Calm protocol",
+   "value_per_day": 0.2,
+   "lifecycle": 3.0,
+   "line": "Fires only while the app is open in market hours; wrong minutes before a filing."
+  },
+  {
+   "rank": 38,
+   "id": "BL-51",
+   "title": "Incubator: frozen rules with an out-of-sample record",
+   "value_per_day": 0.167,
+   "lifecycle": 3.0,
+   "line": "Months of wall-clock before an out-of-sample record means anything; not the product's user."
+  },
+  {
+   "rank": 39,
+   "id": "BL-34",
+   "title": "Honesty card and trial ledger for backtests",
+   "value_per_day": 0.2,
+   "lifecycle": 3.0,
+   "line": "Backtesting is peripheral to the witnessed-research user; sits on an open critical metrics defect."
+  },
+  {
+   "rank": 40,
+   "id": "BL-47",
+   "title": "Peer set and read-across",
+   "value_per_day": 0.214,
+   "lifecycle": 2.5,
+   "line": "Comps table is everywhere; read-across edges are hand-curated babysitting."
+  },
+  {
+   "rank": 41,
+   "id": "BL-16",
+   "title": "Guidance ledger: what management said against what printed",
+   "value_per_day": 0.2,
+   "lifecycle": 2.0,
+   "line": "Guidance ledger needs transcripts most small caps do not hold and BYOK tokens per transcript."
+  },
+  {
+   "rank": 42,
+   "id": "BL-54",
+   "title": "Annual-report redline",
+   "value_per_day": 0.175,
+   "lifecycle": 2.0,
+   "line": "Redline is only as good as pypdf on a micro-cap PDF; two unbuilt deps."
+  },
+  {
+   "rank": 43,
+   "id": "BL-26",
+   "title": "Living model",
+   "value_per_day": 0.175,
+   "lifecycle": 2.0,
+   "line": "A worse Excel with a new xlsx sidecar dependency."
+  },
+  {
+   "rank": 44,
+   "id": "BL-28",
+   "title": "Red-flag rule packs",
+   "value_per_day": 0.25,
+   "lifecycle": 1.5,
+   "line": "Rule packs need three unbuilt deps and operator review of every rule."
+  },
+  {
+   "rank": 45,
+   "id": "BL-36",
+   "title": "Forkable research (.vybrief) and the receipt bundle",
+   "value_per_day": 0.133,
+   "lifecycle": 2.0,
+   "line": "A file format is a forever promise for a feature retail users do not use."
+  },
+  {
+   "rank": 46,
+   "id": "BL-48",
+   "title": "Dodge ledger and who's in the room",
+   "value_per_day": 0.143,
+   "lifecycle": 2.0,
+   "line": "Deterministic DEFLECTED on a legitimate no-guidance answer is an accusation."
+  },
+  {
+   "rank": 47,
+   "id": "BL-53",
+   "title": "Between the prints",
+   "value_per_day": 0.107,
+   "lifecycle": 1.0,
+   "line": "An hour a month of per-filer spec curation is babysitting by definition."
+  }
+ ],
+ "top": {
+  "id": "BL-03",
+  "title": "Reasons about you: your position and your notes in every answer",
+  "size_band": "S",
+  "days": 3,
+  "value_per_day": 1.5,
+  "small_build_candidate_for": [
+   "a",
+   "b"
+  ],
+  "boundary_check": "passed: reads the user's tracked portfolio only, no write, no Tier-4 file, no new capability, keyless, no new dependency, design system on, no wire change",
+  "files": [
+   "sidecar/services/agent_runtime.py (_render_terminal_preamble def :404; Portfolio line :460; insert before the deixis sentence :475-478)",
+   "src/modules/research/brief-blocks.tsx (MetricItem :74; makeItems :118; deriveMetrics :412; BriefBody :1047, call :1061)",
+   "src/modules/research/BriefPanel.tsx (deriveMetrics call :641)",
+   "src/store/portfolios.ts (PortfoliosState :99, usePortfoliosStore :121: add holdingFor selector)",
+   "sidecar/tests/test_agent_runtime.py (beside :387)",
+   "src/modules/research/brief-blocks.test.ts"
+  ],
+  "acceptance_test": "test_terminal_preamble_renders_focused_position: focused TANLA with holding 500 @ 812, marketValue 405000, pnl -17500, totalValue 812000 -> preamble contains 'Your position in TANLA: 500 units, avg cost 812, 49.9% of book, unrealised P&L -17,500' and 'Held: TANLA, KAYNES'; marketValue null -> 'not marked-to-market' and no percentage; focused INFY with no holding -> no position line, Held: still present",
+  "demo": "keyless chat transcript 'should I add to TANLA?' quoting the position before reasoning with no get_portfolio step, plus a populated brief screenshot (dark, 1920x1080 and 2560x1440) showing the 'Your position' card",
+  "out_of_scope": [
+   "new agent tool or catalog entry",
+   "read_notes/notes line changes",
+   "gather_fast or BriefStructured wire change",
+   "types/data.ts or sidecar/models mirror",
+   "any portfolio write",
+   "positions for symbols only mentioned in the message",
+   "MCP projection of the position"
+  ]
+ },
+ "runners_up": [
+  {
+   "id": "BL-18",
+   "title": "Brief diff: ask again, see what changed",
+   "rank": 2,
+   "size_band": "S",
+   "days": 3,
+   "small_build_candidate_for": [
+    "a",
+    "b"
+   ],
+   "files": [
+    "src/lib/brief-diff.ts (new)",
+    "src/lib/workspace.ts (SerializedWorkspace :53; serializeWorkspace :642; deserializeWorkspace :656; autosaveLayout :1046)",
+    "src/modules/research/brief-blocks.tsx (BriefBody :1047)"
+   ],
+   "pin": "vitest vectors: flipped metric, new source, price-only change collapsed, unchanged collapse, older-blob restore",
+   "demo": "second brief on the same symbol with the 'Changed since' strip populated"
+  },
+  {
+   "id": "BL-11",
+   "title": "Proof Open: the first minute is a demonstration",
+   "rank": 3,
+   "size_band": "S",
+   "days": 2,
+   "small_build_candidate_for": [
+    "a",
+    "b"
+   ],
+   "files": [
+    "src/components/OnboardingFlow.tsx (Step union :57, state :94)",
+    "src/components/ProofCard.tsx (new)",
+    "src/modules/equity-overview/EquityOverviewPanel.tsx (field_meta reading :111-133, reuse)"
+   ],
+   "pin": "OnboardingFlow vitest with mocked flagged/withheld field_meta renders the three verdict states and reason strings; all-ok renders 'agrees', never empty",
+   "demo": "populated proof card for a BSE-only small cap at 2560x1440"
+  }
+ ],
+ "killed": [
+  "BL-01",
+  "BL-02",
+  "BL-12",
+  "BL-38",
+  "BL-39",
+  "BL-49",
+  "BL-50",
+  "BL-55",
+  "BL-56",
+  "BL-57",
+  "BL-58",
+  "CAND-filing-watcher"
+ ],
+ "counts": {
+  "judged": 59,
+  "killed": 12,
+  "survivors": 47,
+  "disagreements_resolved": 5,
+  "killed_by_both": 8,
+  "killed_by_one_upheld": 4
+ }
 }
