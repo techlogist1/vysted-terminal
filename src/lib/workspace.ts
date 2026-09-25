@@ -20,7 +20,7 @@ import { applyResearchSpaceLayout } from "@/lib/layout-templates";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { fetchLegacyPositions } from "@/modules/portfolio/api";
-import { useAgentSpacesStore } from "@/store/agent-spaces";
+import { type AgentSpacesBundle, useAgentSpacesStore } from "@/store/agent-spaces";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useAgentDockStore } from "@/store/agent-dock";
@@ -167,6 +167,11 @@ export interface SerializedWorkspace {
    * relaunch (`src/store/research-spaces.ts`). Optional for older blobs.
    */
   researchSpaces?: WorkspaceResearchSpaces;
+  /**
+   * The agent chat tabs and their off-screen transcripts
+   * (`src/store/agent-spaces.ts`). Optional for older blobs (absent → one tab).
+   */
+  agentSpaces?: AgentSpacesBundle;
   /** The screener's saved screens. Optional for older blobs (absent → none). */
   savedScreens?: SavedScreen[];
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
@@ -578,6 +583,21 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
       }
     },
     subscribe: onChange(useResearchSpacesStore, (s) => s.byName),
+  },
+  {
+    // The chat tabs (R15-CODE-FRONTEND-028). Restored before the research
+    // marker, so a transcript the active tab had parked is back live when the
+    // marker re-enters the space and parks it again.
+    key: "agentSpaces",
+    scope: "global",
+    read: () => ({ agentSpaces: useAgentSpacesStore.getState().toBundle() }),
+    restore: (workspace) => useAgentSpacesStore.getState().fromBundle(workspace.agentSpaces),
+    subscribe: onChange(
+      useAgentSpacesStore,
+      (s) => s.spaces,
+      (s) => s.activeId,
+      (s) => s.archived,
+    ),
   },
   {
     // TYPED research-space marker (only on a research space). Restoring it

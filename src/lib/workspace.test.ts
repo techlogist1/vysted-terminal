@@ -110,6 +110,11 @@ describe("workspace serialization", () => {
     useModelSelectionStore.setState({ overrides: {} });
     useResearchSpacesStore.setState({ byName: {} });
     useChatHistoryStore.getState().clear();
+    useAgentSpacesStore.setState({
+      spaces: [{ id: "chat-1", title: "Chat 1" }],
+      activeId: "chat-1",
+      archived: {},
+    });
     resetKeybindingsStoreForTests();
     resetSettingsStoreForTests();
     resetSearchSettingsStoreForTests();
@@ -160,6 +165,11 @@ describe("workspace serialization", () => {
       // A non-research workspace omits `researchSymbol` but always carries the
       // (empty) per-space memory archive (S-19).
       researchSpaces: { byName: {} },
+      agentSpaces: {
+        spaces: [{ id: "chat-1", title: "Chat 1" }],
+        activeId: "chat-1",
+        archived: {},
+      },
       savedScreens: [],
     });
   });
@@ -427,6 +437,40 @@ describe("workspace serialization", () => {
     const { watchlist: _absent, ...older } = saved;
     deserializeWorkspace(older);
     expect(useSymbolsStore.getState().entries).toEqual(DEFAULT_SYMBOLS);
+  });
+
+  it("R15-CODE-FRONTEND-028: agent spaces survive serialize -> deserialize", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    const failed = {
+      id: "m2",
+      role: "assistant" as const,
+      content: "Revenue grew",
+      createdAt: 2,
+      error: "stream failed",
+    };
+    useAgentSpacesStore.setState({
+      spaces: [
+        { id: "a", title: "Macro" },
+        { id: "b", title: "Semis" },
+      ],
+      activeId: "b",
+      archived: { a: [{ id: "m1", role: "user", content: "rates?", createdAt: 1 }, failed] },
+    });
+    const saved = JSON.parse(JSON.stringify(serializeWorkspace("tabs"))) as SerializedWorkspace;
+
+    useAgentSpacesStore.setState({
+      spaces: [{ id: "z", title: "Chat 1" }],
+      activeId: "z",
+      archived: {},
+    });
+    deserializeWorkspace(saved);
+
+    const restored = useAgentSpacesStore.getState();
+    expect(restored.spaces.map((s) => s.title)).toEqual(["Macro", "Semis"]);
+    expect(restored.activeId).toBe("b");
+    expect(restored.archived.a.map((m) => m.content)).toEqual(["rates?", "Revenue grew"]);
+    expect(restored.archived.a[1].error).toBe("stream failed");
   });
 
   it("round-trips: serialize then deserialize restores the layout and enabled map", () => {
@@ -1279,6 +1323,7 @@ const DECLARED_KEYS: Record<DeclaredWorkspaceKey, true> = {
   notes: true,
   researchSymbol: true,
   researchSpaces: true,
+  agentSpaces: true,
   savedScreens: true,
 };
 
@@ -1559,6 +1604,10 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
           useResearchSpacesStore.getState().replaceAll({
             byName: { "Research: AMD": { symbol: "AMD", transcript: [], updatedAt: 1 } },
           }),
+      ],
+      agentSpaces: [
+        () => useAgentSpacesStore.getState().newSpace(),
+        () => useAgentSpacesStore.getState().renameActive("Macro"),
       ],
       researchSymbol: [() => useWorkspaceStore.getState().setResearchSymbol("NVDA")],
     };

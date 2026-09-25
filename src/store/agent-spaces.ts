@@ -6,12 +6,33 @@ import { type ChatMessage, useChatHistoryStore } from "./chat-history";
  * Agent spaces (multiple chat threads/pages) — Perplexity/Cursor-style. Each
  * space is an independent transcript; switching archives the live transcript and
  * restores the target's. The chat-history store stays single-active (the live
- * thread); this store owns the off-screen threads + the swap. Session-scoped for
- * now — persisting spaces into the workspace blob is a follow-up (task #11).
+ * thread); this store owns the off-screen threads + the swap. The tabs and the
+ * off-screen transcripts ride the workspace blob ({@link AgentSpacesBundle});
+ * the live thread stays session-scoped like the chat history itself.
  */
 export interface AgentSpace {
   id: string;
   title: string;
+}
+
+/** The agent spaces as persisted in the workspace blob. */
+export interface AgentSpacesBundle {
+  spaces: AgentSpace[];
+  activeId: string;
+  archived: Record<string, ChatMessage[]>;
+}
+
+/** A settled message from a blob: the fields the transcript renders, never pending. */
+function isArchivedMessage(value: unknown): value is ChatMessage {
+  const m = value as Partial<ChatMessage> | null;
+  return (
+    !!m &&
+    typeof m.id === "string" &&
+    (m.role === "user" || m.role === "assistant" || m.role === "system") &&
+    typeof m.content === "string" &&
+    typeof m.createdAt === "number" &&
+    !m.pending
+  );
 }
 
 interface AgentSpacesState {
@@ -33,6 +54,12 @@ interface AgentSpacesState {
   deliverTo: (spaceId: string | undefined, message: ChatMessage) => void;
   /** Rename the active space (e.g. auto-titled from the first prompt). */
   renameActive: (title: string) => void;
+  /** Snapshot the tabs + off-screen transcripts for the workspace blob. */
+  toBundle: () => AgentSpacesBundle;
+  /** Restore a blob's bundle (launch only); a garbled one keeps the live tabs.
+   *  A transcript the active tab had parked (a research space held the live
+   *  chat) comes back live — re-entering the space parks it again. */
+  fromBundle: (bundle: unknown) => void;
 }
 
 function uid(): string {
@@ -117,4 +144,34 @@ export const useAgentSpacesStore = create<AgentSpacesState>((set, get) => ({
     set((state) => ({
       spaces: state.spaces.map((s) => (s.id === state.activeId ? { ...s, title } : s)),
     })),
+
+  toBundle: () => {
+    const { spaces, activeId, archived } = get();
+    return { spaces, activeId, archived };
+  },
+
+  fromBundle: (bundle) => {
+    const b = (bundle ?? {}) as Partial<AgentSpacesBundle>;
+    const spaces = Array.isArray(b.spaces)
+      ? b.spaces.filter(
+          (s): s is AgentSpace => typeof s?.id === "string" && typeof s?.title === "string",
+        )
+      : [];
+    if (spaces.length === 0) {
+      return;
+    }
+    const activeId = spaces.some((s) => s.id === b.activeId) ? b.activeId! : spaces[0].id;
+    const archived: Record<string, ChatMessage[]> = {};
+    for (const space of spaces) {
+      const list: unknown = b.archived?.[space.id];
+      if (Array.isArray(list)) {
+        archived[space.id] = list.filter(isArchivedMessage);
+      }
+    }
+    const { [activeId]: parked, ...rest } = archived;
+    set({ spaces, activeId, archived: rest });
+    if (parked) {
+      useChatHistoryStore.getState().loadMessages(parked);
+    }
+  },
 }));
