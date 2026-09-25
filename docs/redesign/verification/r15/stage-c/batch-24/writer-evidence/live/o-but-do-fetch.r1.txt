@@ -1,0 +1,20 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_704e7326e2e0473da4ab1cfb7c21364f", "name": "price_data", "input": {"__vysted_invalid_args__": "invalid arguments for price_data: '' is not one of ['1d', '1h', '1wk', '1mo']; call again with valid args"}}
+[  37.4s] tool_result: {"kind": "tool_result", "tool_call_id": "call_704e7326e2e0473da4ab1cfb7c21364f", "name": "price_data", "ok": false, "error": "invalid arguments for price_data: '' is not one of ['1d', '1h', '1wk', '1mo']; call again with valid args"}
+[  40.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e2eba54affff47ef88e9807918353590", "name": "price_data", "input": {"symbol": "TCS.NS", "interval": "1d"}}
+[  43.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_e2eba54affff47ef88e9807918353590", "name": "price_data", "ok": true, "error": null}
+[  53.2s] heartbeat: {"kind": "heartbeat"}
+[  63.2s] heartbeat: {"kind": "heartbeat"}
+[  73.2s] heartbeat: {"kind": "heartbeat"}
+[  77.2s] done: {"kind": "done", "usage": {"input_tokens": 7129, "output_tokens": 45, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+To fetch the TCS.NS price, I'll need to specify a time interval. Let me try that.
+
+The current price of TCS.NS is ₹2082.00. 
+
+I've fetched the latest price data for you. Would you like to know more about TCS, such as its fundamental metrics or news?
+
+=== ok · 77.2s · events {'heartbeat': 6, 'tool_use': 2, 'tool_result': 2, 'delta': 69, 'done': 1} · usage in=7129 out=45 · est $0.00000 · llama3.1:8b

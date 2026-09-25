@@ -1,0 +1,30 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  36.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_18f52c5015ad4f08902017c77804a04b", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+[  38.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_18f52c5015ad4f08902017c77804a04b", "name": "price_data", "ok": true, "error": null}
+[  48.7s] heartbeat: {"kind": "heartbeat"}
+[  58.7s] heartbeat: {"kind": "heartbeat"}
+[  68.7s] heartbeat: {"kind": "heartbeat"}
+[  84.3s] done: {"kind": "done", "usage": {"input_tokens": 7011, "output_tokens": 221, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of TCS.NS is ₹2082.0.
+
+Since there's no news on the terminal about TCS.NS, let's focus on its recent trading activity.
+
+In the last 90 days, TCS.NS has had a high of ₹2457.4 and a low of ₹1976.8.
+
+The moving averages for TCS.NS over the last 50 days are:
+
+* 10-day MA: ₹2111.4
+* 20-day MA: ₹2130.5
+* 50-day MA: ₹2172.3
+
+The Relative Strength Index (RSI) of TCS.NS is currently at 67.34, indicating a neutral trend.
+
+As for the volume, it has been generally increasing over the last few days, with a peak of 13,162,182 shares traded on July 14th.
+
+Please note that these figures are subject to change and might not reflect the current market situation. If you'd like to know more about TCS.NS or its competitors, feel free to ask!
+
+=== ok · 84.3s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 221, 'done': 1} · usage in=7011 out=221 · est $0.00000 · llama3.1:8b

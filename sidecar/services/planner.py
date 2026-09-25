@@ -132,12 +132,17 @@ _READ_SIGNALS = (
 # same turn (e.g. "sold", "<qty> X at Y"). Deliberately narrow: it must NOT
 # match an instruction to skip one NAMED tool ("without calling the
 # fundamentals tool, use price_data") — "tool(s)" must follow the verb (with
-# only an optional "any" between), never a named tool.
+# only an optional "any" between), never a named tool. batch-24: closed-tail
+# lookahead (a qualifier after the object no longer fires, e.g. "other than
+# price data") plus a reported-speech guard ("I never said don't use tools"),
+# narrowing-only per the batch-23 disposition verifier's named fix.
 _NO_TOOL_CUE = re.compile(
-    r"\bwithout (?:calling|using|running|invoking)(?: any)? tools?\b"
+    r"(?<!said )(?<!say )(?:\bwithout (?:calling|using|running|invoking)(?: any)? tools?\b"
     r"|\b(?:don'?t|do not|never) (?:call|use)(?: any)? tools?\b"
     r"|\bno tool(?:s\b|\s*calls?\b)"
-    r"|\b(?:just|only) answer from what (?:i )?(?:gave|told) you\b"
+    r"|\b(?:just|only) answer from what (?:i )?(?:gave|told) you\b)"
+    r"(?=\s*(?:$|[.,;:!?)—–]|-\s|please\b|at all\b|whatsoever\b|here\b|now\b|this time\b|today\b"
+    r"|and\b|just\b|for (?:this|that)(?: one| question| turn)?\s*(?:$|[.,;:!?—–])))"
 )
 
 _SIGNAL_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
