@@ -105,7 +105,7 @@ def _bse_rows() -> list[_BseRow]:
 @lru_cache(maxsize=1)
 def _nse_lookup() -> dict[str, _NseRow]:
     """``{SYMBOL: row}`` — hoisted so :func:`india_symbol_meta` is
-    O(1). The boot seed calls it once per ``india-all`` symbol (~5,156);
+    O(1). The boot seed calls it once per ``india-all`` symbol;
     rebuilding both master dicts per call was O(n²) and blocked the event
     loop ~4 s at startup."""
     return {row.symbol: row for row in _nse_rows()}

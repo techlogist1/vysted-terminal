@@ -116,6 +116,22 @@ def test_india_symbol_meta_is_constant_time_for_the_boot_seed() -> None:
     assert _time.perf_counter() - start < 1.0
 
 
+def test_nse_lookup_docstring_count_matches_india_all_length() -> None:
+    """R15-LEAD-029: no docstring in the India universe module may carry a
+    universe count that has drifted from the loader (``_nse_lookup`` quoted
+    ``~5,156`` while ``india-all`` loads 5,891)."""
+    import inspect
+    import re
+
+    live = {
+        len(screener_universe_india.load_india_universe(uid).symbols)
+        for uid in ("nse-all", "bse-all", "india-all")
+    }
+    source = inspect.getsource(screener_universe_india)
+    counts = [int(m.replace(",", "")) for m in re.findall(r"\b\d{1,3}(?:,\d{3})+\b", source)]
+    assert all(c in live for c in counts), (counts, live)
+
+
 def test_india_symbol_meta_joins_masters() -> None:
     rel = screener_universe_india.india_symbol_meta("RELIANCE.NS")
     assert rel is not None
