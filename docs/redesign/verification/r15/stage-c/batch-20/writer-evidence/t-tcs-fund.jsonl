@@ -1,0 +1,77 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_f8b0643025da4a90b3cbfe58ef5906df", "name": "fundamentals", "input": {"symbol": "TCS.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_f8b0643025da4a90b3cbfe58ef5906df", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "753"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "286"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "To"}
+{"kind": "delta", "text": " convert"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " lakh"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": " ru"}
+{"kind": "delta", "text": "pees"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " we"}
+{"kind": "delta", "text": " divide"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "753"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "286"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": " \u00f7"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": " ="}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "532"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "86"}
+{"kind": "delta", "text": " lakh"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "R"}
+{"kind": "delta", "text": "ounded"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " one"}
+{"kind": "delta", "text": " decimal"}
+{"kind": "delta", "text": " place"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "532"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": " lakh"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5906, "output_tokens": 71, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

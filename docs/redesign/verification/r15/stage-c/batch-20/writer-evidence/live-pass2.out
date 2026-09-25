@@ -1,0 +1,7 @@
+== f-infy-tcs-t2-p2 tools=['price_data'] results=[('price_data', False)]
+You need to pass the symbol(s) you're interested in as an argument. Let's try that.
+
+The price_data tool returned no data for this in this turn.
+
+
+

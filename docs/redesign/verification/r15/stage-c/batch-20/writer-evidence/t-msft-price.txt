@@ -1,0 +1,18 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  25.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_d8382ae085d943b4ad48761681f1c8f4", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "MSFT", "timeframe": "1d"}}
+[  25.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_d8382ae085d943b4ad48761681f1c8f4", "name": "price_data", "ok": true, "error": null}
+[  35.7s] heartbeat: {"kind": "heartbeat"}
+[  44.8s] done: {"kind": "done", "usage": {"input_tokens": 4799, "output_tokens": 99, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The latest price of MSFT (Microsoft) is $513.99 as per the yfinance tool. 
+
+Here's a brief overview of the recent price movements:
+
+* The highest price recorded in the last month was $517.48 on September 25, 2026.
+* The lowest price recorded in the last month was $485.44 on August 25, 2026.
+
+Please note that these prices are based on historical data and may not reflect the current market price.
+
+=== ok · 44.8s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 98, 'done': 1} · usage in=4799 out=99 · est $0.00000 · llama3.1:8b
