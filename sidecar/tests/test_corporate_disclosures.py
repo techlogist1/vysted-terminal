@@ -598,6 +598,41 @@ def test_shareholding_parses_quarters_newest_first(monkeypatch: pytest.MonkeyPat
     assert prior.promoter_percent == 50.01
 
 
+def test_duplicate_quarter_rows_collapse_to_one(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LEAD-017: CSL's SHP index carried a duplicate 2026-08-20 quarter row
+    (observed live) — the BSE lane must return one pattern per quarter_end."""
+    from services import bse_provider
+
+    monkeypatch.setattr(
+        bse_provider,
+        "_fetch_shp_index",
+        lambda code: [  # noqa: ARG005 - stub matches the real signature
+            {
+                "qtr": "August 2026",
+                "XbrlFile": None,
+                "filing_date_time": "2026-08-20T10:00:00",
+                "xbrlurl": None,
+            },
+            {
+                "qtr": "August 2026",
+                "XbrlFile": None,
+                "filing_date_time": "2026-08-21T10:00:00",
+                "xbrlurl": None,
+            },
+            {
+                "qtr": "May 2026",
+                "XbrlFile": None,
+                "filing_date_time": "2026-05-15T10:00:00",
+                "xbrlurl": None,
+            },
+        ],
+    )
+    rows = bse_provider.get_shareholding("BOMOXY-B1")
+    assert [row["quarter_end"] for row in rows] == [date(2026, 8, 31), date(2026, 5, 31)]
+    # The first (newest) copy of the duplicate quarter is kept.
+    assert rows[0]["submission_date"] == date(2026, 8, 20)
+
+
 def test_shareholding_bse_split_enrich_unexpected_error_never_breaks_nse(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
