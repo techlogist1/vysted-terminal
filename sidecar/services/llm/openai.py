@@ -698,8 +698,7 @@ class OpenAIProvider(LLMProvider):
                             split += splitter.content(content)
                         for event in split:
                             if isinstance(event, LLMDeltaEvent):
-                                shown = hold.feed(event.text)
-                                if shown:
+                                for shown in hold.feed(event.text):
                                     yield LLMDeltaEvent(text=shown)
                                 continue
                             yield event
@@ -739,8 +738,7 @@ class OpenAIProvider(LLMProvider):
                     )
             for event in splitter.flush():
                 if isinstance(event, LLMDeltaEvent):
-                    shown = hold.feed(event.text)
-                    if shown:
+                    for shown in hold.feed(event.text):
                         yield LLMDeltaEvent(text=shown)
                     continue
                 yield event
