@@ -2,7 +2,9 @@
 
 # R15 LAUNCH — run log (telemetry)
 
-26 workflow runs tabulated: the 23 under this session's
+56 workflow runs tabulated (26 as of the first backfill below, plus 30 more from this backfill:
+28 completed/killed runs since the batch-10 row plus the 2 still in flight at write time). The
+first 26: the 23 under this session's
 `…/3e7ae14d-d48a-4882-8a75-f7608754c23f/subagents/workflows/` (23-Sep/24-Sep) plus 3 from the
 prior session's `…/5df12ac0-.../subagents/workflows/` (19 Sep) whose run ids appear in the loop
 log. Duration = journal file birth-time → last-write mtime (`stat -f %SB/%Sm`), cross-checked
@@ -13,6 +15,12 @@ bucketed fable/opus/sonnet/other. Tokens are **not** a journal field (no journal
 carries a token count) — every token figure below is copied from the matching
 `vysted-r15-run-state.md` loop-log line and cited as such; where no loop-log line states tokens
 for a run, it is marked not recorded.
+
+From this backfill on (rows added below the batch-10 row), tokens, agent counts, model mix and
+duration come from each run's own `…/workflows/wf_<id>.json` file (`totalTokens`,
+`workflowProgress`'s per-agent `model`/`tokens`/`durationMs`/`state`, `startTime`/`durationMs`),
+cross-checked against that run's `journal.jsonl` and against the matching
+`vysted-r15-run-state.md` IN-FLIGHT LEDGER line where one exists.
 
 ## Waves
 
@@ -43,7 +51,36 @@ for a run, it is marked not recorded.
 | wf_36d043fa-61f | Stage C batch 9 | same shape | 24 Sep 20:09 | 154.7min | 10 | sonnet 4, opus 6 | 1.8M | merged `6b702305`; 29/45 certified, 2 needs_gui, 14 not certified | journal + run-state L29 |
 | wf_c6207d00-908 | Lows pre-triage | 14-shard critique + critic + collate | 24 Sep 22:10 | 23min | 17 | sonnet 2, fable 14, opus 1 | 2.2M | 199/205 still reproduce, 5 already-fixed, collated `84418994` | journal + run-state ledger line 23 |
 | wf_31f149cf-57d | Stage D docs wave | facts, 5 drafts + Fable critics, secrets/licence scans | 24 Sep 22:48 | 29.3min | 20 | sonnet 14, fable 5, other 1 | 2.8M | 5 drafts revised, committed `5f1ddaae`; drafts not promoted | journal + run-state ledger line 25 |
-| wf_54334d97-0e6 | Stage C batch 10 — **IN FLIGHT** | adjudicate, plan, 8 writers dispatched | 24 Sep 22:47 | in flight (30.2min elapsed at last write) | 2 landed + 8 writers running | sonnet 1, opus 1 (+8 writers in progress) | not recorded (in flight) | adjudicate applied batch-9 verdicts; plan took 56/88 open (0/2 highs, 56/86 mediums); no VERDICTS yet | journal + run-state ledger line 28 |
+| wf_54334d97-0e6 | Stage C batch 10 | adjudicate, plan, 8 writers, integrate, review, verify | 24 Sep 22:47 | ~2h56m wall over 3 dispatches (stopped 00:25 for routing change 4, resumed 00:30, re-dispatched 01:23 after 2 Fable verify weekly-limit rejections; final dispatch alone 18.7min/239k tokens) | 13 in final dispatch (adjudicate, plan, W1-W8, integrate, review, verify) + 2 earlier Fable verify attempts failed (weekly limit) | opus 5, sonnet 5 (dispatch 1) → all-Fable resume/re-dispatch | not recorded overall (final dispatch's verify agent alone: 239k) | MERGED `f407107f` on origin/004 (79 commits over 6b91b8fa); 50 certified, UI-084 needs_gui, AGENT-083 concur_not_defect, 4 not certified with fresh cases | run file + run-state ledger line 30 |
+| wf_96670fc2-911 | Stage C batch 11 — aborted first launch | `r15-stage-c-batch` dispatched with `tag:'batch-11'`, aborted | 25 Sep 01:44 | 2.0min (killed: `Error: Workflow aborted`) | 1 (fable, in progress when killed) | fable 1 | not recorded (absent) | Aborted before any agent landed; batch-11 relaunched cleanly 4 min later as `wf_a5e688ba-d35` — **not in the ledger by this id** (the ledger's "first resume... stopped within a minute" text at line 30 describes a different, unlogged batch-10 event; this run file's own `args` show `tag:'batch-11'`, not batch-10) | run file only |
+| wf_a5e688ba-d35 | Stage C batch 11 | adjudicate, plan, 6 writers, integrate, review, verify | 25 Sep 01:48 | 186.6min | 13 | opus 10, sonnet 3 | 2.39M | merged `4097dac4` on origin/004; 18 certified, LEAD-028 + RELEASE-007 not certified (no regression), UI-047/UI-059/DATA-080 concurred out of scope | run file + run-state ledger line 34 |
+| wf_be24fed9-05a | lows-waves harness check | `lows-waves.js` `{mode:'partition', dry_run:true, max_writers:16}` dry run | 25 Sep 03:57 | ~0min (10ms) | 0 (0 spawned) | — | 0 | Returned in 10ms; `would_spawn` = lows-adjudicate sonnet/high + lows-partition opus/high; also this window the batch-11 integrator appended 32 W3 agent-eval ollama $0 spend rows (177→209 lines) | run file + run-state ledger line 31 |
+| wf_3e90ff66-7ea | scope-change-2 groundwork — authoring | groundwork script write (one Opus agent) | 25 Sep 04:43 | 7.2min | 1 | opus 1 | 155,788 | Committed `b3f7f284` on origin/004: the groundwork tooling script + its runbook doc, node --check ok, stubbed dry runs clean, banned-phrase check 0 hits | run file, matched by duration/tokens to run-state ledger line 32 (id not printed there) |
+| wf_8607274d-b0e | scope-change-2 groundwork — PREP harness check | groundwork script `{mode:'prep', dry_run:true, sha:'b3f7f284', max_shard:80}` dry run | 25 Sep 04:51 | ~0min (14ms) | 0 (0 spawned) | — | 0 | Dry run only: 0 agents spawned, `would_spawn` lists ~14 fixed prep roles (verify/scout/baseline/options/mine/label shards) — **not in the ledger** | run file only |
+| wf_18bf38f4-b9d | scope-change-2 groundwork — PREP | verify, baseline, options, mine, label (26 agents) | 25 Sep 04:52 | 14.3min | 26 | opus 16, sonnet 10 | 2.48M | Package verified Apache-2.0 (the candidate inference package's 0.2.0 build flagged as an unattested third-party port); 366 candidates → 339 agreed; committed `b667140c`/`69853b14`/`2d2fb032` on origin/004 | run file + run-state ledger line 33 |
+| wf_fbc3642c-442 | Lows partition | register adjudication of batch-11 + partition build | 25 Sep 04:57 | 36.2min | 2 | opus 1, sonnet 1 | 310,246 | Register adjudication `5a0e97b0` (18→fixed); `PARTITION.json`/`.md` `9ec6bd17` — 207 open lows placed, 191 in 27 writer sets, ownership audit 0 errors over 393 files | run file + run-state ledger line 41 |
+| wf_7c4b2e60-141 | rc1 GATE ROUND 1 | full gate: register, ci-local, smoke, data packs, scenarios, drives, battery, adversarial sample | 25 Sep 04:57 | 295.6min | 43 | opus 17, sonnet 26 | 6.38M | **FAIL, no tag.** Committed `b2cfbb68` + fix rounds `57897778`; PASS Gate 8/ci-local/smoke/data packs; FAIL register (5 open c/h/m), scenarios, drives, battery, adversarial sample (14/14 certified entries refuted) | run file + run-state ledger line 36 |
+| wf_90712d2d-cab | rc1 REFUTATION AUDIT | 5-agent audit of the 14 adversarially-refuted entries | 25 Sep 09:58 | 14.3min | 5 | opus 4, sonnet 1 | 688,305 | Evidence `4f2aba93` on origin/004: regression_confirmed 1 (DATA-059), partial 12, adjacent 1 (AGENT-003); 13 reopened, gate verifier got nothing wrong | run file + run-state ledger line 37 |
+| wf_4e25ca95-a6f | rc1 SCRIPT TUNING | one Opus agent patches `rc1-gate.js` | 25 Sep 09:59 | 4.5min | 1 | opus 1 | 128,318 | `91dac548` on origin/004: `drive_limit`/`batt_limit` args, LOCAL-MODEL LOCK cause, coverage-first battery sharding, skip_gui list | run file, matched by duration/tokens to run-state ledger line 38 (id not printed there) |
+| wf_272a4f49-e8a | rc1 GATE RUBRIC RESTORE | one Sonnet/high agent patches `rc1-gate.js` | 25 Sep 10:08 | 3.4min | 1 | sonnet 1 | 122,811 | `3c51ac3c` on origin/004 (+3/-3): register criterion RUBRIC (a) restored — requires a fresh concurrence for not_a_defect/out_of_scope/removed_with_feature in the four named areas | run file + run-state ledger line 39 |
+| wf_7e4c4a3f-085 | batch-12 rc1 FIX BATCH | 8 writers / 22 entries | 25 Sep 10:14 | 69.1min | 13 | opus 6, sonnet 7 | 2.35M | Merged `ef33c7f6`; register adjudication `bc3e64fe` (10 new lows, 3 → blocked_tier4); 19 certified, 3 not certified (RESEARCH-007, DOCS-017, AGENT-090) | run file + run-state ledger line 40 |
+| wf_ac5e3ff2-49d | scope-change-2 measure | zero-shot measure vs the $0 heuristics + critic re-run | 25 Sep 11:27 | 13.2min | 4 | opus 1, sonnet 3 | 428,248 | `52d6957e` on origin/004: not worth fine-tuning this release (loses or no-signal on 2/3 tasks; entity_match the only signal); backlog entry inserted | run file + run-state ledger line 42 |
+| wf_1e4295f3-748 | batch-13 rc1 FIX BATCH | 8 agents | 25 Sep 11:41 | 53.8min | 8 | opus 5, sonnet 3 | 1.28M | Merged `a217a529`; RESEARCH-007 + DOCS-017 certified; AGENT-090 + CODE-AGENT-033 not certified. Open c/h/m after merge: AGENT-090 (high), CODE-AGENT-033 (medium) | run file + run-state ledger line 43 |
+| wf_7c5e7b20-e4f | VERIFIER RUBRIC TUNING | one Sonnet/high agent, three prompt files only | 25 Sep 11:42 | 2.5min | 1 | sonnet 1 | 144,380 | `f1a2682d` on origin/004: "CERTIFY THE CLAIM, NOT ONLY THE REPRO" clause added to 4 verifier prompt sites; labels/models/effort/schemas untouched | run file + run-state ledger line 50 |
+| wf_b7cf82ec-5ec | batch-14 rc1 FIX BATCH | 6 agents | 25 Sep 12:37 | 50.5min | 6 | opus 5, sonnet 1 | 774,658 | Merged `17301f54`; CODE-AGENT-033 certified; AGENT-090 NOT certified a second time (wording-recognition errs both ways); merged anyway | run file + run-state ledger line 44 |
+| wf_45b81e1e-57a | batch-15 STEP 1: AGENT-090 root cause | one Fable/high agent, strongest-tier root cause after 2 failed Opus attempts | 25 Sep 13:32 | 40.7min | 1 | fable 1 | 123,479 | `origin/worktree-agent-batch-15-W1@aaf32a7e`: clause-level attribution redesign in `_guard_tool_citations`; 12 tests added; live bar 0/8 untraced | run file + run-state ledger line 45 |
+| wf_b1ca86d0-402 | batch-15 STEP 2 | 6 agents, W1 salvage + integrate | 25 Sep 14:13 | 39.0min | 6 | opus 5, sonnet 1 | 719,905 | Merged `74ee3468`; AGENT-090 NOT certified on one residual (class-qualifier nouns); grounding SIFY/IBN/HDB/INFY holds with 20-F provenance | run file + run-state ledger line 46 |
+| wf_3e8b0f3e-a84 | batch-16 rc1 FIX BATCH | 6 agents | 25 Sep 14:55 | 55.2min | 6 | opus 5, sonnet 1 | 775,918 | Merged `d64640d2`; AGENT-090 CERTIFIED, LEAD-032 CERTIFIED, LEAD-030 NOT certified (3 new escapes); LEAD-031 not attempted | run file + run-state ledger line 47 |
+| wf_232102df-2f0 | batch-17 rc1 RESIDUAL BATCH | 6 agents | 25 Sep 15:57 | 52.2min | 6 | opus 5, sonnet 1 | 807,671 | Merged `292ba53a`; LEAD-031 CERTIFIED; LEAD-030 NOT certified a second time (true-citation-beside-errored-tool case); 2 new lows surfaced | run file + run-state ledger line 48 |
+| wf_037d692d-bcd | LOWS PARTITION PATCH | one Sonnet/high agent | 25 Sep 15:58 | 3.9min | 1 | sonnet 1 | 161,522 | `dd7b98e9` on origin/004: 3 newly-filed lows added to the partition (AGENT-091, CODE-PLATFORM-077, LEAD-029); 0 file overlaps | run file + run-state ledger line 51 |
+| wf_116e8cdf-429 | batch-18 STEP 1: LEAD-030 strongest-tier root cause | one Fable/high agent, 203 tool uses | 25 Sep 16:53 | 47.7min | 1 | fable 1 | 112,090 | `origin/worktree-agent-batch-18-W1@ecdd223e`: clause-level attribution in `_guard_tool_citations`; 3 new tests; focused 211 passed; live bar 8 runs, 0 fabricated / 0 true replaced | run file + run-state ledger line 49 |
+| wf_9fadb146-f9b | LEAD_FOUND FILING | one Sonnet/high agent | 25 Sep 16:54 | 4.5min | 1 | sonnet 1 | 114,529 | `701751b9` on origin/004: filed R15-LEAD-033 (chat trailer echo) + R15-LEAD-034 (NSE Emerge -SM symbol mismatch) as new mediums | run file + run-state ledger line 52 |
+| wf_d855d73b-b6b | Stage E JUDGE PANEL — **DEGRADED** | 4 Opus case-builders → Fable judge A → Fable judge B → Fable synthesis | 25 Sep 17:25 | 22.7min | 7 (2 landed: judge A + synthesis) | fable 3, opus 4 | 527,049 | `afbc3314` on origin/004: 5 of 7 agents died on API safeguard errors (all 4 case-builders + judge B); judge A + synthesis only — 48 survivors, top BL-03; completion re-run separately | run file + run-state ledger line 53 |
+| wf_50973ceb-819 | HANDOVER PRE-REFRESH | one Opus agent | 25 Sep 17:27 | 12.2min | 1 | opus 1 | 250,888 | `ac227f43` on origin/004: `R15_RUN_REPORT.md` + `OPERATOR_BRIEFING.draft.md` refreshed; surfaced CHANGELOG gap (batches 12–17) and a CLAUDE.md keychain doc mismatch | run file + run-state ledger line 54 |
+| wf_cd489d8e-cf7 | LOWS BUCKET ADJUDICATION | one Sonnet/high agent | 25 Sep 17:28 | 2.9min | 1 | sonnet 1 | 98,766 | `3483b699` on origin/004: 4 lows → blocked_tier4, 2 → needs_gui; register now fixed 388 / open 206 / needs_gui 11 / blocked_tier4 22 | run file + run-state ledger line 55 |
+| wf_dc281379-fb7 | CHANGELOG BACKFILL | one Sonnet/high agent | 25 Sep 17:41 | 6.9min | 1 | sonnet 1 | 189,033 | `b1ee6aa5` on origin/004: added CHANGELOG sections for batches 12–17 + rc1 round 1; 56 cited shas resolve; zero banned-phrase hits | run file + run-state ledger line 56 |
+| wf_ea0144f4-04a | Stage C batch-18 STEP 2 — **IN FLIGHT** | adjudicate, plan, W1 (opus) + W2 (sonnet) writers | 25 Sep 17:43 | in flight (~26min elapsed at write, 18:09 IST) | 4 (adjudicate + plan + W2 done, W1 opus still running) | sonnet 2, opus 2 (W1 in progress) | not recorded (in flight) | Adjudicate applied batch-17 verdicts + filed LEAD-033/034; plan split W1 (LEAD-030 validate + LEAD-033) / W2 (LEAD-034); W2 done — LEAD-034 fixed `d74a4a4d`, 112 tests passed | run file + run-state ledger line 57 |
+| wf_407df695-831 | Stage E PANEL COMPLETION — **IN FLIGHT** | Fable judge B (independent) → Fable synthesis | 25 Sep 17:59 | in flight (~10min elapsed at write, 18:09 IST) | 1 (judge B running) | fable 1 (in progress) | not recorded (in flight) | Independent judge B re-run to complete the 2-judge panel (judge A's raw verdicts from `scratchpad/panel/judge-A.json`); synthesis not yet dispatched | run file + run-state ledger line 58 |
 
 ## Strategy changes
 
@@ -114,6 +151,20 @@ for a run, it is marked not recorded.
   `RETURN counts` field omitted `still_reproduces` (reported 1 instead of 199); the underlying
   files (`LOWS_TRIAGE.json`/`.md`) are correct — fix `lows-triage.js` only if it is ever rerun.
   (run-state ledger line 23)
+- **25 Sep 01:22-01:23, batch-10 verify weekly-limit rejections (`wf_54334d97-0e6`).** Two Fable
+  verify attempts (`batch-10-verify-fable` then `batch-10-verify-fable-retry`) both failed with
+  "You've hit your weekly limit · resets Sep 26 at 3:30pm (Asia/Calcutta)"; a trivial probe agent
+  returned ok, so the rejection was momentary — re-dispatched with only the verifier live, which
+  then passed. (journal `wf_54334d97-0e6`; run-state ledger line 30)
+- **25 Sep 01:44, killed batch-11 first launch attempt (`wf_96670fc2-911`).** Aborted
+  (`Error: Workflow aborted`) 2.0min after launch with 1 Fable agent still in progress, 0 agents
+  landed; batch-11 relaunched cleanly 4 minutes later as `wf_a5e688ba-d35`. Not named by id in the
+  run-state ledger. (run file `wf_96670fc2-911.json`)
+- **25 Sep 17:25, Stage E judge panel DEGRADED (`wf_d855d73b-b6b`).** Five of seven agents died on
+  API safeguard errors: all 4 Opus case-builders (`cases-q1..q4`) and Fable `judge-B`; only judge A
+  and synthesis landed, so `PANEL.md`/`PANEL.json` carry one judge's scores for the whole backlog.
+  Completion re-run separately as `wf_407df695-831` to add the missing judge B. (journal
+  `wf_d855d73b-b6b`; run-state ledger line 53)
 
 ## API spend
 
@@ -122,8 +173,25 @@ Caps: session 1 (D8, 19 Sep) set a $2.00 OpenAI-direct hard stop + the OpenRoute
 Superseded by the SCOPE CHANGE (03:46 IST 23 Sep): OpenAI-direct hard stop raised to **$8.00**
 (`vy.py` refuses at $7.50).
 
-By lane, from `docs/redesign/verification/r15/spend-ledger.jsonl` (173 rows, 19 Sep 14:58 → 24 Sep
-22:31 IST; tag grouped by prefix):
+**Refreshed** for this backfill: read at 18:07 IST 25 Sep from
+`docs/redesign/verification/r15/spend-ledger.jsonl` (374 lines, 19 Sep 14:58 → 25 Sep 16:48 IST;
+this file is dirty on purpose and stays uncommitted — read only, never git-added). By provider:
+
+| Provider | Calls | Paid (est_usd) |
+|---|---|---|
+| `openai` | 30 | $0.201076 |
+| `ollama` | 237 | $0.00 |
+| `openrouter` | 104 | $0.00 |
+| `deepseek` | 2 | $0.00 |
+| `none` (bookkeeping note row, not an API call) | 1 | $0.00 |
+| **Total** | **374** | **$0.201076** |
+
+30 rows are paid (all via `openai`); 343 are free (237 `ollama`, 104 `openrouter` free-tier, 2
+`deepseek`); 1 is a non-call bookkeeping note (the `budget-change` cap-raise entry). Total spend
+$0.20 is well under both the original $2.00 cap and the raised $8.00 cap.
+
+<details>
+<summary>Prior snapshot (23:31 IST 24 Sep, 173 rows, by lane)</summary>
 
 | Lane | Calls | Paid (est_usd) |
 |---|---|---|
@@ -138,6 +206,7 @@ By lane, from `docs/redesign/verification/r15/spend-ledger.jsonl` (173 rows, 19 
 | Onboarding probes (`onb-*`) | 4 | $0.00 |
 | **Total** | **173** | **$0.179353** |
 
-24 rows are paid (all via the `openai` provider); 149 are free (96 `ollama`, 52 `openrouter`
-free-tier, 1 `deepseek`). Total spend $0.18 is well under both the original $2.00 cap and the
-raised $8.00 cap.
+24 rows were paid (all via `openai`); 149 were free (96 `ollama`, 52 `openrouter` free-tier, 1
+`deepseek`).
+
+</details>
