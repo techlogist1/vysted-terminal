@@ -11,6 +11,8 @@
 
 import { invoke } from "@tauri-apps/api/core";
 
+import { safeFilename } from "@/lib/safe-filename";
+
 let appDataDirCache: string | null = null;
 
 /**
@@ -64,7 +66,7 @@ export async function persistNoteMd(scope: string | undefined, markdown: string)
     const dir = await resolveNotesDir();
     if (!dir) return;
 
-    const filename = scope ? `${scope.toUpperCase().replace(/[/\\]/g, "_")}.md` : "general.md";
+    const filename = scope ? `${safeFilename(scope.toUpperCase())}.md` : "general.md";
     const path = `${dir}/notes/${filename}`;
     await invoke("write_text_atomic", { path, contents: markdown });
   } catch {

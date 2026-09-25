@@ -39,6 +39,7 @@ import { useNotesStore } from "@/store/notes";
 import { useSymbolsStore } from "@/store/symbols";
 
 import { saveTextArtifact, savePngArtifact, savePdfArtifact } from "@/lib/export-artifact";
+import { safeFilename } from "@/lib/safe-filename";
 
 import { NotesToolbar } from "./NotesToolbar";
 import { SlashCommandExtension, type SlashMenuDetail } from "./SlashCommandExtension";
@@ -248,7 +249,7 @@ export function NotesPanel() {
     window.setTimeout(() => setExportStatus(null), 4500);
   }, []);
 
-  const exportBaseName = scope ? scope.toUpperCase().replace(/[/\\]/g, "_") : "general";
+  const exportBaseName = scope ? safeFilename(scope.toUpperCase()) : "general";
 
   const handleExportMd = useCallback(async () => {
     const md = (editor as unknown as { getMarkdown: () => string } | null)?.getMarkdown() ?? "";
