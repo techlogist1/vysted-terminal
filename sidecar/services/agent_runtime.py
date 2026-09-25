@@ -2311,8 +2311,10 @@ def _judge_clause(
     no ok tool; when every call of the turn failed and it carries an
     ungrounded figure or a dump (rule 1, naming the tools that errored);
     when its ungrounded figure sits with the symbol of an errored call (rule
-    2b); or, with no tool named, when it credits "the tool" or dumps a result
-    while none has returned ok. A negative report is always true."""
+    2b); or, with no tool named, when it credits "the tool" while none has
+    returned ok, or dumps a result while none has returned ok and a call is
+    pending (a dump needs no figure: a call with no result yet has no output
+    to paste). A negative report is always true."""
     brackets = [i for i in (clause.find("{"), clause.find("[")) if i >= 0]
     prose = clause[: min(brackets, default=len(clause))]
     if _NEGATIVE.search(prose):
@@ -2344,7 +2346,7 @@ def _judge_clause(
         and (ctx.pending or not ctx.ok_tools)
         and (
             (_GENERIC_TOOL_REF.search(prose) and (ungrounded or _RESULT_VERB.search(prose)))
-            or (ctx.pending and ungrounded and (shaped or _DUMP_LABEL.match(prose)))
+            or (ctx.pending and ((ungrounded and (shaped or _DUMP_LABEL.match(prose))) or payload))
         )
     ):
         return "no tool returned data for this in this turn"

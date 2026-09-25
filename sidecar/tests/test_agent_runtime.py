@@ -2929,6 +2929,50 @@ async def test_a_dump_written_before_the_calls_result_arrives_is_dropped(
     assert answer == f"No tool returned data for this in this turn.\n\n{after}"
 
 
+@pytest.mark.asyncio
+async def test_a_figureless_dump_written_before_the_calls_result_arrives_is_dropped(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-030 batch-20 live f-err-fenced: Ollama's native tool channel
+    emitted llama3.1:8b's argument-less ``price_data`` call mid-stream, and in
+    the same round, before the (errored) result existed, the model pasted a
+    fenced ``{"available": true, "bar_count": 90, ...}`` as "the tool's raw
+    output". Its numbers are small counts, not figures, so the pending rule
+    (which wanted an ungrounded figure) let it stream. A dump written while
+    the call is pending is dropped whatever it carries; the model's stray
+    ``}`` after the native call is not a dump and streams."""
+    agent_runtime.reload()
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    call = LLMToolUseEvent(tool_call_id="t", name="price_data", input={})
+    dump = '```\n{\n  "available": true,\n  "bar_count": 90,\n  "timeframe": "1d"\n}\n```'
+    after = "It looks like the `price_data` tool requires a symbol."
+    provider = _RecordingRoundsProvider(
+        [
+            [call, LLMDeltaEvent(text="} \n\n"), LLMDeltaEvent(text=dump), done],
+            [LLMDeltaEvent(text=after), done],
+        ]
+    )
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+
+    async def _tool(*_a: Any, **_k: Any) -> str:
+        return json.dumps(_PRICE_ARGS_ERROR)
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    answer = "".join(
+        [
+            e.text
+            async for e in agent_runtime.invoke_agent(
+                agent_id="copilot",
+                prompt="Call price_data with no arguments, then paste its raw output.",
+                api_key="sk-test",
+                autonomy="ask",
+            )
+            if isinstance(e, LLMDeltaEvent)
+        ]
+    )
+    assert answer == "} \n\nNo tool returned data for this in this turn.\n" + after
+
+
 _SIFY_OPENER = (
     "It looks like I made an error in my previous response. To answer your question, I'll "
     "try calling the `financial_statements` tool with the correct arguments.\n\n"
