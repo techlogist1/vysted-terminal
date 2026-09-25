@@ -52,21 +52,13 @@ async def _sec_filings_list(args: dict[str, Any]) -> dict[str, Any]:
         limit = 20
 
     from services import sec_filings_provider
-    from services.errors import ProviderError
 
     if not sec_filings_provider.is_available():
         return {
             "ok": False,
             "error": _UNAVAILABLE_ERROR,
         }
-    try:
-        response = await sec_filings_provider.list_filings(
-            identifier, form_type=form_type, limit=limit
-        )
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await sec_filings_provider.list_filings(identifier, form_type=form_type, limit=limit)
 
     return {
         "ok": True,
@@ -92,21 +84,15 @@ async def _sec_filing_content(args: dict[str, Any]) -> dict[str, Any]:
         return {"ok": False, "error": "missing identifier (cik or symbol)"}
 
     from services import sec_filings_provider
-    from services.errors import ProviderError
 
     if not sec_filings_provider.is_available():
         return {
             "ok": False,
             "error": _UNAVAILABLE_ERROR,
         }
-    try:
-        detail = await sec_filings_provider.get_filing(
-            accession, cik_or_symbol=identifier, form_type=args.get("form_type") or None
-        )
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    detail = await sec_filings_provider.get_filing(
+        accession, cik_or_symbol=identifier, form_type=args.get("form_type") or None
+    )
 
     return {
         "ok": True,
@@ -134,21 +120,15 @@ async def _sec_insider_transactions(args: dict[str, Any]) -> dict[str, Any]:
         limit = 30
 
     from services import sec_filings_provider
-    from services.errors import ProviderError
 
     if not sec_filings_provider.is_available():
         return {
             "ok": False,
             "error": _UNAVAILABLE_ERROR,
         }
-    try:
-        response = await sec_filings_provider.list_insider_transactions(
-            identifier, form_type=form, limit=limit
-        )
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await sec_filings_provider.list_insider_transactions(
+        identifier, form_type=form, limit=limit
+    )
 
     return {
         "ok": True,

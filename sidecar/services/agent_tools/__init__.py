@@ -31,6 +31,8 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
 
+from services.errors import ProviderError
+
 logger = logging.getLogger(__name__)
 
 #: Tool-handler signature. Args are a JSON-shaped dict the model sent
@@ -58,11 +60,25 @@ def is_registered(tool_id: str) -> bool:
 
 
 async def invoke_tool(tool_id: str, args: dict[str, Any]) -> dict[str, Any]:
-    """Invoke a registered tool. Raises ``KeyError`` on unknown id."""
+    """Invoke a registered tool. Raises ``KeyError`` on unknown id.
+
+    A handler that lets a ``ProviderError`` (or any other exception) escape
+    gets it converted to the tool's ``{"ok": False, "error": ...}`` envelope
+    here, with one spelling, instead of every handler re-deriving its own
+    copy of this try/except (R15-CODE-AGENT-014). A handler that already
+    returns its own envelope — including one with extra fields, like
+    ``fundamentals``'s ``reason`` classification — is unaffected: this only
+    fires when the handler raises.
+    """
     handler = _TOOLS.get(tool_id)
     if handler is None:
         raise KeyError(f"unknown tool {tool_id!r}; registered: {registered_tools()}")
-    return await handler(args)
+    try:
+        return await handler(args)
+    except ProviderError as exc:
+        return {"ok": False, "error": f"provider error: {exc}"}
+    except Exception as exc:  # noqa: BLE001 — surface to the model, never crash the turn
+        return {"ok": False, "error": f"unexpected error: {exc}"}
 
 
 def reset_for_tests() -> None:
