@@ -154,7 +154,41 @@ def test_lookup_caches_a_hit_and_a_miss_and_never_raises(
         for _ in range(2):
             assert asyncio.run(adr_ratio.lookup("SIFY")) == {"ordinary_shares_per_ads": 6}
             assert asyncio.run(adr_ratio.lookup("SPOT")) is None
-        assert asyncio.run(adr_ratio.lookup("DOWN")) is None
+            # R15-LEAD-032: an unreachable EDGAR is cached as a miss too.
+            assert asyncio.run(adr_ratio.lookup("DOWN")) is None
     finally:
         data_cache.reset_for_tests()
     assert calls == ["SIFY", "SPOT", "DOWN"]
+
+
+def test_a_hanging_edgar_is_bounded_and_cached_as_a_miss(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """R15-LEAD-032: fundamentals awaits the lookup, so a stalled EDGAR must not
+    stall the tool, and must not be re-fetched on the next call."""
+    import time
+
+    data_cache.reset_for_tests(tmp_path / "cache.sqlite")
+    calls: list[str] = []
+
+    async def hang(symbol: str) -> dict | None:
+        calls.append(symbol)
+        await asyncio.sleep(3600)
+        return None
+
+    async def fetch(_symbol: str) -> fundamentals_tool._FetchResult:
+        return fundamentals_tool._FetchResult(_fundamentals(financial_currency="INR"), None)
+
+    assert adr_ratio._TIMEOUT <= 8
+    monkeypatch.setattr(adr_ratio, "_TIMEOUT", 0.2)
+    monkeypatch.setattr(adr_ratio, "_fetch", hang)
+    monkeypatch.setattr(fundamentals_tool, "_fetch_once", fetch)
+    try:
+        for _ in range(2):
+            started = time.monotonic()
+            out = asyncio.run(fundamentals_tool._fundamentals({"symbol": "SIFY"}))
+            assert time.monotonic() - started < 2
+            assert out["ok"] is True and "ads_ratio" not in out
+    finally:
+        data_cache.reset_for_tests()
+    assert calls == ["SIFY"]
