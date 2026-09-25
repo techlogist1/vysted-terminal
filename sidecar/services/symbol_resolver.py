@@ -473,9 +473,10 @@ def _former_names() -> dict[str, dict[str, tuple[str, ...]]]:
 
     Keyed by REGION rather than exchange because the US side is keyed by SEC
     ticker (no NSE/BSE distinction) and the IN side by NSE symbol; a BSE-only
-    IN symbol (the manual-seed case) rides the same ``"in"`` bucket. Oldest→
-    newest per symbol; a missing/garbled master degrades to ``{}`` so
-    resolution never depends on it."""
+    IN symbol (the manual-seed case) rides the same ``"in"`` bucket. Order per
+    symbol follows the source: US newest→oldest (SEC ``formerNames``), IN
+    oldest→newest (NSE namechange.csv); a missing/garbled master degrades to
+    ``{}`` so resolution never depends on it."""
     raw = _load_master("former_names.json", fallback={"former_names": {}})
     payload = raw.get("former_names")
     out: dict[str, dict[str, tuple[str, ...]]] = {"us": {}, "in": {}}
@@ -1372,10 +1373,24 @@ def _enrich_instrument(inst: Instrument) -> Instrument:
     matches. Enrichment applies ONLY to an instrument that IS itself an
     Indian listing (``exchange`` NSE/BSE — every IN-region instrument in this
     module carries one of those two, by the master-hygiene invariant above);
-    every other candidate returns unchanged with its identity fields at their
-    default ``None``."""
+    every other candidate keeps its Indian identity fields at their default
+    ``None`` (a US row takes only its own SEC former name)."""
     if inst.exchange not in ("NSE", "BSE"):
-        return inst
+        if inst.former_name is not None:
+            return inst
+        # A US listing takes no Indian field, only its own SEC former legal name
+        # (R15-DATA-059): the newest one that is not just a respelling of the
+        # current name (AAPL's "APPLE INC" beside "Apple Inc.").
+        current = _company_name_key(inst.name)
+        former = next(
+            (
+                n
+                for n in _former_names()["us"].get(inst.symbol.upper(), ())
+                if _company_name_key(n) != current
+            ),
+            None,
+        )
+        return inst if former is None else replace(inst, former_name=former)
     bare = strip_exchange_suffix(inst.symbol).upper()
     bse_entry = _bse_master().get(bare)
     record = _india_sector_map().get(bare)
