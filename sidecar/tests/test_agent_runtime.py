@@ -2462,6 +2462,50 @@ async def test_an_untraced_adr_ratio_claim_is_replaced(
     assert answer.endswith("Revenue was ₹4,651 cr.")
 
 
+_ERRORED = {"ok": False, "error": "yfinance has no instrument data for 'SIFY.NS'"}
+_LIVE_1_DUMP = [
+    "- fundamentals returned: {",
+    '\n "trailing_12m_revenue": {"display": "$13',
+    '20 m"}\n',
+    "}\n",
+    "Revenue is shown above.",
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("result", "deltas", "answer"),
+    [
+        (
+            _ERRORED,
+            _LIVE_1_DUMP,
+            "The fundamentals tool returned no data for this in this session.\n\n"
+            "Revenue is shown above.",
+        ),
+        (
+            {"ok": True, "fundamentals": {"trailing_12m_revenue": {"display": "$1320 m"}}},
+            _LIVE_1_DUMP,
+            "".join(_LIVE_1_DUMP),
+        ),
+        (_ERRORED, ["You mentioned revenue ", "of $1.3 bn."], "You mentioned revenue of $1.3 bn."),
+        (
+            _SIFY_FUNDAMENTALS,
+            ["According to the `financial_", "statements` tool, revenue was ₹4,411 cr. Done."],
+            "The financial_statements tool returned no data for this in this session. Done.",
+        ),
+        (_ERRORED, ["I'll call `price_data` next."], "I'll call `price_data` next."),
+    ],
+)
+async def test_a_citation_of_a_tool_that_returned_nothing_ok_is_replaced(
+    monkeypatch: pytest.MonkeyPatch, result: dict[str, Any], deltas: list[str], answer: str
+) -> None:
+    """R15-LEAD-030: live-1, llama3.1:8b wrote a 'fundamentals returned: {...}'
+    dump with '$1320 m' for a fundamentals call that errored. A citation of a
+    tool with no ok result this turn is replaced and its dump dropped; an ok
+    tool's citation, a user's figure and a plain mention stream as is."""
+    assert await _scripted_answer(monkeypatch, "fundamentals", result, deltas) == answer
+
+
 @pytest.mark.asyncio
 async def test_an_adr_ratio_a_tool_result_carries_is_kept(monkeypatch: pytest.MonkeyPatch) -> None:
     """R15-AGENT-090: a ratio the session's sources do carry ("Each Repr 6 Ords",
@@ -2682,6 +2726,39 @@ def test_a_function_word_after_a_count_does_not_mark_it(claim: str) -> None:
     assert (
         agent_runtime._guard_ratio_claims(claim, [result]) == agent_runtime.RATIO_UNAVAILABLE + " "
     )
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "Each ADS represents 6 class A shares. ",
+        "Each ADS represents 6 class A ordinary shares. ",
+        "Each ADR represents 2 bonus shares. ",
+        "The ADR stands for 4 class B common shares. ",
+        "Each ADS represents 3 series C shares. ",
+        "Each ADR equals 8 bonus class A shares. ",
+        "Each ADS represents 4 class A preferred shares. ",
+        "Each ADR represents 5 founder shares. ",
+        "Each ADS represents 2 deferred shares. ",
+    ],
+)
+def test_a_qualifier_before_shares_does_not_mark_the_count(claim: str) -> None:
+    """R15-AGENT-090 batch 16: the plural-noun marker read a class qualifier
+    ('class', 'bonus') as the counted noun, so live 'Each ADS represents 6 class
+    A shares.' streamed unguarded."""
+    result = json.dumps(_SIFY_FUNDAMENTALS)
+    assert (
+        agent_runtime._guard_ratio_claims(claim, [result]) == agent_runtime.RATIO_UNAVAILABLE + " "
+    )
+
+
+def test_a_lower_case_class_qualified_source_traces_its_count() -> None:
+    """R15-AGENT-090 batch 16: the source side reads the same marker, so a cover
+    statement in lower case sourced no count and the TRUE claim was replaced."""
+    statement = "American Depositary Shares, each representing six class A ordinary shares"
+    result = json.dumps({"ok": True, "ads_ratio": {"statement": statement}})
+    sentence = "Each ADS represents 6 class A ordinary shares. "
+    assert agent_runtime._guard_ratio_claims(sentence, [result]) == sentence
 
 
 _SIFY_FUNDAMENTALS_WITH_DEPOSITARY = {
