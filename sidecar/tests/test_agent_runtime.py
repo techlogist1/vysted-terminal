@@ -2299,6 +2299,65 @@ def test_fundamentals_money_reads_in_the_statement_currency() -> None:
     assert fund["currency"] == "USD"
 
 
+def _statement_result(currency: str | None, lines: dict[str, float | None]) -> str:
+    return json.dumps(
+        {
+            "ok": True,
+            "symbol": "X",
+            "statement": "income",
+            "period": "annual",
+            "currency": currency,
+            "periods": ["2025-03-31"],
+            "lines": [
+                {"label": label, "values": {"2025-03-31": value}} for label, value in lines.items()
+            ],
+        }
+    )
+
+
+def _statement_lines(content: str) -> dict[str, object]:
+    return {line["label"]: line["values"]["2025-03-31"] for line in json.loads(content)["lines"]}
+
+
+def test_financial_statements_money_reads_in_the_reporting_currency() -> None:
+    """rc1-scenarios:5: SIFY's INR income ``total_revenue 44877000000.0`` reached
+    the model bare and was stated as "$44.9B". Money lines become displays;
+    per-share, share-count and rate lines stay numeric."""
+    result = _statement_result(
+        "INR",
+        {
+            "total_revenue": 44877000000.0,
+            "Basic EPS": -0.6,
+            "Diluted Average Shares": 438000000.0,
+            "Tax Rate For Calcs": 0.21,
+            "Net Income Common Stockholders": None,
+        },
+    )
+    lines = _statement_lines(agent_runtime._model_facing_content("financial_statements", result))
+    assert lines == {
+        "total_revenue": "₹4,488 cr",
+        "Basic EPS": -0.6,
+        "Diluted Average Shares": 438000000.0,
+        "Tax Rate For Calcs": 0.21,
+        "Net Income Common Stockholders": None,
+    }
+
+
+def test_financial_statements_usd_cash_flow_scales_and_unknown_currency_stays_raw() -> None:
+    usd = _statement_result(
+        "USD", {"Free Cash Flow": 108807000000.0, "Repurchase Of Capital Stock": -94949000000.0}
+    )
+    lines = _statement_lines(agent_runtime._model_facing_content("financial_statements", usd))
+    assert lines == {
+        "Free Cash Flow": "USD 108.81B",
+        "Repurchase Of Capital Stock": "USD -94.95B",
+    }
+    unknown = _statement_result(None, {"Free Cash Flow": 108807000000.0})
+    assert _statement_lines(
+        agent_runtime._model_facing_content("financial_statements", unknown)
+    ) == {"Free Cash Flow": 108807000000.0}
+
+
 def test_compare_symbols_market_cap_reads_in_each_row_quote_currency() -> None:
     result = json.dumps(
         {

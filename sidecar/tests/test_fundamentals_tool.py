@@ -338,7 +338,7 @@ def test_financial_statements_quarterly_reaches_the_registry_period(
 ) -> None:
     """R15-DATA-026 (C1): ``period="quarterly"`` reaches the registry and the
     payload carries its ISO period-end labels, newest first, capped at 8."""
-    from models.fundamentals import IncomeStatement, StatementLine
+    from models.fundamentals import Fundamentals, IncomeStatement, StatementLine
 
     quarters = [f"20{y}-{m}" for y in (24, 25, 26) for m in ("03-31", "06-30", "09-30", "12-31")]
     seen: dict[str, Any] = {}
@@ -352,7 +352,11 @@ def test_financial_statements_quarterly_reaches_the_registry_period(
             provider="yfinance",
         )
 
+    async def fake_fundamentals(symbol: str):  # noqa: ANN202
+        return Fundamentals(symbol=symbol, provider="yfinance", currency="INR")
+
     monkeypatch.setattr(provider_registry, "get_income_statement", fake_income)
+    monkeypatch.setattr(provider_registry, "get_fundamentals", fake_fundamentals)
     out = asyncio.run(
         fundamentals_tool._financial_statements(
             {"symbol": "TCS.NS", "statement": "income", "period": "quarterly"}
@@ -366,3 +370,56 @@ def test_financial_statements_quarterly_reaches_the_registry_period(
     assert out["periods"][0] == "2026-12-31"
     assert out["periods_available"] == 12
     assert set(out["lines"][0]["values"]) == set(out["periods"])
+
+
+def _patch_cash_flow(monkeypatch: pytest.MonkeyPatch) -> None:
+    from models.fundamentals import CashFlowStatement, StatementLine
+
+    async def fake_cash_flow(symbol: str, region: str | None = None, period: str = "annual"):  # noqa: ANN202
+        return CashFlowStatement(
+            symbol=symbol,
+            periods=["2025-03-31"],
+            lines=[StatementLine(label="Free Cash Flow", values={"2025-03-31": 1.0e10})],
+            provider="yfinance",
+        )
+
+    monkeypatch.setattr(provider_registry, "get_cash_flow", fake_cash_flow)
+
+
+def test_financial_statements_carry_the_reporting_currency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """rc1-scenarios:5: SIFY trades in USD and reports in INR; the statement
+    names the reporting currency, not the trading one."""
+    from models.fundamentals import Fundamentals
+
+    async def sify(symbol: str):  # noqa: ANN202
+        return Fundamentals(
+            symbol=symbol, provider="yfinance", currency="USD", financial_currency="INR"
+        )
+
+    _patch_cash_flow(monkeypatch)
+    monkeypatch.setattr(provider_registry, "get_fundamentals", sify)
+    out = asyncio.run(
+        fundamentals_tool._financial_statements({"symbol": "SIFY", "statement": "cashflow"})
+    )
+    assert out["ok"] is True
+    assert out["currency"] == "INR"
+    assert "note" not in out
+
+
+def test_financial_statements_unknown_currency_is_null_with_a_note(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def dead(symbol: str):  # noqa: ANN202
+        raise ProviderError("upstream 500")
+
+    _patch_cash_flow(monkeypatch)
+    monkeypatch.setattr(provider_registry, "get_fundamentals", dead)
+    out = asyncio.run(
+        fundamentals_tool._financial_statements({"symbol": "SIFY", "statement": "cashflow"})
+    )
+    assert out["ok"] is True
+    assert out["currency"] is None
+    assert "reporting currency unknown" in out["note"]
+    assert out["lines"][0]["values"] == {"2025-03-31": 1.0e10}

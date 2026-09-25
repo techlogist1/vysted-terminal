@@ -709,9 +709,9 @@ def _native_search_enabled(
 #: After the R4 collapse (FR-115) there is ONE research tool; depth (quick/deep/
 #: heavy) is an internal arg on it, so every depth auto-publishes through here.
 _RESEARCH_TOOLS = ("research",)
-#: Tools whose result carries a raw ``Fundamentals`` dump the model reads only
-#: through its money displays (R15-AGENT-001 class).
-_FUNDAMENTALS_TOOLS = ("fundamentals", "compare_symbols")
+#: Tools whose result carries a raw ``Fundamentals`` dump or statement the model
+#: reads only through its money displays (R15-AGENT-001 class, rc1-scenarios:5).
+_FUNDAMENTALS_TOOLS = ("fundamentals", "compare_symbols", "financial_statements")
 
 
 LocalToolHandler = Any  # async (dict) -> dict, bound per-invocation
@@ -960,7 +960,7 @@ def _fit_to_window(messages: list[LLMMessage], tool_ids: list[str], window: int)
 def _model_facing_content(tool_name: str, result_str: str, window: int | None = None) -> str:
     """The tool message the MODEL reads, split from the raw result (D-B3-5).
 
-    A research, fundamentals or compare result's money scalars become their
+    A research, fundamentals, compare or statement result's money scalars become their
     semantics displays, so a small model cannot mis-scale a raw rupee float or
     read a statement size in the wrong currency (R15-AGENT-001). A tool whose
     catalog entry is ``untrusted_text`` (web, news, disclosures, research) is
