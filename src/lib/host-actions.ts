@@ -885,8 +885,10 @@ export type PreImage =
   | { kind: "watchlist-removed"; entry: SymbolEntry; index: number }
   | { kind: "region"; region: Region };
 
-/** How an apply resolved: a truthful label, or null with why it did not land. */
+/** How an apply resolved: its ack outcome (D39 §4) and a truthful label, or
+ *  null with why it did not land. */
 export interface ApplyResult {
+  status: Exclude<PublishAckStatus, "staged">;
   label: string | null;
   reason?: string;
   /** The state the write replaced, when it is a data write that can be undone. */
@@ -894,8 +896,10 @@ export interface ApplyResult {
 }
 
 const done = (label: string, preImage?: PreImage): ApplyResult =>
-  preImage ? { label, preImage } : { label };
-const fail = (reason?: string): ApplyResult => ({ label: null, reason });
+  preImage ? { status: "applied", label, preImage } : { status: "applied", label };
+/** The panel deliberately kept what it already shows (shrink guard / stale run). */
+const kept = (label: string): ApplyResult => ({ status: "kept_previous", label });
+const fail = (reason?: string): ApplyResult => ({ status: "failed", label: null, reason });
 
 /** Parse a screener recipe (flat criteria + optional nested group) from args. */
 function parseScreenRecipe(input: Record<string, unknown>): {
@@ -1692,7 +1696,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       // reads in chat; the panel keeps the richer artifact. Whole-brief
       // decision only (never merge two markdowns — the [n] markers must stay
       // coherent with their sources). The apply path reports kept_previous
-      // through the ack (D39 §4) via the "Kept …" label.
+      // through the ack (D39 §4).
       const prev = useBriefStore.getState().brief;
       const sameRun =
         !!prev?.execution?.runId &&
@@ -1707,7 +1711,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
           (brief.sourceCount === 0 && prev.sourceCount > 0));
       if (sameRun && shrinks && !brief.disambiguation) {
         useWorkspaceStore.getState().openPanel("brief");
-        return done("Kept the richer research brief already on screen");
+        return kept("Kept the richer research brief already on screen");
       }
       // Open the brief panel so the output is on screen, then publish through
       // the lifecycle machine — a publish whose run_id mismatches the run in
@@ -1715,7 +1719,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       useWorkspaceStore.getState().openPanel("brief");
       const result = useBriefStore.getState().publish(brief);
       if (result === "stale_run") {
-        return done("Kept the run in flight — this publish belonged to a different run");
+        return kept("Kept the run in flight — this publish belonged to a different run");
       }
       // Record the brief's stated figures into the research-space claims ledger
       // (R13 JARVIS 3a) — deterministic, no-op outside a research space — so a
@@ -2092,17 +2096,6 @@ export async function applyHostActionAsync(
  *  non-terminal: an AUTO-session change that is not auto-applicable is waiting
  *  for the user's review; a later applied/failed ack replaces it. */
 export type PublishAckStatus = "applied" | "kept_previous" | "failed" | "staged";
-
-/** Map a host-action apply label onto the ack status: null → failed, a "Kept …"
- *  arbitration (shrink guard / stale run) → kept_previous, else applied. Generic
- *  across every host action (R13 JARVIS): only publish_brief ever labels "Kept",
- *  so this reduces to null→failed / else→applied for the rest. */
-export function publishAckStatus(label: string | null): PublishAckStatus {
-  if (label === null) {
-    return "failed";
-  }
-  return label.startsWith("Kept") ? "kept_previous" : "applied";
-}
 
 /** The generic host-action descriptor threaded on the ack (R13 JARVIS 1a) so
  *  the runtime's grounded tool-result can NAME what resolved (action +

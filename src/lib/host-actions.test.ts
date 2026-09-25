@@ -18,7 +18,6 @@ import {
   isHostActionMutation,
   openCompanyOverview,
   parseHostAction,
-  publishAckStatus,
 } from "@/lib/host-actions";
 import { composeBriefMarkdown } from "@/lib/brief-ingest";
 import { useBacktestStore } from "@/store/backtest";
@@ -217,6 +216,7 @@ describe("host-actions", () => {
       parseHostAction("add_to_watchlist", { symbol: "MAZAGONDOCK" }),
     );
     expect(invented).toEqual({
+      status: "failed",
       label: null,
       reason: '"MAZAGONDOCK" did not resolve to a listing',
     });
@@ -1004,15 +1004,44 @@ describe("briefFromInput execution truth (R10 D38/E2)", () => {
     expect(useBriefStore.getState().panel.phase).toBe("in_flight");
   });
 
-  it("publishAckStatus maps the apply label onto the ack vocabulary (D39 §4)", () => {
-    expect(publishAckStatus(null)).toBe("failed");
-    expect(publishAckStatus("Kept the richer research brief already on screen")).toBe(
-      "kept_previous",
+  it("the apply result carries its ack status (D39 §4) — kept_previous, applied, failed", async () => {
+    // The status is set where the outcome is decided, never parsed back out of
+    // the label (R15-CODE-FRONTEND-034; publishAckStatus is gone).
+    useBriefStore.setState({
+      brief: {
+        query: "saksoft",
+        mode: "DEEP",
+        markdown: "## Engine\nshort but cited [1].",
+        sources: [{ url: "https://e.com/1", title: "s", excerpt: "" }],
+        sourceCount: 1,
+        webAvailable: true,
+        execution: { runId: "run-y", requestedDepth: "deep", loop: "iter" },
+        createdAt: Date.now() - 5_000,
+      } as never,
+    });
+    const shrink = await applyIntentAsync(
+      parseHostAction("publish_brief", {
+        query: "saksoft",
+        markdown: "## Uncited prose",
+        sources: [],
+        execution: { run_id: "run-y", requested_depth: "deep", loop: "iter" },
+      }),
     );
-    expect(
-      publishAckStatus("Kept the run in flight — this publish belonged to a different run"),
-    ).toBe("kept_previous");
-    expect(publishAckStatus("Published the DEEP research brief")).toBe("applied");
+    expect(shrink.status).toBe("kept_previous");
+    useBriefStore.getState().beginRun({ runId: "run-live", query: "q", depth: "deep" });
+    const stale = await applyIntentAsync(
+      parseHostAction("publish_brief", {
+        query: "stale",
+        markdown: "## Stale artifact",
+        sources: [],
+        execution: { run_id: "run-old", requested_depth: "normal", loop: "fast" },
+      }),
+    );
+    expect(stale.status).toBe("kept_previous");
+    const note = await applyIntentAsync(parseHostAction("write_note", { scope: "", text: "x" }));
+    expect(note.status).toBe("applied");
+    const empty = await applyIntentAsync(parseHostAction("write_note", { scope: "", text: " " }));
+    expect(empty).toMatchObject({ status: "failed", label: null });
   });
 });
 
