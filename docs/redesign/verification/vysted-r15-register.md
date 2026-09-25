@@ -2,7 +2,7 @@
 
 887 raw findings -> 652 entries + 76 rejections. critical: 16 . high: 116 . medium: 293 . low: 227
 
-Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open: 209 . removed_with_feature: 14
+Status: blocked_tier4: 23 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open: 208 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -218,7 +218,7 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-AGENT-091** [low] get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) — _open_
 - **R15-CODE-PLATFORM-076** [low] copilot.json's system prompt is 8751 bytes (2-3x every other agent) while running on the small local default qwen2.5:7b, inflating per-call token and latency cost — _open_
 - **R15-DATA-101** [low] market_overview returns region 'GLOBAL' with the US index set and no note in the payload — _open_
-- **R15-LEAD-030** [high] After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries — _open_
+- **R15-LEAD-030** [high] After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries — _blocked_tier4_
 - **R15-LEAD-031** [low] The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator — _fixed_
 - **R15-LEAD-032** [medium] adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol — _fixed_
 - **R15-LEAD-033** [medium] The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose — _fixed_
@@ -1061,7 +1061,7 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-UI-093 | low | ui | frontend-panels-agent-shell | The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change | open | INT-spec-135-158 |
 | R15-UI-094 | low | ui | fundamentals-profile | The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) | open | INT-spec-135-174 |
 | R15-LEAD-029 | low | code | screener | screener_universe_india.py's _nse_lookup docstring still hardcodes a stale india-all count ('~5,156') distinct from the counts R15-CODE-DATA-023 fixed elsewhere in the same file | open |  |
-| R15-LEAD-030 | high | agent | agent-tools | After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries | open |  |
+| R15-LEAD-030 | high | agent | agent-tools | After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries | blocked_tier4 |  |
 | R15-LEAD-031 | low | agent | agent-tools | The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator | fixed |  |
 | R15-LEAD-032 | medium | agent | agent-tools | adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol | fixed |  |
 | R15-LEAD-033 | medium | agent | frontend-stores | The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose | fixed |  |

@@ -459,37 +459,162 @@ are done-and-revertable like §1; these are yours to review or act on.
   risk.
 - **Status: open, blocked_tier4**
 
-### 4.9 R15-LEAD-030 — fabricated tool figures after a tool error: eight fix batches, the stop rule has fired
+### 4.9 R15-LEAD-030 — fabricated tool figures after a tool error: eight fix batches, the stop rule has fired, a fresh verifier concurred
 
-- **Blocked:** a disposition question, not a locked file. Stage C batches 15–20 fixed the entry's
-  literal repro and every shape an earlier verifier found; a fresh Opus verifier found a new
-  escape each time. Batch-20 replaced prose-shape rules with figure grounding by provenance
-  (`sidecar/services/figure_grounding.py`, merged `1abef99b`): every earlier probe holds and it
-  blocks 6 of the 14 fresh cases base leaked, but two named gaps remain (an error-acknowledging
-  clause is exempted before grounding runs; subjects match by ticker, not company name).
-  Batch-21 fixes exactly those.
-- **Why operator-attended:** if batch-21 is not certified, the lead stops fixing (run-state rule)
-  and rc1 stays gated on a high entry in the agent-chat area, which the brief's Boundaries say
-  cannot be adjudicated away without a fresh verifier's concurrence. Tagging with a documented
-  known limitation is the operator's call.
-- **Recommendation:** mark the entry `blocked_tier4` (a fresh verifier's concurrence is sought in
-  batch-23, as the Boundaries require for the agent-chat area) and tag r15-rc1 with LEAD-030
-  listed in the operator briefing as a known limitation (after a tool error a keyless local
-  model can still state an invented figure for a company it names in the same paragraph as a
-  subject whose call succeeded, when that name is neither the ticker, the resolver name nor an
-  initialism of it, or was never looked up at all; a fabricated tool-result dump with no
-  currency figure can also stream; every other shape found in eight rounds is replaced by the
-  honest note). Take the post-launch design change instead of a ninth filter round: end the
-  model's answer with a structured no-data turn after an all-errored round.
-- **Risk of not doing it:** the release ships an agent that can, on a tool failure with a local
-  model, print a made-up price. Offline fresh-case fabrication on the residual classes is 6/19
-  after batch-20 (14/19 before); 0 on every pinned shape.
-- **Status: open; the stop rule has fired (eighth failure, batch-22, W1 merged `c155e5ad`)** —
-  batch-22 took the verifier's fresh cases to BAD 4 (8 on base) and every pinned shape from
-  batches 15–21 holds, but a figure for a subject the guard cannot name, or never called, inherits
-  the ok subject of its paragraph and streams ('TCS.NS closed at ₹3,235.50. Tata Motors last
-  traded at ₹702.10.' with TATAMOTORS.NS errored or never called); a figure-less fabricated
-  result dump also streamed live. No ninth round. Batch-23's fresh verifier rules CONCUR or
-  REFUSE on this disposition (`r15/stage-c/batch-23/LEAD-030-CONCURRENCE.md`); on CONCUR the
-  entry becomes `blocked_tier4` and rc1 needs the operator's word on shipping with the known
-  limitation.
+- **Blocked:** a disposition question, not a locked file. Stage C batches 15–22 each fixed the
+  entry's literal repro and every shape an earlier verifier had found, and a fresh Opus verifier
+  found a new escape every time. The early rounds screened the prose shapes of a fabricated
+  citation (tool-returned dumps, humanised tool names, colon-bound, fenced and tabular dumps).
+  Batch-20 replaced those rules with figure grounding by provenance
+  (`sidecar/services/figure_grounding.py`, merged `1abef99b`); batch-21 (`86ae79c4`) closed its
+  negative-clause exemption and its ticker-only subject match; batch-22 (W1 only, `c155e5ad`)
+  added short-name aliases, unclosed-fence handling and the rule-2c fail-safe (in a turn with an
+  errored call, an ungrounded figure that attaches to no ok subject is replaced). Batch-22 was the
+  eighth failure: a figure for a subject the guard cannot name, or never called, inherits the ok
+  subject of its paragraph and streams ('TCS.NS closed at ₹3,235.50. Tata Motors last traded at
+  ₹702.10.' with TATAMOTORS.NS errored or never called). The stop rule fired, no ninth filter round
+  ran, and batch-23's fresh verifier ruled **CONCUR** on `blocked_tier4`, on the condition that the
+  briefing uses its broader wording: rule 2c runs only when a call errored, so a figure for a
+  never-called subject also streams in an all-ok turn and in a no-call turn
+  (`r15/stage-c/batch-23/LEAD-030-CONCURRENCE.md`).
+- **Why operator-attended:** the brief's Boundaries say a high entry in the agent-chat area cannot
+  be adjudicated away without a fresh verifier's concurrence (now given), and tagging with a
+  documented known limitation is the operator's call.
+- **Recommendation:** `blocked_tier4`. Tag r15-rc1 with LEAD-030 in the operator briefing as a
+  known limitation, in the verifier's one-sentence wording, verbatim:
+
+  > With a keyless local model, the agent can still state an invented price or metric as if a tool
+  > had returned it when the figure is about a company no successful tool call in that turn
+  > covered — one named in the same paragraph as a company whose call succeeded (under a name the
+  > guard cannot map, or never looked up at all), or any company in a turn where no call failed or
+  > no tool was called — and a figure-less fabricated result dump or a code fence left open from an
+  > earlier round can also render, while figures for companies whose call succeeded are grounded
+  > against the tool result and every shape pinned in eight fix rounds is replaced by an honest
+  > "returned no data" note.
+
+  Post-launch, take the verifier's bounded ninth fix (`LEAD-030-CONCURRENCE.md` §3; not built this
+  run) as the LEAD-030 half of the design change named in 4.10–4.12:
+  - **The change:** in `agent_runtime._judge_clause` the FAIL-SAFE is no longer gated on
+    `ctx.errored`. An ungrounded figure streams only when its own clause (the row/intro context
+    counts as own, an inherited subject never does) names a subject some call returned ok for this
+    turn. Every other ungrounded figure is replaced: "the <tools> tool(s) returned no data for this
+    in this turn" when a call errored, "no tool returned data for this in this turn" otherwise.
+  - **The exemption:** turns whose tool surface is empty (a no-tool cue, `_resolve_tool_surface`
+    returning `[]`) are exempt; the user asked for memory or arithmetic there, and the user/context
+    grounding already covers restated figures.
+  - **The fence part:** the guard carries fence-open state across rounds and closes an open fence
+    before it emits a note (the LEAD-036 cross-round shape).
+  - **Acceptance:** the b17–b22 probe sets stay as they are; `b22v_fresh.py` and
+    `b23v_030_fresh.py` reach 0 LEAK / BAD 0, the a-\* and z-\* cases included; `b22v_crossround.py`
+    shows no orphan fence; the true controls (t-sbi-short-ok, t-ok-rounding,
+    t-user-figure-after-err, t-ok-subject-derived-errturn, t-errored-honest) stream unchanged.
+  - **Known cost:** a pronoun continuation carrying an ungrounded figure is replaced ("It rose 1.2%
+    today." after an ok TCS sentence, when 1.2 is not in the payload). That fails safe.
+
+- **Risk of not doing it:** the release ships an agent that can, with a keyless local model, print
+  a made-up figure as if a tool returned it. The verifier's numbers: fresh live fabrication was 0
+  across 10 LEAD-030 runs this round (the SIFY entry prompt ×2 and c1–c8); offline, the
+  `b22v_fresh` set stays at BAD 4 (the same four as batch-22), plus the a-\* all-ok and z-\*
+  no-call leaks in `b23v_030_fresh.py`; every pinned shape from eight rounds holds (b17–b22 probe
+  outputs byte-identical to batch-22's, 0 new BAD).
+- **Status:** blocked_tier4 — fresh verifier concurred in batch-23 (LEAD-030-CONCURRENCE.md); the
+  operator decides at rc1 whether to ship with the known limitation
+
+### 4.10 R15-LEAD-035 — an explicit no-tool instruction is not always honoured: three fix rounds, the stop rule has fired
+
+- **Blocked:** a disposition question, not a locked file. The batch-19 verifier's t-user-sale told
+  llama3.1:8b to answer "without calling any tool"; it staged `portfolio_update_position` anyway,
+  and the change waited in the review queue (nothing auto-applied). Three rounds on the no-tool cue
+  in `sidecar/services/planner.py` each failed a fresh verifier:
+  - **Batch-21 (merged `86ae79c4`):** `_NO_TOOL_CUE`, a closed phrase list that strips the whole
+    tool surface when it matches. It under-matches: "Answer without any tools", "Do not call a
+    tool" and a curly-apostrophe "Don’t use any tools" kept all 55 tools, and live "Do not call a
+    tool. …" dispatched `get_portfolio`.
+  - **Batch-22 (W2, rejected):** a normalised regex (negation, 0–3 filler words, verb, object, and a
+    `.*` from-given rule). It over-matches: six explicit data requests ("Don't forget to use the
+    tools to get the latest TCS.NS price.") lost every tool, and live the model then streamed
+    fabricated prices narrated as fetched (TCS ₹3,313.40, true 2082.0).
+  - **Batch-23 (W1 `5a0f1ffe`, int `9aa9fb6c`, not merged):** a per-clause matcher. Every earlier
+    phrasing held (`b22v_035` 24/24; live, 13 no-tool prompts made no call and staged nothing), but
+    seven fresh qualified or scoped negations ("Never call the tools twice for one symbol; get the
+    INFY.NS price.", "Don't call functions you don't need, just get me SBIN.NS's latest price.")
+    lost every tool, and live the model fabricated a price presented as fetched 7 of 7 times (SBIN
+    ₹949.50, true 983.0; TCS ₹2,993.70, true 2082.0). The same regression class as batch-22.
+
+  The stop rule fired on the third failure. What ships is batch-21's closed list on the current
+  head, and it fails safe: a no-tool phrasing it does not recognise keeps the tool surface, so the
+  model may read data and any write it attempts stays behind human review; it never strips the
+  surface from a data request, which is what pushed the model into fabricated prices.
+
+- **Why operator-attended:** as in 4.9, an agent-chat entry needs a fresh verifier's concurrence
+  before it is adjudicated away, and shipping with a known limitation is the operator's call.
+- **Recommendation:** `blocked_tier4`, as one known-limitation class with LEAD-030, LEAD-037 and
+  LEAD-038: with a keyless local model the agent can fabricate a figure, or claim a completed
+  write, when it has no tool result to ground the claim. No further filter round this release; the
+  post-launch design change is claim grounding plus a structured no-data turn. For the cue itself,
+  the batch-23 verifier's bounded fix (recorded, not built): a verb or verbless cue fires only
+  when its object ends the clause or is followed by a closed tail ({please, at all, whatsoever, for
+  this (one|question), here, now, this time, today}, or "and"/"just" plus a verb); any other
+  complement keeps the surface.
+- **Risk of not doing it:** a no-tool instruction phrased outside the closed list is not honoured:
+  the model may call a read tool, or stage a portfolio write that then waits in the review queue
+  for the user's accept. No write applies on its own.
+- **Status:** open — proposed blocked_tier4, fresh verifier's concurrence in flight
+  (batch-23/DISPOSITION-CONCURRENCE.md)
+
+### 4.11 R15-LEAD-037 — the figure guard grounds a price by value only, so a stale bar passes as the current price
+
+- **Blocked:** a disposition question, not a locked file. Filed in batch-23 by the adjudicator
+  from the batch-22 verifier's Issues and never worked in a fix round. The guard asks only whether
+  a stated number appears anywhere in the turn's tool payloads, not whether it sits in the field
+  the sentence claims. Live, batch-22 c-short-ok: llama3.1:8b stated "SBI … is ₹1082.0" as the
+  current price; `/quotes/SBIN.NS` and screener.in read ₹983.00 (25 Sep close); 1082.0 is an older
+  bar in the same ok `price_data` payload, so the guard counted it as grounded. Batch-21 saw the
+  same staleness once (l-ack-hcl: "₹1271.0 on 2026-07-24", the result's last bar, against
+  `/quotes/HCLTECH.NS` 1258.0).
+- **Why operator-attended:** as in 4.9, an agent-chat entry needs a fresh verifier's concurrence
+  before it is adjudicated away, and shipping with a known limitation is the operator's call.
+- **Recommendation:** `blocked_tier4`, as one known-limitation class with LEAD-030, LEAD-035 and
+  LEAD-038 (no tool result grounds the claim as made). The post-launch claim grounding grounds by
+  field, not by value alone: resolve which payload field a price sentence claims (current/last vs a
+  labelled historical point) and check against that field, pinned with a payload that carries both
+  a current price and an older bar for the same symbol (the register's fix_shape).
+- **Risk of not doing it:** the agent can state an older value from a successful price result as
+  the current price, and nothing flags it, because the number really is in the tool result. It is
+  a stale figure, not an invented one.
+- **Status:** open — proposed blocked_tier4, fresh verifier's concurrence in flight
+  (batch-23/DISPOSITION-CONCURRENCE.md)
+
+### 4.12 R15-LEAD-038 — with the tools withheld, the model narrates a portfolio write that never happened
+
+- **Blocked:** a disposition question, not a locked file. Filed in batch-23 by the adjudicator
+  from the batch-22 verifier's Issues and never worked in a fix round. Batch-22 n-avoid-functions
+  ("Avoid calling any functions. I bought 40 ITC shares at ₹415, add them to my holdings and tell
+  me what I spent."): the no-tool cue emptied the tool surface as intended (`calls=[]`), yet
+  llama3.1:8b replied "I'll add these shares to your portfolio: you now hold 40 ITC shares at ₹415
+  per share." Batch-23 saw it again (fn-without-functions-add claimed "awaiting_user_review …
+  I've proposed adding a position" with no call and nothing staged), plus a data-fetch variant
+  (n-from-given: "I fetched the latest trade data" with no call). The §6.5 facts from the batch-22
+  evidence:
+  - **No write happened.** The run's event stream
+    (`batch-22/verifier-evidence/live/n-avoid-functions.jsonl`) carries only text deltas and
+    `done`: no `tool_use`, no `tool_result`. `/portfolio/positions` was not written; it still read `[]` after the later
+    n-control-add run in the same stack.
+  - **The review queue stayed empty.** A portfolio write reaches the queue only through a
+    portfolio tool call, and none was made; the verifier recorded "narration only; nothing was
+    staged".
+  - **No order row exists to write.** There is no `audit_orders` table any more: D81 removed it
+    with trading, and `sidecar/tests/test_no_trading_surface.py` bans the token everywhere outside
+    `types/plugin.ts`.
+- **Why operator-attended:** as in 4.9, an agent-chat entry needs a fresh verifier's concurrence
+  before it is adjudicated away, and shipping with a known limitation is the operator's call.
+- **Recommendation:** `blocked_tier4`, as one known-limitation class with LEAD-030, LEAD-035 and
+  LEAD-037. The post-launch claim grounding extends to action claims: a sentence that says a
+  portfolio or watchlist write was done ("added", "now hold", "updated your position") is checked
+  against a matching tool call that landed this turn, pinned with a no-tool fixture asserting no
+  false completion claim streams when `calls=[]` (the register's fix_shape).
+- **Risk of not doing it:** the user can read that a position was added when nothing changed. The
+  portfolio panel and the empty review queue still show the truth, and no write can happen without
+  a tool call that stages it for review.
+- **Status:** open — proposed blocked_tier4, fresh verifier's concurrence in flight
+  (batch-23/DISPOSITION-CONCURRENCE.md)
