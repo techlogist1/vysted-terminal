@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 643 entries + 76 rejections. critical: 16 . high: 115 . medium: 287 . low: 225
+887 raw findings -> 646 entries + 76 rejections. critical: 16 . high: 116 . medium: 288 . low: 226
 
-Status: blocked_tier4: 18 . fixed: 386 . needs_gui: 9 . not_a_defect: 5 . open: 211 . removed_with_feature: 14
+Status: blocked_tier4: 18 . fixed: 386 . needs_gui: 9 . not_a_defect: 5 . open: 214 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -123,7 +123,7 @@ Status: blocked_tier4: 18 . fixed: 386 . needs_gui: 9 . not_a_defect: 5 . open: 
 - **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _open_
 - **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _open_
 
-### Agent / chat (93)
+### Agent / chat (96)
 
 - **R15-AGENT-002** [high] Stop does not stop: aborting the chat stream leaves the in-flight tool task (research, LLM and web calls) running for minutes, spending the BYOK key and holding the single Ollama slot — _fixed_
 - **R15-AGENT-003** [high] At the 6-round tool cap the capped round's tool calls are streamed to the UI (and may be auto-applied as host actions) but never dispatched, and the turn ends with no answer text — _fixed_
@@ -218,6 +218,9 @@ Status: blocked_tier4: 18 . fixed: 386 . needs_gui: 9 . not_a_defect: 5 . open: 
 - **R15-AGENT-091** [low] get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) — _open_
 - **R15-AGENT-092** [high] A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes — _fixed_
 - **R15-AGENT-093** [high] The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures — _fixed_
+- **R15-LEAD-030** [high] After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries — _open_
+- **R15-LEAD-032** [medium] adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol — _open_
+- **R15-LEAD-031** [low] The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator — _open_
 
 ### Research / web search (53)
 
@@ -1052,3 +1055,6 @@ Status: blocked_tier4: 18 . fixed: 386 . needs_gui: 9 . not_a_defect: 5 . open: 
 | R15-CODE-AGENT-033 | medium | code | agent-eval | The agent-eval grader passes a trial whose tool call returned an error, because the tool's ok/error result is not carried in the vy eval stream | fixed | batch-11-backlog-3 |
 | R15-CODE-PLATFORM-077 | low | code | lifecycle-upgrade | Data-dir upgrade backups (backups/<old-build>/) are never pruned; each build change adds a full data-dir copy | open | batch-11-backlog-4 |
 | R15-DATA-115 | medium | data | market-data-providers | A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history | fixed | batch-11-backlog-5 |
+| R15-LEAD-030 | high | agent | agent-tools | After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries | open |  |
+| R15-LEAD-032 | medium | agent | agent-tools | adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol | open |  |
+| R15-LEAD-031 | low | agent | agent-tools | The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator | open |  |
