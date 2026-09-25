@@ -93,6 +93,21 @@ def test_non_nse_symbol_fails_fast_without_network() -> None:
         india_provider.get_history("ZZZZNOTREAL", "1d")
 
 
+def test_bo_suffixed_request_is_a_routing_miss_without_network(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-115: AMAL is on both exchanges; an explicit ``AMAL.BO`` asks for
+    the BSE listing, so the jugaad NSE lane must not answer it with NSE bars."""
+    monkeypatch.setattr(india_provider, "_stock_df", lambda *a: pytest.fail("no fetch"))
+    for call in (
+        lambda: india_provider.get_quote("AMAL.BO"),
+        lambda: india_provider.get_history("AMAL.BO", "1d", "1y"),
+    ):
+        with pytest.raises(ProviderError) as exc:
+            call()
+        assert exc.value.kind == "not_found"
+
+
 def test_intraday_timeframe_rejected(mock_jugaad: None) -> None:
     with pytest.raises(ProviderError, match="intraday"):
         india_provider.get_history("GOLDBEES", "1h")

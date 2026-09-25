@@ -129,8 +129,12 @@ def _require_nse(symbol: str) -> str:
     """Return the bare NSE symbol, or raise so the registry falls through fast.
 
     A non-NSE ticker (e.g. AAPL requested in an IN session) is rejected without a
-    network call — the registry then resolves it via the next provider.
+    network call — the registry then resolves it via the next provider. An
+    explicit ``.BO`` asks for the BSE listing, so a dual-listed name's NSE bars
+    never answer it (R15-DATA-115).
     """
+    if symbol.strip().upper().endswith(".BO"):
+        raise ProviderError(f"nse: {symbol!r} is a BSE listing", kind="not_found")
     bare = locale.strip_exchange_suffix(symbol)
     if not symbol_resolver.is_nse_symbol(bare):
         raise ProviderError(f"nse: {symbol!r} is not a known NSE instrument")

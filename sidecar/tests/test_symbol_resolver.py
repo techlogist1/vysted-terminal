@@ -754,6 +754,21 @@ def test_former_name_resolves_a_us_rename(monkeypatch) -> None:  # noqa: ANN001
     assert r.candidates[0].symbol == "ONC"
 
 
+def test_us_ticker_resolve_carries_its_most_recent_former_name(monkeypatch) -> None:  # noqa: ANN001
+    """R15-DATA-059 regression: a US ticker resolve (not a former-name query)
+    used to return before any former-name join, so ONC/SIFY showed
+    ``former_name=None`` although the bundled SEC index holds their renames. The
+    newest SEC former name that is not a respelling of the current name wins
+    (AAPL's "APPLE INC" beside "Apple Inc." is skipped); no Indian field leaks in."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    cases = {"ONC": "BeiGene, Ltd.", "SIFY": "SIFY LTD", "AAPL": "APPLE COMPUTER INC"}
+    for ticker, former in cases.items():
+        best = symbol_resolver.resolve(ticker, "US").best
+        assert best is not None and best.symbol == ticker
+        assert best.former_name == former
+        assert best.isin is None and best.bse_code is None and best.industry is None
+
+
 def test_former_name_tie_break_prefers_the_prominent_listing(monkeypatch) -> None:  # noqa: ANN001
     """The defect class BeiGene/ONC surfaced (a company with two US listings —
     e.g. a common line and an OTC/preferred line — can carry the same former

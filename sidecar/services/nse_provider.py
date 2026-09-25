@@ -361,9 +361,11 @@ def _quote_referer(symbol: str) -> str:
 def _require_nse(symbol: str) -> str:
     """Return the bare NSE symbol, or raise so the registry falls through fast
     (no network for a non-NSE ticker). ``not_found``: a routing miss, never
-    counted as the lane failing (R15-LIFECYCLE-021)."""
+    counted as the lane failing (R15-LIFECYCLE-021). An explicit ``.BO`` asks
+    for the BSE listing, so a dual-listed name's NSE bars never answer it
+    (R15-DATA-115)."""
     bare = locale.strip_exchange_suffix(symbol)
-    if not symbol_resolver.is_nse_symbol(bare):
+    if symbol.strip().upper().endswith(".BO") or not symbol_resolver.is_nse_symbol(bare):
         raise ProviderError(
             f"nse_direct: {symbol!r} is not a known NSE instrument", kind="not_found"
         )
