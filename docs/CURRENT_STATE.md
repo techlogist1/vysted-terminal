@@ -322,17 +322,25 @@ model key** (`quote`, `ohlcv`, `fundamentals`, `income_statement`, …), walking
 installed providers in **preference order** until one succeeds — `asset_class`
 is a resolution _hint_ layered on top, not the dispatch switch (FR-035/053; a
 `ProviderDeclaration` table — id, model-keys served, preference rank,
-credential/availability gate — is the single source of truth, and
+credential/availability gate, region gate — is the single source of truth, and
 `active_providers()` at `/health` derives from it rather than being
 hand-maintained). `get_quote`/`get_history` stay **synchronous** (ccxt/yfinance
 providers, wrapped in `asyncio.to_thread`); openbb-backed methods stay `async`
 — two resolvers (sync/async) share one declaration table and the same
-preference-order fallthrough.
+preference-order fallthrough. For region `IN`, three keyless providers
+outrank the broad default on `quote`/`ohlcv`: `nse_direct` (rank 15,
+exchange-direct EOD, the anti-bot curl_cffi lane), `nse` (rank 20,
+jugaad-data), `bse` (rank 25, the micro-cap EOD default for groups NSE never
+listed) — IN fundamentals still fall through to yfinance (no region-scoped
+fundamentals provider exists).
 
-- **`yfinance_provider.py`** — no-key default for equities. Load-bearing
-  details: `BRK.B`→`BRK-B` rewrite; **dividend-yield divided by 100** (yfinance
-  1.3.0 returns a percentage, the contract wants a fraction — a silent corruption
-  risk if upstream changes); aggregate rating reads only the single most-recent
+- **`yfinance_provider.py`** — the no-key default for equities, region-gated:
+  for `IN` requests `nse_direct`/`nse`/`bse` (ranks 15/20/25) all rank ahead
+  of it for `quote`/`ohlcv`, so it only serves as the IN fallback (fundamentals
+  and any other region still hit it first). Load-bearing details: `BRK.B`→
+  `BRK-B` rewrite; **dividend-yield divided by 100** (yfinance 1.3.0 returns a
+  percentage, the contract wants a fraction — a silent corruption risk if
+  upstream changes); aggregate rating reads only the single most-recent
   recommendation row.
 - **`ccxt_provider.py`** — ccxt (sync REST) + ccxt.pro (async WS). Exchanges:
   bybit, binance, kraken, coinbase. Backs `/crypto/*`.

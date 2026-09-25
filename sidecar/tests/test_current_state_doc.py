@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import get_args
 
 from models.screener import ScreenerUniverseId
+from services.provider_registry import _PROVIDERS
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DOC_PATH = _REPO_ROOT / "docs" / "CURRENT_STATE.md"
@@ -58,3 +59,21 @@ def test_screener_bullet_names_every_universe_id_in_backticks() -> None:
     assert universe_ids, "ScreenerUniverseId carries no literals to check"
     for uid in universe_ids:
         assert f"`{uid}`" in section, f"{uid!r} not named in backticks in section 3.3"
+
+
+def test_region_scoped_providers_are_named_and_yfinance_is_region_qualified() -> None:
+    """R15-DOCS-018: every ProviderDeclaration whose region includes IN has its
+    id present in section 3.3, and the yfinance bullet no longer claims to be
+    the unqualified default for equities (it is region-gated for IN)."""
+    section = _section_3_3()
+    in_provider_ids = [p.id for p in _PROVIDERS if "IN" in p.region]
+    assert in_provider_ids, "no IN-region ProviderDeclaration found to check against"
+    for provider_id in in_provider_ids:
+        assert f"`{provider_id}`" in section, f"{provider_id!r} not named in section 3.3"
+
+    yfinance_match = re.search(
+        r"\*\*`yfinance_provider\.py`\*\*.*?(?=\n- \*\*|\Z)", section, flags=re.DOTALL
+    )
+    assert yfinance_match is not None, "yfinance_provider.py bullet not found in section 3.3"
+    yfinance_bullet = yfinance_match.group(0)
+    assert "IN" in yfinance_bullet, "yfinance bullet does not qualify its default role by region"
