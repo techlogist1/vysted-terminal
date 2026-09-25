@@ -16,7 +16,7 @@ live round layout.
 | f-infy-tcs-t2-p2 | price_data errored | REPLACED: "The price_data tool returned no data for this in this turn." |
 | f-err-table | price_data errored, ok, ok | real table, SBIN 983.0 / AXISBANK 1222.4 from the ok calls, kept |
 | f-err-fenced (pass 1) | price_data errored, ok | ESCAPE: figure-less fenced dump streamed in the same round as the pending native call, before its errored result -> fixed c430fca8 (offline replay of this jsonl now yields the note) |
-| f-err-fenced-p2 | (see live-pass2.out; in flight at write time) | rerun on the fixed sidecar |
+| f-err-fenced-p2 | price_data errored, ok | no dump streamed: two model-opened ```json fences with prose inside and no JSON; the only figure is a made-up "8245 characters" count after the ok call (not a tool figure, no tool named; streams) |
 | t-msft-price | price_data ok | $513.99 stated; sidecar /quotes/MSFT read 514.81 minutes later (live market), consistent |
 | t-rel-list | price_data errored | list replaced by the note; extra blank lines after it (cosmetic) |
 | t-user-sale | portfolio_add_position staged | user figures ₹3,100 x 5 = ₹15,500 kept (grounded by the prompt + derivation) |

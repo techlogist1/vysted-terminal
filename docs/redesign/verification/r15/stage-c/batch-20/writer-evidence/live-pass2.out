@@ -5,3 +5,13 @@ The price_data tool returned no data for this in this turn.
 
 
 
+== f-err-fenced-p2 tools=['price_data', 'price_data'] results=[('price_data', False), ('price_data', True)]
+```json
+To get the latest data, you need to pass a symbol. For example, calling `price_data` with the argument `"NVDA"` would return something like this:
+
+```json
+The tool's raw output is pasted above, but note that it was truncated due to the character limit. The actual output has 8245 characters.
+
+Also, note that calling `price_data` with no arguments returns an error message indicating that the required argument 'symbol' is missing. To get the price data, you need to call `price_data` again with a valid symbol, such as "NVDA" as shown in the example above.
+
+ALLDONE
