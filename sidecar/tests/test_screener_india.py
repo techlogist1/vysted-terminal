@@ -154,6 +154,28 @@ def test_india_symbol_meta_fields_by_name() -> None:
 # ---------------------------------------------------------------------------
 
 
+def test_sector_master_parsed_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-108: the ~1 MB sector master is parsed once per process, not
+    per sector_map_generated / sector_map_coverage / sector_seed_for call."""
+    real = screener_universe_india._load_master
+    loads: list[str] = []
+
+    def counting(filename: str) -> dict:
+        loads.append(filename)
+        return real(filename)
+
+    monkeypatch.setattr(screener_universe_india, "_load_master", counting)
+    screener_universe_india.reset_caches_for_tests()
+    try:
+        for _ in range(3):
+            assert screener_universe_india.sector_map_generated()
+            assert screener_universe_india.sector_map_coverage()
+            assert screener_universe_india.sector_seed_for("RELIANCE.NS")
+    finally:
+        screener_universe_india.reset_caches_for_tests()
+    assert loads.count("india_sector_map.json") == 1, loads
+
+
 def test_sector_map_bundled_with_honest_coverage() -> None:
     coverage = screener_universe_india.sector_map_coverage()
     assert coverage["records"] > 4000

@@ -118,6 +118,13 @@ def _bse_lookup() -> dict[str, _BseRow]:
 
 
 @lru_cache(maxsize=1)
+def _sector_master() -> dict[str, Any]:
+    """The parsed ``india_sector_map.json`` (~1 MB), parsed once per process
+    (R15-DATA-108) — the witness path reads its header per research snapshot."""
+    return _load_master("india_sector_map.json")
+
+
+@lru_cache(maxsize=1)
 def _sector_map() -> dict[str, dict[str, Any]]:
     """``{BASE_SYMBOL: record}`` from the bundled ``india_sector_map.json``.
 
@@ -126,7 +133,7 @@ def _sector_map() -> dict[str, dict[str, Any]]:
     ``isin / scrip_code / industry_raw / sector / sector_source /
     shares_outstanding`` — see ``regenerate_india_sectors.py``."""
     try:
-        raw = _load_master("india_sector_map.json")
+        raw = _sector_master()
     except ProviderError as exc:
         logger.warning("screener_universe_india: %s", exc)
         return {}
@@ -141,7 +148,7 @@ def _sector_map() -> dict[str, dict[str, Any]]:
 def sector_map_coverage() -> dict[str, Any]:
     """The honest ``coverage`` header of the bundled sector map (or empty)."""
     try:
-        raw = _load_master("india_sector_map.json")
+        raw = _sector_master()
     except ProviderError:
         return {}
     coverage = raw.get("coverage")
@@ -158,7 +165,7 @@ def sector_map_generated() -> str | None:
     this date (a split/bonus/buyback moving the float) makes the WITNESS share
     count the stale one, not necessarily the live provider's."""
     try:
-        raw = _load_master("india_sector_map.json")
+        raw = _sector_master()
     except ProviderError:
         return None
     generated = raw.get("_generated")
@@ -171,6 +178,7 @@ def reset_caches_for_tests() -> None:
     _bse_rows.cache_clear()
     _nse_lookup.cache_clear()
     _bse_lookup.cache_clear()
+    _sector_master.cache_clear()
     _sector_map.cache_clear()
 
 
