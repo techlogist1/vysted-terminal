@@ -1,0 +1,30 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_7b683aa0685e4b7b97ac41973e632547", "name": "price_data", "input": {"symbol": "BHARTIARTL.NS", "range": "1d", "timeframe": "1d"}}
+{"kind": "tool_use", "tool_call_id": "call_9eee8bc40e4840f7997eece2d2110b49", "name": "price_data", "input": {"symbol": "INFY.ZZ", "range": "1d", "timeframe": "1d"}}
+{"kind": "tool_use", "tool_call_id": "call_bc8bccbaec4549f0ac56dcd7526241fb", "name": "price_data", "input": {"symbol": "BHARTIARTL.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_7b683aa0685e4b7b97ac41973e632547", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_9eee8bc40e4840f7997eece2d2110b49", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'INFY.ZZ' from 'yfinance'"}
+{"kind": "tool_result", "tool_call_id": "call_bc8bccbaec4549f0ac56dcd7526241fb", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "A"}
+{"kind": "delta", "text": "irt"}
+{"kind": "delta", "text": "el"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "178"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 11332, "output_tokens": 14, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
