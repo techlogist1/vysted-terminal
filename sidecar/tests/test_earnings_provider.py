@@ -467,3 +467,58 @@ async def test_non_in_default_keeps_the_us_universe(monkeypatch: pytest.MonkeyPa
         config.reset_request_region(token)
     assert sorted(asked) == sorted(earnings_provider._DEFAULT_UNIVERSE)
     assert {e.symbol for e in response.events} == set(earnings_provider._DEFAULT_UNIVERSE)
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-113 — revenue's own currency, distinct from the trading currency
+# ---------------------------------------------------------------------------
+
+
+class _WitShapedTicker(_FakeEarningsTicker):
+    """WIT (Wipro): the ADR trades in USD but Yahoo reports its statement-size
+    fields (revenue) in the filer's reporting currency, INR (financialCurrency).
+    EPS stays per-ADS USD — only the money-sized revenue figures are foreign."""
+
+    @property
+    def info(self) -> dict:  # type: ignore[override]
+        return {"longName": "Wipro Limited", "currency": "USD", "financialCurrency": "INR"}
+
+
+@pytest.mark.asyncio
+async def test_estimate_detail_revenue_currency_follows_financial_currency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _WitShapedTicker)
+    detail = await earnings_provider.get_estimate_detail("WIT")
+    assert detail.currency == "USD"
+    assert detail.revenue_currency == "INR"
+
+
+@pytest.mark.asyncio
+async def test_history_row_revenue_currency_follows_financial_currency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Class pin (a case the fix was not written against): the same foreign-
+    reporter class shows up on the history-row shape too, not just estimates."""
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _WitShapedTicker)
+    history = await earnings_provider.get_history("WIT")
+    assert history.history
+    for row in history.history:
+        assert row.currency == "USD"
+        assert row.revenue_currency == "INR"
+    surprises = await earnings_provider.get_surprises("WIT")
+    assert surprises.surprises
+    for row in surprises.surprises:
+        assert row.currency == "USD"
+        assert row.revenue_currency == "INR"
+
+
+@pytest.mark.asyncio
+async def test_revenue_currency_falls_back_to_trading_currency_when_unstated(
+    mock_yf_earnings: type[_FakeEarningsTicker],
+) -> None:
+    """No ``financialCurrency`` (AAPL's own ``info`` never sets it) -> revenue
+    is denominated the same as everything else, so ``revenue_currency`` falls
+    back to ``currency`` rather than a bare hardcoded default."""
+    detail = await earnings_provider.get_estimate_detail("AAPL")
+    assert detail.currency == detail.revenue_currency == "USD"

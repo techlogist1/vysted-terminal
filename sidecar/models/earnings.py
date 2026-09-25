@@ -77,6 +77,11 @@ class EarningsSurprise(BaseModel):
     revenue_estimate_mean: float | None = None
     revenue_surprise_pct: float | None = None
     currency: str = "USD"
+    #: The revenue fields' own currency (Yahoo's ``financialCurrency``,
+    #: falling back to ``currency``) — a foreign reporter's statement-size
+    #: revenue is denominated in the reporting currency, not the trading
+    #: currency ``currency`` carries (R15-DATA-113).
+    revenue_currency: str = "USD"
     provider: str
 
 
@@ -105,6 +110,8 @@ class EarningsEstimateDetail(BaseModel):
     #: The revenue frame's own count — never the EPS count (R15-DATA-032).
     revenue_analyst_count: int | None = Field(default=None, ge=0)
     currency: str = "USD"
+    #: See ``EarningsSurprise.revenue_currency`` (R15-DATA-113).
+    revenue_currency: str = "USD"
     provider: str
     as_of: datetime
 
@@ -156,6 +163,8 @@ class EarningsHistoryEntry(BaseModel):
     revenue_actual: float | None = None
     revenue_estimate_mean: float | None = None
     currency: str = "USD"
+    #: See ``EarningsSurprise.revenue_currency`` (R15-DATA-113).
+    revenue_currency: str = "USD"
 
 
 class EarningsHistoryResponse(BaseModel):

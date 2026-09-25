@@ -248,11 +248,12 @@ async def get_cash_flow(
 @router.get("/{symbol}/ratings")
 async def get_analyst_rating(symbol: str) -> AnalystRating:
     """Return aggregated analyst ratings and price targets for ``symbol``."""
-    rating, _ = await _cached(
+    rating, as_of = await _cached(
         _listing_key(symbol, "ratings"),
         AnalystRating,
         lambda: provider_registry.get_analyst_rating(symbol),
     )
+    rating.as_of = as_of
     return rating
 
 
