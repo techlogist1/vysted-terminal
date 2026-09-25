@@ -69,7 +69,9 @@
 ## 0.5 Agent-native redesign — P1–P3 shipped (2026-05-31, branch `001-agent-native-redesign`)
 
 > The user-facing redesign (P1/P2/P3) has now landed on the branch (not `main`).
-> Full per-FR/SC accounting + gate results: **`docs/redesign/P1_P3_BUILD_REPORT.md`**.
+> `docs/redesign/P1_P3_BUILD_REPORT.md` was removed in the public-release
+> cleanup (`d3d9456c`); this §0.5 delta list is the surviving per-FR/SC
+> summary — `CHANGELOG.md` has the surrounding build-history entries.
 > Deltas that supersede the baseline below:
 >
 > - **P1 — agent-centric experience (US1–US4).** A four-mode agent spine
