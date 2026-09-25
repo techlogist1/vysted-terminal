@@ -1,0 +1,73 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_f5f3235ff325453b9f172e5f1682074c", "name": "option_chain", "input": {"expiry": "nearest", "symbol": "AAPL"}}
+{"kind": "tool_result", "tool_call_id": "call_f5f3235ff325453b9f172e5f1682074c", "name": "option_chain", "ok": false, "error": "invalid argument: Invalid isoformat string: 'nearest'"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " option"}
+{"kind": "delta", "text": "_chain"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " call"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " expiry"}
+{"kind": "delta", "text": " argument"}
+{"kind": "delta", "text": " set"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " literal"}
+{"kind": "delta", "text": " string"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "nearest"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " failed"}
+{"kind": "delta", "text": " because"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "nearest"}
+{"kind": "delta", "text": "\""}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " valid"}
+{"kind": "delta", "text": " ISO"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "860"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": " date"}
+{"kind": "delta", "text": " format"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " again"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " different"}
+{"kind": "delta", "text": " approach"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Instead"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " literal"}
+{"kind": "delta", "text": " string"}
+{"kind": "delta", "text": " \""}
+{"kind": "delta", "text": "nearest"}
+{"kind": "delta", "text": "\","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " use"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " date"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " expiry"}
+{"kind": "delta", "text": " date"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2842, "output_tokens": 66, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

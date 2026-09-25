@@ -1,0 +1,7 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_0822e9cd6b9c4fe68096ad4e1eb814c8", "name": "read_notes", "input": {"scope": ""}}
+{"kind": "tool_result", "tool_call_id": "call_0822e9cd6b9c4fe68096ad4e1eb814c8", "name": "read_notes", "ok": true, "error": null}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources."}
+{"kind": "done", "usage": {"input_tokens": 2847, "output_tokens": 12, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,44 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_4a230c5e2c404ce09f2c19e3fd2dcb6a", "name": "financial_statements", "input": {"symbol": "SIFY", "statement": "income", "period": "annual"}}
+{"kind": "tool_result", "tool_call_id": "call_4a230c5e2c404ce09f2c19e3fd2dcb6a", "name": "financial_statements", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources.\n\n"}
+{"kind": "delta", "text": "As"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " find"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " result"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " fact"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6739, "output_tokens": 56, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
