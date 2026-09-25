@@ -63,11 +63,23 @@ def main() -> int:
         if sector:
             rec = by_symbol.get(sym)
             if rec is None:
-                rec = {"symbol": sym}
+                # The shipped map's canonical 7-key shape (test_india_sector_map.py
+                # _CANONICAL_KEYS) — a symbol with no BSE row still needs every key.
+                rec = {
+                    "symbol": sym,
+                    "isin": None,
+                    "scrip_code": None,
+                    "industry_raw": None,
+                    "sector": None,
+                    "sector_source": None,
+                    "shares_outstanding": None,
+                }
                 records.append(rec)
                 by_symbol[sym] = rec
             rec["sector"] = sector
-            rec["industry"] = industry or rec.get("industry")
+            # industry_raw is the one key readers consume (R15-DATA-106); an
+            # orphaned "industry" key is silently unread enrichment data.
+            rec["industry_raw"] = industry or rec.get("industry_raw")
             rec["sector_source"] = "yfinance"
             filled += 1
         # Persist every 50 so a throttle-kill keeps progress (resumable).

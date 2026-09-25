@@ -17,7 +17,12 @@ the committed map — these tests pin the file so they can never silently return
 
 from __future__ import annotations
 
+import json
+import sys
 from collections import Counter
+from types import SimpleNamespace
+
+import pytest
 
 from services import symbol_resolver
 
@@ -95,3 +100,57 @@ def test_shipped_map_nse_only_rows_carry_shares_outstanding() -> None:
     assert nse_only, "the NSE-only enrichment rows must exist"
     unshared = [r["symbol"] for r in nse_only if not r["shares_outstanding"]]
     assert unshared == [], f"NSE-only rows still lack shares_outstanding: {unshared}"
+
+
+def test_enrichment_writes_canonical_seven_keys(
+    tmp_path: object, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-106: the producer must not resurrect the orphaned 'industry'
+    key or append partial records — a re-run would red the shipped-map tests
+    above. Runs the real enrichment loop against a stubbed yf.Ticker and a
+    2-record fixture doc (one sectorless existing row to update, one new
+    NSE-only symbol to append)."""
+    from services.resolver_masters import enrich_nse_sectors
+
+    doc = {
+        "records": [
+            {
+                "symbol": "EXISTING",
+                "isin": "INE000A00000",
+                "scrip_code": "500000",
+                "industry_raw": None,
+                "sector": None,
+                "sector_source": None,
+                "shares_outstanding": 1000,
+            }
+        ],
+        "coverage": {"records": 1, "with_sector": 0, "sector_sources": {}},
+    }
+    map_path = tmp_path / "india_sector_map.json"
+    map_path.write_text(json.dumps(doc))
+
+    monkeypatch.setattr(enrich_nse_sectors, "_map_path", lambda: map_path)
+    monkeypatch.setattr(enrich_nse_sectors, "_nse_symbols", lambda: ["EXISTING", "NEWSYM"])
+    monkeypatch.setattr(enrich_nse_sectors.time, "sleep", lambda _seconds: None)
+
+    class _FakeTicker:
+        def __init__(self, ticker: str) -> None:
+            self.ticker = ticker
+
+        @property
+        def info(self) -> dict:
+            return {"sector": "Technology", "industry": "Software - Application"}
+
+    monkeypatch.setitem(sys.modules, "yfinance", SimpleNamespace(Ticker=_FakeTicker))
+
+    assert enrich_nse_sectors.main() == 0
+
+    written = json.loads(map_path.read_text())
+    records = written["records"]
+    assert len(records) == 2
+    for rec in records:
+        assert "industry" not in rec, f"{rec['symbol']}: orphaned 'industry' key reappeared"
+        assert set(rec) == _CANONICAL_KEYS, (rec["symbol"], sorted(rec))
+        assert rec["sector"] == "Technology"
+        assert rec["industry_raw"] == "Software - Application"
+        assert rec["sector_source"] == "yfinance"
