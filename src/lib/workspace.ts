@@ -479,13 +479,15 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     subscribe: onChange(useKeybindingsStore, (s) => s.overrides),
   },
   {
-    // `setAll` merges over the seed so a partial blob can't strip a field.
+    // `setAll` merges over the seed so a partial blob can't strip a field. A
+    // global slice restores only at launch, so this is the one caller that
+    // seeds the chat lens with the default persona (R15-CODE-FRONTEND-030).
     key: "settings",
     scope: "global",
     read: () => ({ settings: useSettingsStore.getState().toBundle() }),
     restore: (workspace) => {
       if (workspace.settings && typeof workspace.settings === "object") {
-        useSettingsStore.getState().setAll(workspace.settings);
+        useSettingsStore.getState().setAll(workspace.settings, { applyDefaultAgent: true });
       }
     },
     subscribe: onChange(
