@@ -9,7 +9,8 @@
 // --- market ---------------------------------------------------------------
 
 /** Calendar-aware staleness label for a served market value (FR-041 / SC-019). */
-export type Freshness = "live" | "eod" | "stale";
+/** `unknown` = the label could not be computed — still badged, never read as live. */
+export type Freshness = "live" | "eod" | "stale" | "unknown";
 
 /** A point-in-time price quote for one instrument. */
 export interface Quote {

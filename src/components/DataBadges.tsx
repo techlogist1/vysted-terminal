@@ -8,8 +8,8 @@
  *
  *  - {@link ProvenanceBadge} — WHERE the data came from (the provider label),
  *    with an optional `synthetic` flag that re-colours it as a caution.
- *  - {@link StalenessBadge} — HOW fresh it is: `live`, `stale`, or an end-of-day
- *    `EOD as of <date>` readout derived from an epoch-ms timestamp.
+ *  - {@link StalenessBadge} — HOW fresh it is: `live`, `stale`, `age unknown`, or
+ *    an end-of-day `EOD as of <date>` readout derived from an epoch-ms timestamp.
  *
  * Both are pure presentational `<span>`s — no animation, no effects, no store
  * reads — so they are safe to drop anywhere and trivially testable. Colours come
@@ -19,6 +19,7 @@
 
 import { providerShortLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { Freshness } from "../../types/data";
 
 /** Shared chip shell — keeps the two badges visually consistent. The label
  *  never mid-word clips (R8 §3.1): providers render their designed short form
@@ -63,9 +64,6 @@ export function ProvenanceBadge({
   );
 }
 
-/** The freshness states a {@link StalenessBadge} can render. */
-export type Freshness = "live" | "stale" | "eod";
-
 /** Format an epoch-ms timestamp as a short `YYYY-MM-DD` (locale-stable) date. */
 function asOfDate(epochMs: number): string {
   const d = new Date(epochMs);
@@ -78,8 +76,9 @@ function asOfDate(epochMs: number): string {
 }
 
 /**
- * Freshness badge: `live` (green), `stale` (caution), or `eod` which renders
- * `EOD as of <date>` from `asOf` (epoch ms). A plain `live`/`stale` may also pass
+ * Freshness badge: `live` (green), `stale` / `unknown` (caution — `unknown`
+ * means the label could not be computed, so it never reads as live), or `eod`
+ * which renders `EOD as of <date>` from `asOf` (epoch ms). A plain `live`/`stale` may also pass
  * `asOf` to surface the timestamp in the tooltip.
  */
 export function StalenessBadge({
@@ -96,7 +95,7 @@ export function StalenessBadge({
   const tone =
     freshness === "live"
       ? "bg-charcoal-850 text-positive"
-      : freshness === "stale"
+      : freshness === "stale" || freshness === "unknown"
         ? "bg-charcoal-850 text-warning"
         : "bg-charcoal-800 text-charcoal-300";
   const text =
@@ -104,9 +103,11 @@ export function StalenessBadge({
       ? "live"
       : freshness === "stale"
         ? "stale"
-        : date
-          ? `EOD as of ${date}`
-          : "EOD";
+        : freshness === "unknown"
+          ? "age unknown"
+          : date
+            ? `EOD as of ${date}`
+            : "EOD";
   return (
     <span
       data-testid="staleness-badge"

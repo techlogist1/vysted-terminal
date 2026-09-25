@@ -305,6 +305,22 @@ def _freshness(client: TestClient, timeframe: str) -> str:
     return client.get("/history/AAPL", params={"timeframe": timeframe}).json()["freshness"]
 
 
+def test_freshness_label_failure_yields_unknown(client: TestClient, monkeypatch) -> None:
+    """R15-DATA-105: a freshness-label exception keeps the series but stamps the
+    explicit ``unknown`` label (still badged) — never ``None``, which the chart
+    renders as an unbadged, live-looking series."""
+    from routers import history
+
+    def _raise(*_a: object, **_k: object) -> None:
+        raise ValueError("calendar gap")
+
+    _frozen_series(monkeypatch, "2026-09-23")
+    monkeypatch.setattr(history, "freshness_for", _raise)
+    body = client.get("/history/AAPL", params={"timeframe": "1d"}).json()
+    assert len(body["bars"]) == 1
+    assert body["freshness"] == "unknown"
+
+
 def test_current_month_bar_dated_the_first_reads_fresh(client: TestClient, monkeypatch) -> None:
     # R15-DATA-065: a 1mo bar is stamped at its period start; its period holds
     # the most recent session, so it is today's close, not 16 sessions stale.

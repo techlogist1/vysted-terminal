@@ -49,6 +49,13 @@ describe("StalenessBadge", () => {
     expect(badge.className).toContain("text-warning");
   });
 
+  it("renders unknown as a caution badge, never live", () => {
+    render(<StalenessBadge freshness="unknown" />);
+    const badge = screen.getByTestId("staleness-badge");
+    expect(badge).toHaveTextContent("age unknown");
+    expect(badge.className).toContain("text-warning");
+  });
+
   it("formats an EOD readout as an ISO as-of date from epoch ms", () => {
     // 2026-01-15T12:00:00Z
     const epoch = Date.UTC(2026, 0, 15, 12, 0, 0);

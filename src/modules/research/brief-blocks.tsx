@@ -33,7 +33,7 @@ import { Fragment, useMemo, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-import { ProvenanceBadge, StalenessBadge, type Freshness } from "@/components/DataBadges";
+import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import {
   BROKEN_CITE_MARKER,
   dedupeSources,
@@ -60,7 +60,7 @@ import type {
   BriefStructured,
   ResearchBriefData,
 } from "../../../types/brief";
-import type { Fundamentals, Quote } from "../../../types/data";
+import type { Freshness, Fundamentals, Quote } from "../../../types/data";
 
 // --- formatting: every figure routes through lib/format (R15-RESEARCH-026) ---
 
@@ -455,7 +455,10 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
   const items = [...semantic, ...rawItems.filter((item) => !shadowed.has(item.label))];
 
   const freshness: Freshness | undefined =
-    quote?.freshness === "live" || quote?.freshness === "stale" || quote?.freshness === "eod"
+    quote?.freshness === "live" ||
+    quote?.freshness === "stale" ||
+    quote?.freshness === "eod" ||
+    quote?.freshness === "unknown"
       ? quote.freshness
       : undefined;
 

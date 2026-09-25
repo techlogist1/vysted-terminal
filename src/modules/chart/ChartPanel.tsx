@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { type Freshness, StalenessBadge } from "@/components/DataBadges";
+import { StalenessBadge } from "@/components/DataBadges";
 import {
   CHART_BORDER,
   CHART_CROSSHAIR,
@@ -63,7 +63,7 @@ import {
 import { usePanelContextBus } from "@/store/panel-context";
 import { useSettingsStore } from "@/store/settings";
 import { assetClassOf } from "@/store/symbols";
-import type { IndicatorResponse, OHLCVSeries } from "../../../types/data";
+import type { Freshness, IndicatorResponse, OHLCVSeries } from "../../../types/data";
 import type { DrawingKind, DrawingPoint, DrawingSpec } from "../../../types/drawings";
 import { fetchIndicators } from "./api";
 import { DrawingPrimitive } from "./drawings/base";

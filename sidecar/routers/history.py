@@ -118,7 +118,7 @@ def _label_series_freshness(series: OHLCVSeries, asset_class: str, timeframe: st
         as_of = _period_as_of(series.bars[-1].timestamp.date(), timeframe, region)
         series.freshness = freshness_for(region, as_of, intraday=intraday).state
     except Exception:  # noqa: BLE001 — a label failure must never drop the series
-        series.freshness = None
+        series.freshness = "unknown"  # badged, never an unlabelled (live-looking) series
     return series
 
 
