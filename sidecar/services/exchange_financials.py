@@ -342,12 +342,21 @@ def _assemble(venue: str, basis: str, periods: Iterable[FiledPeriod]) -> FiledPe
 
 # --- entry point ---------------------------------------------------------------
 
+#: A positive lookup is stable for a day; a failed one gets a much shorter TTL
+#: so a transient miss doesn't lock the answer for the rest of the day, but
+#: two calls a beat apart stay on one answer (R15-LEAD-020: caching only the
+#: successful lookup let a transient NSE miss fall back to Yahoo and the VERY
+#: NEXT call serve NSE — a different provider on consecutive loads).
+_NEGATIVE_TTL_SECONDS = 5 * 60
+
 _cache: dict[str, tuple[float, FiledPeriods]] = {}
+_negative_cache: dict[str, float] = {}
 _basis_cache: dict[str, tuple[float, str | None]] = {}
 
 
 def reset_for_tests() -> None:
     _cache.clear()
+    _negative_cache.clear()
     _basis_cache.clear()
 
 
@@ -366,23 +375,31 @@ def _fetch_and_cache(key: str) -> FiledPeriods | None:
     filed = _fetch(key)
     if filed is not None:
         _cache[key] = (time.monotonic(), filed)
+        _negative_cache.pop(key, None)
+    else:
+        _negative_cache[key] = time.monotonic()
     return filed
 
 
 async def get_filed_periods(listing: str) -> FiledPeriods | None:
     """The exchange-filed periods for an NSE/BSE ``listing`` (``FUSION.NS``,
     ``DAL.BO``), or ``None`` — any other listing, no filings, or any failure.
-    Never raises; a success is cached for a day."""
+    Never raises; a success is cached for a day, a failure for
+    :data:`_NEGATIVE_TTL_SECONDS` (R15-LEAD-020)."""
     if not is_india_listing(listing):
         return None
     key = listing.strip().upper()
     hit = _cache.get(key)
     if hit is not None and time.monotonic() - hit[0] < _TTL_SECONDS:
         return hit[1]
+    missed_at = _negative_cache.get(key)
+    if missed_at is not None and time.monotonic() - missed_at < _NEGATIVE_TTL_SECONDS:
+        return None
     try:
         return await asyncio.to_thread(_fetch_and_cache, key)
     except Exception as exc:  # noqa: BLE001 — a witness must never break the payload
         logger.debug("exchange-filed results unavailable for %s: %s", listing, exc)
+        _negative_cache[key] = time.monotonic()
         return None
 
 
