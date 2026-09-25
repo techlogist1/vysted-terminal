@@ -823,7 +823,8 @@ def _research_guard_seconds(args: Any) -> float:
 
 def _tool_timeout_seconds(event: LLMToolUseEvent) -> float | None:
     """The dispatch wall budget for one registry tool call (E7); ``None`` = none."""
-    if event.name == "research":
+    cap = catalog.CAPABILITY_CATALOG.get(event.name)
+    if cap is not None and cap.timeout_from_args:
         return _research_guard_seconds(event.input)
     return catalog.timeout_for(event.name)
 

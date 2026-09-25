@@ -2035,10 +2035,40 @@ def test_host_actions_and_per_invocation_tools_have_no_timeout() -> None:
     for cap in catalog.CAPABILITY_CATALOG.values():
         if cap.kind in ("host_action", "per_invocation"):
             assert cap.timeout_seconds is None, f"{cap.id}: locals must be exempt"
-        elif cap.kind == "read_handler" and cap.id != "research":
+        elif cap.kind == "read_handler" and not cap.timeout_from_args:
             assert cap.timeout_seconds is not None, f"{cap.id}: registry tool needs a budget"
     # research's guard is computed from args, not the catalog.
     assert catalog.timeout_for("research") is None
+
+
+def test_timeout_from_args_flag_not_name_selects_guard(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-070: the catalog flag, not the literal name "research", picks the
+    args-derived guard, and a fixed budget beside the flag is rejected loudly."""
+    from dataclasses import replace
+
+    from services.agent_tools import catalog
+
+    research_cap = catalog.CAPABILITY_CATALOG["research"]
+    assert research_cap.timeout_from_args is True
+    probe = replace(
+        catalog.CAPABILITY_CATALOG["news"], id="probe", timeout_seconds=None, timeout_from_args=True
+    )
+    monkeypatch.setitem(catalog.CAPABILITY_CATALOG, "probe", probe)
+    monkeypatch.setitem(
+        catalog.CAPABILITY_CATALOG,
+        "research",
+        replace(research_cap, timeout_from_args=False, timeout_seconds=60.0),
+    )
+
+    def _timeout(name: str) -> float | None:
+        return agent_runtime._tool_timeout_seconds(
+            LLMToolUseEvent(tool_call_id="c", name=name, input={"query": "x"})
+        )
+
+    assert _timeout("probe") == 210.0
+    assert _timeout("research") == 60.0
+    with pytest.raises(ValueError, match="timeout_from_args"):
+        replace(research_cap, timeout_seconds=60.0)
 
 
 @pytest.mark.asyncio

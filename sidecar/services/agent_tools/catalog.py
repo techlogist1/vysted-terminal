@@ -190,14 +190,24 @@ class Capability:
     default_grant: bool = True
     #: Per-dispatch wall budget (R10, E7) enforced at the runtime's tool
     #: boundary via ``asyncio.wait_for``. ``None`` = no timeout (host actions /
-    #: per-invocation locals are exempt; ``research`` carries its own outer
-    #: guard computed from its args).
+    #: per-invocation locals are exempt).
     timeout_seconds: float | None = None
+    #: The wall budget comes from the call's own args (``research``: its
+    #: ``wall_seconds``/depth), computed by the runtime, so a fixed
+    #: ``timeout_seconds`` cannot also be set (R15-AGENT-070).
+    timeout_from_args: bool = False
     #: The result carries third-party text (web pages, news, exchange
     #: disclosures, research built from them). The runtime fences it with
     #: ``scrub.wrap_untrusted`` in the model-facing tool message, so injected
     #: instructions read as data, never as the user's request (R15-AGENT-021).
     untrusted_text: bool = False
+
+    def __post_init__(self) -> None:
+        if self.timeout_from_args and self.timeout_seconds is not None:
+            raise ValueError(
+                f"{self.id}: timeout_from_args derives the budget from the call's "
+                "args; a fixed timeout_seconds would be ignored"
+            )
 
     @property
     def internal(self) -> bool:
@@ -511,6 +521,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="research",
             read_only=True,
             kind="read_handler",
+            timeout_from_args=True,
             untrusted_text=True,
         ),
         # --- screener --------------------------------------------------------
@@ -1853,9 +1864,9 @@ def timeout_for(tool_id: str) -> float | None:
 
     Enforced by the runtime's ``_dispatch_tool`` via ``asyncio.wait_for`` for
     registry-backed tools only — host-action locals are frontend round-trips
-    and per-invocation reads are in-memory, both exempt. ``research`` declares
-    no budget here: the runtime computes its outer guard from the call's own
-    ``wall_seconds``/depth args.
+    and per-invocation reads are in-memory, both exempt. A capability with
+    ``timeout_from_args`` (``research``) declares no budget here: the runtime
+    computes its outer guard from the call's own ``wall_seconds``/depth args.
     """
     cap = CAPABILITY_CATALOG.get(tool_id)
     return cap.timeout_seconds if cap else None
