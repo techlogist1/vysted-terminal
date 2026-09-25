@@ -1,0 +1,39 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_dd861175b69c4637817b8a29b1854661", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "", "timeframe": "1d"}}
+{"kind": "tool_use", "tool_call_id": "call_5dfed0bc40b5491c8e1932c29b92f782", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "INFY.NS", "timeframe": "1d"}}
+{"kind": "tool_use", "tool_call_id": "call_e2f1e3926e9d4dc78dff25af2e1d4686", "name": "price_data", "input": {"range": "1mo", "symbol": "TCS.NS", "timeframe": "1d", "asset_class": "equity"}}
+{"kind": "tool_result", "tool_call_id": "call_dd861175b69c4637817b8a29b1854661", "name": "price_data", "ok": false, "error": "missing or non-string symbol"}
+{"kind": "tool_result", "tool_call_id": "call_5dfed0bc40b5491c8e1932c29b92f782", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_e2f1e3926e9d4dc78dff25af2e1d4686", "name": "price_data", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " results"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "100"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "20"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "208"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "00"}
+{"kind": "done", "usage": {"input_tokens": 7069, "output_tokens": 27, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

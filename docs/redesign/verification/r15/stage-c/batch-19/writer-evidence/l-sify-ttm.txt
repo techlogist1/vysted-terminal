@@ -1,0 +1,22 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  54.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_8610055a653d42579294ef17d0db82e6", "name": "financial_statements", "input": {"period": "annual", "statement": "income", "symbol": "SIFY.US"}}
+[  55.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_8610055a653d42579294ef17d0db82e6", "name": "financial_statements", "ok": true, "error": null}
+[  65.3s] heartbeat: {"kind": "heartbeat"}
+[  75.3s] heartbeat: {"kind": "heartbeat"}
+[  85.3s] heartbeat: {"kind": "heartbeat"}
+[  95.3s] heartbeat: {"kind": "heartbeat"}
+[ 105.3s] heartbeat: {"kind": "heartbeat"}
+[ 115.3s] heartbeat: {"kind": "heartbeat"}
+[ 125.3s] heartbeat: {"kind": "heartbeat"}
+[ 134.7s] done: {"kind": "done", "usage": {"input_tokens": 2887, "output_tokens": 41, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I couldn't find SIFY's TTM revenue in USD.
+
+However, I can suggest using the Screener tool to filter for companies with high revenue growth. Would you like me to do that?
+
+=== ok · 134.7s · events {'heartbeat': 12, 'tool_use': 1, 'tool_result': 1, 'delta': 41, 'done': 1} · usage in=2887 out=41 · est $0.00000 · llama3.1:8b
