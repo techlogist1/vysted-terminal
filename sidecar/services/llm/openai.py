@@ -31,7 +31,6 @@ import openai
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
-    LLMErrorEvent,
     LLMMessage,
     LLMModelOption,
     LLMToolUseEvent,
@@ -799,16 +798,8 @@ class OpenAIProvider(LLMProvider):
             if usage is not None and served_model:
                 usage = usage.model_copy(update={"served_model": served_model})
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
-        except openai.OpenAIError as exc:  # pragma: no cover — network path
-            _h = humanize(self._provider_id, exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
-        except Exception as exc:  # pragma: no cover — defensive
-            _h = humanize(self._provider_id, exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
+        except Exception as exc:  # pragma: no cover — any failure ends as a humanized error
+            yield humanize(self._provider_id, exc).to_event()
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe an authenticated endpoint with ``api_key``.

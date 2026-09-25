@@ -12,6 +12,7 @@ import { resetAgentAutonomyStoreForTests, useAgentAutonomyStore } from "@/store/
 import { resetAgentCommandStoreForTests, useAgentCommandStore } from "@/store/agent-command";
 import { useAgentModeStore } from "@/store/agent-mode";
 import { useAgentSpacesStore } from "@/store/agent-spaces";
+import { useWorkspaceStore } from "@/store/workspace";
 import { useAgentsStore, type AgentSummary } from "@/store/agents";
 import { resetBriefStoreForTests } from "@/store/brief";
 import { useChartSyncBus } from "@/store/chart-sync";
@@ -954,8 +955,58 @@ describe("ChatSidebar — R10 brief/error honesty", () => {
     expect(screen.queryByText(/Insufficient Balance/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Details" }));
     expect(screen.getByText(/Insufficient Balance/)).toBeInTheDocument();
-    // Retry survives.
+    // An empty balance fails the same way on a resend: no Retry, a Settings link
+    // (R15-CODE-PLATFORM-038 — this line used to pin "Retry survives").
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Open Settings" })).toBeInTheDocument();
+  });
+
+  it.each(["auth", "provider_402", "model_not_found"])(
+    "no Retry for %s: the row links Settings instead (R15-CODE-PLATFORM-038)",
+    async (code) => {
+      useLLMProvidersStore.setState({
+        providers: [{ id: "anthropic", label: "Anthropic", requiresKey: true }],
+      });
+      streamAgentInvocationMock.mockImplementationOnce(
+        async (
+          _id: unknown,
+          _payload: unknown,
+          handlers: { onEvent: (event: unknown) => void },
+        ) => {
+          handlers.onEvent({ kind: "error", message: `failed with ${code}`, code });
+        },
+      );
+      render(<ChatSidebar />);
+      const input = screen.getByLabelText("Chat input");
+      fireEvent.change(input, { target: { value: "research reliance" } });
+      fireEvent.submit(input.closest("form")!);
+      await waitFor(() => expect(screen.getByText(`failed with ${code}`)).toBeInTheDocument());
+      expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+      const openPanel = useWorkspaceStore.getState().openPanel;
+      const openPanelSpy = vi.fn();
+      useWorkspaceStore.setState({ openPanel: openPanelSpy });
+      fireEvent.click(screen.getByRole("button", { name: "Open Settings" }));
+      useWorkspaceStore.setState({ openPanel });
+      expect(openPanelSpy).toHaveBeenCalledWith("settings");
+    },
+  );
+
+  it("a retryable code (rate_limit) keeps Retry (R15-CODE-PLATFORM-038)", async () => {
+    useLLMProvidersStore.setState({
+      providers: [{ id: "anthropic", label: "Anthropic", requiresKey: true }],
+    });
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({ kind: "error", message: "slow down", code: "rate_limit" });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "research reliance" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText("slow down")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open Settings" })).toBeNull();
   });
 
   it("a legacy plain-string error renders exactly as before (no Details)", async () => {

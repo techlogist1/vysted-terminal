@@ -22,7 +22,6 @@ import groq
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
-    LLMErrorEvent,
     LLMMessage,
     LLMModelOption,
     LLMToolUseEvent,
@@ -197,16 +196,8 @@ class GroqProvider(LLMProvider):
             if finish_reason is None and not tool_acc:
                 return
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
-        except groq.GroqError as exc:  # pragma: no cover — network path
-            _h = humanize("groq", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
-        except Exception as exc:  # pragma: no cover — defensive
-            _h = humanize("groq", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
+        except Exception as exc:  # pragma: no cover — any failure ends as a humanized error
+            yield humanize("groq", exc).to_event()
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``/openai/v1/models`` — the cheapest authenticated call."""

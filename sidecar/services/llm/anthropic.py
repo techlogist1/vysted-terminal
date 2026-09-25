@@ -21,7 +21,6 @@ import anthropic
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
-    LLMErrorEvent,
     LLMMessage,
     LLMModelOption,
     LLMThinkingEvent,
@@ -190,16 +189,8 @@ class AnthropicProvider(LLMProvider):
                     usage=_usage_from_final(final),
                     finish_reason=getattr(final, "stop_reason", None),
                 )
-        except anthropic.AnthropicError as exc:  # pragma: no cover — network path
-            _h = humanize("anthropic", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
-        except Exception as exc:  # pragma: no cover — defensive
-            _h = humanize("anthropic", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
+        except Exception as exc:  # pragma: no cover — any failure ends as a humanized error
+            yield humanize("anthropic", exc).to_event()
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``/v1/models`` — the cheapest authenticated request."""

@@ -52,6 +52,7 @@ import { useOnboardingStore } from "@/store/onboarding";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
+import { useWorkspaceStore } from "@/store/workspace";
 import { MarkdownBody } from "@/modules/research/brief-blocks";
 import type { Region } from "@/lib/region";
 import type {
@@ -1629,8 +1630,13 @@ function MessageNotices({ messageId }: { messageId: string }) {
  * message in the negative color, the NEXT STEP as its own quiet line, and the
  * raw provider text behind a "Details" disclosure (charcoal — telemetry, not
  * alarm). A legacy plain-string error (no structured frame) renders exactly
- * as before. Retry stays.
+ * as before. A bad key, an empty balance or an unknown model fails the same
+ * way on a resend, so those offer Settings instead of Retry
+ * (R15-CODE-PLATFORM-038).
  */
+/** Error codes a resend cannot clear: the fix is in Settings. */
+const SETTINGS_FIX_CODES = new Set(["auth", "provider_402", "model_not_found"]);
+
 function ErrorRow({
   messageId,
   message,
@@ -1642,20 +1648,31 @@ function ErrorRow({
 }) {
   const frame = useMessageNoticesStore((s) => s.errorFrames[messageId]);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const fixInSettings = frame?.code !== undefined && SETTINGS_FIX_CODES.has(frame.code);
   return (
     <div className="text-caption mt-1 flex flex-col gap-1">
       <div className="flex items-center gap-2">
         <span className="text-negative">
           {frame ? message : `Something went wrong — ${message}`}
         </span>
-        {onRetry && (
+        {fixInSettings ? (
           <button
             type="button"
-            onClick={onRetry}
+            onClick={() => useWorkspaceStore.getState().openPanel("settings")}
             className="text-charcoal-300 hover:text-lume shrink-0 underline transition-colors"
           >
-            Retry
+            Open Settings
           </button>
+        ) : (
+          onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="text-charcoal-300 hover:text-lume shrink-0 underline transition-colors"
+            >
+              Retry
+            </button>
+          )
         )}
       </div>
       {frame?.action && <div className="text-charcoal-300">{frame.action}</div>}

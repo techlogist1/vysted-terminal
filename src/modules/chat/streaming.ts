@@ -28,35 +28,17 @@ import type {
 } from "../../../types/ai";
 import type { BriefStepKind, BriefStepStatus } from "../../../types/brief";
 
-/**
- * A structured error frame (R10 D43, Team ERRORS contract): `{kind:"error",
- * message, action?, detail?, code?}`. Structurally assignable to the legacy
- * `{kind:"error", message}` union member, so every existing consumer keeps
- * working; the chat surface reads the extra fields via {@link errorFrameOf}.
- */
-export interface StreamErrorFrame {
-  kind: "error";
-  message: string;
-  /** The next step in plain language ("Top up or switch provider in Settings"). */
-  action?: string;
-  /** The raw provider text — shown behind a "Details" disclosure only. */
-  detail?: string;
-  /** Machine tag ("provider_402", "network", "auth", …). */
-  code?: string;
-}
-
 /** The structured fields of an error event, or null for a legacy plain error. */
 export function errorFrameOf(
   event: LLMStreamEvent,
-): Pick<StreamErrorFrame, "action" | "detail" | "code"> | null {
+): { action?: string; detail?: string; code?: string } | null {
   if (event.kind !== "error") {
     return null;
   }
-  const frame = event as StreamErrorFrame;
-  if (frame.action === undefined && frame.detail === undefined && frame.code === undefined) {
+  if (event.action === undefined && event.detail === undefined && event.code === undefined) {
     return null;
   }
-  return { action: frame.action, detail: frame.detail, code: frame.code };
+  return { action: event.action, detail: event.detail, code: event.code };
 }
 
 /**
@@ -83,9 +65,9 @@ export function isProviderFailure(code: string | undefined): boolean {
 
 /**
  * The extra field a `done` frame carries beside the base union member (C11,
- * R15-AGENT-082): the sidecar's estimated spend for the turn. Same
- * excess-property trick as {@link StreamErrorFrame} — the chat surface reads
- * it via {@link doneFrameOf}.
+ * R15-AGENT-082): the sidecar's estimated spend for the turn. An
+ * excess property beside the union member — the chat surface reads it via
+ * {@link doneFrameOf}.
  */
 interface StreamDoneFrame {
   kind: "done";
@@ -504,9 +486,8 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
   }
   if (kind === "error") {
     // Structured frames (R10 D43) carry action/detail/code; a legacy frame's
-    // bare message passes through untouched. Typed as StreamErrorFrame so the
-    // extra fields survive the union without widening the frozen contract.
-    const frame: StreamErrorFrame = {
+    // bare message passes through untouched.
+    const frame: LLMStreamEvent = {
       kind: "error",
       message: String(payload.message ?? "unknown error"),
       ...(typeof payload.action === "string" && payload.action ? { action: payload.action } : {}),

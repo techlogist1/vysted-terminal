@@ -23,7 +23,6 @@ from google.genai import errors as genai_errors
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
-    LLMErrorEvent,
     LLMMessage,
     LLMModelOption,
     LLMToolUseEvent,
@@ -207,16 +206,8 @@ class GeminiProvider(LLMProvider):
                     update={"web_search_requests": len(search_queries)}
                 )
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
-        except genai_errors.APIError as exc:  # pragma: no cover — network path
-            _h = humanize("gemini", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
-        except Exception as exc:  # pragma: no cover — defensive
-            _h = humanize("gemini", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
+        except Exception as exc:  # pragma: no cover — any failure ends as a humanized error
+            yield humanize("gemini", exc).to_event()
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``models.list`` — the cheapest authenticated call."""

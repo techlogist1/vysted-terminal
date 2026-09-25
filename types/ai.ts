@@ -199,7 +199,16 @@ export type LLMStreamEvent =
   /** `contextWindow`: the lane's token window when it has one (Ollama's
    *  num_ctx), for the composer's context meter (R15-AGENT-040). */
   | { kind: "done"; usage?: LLMUsage; finishReason?: string; contextWindow?: number }
-  | { kind: "error"; message: string };
+  | {
+      kind: "error";
+      message: string;
+      /** The next step in plain language ("Top up or switch provider in Settings"). */
+      action?: string;
+      /** The raw provider text — shown behind a "Details" disclosure only. */
+      detail?: string;
+      /** Machine tag from the sidecar humanizer ("provider_402", "network", "auth", …). */
+      code?: string;
+    };
 
 /** One step of an {@link LLMStreamEvent} `agent_plan` (Track 6 #2). */
 export interface PlanStepView {

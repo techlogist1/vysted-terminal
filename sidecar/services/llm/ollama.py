@@ -24,7 +24,6 @@ import pydantic
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
-    LLMErrorEvent,
     LLMMessage,
     LLMModelOption,
     LLMResearchStepEvent,
@@ -216,10 +215,7 @@ class OllamaProvider(LLMProvider):
                     **kwargs,
                 )
         except Exception as exc:  # noqa: BLE001 — every failure ends as a humanized error
-            _h = humanize("ollama", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
+            yield humanize("ollama", exc).to_event()
             return
 
         try:
@@ -283,16 +279,8 @@ class OllamaProvider(LLMProvider):
             elif hold.held():
                 yield LLMDeltaEvent(text=hold.held())
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
-        except ollama.ResponseError as exc:  # pragma: no cover — network path
-            _h = humanize("ollama", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
-        except Exception as exc:  # pragma: no cover — defensive
-            _h = humanize("ollama", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
+        except Exception as exc:  # pragma: no cover — any failure ends as a humanized error
+            yield humanize("ollama", exc).to_event()
 
     async def validate_key(self, api_key: str | None = None) -> bool:  # noqa: ARG002
         """Ollama needs no key — a successful ``list`` proves the daemon is reachable.
