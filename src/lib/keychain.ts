@@ -73,6 +73,8 @@ export interface KeychainMigrateReport {
   migrated: number;
   /** True when migration had already run (no-op) or in release (nothing to do). */
   already_done: boolean;
+  /** Accounts whose keychain read errored on this call; the next boot retries them. */
+  failed: string[];
 }
 
 /**
