@@ -2637,6 +2637,9 @@ async def test_the_depositary_context_survives_the_stream_chunking(
         "SIFY filed its 2024 20-F in July. ",
         "SIFY's ADR is one of the few Indian tech listings; it files an F-6 and 6-K reports. ",
         "The ADS rose 4% in Q1 FY25, its 3rd gain in two months. ",
+        # batch-15 live (sify-3): a resolver disambiguation is not a ratio.
+        "There are two possible matches: SPIIY (SPIE SA/ADR) and SPIWF (SPIE SA/ADR). ",
+        "The ADR has 3 analyst ratings across 2 exchanges. ",
     ],
 )
 def test_a_marked_number_beside_a_depositary_term_streams_as_is(sentence: str) -> None:

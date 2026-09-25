@@ -1836,6 +1836,10 @@ _MARKED = re.compile(
     r"|(?-i:\b\d{1,2}-[A-Z]{1,2}\b|\b[A-Z]{1,2}-\d{1,2}\b)"
     r"|\b(?:at\s+)?\d{1,2}:\d{2}\s*(?:ET|EST|EDT|PT|IST|UTC|GMT|[ap]\.?m\.?)\b|\bat\s+\d{1,2}:\d{2}\b"
     r"|\b\d+\.\d+\b|\bone(?:\s+of|-)"
+    # A count of something other than shares ("two possible matches", "3
+    # analyst ratings"): a lower-case plural noun, one adjective allowed.
+    rf"|\b{_NUM}\s+(?-i:(?:[a-z]+\s+)?(?!(?:shares?|ords?|units?|stocks?|equities|securities)\b)"
+    r"[a-z]+(?:s|es)\b)"
     # A volume/count, unless stated as N ordinary shares (not "outstanding"):
     # "equals approximately 144869230 ordinary shares" was a live fabrication.
     r"|\b(?:\d{1,3}(?:,\d{3})+|\d{4,})\b"
