@@ -303,10 +303,6 @@ FOREIGN_MARKET_HOSTS: frozenset[str] = frozenset(
 _TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9.&-]*")
 
 
-def _host_matches(host: str, table: frozenset[str]) -> bool:
-    return any(host == entry or host.endswith("." + entry) for entry in table)
-
-
 def name_tokens(name: str) -> list[str]:
     """The DISTINCTIVE tokens of a display name (suffixes/glue dropped)."""
     tokens = [t for t in _TOKEN_RE.findall((name or "").lower()) if len(t) >= 2]
@@ -393,7 +389,7 @@ def _india_context(text_lc: str, host: str) -> bool:
     """Is this row about the Indian ₹ market? — a known Indian finance host, or
     any India/finance marker word-bounded in the title/snippet. This CORROBORATES
     a short-symbol match; it is never entity identity on its own (R13)."""
-    if _host_matches(host, INDIA_FINANCE_HOSTS):
+    if finance.host_matches(host, INDIA_FINANCE_HOSTS):
         return True
     return any(_marker_present(m, text_lc) for m in INDIA_CONTEXT_MARKERS)
 
@@ -404,7 +400,7 @@ def _foreign_shadow(text_lc: str, host: str) -> bool:
     Indian listing — the KSE-100 index, not KSE Ltd on the BSE."""
     if any(m in text_lc for m in FOREIGN_MARKET_MARKERS):
         return True
-    return _host_matches(host, FOREIGN_MARKET_HOSTS)
+    return finance.host_matches(host, FOREIGN_MARKET_HOSTS)
 
 
 def _symbol_only_in_index_form(symbol: str, title_lc: str) -> bool:
@@ -547,9 +543,9 @@ def entity_match(
     verified = str(row.get("verified_symbol") or "").strip().upper()
     if target is not None and verified and verified == target.symbol:
         return 1.0
-    if host and _host_matches(host, JUNK_HOSTS):
+    if host and finance.host_matches(host, JUNK_HOSTS):
         return 0.0
-    if target is not None and target.is_equity_like() and _host_matches(host, CRYPTO_HOSTS):
+    if target is not None and target.is_equity_like() and finance.host_matches(host, CRYPTO_HOSTS):
         return 0.0
     if _is_seo_junk(title):
         return 0.0
