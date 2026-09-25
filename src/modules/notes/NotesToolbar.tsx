@@ -7,8 +7,10 @@
  * hairline-separated groups: Headings · Inline · Lists · Blocks · Link ·
  * [[wikilink]].
  *
- * Each control reads `editor.isActive(x)` for its active state (amber TEXT, not a
- * fill) and runs `editor.chain().focus().toggleX().run()`. Active reads are
+ * Each control reads `editor.isActive(x)` for its active state (a filled
+ * `charcoal-800` surface + brighter text, no colour accent — R9 reserves the
+ * accent for live agent activity) and runs `editor.chain().focus().toggleX().run()`.
+ * Active reads are
  * recomputed only on the editor's `selectionUpdate`/`transaction`/`update`
  * events (subscribed below) so moving the cursor doesn't thrash React render.
  */
@@ -103,7 +105,7 @@ function ToolbarButton({
         "rounded-control flex size-7 items-center justify-center transition-colors",
         "disabled:pointer-events-none disabled:opacity-40",
         active
-          ? "text-charcoal-300"
+          ? "bg-charcoal-800 text-charcoal-100"
           : "text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100",
       )}
     >
