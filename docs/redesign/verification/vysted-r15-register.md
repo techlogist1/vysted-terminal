@@ -2,7 +2,7 @@
 
 887 raw findings -> 643 entries + 76 rejections. critical: 16 . high: 115 . medium: 287 . low: 225
 
-Status: blocked_tier4: 18 . fixed: 385 . needs_gui: 9 . not_a_defect: 5 . open: 212 . removed_with_feature: 14
+Status: blocked_tier4: 18 . fixed: 386 . needs_gui: 9 . not_a_defect: 5 . open: 211 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -1049,6 +1049,6 @@ Status: blocked_tier4: 18 . fixed: 385 . needs_gui: 9 . not_a_defect: 5 . open: 
 | R15-AGENT-092 | high | agent | agent-runtime | A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes | fixed | rc1-verifier:4-adjacent |
 | R15-DATA-114 | medium | data | option-chain | The options-chain provider re-probes today's F&O file on every request because a negative probe is never cached, so a transient error can 502 a request while a good cached day sits in cache | fixed | batch-11-backlog-1 |
 | R15-AGENT-093 | high | agent | agent-runtime | The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures | fixed | batch-11-backlog-2 |
-| R15-CODE-AGENT-033 | medium | code | agent-eval | The agent-eval grader passes a trial whose tool call returned an error, because the tool's ok/error result is not carried in the vy eval stream | open | batch-11-backlog-3 |
+| R15-CODE-AGENT-033 | medium | code | agent-eval | The agent-eval grader passes a trial whose tool call returned an error, because the tool's ok/error result is not carried in the vy eval stream | fixed | batch-11-backlog-3 |
 | R15-CODE-PLATFORM-077 | low | code | lifecycle-upgrade | Data-dir upgrade backups (backups/<old-build>/) are never pruned; each build change adds a full data-dir copy | open | batch-11-backlog-4 |
 | R15-DATA-115 | medium | data | market-data-providers | A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history | fixed | batch-11-backlog-5 |
