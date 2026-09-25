@@ -2084,6 +2084,8 @@ _RESULT_LINE = re.compile(
 )
 #: A blank line and the whitespace after it: where a bound paragraph closes.
 _BLANK_LINE = re.compile(r"\n[ \t]*\n\s*")
+#: A JSON dump's opening bracket: not a markdown link's or a footnote's "[".
+_DUMP_OPEN = re.compile(r"\{|\[\s*[{\"\[]")
 
 
 def _result_block(text: str) -> bool:
@@ -2270,7 +2272,16 @@ def _guard_sentence(
             continue
         if bad and (any(r[2] for r in bad) or (figure and len(bad) == len(inside))):
             note = f"the {bad[0][1]} tool returned no data for this in this turn"
-        elif not inside and not ok_tools and errored and shaped:
+        elif (
+            not inside
+            and not ok_tools
+            and errored
+            and (
+                _result_block(tail)
+                or _DUMP_OPEN.match(clause, len(prose))
+                or _DUMP_OPEN.match(tail.lstrip())
+            )
+        ):
             # Every call of the turn failed, yet a result block streams.
             names = sorted(errored)
             tools = f"{', '.join(names)} tool{'s' * (len(names) > 1)}"

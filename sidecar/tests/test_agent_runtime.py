@@ -3042,6 +3042,12 @@ _INFY_HISTORY = [
             None,
         ),
         ("price_data", _PRICE_ARGS_ERROR, ["You said you bought at ₹1,500."], None),
+        (
+            "price_data",
+            _PRICE_ARGS_ERROR,
+            ["You can check the price on [Yahoo Finance](https://finance.yahoo.com)."],
+            None,
+        ),
     ],
 )
 async def test_a_result_list_with_a_source_or_no_result_shape_streams(
@@ -3053,8 +3059,8 @@ async def test_a_result_list_with_a_source_or_no_result_shape_streams(
 ) -> None:
     """R15-LEAD-030 batch-19 controls: the same result list streams as is when
     price_data returned ok, when an earlier turn's trailer seeds it, or when
-    no tool ran at all; a figure-less list or a user's own figure after an
-    errored call is no result, and streams too."""
+    no tool ran at all; a figure-less list, a user's own figure or a markdown
+    link's bracket after an errored call is no result, and streams too."""
     got = await _scripted_answer(monkeypatch, tool, result, deltas, history)
     assert got == "".join(deltas)
 
