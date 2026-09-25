@@ -2775,6 +2775,16 @@ _FUND_NOTE = "the fundamentals tool returned no data for this in this turn"
             "The price_data tool returned no data for this in this turn, but was unable to "
             "retrieve any income statement due to a provider error.)",
         ),
+        (
+            {"fundamentals": _ERRORED},
+            "The tool was `fundamentals`, which returned a P/E of 25.21.",
+            "The fundamentals tool returned no data for this in this turn.",
+        ),
+        (
+            {"news": _NEWS_OK},
+            "`price_data` shows a 52-week high of 199.62.",
+            _PRICE_NOTE,
+        ),
     ],
 )
 async def test_a_figure_attributed_to_a_tool_with_no_ok_result_is_replaced(
@@ -2783,7 +2793,9 @@ async def test_a_figure_attributed_to_a_tool_with_no_ok_result_is_replaced(
     """R15-LEAD-030 batch-17 probe3 ``fab-camelcase``: 'PriceData returned a
     close of $2.11.' streamed. A camel-cased id is the same tool; and when one
     clause truly reports an ok tool's error while the next attributes a dump
-    or figure to an errored tool, only the attributing clause is replaced."""
+    or figure to an errored tool, only the attributing clause is replaced. A
+    backticked id is cited by the verb after its closing backtick, whatever
+    the figure's unit."""
     assert await _scripted_answer(monkeypatch, tools, {}, [sentence]) == answer
 
 

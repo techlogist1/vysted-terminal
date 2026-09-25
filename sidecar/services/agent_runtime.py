@@ -2137,8 +2137,9 @@ def _guard_sentence(
     refs: list[tuple[int, str, bool]] = []  # (start, tool id, cited)
     for m in ref.finditer(sentence):
         group = m.lastgroup or "bare"
-        start, end = m.span(group)
-        cited = group == "lead" or bool(_ATTRIBUTES.match(sentence, end))
+        start = m.start(group)
+        # From the match end, so a backticked id's closing backtick is behind it.
+        cited = group == "lead" or bool(_ATTRIBUTES.match(sentence, m.end()))
         tool = re.sub(r"[\s_-]", "", m.group(group).lower())
         refs.append((start, canon.get(tool, tool), cited))
     breaks: list[tuple[int, int]] = []
