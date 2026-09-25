@@ -184,7 +184,9 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
           // Switch the chat surface to THIS agent (the row was dead wiring
           // until R7 — it revealed the dock but never changed the persona),
           // then surface the dock.
-          useActiveAgentStore.getState().setActiveAgent(item.id.replace(/^agent:/, ""));
+          if (item.agentSummary) {
+            useActiveAgentStore.getState().setActiveAgent(item.agentSummary.id);
+          }
           useAgentDockStore.getState().setCollapsed(false);
           break;
         case "action":

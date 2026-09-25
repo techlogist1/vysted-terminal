@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CommandPalette } from "@/components/CommandPalette";
 import type { VystedModule } from "@/lib/module-registry";
+import { useActiveAgentStore } from "@/store/active-agent";
 import { useAgentsStore } from "@/store/agents";
 import { resetChartCommandStoreForTests, useChartCommandStore } from "@/store/chart-command";
 import { useCommandPalette } from "@/store/command-palette";
@@ -248,5 +249,13 @@ describe("CommandPalette (cmdk)", () => {
     tickersGroup = screen.getByText("Tickers").closest("[cmdk-group]") as HTMLElement;
     fireEvent.click(within(tickersGroup).getByText("NSE"));
     expect(useChartCommandStore.getState().command).toMatchObject({ symbol: "AMAL", region: "IN" });
+  });
+
+  it("agent row selection uses agentSummary.id", () => {
+    useActiveAgentStore.getState().setActiveAgent(null);
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.click(screen.getByText("Warren Buffett"));
+    expect(useActiveAgentStore.getState().activeAgentId).toBe("buffett");
   });
 });
