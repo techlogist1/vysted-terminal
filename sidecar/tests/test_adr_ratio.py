@@ -102,6 +102,40 @@ def test_a_domestic_reporter_or_a_miss_carries_none(monkeypatch: pytest.MonkeyPa
     assert "ads_ratio" not in asyncio.run(fundamentals_tool._fundamentals({"symbol": "SIFY"}))
 
 
+def test_a_foreign_reporters_statement_carries_the_ratio_too(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Live (batch-15 sify-1) the model reached for financial_statements on the
+    revenue half of the question and stated the ratio beside it."""
+    from models.fundamentals import FinancialStatement, StatementLine
+    from services import provider_registry
+
+    ratio = {"ordinary_shares_per_ads": 6, "statement": "each represented by Six Equity Shares"}
+
+    async def sify(symbol: str) -> Fundamentals:
+        return _fundamentals(financial_currency="INR")
+
+    async def income(symbol: str, period: str) -> FinancialStatement:
+        return FinancialStatement(
+            symbol=symbol,
+            periods=["2026-03-31"],
+            lines=[StatementLine(label="Total Revenue", values={"2026-03-31": 4.6e10})],
+            provider="yfinance",
+        )
+
+    async def lookup(symbol: str) -> dict:
+        return ratio
+
+    monkeypatch.setattr(provider_registry, "get_fundamentals", sify)
+    monkeypatch.setattr(provider_registry, "get_income_statement", income)
+    monkeypatch.setattr(adr_ratio, "lookup", lookup)
+    out = asyncio.run(
+        fundamentals_tool._financial_statements({"symbol": "SIFY", "statement": "income"})
+    )
+    assert out["ok"] is True and out["currency"] == "INR" and out["ads_ratio"] == ratio
+    assert list(out)[:2] == ["ok", "ads_ratio"]  # leads, so the window cap keeps it
+
+
 def test_lookup_caches_a_hit_and_a_miss_and_never_raises(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

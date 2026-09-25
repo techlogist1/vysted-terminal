@@ -168,15 +168,19 @@ async def _result(symbol: str, fundamentals: Any) -> dict[str, Any]:
     one reaches the model. Absent (never guessed) when no 20-F states it. It
     leads the payload: the model-facing view is cut to a share of the context
     window, and a dump with field_meta can outrun a small model's share."""
-    payload: dict[str, Any] = {"ok": True}
-    if getattr(fundamentals, "financial_currency", None):
-        from services import adr_ratio
-
-        ratio = await adr_ratio.lookup(symbol)
-        if ratio is not None:
-            payload["ads_ratio"] = ratio
+    payload: dict[str, Any] = {"ok": True, **await _ads_ratio(symbol, fundamentals)}
     payload["fundamentals"] = fundamentals.model_dump(by_alias=True, mode="json")
     return payload
+
+
+async def _ads_ratio(symbol: str, fundamentals: Any) -> dict[str, Any]:
+    """``{"ads_ratio": ...}`` for a foreign reporter whose 20-F states one, else ``{}``."""
+    if not getattr(fundamentals, "financial_currency", None):
+        return {}
+    from services import adr_ratio
+
+    ratio = await adr_ratio.lookup(symbol)
+    return {} if ratio is None else {"ads_ratio": ratio}
 
 
 async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
@@ -252,17 +256,19 @@ _STATEMENT_FETCHERS = {
 }
 
 
-async def _statement_currency(symbol: str) -> str | None:
-    """The currency the statements are reported in: ``financial_currency``
-    (an ADR such as SIFY reports in INR), else the trading ``currency``.
-    ``None`` when the lookup fails — never a guessed code."""
+async def _statement_context(symbol: str) -> tuple[str | None, dict[str, Any]]:
+    """The currency the statements are reported in — ``financial_currency``
+    (an ADR such as SIFY reports in INR), else the trading ``currency``, ``None``
+    when the lookup fails, never a guessed code — and the ``ads_ratio`` entry
+    a foreign reporter's statement carries (R15-AGENT-090: the model reaches
+    for this tool on a revenue question and states the ratio beside it)."""
     from services import provider_registry
 
     try:
         fund = await provider_registry.get_fundamentals(symbol)
     except Exception:  # noqa: BLE001 — the statement still ships, currency unknown
-        return None
-    return fund.financial_currency or fund.currency
+        return None, {}
+    return fund.financial_currency or fund.currency, await _ads_ratio(symbol, fund)
 
 
 async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
@@ -291,8 +297,8 @@ async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
 
     fetch = getattr(provider_registry, _STATEMENT_FETCHERS[statement])
     try:
-        result, currency = await asyncio.gather(
-            fetch(symbol, period=period), _statement_currency(symbol)
+        result, (currency, ads_ratio) = await asyncio.gather(
+            fetch(symbol, period=period), _statement_context(symbol)
         )
     except ProviderError as exc:
         return {
@@ -306,6 +312,7 @@ async def _financial_statements(args: dict[str, Any]) -> dict[str, Any]:
     periods = sorted(result.periods, reverse=True)[:_MAX_STATEMENT_PERIODS]
     return {
         "ok": True,
+        **ads_ratio,
         "symbol": result.symbol,
         "statement": statement,
         "period": period,
