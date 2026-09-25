@@ -27,6 +27,22 @@ describe("csv helpers", () => {
       expect(escapeCsvCell('a "quoted" word')).toBe('"a ""quoted"" word"');
       expect(escapeCsvCell("line1\nline2")).toBe('"line1\nline2"');
     });
+
+    it("R15-UI-079: prefixes a formula-trigger leading char so no text cell opens a live formula", () => {
+      expect(escapeCsvCell('=HYPERLINK("http://example.invalid","x")')).toBe(
+        '"\'=HYPERLINK(""http://example.invalid"",""x"")"',
+      );
+      expect(escapeCsvCell("+1")).toBe("'+1");
+      expect(escapeCsvCell("-1")).toBe("'-1");
+      expect(escapeCsvCell("@x")).toBe("'@x");
+      expect(escapeCsvCell("\tx")).toBe("'\tx");
+      expect(escapeCsvCell("\rx")).toBe('"\'\rx"');
+    });
+
+    it("R15-UI-079: leaves a plain numeric VALUE unprefixed (not text a spreadsheet parses as a formula)", () => {
+      expect(escapeCsvCell(-12.5)).toBe("-12.5");
+      expect(escapeCsvCell(42)).toBe("42");
+    });
   });
 
   describe("buildCsv", () => {

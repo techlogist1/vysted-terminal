@@ -7,10 +7,19 @@
 
 import { saveTextArtifact, type ExportResult } from "@/lib/export-artifact";
 
-/** Escape a single CSV cell value per RFC-4180. */
+/** A leading `=`, `+`, `-`, `@`, tab, or CR opens a live formula in
+ *  Excel/Sheets/LibreOffice (CSV formula injection, R15-UI-079) — e.g. a
+ *  holding note the agent wrote from web text. */
+const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+
+/** Escape a single CSV cell value per RFC-4180, and neutralize a leading
+ *  formula-trigger character on TEXT cells with a single-quote prefix (the
+ *  spreadsheet-standard escape) — a plain numeric value like -12.5 is never
+ *  parsed as a formula, so it is left unprefixed. */
 export function escapeCsvCell(value: unknown): string {
   const s = value === null || value === undefined ? "" : String(value);
-  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  const guarded = typeof value !== "number" && FORMULA_TRIGGER.test(s) ? `'${s}` : s;
+  return /[",\n\r]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded;
 }
 
 /** Build a CSV string from a header row + data rows (each an array of cells). */
