@@ -3,6 +3,7 @@
 Routes:
 
   - ``POST /workflow/run``        — SSE stream of :class:`WorkflowRunEvent`
+  - ``GET  /workflow/node-types`` — the node type ids the engine can run
   - ``POST /workflow/save``       — persist a workflow spec (upsert)
   - ``GET  /workflow/saved``      — list saved workflows (+ ``unreadable`` rows)
   - ``GET  /workflow/saved/{id}`` — load one saved workflow
@@ -119,6 +120,12 @@ async def run_workflow(payload: WorkflowRunRequest) -> StreamingResponse:
                 task.cancel()
 
     return StreamingResponse(_generator(), media_type="text/event-stream")
+
+
+@router.get("/node-types")
+def list_node_types() -> list[str]:
+    """The node type ids the engine can run (those with a registered handler)."""
+    return workflow_engine.registered_node_types()
 
 
 # ---------------------------------------------------------------------------

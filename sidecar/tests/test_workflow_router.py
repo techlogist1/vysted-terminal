@@ -50,3 +50,12 @@ def test_resume_from_is_rejected_not_silently_rerun(client: TestClient) -> None:
     # The resume target field is gone from the contract, not ignored.
     target = client.post("/workflow/run", json={"spec": _spec([]), "resumeFrom": "a"})
     assert target.status_code == 422
+
+
+def test_node_types_lists_exactly_the_runnable_types(client: TestClient) -> None:
+    from services import workflow_engine
+
+    listed = client.get("/workflow/node-types").json()
+    assert listed == workflow_engine.registered_node_types()
+    assert "transform.code" in listed
+    assert "example.wait-for-decision" not in listed  # a plugin NodeSpec id

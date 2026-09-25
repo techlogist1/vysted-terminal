@@ -19,8 +19,8 @@ quant, earnings/analyst research, screener). The core built-ins:
   - ``transform.json_path``      — extract a value by dotted path
   - ``flow.sleep``               — bounded ``asyncio.sleep``
 
-Plugin-contributed node types use the same registration surface via the
-locked ``VystedPlugin.getNodes()`` capability.
+Plugin-contributed node specs have no handler here (no TS→Python node
+bridge exists), so the engine cannot run them; see ``workflow_engine``.
 
 :func:`register_all` is the single entry point — ``app.create_app`` calls
 it, so the production boot and every TestClient build register the same

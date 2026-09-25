@@ -7,10 +7,11 @@ emits :class:`WorkflowRunEvent` events through an optional ``on_event``
 callback for SSE streaming.
 
 The engine is intentionally minimal — concrete node-type handlers are
-the v0.5.0 Teammate W deliverable, registered via :func:`register_node_type`
-into a module-level registry. Plugin-contributed nodes (via the
-``contributesNodes`` capability on the locked ``VystedPlugin`` contract)
-register through the same surface.
+Python callables registered via :func:`register_node_type` into a
+module-level registry (``services/workflow_nodes``). A plugin-contributed
+``NodeSpec`` (``contributesNodes`` on ``VystedPlugin``) is palette-only: no
+TS→Python bridge registers a handler for it, so a spec using one is rejected
+by :func:`_validate_spec`. ``GET /workflow/node-types`` lists what can run.
 
 Why custom, not Prefect/Dagster:
 - Prefect/Dagster are server orchestrators, wrong shape for a desktop
