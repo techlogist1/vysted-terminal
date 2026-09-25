@@ -97,9 +97,7 @@ def grade(
     # before the runtime emitted tool_result frames have none and grade as before.
     last_result: dict[str, dict[str, Any]] = {}
     for e in events:
-        if e.get("kind") == "tool_result" and not str(e.get("tool_call_id") or "").endswith(
-            "__autobrief"
-        ):
+        if e.get("kind") == "tool_result":
             last_result[e.get("name") or ""] = e
     for name, result in last_result.items():
         if result.get("ok") is False:
