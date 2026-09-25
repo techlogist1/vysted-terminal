@@ -272,9 +272,9 @@ export function planCustom(specs: CustomPanelSpec[], opts?: LayoutPlanOptions): 
 }
 
 /**
- * IMPERATIVE applier for a custom arrange — mirrors `applyLayoutTemplate`'s
- * rAF-batched apply but from a `planCustom` plan. Idempotent via the shared
- * `applyPlan` (reuses already-open panels by id).
+ * IMPERATIVE applier for a custom arrange — `applyLayoutTemplate` from a
+ * `planCustom` plan. Synchronous, idempotent via the shared `applyPlan`
+ * (reuses already-open panels by id).
  */
 export function applyCustomLayout(
   api: DockviewApi,
@@ -285,12 +285,7 @@ export function applyCustomLayout(
   if (plan.panels.length === 0) {
     return;
   }
-  const run = () => applyPlan(api, plan);
-  if (typeof requestAnimationFrame === "function") {
-    requestAnimationFrame(run);
-  } else {
-    run();
-  }
+  applyPlan(api, plan);
 }
 
 /**
@@ -306,23 +301,16 @@ export function applyCustomLayout(
  * Per-panel minimum-size constraints are applied automatically by `PanelHost`'s
  * `onDidAddPanel` subscription, so we never call `setConstraints` here.
  *
- * The whole re-tile is wrapped in a single `requestAnimationFrame` (when
- * available) so dockview batches the add/move/maximize work into one layout
- * pass; in a non-browser/test environment (no rAF) it runs synchronously.
+ * Synchronous, like `applyLayoutMode`: the caller reports success (and reads
+ * the layout back) on the next line, and a throw reaches its error path. An
+ * rAF deferral throttles to a halt in an occluded window.
  */
 export function applyLayoutTemplate(
   api: DockviewApi,
   template: LayoutTemplate,
   opts?: LayoutPlanOptions,
 ): void {
-  const plan = planLayout(template, opts);
-  const run = () => applyPlan(api, plan);
-
-  if (typeof requestAnimationFrame === "function") {
-    requestAnimationFrame(run);
-  } else {
-    run();
-  }
+  applyPlan(api, planLayout(template, opts));
 }
 
 // --- fit-aware arrangement (Track 4) ----------------------------------------
@@ -385,13 +373,7 @@ export function fitLayoutTemplate(
   const width = typeof api.width === "number" && api.width > 0 ? api.width : DEFAULT_FIT_WIDTH;
 
   if (template === "research-cockpit" && width < RESEARCH_COCKPIT_MIN_WIDTH) {
-    const plan = researchCockpitFitDowngrade();
-    const run = () => applyPlan(api, plan);
-    if (typeof requestAnimationFrame === "function") {
-      requestAnimationFrame(run);
-    } else {
-      run();
-    }
+    applyPlan(api, researchCockpitFitDowngrade());
     return { applied: "essentials-research", downgraded: true };
   }
   if (template === "macro-scan" && width < MACRO_SCAN_MIN_WIDTH) {
@@ -582,7 +564,7 @@ export interface ContentAwareResult {
 
 /**
  * IMPERATIVE content-aware applier: plan over the panels currently open on
- * `api` and re-tile (rAF-batched like the other appliers). Never opens or
+ * `api` and re-tile (synchronously, like the other appliers). Never opens or
  * closes a panel.
  */
 export function applyContentAwareLayout(
@@ -595,12 +577,7 @@ export function applyContentAwareLayout(
   if (plan.panels.length === 0) {
     return { anchor: undefined, count: 0 };
   }
-  const run = () => applyPlan(api, plan);
-  if (typeof requestAnimationFrame === "function") {
-    requestAnimationFrame(run);
-  } else {
-    run();
-  }
+  applyPlan(api, plan);
   return { anchor: plan.focus, count: plan.panels.length };
 }
 
@@ -738,8 +715,8 @@ export function applyResearchSpaceLayout(api: DockviewApi): void {
   applyPlan(api, { panels, focus: PANEL.brief.id });
 }
 
-/** Apply a resolved plan to the dockview api. Extracted so the rAF wrapper above
- *  stays a thin scheduler and the placement logic is testable in isolation. */
+/** Apply a resolved plan to the dockview api — the one placement routine every
+ *  applier above calls synchronously. */
 function applyPlan(api: DockviewApi, plan: LayoutPlan): void {
   // Track which panel ids are present so a later panel's `referencePanel` only
   // resolves against a panel that actually exists (open before this pass, or

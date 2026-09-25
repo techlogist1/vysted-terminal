@@ -1,5 +1,5 @@
 import type { DockviewApi } from "dockview";
-import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 
 import templateCatalog from "../../sidecar/config/layout_templates.json";
 import { DEFAULT_PANELS } from "@/config/default-layout";
@@ -208,17 +208,6 @@ function makeFakeApi() {
 }
 
 describe("applyLayoutTemplate (smoke)", () => {
-  // Force the synchronous branch of the applier: stub out requestAnimationFrame
-  // so the re-tile runs inline (jsdom may or may not provide rAF), then restore
-  // the original after the suite.
-  const originalRaf = globalThis.requestAnimationFrame;
-  beforeEach(() => {
-    (globalThis as { requestAnimationFrame?: unknown }).requestAnimationFrame = undefined;
-  });
-  afterAll(() => {
-    globalThis.requestAnimationFrame = originalRaf;
-  });
-
   it("adds the planned panels and maximizes for single-focus", () => {
     const api = makeFakeApi();
     applyLayoutTemplate(api, "single-focus");
@@ -271,6 +260,35 @@ describe("applyLayoutTemplate (smoke)", () => {
   });
 });
 
+describe("appliers run synchronously (R15-AGENT-078)", () => {
+  const originalRaf = globalThis.requestAnimationFrame;
+  afterAll(() => {
+    globalThis.requestAnimationFrame = originalRaf;
+  });
+
+  it("applyLayoutTemplate/applyCustomLayout apply without a rAF flush", () => {
+    // A frame that never fires (an occluded window): the layout must still land.
+    globalThis.requestAnimationFrame = vi.fn(() => 0);
+    const templateApi = makeFakeApi();
+    applyLayoutTemplate(templateApi, "research-cockpit");
+    expect(templateApi.panels.map((p) => p.id)).toEqual([
+      "chart",
+      "equity-overview",
+      "brief",
+      "news",
+    ]);
+
+    const customApi = makeFakeApi();
+    applyCustomLayout(customApi, [{ panel: "chart" }, { panel: "news" }]);
+    expect(customApi.panels.map((p) => p.id)).toEqual(["chart", "news"]);
+
+    const fitApi = makeFakeApiWithWidth(900);
+    fitLayoutTemplate(fitApi, "research-cockpit");
+    expect(fitApi.panels.map((p) => p.id)).toEqual(["chart", "brief"]);
+    expect(globalThis.requestAnimationFrame).not.toHaveBeenCalled();
+  });
+});
+
 /** A fake api with a configurable viewport width for the fit-aware tests. */
 function makeFakeApiWithWidth(width: number) {
   const api = makeFakeApi() as ReturnType<typeof makeFakeApi> & { width: number; height: number };
@@ -280,14 +298,6 @@ function makeFakeApiWithWidth(width: number) {
 }
 
 describe("fitLayoutTemplate (Track 4 — fit-aware arrangement)", () => {
-  const originalRaf = globalThis.requestAnimationFrame;
-  beforeEach(() => {
-    (globalThis as { requestAnimationFrame?: unknown }).requestAnimationFrame = undefined;
-  });
-  afterAll(() => {
-    globalThis.requestAnimationFrame = originalRaf;
-  });
-
   it("keeps the full research-cockpit on a wide display", () => {
     const api = makeFakeApiWithWidth(1920);
     const result = fitLayoutTemplate(api, "research-cockpit");
@@ -341,14 +351,6 @@ describe("applyResearchSpaceLayout (003 per-stock research space)", () => {
 });
 
 describe("applyPlan moves already-open panels (R7 fake-split fix)", () => {
-  const originalRaf = globalThis.requestAnimationFrame;
-  beforeEach(() => {
-    (globalThis as { requestAnimationFrame?: unknown }).requestAnimationFrame = undefined;
-  });
-  afterAll(() => {
-    globalThis.requestAnimationFrame = originalRaf;
-  });
-
   /** A fake api seeded with ALREADY-OPEN panels sharing one group (tabs). */
   function makeSeededApi(ids: string[]) {
     const sharedGroup = { id: "group-1" };
