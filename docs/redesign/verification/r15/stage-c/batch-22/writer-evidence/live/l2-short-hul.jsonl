@@ -1,0 +1,48 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_7eb3c3a7643f4d9aa9d8bdd7912e87c7", "name": "price_data", "input": {"symbol": "TCS.NS", "timeframe": "1d"}}
+{"kind": "tool_use", "tool_call_id": "call_36b08e2498c24704b67cb2dbc1f11fc9", "name": "price_data", "input": {"symbol": "HINDUNILVR.ZZ", "timeframe": "1d"}}
+{"kind": "tool_use", "tool_call_id": "call_19e93015100f4d519f03ccb05f485788", "name": "price_data", "input": {"symbol": "TCS.NS"}}
+{"kind": "tool_use", "tool_call_id": "call_db6f31eb5e8d434095b132b761c4eef4", "name": "price_data", "input": {"symbol": "HUL"}}
+{"kind": "tool_result", "tool_call_id": "call_7eb3c3a7643f4d9aa9d8bdd7912e87c7", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_36b08e2498c24704b67cb2dbc1f11fc9", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'HINDUNILVR.ZZ' from 'yfinance'"}
+{"kind": "tool_result", "tool_call_id": "call_19e93015100f4d519f03ccb05f485788", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_db6f31eb5e8d434095b132b761c4eef4", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'HUL' from 'yfinance'"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "208"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "Unfortunately"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " H"}
+{"kind": "delta", "text": "UL"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 11393, "output_tokens": 30, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

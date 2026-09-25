@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import math
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from itertools import combinations
@@ -233,42 +234,115 @@ def _distinctive(word: str) -> bool:
     return len(word) >= 4 and word.isalpha() and word not in symbol_resolver._generic_tokens()
 
 
-def aliases(base: str, user_text: str = "") -> set[str]:
+class Initialism(str):
+    """An upper-case initialism alias ("SBI", "L&T"), matched case-sensitively
+    (:func:`mention_end`): in lower case, a short form is often an English
+    word ("and", "all")."""
+
+
+_INITIALISM_SKIP = frozenset({"of", "the", "and"})
+#: Words an initialism is written both with and without ("SBI" and "SB" for
+#: State Bank of India, "RIL" and "RI" for Reliance Industries Limited).
+_INITIALISM_OPTIONAL = frozenset(
+    {"limited", "ltd", "india", "industries", "corporation", "company"}
+)
+
+
+def _initialisms(words: list[str], suffix: list[str]) -> set[str]:
+    """The initialisms of a name of two or more ``words`` (its corporate
+    ``suffix`` stripped), ``&`` kept, three characters or more: the words
+    with each leading run of the suffix's optional words ("TCS", "RIL",
+    "HDFC" of Housing Development Finance Corporation Limited), and the
+    words without their optional ones."""
+    if len([w for w in words if w != "&"]) < 2:
+        return set()
+    tail = [w for w in suffix if w in _INITIALISM_OPTIONAL]
+    forms = [words + tail[:k] for k in range(len(tail) + 1)]
+    forms.append([w for w in words if w not in _INITIALISM_OPTIONAL])
+    out: set[str] = set()
+    for form in forms:
+        letters = "".join(
+            w[0].upper() for w in form if w not in _INITIALISM_SKIP and (w == "&" or w[0].isalnum())
+        )
+        if len(letters) >= 3:
+            out.add(Initialism(letters))
+    return out
+
+
+def payload_names(result_str: str) -> list[str]:
+    """Every ``name``, ``longName`` or ``shortName`` string of a tool result's
+    JSON, at any depth: the names the result itself gives its subject."""
+    try:
+        stack: list[Any] = [json.loads(result_str)]
+    except (TypeError, ValueError):
+        return []
+    out: list[str] = []
+    while stack:
+        node = stack.pop()
+        if isinstance(node, dict):
+            out += [
+                v
+                for k, v in node.items()
+                if k in ("name", "longName", "shortName") and isinstance(v, str)
+            ]
+            stack.extend(node.values())
+        elif isinstance(node, list):
+            stack.extend(node)
+    return out
+
+
+def aliases(base: str, names: Iterable[str] = ()) -> set[str]:
     """What prose may call the subject ``base`` by (R15-LEAD-030): the symbol
-    base; its company name from the resolver masters, lower-cased with the
-    corporate suffix stripped ("infosys", "state bank of india"); the name's
-    first two words when it has three or more ("state bank"); its first word
-    when distinctive (four or more letters, not common across the masters:
-    "wipro", never "tata"); and any distinctive name word ``user_text`` holds.
+    base, and for each of its names (the resolver masters, the curated
+    marquee family keys, and ``names``: the call's payload names and the
+    queries ``resolve_symbol`` bound to it this turn), the name lower-cased
+    with the corporate suffix stripped ("state bank of india"), its first two
+    words when it has three or more ("state bank"), every distinctive word
+    (four or more letters, not common across the masters: "airtel", never
+    "tata") and its upper-case initialisms ("SBI", "L&T").
     ponytail: the private master readers avoid a clash with pending
-    symbol_resolver edits (a public accessor can replace them); a first-word
-    alias that is also a common word ("state") over-replaces only an
-    ungrounded figure beside a call that errored, which fails safe."""
+    symbol_resolver edits (a public accessor can replace them); two-letter
+    initialisms ("SB", "BA") are dropped as too common, so an errored subject
+    written that way falls to the FAIL-SAFE rule instead; a common-word alias
+    ("state") over-replaces only an ungrounded figure, which fails safe."""
     out = {base}
-    names = [
+    masters = [
         symbol_resolver._nse_master().get(base, ("",))[0],
         symbol_resolver._bse_master().get(base, ("",))[0],
         symbol_resolver._us_master().get(base, ""),
     ]
-    for name in filter(None, names):
-        stripped = symbol_resolver._strip_corporate_suffix(name.lower())
-        words = stripped.split()
-        out.add(stripped)
-        if len(words) >= 3:
+    marquee = [
+        key
+        for key, entry in symbol_resolver._marquee_aliases().items()
+        if isinstance(entry, dict) and entry.get("primary") == base
+    ]
+    for name in filter(None, [*masters, *marquee, *names]):
+        lowered = re.sub(r"\s*&\s*", " & ", name.lower())
+        words = symbol_resolver._strip_corporate_suffix(lowered).split()
+        if not words:
+            continue
+        suffix = re.findall(r"[a-z]+", " ".join(lowered.split()[len(words) :]))
+        out.add(" ".join(words))
+        if len(words) >= 3 and words[1] != "&":
             out.add(" ".join(words[:2]))
-        if _distinctive(words[0]):
-            out.add(words[0])
-        out |= {w for w in words if _distinctive(w) and mentions(user_text, w)}
+        out |= {w for w in words if _distinctive(w)}
+        out |= _initialisms(words, suffix)
     return out
 
 
 def mention_end(text: str, subject: str) -> int:
     """Where the last mention of ``subject`` in ``text`` ends, or -1: a whole
-    word or phrase, with or without an exchange suffix, in any case."""
-    phrase = re.escape(subject).replace(r"\ ", r"\s+")
+    word or phrase, with or without an exchange suffix, in any case but an
+    :class:`Initialism`'s own; ``&`` with or without spaces ("L & T")."""
+    words = re.sub(r"\s*&\s*", " & ", subject).split()
+    phrase = "".join(
+        (r"\s*" if "&" in (w, words[i - 1]) else r"\s+") * bool(i) + re.escape(w)
+        for i, w in enumerate(words)
+    )
+    flags = 0 if isinstance(subject, Initialism) else re.IGNORECASE
     end = -1
     for m in re.finditer(
-        rf"(?<![A-Za-z0-9]){phrase}(?:\.[A-Za-z]{{1,4}})?(?![A-Za-z0-9])", text, re.IGNORECASE
+        rf"(?<![A-Za-z0-9]){phrase}(?:\.[A-Za-z]{{1,4}})?(?![A-Za-z0-9])", text, flags
     ):
         end = m.end()
     return end
@@ -282,12 +356,14 @@ def mentions(text: str, subject: str) -> bool:
 __all__ = [
     "Figure",
     "Grounding",
+    "Initialism",
     "aliases",
     "derived",
     "figures",
     "mention_end",
     "mentions",
     "numbers",
+    "payload_names",
     "payload_numbers",
     "subjects",
 ]

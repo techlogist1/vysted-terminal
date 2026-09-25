@@ -3985,11 +3985,6 @@ async def test_a_clause_inherits_the_paragraph_subject(
             "q?",
             ["Infosys could not be refreshed. TCS held firm. It is up 1.4% on the week."],
         ),
-        (  # a paragraph after a blank line inherits nothing from the one before
-            _INFY_ERR_TCS_OK,
-            "q?",
-            ["Infosys could not be refreshed.\n\n", "IT stocks rose 1.4% this week."],
-        ),
     ],
 )
 async def test_a_true_statement_beside_an_error_streams(
@@ -4000,7 +3995,9 @@ async def test_a_true_statement_beside_an_error_streams(
 ) -> None:
     """R15-LEAD-030 batch-21 controls: an acknowledgement with no figure or a
     grounded one, a company-name clause on an ok subject, and a clause whose
-    paragraph last named an ok subject (or none) all stream unchanged."""
+    paragraph last named an ok subject all stream unchanged. (A subjectless
+    figure after a blank line is rule 2c's, batch-22: see
+    test_an_ungrounded_figure_on_no_ok_subject_fails_safe.)"""
     got = await _scripted_calls(monkeypatch, calls, deltas, prompt)
     assert got == "".join(deltas)
 
@@ -4045,3 +4042,243 @@ async def test_a_replaced_fence_of_any_commonmark_form_leaves_prose(
     calls = [("fundamentals", {"symbol": "TATAMOTORS.NS"}, _ERR)]
     got = await _scripted_calls(monkeypatch, calls, deltas)
     assert got == f"{_FUND_NOTE_CAP}.\n\nHope that helps.\n"
+
+
+# --- R15-LEAD-030/036 batch-22: unclosed fences, short names, rule 2c ---------
+
+_QUOTE_NOTE = "The quote tool returned no data for this in this turn."
+_TCS_OK_SBIN_ERR = [
+    ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+    ("quote", {"symbol": "SBIN.NS"}, _ERR),
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("calls", "deltas", "answer"),
+    [
+        (  # batch-21 unclosed.out u-tilde-unclosed / fresh2.out f036-unclosed-tilde
+            [("fundamentals", {"symbol": "TCS.NS"}, _ERR)],
+            ['Output:\n\n~~~json\n{"pe": 31.7}\n'],
+            f"{_FUND_NOTE_CAP}.\n\n",
+        ),
+        (  # batch-21 unclosed.out u-backtick-unclosed
+            [("fundamentals", {"symbol": "TCS.NS"}, _ERR)],
+            ['Output:\n\n```json\n{"pe": 31.7}\n'],
+            f"{_FUND_NOTE_CAP}.\n\n",
+        ),
+        (  # batch-21 unclosed.out u-backtick-unclosed-prose
+            [("price_data", {"symbol": "SBIN.NS"}, _ERR)],
+            ["Here:\n\n```\nSBIN.NS last close ₹812.40\n"],
+            f"{_PRICE_NOTE}\n\n",
+        ),
+        (  # an unclosed dump with no intro and no trailing newline
+            [("fundamentals", {"symbol": "TCS.NS"}, _ERR)],
+            ['~~~json\n{"pe": 31.7}'],
+            f"{_FUND_NOTE_CAP}.\n",
+        ),
+        (  # mixed: the unclosed fence speaks of the errored subject
+            [
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+                ("quote", {"symbol": "WIPRO.NS"}, _ERR),
+            ],
+            ["TCS closed at ₹3,235.50.\n\n~~~\nWIPRO.NS close: 248.15\n"],
+            f"TCS closed at ₹3,235.50.\n\n{_QUOTE_NOTE}\n\n",
+        ),
+        (  # mixed: the stream ends mid-table on the errored subject
+            _TCS_OK_SBIN_ERR,
+            ["TCS closed at ₹3,235.50.\n\n| Stock | Close |\n|---|---|\n| SBI | ₹812.40"],
+            f"TCS closed at ₹3,235.50.\n\n{_QUOTE_NOTE}\n",
+        ),
+        (  # mixed: the stream ends mid-list on the errored subject
+            _TCS_OK_SBIN_ERR,
+            ["TCS closed at ₹3,235.50.\n\n- SBIN.NS: ₹812.40"],
+            f"TCS closed at ₹3,235.50.\n\n{_QUOTE_NOTE}",
+        ),
+    ],
+)
+async def test_an_unclosed_block_at_the_end_of_the_stream_is_judged_whole(
+    monkeypatch: pytest.MonkeyPatch,
+    calls: list[tuple[str, dict[str, Any], dict[str, Any]]],
+    deltas: list[str],
+    answer: str,
+) -> None:
+    """R15-LEAD-036 batch-22: a fence the stream ended inside was judged
+    without its last line, taken for the closer, so a one-line dump
+    ("~~~json\\n{"pe": 31.7}\\n") had an empty body and streamed. A fence
+    still open at the end is judged whole and replaced like a closed one,
+    markers included; so is a table or list the stream ends inside."""
+    assert await _scripted_calls(monkeypatch, calls, deltas) == answer
+
+
+@pytest.mark.asyncio
+async def test_an_unclosed_fence_on_an_ok_subject_streams_intact(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-036 batch-22 control: an unclosed fence whose figures an ok
+    call carries streams as written, beside an errored call."""
+    calls = [("price_data", {"symbol": "TCS.NS"}, _TCS_PX), ("quote", {"symbol": "WIPRO.NS"}, _ERR)]
+    deltas = ["~~~\nTCS.NS 3235.5\n"]
+    assert await _scripted_calls(monkeypatch, calls, deltas) == deltas[0]
+
+
+_BIG_BLUE_RESOLVED = {
+    "ok": True,
+    "query": "Big Blue",
+    "status": "bound",
+    "resolved": {"symbol": "IBM", "name": "International Business Machines Corp"},
+}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("calls", "prompt", "deltas", "kept", "gone"),
+    [
+        (  # batch-21 fresh.out w-mixed-sbi-abbrev
+            _TCS_OK_SBIN_ERR,
+            "q?",
+            ["TCS.NS closed at ₹3,235.50. SBI last traded at ₹812.40.\n"],
+            "TCS.NS closed at ₹3,235.50.",
+            ["812.40"],
+        ),
+        (  # batch-21 fresh2.out n-BHARTIARTL.NS
+            [
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+                ("quote", {"symbol": "BHARTIARTL.NS"}, _ERR),
+            ],
+            "q?",
+            ["TCS.NS closed at ₹3,235.50. Airtel last traded at ₹1,874.20.\n"],
+            "TCS.NS closed at ₹3,235.50.",
+            ["1,874.20"],
+        ),
+        (  # batch-21 fresh2.out n-LT.NS
+            [("price_data", {"symbol": "TCS.NS"}, _TCS_PX), ("quote", {"symbol": "LT.NS"}, _ERR)],
+            "q?",
+            ["TCS.NS closed at ₹3,235.50. L&T last traded at ₹3,512.00.\n"],
+            "TCS.NS closed at ₹3,235.50.",
+            ["3,512"],
+        ),
+        (  # the user's short names, "L & T" spaced, the errored one in a row
+            [
+                ("price_data", {"symbol": "BHARTIARTL.NS"}, _ERR),
+                ("price_data", {"symbol": "TCS.NS"}, _TCS_PX),
+                ("price_data", {"symbol": "LT.NS"}, _ERR),
+            ],
+            "How are SBI, Airtel, TCS and L & T doing?",
+            ["Closes:\n- TCS: ₹3,235.50\n- L & T: ₹3,512.00\n\nAirtel is at ₹1,874.20."],
+            "- TCS: ₹3,235.50\n",
+            ["3,512", "1,874.20"],
+        ),
+    ],
+)
+async def test_an_errored_subject_named_by_a_short_name_is_replaced(
+    monkeypatch: pytest.MonkeyPatch,
+    calls: list[tuple[str, dict[str, Any], dict[str, Any]]],
+    prompt: str,
+    deltas: list[str],
+    kept: str,
+    gone: list[str],
+) -> None:
+    """R15-LEAD-030 batch-22: an errored call's subject was named by its full
+    or first-word name only, so "SBI", "Airtel" and "L&T" figures streamed.
+    Its aliases now take every distinctive name word, the upper-case
+    initialisms ("SBI", "L&T", with or without spaces round the "&") and
+    the curated marquee keys."""
+    got = await _scripted_calls(monkeypatch, calls, deltas, prompt)
+    assert kept in got and _NO_DATA in got
+    assert not any(figure in got for figure in gone)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("calls", "deltas"),
+    [
+        (  # a derived figure on an ok subject named by its initialism
+            [("price_data", {"symbol": "SBIN.NS"}, _SBIN_OK["price_data"]), _INFY_ERR_TCS_OK[0]],
+            ["SBI closed at ₹812.40. SBI is up 1.2% on the day."],
+        ),
+        (  # an ok subject named by its full name, one figure derived
+            [
+                ("quote", {"symbol": "HDFCBANK.NS"}, {"ok": True, "latest_price": 1712.9}),
+                ("fundamentals", {"symbol": "INFY.NS"}, _ERR),
+            ],
+            ["HDFC Bank closed at ₹1,712.90, up 0.4%."],
+        ),
+        (  # a subject named by the query resolve_symbol bound it from
+            [
+                ("resolve_symbol", {"query": "Big Blue"}, _BIG_BLUE_RESOLVED),
+                ("price_data", {"symbol": "IBM"}, {"ok": True, "latest_price": 250.1}),
+                ("fundamentals", {"symbol": "INFY.NS"}, _ERR),
+            ],
+            ["Big Blue last traded at $250.10, up 2.1% on the week."],
+        ),
+    ],
+)
+async def test_a_short_name_clause_on_an_ok_subject_streams(
+    monkeypatch: pytest.MonkeyPatch,
+    calls: list[tuple[str, dict[str, Any], dict[str, Any]]],
+    deltas: list[str],
+) -> None:
+    """R15-LEAD-030 batch-22 controls: in a turn where a call errored, a
+    clause naming an ok subject by a short name, its full name or the query
+    that resolved it streams unchanged, a derived figure included."""
+    assert await _scripted_calls(monkeypatch, calls, deltas) == "".join(deltas)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("calls", "deltas", "answer"),
+    [
+        (  # a general-knowledge figure attached to no subject
+            [("price_data", {"symbol": "SBIN.NS"}, _ERR)],
+            ["The Nifty fell 0.8% today."],
+            _PRICE_NOTE,
+        ),
+        (  # batch-21 fresh.out t-inherit-reset-blank: the documented 2c flip
+            _INFY_ERR_TCS_OK,
+            ["Infosys could not be refreshed.\n\nThe index rose 0.8% today.\n"],
+            f"Infosys could not be refreshed.\n\n{_PRICE_NOTE}\n",
+        ),
+        (  # a blank line drops the ok subject the paragraph before named
+            _INFY_ERR_TCS_OK,
+            ["TCS held firm.\n\n", "IT stocks rose 1.4% this week."],
+            f"TCS held firm.\n\n{_PRICE_NOTE}",
+        ),
+        (  # a name form no alias holds: "Big Blue" for the errored IBM call
+            [("price_data", {"symbol": "TCS.NS"}, _TCS_PX), ("quote", {"symbol": "IBM"}, _ERR)],
+            ["Big Blue last traded at $250.10. TCS.NS closed at ₹3,235.50."],
+            f"{_QUOTE_NOTE} TCS.NS closed at ₹3,235.50.",
+        ),
+        (  # an ok resolve_symbol is about no subject: it shields no figure
+            [
+                ("resolve_symbol", {"query": "Big Blue", "symbol": "IBM"}, _BIG_BLUE_RESOLVED),
+                ("price_data", {"symbol": "IBM"}, _ERR),
+            ],
+            ["Big Blue last traded at $250.10."],
+            _PRICE_NOTE,
+        ),
+    ],
+)
+async def test_an_ungrounded_figure_on_no_ok_subject_fails_safe(
+    monkeypatch: pytest.MonkeyPatch,
+    calls: list[tuple[str, dict[str, Any], dict[str, Any]]],
+    deltas: list[str],
+    answer: str,
+) -> None:
+    """R15-LEAD-030 batch-22 (rule 2c): an errored subject a clause named by
+    a form no alias list held streamed its fabricated figure. In a turn with
+    an errored call, an ungrounded figure now streams only on a subject some
+    call returned ok for; attached to none, it is replaced. The cost is
+    accepted: a subjectless general figure in such a turn is replaced too."""
+    assert await _scripted_calls(monkeypatch, calls, deltas) == answer
+
+
+@pytest.mark.asyncio
+async def test_a_subjectless_figure_in_a_turn_with_no_error_streams(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-030 batch-22 control for rule 2c: with no errored call, the
+    same general-knowledge figure streams unchanged."""
+    deltas = ["The Nifty fell 0.8% today."]
+    calls = [("price_data", {"symbol": "TCS.NS"}, _TCS_PX)]
+    assert await _scripted_calls(monkeypatch, calls, deltas) == deltas[0]
