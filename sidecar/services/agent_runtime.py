@@ -2081,8 +2081,9 @@ _PENDING_OPEN = re.compile(r"\[\s*\Z")
 _DUMP_LABEL = re.compile(r"^\W*(?:returned|returns|output|results?|response)\s*[:=]\s*$", re.I)
 #: A line that is a table row or a list item.
 _ROW_LINE = re.compile(r"[ \t]*(?:\||[-*•][ \t]|\d+[.)][ \t])")
-_FENCE_OPEN = re.compile(r"[ \t]*```")
-_FENCE_CLOSE = re.compile(r"\n[ \t]*```[^\n]*")
+#: A CommonMark fence opener: three or more backticks or tildes (R15-LEAD-036);
+#: its closer is the same character, at least as many (:func:`_seg_at`).
+_FENCE_OPEN = re.compile(r"[ \t]*(`{3,}|~{3,})")
 _BLANK_LINE = re.compile(r"\n[ \t]*\n")
 _TRAILING_WS = re.compile(r"\s*")
 
@@ -2120,8 +2121,11 @@ def _seg_at(text: str, pos: int) -> _Seg:
     n = len(text)
     line_end = text.find("\n", pos)
     line = text[pos : n if line_end < 0 else line_end]
-    if _FENCE_OPEN.match(line):
-        close = _FENCE_CLOSE.search(text, pos + len(line))
+    fence = _FENCE_OPEN.match(line)
+    if fence:
+        run = fence.group(1)
+        closer = rf"\n[ \t]*{re.escape(run[0])}{{{len(run)},}}[^\n]*"
+        close = re.compile(closer).search(text, pos + len(line))
         body_end = close.end() if close else n
         return _Seg(pos, body_end, _TRAILING_WS.match(text, body_end).end(), "fence", bool(close))
     indent = pos + len(line) - len(line.lstrip())

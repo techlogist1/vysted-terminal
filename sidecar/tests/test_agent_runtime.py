@@ -4015,3 +4015,33 @@ async def test_an_ok_row_beside_an_errored_row_named_by_company_name(
     deltas = ["Closes:\n- TCS: ₹3,235.50\n- Infosys: ₹1,233.65\n\nThat is all."]
     got = await _scripted_calls(monkeypatch, _INFY_ERR_TCS_OK, deltas)
     assert got == f"Closes:\n- TCS: ₹3,235.50\n{_PRICE_NOTE}\n\nThat is all."
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "deltas",
+    [
+        [  # batch-20 fresh.out v036-tilde-fence
+            'Here is the output:\n\n~~~json\n{"pe": 8.4, "roe": 0.214}\n~~~\n\nHope that helps.\n'
+        ],
+        [  # fresh: four tildes, a blank line inside the fence
+            "Output:\n\n~~~~text\nThe P/E is 8.4.\n\n",
+            "ROE is 21.4%.\n~~~~\n\nHope that helps.\n",
+        ],
+        [  # fresh: a four-backtick fence holding a ``` line closes only on ````
+            "Output:\n\n````markdown\n```json\n",
+            '{"pe": 8.4}\n```\n````\n\nHope that helps.\n',
+        ],
+    ],
+)
+async def test_a_replaced_fence_of_any_commonmark_form_leaves_prose(
+    monkeypatch: pytest.MonkeyPatch, deltas: list[str]
+) -> None:
+    """R15-LEAD-036 batch-21 (GAP 3): only ``` fences were recognised, so a
+    ~~~ fenced dump was cut as sentences and its replacement left an orphan
+    ~~~ that swallowed the prose after it. Every CommonMark fence (three or
+    more backticks or tildes, closed by the same character at least as long)
+    is one unit: the note renders as prose with no marker left."""
+    calls = [("fundamentals", {"symbol": "TATAMOTORS.NS"}, _ERR)]
+    got = await _scripted_calls(monkeypatch, calls, deltas)
+    assert got == f"{_FUND_NOTE_CAP}.\n\nHope that helps.\n"
