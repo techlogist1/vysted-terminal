@@ -36,7 +36,7 @@ import httpx
 
 from services.llm.native_search import normalize_openai
 from services.research.models import ResearchBrief, ResearchSource
-from services.search.base import SearchError
+from services.research.perplexity import _domain_of, _HostedResearchLane
 
 #: OpenRouter's OpenAI-compatible chat-completions endpoint.
 OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -61,10 +61,6 @@ PROVENANCE_NOTE = "via Perplexity Sonar (OpenRouter)"
 
 #: ``ResearchBrief.mode`` value — the lane is a DEEP one-call engine.
 DEEP_MODE = "deep"
-
-#: Deep research is a long, multi-step pass — same generous ceiling as the
-#: direct Perplexity lane.
-_HTTP_TIMEOUT = httpx.Timeout(180.0, connect=10.0)
 
 # --- Pre-run cost estimate (cost shown before running — FR-073 parity) -------
 #
@@ -125,28 +121,6 @@ def estimate_cost_usd(query: str, model: str = SONAR_DEEP_MODEL) -> float:
     return round(min(estimate, _LIGHT_CEILING_USD), 4)
 
 
-def _human_http_error(exc: httpx.HTTPStatusError) -> str:
-    """Translate an OpenRouter HTTP error into a clean, key-free human message."""
-    status = exc.response.status_code
-    if status in (401, 403):
-        return (
-            "OpenRouter rejected the request — check that your OpenRouter API "
-            "key is valid and active."
-        )
-    if status == 402:
-        return (
-            "OpenRouter reports insufficient credits for the Sonar run — top up "
-            "your account to use the hosted research lane."
-        )
-    if status == 429:
-        return "OpenRouter rate limit reached — slow down or check your plan's quota."
-    if status == 400:
-        return "OpenRouter could not process the research request (bad query or parameters)."
-    if status >= 500:
-        return "OpenRouter is temporarily unavailable (server error) — try again shortly."
-    return f"OpenRouter Sonar research failed with HTTP {status}."
-
-
 def _message_of(body: dict[str, Any]) -> dict[str, Any]:
     """The first choice's message dict, or ``{}`` — mapping never raises on a thin body."""
     choices = body.get("choices")
@@ -157,23 +131,6 @@ def _message_of(body: dict[str, Any]) -> dict[str, Any]:
         return {}
     message = first.get("message")
     return message if isinstance(message, dict) else {}
-
-
-def _extract_markdown(body: dict[str, Any]) -> str:
-    """Pull the synthesised brief markdown from ``choices[0].message.content``."""
-    content = _message_of(body).get("content")
-    return content.strip() if isinstance(content, str) else ""
-
-
-def _domain_of(url: str) -> str | None:
-    """Best-effort host label for a citation url (display only, never required)."""
-    try:
-        host = httpx.URL(url).host
-    except (httpx.InvalidURL, ValueError, TypeError):
-        return None
-    if not host:
-        return None
-    return host[4:] if host.startswith("www.") else host
 
 
 def _extract_sources(body: dict[str, Any]) -> list[ResearchSource]:
@@ -265,75 +222,26 @@ class OpenRouterSonarBackend:
         model: str | None = None,
         client: httpx.AsyncClient | None = None,
     ) -> None:
-        self._api_key = (api_key or "").strip()
         self._model = resolve_model(model)
-        self._client = client
+        self._lane = _HostedResearchLane(
+            base_url=OPENROUTER_CHAT_URL,
+            model=self._model,
+            vendor="OpenRouter",
+            no_key_message=(
+                "The hosted Sonar research lane needs an OpenRouter API key — add one to opt in."
+            ),
+            extract_sources=_extract_sources,
+            cost_snapshot=lambda query: _cost_snapshot(query, self._model),
+            api_key=api_key,
+            client=client,
+        )
 
     async def research(self, query: str, *, region: str | None = None) -> ResearchBrief:
         """Run one sonar research pass and map it to a ``ResearchBrief``.
 
-        ``region`` is accepted for interface parity with the native research
-        path (Perplexity does region selection internally). Raises
-        :class:`~services.search.base.SearchError` — human message, never raw
-        vendor JSON, never the key — when the key is missing or the upstream
-        call fails.
+        See :meth:`_HostedResearchLane.research`.
         """
-        if not self._api_key:
-            raise SearchError(
-                "The hosted Sonar research lane needs an OpenRouter API key — add one to opt in."
-            )
-
-        text = (query or "").strip()
-        if not text:
-            raise SearchError("Research query is empty.")
-
-        payload: dict[str, Any] = {
-            "model": self._model,
-            "messages": [{"role": "user", "content": text}],
-        }
-        headers = {
-            "Authorization": f"Bearer {self._api_key}",
-            "Content-Type": "application/json",
-        }
-
-        try:
-            if self._client is not None:
-                response = await self._client.post(
-                    OPENROUTER_CHAT_URL, json=payload, headers=headers, timeout=_HTTP_TIMEOUT
-                )
-            else:
-                async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
-                    response = await client.post(OPENROUTER_CHAT_URL, json=payload, headers=headers)
-            response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
-            raise SearchError(_human_http_error(exc)) from exc
-        except httpx.HTTPError as exc:
-            raise SearchError(
-                "Could not reach OpenRouter — check your network connection."
-            ) from exc
-
-        try:
-            body: dict[str, Any] = response.json()
-        except ValueError as exc:
-            raise SearchError("OpenRouter returned a response that could not be parsed.") from exc
-
-        markdown = _extract_markdown(body)
-        if not markdown:
-            raise SearchError("OpenRouter returned an empty research brief.")
-
-        sources = _extract_sources(body)
-
-        return ResearchBrief(
-            query=text,
-            symbol="",
-            mode=DEEP_MODE,
-            markdown=markdown,
-            sources=sources,
-            source_count=len(sources),
-            cost=_cost_snapshot(text, self._model),
-            web_available=True,
-            note=None,
-        )
+        return await self._lane.research(query, region=region)
 
 
 __all__ = [
