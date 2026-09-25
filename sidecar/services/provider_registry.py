@@ -382,14 +382,14 @@ def _resolve_sync(
     candidates = _candidates(model_key, asset_class, region)
     if not candidates:
         raise _no_provider_error(model_key, asset_class, region)
-    last_exc: ProviderError | None = None
+    last_exc: Exception | None = None
     best_incomplete: Any = None
     have_incomplete = False
     for provider in candidates:
         try:
             result = provider.serves[model_key](*args)
             validated = validate(result) if validate is not None else result
-        except ProviderError as exc:
+        except Exception as exc:  # noqa: BLE001 - any provider failure falls through
             last_exc = exc
             _fell_through(provider.id, model_key, exc)
             continue
@@ -410,12 +410,14 @@ def _resolve_sync(
     raise last_exc
 
 
-def _fell_through(provider_id: str, model_key: str, exc: ProviderError) -> None:
+def _fell_through(provider_id: str, model_key: str, exc: Exception) -> None:
     """Log and count a fall-through (R15-LIFECYCLE-021). A ``not_found`` — the
     provider answered that it does not list this instrument or series — is a
-    routing miss, not a failing upstream, so it is not counted."""
+    routing miss, not a failing upstream, so it is not counted. ``exc`` may be
+    a non-:class:`ProviderError` (R15-CODE-DATA-008: any provider exception
+    falls through, not just a clean one), so ``kind`` is read defensively."""
     _log.warning("provider %s failed for %s, falling through: %s", provider_id, model_key, exc)
-    if exc.kind != "not_found":
+    if getattr(exc, "kind", None) != "not_found":
         provider_health.record_fallthrough(provider_id, model_key, str(exc))
 
 
@@ -454,7 +456,7 @@ async def _resolve_async(
     candidates = _candidates(model_key, asset_class, region)
     if not candidates:
         raise _no_provider_error(model_key, asset_class, region)
-    last_exc: ProviderError | None = None
+    last_exc: Exception | None = None
     best_incomplete: Any = None
     have_incomplete = False
     for provider in candidates:
@@ -465,7 +467,7 @@ async def _resolve_async(
             result = await asyncio.to_thread(provider.serves[model_key], *args)
             resolved = await result if inspect.isawaitable(result) else result
             validated = validate(resolved) if validate is not None else resolved
-        except ProviderError as exc:
+        except Exception as exc:  # noqa: BLE001 - any provider failure falls through
             last_exc = exc
             _fell_through(provider.id, model_key, exc)
             continue
