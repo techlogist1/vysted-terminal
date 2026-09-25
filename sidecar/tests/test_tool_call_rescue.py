@@ -7,7 +7,7 @@ the JSON-only rescue ran nothing.
 
 from __future__ import annotations
 
-from services.llm.tool_call_rescue import rescue_leaked_tool_call
+from services.llm.tool_call_rescue import leak_start, rescue_leaked_tool_call
 
 _OFFERED = {"price_data", "fundamentals", "research", "market_overview"}
 
@@ -55,3 +55,10 @@ def test_prose_mentions_and_unoffered_names_do_not_fire() -> None:
         'price_data(**{"symbol": "TCS"})',
     ):
         assert rescue_leaked_tool_call(text, _OFFERED) is None, text
+
+
+def test_leak_start_backs_up_to_the_marker_line_and_its_fence() -> None:
+    head = "Let me fetch that.\n\n"
+    assert leak_start(head + '**Tool call:** `price_data(symbol="X")`', _OFFERED) == len(head)
+    assert leak_start(head + '```json\n{"name": "fundamentals"}\n```', _OFFERED) == len(head)
+    assert leak_start(head + 'Try get_quote(symbol="X") or {"name": "screener"}', _OFFERED) is None
