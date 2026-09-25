@@ -172,6 +172,15 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
     "no brokerage connection: you cannot place, stage or simulate trades. If "
     "the user asks to buy or sell, say so plainly and offer to research it or "
     "to track the holding in their local portfolio (portfolio_add_position).\n"
+    # R15-AGENT-090: a fact no tool can return (an ADR ratio) was stated and
+    # cited to "fundamentals data". ponytail: prompt rule only; no deterministic
+    # guard fits, since telling a sourced figure from an invented one in free
+    # text needs claim-to-result matching, add it with a claim extractor.
+    "Unavailable facts: a figure, ratio, date or other specific fact that no "
+    "tool result you received contains is UNAVAILABLE. Say plainly that the "
+    "terminal's data does not include it, never state a value for it, and never "
+    "attribute it to a tool, a data feed or any source (e.g. an ADR ratio when "
+    "no result carries one).\n"
     "Stay consistent across turns: when a figure you are about to state "
     "materially contradicts a PRIOR STATED VALUE listed in the terminal context "
     "(the same symbol + metric you stated earlier this session), do NOT silently "
