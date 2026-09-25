@@ -13,16 +13,11 @@ import { usePanelContextBus } from "@/store/panel-context";
 import { useEarningsStore } from "@/store/earnings";
 
 import type { EarningsEvent } from "../../../types/earnings";
+import { fmtDate } from "../analyst-ratings/format";
 import { EarningsSurpriseChart } from "./EarningsSurpriseChart";
 import { EpsEstimateGrid } from "./EpsEstimateGrid";
 
-type SortKey =
-  | "scheduled_date"
-  | "symbol"
-  | "time_of_day"
-  | "consensus"
-  | "dispersion"
-  | "analysts";
+type SortKey = "scheduled_date" | "symbol" | "time_of_day" | "consensus" | "dispersion";
 type SortDirection = "asc" | "desc";
 
 /** Money-valued sort keys — a mixed-currency watchlist must never rank a
@@ -47,12 +42,6 @@ function fmt(value: number | null, currency: string, digits = 2): string {
   if (value === null) return "—";
   const { prefix, suffix } = currencyAffix(currency);
   return `${prefix}${formatPrice(value, digits)}${suffix}`;
-}
-
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 /** R15-DATA-032: a missing value sorts last in either direction — an absent
@@ -81,8 +70,6 @@ function sortValue(event: EarningsEvent, key: SortKey): number | string | null {
       return event.eps_estimate_mean;
     case "dispersion":
       return event.eps_estimate_stddev;
-    case "analysts":
-      return event.estimate_analyst_count;
   }
 }
 

@@ -8,31 +8,11 @@ import { EmptyState } from "@/components/EmptyState";
 
 import type { RatingsHistoryEntry } from "../../../types/analyst";
 
+import { fmtDate, RATING_COLOR, RATING_LABEL } from "./format";
+
 type SortKey = "date" | "firm" | "rating_to";
 type ColumnKey = SortKey | "raw_rating" | "note";
 type SortDirection = "asc" | "desc";
-
-const RATING_LABEL: Record<string, string> = {
-  "strong-buy": "Strong Buy",
-  buy: "Buy",
-  hold: "Hold",
-  sell: "Sell",
-  "strong-sell": "Strong Sell",
-};
-
-const RATING_COLOR: Record<string, string> = {
-  "strong-buy": "text-positive",
-  buy: "text-positive",
-  hold: "text-charcoal-200",
-  sell: "text-negative",
-  "strong-sell": "text-negative",
-};
-
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
 
 const COLUMNS: DataColumn<RatingsHistoryEntry, ColumnKey>[] = [
   { key: "date", header: "Date", sortable: true, width: "16%", format: (e) => fmtDate(e.date) },
