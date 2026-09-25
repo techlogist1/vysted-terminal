@@ -857,6 +857,47 @@ def test_get_fundamentals_derives_ratios_from_statements(monkeypatch: pytest.Mon
     assert meta["market_cap"].provider == "derived"
 
 
+def test_get_fundamentals_derived_pe_suppressed_for_negative_eps_sify(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """rc1-datapack:1 (SIFY): Yahoo carries no ``trailingPE`` and a negative
+    ``trailingEps`` (-0.13) — the price/EPS fallback must not serve a negative
+    ratio as a real value. ``pe_ratio`` stays ``None`` with an explicit reason,
+    never ``-103.15`` at ``status: ok``."""
+    info = {
+        "longName": "Sify Technologies Ltd",
+        "currency": "INR",
+        "currentPrice": 13.41,
+        "trailingEps": -0.13,
+    }
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    fund = yfinance_provider.get_fundamentals("SIFY.NS")
+    assert fund.pe_ratio is None
+    meta = fund.field_meta["pe_ratio"]
+    assert meta.status == "unavailable"
+    assert meta.reason == "P/E not meaningful for a loss-making company (negative EPS)"
+
+
+def test_get_fundamentals_derived_pe_suppressed_for_negative_eps_vertex(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Class pin (a second, independently-shaped case the fix was not written
+    against): VERTEX, eps -0.25, gets the same suppression — not a one-off
+    guard against the SIFY fixture's exact numbers."""
+    info = {
+        "longName": "Vertex Ltd",
+        "currency": "INR",
+        "currentPrice": 3.05,
+        "trailingEps": -0.25,
+    }
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    fund = yfinance_provider.get_fundamentals("VERTEX.BO")
+    assert fund.pe_ratio is None
+    meta = fund.field_meta["pe_ratio"]
+    assert meta.status == "unavailable"
+    assert meta.reason == "P/E not meaningful for a loss-making company (negative EPS)"
+
+
 def test_get_fundamentals_roce_unavailable_without_statement_data(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

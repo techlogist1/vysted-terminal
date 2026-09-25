@@ -693,7 +693,15 @@ def _derive_fundamentals(fund: Fundamentals, ticker: Any, fetched_at: str) -> No
         )
 
     if fund.pe_ratio is None and fund.ratio_price is not None and fund.eps:
-        _derive("pe_ratio", fund.ratio_price / fund.eps, "price / EPS")
+        if fund.eps > 0:
+            _derive("pe_ratio", fund.ratio_price / fund.eps, "price / EPS")
+        else:
+            meta["pe_ratio"] = FieldMeta(
+                status="unavailable",
+                provider=PROVIDER,
+                as_of=fetched_at,
+                reason="P/E not meaningful for a loss-making company (negative EPS)",
+            )
 
     if fund.market_cap is None and fund.ratio_price is not None and fund.shares_outstanding:
         _derive(
