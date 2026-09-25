@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from datetime import UTC, datetime
 from typing import Any
 
@@ -533,3 +534,23 @@ async def test_research_workflow_runs_end_to_end(
     assert by_id["i"].status == "ok"
     assert by_id["a"].outputs["content"] == "Analysis for buffett."
     assert by_id["l"].status == "ok"
+
+
+# ---------------------------------------------------------------------------
+# transform.code — size bounds (R15-CODE-PLATFORM-066)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_huge_pow_and_repeat_rejected_fast() -> None:
+    from services.workflow_nodes import code_node
+
+    for expression in ("7**(10**7)", "[0]*10**9", "10^9 * 'ab'", "round(1, 10^7)"):
+        started = time.perf_counter()
+        with pytest.raises(ValueError, match="too large|digits"):
+            await code_node.evaluate_code({}, {"expression": expression})
+        assert time.perf_counter() - started < 0.05, expression
+
+    # In-bound uses of the same operators still evaluate.
+    out = await code_node.evaluate_code({}, {"expression": "2^10 + sum([1] * 3) + round(2.5)"})
+    assert out == {"value": 1024 + 3 + 3}
