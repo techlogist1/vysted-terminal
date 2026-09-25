@@ -382,10 +382,12 @@ fn diag_log_line(line: String) {
 }
 
 /// Atomically write `bytes` to `path` by writing to a sibling temp file in the
-/// same directory and then renaming it over the destination. Because the temp file
-/// and the final path live on the same filesystem, the kernel `rename(2)` is atomic
-/// (SC-032: "survives a crash mid-save"). The temp suffix `.tmp.<pid>` avoids
-/// collisions when multiple windows write concurrently.
+/// same directory and then renaming it over the destination. The temp file is
+/// fsynced before the rename and (unix) the directory after it: `rename(2)` is
+/// atomic for the directory entry only, so without the syncs a power loss can
+/// leave the renamed file empty or partial (SC-032: "survives a crash mid-save").
+/// The temp suffix `.tmp.<pid>` avoids collisions when multiple windows write
+/// concurrently.
 fn write_atomic(path: &str, bytes: &[u8]) -> Result<(), String> {
     use std::io::Write as _;
 
@@ -404,9 +406,16 @@ fn write_atomic(path: &str, bytes: &[u8]) -> Result<(), String> {
     {
         let mut f = std::fs::File::create(&tmp_path).map_err(|e| e.to_string())?;
         f.write_all(bytes).map_err(|e| e.to_string())?;
-        f.flush().map_err(|e| e.to_string())?;
+        f.sync_all().map_err(|e| e.to_string())?;
     }
-    std::fs::rename(&tmp_path, dest).map_err(|e| e.to_string())
+    std::fs::rename(&tmp_path, dest).map_err(|e| e.to_string())?;
+    // Persist the rename itself. Best-effort: the new file is already in place,
+    // so a directory-sync failure must not report the write as failed.
+    #[cfg(unix)]
+    if let Ok(dir) = std::fs::File::open(parent) {
+        let _ = dir.sync_all();
+    }
+    Ok(())
 }
 
 /// Atomically write `contents` to `path` (see `write_atomic`). Used by the notes
@@ -669,6 +678,24 @@ mod tests {
         write_bytes_atomic(bytes.to_string_lossy().into(), vec![0x89, b'P', 0]).unwrap();
         assert_eq!(std::fs::read_to_string(&text).unwrap(), "# AAPL");
         assert_eq!(std::fs::read(&bytes).unwrap(), vec![0x89, b'P', 0]);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn write_atomic_round_trip_leaves_no_tmp() {
+        // R15-CODE-PLATFORM-054: the synced write overwrites in place and leaves
+        // only the destination behind (no `<name>.tmp.<pid>`).
+        let dir = temp_dir("round-trip");
+        let dest = dir.join("MSFT.md");
+        let path = dest.to_string_lossy().to_string();
+        super::write_atomic(&path, b"first").unwrap();
+        super::write_atomic(&path, b"second").unwrap();
+        assert_eq!(std::fs::read(&dest).unwrap(), b"second");
+        let names: Vec<_> = std::fs::read_dir(&dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        assert_eq!(names, vec![std::ffi::OsString::from("MSFT.md")]);
         let _ = std::fs::remove_dir_all(&dir);
     }
 
