@@ -244,11 +244,11 @@ listed below; the rest remain roadmap, not scope creep.
 ### Foundation (8)
 1. Tauri 2.x desktop shell (Win/Mac/Linux)
 2. Next.js 16 frontend skeleton
-3. Tailwind + shadcn/ui design system (Vysted aesthetic: charcoal + warm amber + sage + serif-meets-monospace typography)
+3. Tailwind + shadcn/ui design system (Vysted aesthetic: neutral zinc near-black + a single cool-indigo accent + serif-meets-monospace typography; the historical warm-palette naming was retired in the 003 rebuild, see CLAUDE.md Frontend gotchas)
 4. Command bar with slash commands (cmd+K)
 5. Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)
 6. Zustand state management
-7. Theming engine (dark default + light option + future custom themes)
+7. Theming engine (dark-only ships; light theme is deferred, see spec.md FR-030)
 8. Python sidecar bootstrap (FastAPI on localhost, auto-managed by Tauri)
 
 ### Plugin Architecture (7)
@@ -652,13 +652,13 @@ populated re-captures). Plan + handoff TBD.
 Morning open → review tracked portfolio + watchlist → AI Risk Analyst review → backtest new strategy → save workspace.
 
 ### Use Case 2: Research Workflow (the equity researcher's story)
-Cmd+K → "Research XYZ" → AI Researcher pulls everything → chart + news in adjacent panels → backtest dividend strategy → save workspace.
+Cmd+K → "Research XYZ" → AI Researcher pulls everything → chart + news in adjacent panels → backtest dividend strategy → save workspace. (If the openbb-mcp sidecar hasn't bound its port yet, data-heavy tools degrade to the yfinance fallback or a 501 rather than blocking the flow.)
 
 ### Use Case 3: Earnings Playbook
 Build node-editor workflow → AI generates thesis per earnings name → alert on entry trigger → desktop notification → review thesis → trade externally.
 
 ### Use Case 4: Academic Researcher
-Custom AI agent fine-tuned to research domain → workflow pulls SEC + sentiment → outputs to chart → workspace becomes reproducible dissertation methodology.
+Custom AI agent fine-tuned to research domain → workflow pulls SEC + sentiment → outputs to chart → workspace becomes reproducible dissertation methodology. (Same MCP-unavailable degrade as UC2 applies to the SEC pull.)
 
 ### Use Case 5: Macro Thesis Watcher (Dalio-style)
 Workspace with yield curves + central bank tracker + commodity dashboard → AI Macro Researcher monitors news → notifications on thesis-confirming events.
