@@ -1,6 +1,6 @@
 "use client";
 
-import { DockviewReact, type DockviewReadyEvent, type IDockviewPanel } from "dockview";
+import { DockviewReact, type DockviewReadyEvent } from "dockview";
 import {
   Component,
   Fragment,
@@ -13,104 +13,12 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { collectPanelComponents } from "@/lib/module-registry";
+import { applyPanelConstraints, enforceConstraintsAfterRestore } from "@/lib/panel-sizing";
 import { autosaveLayout, loadWorkspace, restoreLastSessionOrDefault } from "@/lib/workspace";
 import { useModulesStore } from "@/store/modules";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useSettingsStore } from "@/store/settings";
 import { useWorkspaceStore } from "@/store/workspace";
-
-/**
- * Host-side minimum panel sizes (px), keyed by `PanelSpec.component`. Enforced
- * via dockview's per-panel `setConstraints` so a squeezed cockpit can never
- * collapse a panel into overlapping/illegible content — content-heavy panels
- * (chart, settings, marketplace) get a wider floor; rail panels a tighter one.
- *
- * This lives in the HOST, not in `PanelSpec` (`types/plugin.ts` is Tier-1
- * LOCKED), so the plugin contract stays byte-for-byte untouched. Anything not
- * listed gets `DEFAULT_PANEL_MIN_SIZE`.
- */
-const PANEL_MIN_SIZE: Record<string, { minimumWidth: number; minimumHeight: number }> = {
-  // --- Default-cockpit panels ---
-  // chart: ONE h-7 toolbar row (R9 — symbol/timeframe/tools, ~44px) + earned
-  // chip/inspector rows above/below the canvas. 360 wide is the toolbar's
-  // declared one-row floor (its §3.4 collapse ladder bottoms out at the ⋯
-  // step); 360 tall keeps ~260px of legible canvas under the chrome.
-  "chart-panel": { minimumWidth: 360, minimumHeight: 360 },
-  "equity-overview-panel": { minimumWidth: 340, minimumHeight: 200 },
-  "watchlist-panel": { minimumWidth: 264, minimumHeight: 140 },
-  "news-panel": { minimumWidth: 280, minimumHeight: 160 },
-  // portfolio: a named-portfolio header (~48px) + the flex-wrap add-holding form
-  // (~150px) sit above the holdings table / empty state, so a low floor squeezed
-  // the content (and the empty-state CTA) into a sliver in the default rail.
-  "portfolio-panel": { minimumWidth: 520, minimumHeight: 320 },
-
-  // --- Wide content panels (fixed-width aside / canvas + a results floor) ---
-  // Each width = the panel's hardcoded fixed column(s) + a usable second pane,
-  // so the `flex-1` results/canvas section never collapses to 0 at the min.
-  "node-editor-panel": { minimumWidth: 560, minimumHeight: 320 }, // palette 224 + props 256 + 80 canvas
-  "option-pricer-panel": { minimumWidth: 640, minimumHeight: 320 }, // w-80 aside (320) + 320 results
-  "bond-pricer-panel": { minimumWidth: 640, minimumHeight: 300 }, // w-80 aside (320) + 320 results
-  "yield-curve-panel": { minimumWidth: 640, minimumHeight: 360 }, // w-80 aside (320) + 320 chart
-  "greeks-dashboard-panel": { minimumWidth: 600, minimumHeight: 280 }, // w-72 aside (288) + 312 heatmap
-  "backtest-panel": { minimumWidth: 680, minimumHeight: 340 }, // w-72 aside (288) + 392 results
-  "screener-panel": { minimumWidth: 580, minimumHeight: 360 }, // 384px criteria grid + padding + remove
-  "sec-filings-panel": { minimumWidth: 480, minimumHeight: 300 },
-  "earnings-calendar-panel": { minimumWidth: 560, minimumHeight: 240 },
-  "analyst-ratings-panel": { minimumWidth: 420, minimumHeight: 260 },
-  "macro-panel": { minimumWidth: 400, minimumHeight: 300 },
-
-  // --- Primary-content / config panels (opened from the palette) ---
-  "settings-panel": { minimumWidth: 480, minimumHeight: 300 },
-  "marketplace-panel": { minimumWidth: 380, minimumHeight: 300 },
-  "agent-builder-panel": { minimumWidth: 380, minimumHeight: 280 },
-  "plugin-manager-panel": { minimumWidth: 340, minimumHeight: 200 },
-
-  // --- Rail / narrow companion panels ---
-  // chat-sidebar is a narrow companion; the generic 300px default snaps it 56%
-  // wider than its declared defaultSize, so give it a tighter, usable floor.
-  // 280px matches the new AGENT_DOCK_MIN_WIDTH so the composer never gets squeezed
-  // when the dock is dragged to its minimum.
-  "chat-sidebar": { minimumWidth: 280, minimumHeight: 160 },
-};
-const DEFAULT_PANEL_MIN_SIZE = { minimumWidth: 300, minimumHeight: 180 };
-
-/** Clamp a panel's minimum size so it can't be dragged into overlap. Guarded:
- *  a dockview throw on one panel (e.g. a disposed/edge state) must not abort a
- *  whole-layout sweep, leaving later panels unconstrained. */
-function applyPanelConstraints(panel: IDockviewPanel): void {
-  try {
-    const size = PANEL_MIN_SIZE[panel.api.component] ?? DEFAULT_PANEL_MIN_SIZE;
-    panel.api.setConstraints(size);
-  } catch {
-    // best-effort; a single panel failing to clamp must not break the others.
-  }
-}
-
-/**
- * Re-affirm constraints AND grow any panel a saved blob restored below its
- * minimum (dockview's `fromJSON` restores exact sizes, and constraints only
- * clamp *future* sash drags — they don't retroactively grow an under-min
- * panel). Run once after restore so a layout saved before min-sizes existed (or
- * a legacy sub-min blob) snaps up to a legible size.
- */
-function enforceConstraintsAfterRestore(panel: IDockviewPanel): void {
-  try {
-    const size = PANEL_MIN_SIZE[panel.api.component] ?? DEFAULT_PANEL_MIN_SIZE;
-    panel.api.setConstraints(size);
-    // Grow a panel restored below its minimum on BOTH axes — `setConstraints`
-    // only clamps future sash drags, it doesn't retroactively grow an under-min
-    // panel a saved blob restored too small (e.g. a blob saved before min-sizes
-    // existed, or one saved while the panel was squeezed).
-    if (panel.api.width > 0 && panel.api.width < size.minimumWidth) {
-      panel.api.setSize({ width: size.minimumWidth });
-    }
-    if (panel.api.height > 0 && panel.api.height < size.minimumHeight) {
-      panel.api.setSize({ height: size.minimumHeight });
-    }
-  } catch {
-    // best-effort; one panel throwing must not abort the post-restore sweep.
-  }
-}
 
 /**
  * Keeps one panel's render throw inside that panel (R15-LIFECYCLE-023): without
@@ -247,6 +155,26 @@ export function PanelHost() {
     // agent. Subscribing before the restore means restored/default panels are
     // caught as they're added; the post-restore sweep re-affirms the set.
     const constraintsSub = api.onDidAddPanel((panel) => applyPanelConstraints(panel));
+    // Re-affirm constraints + grow any panel restored below its minimum, after
+    // EVERY fromJSON (the boot restore and a named layout load alike) and once
+    // the restore settles. Deferred until dockview's layout settles: setting
+    // constraints mid-restore (before the gridview branch nodes exist) silently
+    // no-ops. setTimeout, NOT requestAnimationFrame — rAF is throttled to a halt
+    // on an unfocused/occluded WKWebView.
+    let sweepTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleSweep = () => {
+      if (sweepTimer !== null) {
+        clearTimeout(sweepTimer);
+      }
+      sweepTimer = setTimeout(() => {
+        sweepTimer = null;
+        if (!mountedRef.current || useWorkspaceStore.getState().dockviewApi !== api) {
+          return;
+        }
+        api.panels.forEach((panel) => enforceConstraintsAfterRestore(panel));
+      }, 80);
+    };
+    const fromJSONSub = api.onDidLayoutFromJSON(scheduleSweep);
     const enabledPanelIds = new Set(
       useModulesStore
         .getState()
@@ -262,22 +190,14 @@ export function PanelHost() {
         // restore awaited, this api is disposed — do not wire autosave to it (also
         // closes the subscription/timer leak when unmount lands mid-restore).
         if (!mountedRef.current || useWorkspaceStore.getState().dockviewApi !== api) {
+          if (sweepTimer !== null) {
+            clearTimeout(sweepTimer);
+          }
           constraintsSub.dispose();
+          fromJSONSub.dispose();
           return;
         }
-        // Re-affirm constraints + grow any panel restored below its minimum.
-        // Deferred until after dockview's initial layout settles: setting
-        // constraints mid-restore (before the gridview branch nodes exist)
-        // silently no-ops. We use setTimeout, NOT requestAnimationFrame — rAF is
-        // throttled to a halt on an unfocused/occluded WKWebView, which would
-        // leave the constraints unapplied whenever the window isn't frontmost.
-        let constraintTimer: ReturnType<typeof setTimeout> | null = setTimeout(() => {
-          constraintTimer = null;
-          if (!mountedRef.current || useWorkspaceStore.getState().dockviewApi !== api) {
-            return;
-          }
-          api.panels.forEach((panel) => enforceConstraintsAfterRestore(panel));
-        }, 80);
+        scheduleSweep();
         const subscription = api.onDidLayoutChange(() => autosaveLayout());
         // Track the focused panel into the shared context bus so the agent knows
         // what the user is "looking at" (FR-002/FR-007 — the deixis "this"/"it"
@@ -286,12 +206,13 @@ export function PanelHost() {
           usePanelContextBus.getState().setFocusedSource(panel?.id ?? null);
         });
         cleanupRef.current = () => {
-          if (constraintTimer !== null) {
-            clearTimeout(constraintTimer);
+          if (sweepTimer !== null) {
+            clearTimeout(sweepTimer);
           }
           subscription.dispose();
           focusSub.dispose();
           constraintsSub.dispose();
+          fromJSONSub.dispose();
         };
       });
   }
