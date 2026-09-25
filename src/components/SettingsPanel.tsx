@@ -76,8 +76,8 @@ import type { LLMModelOption, LLMProviderId } from "../../types/ai";
  * Settings — the discoverable control surface (Cursor-grade preferences,
  * FR-037/FR-038/FR-039, SC-011).
  *
- * R9 layout — a sectioned hierarchy instead of a wall; ONE search surface;
- * every control demonstrably round-trips (change → persist → reload →
+ * R9 layout — a sectioned hierarchy instead of a wall; every control
+ * demonstrably round-trips (change → persist → reload →
  * applied) or it does not exist (the R9 settings-truth pass — the dead
  * Interface section died; see the kill list in
  * `verification/R9_DEFECT_CATALOGUE.md`. R15-UI-087 brought the provider order,

@@ -115,8 +115,9 @@ export async function applyStartLayout(api: DockviewReadyEvent["api"]): Promise<
  * changes autosave (debounced inside `autosaveLayout`) so a customised cockpit
  * survives a relaunch.
  *
- * `DockviewReact` is only mounted once modules have registered, which keeps the
- * static-export build SSR-safe (the prerender pass sees the loading state).
+ * `DockviewReact` is only mounted once modules have registered: dockview
+ * resolves each panel's component id when a layout loads, so the component map
+ * must be complete before `onReady` (and the restore it starts) fires.
  */
 export function PanelHost() {
   const modules = useModulesStore((state) => state.modules);

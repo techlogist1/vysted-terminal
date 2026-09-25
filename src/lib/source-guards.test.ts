@@ -57,4 +57,32 @@ describe("source guards", () => {
       );
     expect(offenders).toEqual([]);
   });
+
+  // R15-DOCS-006: the frontend is a Vite SPA (src/main.tsx createRoot) — there
+  // is no static export or prerender pass, so a comment justifying code by
+  // "SSR safety" states a false invariant. Files outside this fix's scope that
+  // still carry the claim are a ratchet: each must still match (delete the
+  // entry when its comment is fixed) and no new file may add one.
+  const STALE_SSR_CLAIM_ALLOWLIST = new Set([
+    "src/lib/marketplace.ts",
+    "src/lib/export-artifact.ts",
+    "src/lib/dev-mcp-bridge.ts",
+    "src/lib/use-sidecar-retry.ts",
+    "src/lib/sidecar-client.ts",
+    "src/lib/menu-bridge.ts",
+    "src/modules/notes/NotesPanel.tsx",
+    "src/store/settings.ts",
+    "src/store/agent-command.ts",
+    "src/store/search-settings.ts",
+    "src/store/keybindings.ts",
+  ]);
+  const SSR_CLAIM = /static[- ]export|SSR[- ]safe/i;
+
+  it("no 'static-export'/'SSR-safe' claim under src/ outside the shrinking allowlist", () => {
+    const claiming = sourceFiles(SRC)
+      .filter((file) => SSR_CLAIM.test(fs.readFileSync(file, "utf-8")))
+      .map(relative);
+    expect(claiming.filter((file) => !STALE_SSR_CLAIM_ALLOWLIST.has(file))).toEqual([]);
+    expect([...STALE_SSR_CLAIM_ALLOWLIST].filter((file) => !claiming.includes(file))).toEqual([]);
+  });
 });

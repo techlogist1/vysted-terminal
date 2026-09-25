@@ -56,9 +56,10 @@ export default function Page() {
 
   useEffect(() => {
     // Register the module registry, seed the command palette from the enabled
-    // modules, and connect to the Python sidecar. Runs once on mount — which is
-    // also why `PanelHost` only mounts dockview after this point, keeping the
-    // static-export build SSR-safe.
+    // modules, and connect to the Python sidecar. Runs once on mount. `PanelHost`
+    // mounts dockview only after this point: dockview resolves each panel's
+    // component id when a layout loads, so the component map must be complete
+    // before its `onReady` fires the restore.
     useModulesStore.getState().registerModules(vystedModules);
     useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
     void useAppStore.getState().connectSidecar();
@@ -90,7 +91,7 @@ export default function Page() {
 
     // Dev-only: bring up the tauri-plugin-mcp in-webview bridge so the local
     // test-automation rig (snapshot / click / console + network capture) can
-    // drive the real app. No-op in the production static export (dead-stripped)
+    // drive the real app. No-op in a production build (dead-stripped)
     // and harmless outside the Tauri webview.
     initDevMcpBridge();
 
