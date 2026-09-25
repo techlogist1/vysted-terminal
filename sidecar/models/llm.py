@@ -158,6 +158,18 @@ class LLMToolUseEvent(BaseModel):
     provider_meta: dict[str, Any] | None = Field(default=None, exclude=True)
 
 
+class LLMToolResultEvent(BaseModel):
+    """How one dispatched tool call ended, keyed on its ``tool_call_id``
+    (R15-CODE-AGENT-033): the outcome only, never the result payload."""
+
+    kind: Literal["tool_result"] = "tool_result"
+    tool_call_id: str
+    name: str
+    ok: bool
+    #: The result's ``error`` (else ``message``), cut to 200 chars, when not ok.
+    error: str | None = None
+
+
 class LLMResearchStepEvent(BaseModel):
     """A live research-pipeline step, surfaced WHILE a long tool runs (Track A).
 

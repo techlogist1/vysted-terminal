@@ -51,6 +51,7 @@ from models.llm import (
     LLMProviderId,
     LLMResearchStepEvent,
     LLMThinkingEvent,
+    LLMToolResultEvent,
     LLMToolUseEvent,
     LLMUsage,
 )
@@ -1409,6 +1410,25 @@ def _result_status(result_str: str) -> Any:
     return payload.get("status") if isinstance(payload, dict) else None
 
 
+def _tool_result_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolResultEvent:
+    """The outcome of one dispatched call (R15-CODE-AGENT-033): not ok when the
+    result is a dict with ``ok: false`` or a truthy ``error``."""
+    try:
+        payload = json.loads(result_str)
+    except (TypeError, ValueError):
+        payload = None
+    failed = isinstance(payload, dict) and (
+        payload.get("ok") is False or bool(payload.get("error"))
+    )
+    reason = (payload.get("error") or payload.get("message")) if failed else None
+    return LLMToolResultEvent(
+        tool_call_id=tool_call.tool_call_id,
+        name=tool_call.name,
+        ok=not failed,
+        error=str(reason)[:200] if reason else None,
+    )
+
+
 async def _end_of_turn_notices(
     autonomy: str | None,
     publish_brief_calls: list[str],
@@ -1791,24 +1811,33 @@ class _RunSetup:
 #: R15-AGENT-090: the one sentence an untraced depositary-ratio claim becomes.
 RATIO_UNAVAILABLE = "The ADR-to-ordinary-share ratio is not available from this session's sources."
 _NUMBER_WORDS = (
-    "one", "two", "three", "four", "five", "six",
-    "seven", "eight", "nine", "ten", "eleven", "twelve",
+    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+    "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
+    "eighteen", "nineteen", "twenty",
 )  # fmt: skip
 _NUM = r"(?:\d[\d,]*(?:\.\d+)?|" + "|".join(_NUMBER_WORDS) + ")"
-_RATIO_OPERAND = r"(?:\d{1,3}|" + "|".join(_NUMBER_WORDS) + ")"
 _CLAIM_TERM = re.compile(
     r"\b(?:ADRs?|ADSs?|American Depositary|depositary|conversion ratio)\b", re.IGNORECASE
 )
 _SOURCE_TERM = re.compile(r"\b(?:ADRs?|ADSs?|American Depositary|depositary|Repr)\b", re.IGNORECASE)
-_CLAIM_NUMBERS = re.compile(
-    rf"\b({_NUM})\s+(?:ordinary|equity|underlying|common)\s+shares?\b"
-    rf"|\b({_RATIO_OPERAND})\s*(?::|-for-|\s+to\s+)\s*({_RATIO_OPERAND})\b",
+#: A sentence with a depositary term claims a ratio only beside one of these:
+#: a ratio word, or a count of ordinary/underlying shares ("backed by 6
+#: ordinary shares"). Without one, "ADR ... 5.20 to 7.10" is a price range.
+_RATIO_CUE = re.compile(
+    r"\b(?:ratio|represent\w*|equivalent|equals?|each|convert\w*|correspond\w*|for every)\b"
+    rf"|-for-|\b{_NUM}\s+(?:ordinary|equity|underlying|common)\s+shares?\b",
+    re.IGNORECASE,
+)
+#: Every number in a sentence, with the money / percent / trade-volume marker
+#: that makes it a price or a volume ("$12.50", "12%", "volume of 40,000")
+#: rather than a count of shares per depositary unit.
+_QUANTITY = re.compile(
+    rf"(?P<unit_before>(?:[$₹]|\b(?:Rs\.?|USD|INR)|\bvolume\W+(?:\w+\s+)?)\s*)?"
+    rf"\b(?P<n>{_NUM})\b"
+    r"(?P<unit_after>\s*(?:%|(?:percent|dollars?|cents?|rupees?|cr)\b))?",
     re.IGNORECASE,
 )
 _ANY_NUMBER = re.compile(rf"\b{_NUM}\b", re.IGNORECASE)
-#: Without one of these, an N:M / N to M next to "ADR" is a price range or a
-#: clock time, not a ratio claim.
-_RATIO_CUE = re.compile(r"\b(?:ratio|represents?|equals?|each|converts?)\b|-for-", re.IGNORECASE)
 #: A sentence (with its trailing whitespace) of released prose.
 _SENTENCE = re.compile(r".*?(?:[.!?]\s+|\n\s*|\Z)", re.DOTALL)
 #: Where held prose may be released: after a sentence end or a line break.
@@ -1823,22 +1852,28 @@ def _norm_number(token: str) -> str:
 def _ratio_claim_traced(sentence: str, tool_results: list[str]) -> bool:
     """False for a depositary-ratio claim no tool result carries (R15-AGENT-090).
 
-    A sentence claims a ratio when it names a depositary term and a count of
-    ordinary/underlying shares or an N:M / N-for-M / N to M ratio. It is traced
-    when one tool result names a depositary term (``Repr`` covers the listing
-    style "Each Repr 6 Ords") and carries every claimed number.
-    ponytail: per-sentence regex; a claim split over two sentences slips past,
-    and one sourced from a provider's native server-side search (never a tool
-    result here) is replaced. A claim extractor if more claim types need it.
+    A sentence claims a ratio when it names a depositary term, carries a ratio
+    cue (:data:`_RATIO_CUE`) and states a quantity: a number, or a number word
+    up to twenty, that is not money, a percent or a trade volume. The claim is
+    its quantities less the unit side ``1`` ("1 ADR : 6 shares" claims 6), or
+    ``1`` when that is all it states. It is traced when one tool result names a
+    depositary term (``Repr`` covers the listing style "Each Repr 6 Ords") and
+    carries every claimed number.
+    ponytail: per-sentence regex; a claim split over two sentences slips past, a
+    year or a number beside a form name ("20-F") in a claim sentence counts as
+    claimed, and one sourced from a provider's native server-side search (never
+    a tool result here) is replaced. A claim extractor if more claim types need it.
     """
-    if not _CLAIM_TERM.search(sentence):
+    if not (_CLAIM_TERM.search(sentence) and _RATIO_CUE.search(sentence)):
         return True
-    matches = _CLAIM_NUMBERS.findall(sentence)
-    if not _RATIO_CUE.search(sentence):
-        matches = [m for m in matches if m[0]]  # share counts only
-    claimed = {_norm_number(n) for match in matches for n in match if n}
-    if not claimed:
+    quantities = {
+        _norm_number(m["n"])
+        for m in _QUANTITY.finditer(sentence)
+        if not (m["unit_before"] or m["unit_after"])
+    }
+    if not quantities:
         return True
+    claimed = quantities - {"1"} or {"1"}
     return any(
         _SOURCE_TERM.search(result)
         and claimed <= {_norm_number(n) for n in _ANY_NUMBER.findall(result)}
@@ -2261,9 +2296,9 @@ async def _dispatch_round(
 ) -> AsyncIterator[LLMStreamEvent]:
     """Dispatch the round's tool calls and append their turns to the messages.
 
-    Yields each tool's live steps and any synthetic brief/backtest event; under
-    AUTO, each dispatched host action's result is then rewritten from the
-    panel's real ack.
+    Yields each tool's live steps, its ``tool_result`` outcome and any synthetic
+    brief/backtest event; under AUTO, each dispatched host action's result is
+    then rewritten from the panel's real ack.
     """
     # Reconstruct the assistant tool-use turn FIRST so the provider can
     # associate each tool result with its call: Anthropic requires the
@@ -2353,6 +2388,7 @@ async def _dispatch_round(
         )
         run.messages.append(tool_result_msg)
         turn.tool_results.append(result_str)
+        yield _tool_result_event(tool_call, result_str)
         if on_tool_result is not None:
             on_tool_result(tool_call, result_str)
         if tool_call.name in _host_ids and _result_status(result_str) == "awaiting_user_review":

@@ -29,6 +29,7 @@ from models.llm import (
     LLMModelOption,
     LLMResearchStepEvent,
     LLMThinkingEvent,
+    LLMToolResultEvent,
     LLMToolUseEvent,
 )
 
@@ -36,6 +37,7 @@ from models.llm import (
 LLMStreamEvent = (
     LLMDeltaEvent
     | LLMToolUseEvent
+    | LLMToolResultEvent
     | LLMResearchStepEvent
     | LLMAgentPlanEvent
     | LLMThinkingEvent

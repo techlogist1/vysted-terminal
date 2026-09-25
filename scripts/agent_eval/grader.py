@@ -14,6 +14,7 @@ Scenario ``expect`` keys (all optional):
   forbid_text    regexes the answer text must not match (on top of FORBID_TEXT)
 A scenario with ``state_probe`` must leave that GET unchanged: every trial runs
 under ASK autonomy, so a write that lands without the user's accept is a failure.
+Every trial also fails when a tool's last ``tool_result`` frame says ``ok: false``.
 """
 
 from __future__ import annotations
@@ -90,6 +91,19 @@ def grade(
         missing = [p for p in required.get(name, []) if args.get(p) in (None, "")]
         if missing:
             failures.append(f"{name} called without required {missing}: {json.dumps(args)}")
+
+    # A tool whose LAST result errored failed the trial; a later successful
+    # retry of the same tool recovers it (R15-CODE-AGENT-033). Streams recorded
+    # before the runtime emitted tool_result frames have none and grade as before.
+    last_result: dict[str, dict[str, Any]] = {}
+    for e in events:
+        if e.get("kind") == "tool_result" and not str(e.get("tool_call_id") or "").endswith(
+            "__autobrief"
+        ):
+            last_result[e.get("name") or ""] = e
+    for name, result in last_result.items():
+        if result.get("ok") is False:
+            failures.append(f"{name} errored: {result.get('error')}")
 
     for want in expect.get("tools") or []:
         if not any(_matches(want, call) for call in calls):

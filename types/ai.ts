@@ -151,6 +151,9 @@ export interface LLMMessage {
 export type LLMStreamEvent =
   | { kind: "delta"; text: string }
   | { kind: "tool_use"; toolCallId: string; name: string; input: Record<string, unknown> }
+  /** How a dispatched tool call ended (R15-CODE-AGENT-033): `error` is the
+   *  result's error/message (≤200 chars) when `ok` is false; no payload. */
+  | { kind: "tool_result"; toolCallId: string; name: string; ok: boolean; error?: string }
   | {
       /**
        * A live research-pipeline step, emitted WHILE a long research tool runs

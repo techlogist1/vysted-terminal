@@ -243,6 +243,53 @@ describe("streaming — spend_usd on the done frame (R15-AGENT-082, C11)", () =>
   });
 });
 
+describe("streaming — tool_result frames and unknown kinds (R15-CODE-AGENT-033)", () => {
+  beforeEach(() => {
+    resetBriefStoreForTests();
+    fetchMock.mockClear();
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  it("drops a frame of an unknown kind; the delta and done around it still arrive", async () => {
+    fetchMock.mockImplementationOnce(async () =>
+      sseFrames([{ kind: "delta", text: "hi" }, { kind: "future_kind", x: 1 }, { kind: "done" }]),
+    );
+    const events: unknown[] = [];
+    const onError = vi.fn();
+    await streamAgentInvocation(
+      "copilot",
+      { prompt: "hi" },
+      { onEvent: (e) => events.push(e), onError },
+    );
+    expect(events.map((e) => (e as { kind: string }).kind)).toEqual(["delta", "done"]);
+    expect(onError).not.toHaveBeenCalled();
+  });
+
+  it("normalises a tool_result frame to the camelCase shape", async () => {
+    fetchMock.mockImplementationOnce(async () =>
+      sseFrames([
+        {
+          kind: "tool_result",
+          tool_call_id: "call_1",
+          name: "option_chain",
+          ok: false,
+          error: "422 nearest",
+        },
+        { kind: "done" },
+      ]),
+    );
+    const events: unknown[] = [];
+    await streamAgentInvocation("copilot", { prompt: "hi" }, { onEvent: (e) => events.push(e) });
+    expect(events[0]).toEqual({
+      kind: "tool_result",
+      toolCallId: "call_1",
+      name: "option_chain",
+      ok: false,
+      error: "422 nearest",
+    });
+  });
+});
+
 // ── One terminal callback per stream call (R15-AGENT-029 / CODE-PLATFORM-037 / LIFECYCLE-005) ──
 
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
