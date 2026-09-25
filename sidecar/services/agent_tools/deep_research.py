@@ -81,11 +81,6 @@ _LOCAL_LLM_CALL_TIMEOUT_SECS = 150.0
 #: Providers that run on the user's own machine (the per-call cap scales up).
 _LOCAL_PROVIDERS = frozenset({"ollama"})
 
-#: The panel threshold: a profile with ``angles >= 2`` runs Heavy mode. Kept in
-#: lockstep with ``iter._MIN_ANGLES``; the actual per-depth angle counts live in
-#: ``services.research.depth.PROFILES`` (the ONE knob table).
-_MIN_HEAVY_ANGLES = 2
-
 #: Reserved wall (seconds) for the ULTRA cross-check round — carved OUT of the
 #: profile wall so the heavy panel can never starve the verification round.
 _CROSS_CHECK_RESERVE_SECS = 90
@@ -213,7 +208,7 @@ def _research_budget(profile: DepthProfile, rounds: int, wall: int) -> BudgetGua
     """
     from services.budget_guard import BudgetGuard
 
-    heavy = profile.angles >= _MIN_HEAVY_ANGLES
+    heavy = profile.is_panel
     step_factor = profile.angles if heavy else 1
     cross_reserve = _CROSS_CHECK_RESERVE_SECS if (heavy and profile.cross_check) else 0
     return BudgetGuard(
@@ -246,7 +241,7 @@ async def _run_loop(
 ) -> Any:
     """Run THE one deep loop at the profile's knobs, returning a ``ResearchBrief``.
 
-    - ``profile.angles >= 2`` (ULTRA) → Heavy mode: an expert PANEL of parallel
+    - ``profile.is_panel`` (ULTRA) → Heavy mode: an expert PANEL of parallel
       iter explorers + a synthesis agent (test-time scaling), then the numeric
       CROSS-CHECK verification round (:mod:`services.research.verify`) when the
       profile asks for it.
@@ -268,7 +263,7 @@ async def _run_loop(
     from services.research import iter as iter_research
     from services.search.extract import visit_for_research
 
-    heavy = profile.angles >= _MIN_HEAVY_ANGLES
+    heavy = profile.is_panel
     region = config.get_region()
     on_step = config.get_step_sink()
     common = {
@@ -337,7 +332,7 @@ def _loop_failed(loop: str, exc: Exception) -> dict[str, Any]:
 
 def _engine_label(provider: str, model: str, profile: DepthProfile) -> str:
     """Honest engine line naming the loop that actually ran."""
-    if profile.angles >= _MIN_HEAVY_ANGLES:
+    if profile.is_panel:
         label = f"Heavy mode ({profile.angles} parallel angles"
         if profile.cross_check:
             label += " + cross-check"
@@ -411,7 +406,7 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
         deep.LLM_CALL_TIMEOUT.reset(cap_token)
     # The execution-loop hint (R10, D38): which loop ACTUALLY ran — Team
     # RUNTIME builds the full ResearchExecution from it at the tool boundary.
-    loop_label = "heavy" if profile.angles >= _MIN_HEAVY_ANGLES else "iter"
+    loop_label = "heavy" if profile.is_panel else "iter"
     if isinstance(brief, dict):
         # R10 (D37): needs-disambiguation pass-through — zero web spend.
         brief.setdefault("execution_loop", loop_label)
@@ -437,7 +432,7 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
     )
     # ``mode`` keeps the legacy loop naming the brief contract renders; ``depth``
     # carries the R7 surface naming (normal/deep/ultra) for new consumers.
-    out["mode"] = "heavy" if profile.angles >= _MIN_HEAVY_ANGLES else "deep"
+    out["mode"] = "heavy" if profile.is_panel else "deep"
     out["depth"] = profile.depth
     return out
 

@@ -73,6 +73,7 @@ from services.research.deep import (
     structured_source_gathered,
     visit_failure_step,
 )
+from services.research.depth import PANEL_MIN_ANGLES
 from services.research.fast import DEEP_SNAPSHOT_LEG_TIMEOUT_S, snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
 from services.research.semantics import prompt_block
@@ -91,10 +92,9 @@ from services.research.target import (
 #: (``services.research.depth.PROFILES``) via the ``report_char_cap`` knob.
 _REPORT_CHAR_CAP = 6000
 
-#: Heavy mode angle bounds. The paper-grade panel uses a small N (~3 independent
-#: Research Agents + one Synthesis Agent); 2 is the floor for "heavy" to mean a
-#: panel at all, 3 the ceiling so the budget fan-out stays sane.
-_MIN_ANGLES = 2
+#: Heavy mode angle ceiling. The paper-grade panel uses a small N (~3 independent
+#: Research Agents + one Synthesis Agent); the floor for "heavy" to mean a panel
+#: at all is ``depth.PANEL_MIN_ANGLES``, 3 the ceiling so the fan-out stays sane.
 _MAX_ANGLES = 3
 
 _log = logging.getLogger(__name__)
@@ -960,7 +960,7 @@ async def run_heavy_research(
     The R7 depth knobs (``report_char_cap`` / ``min_web_domains`` / ``site_bias``)
     are forwarded to every explorer — ULTRA's stricter coverage (>=2 distinct web
     domains) is enforced inside each angle's floor."""
-    angles = max(_MIN_ANGLES, min(int(angles), _MAX_ANGLES))
+    angles = max(PANEL_MIN_ANGLES, min(int(angles), _MAX_ANGLES))
     steps: list[ResearchStep] = []
     # ONE raw-evidence store for the whole panel (R9 B3): every explorer's
     # visited pages land here so the merged citation audit and the
