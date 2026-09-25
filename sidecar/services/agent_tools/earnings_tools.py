@@ -22,14 +22,16 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from services import earnings_provider
-from services.agent_tools import register_tool
+from services.agent_tools import coerce_int_in_range, register_tool
 
 
 async def _earnings_upcoming(args: dict[str, Any]) -> dict[str, Any]:
     """Return scheduled earnings events in the next ``days`` days."""
-    days = int(args.get("days", 7) or 7)
-    if days < 1 or days > 60:
-        return {"ok": False, "error": "days must be in [1, 60]"}
+    days, err = coerce_int_in_range(
+        args, "days", 7, minimum=1, maximum=60, error="days must be in [1, 60]"
+    )
+    if err is not None:
+        return err
     watchlist_arg = args.get("watchlist")
     watchlist: list[str] | None
     if isinstance(watchlist_arg, str):

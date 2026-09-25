@@ -101,3 +101,18 @@ def test_news_tool_failure_uses_the_invoke_tool_envelope_not_its_own_prefix(
         agent_tools.register_v0_6_0_tools()
 
     assert result == {"ok": False, "error": "unexpected error: feed exploded"}
+
+
+def test_earnings_upcoming_bad_days_returns_range_message() -> None:
+    """R15-AGENT-068: a non-numeric ``days`` used to raise a raw ``ValueError``
+    out of the handler instead of the tool's own range message."""
+    from services.agent_tools.earnings_tools import _earnings_upcoming
+
+    result = asyncio.run(_earnings_upcoming({"days": "seven"}))
+    assert result == {"ok": False, "error": "days must be in [1, 60]"}
+
+    # Out-of-range numeric input fails with the identical message.
+    result = asyncio.run(_earnings_upcoming({"days": 0}))
+    assert result == {"ok": False, "error": "days must be in [1, 60]"}
+    result = asyncio.run(_earnings_upcoming({"days": 61}))
+    assert result == {"ok": False, "error": "days must be in [1, 60]"}

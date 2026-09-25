@@ -59,6 +59,28 @@ def is_registered(tool_id: str) -> bool:
     return tool_id in _TOOLS
 
 
+def coerce_int_in_range(
+    args: dict[str, Any], key: str, default: int, *, minimum: int, maximum: int, error: str
+) -> tuple[int | None, dict[str, Any] | None]:
+    """Coerce ``args[key]`` to an int in ``[minimum, maximum]``.
+
+    Returns ``(value, None)`` on success or ``(None, error-envelope)`` when
+    the raw value can't be parsed as an int OR falls outside the range — a
+    non-numeric arg fails identically to an out-of-range one, with the same
+    message, rather than raising past the handler's own validation
+    (R15-AGENT-068 — ``earnings_upcoming({"days": "seven"})`` used to raise a
+    raw ``ValueError`` instead of returning its own range message).
+    """
+    raw = args.get(key, default)
+    try:
+        value = int(raw) if raw is not None else default
+    except (TypeError, ValueError):
+        return None, {"ok": False, "error": error}
+    if value < minimum or value > maximum:
+        return None, {"ok": False, "error": error}
+    return value, None
+
+
 async def invoke_tool(tool_id: str, args: dict[str, Any]) -> dict[str, Any]:
     """Invoke a registered tool. Raises ``KeyError`` on unknown id.
 
@@ -230,6 +252,7 @@ def register_v0_6_0_tools() -> None:
 
 __all__ = [
     "AgentToolHandler",
+    "coerce_int_in_range",
     "invoke_tool",
     "is_registered",
     "register_tool",
