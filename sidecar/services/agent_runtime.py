@@ -1917,6 +1917,7 @@ def _guard_ratio_claims(text: str, tool_results: list[str], in_context: bool = F
         sentence = match.group()
         if sentence.strip():
             if not _ratio_claim_traced(sentence, tool_results, in_context):
+                logger.info("ratio guard replaced an untraced claim: %r", sentence.strip())
                 lead = sentence[: len(sentence) - len(sentence.lstrip())]
                 sentence = lead + RATIO_UNAVAILABLE + sentence[len(sentence.rstrip()) :]
             in_context = bool(_CLAIM_TERM.search(sentence))

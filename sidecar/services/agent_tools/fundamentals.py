@@ -165,17 +165,17 @@ async def _result(symbol: str, fundamentals: Any) -> dict[str, Any]:
     (``financial_currency`` set — an ADR such as SIFY) read off its 20-F cover
     page (R15-AGENT-090). No result carried the ratio, so the model stated one;
     now a stated ratio is traceable to ``ads_ratio.statement`` and the true
-    one reaches the model. Absent (never guessed) when no 20-F states it."""
-    payload: dict[str, Any] = {
-        "ok": True,
-        "fundamentals": fundamentals.model_dump(by_alias=True, mode="json"),
-    }
+    one reaches the model. Absent (never guessed) when no 20-F states it. It
+    leads the payload: the model-facing view is cut to a share of the context
+    window, and a dump with field_meta can outrun a small model's share."""
+    payload: dict[str, Any] = {"ok": True}
     if getattr(fundamentals, "financial_currency", None):
         from services import adr_ratio
 
         ratio = await adr_ratio.lookup(symbol)
         if ratio is not None:
             payload["ads_ratio"] = ratio
+    payload["fundamentals"] = fundamentals.model_dump(by_alias=True, mode="json")
     return payload
 
 
