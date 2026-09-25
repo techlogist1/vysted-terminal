@@ -14,7 +14,7 @@ from typing import Any
 import pytest
 
 from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMMessage, LLMUsage
-from services import agent_runtime
+from services import agent_runtime, planner
 
 #: Captured phrasings (composer-chat/52-intent-gate-probe.txt and
 #: portfolio-notes/30-intent-gate-portfolio-notes.txt) -> the write tool each needs.
@@ -162,20 +162,88 @@ async def test_fresh_no_tool_phrasing_empties_tool_surface(
     assert await _agent_tool_ids(monkeypatch, prompt) == set()
 
 
+async def _gate_off_tool_ids(monkeypatch: pytest.MonkeyPatch, prompt: str) -> set[str]:
+    """The surface the same prompt gets with the no-tool cue switched off."""
+    with monkeypatch.context() as m:
+        m.setattr(planner, "_no_tool_cue", lambda _text: False)
+        return await _agent_tool_ids(m, prompt)
+
+
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "prompt",
+    ["Without calling the news tool, get TCS.NS price", "Don't use web search, get TCS.NS price"],
+)
 async def test_named_tool_exclusion_keeps_the_rest_of_the_surface(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, prompt: str
 ) -> None:
     # Excluding one NAMED tool is not a no-tool instruction: price_data stays.
-    assert "price_data" in await _agent_tool_ids(
-        monkeypatch, "Without calling the news tool, get TCS.NS price"
-    )
+    tool_ids = await _agent_tool_ids(monkeypatch, prompt)
+    assert "price_data" in tool_ids
+    assert tool_ids == await _gate_off_tool_ids(monkeypatch, prompt)
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("prompt", ["Add 10 TCS at 3,200 to my portfolio", "Add 10 TCS at 3,200"])
 async def test_normal_portfolio_add_is_unaffected_by_no_tool_cue(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, prompt: str
 ) -> None:
-    assert "portfolio_add_position" in await _agent_tool_ids(
-        monkeypatch, "Add 10 TCS at 3,200 to my portfolio"
-    )
+    tool_ids = await _agent_tool_ids(monkeypatch, prompt)
+    assert "portfolio_add_position" in tool_ids
+    assert tool_ids == await _gate_off_tool_ids(monkeypatch, prompt)
+
+
+# batch-22's over-match (verifier l035-surface.out) stripped these data requests
+# to zero tools and the model fabricated prices; the first six are verbatim.
+_KEEP_SURFACE = [
+    "Don't forget to use the tools to get the latest TCS.NS price.",
+    "Do not answer without using the tools: what is TCS.NS trading at?",
+    "Why did you not use the tools? Get the TCS.NS price now.",
+    "Why did you not use the tools",
+    "Just get the latest price from the market for the stocks in this message: TCS.NS, INFY.NS",
+    "Only use data from price_data for the above symbols: TCS.NS",
+    "No tools except price_data for TCS.NS",
+    "No tools other than a price lookup for TCS.NS.",
+    "Answer using the latest data, not just from memory: TCS.NS price",
+    "Don't reply if you do not call the tools: what is INFY.NS at?",
+    "Did you not call any tools? Get INFY.NS price.",
+    "No tools for the arithmetic; use the tools to get the TCS.NS price.",
+    "Take the tickers from this message and fetch prices: TCS.NS",
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("prompt", _KEEP_SURFACE)
+async def test_data_request_mentioning_tools_keeps_its_surface(
+    monkeypatch: pytest.MonkeyPatch, prompt: str
+) -> None:
+    tool_ids = await _agent_tool_ids(monkeypatch, prompt)
+    assert "price_data" in tool_ids
+    assert tool_ids == await _gate_off_tool_ids(monkeypatch, prompt)
+
+
+# Every true no-tool phrasing batch-21 and batch-22 found kept the surface.
+_NO_TOOL = [
+    "Answer without any tools: I sold 5 TCS shares at ₹3,100 each. Restate my total proceeds.",
+    "Do not call a tool. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.",
+    "Don\u2019t use any tools. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.",
+    "Avoid calling any functions. I bought 40 ITC shares at ₹415, add them to my holdings "
+    "and tell me what I spent.",
+    "Zero tool calls please: I want to add 7 INFY at ₹1,500 to my portfolio — just tell me "
+    "the total cost.",
+    "Skip the tools for this one — I hold 12 HDFCBANK at ₹1,600; add 3 more at ₹1,650, what "
+    "is my average?",
+    "I hold 40 HDFCBANK at ₹1,640; answer only from what I gave you: what is my cost basis?",
+    "From memory only: what did TCS close at last year?",
+    "No tools: what is 5 × 3,100?",
+    "Please refrain from using tools, just compute it.",
+    "Don't make any tool calls, restate my 5 TCS at ₹3,100.",
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("prompt", _NO_TOOL)
+async def test_no_tool_phrasing_empties_tool_surface(
+    monkeypatch: pytest.MonkeyPatch, prompt: str
+) -> None:
+    assert await _agent_tool_ids(monkeypatch, prompt) == set()

@@ -127,18 +127,87 @@ _READ_SIGNALS = (
     r"\?\s*$",
 )
 
-# R15-LEAD-035: an explicit instruction not to call any tool at all, checked
-# BEFORE the signal table so it overrides every action cue elsewhere in the
-# same turn (e.g. "sold", "<qty> X at Y"). Deliberately narrow: it must NOT
-# match an instruction to skip one NAMED tool ("without calling the
-# fundamentals tool, use price_data") — "tool(s)" must follow the verb (with
-# only an optional "any" between), never a named tool.
-_NO_TOOL_CUE = re.compile(
-    r"\bwithout (?:calling|using|running|invoking)(?: any)? tools?\b"
-    r"|\b(?:don'?t|do not|never) (?:call|use)(?: any)? tools?\b"
-    r"|\bno tool(?:s\b|\s*calls?\b)"
-    r"|\b(?:just|only) answer from what (?:i )?(?:gave|told) you\b"
+# R15-LEAD-035: an explicit instruction not to call any tool at all ("don't use
+# any tools", "answer only from what I gave you") empties the turn's tool surface
+# (agent_runtime._resolve_tool_surface). A false match strips price_data from a
+# data request and the model then fabricates prices, so every rule below keeps
+# the surface when in doubt: closed word lists, one clause at a time, never `.*`.
+# ponytail: closed lists — "I don't want you to use any tools" or "try not to use
+# tools" are misses by design (surface kept, writes still review-gated).
+_NT_OBJ = r"(?>(?:tool|function) calls?|tools?|functions?|lookups?|search(?:es)?|external data)"
+_NT_OBJ_VERBLESS = r"(?>(?:tool|function) calls?|tools?|functions|lookups|searches|external data)"
+_NT_GAP = r"(?:(?:any|a|an|the|your) )*"
+_NT_VERB_OBJ = (
+    r"(?:use|using|call|calling|invoke|invoking|run|running|rely on|relying on) "
+    rf"{_NT_GAP}{_NT_OBJ}\b"
+    rf"|(?:make|making) {_NT_GAP}(?>(?:tool|function) calls?)\b"
 )
+# "No tools except price_data" names what IS allowed: keep the surface.
+_NT_NO_EXCEPTION = r"(?![ ,—–-]*(?:except|other than|besides|but|apart from)\b)"
+_NT_GIVEN = (
+    r"(?:what i gave you|what i told you|what i pasted|the above|my numbers|this message"
+    r"|the numbers above|the data above|memory)"
+)
+_NT_CUES = re.compile(
+    # A negation ADJACENT to the verb; only this closed filler may sit between.
+    r"\b(?:don't|dont|do not|never|not|avoid|refrain from|without) "
+    rf"(?:(?:ever|please|just|even|any|the|a) )*(?:{_NT_VERB_OBJ}){_NT_NO_EXCEPTION}"
+    rf"|\b(?:without|no|zero) {_NT_GAP}{_NT_OBJ_VERBLESS}\b{_NT_NO_EXCEPTION}"
+    r"|\bskip (?:(?:the|any|all) )?(?:tools|(?:tool|function) calls?)\b"
+    rf"|\b(?:answer|reply|respond|only|just)(?: (?:only|just|me|strictly))* from {_NT_GIVEN}\b"
+    rf"|\bfrom {_NT_GIVEN} only\b"
+)
+# Reverse order (passive): "the tools must not be used".
+_NT_PASSIVE = re.compile(
+    rf"\b{_NT_OBJ} (?:(?:should|must|will|are|is) )?(?:not|never) (?:to )?be "
+    r"(?:used|called|invoked|run)\b"
+)
+_NT_POSITIVE = re.compile(rf"\b(?:{_NT_VERB_OBJ})")
+_NT_CLAUSE_END = re.compile(r"[;:!?\n—–]|[.,](?=\s|$)| -+ ")
+_NT_NEGATION = re.compile(r"\b(?:don't|dont|do not|never|not)\b")
+_NT_NEGATORS = re.compile(
+    r"\b(?:don't|dont|do not|never|not|avoid|refrain from|without|no|zero|skip)\b"
+)
+_NT_QUESTION = re.compile(
+    r"(?:why|what|how|when|where|who|which)\b"
+    r"|(?:did|do|does|can|could|would|will|should|have|has|is|are|was|were) (?:you|i|we|they|it)\b"
+)
+_NT_SNAKE_ID = re.compile(r"\b[a-z]+(?:_[a-z]+)+\b")
+
+
+def _no_tool_cue(lowered: str) -> bool:
+    """Whether the (lower-cased) turn tells the agent to call no tool at all."""
+    text = re.sub(r"[^\S\n]+", " ", lowered.replace("’", "'").replace("‘", "'"))
+    # Naming a tool id (every catalog id is snake_case) means tools are wanted.
+    if _NT_SNAKE_ID.search(text):
+        return False
+
+    def clause(match: re.Match[str]) -> tuple[str, bool]:
+        """The clause text before the match, and whether the clause is a question."""
+        start = max((b.end() for b in _NT_CLAUSE_END.finditer(text, 0, match.start())), default=0)
+        stop = _NT_CLAUSE_END.search(text, match.end())
+        head = text[start : match.start()].lstrip()
+        whole = text[start : stop.start() if stop else len(text)].lstrip()
+        asks = (stop is not None and stop.group() == "?") or bool(_NT_QUESTION.match(whole))
+        return head, asks
+
+    # A positive "use the tools to get ..." anywhere wins over a no-tool clause.
+    for m in _NT_POSITIVE.finditer(text):
+        head, asks = clause(m)
+        if not asks and not _NT_NEGATORS.search(head):
+            return False
+    for m in _NT_CUES.finditer(text):
+        head, asks = clause(m)
+        # A second negation makes it a double negative ("Do not answer without
+        # using the tools" = use them).
+        if not asks and not _NT_NEGATION.search(head):
+            return True
+    for m in _NT_PASSIVE.finditer(text):
+        head, asks = clause(m)
+        if not asks and re.fullmatch(r"(?:(?:the|any|your|all) )*", head):
+            return True
+    return False
+
 
 _SIGNAL_TABLE: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("research", _RESEARCH_SIGNALS),
@@ -209,7 +278,7 @@ def classify_intent(text: str, _context: dict[str, Any] | None = None) -> Intent
         return IntentResult("read", 0.0, [], False)
     lowered = raw.lower()
 
-    if _NO_TOOL_CUE.search(lowered):
+    if _no_tool_cue(lowered):
         # A positive read cue that overrides every action cue in the same turn
         # (R15-LEAD-035) — the caller strips the whole tool surface on it.
         return IntentResult("read", 0.95, ["no-tool"], False)

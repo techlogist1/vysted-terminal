@@ -1,0 +1,47 @@
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " sorry"}
+{"kind": "delta", "text": " but"}
+{"kind": "delta", "text": " V"}
+{"kind": "delta", "text": "yst"}
+{"kind": "delta", "text": "ed"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " no"}
+{"kind": "delta", "text": " brokerage"}
+{"kind": "delta", "text": " connection"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " only"}
+{"kind": "delta", "text": " track"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " user"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " local"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " track"}
+{"kind": "delta", "text": " INF"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " add"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " holding"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2735, "output_tokens": 45, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

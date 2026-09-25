@@ -1,0 +1,292 @@
+..........................................FF...F.FFFFFFFF.FF             [100%]
+=================================== FAILURES ===================================
+_ test_data_request_mentioning_tools_keeps_its_surface[No tools except price_data for TCS.NS] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1185ecfa0>
+prompt = 'No tools except price_data for TCS.NS'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _KEEP_SURFACE)
+    async def test_data_request_mentioning_tools_keeps_its_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+        tool_ids = await _agent_tool_ids(monkeypatch, prompt)
+>       assert "price_data" in tool_ids
+E       AssertionError: assert 'price_data' in set()
+
+tests/test_b3_runtime_intent_gate.py:223: AssertionError
+_ test_data_request_mentioning_tools_keeps_its_surface[No tools other than a price lookup for TCS.NS.] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1185ecd00>
+prompt = 'No tools other than a price lookup for TCS.NS.'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _KEEP_SURFACE)
+    async def test_data_request_mentioning_tools_keeps_its_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+        tool_ids = await _agent_tool_ids(monkeypatch, prompt)
+>       assert "price_data" in tool_ids
+E       AssertionError: assert 'price_data' in set()
+
+tests/test_b3_runtime_intent_gate.py:223: AssertionError
+_ test_data_request_mentioning_tools_keeps_its_surface[No tools for the arithmetic; use the tools to get the TCS.NS price.] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1185ef7e0>
+prompt = 'No tools for the arithmetic; use the tools to get the TCS.NS price.'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _KEEP_SURFACE)
+    async def test_data_request_mentioning_tools_keeps_its_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+        tool_ids = await _agent_tool_ids(monkeypatch, prompt)
+>       assert "price_data" in tool_ids
+E       AssertionError: assert 'price_data' in set()
+
+tests/test_b3_runtime_intent_gate.py:223: AssertionError
+_ test_no_tool_phrasing_empties_tool_surface[Answer without any tools: I sold 5 TCS shares at \u20b93,100 each. Restate my total proceeds.] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1185ece50>
+prompt = 'Answer without any tools: I sold 5 TCS shares at ₹3,100 each. Restate my total proceeds.'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _NO_TOOL)
+    async def test_no_tool_phrasing_empties_tool_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+>       assert await _agent_tool_ids(monkeypatch, prompt) == set()
+E       AssertionError: assert {'add_chart_d...summary', ...} == set()
+E         
+E         Extra items in the left set:
+E         'add_to_watchlist'
+E         'set_region'
+E         'web_search'
+E         'write_screener_filters'
+E         'publish_brief'...
+E         
+E         ...Full output truncated (51 lines hidden), use '-vv' to show
+
+tests/test_b3_runtime_intent_gate.py:251: AssertionError
+_ test_no_tool_phrasing_empties_tool_surface[Do not call a tool. I sold 5 TCS shares at \u20b93,100 each; restate my proceeds.] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x118567b60>
+prompt = 'Do not call a tool. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _NO_TOOL)
+    async def test_no_tool_phrasing_empties_tool_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+>       assert await _agent_tool_ids(monkeypatch, prompt) == set()
+E       AssertionError: assert {'add_chart_d...summary', ...} == set()
+E         
+E         Extra items in the left set:
+E         'add_to_watchlist'
+E         'set_region'
+E         'web_search'
+E         'write_screener_filters'
+E         'publish_brief'...
+E         
+E         ...Full output truncated (51 lines hidden), use '-vv' to show
+
+tests/test_b3_runtime_intent_gate.py:251: AssertionError
+_ test_no_tool_phrasing_empties_tool_surface[Don\u2019t use any tools. I sold 5 TCS shares at \u20b93,100 each; restate my proceeds.] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x118567af0>
+prompt = 'Don’t use any tools. I sold 5 TCS shares at ₹3,100 each; restate my proceeds.'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _NO_TOOL)
+    async def test_no_tool_phrasing_empties_tool_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+>       assert await _agent_tool_ids(monkeypatch, prompt) == set()
+E       AssertionError: assert {'add_chart_d...summary', ...} == set()
+E         
+E         Extra items in the left set:
+E         'add_to_watchlist'
+E         'set_region'
+E         'web_search'
+E         'write_screener_filters'
+E         'publish_brief'...
+E         
+E         ...Full output truncated (51 lines hidden), use '-vv' to show
+
+tests/test_b3_runtime_intent_gate.py:251: AssertionError
+_ test_no_tool_phrasing_empties_tool_surface[Avoid calling any functions. I bought 40 ITC shares at \u20b9415, add them to my holdings and tell me what I spent.] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1185679a0>
+prompt = 'Avoid calling any functions. I bought 40 ITC shares at ₹415, add them to my holdings and tell me what I spent.'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _NO_TOOL)
+    async def test_no_tool_phrasing_empties_tool_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+>       assert await _agent_tool_ids(monkeypatch, prompt) == set()
+E       AssertionError: assert {'add_chart_d...summary', ...} == set()
+E         
+E         Extra items in the left set:
+E         'add_to_watchlist'
+E         'set_region'
+E         'web_search'
+E         'write_screener_filters'
+E         'publish_brief'...
+E         
+E         ...Full output truncated (51 lines hidden), use '-vv' to show
+
+tests/test_b3_runtime_intent_gate.py:251: AssertionError
+_ test_no_tool_phrasing_empties_tool_surface[Zero tool calls please: I want to add 7 INFY at \u20b91,500 to my portfolio \u2014 just tell me the total cost.] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x118567d90>
+prompt = 'Zero tool calls please: I want to add 7 INFY at ₹1,500 to my portfolio — just tell me the total cost.'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _NO_TOOL)
+    async def test_no_tool_phrasing_empties_tool_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+>       assert await _agent_tool_ids(monkeypatch, prompt) == set()
+E       AssertionError: assert {'add_chart_d...summary', ...} == set()
+E         
+E         Extra items in the left set:
+E         'add_to_watchlist'
+E         'set_region'
+E         'web_search'
+E         'write_screener_filters'
+E         'publish_brief'...
+E         
+E         ...Full output truncated (51 lines hidden), use '-vv' to show
+
+tests/test_b3_runtime_intent_gate.py:251: AssertionError
+_ test_no_tool_phrasing_empties_tool_surface[Skip the tools for this one \u2014 I hold 12 HDFCBANK at \u20b91,600; add 3 more at \u20b91,650, what is my average?] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x118739390>
+prompt = 'Skip the tools for this one — I hold 12 HDFCBANK at ₹1,600; add 3 more at ₹1,650, what is my average?'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _NO_TOOL)
+    async def test_no_tool_phrasing_empties_tool_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+>       assert await _agent_tool_ids(monkeypatch, prompt) == set()
+E       AssertionError: assert {'add_chart_d...summary', ...} == set()
+E         
+E         Extra items in the left set:
+E         'add_to_watchlist'
+E         'set_region'
+E         'web_search'
+E         'write_screener_filters'
+E         'publish_brief'...
+E         
+E         ...Full output truncated (51 lines hidden), use '-vv' to show
+
+tests/test_b3_runtime_intent_gate.py:251: AssertionError
+_ test_no_tool_phrasing_empties_tool_surface[I hold 40 HDFCBANK at \u20b91,640; answer only from what I gave you: what is my cost basis?] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11873a190>
+prompt = 'I hold 40 HDFCBANK at ₹1,640; answer only from what I gave you: what is my cost basis?'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _NO_TOOL)
+    async def test_no_tool_phrasing_empties_tool_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+>       assert await _agent_tool_ids(monkeypatch, prompt) == set()
+E       AssertionError: assert {'add_chart_d...summary', ...} == set()
+E         
+E         Extra items in the left set:
+E         'add_to_watchlist'
+E         'set_region'
+E         'web_search'
+E         'write_screener_filters'
+E         'publish_brief'...
+E         
+E         ...Full output truncated (51 lines hidden), use '-vv' to show
+
+tests/test_b3_runtime_intent_gate.py:251: AssertionError
+_ test_no_tool_phrasing_empties_tool_surface[From memory only: what did TCS close at last year?] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x118738d70>
+prompt = 'From memory only: what did TCS close at last year?'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _NO_TOOL)
+    async def test_no_tool_phrasing_empties_tool_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+>       assert await _agent_tool_ids(monkeypatch, prompt) == set()
+E       AssertionError: assert {'add_chart_d...summary', ...} == set()
+E         
+E         Extra items in the left set:
+E         'add_to_watchlist'
+E         'set_region'
+E         'web_search'
+E         'write_screener_filters'
+E         'publish_brief'...
+E         
+E         ...Full output truncated (51 lines hidden), use '-vv' to show
+
+tests/test_b3_runtime_intent_gate.py:251: AssertionError
+_ test_no_tool_phrasing_empties_tool_surface[Please refrain from using tools, just compute it.] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x118739320>
+prompt = 'Please refrain from using tools, just compute it.'
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _NO_TOOL)
+    async def test_no_tool_phrasing_empties_tool_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+>       assert await _agent_tool_ids(monkeypatch, prompt) == set()
+E       AssertionError: assert {'add_chart_d...summary', ...} == set()
+E         
+E         Extra items in the left set:
+E         'add_to_watchlist'
+E         'set_region'
+E         'web_search'
+E         'write_screener_filters'
+E         'publish_brief'...
+E         
+E         ...Full output truncated (51 lines hidden), use '-vv' to show
+
+tests/test_b3_runtime_intent_gate.py:251: AssertionError
+_ test_no_tool_phrasing_empties_tool_surface[Don't make any tool calls, restate my 5 TCS at \u20b93,100.] _
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x118739400>
+prompt = "Don't make any tool calls, restate my 5 TCS at ₹3,100."
+
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize("prompt", _NO_TOOL)
+    async def test_no_tool_phrasing_empties_tool_surface(
+        monkeypatch: pytest.MonkeyPatch, prompt: str
+    ) -> None:
+>       assert await _agent_tool_ids(monkeypatch, prompt) == set()
+E       AssertionError: assert {'add_chart_d...summary', ...} == set()
+E         
+E         Extra items in the left set:
+E         'add_to_watchlist'
+E         'set_region'
+E         'web_search'
+E         'write_screener_filters'
+E         'publish_brief'...
+E         
+E         ...Full output truncated (51 lines hidden), use '-vv' to show
+
+tests/test_b3_runtime_intent_gate.py:251: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_b3_runtime_intent_gate.py::test_data_request_mentioning_tools_keeps_its_surface[No tools except price_data for TCS.NS]
+FAILED tests/test_b3_runtime_intent_gate.py::test_data_request_mentioning_tools_keeps_its_surface[No tools other than a price lookup for TCS.NS.]
+FAILED tests/test_b3_runtime_intent_gate.py::test_data_request_mentioning_tools_keeps_its_surface[No tools for the arithmetic; use the tools to get the TCS.NS price.]
+FAILED tests/test_b3_runtime_intent_gate.py::test_no_tool_phrasing_empties_tool_surface[Answer without any tools: I sold 5 TCS shares at \u20b93,100 each. Restate my total proceeds.]
+FAILED tests/test_b3_runtime_intent_gate.py::test_no_tool_phrasing_empties_tool_surface[Do not call a tool. I sold 5 TCS shares at \u20b93,100 each; restate my proceeds.]
+FAILED tests/test_b3_runtime_intent_gate.py::test_no_tool_phrasing_empties_tool_surface[Don\u2019t use any tools. I sold 5 TCS shares at \u20b93,100 each; restate my proceeds.]
+FAILED tests/test_b3_runtime_intent_gate.py::test_no_tool_phrasing_empties_tool_surface[Avoid calling any functions. I bought 40 ITC shares at \u20b9415, add them to my holdings and tell me what I spent.]
+FAILED tests/test_b3_runtime_intent_gate.py::test_no_tool_phrasing_empties_tool_surface[Zero tool calls please: I want to add 7 INFY at \u20b91,500 to my portfolio \u2014 just tell me the total cost.]
+FAILED tests/test_b3_runtime_intent_gate.py::test_no_tool_phrasing_empties_tool_surface[Skip the tools for this one \u2014 I hold 12 HDFCBANK at \u20b91,600; add 3 more at \u20b91,650, what is my average?]
+FAILED tests/test_b3_runtime_intent_gate.py::test_no_tool_phrasing_empties_tool_surface[I hold 40 HDFCBANK at \u20b91,640; answer only from what I gave you: what is my cost basis?]
+FAILED tests/test_b3_runtime_intent_gate.py::test_no_tool_phrasing_empties_tool_surface[From memory only: what did TCS close at last year?]
+FAILED tests/test_b3_runtime_intent_gate.py::test_no_tool_phrasing_empties_tool_surface[Please refrain from using tools, just compute it.]
+FAILED tests/test_b3_runtime_intent_gate.py::test_no_tool_phrasing_empties_tool_surface[Don't make any tool calls, restate my 5 TCS at \u20b93,100.]
+13 failed, 47 passed in 0.40s

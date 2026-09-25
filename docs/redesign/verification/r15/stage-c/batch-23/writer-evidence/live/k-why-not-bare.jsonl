@@ -1,0 +1,76 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "You"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " asking"}
+{"kind": "delta", "text": " why"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": " cop"}
+{"kind": "delta", "text": "ilot"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " didn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " use"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " answer"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " question"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "Unfortunately"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " problem"}
+{"kind": "delta", "text": " statement"}
+{"kind": "delta", "text": " doesn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " contain"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " questions"}
+{"kind": "delta", "text": " related"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " using"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " explaining"}
+{"kind": "delta", "text": " why"}
+{"kind": "delta", "text": " certain"}
+{"kind": "delta", "text": " actions"}
+{"kind": "delta", "text": " weren"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " taken"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " functions"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " context"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " ask"}
+{"kind": "delta", "text": " another"}
+{"kind": "delta", "text": " question"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " happy"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " assist"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6054, "output_tokens": 73, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

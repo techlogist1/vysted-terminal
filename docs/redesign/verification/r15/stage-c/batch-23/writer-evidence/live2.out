@@ -1,0 +1,42 @@
+quotes TCS.NS=HTTP 200
+{"symbol":"TCS","price":2082.0,"change":-5.0,"change_percent":-0.23957834211787254,"volume":3342195.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+quotes INFY.NS=HTTP 200
+{"symbol":"INFY","price":1000.2,"change":-14.299999999999955,"change_percent":-1.4095613602759935,"volume":10240700.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+positions_before=HTTP 200
+[]
+
+== k-why-not-bare-t1-r2
+prompt='What is TCS.NS trading at?'
+history_turns=0
+calls=[('price_data', {'asset_class': 'equity', 'range': '1mo', 'symbol': 'TCS.NS', 'timeframe': '1d'}), ('price_data', {'asset_class': 'equity', 'range': '1d', 'symbol': 'TCS.NS'})]
+results=[('price_data', False, 'timeout'), ('price_data', True, '')]
+kinds=['done', 'heartbeat']
+positions_after=HTTP 200
+[]
+---
+It looks like I was unable to fetch the current price of TCS.NS. However, I can suggest retrying with a different approach.
+
+Let me try again by calling the `price_data` tool with a smaller range and a shorter timeframe. This might help me get the latest available data for TCS.NS.
+
+TCS.NS is currently trading at ₹2082.0.
+
+== k-why-not-bare-r2
+prompt='Why did you not use the tools'
+history_turns=2
+calls=[('read_notes', {'scope': 'global'}), ('price_data', {'symbol': 'TCS.NS', 'range': '1d'})]
+results=[('read_notes', True, ''), ('price_data', True, '')]
+kinds=['done', 'heartbeat']
+positions_after=HTTP 200
+[]
+---
+To answer this question, I can call the `read_notes` function with a scope of 'global' to check if there's any relevant information in the user's notes that might explain why certain tools were not used. 
+
+Here is the JSON for the function call:
+```
+To get the current price of TCS.NS, I should have used the `price_data` tool instead of providing an incorrect answer. Here's what I can do:
+
+I'll call the `price_data` tool to fetch the latest price data for TCS.NS.
+
+The current price of TCS.NS is ₹2082.0.
+
+ALLDONE

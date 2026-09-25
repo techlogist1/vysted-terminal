@@ -1,0 +1,6 @@
+[   2.6s] done: {"kind": "done", "usage": {"input_tokens": 2735, "output_tokens": 45, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I'm sorry but Vysted has no brokerage connection and can only track the user's local portfolio. I can help research or track INFY in their holdings. Would you like me to add it as a holding?
+
+=== ok · 2.6s · events {'delta': 46, 'done': 1} · usage in=2735 out=45 · est $0.00000 · llama3.1:8b

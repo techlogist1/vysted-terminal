@@ -1,0 +1,23 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  28.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_1c15ded6917b4fc2ab1dc5799a692e5e", "name": "read_notes", "input": {"scope": "global"}}
+[  28.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_1c15ded6917b4fc2ab1dc5799a692e5e", "name": "read_notes", "ok": true, "error": null}
+[  36.7s] tool_use: {"kind": "tool_use", "tool_call_id": "call_3371b3a9142a4042805b06060b34ba96", "name": "price_data", "input": {"symbol": "TCS.NS", "range": "1d"}}
+[  41.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_3371b3a9142a4042805b06060b34ba96", "name": "price_data", "ok": true, "error": null}
+[  51.7s] heartbeat: {"kind": "heartbeat"}
+[  61.7s] heartbeat: {"kind": "heartbeat"}
+[  71.7s] heartbeat: {"kind": "heartbeat"}
+[  73.3s] done: {"kind": "done", "usage": {"input_tokens": 7169, "output_tokens": 16, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+To answer this question, I can call the `read_notes` function with a scope of 'global' to check if there's any relevant information in the user's notes that might explain why certain tools were not used. 
+
+Here is the JSON for the function call:
+```
+To get the current price of TCS.NS, I should have used the `price_data` tool instead of providing an incorrect answer. Here's what I can do:
+
+I'll call the `price_data` tool to fetch the latest price data for TCS.NS.
+
+The current price of TCS.NS is ₹2082.0.
+
+=== ok · 73.3s · events {'heartbeat': 5, 'delta': 128, 'tool_use': 2, 'tool_result': 2, 'done': 1} · usage in=7169 out=16 · est $0.00000 · llama3.1:8b
