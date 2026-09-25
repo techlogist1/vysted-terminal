@@ -2480,3 +2480,44 @@ def test_an_adr_price_range_or_time_is_not_a_ratio_claim() -> None:
     assert agent_runtime._guard_ratio_claims(kept, []) == kept
     claim = "The ADR ratio is 1:2. "
     assert agent_runtime._guard_ratio_claims(claim, []) == agent_runtime.RATIO_UNAVAILABLE + " "
+
+
+@pytest.mark.asyncio
+async def test_each_dispatched_call_streams_its_tool_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-033: the stream carried a call but not how it ended, so the
+    eval grader passed a trial whose option_chain call returned 422."""
+    agent_runtime.reload()
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    provider = _RecordingRoundsProvider(
+        [
+            [
+                LLMToolUseEvent(tool_call_id="a", name="option_chain", input={"symbol": "SPY"}),
+                LLMToolUseEvent(tool_call_id="b", name="price_data", input={"symbol": "SPY"}),
+                done,
+            ],
+            [LLMDeltaEvent(text="Done."), done],
+        ]
+    )
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+
+    async def _tool(tool_call: LLMToolUseEvent, *_a: Any, **_k: Any) -> str:
+        if tool_call.name == "option_chain":
+            return json.dumps({"ok": False, "error": "422: expiry 'nearest' is not a date"})
+        return json.dumps({"ok": True, "rows": [1, 2]})
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    events = [
+        e
+        async for e in agent_runtime.invoke_agent(
+            agent_id="copilot", prompt="SPY chain", api_key="sk-test", autonomy="ask"
+        )
+    ]
+    calls = [e for e in events if e.kind == "tool_use"]
+    results = [e for e in events if e.kind == "tool_result"]
+    assert [(r.tool_call_id, r.name, r.ok, r.error) for r in results] == [
+        (calls[0].tool_call_id, "option_chain", False, "422: expiry 'nearest' is not a date"),
+        (calls[1].tool_call_id, "price_data", True, None),
+    ]
+    assert events.index(results[0]) > events.index(calls[1])

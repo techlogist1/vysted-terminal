@@ -51,6 +51,7 @@ from models.llm import (
     LLMProviderId,
     LLMResearchStepEvent,
     LLMThinkingEvent,
+    LLMToolResultEvent,
     LLMToolUseEvent,
     LLMUsage,
 )
@@ -1409,6 +1410,25 @@ def _result_status(result_str: str) -> Any:
     return payload.get("status") if isinstance(payload, dict) else None
 
 
+def _tool_result_event(tool_call: LLMToolUseEvent, result_str: str) -> LLMToolResultEvent:
+    """The outcome of one dispatched call (R15-CODE-AGENT-033): not ok when the
+    result is a dict with ``ok: false`` or a truthy ``error``."""
+    try:
+        payload = json.loads(result_str)
+    except (TypeError, ValueError):
+        payload = None
+    failed = isinstance(payload, dict) and (
+        payload.get("ok") is False or bool(payload.get("error"))
+    )
+    reason = (payload.get("error") or payload.get("message")) if failed else None
+    return LLMToolResultEvent(
+        tool_call_id=tool_call.tool_call_id,
+        name=tool_call.name,
+        ok=not failed,
+        error=str(reason)[:200] if reason else None,
+    )
+
+
 async def _end_of_turn_notices(
     autonomy: str | None,
     publish_brief_calls: list[str],
@@ -2261,9 +2281,9 @@ async def _dispatch_round(
 ) -> AsyncIterator[LLMStreamEvent]:
     """Dispatch the round's tool calls and append their turns to the messages.
 
-    Yields each tool's live steps and any synthetic brief/backtest event; under
-    AUTO, each dispatched host action's result is then rewritten from the
-    panel's real ack.
+    Yields each tool's live steps, its ``tool_result`` outcome and any synthetic
+    brief/backtest event; under AUTO, each dispatched host action's result is
+    then rewritten from the panel's real ack.
     """
     # Reconstruct the assistant tool-use turn FIRST so the provider can
     # associate each tool result with its call: Anthropic requires the
@@ -2353,6 +2373,7 @@ async def _dispatch_round(
         )
         run.messages.append(tool_result_msg)
         turn.tool_results.append(result_str)
+        yield _tool_result_event(tool_call, result_str)
         if on_tool_result is not None:
             on_tool_result(tool_call, result_str)
         if tool_call.name in _host_ids and _result_status(result_str) == "awaiting_user_review":

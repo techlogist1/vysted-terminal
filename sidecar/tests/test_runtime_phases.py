@@ -206,7 +206,12 @@ async def test_dispatch_round_answers_each_call_and_stops_searching_past_the_cap
         )
     )
 
-    assert out == []
+    # Each call's outcome, keyed on its id (R15-CODE-AGENT-033).
+    assert [(e.kind, e.tool_call_id, e.ok) for e in out] == [
+        ("tool_result", "call_s", False),
+        ("tool_result", "call_n", True),
+    ]
+    assert "web-search cap reached" in out[0].error
     assistant, search_result, notes_result = run.messages[-3:]
     assert assistant.content == "think first"  # the reasoner's reasoning is echoed
     assert [c["id"] for c in assistant.metadata["tool_calls"]] == ["call_s", "call_n"]
