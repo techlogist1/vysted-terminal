@@ -374,6 +374,41 @@ fn diag_log_line(line: String) {
     diag_eprintln!("{line}");
 }
 
+/// Filename of the non-secret app-meta flags (onboarding seen, banner dismissed)
+/// under the data directory. They carry no secret, so they live here rather than
+/// in the OS keychain, which Linux without a Secret Service provider cannot open
+/// (R15-CROSS-PLATFORM-011).
+const APP_META_FILENAME: &str = "app-meta.json";
+
+/// The app-meta flags stored in `file` (empty when absent or unreadable).
+fn read_app_meta(file: &Path) -> serde_json::Map<String, serde_json::Value> {
+    std::fs::read(file)
+        .ok()
+        .and_then(|bytes| serde_json::from_slice(&bytes).ok())
+        .unwrap_or_default()
+}
+
+/// Set one app-meta flag in `file`, keeping the others.
+fn write_app_meta(file: &Path, key: &str, value: &str) -> Result<(), String> {
+    let mut meta = read_app_meta(file);
+    meta.insert(key.to_string(), value.into());
+    let bytes = serde_json::to_vec_pretty(&meta).map_err(|e| e.to_string())?;
+    write_atomic(&file.to_string_lossy(), &bytes)
+}
+
+/// Read one non-secret app-meta flag (`None` when never set).
+#[tauri::command]
+fn app_meta_get(app: tauri::AppHandle, key: String) -> Option<String> {
+    let meta = read_app_meta(&app_data_dir(&app).join(APP_META_FILENAME));
+    meta.get(&key).and_then(|v| v.as_str()).map(str::to_string)
+}
+
+/// Persist one non-secret app-meta flag.
+#[tauri::command]
+fn app_meta_set(app: tauri::AppHandle, key: String, value: String) -> Result<(), String> {
+    write_app_meta(&app_data_dir(&app).join(APP_META_FILENAME), &key, &value)
+}
+
 /// Atomically write `bytes` to `path` by writing to a sibling temp file in the
 /// same directory and then renaming it over the destination. The temp file is
 /// fsynced before the rename and (unix) the directory after it: `rename(2)` is
@@ -508,6 +543,8 @@ pub fn run() {
             get_sidecar_port,
             get_app_data_dir,
             diag_log_line,
+            app_meta_get,
+            app_meta_set,
             write_text_atomic,
             write_bytes_atomic,
             keychain::keychain_set,
@@ -722,6 +759,21 @@ mod tests {
             .map(|e| e.unwrap().file_name())
             .collect();
         assert_eq!(names, vec![std::ffi::OsString::from("AAPL.md")]);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn app_meta_round_trips_and_keeps_other_keys() {
+        // R15-CROSS-PLATFORM-011: the onboarding flags live in a data-dir file,
+        // not the secret store; setting one flag keeps the rest.
+        let dir = temp_dir("app-meta");
+        let file = dir.join(super::APP_META_FILENAME);
+        assert!(super::read_app_meta(&file).is_empty());
+        super::write_app_meta(&file, "onboarding-complete", "cloud").unwrap();
+        super::write_app_meta(&file, "onboarding-banner-dismissed", "dismissed").unwrap();
+        let meta = super::read_app_meta(&file);
+        assert_eq!(meta["onboarding-complete"], "cloud");
+        assert_eq!(meta["onboarding-banner-dismissed"], "dismissed");
         let _ = std::fs::remove_dir_all(&dir);
     }
 

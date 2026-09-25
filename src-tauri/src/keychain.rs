@@ -67,26 +67,40 @@ mod os_keychain {
     use super::SERVICE;
     use keyring::Entry;
 
+    /// Prefix on an error the OS secret store itself raised (no Secret Service
+    /// provider on Linux, a locked or refused store) so the renderer shows a
+    /// typed "secret store unavailable" state (`src/lib/keychain.ts`).
+    const STORE_UNAVAILABLE: &str = "secret-store-unavailable";
+
+    fn describe(e: keyring::Error) -> String {
+        match e {
+            keyring::Error::PlatformFailure(_) | keyring::Error::NoStorageAccess(_) => {
+                format!("{STORE_UNAVAILABLE}: {e}")
+            }
+            e => e.to_string(),
+        }
+    }
+
     pub fn set(account: &str, secret: &str) -> Result<(), String> {
-        let entry = Entry::new(SERVICE, account).map_err(|e| e.to_string())?;
-        entry.set_password(secret).map_err(|e| e.to_string())
+        let entry = Entry::new(SERVICE, account).map_err(describe)?;
+        entry.set_password(secret).map_err(describe)
     }
 
     pub fn get(account: &str) -> Result<Option<String>, String> {
-        let entry = Entry::new(SERVICE, account).map_err(|e| e.to_string())?;
+        let entry = Entry::new(SERVICE, account).map_err(describe)?;
         match entry.get_password() {
             Ok(p) => Ok(Some(p)),
             Err(keyring::Error::NoEntry) => Ok(None),
-            Err(e) => Err(e.to_string()),
+            Err(e) => Err(describe(e)),
         }
     }
 
     pub fn delete(account: &str) -> Result<(), String> {
-        let entry = Entry::new(SERVICE, account).map_err(|e| e.to_string())?;
+        let entry = Entry::new(SERVICE, account).map_err(describe)?;
         match entry.delete_credential() {
             Ok(()) => Ok(()),
             Err(keyring::Error::NoEntry) => Ok(()),
-            Err(e) => Err(e.to_string()),
+            Err(e) => Err(describe(e)),
         }
     }
 }
@@ -246,8 +260,13 @@ mod dev_keystore {
             r
         };
         migrate_collecting(&file_path(app), accounts, read, |secs| {
-            let _ = app.emit(WAITING_EVENT, secs);
-            std::thread::sleep(std::time::Duration::from_secs(secs));
+            // Only the macOS keychain has an ACL evaluation that settles while
+            // idle; elsewhere a failed read is re-tried at once (and on the next
+            // boot), never after a 140 s block (R15-CROSS-PLATFORM-011).
+            if cfg!(target_os = "macos") {
+                let _ = app.emit(WAITING_EVENT, secs);
+                std::thread::sleep(std::time::Duration::from_secs(secs));
+            }
         })
     }
 

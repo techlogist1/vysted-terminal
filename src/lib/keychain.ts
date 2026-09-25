@@ -36,8 +36,10 @@ export const KEYCHAIN_NAMESPACES = {
   /**
    * App-level meta flag (not a credential) — e.g. `app-meta:onboarding-complete`.
    * Used for durable first-run state that must survive a workspace-layout reset
-   * or an imported older blob (the same durability reason the first-launch terms
-   * ack uses the keychain). Carries no secret; the stored value is a timestamp/choice tag.
+   * or an imported older blob. Carries no secret; the stored value is a
+   * timestamp/choice tag. The onboarding flags now live in the data-dir app-meta
+   * file ({@link getAppMeta}); this keychain id is still read once as the legacy
+   * location, and the first-launch terms ack still uses it.
    */
   appMeta: (key: string): string => `app-meta:${key}`,
 
@@ -63,6 +65,28 @@ export async function getSecret(account: string): Promise<string | null> {
 /** Remove a secret from the OS keychain. No-op if the secret was never set. */
 export async function deleteSecret(account: string): Promise<void> {
   await invoke<void>("keychain_delete", { account });
+}
+
+/**
+ * True when a keychain call rejected because the OS secret store itself is
+ * unusable (Linux without a Secret Service provider, a locked or refused store)
+ * — the Rust core prefixes those errors (R15-CROSS-PLATFORM-011).
+ */
+export function isSecretStoreUnavailable(error: unknown): boolean {
+  return String(error).startsWith("secret-store-unavailable");
+}
+
+/**
+ * Read a non-secret app-meta flag from `<data-dir>/app-meta.json` via the Rust
+ * core. Kept out of the keychain so a missing secret store never loses it.
+ */
+export async function getAppMeta(key: string): Promise<string | null> {
+  return (await invoke<string | null>("app_meta_get", { key })) ?? null;
+}
+
+/** Persist a non-secret app-meta flag (see {@link getAppMeta}). */
+export async function setAppMeta(key: string, value: string): Promise<void> {
+  await invoke<void>("app_meta_set", { key, value });
 }
 
 /** Emitted by `keychain_migrate` (payload: seconds) before its idle wait. */
