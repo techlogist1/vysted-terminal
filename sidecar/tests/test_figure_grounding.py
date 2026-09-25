@@ -88,24 +88,53 @@ def test_subjects_and_mentions() -> None:
     assert fg.mentions("| SBIN.NS | ₹812.40 |", "SBIN")
     assert fg.mentions("sbin closed", "SBIN")
     assert not fg.mentions("SBINX closed", "SBIN")
+    for text in ("L&T rose", "L & T rose", "Larsen&Toubro rose", "larsen & toubro rose"):
+        assert fg.mentions(text, "larsen & toubro") or fg.mentions(text, "l&t")
+    assert fg.mentions("L & T rose", fg.Initialism("L&T"))
+    assert not fg.mentions("l & t rose", fg.Initialism("L&T"))
+
+
+_ZETA_RESULT = (
+    '{"ok": true, "quote": {"symbol": "ZQH", "longName": "Zeta Quanta Holdings Limited"}}'
+)
 
 
 @pytest.mark.parametrize(
-    ("base", "user_text", "present", "absent"),
+    ("base", "names", "present", "absent"),
     [
-        ("INFY", "", {"INFY", "infosys"}, set()),
-        ("SBIN", "", {"state bank of india", "state bank"}, set()),
-        ("TCS", "", {"tata consultancy services", "tata consultancy"}, {"tata"}),
-        ("SIFY", "", {"sify"}, set()),
-        ("TCS", "How is Consultancy doing?", {"consultancy"}, {"tata"}),
-        ("TCS", "", set(), {"consultancy"}),
+        ("INFY", [], {"INFY", "infosys"}, set()),
+        ("SBIN", [], {"state bank of india", "state bank", "SBI"}, set()),
+        (
+            "TCS",
+            [],
+            {"tata consultancy services", "tata consultancy", "TCS", "consultancy"},
+            {"tata"},
+        ),
+        ("SIFY", [], {"sify"}, set()),
+        ("LT", [], {"L&T", "larsen & toubro", "l & t", "larsen", "toubro"}, {"larsen &"}),
+        ("BHARTIARTL", [], {"bharti airtel", "bharti", "airtel"}, set()),
+        ("HDFCBANK", [], {"hdfc bank"}, set()),
+        ("RELIANCE", [], {"RIL", "reliance"}, set()),
+        ("ZQHX", fg.payload_names(_ZETA_RESULT), {"zeta quanta holdings", "quanta", "ZQH"}, set()),
+        ("IBM", ["Big Blue"], {"IBM", "big blue", "machines"}, set()),
     ],
 )
 def test_a_subject_is_named_by_its_aliases(
-    base: str, user_text: str, present: set[str], absent: set[str]
+    base: str, names: list[str], present: set[str], absent: set[str]
 ) -> None:
-    """R15-LEAD-030 batch-21: an errored call's subject is its symbol, its
-    company name from the resolver masters (corporate suffix stripped), the
-    name's short forms, and any distinctive name token the user wrote."""
-    got = fg.aliases(base, user_text)
+    """R15-LEAD-030 batch-22: a call's subject is its symbol and, for each of
+    its names (the resolver masters, the marquee family keys, its payload's
+    name/longName/shortName and a resolve_symbol query), the name with the
+    corporate suffix stripped, its short forms, every distinctive word and
+    its initialisms. Batch-21 took a distinctive word past the first only
+    when the user wrote it ("consultancy"); every one is taken now."""
+    got = fg.aliases(base, names)
     assert present <= got and not absent & got
+
+
+def test_an_initialism_matches_in_its_own_case_only() -> None:
+    """R15-LEAD-030 batch-22: an initialism is matched upper-case only and is
+    three characters or more, so "it", "us" and "and" name no subject."""
+    got = fg.aliases("ZZZQ", ["Alpha Network Data Limited", "Info Tech", "United Services"])
+    assert "AND" in got and fg.mentions("AND rose 2%", next(a for a in got if a == "AND"))
+    assert not any(fg.mentions("it and us rose 2%", alias) for alias in got)

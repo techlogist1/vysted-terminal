@@ -2375,6 +2375,12 @@ def _judge_clause(
             return (
                 f"the {ctx.errored_subjects[inherited]} tool returned no data for this in this turn"
             )
+        # FAIL-SAFE (rule 2c): in a turn with an errored call, an ungrounded
+        # figure streams only when its clause speaks of a subject some call
+        # returned ok for, so a name form no alias foresaw fails safe.
+        attached = own if own is not None else inherited
+        if ctx.errored and (attached is None or attached not in ctx.ok_subjects):
+            return _errored_note(ctx.errored)
     if (
         not inside
         and (ctx.pending or not ctx.ok_tools)
@@ -2578,9 +2584,9 @@ class _TurnState:
     # symbol or company name, is replaced naming that tool.
     ok_subjects: set[str] = field(default_factory=set)
     errored_subjects: dict[str, str] = field(default_factory=dict)
-    # The user's messages of the run: a company-name word they wrote is an
-    # alias of its subject (figure_grounding.aliases).
-    user_text: str = ""
+    # The queries resolve_symbol bound this turn, by symbol base ("Airtel"
+    # for BHARTIARTL): each is a name of its subject (figure_grounding.aliases).
+    resolved_names: dict[str, list[str]] = field(default_factory=dict)
 
 
 @dataclass
@@ -2986,6 +2992,20 @@ async def _finish_unterminated(
     yield LLMDoneEvent()
 
 
+def _record_resolved_name(turn: _TurnState, result_str: str) -> None:
+    """Record a bound resolve_symbol result's query as a name of its symbol."""
+    try:
+        payload = json.loads(result_str)
+    except (TypeError, ValueError):
+        return
+    if not isinstance(payload, dict):
+        return
+    resolved, query = payload.get("resolved"), payload.get("query")
+    if isinstance(resolved, dict) and isinstance(query, str):
+        for base in figure_grounding.subjects({"symbol": resolved.get("symbol")}):
+            turn.resolved_names.setdefault(base, []).append(query)
+
+
 async def _dispatch_round(
     run: _RunSetup,
     turn: _TurnState,
@@ -3092,11 +3112,19 @@ async def _dispatch_round(
         turn.grounding.add_result(result_str)
         turn.grounding.add_text(tool_result_msg.content)
         outcome = _tool_result_event(tool_call, result_str)
+        # A resolve_symbol call is about no subject, so an ok resolve never
+        # shields a figure: its query only names the symbol it bound.
+        resolve = tool_call.name == "resolve_symbol"
+        names = figure_grounding.payload_names(result_str)
         aliases = {
             alias
-            for base in figure_grounding.subjects(tool_call.input)
-            for alias in figure_grounding.aliases(base, turn.user_text)
+            for base in (set() if resolve else figure_grounding.subjects(tool_call.input))
+            for alias in figure_grounding.aliases(
+                base, [*names, *turn.resolved_names.get(base, [])]
+            )
         }
+        if resolve:
+            _record_resolved_name(turn, result_str)
         if outcome.ok:
             turn.ok_tools.add(tool_call.name)
             turn.ok_this_turn.add(tool_call.name)
@@ -3233,8 +3261,6 @@ async def invoke_agent(
     for message in run.messages:
         if message.role != "assistant" and message.content != spec.system_prompt:
             turn.grounding.seed(message.content)
-        if message.role == "user":
-            turn.user_text += message.content + "\n"
     idle = LOCAL_IDLE_TIMEOUT_S if run.provider_id == "ollama" else IDLE_TIMEOUT_S
     while True:
         rnd = _open_round(run, turn)
