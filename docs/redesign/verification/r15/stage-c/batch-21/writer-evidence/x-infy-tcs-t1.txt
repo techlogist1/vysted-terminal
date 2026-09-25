@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  25.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_2cd99961daa44e27ab85d11e8234fb32", "name": "price_data", "input": {"asset_class": "equity", "range": "1mo", "symbol": "INFY.ZZ", "timeframe": "1d"}}
+[  27.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_16fad2fd26f44bebbf890ac96b4cef46", "name": "price_data", "input": {"range": "1mo", "symbol": "TCS.NS", "timeframe": "1d", "asset_class": "equity"}}
+[  29.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_2cd99961daa44e27ab85d11e8234fb32", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'INFY.ZZ' from 'yfinance'"}
+[  30.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_16fad2fd26f44bebbf890ac96b4cef46", "name": "price_data", "ok": true, "error": null}
+[  40.3s] heartbeat: {"kind": "heartbeat"}
+[  49.4s] done: {"kind": "done", "usage": {"input_tokens": 4971, "output_tokens": 74, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The latest price of TCS is ₹2082.0.
+
+Unfortunately, I was unable to retrieve the latest price of Infosys (INFY.ZZ) due to a provider error. The terminal's data does not include the current price for INFY.ZZ. If you'd like to research or track it in your portfolio, I can help with that.
+
+=== ok · 49.4s · events {'heartbeat': 3, 'tool_use': 2, 'tool_result': 2, 'delta': 75, 'done': 1} · usage in=4971 out=74 · est $0.00000 · llama3.1:8b

@@ -88,3 +88,24 @@ def test_subjects_and_mentions() -> None:
     assert fg.mentions("| SBIN.NS | ₹812.40 |", "SBIN")
     assert fg.mentions("sbin closed", "SBIN")
     assert not fg.mentions("SBINX closed", "SBIN")
+
+
+@pytest.mark.parametrize(
+    ("base", "user_text", "present", "absent"),
+    [
+        ("INFY", "", {"INFY", "infosys"}, set()),
+        ("SBIN", "", {"state bank of india", "state bank"}, set()),
+        ("TCS", "", {"tata consultancy services", "tata consultancy"}, {"tata"}),
+        ("SIFY", "", {"sify"}, set()),
+        ("TCS", "How is Consultancy doing?", {"consultancy"}, {"tata"}),
+        ("TCS", "", set(), {"consultancy"}),
+    ],
+)
+def test_a_subject_is_named_by_its_aliases(
+    base: str, user_text: str, present: set[str], absent: set[str]
+) -> None:
+    """R15-LEAD-030 batch-21: an errored call's subject is its symbol, its
+    company name from the resolver masters (corporate suffix stripped), the
+    name's short forms, and any distinctive name token the user wrote."""
+    got = fg.aliases(base, user_text)
+    assert present <= got and not absent & got
