@@ -4,7 +4,7 @@
 **Generated:** 2026-05-14
 **Owner:** Lokavya (github.com/techlogist1)
 **Repo (planned):** github.com/techlogist1/vysted-terminal
-**Domain structure:** vysted.com (org) + terminal.vysted.com (product)
+**Domain structure (planned, not yet resolved):** vysted.com (org) + terminal.vysted.com (product) — README.md is the install surface until these go live
 **License:** PolyForm Strict 1.0.0 + Commercial License (relicensed 23 Sep 2026 — operator decision, see LICENSING.md)
 
 ---
@@ -27,7 +27,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 
 **Org name:** Vysted
 **Product name:** Vysted Terminal (the flagship; future products plug under the org)
-**Domain structure:**
+**Domain structure (planned, not yet resolved):**
 - vysted.com — org/lab landing page
 - terminal.vysted.com — Vysted Terminal product page + download
 
@@ -366,7 +366,7 @@ Attached to GitHub Release v1.0.0
   ↓
 Tauri auto-updater on existing installs pulls update
   ↓
-terminal.vysted.com/download serves "Download for [your OS]" via GitHub Releases API
+terminal.vysted.com/download will serve "Download for [your OS]" via GitHub Releases API once the domain is live (README.md carries the download links today)
   ↓
 Homebrew cask updated separately (PR to homebrew-cask)
 ```
@@ -379,7 +379,7 @@ Homebrew cask updated separately (PR to homebrew-cask)
 
 ### 6.3 First-launch Mac instructions
 
-Until paid Apple Developer cert: `terminal.vysted.com/install/mac` shows:
+Until paid Apple Developer cert, and until the site is live: `terminal.vysted.com/install/mac` will show the same walkthrough README.md carries today:
 - Screenshot of the unsigned-app warning
 - Instructions: "Right-click Vysted Terminal in Applications → Open → Open again to confirm"
 - OR: "System Settings → Privacy & Security → Click 'Open Anyway' next to Vysted Terminal"
@@ -427,7 +427,7 @@ All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals. Phases are **C
 - CI: GitHub Actions for build (Win/Mac/Linux) + lint + test
 - `LICENSE` + `COMMERCIAL_LICENSE.md` + CLA bot setup
 - `CLAUDE.md` at repo root (project context, stack, standards, constraints)
-- `terminal.vysted.com` landing page (Vercel deploy, "Coming soon" + GitHub link)
+- `terminal.vysted.com` landing page (Vercel deploy, "Coming soon" + GitHub link) — planned, not yet built
 
 **Phase 0 success criteria:**
 - `pnpm tauri dev` opens window with mock panel
@@ -599,7 +599,7 @@ populated re-captures). Plan + handoff TBD.
   `tauri.conf.json`; flip `createUpdaterArtifacts` to true)
 - Homebrew cask submission + AppImage + .deb distribution
 - `terminal.vysted.com` full landing page (download button,
-  screenshots, docs) — separate private repo
+  screenshots, docs) — separate private repo, planned
 - LICENSE flip + COMMERCIAL_LICENSE.md promotion + CLA bot setup
 - First-launch TOS dialog (§6.5 #8 + BLUEPRINT customization #1)
 - README polish + getting-started docs
@@ -610,7 +610,7 @@ populated re-captures). Plan + handoff TBD.
 
 ## 8. Success Criteria (v1.0 launch)
 
-- [ ] User downloads from terminal.vysted.com, installs on their OS, opens app in <30 seconds (Linux/Win), <90 seconds for Mac with bypass step
+- [ ] User downloads from terminal.vysted.com (once live; README.md today), installs on their OS, opens app in <30 seconds (Linux/Win), <90 seconds for Mac with bypass step
 - [ ] All 37 modules functional and accessible
 - [ ] 12 AI agents work with at least 3 LLM providers tested end-to-end
 - [ ] Backtest engine runs a 60-day strategy in <30 seconds on standard hardware
@@ -618,7 +618,7 @@ populated re-captures). Plan + handoff TBD.
 - [ ] MCP server responds to external Claude/GPT queries
 - [ ] CI green for all OS builds
 - [ ] `LICENSE` + `COMMERCIAL_LICENSE.md` + CLA in place
-- [ ] terminal.vysted.com live with download links
+- [ ] terminal.vysted.com live with download links (planned; not yet live)
 - [ ] At least one external user successfully installs without help (validate via Discord or beta program)
 
 ---
