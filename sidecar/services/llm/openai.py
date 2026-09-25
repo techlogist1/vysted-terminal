@@ -544,6 +544,7 @@ class OpenAIProvider(LLMProvider):
                 api_key,
                 [{"role": "user", "content": prompt}],
                 timeout=_REPAIR_TIMEOUT_S,
+                base_url=self._base_url,
             )
             repairs.append(repair_usage)
         except Exception:  # noqa: BLE001 — a failed repair is a non-fatal miss
