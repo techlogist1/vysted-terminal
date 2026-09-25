@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import json
 import logging
+import time
+import uuid
 from collections.abc import AsyncIterator
 
 from fastapi import APIRouter, Header, HTTPException
@@ -59,11 +61,15 @@ async def run_workflow(payload: WorkflowRunRequest) -> StreamingResponse:
         import asyncio
 
         queue: asyncio.Queue[WorkflowRunEvent | None] = asyncio.Queue()
+        run_id: str | None = None
 
         async def _on_event(event: WorkflowRunEvent) -> None:
+            nonlocal run_id
+            run_id = event.run_id
             await queue.put(event)
 
         async def _run() -> None:
+            nonlocal run_id
             # Publish the request's creds for this run's agent nodes (task-local;
             # the key stays in process memory and is reset when the run ends).
             creds_token = (
@@ -75,10 +81,23 @@ async def run_workflow(payload: WorkflowRunRequest) -> StreamingResponse:
                 await workflow_engine.run_workflow(
                     payload.spec, inputs=payload.inputs, on_event=_on_event
                 )
-            except Exception as exc:  # noqa: BLE001 — last-resort guard
-                logger.exception("workflow run crashed: %s", exc)
-                # The engine emits run-error on validation failures already;
-                # this catches engine-implementation bugs only.
+            except Exception as exc:  # noqa: BLE001 — every stream ends on a terminal frame
+                # A spec the engine rejects (WorkflowEngineError) raises before
+                # run-start; an engine bug can raise mid-run. Either way the
+                # client gets the reason as a run-error, opened by a run-start
+                # when the engine never emitted one (the client keys runs on it).
+                if not isinstance(exc, workflow_engine.WorkflowEngineError):
+                    logger.exception("workflow run crashed: %s", exc)
+                if run_id is None:
+                    run_id = str(uuid.uuid4())
+                    await queue.put(
+                        WorkflowRunEvent(
+                            kind="run-start", runId=run_id, startedAt=int(time.time() * 1000)
+                        )
+                    )
+                await queue.put(
+                    WorkflowRunEvent(kind="run-error", runId=run_id, message=str(exc), durationMs=0)
+                )
             finally:
                 if creds_token is not None:
                     config.reset_request_llm_creds(creds_token)
