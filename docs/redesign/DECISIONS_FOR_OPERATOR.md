@@ -458,3 +458,27 @@ are done-and-revertable like §1; these are yours to review or act on.
   push pays ~9 cold sidecar builds (3 workflows x 3 OSes, ~20-25 min each) with no correctness
   risk.
 - **Status: open, blocked_tier4**
+
+### 4.9 R15-LEAD-030 — fabricated tool figures after a tool error: six fix batches, the seventh is the last
+
+- **Blocked:** a disposition question, not a locked file. Stage C batches 15–20 fixed the entry's
+  literal repro and every shape an earlier verifier found; a fresh Opus verifier found a new
+  escape each time. Batch-20 replaced prose-shape rules with figure grounding by provenance
+  (`sidecar/services/figure_grounding.py`, merged `1abef99b`): every earlier probe holds and it
+  blocks 6 of the 14 fresh cases base leaked, but two named gaps remain (an error-acknowledging
+  clause is exempted before grounding runs; subjects match by ticker, not company name).
+  Batch-21 fixes exactly those.
+- **Why operator-attended:** if batch-21 is not certified, the lead stops fixing (run-state rule)
+  and rc1 stays gated on a high entry in the agent-chat area, which the brief's Boundaries say
+  cannot be adjudicated away without a fresh verifier's concurrence. Tagging with a documented
+  known limitation is the operator's call.
+- **Recommendation:** if batch-21 certifies, close this item. If not: tag r15-rc1 with LEAD-030
+  listed in the operator briefing as a known limitation (after a tool error a keyless local
+  model can still state an invented figure inside an error-acknowledging sentence or under a
+  company-name alias; every other shape is replaced by the honest note), keep the entry open,
+  and take the post-launch design change instead of an eighth filter round: end the model's
+  answer with a structured no-data turn after an all-errored round.
+- **Risk of not doing it:** the release ships an agent that can, on a tool failure with a local
+  model, print a made-up price. Offline fresh-case fabrication on the residual classes is 6/19
+  after batch-20 (14/19 before); 0 on every pinned shape.
+- **Status: open, pending batch-21**
