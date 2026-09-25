@@ -179,3 +179,53 @@ async def test_normal_portfolio_add_is_unaffected_by_no_tool_cue(
     assert "portfolio_add_position" in await _agent_tool_ids(
         monkeypatch, "Add 10 TCS at 3,200 to my portfolio"
     )
+
+
+# R15-LEAD-035 (batch-22): the closed phrase list is replaced by a normalised,
+# per-clause matcher (planner._no_tool_cue_matches) — NEG->filler(<=3)->VERB->
+# determiners-only->OBJECT, NEG->OBJECT with no verb, OBJECT->VERB-noun, and the
+# standalone cues, curly apostrophes folded to straight first.
+
+_NO_TOOL_PHRASINGS = [
+    # Verbatim batch-21 verifier phrasings (b21v_035.py).
+    "Answer without any tools: I sold 5 TCS shares at ₹3,100 each; restate my sale price.",
+    "Do not call a tool. I sold 5 TCS shares at ₹3,100 each; restate my sale price.",
+    "Don’t use any tools. I sold 5 TCS shares at ₹3,100 each; restate my sale price.",
+    # Fresh phrasings.
+    "Please refrain from using tools, just compute it.",
+    "No tool calls — what is 5 × 3,100?",
+    "Answer only from the numbers in this message.",
+    "Never invoke any functions for this.",
+    "Give me a tool-free answer.",
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("prompt", _NO_TOOL_PHRASINGS)
+async def test_normalised_no_tool_phrasing_empties_tool_surface(
+    monkeypatch: pytest.MonkeyPatch, prompt: str
+) -> None:
+    assert await _agent_tool_ids(monkeypatch, prompt) == set()
+
+
+_NO_TOOL_NEGATIVE_CONTROLS = [
+    # A named tool between VERB and OBJECT is not a no-tool instruction.
+    ("Don't use web search, get TCS.NS price", "price_data"),
+    # An OBJECT followed by "except <tool>" keeps the named exception.
+    ("No tools except price_data for TCS.NS", "price_data"),
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("prompt", "kept_tool"), _NO_TOOL_NEGATIVE_CONTROLS)
+async def test_no_tool_negative_control_keeps_its_tool(
+    monkeypatch: pytest.MonkeyPatch, prompt: str, kept_tool: str
+) -> None:
+    assert kept_tool in await _agent_tool_ids(monkeypatch, prompt)
+
+
+@pytest.mark.asyncio
+async def test_what_tools_do_you_have_keeps_a_nonempty_surface(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    assert await _agent_tool_ids(monkeypatch, "What tools do you have?") != set()
