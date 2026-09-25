@@ -328,15 +328,20 @@ async function _scopedOrphanPreflight() {
   );
 }
 
-/** Probe an HTTP GET endpoint with a single timeout. */
+/**
+ * Probe an HTTP GET endpoint with a single timeout. Returns a shape that
+ * distinguishes "reached the server, got a non-2xx" from "never reached the
+ * server at all" (R15-CODE-PLATFORM-062) — a 404 and an offline host are
+ * different signals, not both a silent `false`.
+ */
 async function _httpGetOk(url, timeoutMs = 1500) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const resp = await fetch(url, { signal: ctrl.signal });
-    return resp.ok;
-  } catch {
-    return false;
+    return { ok: resp.ok, status: resp.status, error: null };
+  } catch (err) {
+    return { ok: false, status: null, error: err instanceof Error ? err.message : String(err) };
   } finally {
     clearTimeout(t);
   }
@@ -377,21 +382,19 @@ async function _probeBseBhavcopyNoSla() {
     `https://www.bseindia.com/download/BhavCopy/Equity/` +
     `BhavCopy_BSE_CM_0_0_0_${ymd}_F_0000.CSV`;
   console.log(`[smoke] BSE bhavcopy probe (no-SLA): GET ${url} ...`);
-  try {
-    const ok = await _httpGetOk(url, 4000);
-    if (ok) {
-      console.log("[smoke] BSE bhavcopy probe OK (endpoint reachable).");
-    } else {
-      console.warn(
-        `[smoke] WARN: BSE bhavcopy probe did not return 200 (no-SLA — not a failure). ` +
-          `Common + benign: weekend/holiday/not-yet-published day, geo-fence, or no ` +
-          `outbound network in CI. Only investigate if the URL SHAPE changed.`,
-      );
-    }
-  } catch (err) {
+  const result = await _httpGetOk(url, 4000);
+  if (result.ok) {
+    console.log("[smoke] BSE bhavcopy probe OK (endpoint reachable).");
+  } else if (result.status !== null) {
     console.warn(
-      `[smoke] WARN: BSE bhavcopy probe errored (no-SLA — not a failure): ` +
-        `${err instanceof Error ? err.message : String(err)}`,
+      `[smoke] WARN: BSE bhavcopy probe returned HTTP ${result.status} (no-SLA — not a ` +
+        `failure). Common + benign: weekend/holiday/not-yet-published day. Only ` +
+        `investigate if the URL SHAPE changed.`,
+    );
+  } else {
+    console.warn(
+      `[smoke] WARN: BSE bhavcopy probe is offline: ${result.error} (no-SLA — not a ` +
+        `failure). Common + benign: geo-fence, or no outbound network in CI.`,
     );
   }
 }
@@ -607,7 +610,7 @@ async function _smokeTestMainSidecar(triple) {
           `commit cf96031). Tail of stdout/stderr:\n${tail}`,
       );
     }
-    if (await _httpGetOk(url)) {
+    if ((await _httpGetOk(url)).ok) {
       healthy = true;
       break;
     }
@@ -643,7 +646,7 @@ async function _smokeTestMainSidecar(triple) {
   // the MAIN_ADD_DATA list in scripts/sidecar-specs.mjs.
   const universeUrl = `http://127.0.0.1:${port}/screener/universe?id=sp500`;
   console.log(`[smoke] vysted-sidecar: probing screener universe endpoint ...`);
-  const universeOk = await _httpGetOk(universeUrl, 5000);
+  const universeOk = (await _httpGetOk(universeUrl, 5000)).ok;
 
   // ICONIKSPEV resolve check (R7 Component 4, HARD) — verifies the regenerated
   // BSE scrip master under services/resolver_masters/ rides the frozen binary
@@ -906,7 +909,13 @@ async function main() {
   );
 }
 
-main().catch((err) => {
-  console.error("[smoke] unexpected error:", err);
-  process.exit(1);
-});
+// Guarded so this module can be imported by vitest (to unit-test the pure
+// helpers below) without spawning real sidecar processes as a side effect.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((err) => {
+    console.error("[smoke] unexpected error:", err);
+    process.exit(1);
+  });
+}
+
+export { _httpGetOk };
