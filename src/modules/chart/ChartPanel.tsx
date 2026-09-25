@@ -457,18 +457,13 @@ function ChartPanel(props: ChartPanelProps = {}) {
       setPriceError(null);
       setCandlesKey(null);
       try {
-        // Only widen the call when a region was actually picked (R15-DATA-002)
-        // — an explicit trailing `undefined` still shows up as a 5th call arg,
-        // which would spuriously fail every existing 4-arg mock assertion.
-        const series = symbolRegion
-          ? await sidecarApi.history(
-              symbol,
-              timeframe,
-              undefined,
-              assetClassOf(symbol),
-              symbolRegion,
-            )
-          : await sidecarApi.history(symbol, timeframe, undefined, assetClassOf(symbol));
+        const series = await sidecarApi.history(
+          symbol,
+          timeframe,
+          undefined,
+          assetClassOf(symbol),
+          symbolRegion,
+        );
         if (cancelled) {
           return;
         }
@@ -679,6 +674,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
           selectedKeys,
           timeframe,
           assetClassOf(symbol),
+          symbolRegion,
         );
         if (cancelled) {
           return;
@@ -702,7 +698,7 @@ function ChartPanel(props: ChartPanelProps = {}) {
     return () => {
       cancelled = true;
     };
-  }, [symbol, timeframe, selectedKeys, clearIndicatorSeries, indicatorRetryNonce]);
+  }, [symbol, symbolRegion, timeframe, selectedKeys, clearIndicatorSeries, indicatorRetryNonce]);
 
   // Draw an indicator response only once the candles it was computed for are
   // the committed set (Parabolic SAR reads their closes).
