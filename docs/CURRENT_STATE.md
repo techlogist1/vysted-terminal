@@ -42,7 +42,8 @@
 >   now the one source of truth; `TOOL_SCHEMAS`, the custom-agent allow-list, and
 >   the external MCP surface all derive from it (Constitution Principle II).
 > - **§4 "~11 registered handlers unreachable" → CLOSED.** Every registered,
->   agent-intended handler has a schema (SC-006); 27 internal capabilities.
+>   agent-intended handler has a schema (SC-006); 56 internal capabilities
+>   (`len(CAPABILITY_CATALOG)` at the current sha).
 > - **§4 "Gemini multi-round likely broken" → FIXED** (tool name threaded onto
 >   the tool-result message; SC-005).
 > - **§11/§4 "custom-agent allow-list stale" → RECONCILED** to the catalog
@@ -602,14 +603,11 @@ The `sidecar/agents/` dir is bundled via an explicit `--add-data` (it has no
 `__init__.py`; was silently dropped for 3 releases — Phase 8 finding).
 
 **Custom agents:** CRUD'd via `/custom-agents`, SQLite store, `custom:` prefix
-required. **Caveat — the custom-agent tool allow-list is stale + out of sync:**
-`KNOWN_TOOL_IDS` lists only 5 tools (`price_data, fundamentals, news,
-backtest_summary, macro`), but first-party agents bypass the allow-list and
-legitimately use tools (`screener_run`, `set_chart_symbol`) that **a custom
-agent cannot select** (`broker_portfolio`, this section's third example, is
-gone — D81). Worse, `news`/`macro` pass custom validation but **are not keys
-in `TOOL_SCHEMAS`** — so a custom agent allow-listing them never resolves
-the tool. A real, unfixed inconsistency.
+required. **Closed by `0e248f98`** (see §0 banner): `KNOWN_TOOL_IDS` is now
+derived from `sidecar/services/agent_tools/catalog.py` (56 entries, matching
+`TOOL_SCHEMAS` exactly) rather than hand-maintained — the 5-id stale list and
+the `news`/`macro` unresolvable-tool gap this paragraph used to describe no
+longer exist.
 
 ### 3.12 Build, CI & distribution
 
@@ -697,11 +695,10 @@ provider ids → 5 adapters (DeepSeek/xAI ride OpenAI via base-url override). Ke
 never held on the adapter — passed per call, read frontend-side from the
 keychain.
 
-**The `TOOL_SCHEMAS` catalog — but only ~10 of the ~40+ registered
-capabilities are reachable this way** (the current catalog size and the
-27-tool reachability figure are tracked in `sidecar/services/agent_tools/
-catalog.py`, the single source of truth per §0). No `broker_portfolio` or
-`propose_order` tool exists any more (D81):
+**The `TOOL_SCHEMAS` catalog — closed by `0e248f98` (see §0 banner): all 56
+registered capabilities in `sidecar/services/agent_tools/catalog.py`, the
+single source of truth, now have a `TOOL_SCHEMAS` entry and are reachable.**
+No `broker_portfolio` or `propose_order` tool exists any more (D81):
 
 | Tool id                                                                                                                                                                                                                        | What it does                                                         | Reachable by an agent?                                      |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------- |
@@ -715,12 +712,12 @@ catalog.py`, the single source of truth per §0). No `broker_portfolio` or
 | `sec_filings_list`                                                                                                                                                                                                             | filings index (degrades if sec-edgar down)                           | yes                                                         |
 | `get_terminal_state` / `get_portfolio`                                                                                                                                                                                         | snapshot reads                                                       | yes (runtime-resolved)                                      |
 | `open_panel` / `set_chart_symbol` / `add_to_watchlist` / the tracked-portfolio, note, screen and layout writers / `set_region`                                                                                                 | host actions (19 total)                                              | yes (runtime-resolved)                                      |
-| `macro_search`, `earnings_upcoming`, `earnings_estimates`, `analyst_individual`, `price_target_history`, `sec_filing_content`, `sec_insider_transactions`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value` | registered handlers, callable over REST                              | **NO — no `TOOL_SCHEMAS` entry → invisible to every model** |
+| `macro_search`, `earnings_upcoming`, `earnings_estimates`, `analyst_individual`, `price_target_history`, `sec_filing_content`, `sec_insider_transactions`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value` | registered handlers, callable over REST                              | yes — closed by `0e248f98`, each now has a `TOOL_SCHEMAS` entry |
 
-**Material catalog gap:** ~11 registered handlers (the entire QuantLib quartet,
-extended earnings/analyst/SEC tools, macro search) have no schema entry and are
-**unreachable through the LLM loop** — the schema is the only thing that produces
-a `tool_use` block.
+**Material catalog gap — CLOSED (`0e248f98`):** the ~11 registered handlers
+(the entire QuantLib quartet, extended earnings/analyst/SEC tools, macro
+search) that had no schema entry now do; `set(catalog) - set(TOOL_SCHEMAS)`
+is empty (verified against the live catalog: 56/56).
 
 **Honest copilot caveats:**
 
@@ -728,11 +725,11 @@ a `tool_use` block.
   be installed; without a running daemon the default agent fails at first call
   unless the user overrides. It is also the agent doing the most tool
   orchestration, on the smallest model.
-- **Gemini multi-round tool use is likely broken** — Gemini keys
-  `function_response` by tool _name_ read from `metadata["name"]`, but the runtime
-  appends tool-result messages with only `tool_call_id` and no `name` → every
-  result serialises `name=""`. Single-text Gemini calls are fine. OpenAI-family +
-  Anthropic key by id and are correct.
+- **Gemini multi-round tool use — closed by `0e248f98`.** Gemini keys
+  `function_response` by tool _name_ read from `metadata["name"]`; the runtime
+  now carries `metadata={"name": tool_call.name}` on every tool-result message
+  (`agent_runtime.py:2747`, read at `gemini.py:54`). OpenAI-family + Anthropic
+  key by id and are unaffected either way.
 - **Live answers are proven only against a mocked provider**
   (`test_tool_loop_e2e.py`). A real answer needs a BYOK key. Anthropic/OpenAI/Groq
   are higher confidence; Gemini/Ollama are confidence-6-7.
@@ -832,9 +829,9 @@ human."
 | openbb/sec-edgar `_MEIPASS` deadlock root cause                                        | **Buggy** — worked around at the supervisor, NOT actually fixed                                               | BLOCKERS carry-forward #7        |
 | Smoke-test endpoint-data gap                                                           | **Buggy** — binds-but-empty-data still passes the gate                                                        | BLOCKERS S2 #8                   |
 | `contributesAgents` / `contributesNodes` plugin paths                                  | **Unexercised** — empty in practice                                                                           | §8                               |
-| Gemini multi-round tool use                                                            | **Likely broken** — `function_response` keyed by empty name                                                   | §4                               |
+| Gemini multi-round tool use                                                            | **Fixed** — closed by `0e248f98`, `metadata["name"]` threaded onto tool results                               | §4                               |
 | Plugin manifest↔instance + `requiredHostVersion` checks                                | **Documented but not implemented**                                                                            | §8                               |
-| Custom-agent tool allow-list                                                           | **Stale/out of sync** — 5 ids; `news`/`macro` not in `TOOL_SCHEMAS`                                           | §11                              |
+| Custom-agent tool allow-list                                                           | **Reconciled** — closed by `0e248f98`, `KNOWN_TOOL_IDS` derived from the catalog (56 ids)                     | §11                              |
 | Trading (broker connectivity, orders, simulated account)                               | **Removed permanently (D81, 23 Sep 2026)** — not deferred, not dead code; deleted                             | §0.x; SAFETY_ARCHITECTURE        |
 | Copilot roster depth (`/agents/roster`, 3-pane panel, `delegate_to_persona`)           | **Deferred**                                                                                                  | BLOCKERS Phase-10 #5             |
 | Customizability follow-ups (connector hub, panel gallery, saved screens)               | **Deferred** — DataSource registry currently inert                                                            | BLOCKERS Phase-10 #6             |
@@ -897,11 +894,11 @@ the surface and the agent-centrality.
   posture. Keep dockview as an engine; rebuild the chrome, the entry points, and
   the information hierarchy around the copilot.
 - **Agent-centrality.** Today the copilot is one panel among 18. The redesign
-  should promote it to the primary interaction model — but first **close the
-  catalog gap** (~11 registered tools are invisible to every model for lack of a
-  `TOOL_SCHEMAS` entry), **fix the Gemini multi-round break**, **reconcile the
-  custom-agent allow-list** with the real catalog, and **resolve the default
-  agent** (the shipped `copilot` defaults to an Ollama model that may not exist).
+  should promote it to the primary interaction model. The catalog gap, the
+  Gemini multi-round break and the stale custom-agent allow-list are already
+  closed (`0e248f98`, see §0 banner) — what's left is to **resolve the default
+  agent** (the shipped `copilot` defaults to an Ollama model that may not
+  exist, though the first-call GATED check now prevents a silent failure).
   The deferred roster depth (`/agents/roster`, 3-pane panel,
   `delegate_to_persona`) is the natural first build.
 - **MCP-as-framework.** Today MCP is plumbing (two proxied subprocesses + a
