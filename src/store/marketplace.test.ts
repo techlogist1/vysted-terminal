@@ -43,7 +43,7 @@ function attachFreshRuntime(): void {
   // Default in-memory persistence; host version matches HOST_VERSION so every
   // catalog plugin satisfies requiredHostVersion. The production host bridge,
   // since the runtime (not this store) bridges panels/commands/agents.
-  const runtime = new PluginRuntime({ hostVersion: "0.8.0", host: pluginHost });
+  const runtime = new PluginRuntime({ hostVersion: "0.9.0", host: pluginHost });
   detach = usePluginsStore.getState().attachRuntime(runtime);
 }
 
