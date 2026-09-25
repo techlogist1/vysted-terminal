@@ -233,8 +233,6 @@ class GeminiProvider(LLMProvider):
             if status == 400 and says_invalid_key(str(exc)):
                 return False
             raise
-        except genai_errors.APIError:
-            raise
 
     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
         """Live catalog via ``models.list``, kept to ``generateContent`` models."""

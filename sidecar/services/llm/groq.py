@@ -217,8 +217,6 @@ class GroqProvider(LLMProvider):
             return False
         except groq.PermissionDeniedError:
             return False
-        except groq.GroqError:
-            raise
 
     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
         """Live catalog via ``/openai/v1/models``, filtered to chat models.

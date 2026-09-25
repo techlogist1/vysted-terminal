@@ -213,10 +213,6 @@ class AnthropicProvider(LLMProvider):
             return False
         except anthropic.PermissionDeniedError:
             return False
-        except anthropic.AnthropicError:
-            # Any other API-level error is a real transport issue — propagate
-            # so the router can surface "provider unreachable".
-            raise
 
     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
         """Live catalog via ``/v1/models``. Every Claude model is tool-capable."""

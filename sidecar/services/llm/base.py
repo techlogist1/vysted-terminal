@@ -162,8 +162,9 @@ class LLMProvider(ABC):
 
         Implementations should make the cheapest possible probe (typically a
         models-list call). They MUST NOT raise on a 401/403 — return ``False``.
-        They MAY raise on a transport error so the router can surface a
-        distinct "provider unreachable" status.
+        Any other API-level error is a real transport issue: let it propagate
+        (no catch-and-reraise clause) so the router can surface a distinct
+        "provider unreachable" status.
         """
         raise NotImplementedError
 

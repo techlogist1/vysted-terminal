@@ -829,8 +829,6 @@ class OpenAIProvider(LLMProvider):
             if says_invalid_key(str(exc)):
                 return False
             raise
-        except openai.OpenAIError:
-            raise
 
     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
         """Live model catalog.
