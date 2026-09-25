@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from importlib import resources
 from pathlib import Path
 from typing import get_args
 
 from models.screener import ScreenerUniverseId
+from services import screener_universe_india
 from services.provider_registry import _PROVIDERS
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -59,6 +61,41 @@ def test_screener_bullet_names_every_universe_id_in_backticks() -> None:
     assert universe_ids, "ScreenerUniverseId carries no literals to check"
     for uid in universe_ids:
         assert f"`{uid}`" in section, f"{uid!r} not named in backticks in section 3.3"
+
+
+def test_screener_bullet_names_current_india_universe_counts() -> None:
+    """R15-DOCS-017: the nse-all/bse-all/india-all clause must quote the live
+    loader's exact counts (nse-all's EQ/ETF/SM breakdown included), and must
+    not still cite the stale ~2,675 nse-all figure."""
+    section = _section_3_3()
+
+    nse_match = re.search(
+        r"`nse-all`.*?([\d,]+)\s+symbols:\s+EQ\s+([\d,]+)\s+\+\s+ETF\s+([\d,]+)\s+\+\s+SM\s+([\d,]+)",
+        section,
+        flags=re.DOTALL,
+    )
+    assert nse_match is not None, "nse-all count/breakdown not found in section 3.3"
+    bse_match = re.search(r"`bse-all`.*?([\d,]+)\s+symbols", section, flags=re.DOTALL)
+    assert bse_match is not None, "bse-all count not found in section 3.3"
+    india_match = re.search(r"`india-all`.*?([\d,]+)\s+symbols", section, flags=re.DOTALL)
+    assert india_match is not None, "india-all count not found in section 3.3"
+
+    def _int(s: str) -> int:
+        return int(s.replace(",", ""))
+
+    nse_total, eq_doc, etf_doc, sm_doc = (_int(g) for g in nse_match.groups())
+    bse_total = _int(bse_match.group(1))
+    india_total = _int(india_match.group(1))
+
+    nse_types = Counter(typ for _sym, _name, typ in screener_universe_india._nse_rows())
+    assert nse_total == len(screener_universe_india.load_india_universe("nse-all").symbols)
+    assert eq_doc == nse_types["EQ"]
+    assert etf_doc == nse_types["ETF"]
+    assert sm_doc == nse_types["SM"]
+    assert bse_total == len(screener_universe_india.load_india_universe("bse-all").symbols)
+    assert india_total == len(screener_universe_india.load_india_universe("india-all").symbols)
+
+    assert "2,675" not in section
 
 
 def test_region_scoped_providers_are_named_and_yfinance_is_region_qualified() -> None:

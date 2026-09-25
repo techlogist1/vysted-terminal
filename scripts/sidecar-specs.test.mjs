@@ -31,7 +31,8 @@ const BASE = {
     `--add-data "${p("agents")}${SEP}agents" ` +
     `--add-data "${p("services", "screener_universes")}${SEP}services/screener_universes" ` +
     `--add-data "${p("services", "resolver_masters")}${SEP}services/resolver_masters" ` +
-    `--add-data "${p("config")}${SEP}config" ${tail(p())}`,
+    `--add-data "${p("config")}${SEP}config" ` +
+    `--add-data "${p("services", "research", "psl")}${SEP}services/research/psl" ${tail(p())}`,
   "vysted-openbb-mcp-sidecar":
     `${tool(p("openbb_mcp_subprocess"))} --onefile --clean --noconfirm ` +
     `--name vysted-openbb-mcp-sidecar ${UVICORN} --hidden-import=openbb_mcp_server.app.app ` +

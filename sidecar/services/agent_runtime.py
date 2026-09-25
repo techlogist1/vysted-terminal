@@ -173,9 +173,9 @@ TERMINAL_CAPABILITIES_PREAMBLE = (
     "the user asks to buy or sell, say so plainly and offer to research it or "
     "to track the holding in their local portfolio (portfolio_add_position).\n"
     # R15-AGENT-090: a fact no tool can return (an ADR ratio) was stated and
-    # cited to "fundamentals data". ponytail: prompt rule only; no deterministic
-    # guard fits, since telling a sourced figure from an invented one in free
-    # text needs claim-to-result matching, add it with a claim extractor.
+    # cited to "fundamentals data". The deterministic backstop for the ratio
+    # case is _guard_ratio_claims, applied to every sentence _consume_round
+    # releases.
     "Unavailable facts: a figure, ratio, date or other specific fact that no "
     "tool result you received contains is UNAVAILABLE. Say plainly that the "
     "terminal's data does not include it, never state a value for it, and never "
@@ -1788,6 +1788,77 @@ class _RunSetup:
     notices: list[LLMResearchStepEvent]
 
 
+#: R15-AGENT-090: the one sentence an untraced depositary-ratio claim becomes.
+RATIO_UNAVAILABLE = "The ADR-to-ordinary-share ratio is not available from this session's sources."
+_NUMBER_WORDS = (
+    "one", "two", "three", "four", "five", "six",
+    "seven", "eight", "nine", "ten", "eleven", "twelve",
+)  # fmt: skip
+_NUM = r"(?:\d[\d,]*(?:\.\d+)?|" + "|".join(_NUMBER_WORDS) + ")"
+_RATIO_OPERAND = r"(?:\d{1,3}|" + "|".join(_NUMBER_WORDS) + ")"
+_CLAIM_TERM = re.compile(
+    r"\b(?:ADRs?|ADSs?|American Depositary|depositary|conversion ratio)\b", re.IGNORECASE
+)
+_SOURCE_TERM = re.compile(r"\b(?:ADRs?|ADSs?|American Depositary|depositary|Repr)\b", re.IGNORECASE)
+_CLAIM_NUMBERS = re.compile(
+    rf"\b({_NUM})\s+(?:ordinary|equity|underlying|common)\s+shares?\b"
+    rf"|\b({_RATIO_OPERAND})\s*(?::|-for-|\s+to\s+)\s*({_RATIO_OPERAND})\b",
+    re.IGNORECASE,
+)
+_ANY_NUMBER = re.compile(rf"\b{_NUM}\b", re.IGNORECASE)
+#: Without one of these, an N:M / N to M next to "ADR" is a price range or a
+#: clock time, not a ratio claim.
+_RATIO_CUE = re.compile(r"\b(?:ratio|represents?|equals?|each|converts?)\b|-for-", re.IGNORECASE)
+#: A sentence (with its trailing whitespace) of released prose.
+_SENTENCE = re.compile(r".*?(?:[.!?]\s+|\n\s*|\Z)", re.DOTALL)
+#: Where held prose may be released: after a sentence end or a line break.
+_SENTENCE_BOUNDARY = re.compile(r"[.!?]\s+|\n")
+
+
+def _norm_number(token: str) -> str:
+    token = token.lower().replace(",", "")
+    return str(_NUMBER_WORDS.index(token) + 1) if token in _NUMBER_WORDS else token
+
+
+def _ratio_claim_traced(sentence: str, tool_results: list[str]) -> bool:
+    """False for a depositary-ratio claim no tool result carries (R15-AGENT-090).
+
+    A sentence claims a ratio when it names a depositary term and a count of
+    ordinary/underlying shares or an N:M / N-for-M / N to M ratio. It is traced
+    when one tool result names a depositary term (``Repr`` covers the listing
+    style "Each Repr 6 Ords") and carries every claimed number.
+    ponytail: per-sentence regex; a claim split over two sentences slips past,
+    and one sourced from a provider's native server-side search (never a tool
+    result here) is replaced. A claim extractor if more claim types need it.
+    """
+    if not _CLAIM_TERM.search(sentence):
+        return True
+    matches = _CLAIM_NUMBERS.findall(sentence)
+    if not _RATIO_CUE.search(sentence):
+        matches = [m for m in matches if m[0]]  # share counts only
+    claimed = {_norm_number(n) for match in matches for n in match if n}
+    if not claimed:
+        return True
+    return any(
+        _SOURCE_TERM.search(result)
+        and claimed <= {_norm_number(n) for n in _ANY_NUMBER.findall(result)}
+        for result in tool_results
+    )
+
+
+def _guard_ratio_claims(text: str, tool_results: list[str]) -> str:
+    """``text`` with each untraced depositary-ratio sentence replaced by
+    :data:`RATIO_UNAVAILABLE`, its surrounding whitespace kept."""
+    out: list[str] = []
+    for match in _SENTENCE.finditer(text):
+        sentence = match.group()
+        if sentence.strip() and not _ratio_claim_traced(sentence, tool_results):
+            lead = sentence[: len(sentence) - len(sentence.lstrip())]
+            sentence = lead + RATIO_UNAVAILABLE + sentence[len(sentence.rstrip()) :]
+        out.append(sentence)
+    return "".join(out)
+
+
 @dataclass
 class _TurnState:
     """What the rounds of one turn carry forward."""
@@ -1812,6 +1883,9 @@ class _TurnState:
     # Any prose streamed this turn (every round): a turn that ends with none
     # is an empty answer, never a silent success (R15-AGENT-026).
     turn_text: bool = False
+    # Every tool result string of the run: the ratio-claim guard traces a
+    # released sentence against them (R15-AGENT-090).
+    tool_results: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -1999,8 +2073,39 @@ async def _consume_round(
     Ends the turn (``rnd.ended``) on a final terminator, a budget halt or a
     stream that closed without one; otherwise the round's tool calls are
     pending for :func:`_dispatch_round`.
+
+    Prose is held and released a sentence at a time, each sentence checked by
+    :func:`_guard_ratio_claims` (R15-AGENT-090); what is held is released
+    before any other event but a heartbeat, so the relay order is kept.
     """
+    held: list[str] = []  # the provider's delta texts not yet released
+
+    def _release(chunks: list[str]) -> list[LLMDeltaEvent]:
+        text = "".join(chunks)
+        guarded = _guard_ratio_claims(text, turn.tool_results)
+        if guarded.strip():
+            rnd.streamed_text = True
+            turn.turn_text = True
+        # Untouched prose keeps the provider's chunking.
+        return [LLMDeltaEvent(text=c) for c in (chunks if guarded == text else [guarded]) if c]
+
     async for event in stream:
+        if isinstance(event, LLMDeltaEvent):
+            held.append(event.text)
+            text = "".join(held)
+            cut = max((m.end() for m in _SENTENCE_BOUNDARY.finditer(text)), default=0)
+            if cut:
+                # What was held had no boundary, so a new one ends in the newest chunk.
+                newest = held.pop()
+                split = len(newest) - (len(text) - cut)
+                for delta in _release([*held, newest[:split]]):
+                    yield delta
+                held = [newest[split:]]
+            continue
+        if held and not isinstance(event, LLMHeartbeatEvent):
+            for delta in _release(held):
+                yield delta
+            held = []
         if isinstance(event, LLMThinkingEvent):
             rnd.reasoning_parts.append(event.text)
             yield event
@@ -2073,12 +2178,11 @@ async def _consume_round(
             async for final in _finish_turn(event, run, turn, rnd, autonomy):
                 yield final
             return
-        if isinstance(event, LLMDeltaEvent) and event.text.strip():
-            rnd.streamed_text = True
-            turn.turn_text = True
         if isinstance(event, LLMErrorEvent):
             rnd.round_error = True
         yield event
+    for delta in _release(held):
+        yield delta
     # Provider closed without a terminator — emit one so the SSE framing stays
     # well-formed for the consumer.
     async for final in _finish_unterminated(run, turn, rnd, autonomy):
@@ -2248,6 +2352,7 @@ async def _dispatch_round(
             metadata={"name": tool_call.name},
         )
         run.messages.append(tool_result_msg)
+        turn.tool_results.append(result_str)
         if on_tool_result is not None:
             on_tool_result(tool_call, result_str)
         if tool_call.name in _host_ids and _result_status(result_str) == "awaiting_user_review":

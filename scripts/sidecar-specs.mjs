@@ -55,6 +55,10 @@ const UVICORN_HIDDEN = [
 //   path so importlib.resources resolves inside the frozen binary.
 // - `config/` holds model_registry.json (services/model_registry.py loads it
 //   from `sys._MEIPASS/config`); absent, the loader raises at startup.
+// - `services/research/psl/` holds the vendored public_suffix_list.dat
+//   (services/research/finance.py reads it by path via `Path(__file__).parent`);
+//   without it domain_tier()'s registrable-domain check raises at first call
+//   (R15-RESEARCH-007).
 // SOURCE is absolute because PyInstaller resolves it against --specpath (the
 // build/ dir), not cwd. The separator is ';' on Windows and ':' on POSIX, and
 // the value is quoted because cmd.exe treats an unquoted ';' as a command
@@ -64,6 +68,7 @@ const MAIN_ADD_DATA = [
   [join(SIDECAR_DIR, "services", "screener_universes"), "services/screener_universes"],
   [join(SIDECAR_DIR, "services", "resolver_masters"), "services/resolver_masters"],
   [join(SIDECAR_DIR, "config"), "config"],
+  [join(SIDECAR_DIR, "services", "research", "psl"), "services/research/psl"],
 ];
 
 // Editing the build recipe must invalidate every binary.
