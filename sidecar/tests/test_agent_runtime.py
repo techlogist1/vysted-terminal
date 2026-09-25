@@ -2402,18 +2402,23 @@ async def _scripted_answer(
     result: dict[str, Any],
     deltas: list[str],
     history: list[dict[str, str]] | None = None,
+    prompt: str = "SIFY ADR ratio?",
+    inputs: dict[str, dict[str, Any]] | None = None,
 ) -> str:
     """Round 1 calls ``tool`` (stubbed to return ``result``; or each tool of a
-    {name: result} dict); round 2 streams ``deltas``. With no ``tool`` the only
-    round streams them. ``history`` rides the invoke options as the client
-    sends it. Returns the joined answer the consumer saw."""
+    {name: result} dict, with ``inputs`` its arguments, ``{"symbol": "SIFY"}``
+    by default); round 2 streams ``deltas``. With no ``tool`` the only round
+    streams them. ``history`` rides the invoke options as the client sends it.
+    Returns the joined answer the consumer saw."""
     agent_runtime.reload()
     results = tool if isinstance(tool, dict) else {tool: result} if tool else {}
     done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
     rounds: list[list[Any]] = [[*(LLMDeltaEvent(text=d) for d in deltas), done]]
     if results:
         calls = [
-            LLMToolUseEvent(tool_call_id=name, name=name, input={"symbol": "SIFY"})
+            LLMToolUseEvent(
+                tool_call_id=name, name=name, input=(inputs or {}).get(name, {"symbol": "SIFY"})
+            )
             for name in results
         ]
         rounds.insert(0, [*calls, done])
@@ -2429,7 +2434,7 @@ async def _scripted_answer(
             e.text
             async for e in agent_runtime.invoke_agent(
                 agent_id="copilot",
-                prompt="SIFY ADR ratio?",
+                prompt=prompt,
                 api_key="sk-test",
                 autonomy="ask",
                 options={"history": history} if history else None,
@@ -2515,8 +2520,12 @@ async def test_a_citation_of_a_tool_that_returned_nothing_ok_is_replaced(
     """R15-LEAD-030: live-1, llama3.1:8b wrote a 'fundamentals returned: {...}'
     dump with '$1320 m' for a fundamentals call that errored. A citation of a
     tool with no ok result this turn is replaced and its dump dropped; an ok
-    tool's citation, a user's figure and a plain mention stream as is."""
-    assert await _scripted_answer(monkeypatch, "fundamentals", result, deltas) == answer
+    tool's citation, a user's figure and a plain mention stream as is. The
+    user's figure is one the user wrote (batch-20: a figure nothing in the
+    turn carries is fabricated, whoever it is credited to)."""
+    prompt = "SIFY revenue is $1.3 bn, I think. ADR ratio?"
+    got = await _scripted_answer(monkeypatch, "fundamentals", result, deltas, prompt=prompt)
+    assert got == answer
 
 
 _FOLLOWUP_1 = [
@@ -3059,9 +3068,11 @@ async def test_a_result_list_with_a_source_or_no_result_shape_streams(
 ) -> None:
     """R15-LEAD-030 batch-19 controls: the same result list streams as is when
     price_data returned ok, when an earlier turn's trailer seeds it, or when
-    no tool ran at all; a figure-less list, a user's own figure or a markdown
-    link's bracket after an errored call is no result, and streams too."""
-    got = await _scripted_answer(monkeypatch, tool, result, deltas, history)
+    no tool ran at all; a figure-less list, a user's own figure (one the user
+    wrote: batch-20 judges figures by provenance) or a markdown link's bracket
+    after an errored call is no result, and streams too."""
+    prompt = "I bought SIFY at ₹1,500. ADR ratio?"
+    got = await _scripted_answer(monkeypatch, tool, result, deltas, history, prompt=prompt)
     assert got == "".join(deltas)
 
 
@@ -3364,4 +3375,190 @@ def test_a_ratio_a_tool_result_carries_is_traced_and_kept(
     assert agent_runtime._guard_ratio_claims(sentence, [json.dumps(result)]) == sentence
     assert agent_runtime._guard_ratio_claims(sentence, [json.dumps(_SIFY_FUNDAMENTALS)]) == (
         agent_runtime.RATIO_UNAVAILABLE + " "
+    )
+
+
+# --- R15-LEAD-030 batch-20: figures judged by provenance, not by shape ---------
+
+_SBIN_ERR = {"price_data": {"ok": False, "error": "no data for SBIN.NS"}}
+_SBIN_IN = {"price_data": {"symbol": "SBIN.NS"}}
+_SBIN_OK = {"price_data": {"ok": True, "symbol": "SBIN.NS", "latest_price": 812.4}}
+_TATA_ERR = {"fundamentals": {"ok": False, "error": "no data for TATAMOTORS.NS"}}
+_TATA_IN = {"fundamentals": {"symbol": "TATAMOTORS.NS"}}
+_TCS_OK = {"fundamentals": {"ok": True, "symbol": "TCS.NS", "pe_ratio": 29.8}}
+_FUND_NOTE_CAP = _FUND_NOTE[0].upper() + _FUND_NOTE[1:]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("tools", "inputs", "deltas", "answer"),
+    [
+        (  # batch-19 f-uncalled-colon-fenced: the fence hid the dump from the guard
+            {"fundamentals": _SIFY_FUNDAMENTALS},
+            None,
+            ["Running the `price_data` tool, I got back:\n\n```\n", '{"close": 2.11}\n```\n'],
+            f"{_PRICE_NOTE}\n\n",
+        ),
+        (  # batch-19 f-mixed-errored-named-fenced: another tool's ok result covered it
+            {"fundamentals": _SIFY_FUNDAMENTALS, **_SBIN_ERR},
+            _SBIN_IN,
+            [
+                "After calling `price_data` for SBIN.NS, I got:\n\n```json\n",
+                '{"close": 248.15}\n```\n',
+            ],
+            f"{_PRICE_NOTE}\n\n",
+        ),
+        (  # batch-19 f-allerr-table: a table row is not a result line
+            _SBIN_ERR,
+            _SBIN_IN,
+            [
+                "Here are the latest prices:\n\n| Symbol | Price |\n|---|---|\n",
+                "| SBIN.NS | ₹812.40 |\n| AXISBANK.NS | ₹1,102.55 |\n",
+            ],
+            f"{_PRICE_NOTE}\n\n",
+        ),
+        (  # batch-19 f-allerr-bullets-annotated: "(up 1.2%)" broke the result-line shape
+            _SBIN_ERR,
+            _SBIN_IN,
+            [
+                "Here are the results:\n\n* INFY.NS: ₹1,233.65 (up 1.2%)\n",
+                "* TCS.NS: ₹3,235.50 (down 0.4%)\n",
+            ],
+            f"{_PRICE_NOTE}\n\n",
+        ),
+        (  # all-errored inline dump
+            {"financial_statements": _TTM_ERROR},
+            None,
+            ['I get: {"ttmRevenueUsd": 98700000}\n'],
+            "The financial_statements tool returned no data for this in this turn.\n",
+        ),
+        (  # all-errored plain prose: no shape at all, just a figure nothing carries
+            _SBIN_ERR,
+            _SBIN_IN,
+            ["SBIN closed at ₹812.40 today."],
+            f"{_PRICE_NOTE}",
+        ),
+        (  # em-dash key—value list
+            _SBIN_ERR,
+            _SBIN_IN,
+            ["Closes:\n- SBIN.NS — ₹812.40\n- AXISBANK.NS — ₹1,102.55\n\nDone."],
+            f"{_PRICE_NOTE}\n\nDone.",
+        ),
+    ],
+)
+async def test_an_ungrounded_figure_after_an_errored_call_is_replaced(
+    monkeypatch: pytest.MonkeyPatch,
+    tools: dict[str, dict[str, Any]],
+    inputs: dict[str, dict[str, Any]] | None,
+    deltas: list[str],
+    answer: str,
+) -> None:
+    """R15-LEAD-030 batch-20: every batch-19 escape was a shape the guard did
+    not know (a fence, a table, an annotated bullet, plain prose). A figure is
+    now judged by provenance: one that no tool result, user message or
+    context of the turn carries, streamed after a tool errored, is fabricated
+    whatever surrounds it. The unit that carries it (block, dump, sentence)
+    becomes one note naming the tool, fence markers included (R15-LEAD-036)."""
+    got = await _scripted_answer(monkeypatch, tools, {}, deltas, inputs=inputs)
+    assert got == answer
+    assert "```" not in got and got.count("returned no data") == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("tools", "inputs", "prompt", "deltas"),
+    [
+        (_SBIN_OK, _SBIN_IN, "SBIN?", ["SBIN closed at ₹812.40 today."]),  # 812.4 → ₹812.40
+        (  # 2300000000000 → ₹2.3 lakh crore
+            {"fundamentals": {"ok": True, "symbol": "TATAMOTORS.NS", "marketCap": 2300000000000}},
+            _TATA_IN,
+            "TATAMOTORS?",
+            ["Market cap is ₹2.3 lakh crore."],
+        ),
+        (  # the user's own figure, restated after an error
+            _SBIN_ERR,
+            _SBIN_IN,
+            "I bought SBIN at ₹1,500. Price?",
+            ["You said you bought at ₹1,500."],
+        ),
+        (  # the user's figures listed back, and their derivation, after an error
+            _SBIN_ERR,
+            _SBIN_IN,
+            "I bought 10 shares of SBIN at ₹1,500; it is ₹1,650 now.",
+            [
+                "You told me:\n- Buy price: ₹1,500\n- Quantity: 10\n\n",
+                "That is ₹15,000 in total, a 10% gain.",
+            ],
+        ),
+        (  # batch-18 x-news-data-shows: a figure the web_search result carries
+            {
+                "web_search": {
+                    "ok": True,
+                    "results": [{"snippet": "AAPL rose 3% to $190 (Reuters)"}],
+                }
+            },
+            {"web_search": {"query": "AAPL"}},
+            "AAPL news?",
+            ["The news data shows AAPL rose 3% to $190."],
+        ),
+        (  # an index name the user wrote, all calls errored
+            _SBIN_ERR,
+            {"price_data": {"symbol": "^GSPC"}},
+            "How is the S&P 500 doing?",
+            ["The S&P 500 is the index you asked about."],
+        ),
+    ],
+)
+async def test_a_grounded_figure_streams_whatever_the_shape(
+    monkeypatch: pytest.MonkeyPatch,
+    tools: dict[str, dict[str, Any]],
+    inputs: dict[str, dict[str, Any]],
+    prompt: str,
+    deltas: list[str],
+) -> None:
+    """R15-LEAD-030 batch-20: a figure some tool result, user message or
+    context of the turn carries — at the figure's own precision, through a
+    scale word, as a percent, or derived from two of the user's values —
+    streams as is, whatever it is credited to and whatever surrounds it."""
+    got = await _scripted_answer(monkeypatch, tools, {}, deltas, prompt=prompt, inputs=inputs)
+    assert got == "".join(deltas)
+
+
+@pytest.mark.asyncio
+async def test_rows_of_one_block_are_judged_one_by_one(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LEAD-030 batch-20: a mixed table — TCS from an ok fundamentals call,
+    SBIN from a price_data call that errored — keeps the grounded row and
+    replaces the errored symbol's row with one note naming its tool."""
+    deltas = [
+        "| Symbol | Value |\n|---|---|\n| TCS.NS | P/E 29.8 |\n",
+        "| SBIN.NS | ₹812.40 |\n\nThat is all.",
+    ]
+    got = await _scripted_answer(
+        monkeypatch,
+        {**_TCS_OK, **_SBIN_ERR},
+        {},
+        deltas,
+        inputs={**_SBIN_IN, "fundamentals": {"symbol": "TCS.NS"}},
+    )
+    assert (
+        got
+        == f"| Symbol | Value |\n|---|---|\n| TCS.NS | P/E 29.8 |\n{_PRICE_NOTE}\n\nThat is all."
+    )
+
+
+@pytest.mark.asyncio
+async def test_a_clause_beside_an_errored_symbol_is_replaced_alone(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-030 batch-20: WIPRO's price_data call errored, TCS's fundamentals
+    call returned ok. The WIPRO clause carries a figure nothing grounds and the
+    errored symbol; the TCS clause carries the tool's own value: only the
+    first is replaced."""
+    tools = {**_TCS_OK, "price_data": {"ok": False, "error": "no data for WIPRO.NS"}}
+    inputs = {"fundamentals": {"symbol": "TCS.NS"}, "price_data": {"symbol": "WIPRO.NS"}}
+    deltas = ["WIPRO.NS closed at ₹248.15, while TCS trades at a P/E of 29.8."]
+    got = await _scripted_answer(monkeypatch, tools, {}, deltas, inputs=inputs)
+    assert got == (
+        "The price_data tool returned no data for this in this turn, "
+        "while TCS trades at a P/E of 29.8."
     )
