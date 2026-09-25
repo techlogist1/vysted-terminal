@@ -408,7 +408,21 @@ fn write_atomic(path: &str, bytes: &[u8]) -> Result<(), String> {
         f.write_all(bytes).map_err(|e| e.to_string())?;
         f.sync_all().map_err(|e| e.to_string())?;
     }
-    std::fs::rename(&tmp_path, dest).map_err(|e| e.to_string())?;
+    // A Windows rename fails with ERROR_ACCESS_DENIED / ERROR_SHARING_VIOLATION
+    // while an AV scanner or the indexer holds the destination; that handle is
+    // released within milliseconds, so retry a few times. On a final failure
+    // remove the temp file rather than leak it beside the destination.
+    let mut attempt = 1;
+    while let Err(err) = std::fs::rename(&tmp_path, dest) {
+        let transient = err.kind() == std::io::ErrorKind::PermissionDenied
+            || (cfg!(windows) && err.raw_os_error() == Some(32));
+        if !transient || attempt == 5 {
+            let _ = std::fs::remove_file(&tmp_path);
+            return Err(err.to_string());
+        }
+        thread::sleep(Duration::from_millis(50 * attempt));
+        attempt += 1;
+    }
     // Persist the rename itself. Best-effort: the new file is already in place,
     // so a directory-sync failure must not report the write as failed.
     #[cfg(unix)]
@@ -696,6 +710,23 @@ mod tests {
             .map(|e| e.unwrap().file_name())
             .collect();
         assert_eq!(names, vec![std::ffi::OsString::from("MSFT.md")]);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn rename_failure_removes_tmp() {
+        // R15-CROSS-PLATFORM-007: a rename that fails for good (here the
+        // destination is a non-empty directory) reports the error and leaves no
+        // `<name>.tmp.<pid>` behind.
+        let dir = temp_dir("rename-fail");
+        let dest = dir.join("AAPL.md");
+        std::fs::create_dir_all(dest.join("occupied")).unwrap();
+        assert!(super::write_atomic(&dest.to_string_lossy(), b"body").is_err());
+        let names: Vec<_> = std::fs::read_dir(&dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        assert_eq!(names, vec![std::ffi::OsString::from("AAPL.md")]);
         let _ = std::fs::remove_dir_all(&dir);
     }
 
