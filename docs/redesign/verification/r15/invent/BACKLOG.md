@@ -1443,6 +1443,73 @@ Tier 5 · **S-M, 4 days** · Sources: retail-4 (primary)
 **Judge notes.**
 - The seat's core mechanism, diffing successive read-only broker holdings snapshots (GET /brokers/{id}/holdings), is on the 23 Sep trading-removal surface. What survives is the manual portfolio, where the user enters the holding in-app, so the 'noticed' moment collapses to 'ask when you add it'.
 
+## Candidates (unranked)
+
+Items below did not go through the Stage 2 seat/judge process above. They are
+raw candidates for the Stage E judge panel to rank on its next pass; nothing
+here has a tier, a rank, or build authority yet.
+
+#### Candidate · Filing watcher: System 1 triage in front of the BYOK model
+
+Unranked · **Source:** R15 scope change 2 groundwork,
+`docs/redesign/verification/r15/laya/BACKLOG_ENTRY.md` (full design, licence,
+Windows-route note, groundwork/dataset detail and the measured verdict below)
+and `docs/redesign/verification/r15/laya/VERDICT.md` (measurement detail and
+critic corrections). Verification evidence only — no code from this groundwork
+ships in this release.
+
+**What.** A local triage pass in front of the BYOK model in the ingestion path
+(not the chat path): score every NSE/BSE corporate announcement, pledge
+change, bulk/block deal and rating action against the user's holdings,
+watchlist and written thesis, and wake the BYOK model only for item shapes
+that already look decision-relevant. Every surfaced item carries a receipt: a
+direct link to the source filing page. The five source feeds already exist in
+the sidecar (`corporate_disclosures.py`, `analyst_ratings_extended.py`); the
+triage/watch layer over them does not.
+
+**Measured verdict (this groundwork's own MEASURE pass, not a build result).**
+Not worth fine-tuning for this release; case for later mixed. Gate P/R per
+noul task, `composer_intent` accuracy vs majority, ECE before/after, p50/p99,
+peak/steady RSS and the current-path comparison, each with its file pointer,
+are in `docs/redesign/verification/r15/laya/BACKLOG_ENTRY.md` §"Verdict".
+Headline: zero-shot beats majority on `composer_intent` (0.630 vs 0.333) but
+loses to the sidecar's existing $0 regex heuristic (0.815); on
+`holding_relevance` the best operating point ties the majority-class rate
+exactly (no discrimination); `entity_match` is the one bright spot (max-F1
+0.855 vs 0.71 majority) but the current heuristic is competitive on an
+admittedly unfair adapted input (0.74 vs 0.77). A post-hoc calibration
+temperature fit made ECE worse on both noul tasks, not better.
+
+**Size.** Not estimated by this pass — no fine-tuning, training-set build, or
+integration work has been scoped; §3 of the source doc sketches a fine-tune +
+calibration + opt-in-setting plan but nothing here should be read as a size
+estimate.
+
+**Lifecycle cost.** Unscoped. The source doc notes a temperature fit must be
+redone per inference backend (MLX on Apple silicon vs a PyTorch/ONNX Windows
+route, since `laya-mlx` has no Windows/CUDA backend) — see
+`docs/redesign/verification/r15/laya/BACKLOG_ENTRY.md` §5.
+
+**Design system:** n/a. No UI shipped by this groundwork.
+**Plugin contract:** untouched.
+**Tracked-portfolio write:** reads only, in the design sketch — no code exists.
+
+**Depends on:** the five existing disclosure/rating feeds (already shipped,
+see `docs/redesign/verification/r15/laya/BACKLOG_ENTRY.md` §2); a real
+training set built from actual web-row inputs for `entity_match` if pursued
+(the groundwork dataset used markdown passages, a shape mismatch against the
+sidecar's own `entity_match` input).
+**Prerequisite defect fixes:** none identified.
+**Closes census findings:** none — this candidate was not run against the
+census.
+
+**Biggest risk.** The measured zero-shot checkpoint loses to a free existing
+heuristic on the one task (`composer_intent`) that already has a fast working
+path, and ties majority-class on `holding_relevance`; fine-tuning is
+unvalidated (base-checkpoint literature cited in
+`docs/redesign/verification/r15/laya/PACKAGE_VERIFICATION.md` claims #13/#14
+says a fine-tune is needed to clear this bar, not just zero-shot use).
+
 ## Defect fixes this backlog depends on
 
 These are census findings (admitted by refute) that must land in the defect lane before, or with, the items that list them. They are not backlog items.

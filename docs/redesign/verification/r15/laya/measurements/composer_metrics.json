@@ -1,0 +1,38 @@
+{
+  "n": 27,
+  "accuracy": 0.6296296296296297,
+  "majority_class_rate_on_B": 0.3333333333333333,
+  "majority_class_label_on_B": "edit",
+  "confusion_matrix_gold_rows_pred_cols": {
+    "read": {
+      "read": 2,
+      "edit": 0,
+      "build": 2,
+      "research": 2
+    },
+    "edit": {
+      "read": 1,
+      "edit": 7,
+      "build": 1,
+      "research": 0
+    },
+    "build": {
+      "read": 0,
+      "edit": 2,
+      "build": 4,
+      "research": 2
+    },
+    "research": {
+      "read": 0,
+      "edit": 0,
+      "build": 0,
+      "research": 4
+    }
+  },
+  "options": [
+    "read",
+    "edit",
+    "build",
+    "research"
+  ]
+}

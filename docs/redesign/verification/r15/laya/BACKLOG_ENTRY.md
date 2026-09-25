@@ -127,4 +127,43 @@ no existing decision point to fine-tune against yet.
   outside `[0.5, 5]`, clamped) — direct evidence for why §3's calibration
   step is required before shipping, not a nice-to-have.
 
-Verdict: pending MEASURE
+Verdict: **not worth fine-tuning for this release; the case for later is mixed**
+(full reasoning: `docs/redesign/verification/r15/laya/VERDICT.md`, critic-reproduced
+bit-identical over all 339 items, `measurements/critic_rerun.json`).
+
+- **Gate P/R per noul task** (lowest threshold with precision ≥0.90 on B, else
+  max-F1) — `entity_match`: gate thr 0.95, P 1.00, R 0.056, F1 0.107; max-F1
+  thr 0.10, P 0.773, R 0.958, F1 0.855. `holding_relevance`: gate thr 0.95,
+  P 1.00, R 0.026, F1 0.050; max-F1 thr 0.05, P 0.886, R 1.00, F1 0.940 (equal
+  to the 0.886 majority-class rate — no discrimination at this point).
+  Source: `docs/redesign/verification/r15/laya/measurements/noul_metrics.json`.
+- **`composer_intent` accuracy vs majority**: 0.630 (17/27) vs majority-rate
+  baseline 0.333. Source:
+  `docs/redesign/verification/r15/laya/measurements/composer_metrics.json`.
+- **ECE before/after** (10-bin, on eval split B, T fit on split A): `entity_match`
+  0.066 → 0.167 (T=4.06); `holding_relevance` 0.113 → 0.142 (T=1.09);
+  `composer_intent` 0.191 → 0.177 (T=0.79) — the post-hoc fit worsens
+  calibration on both noul tasks. Source:
+  `docs/redesign/verification/r15/laya/measurements/calibration.json`.
+- **Latency p50/p99**: single-item p50 42.2 ms (41.6 ms excl. first-call MLX
+  warm-up), p99 350.5 ms (critic re-run 466.9 ms — noisy, ~3 of 339 samples);
+  batched (amortized, batch=16) p50 38.5 ms/item, p99 141.0 ms/item — amortized
+  batch-wall/batch-size, not a single item's wait (an item waits ~616 ms in a
+  p50 batch). Source:
+  `docs/redesign/verification/r15/laya/measurements/latency.json`.
+- **Peak and steady RSS**: peak RSS 980,615,168 B ≈ 935.2 MB (`/usr/bin/time -l`,
+  whole run incl. model load); steady RSS 886,640 KB ≈ 865.9 MB (`ps -o rss=`,
+  mid-run sample); peak memory footprint 12,180,033,728 B ≈ 11.3 GiB (critic
+  re-run 12,177,887,232 B) on a 16 GiB host. Source:
+  `docs/redesign/verification/r15/laya/measurements/latency.json`.
+- **Current-path comparison**: `composer_intent` — the sidecar's existing $0,
+  untimed regex heuristic (`sidecar/services/planner.py:185`) scores 0.815
+  (22/27), beating zero-shot by 18.5 points (3 of the 27 B items are compound
+  and the production path adds a paid planner pre-pass there; nothing paid was
+  run and the scored label is unaffected). `entity_match` — the sidecar
+  heuristic (`sidecar/services/research/relevance.py:522`), adapted past a
+  shape mismatch (it scores web-search rows, not markdown passages), scores
+  0.74 (74/100) vs laya's max-F1-point 0.77 — weak evidence given the
+  adaptation. `holding_relevance` — not run; no current decision point exists
+  (`BASELINE.json` `path_today: "none (not implemented)"`). Source:
+  `docs/redesign/verification/r15/laya/measurements/current_path.json`.
