@@ -797,6 +797,11 @@ Tauri.
 | BYOK secrets (LLM keys, MCP endpoints, plugin secrets, first-launch-terms ack) | Tauri Rust | OS credential store            | macOS Keychain / Win Cred Mgr / Secret Service |
 | Portfolio positions (manually tracked — no broker connection)                  | Sidecar    | SQLite `positions`             | `get_data_dir()/portfolio.db`                  |
 | Upstream-data TTL cache                                                        | Sidecar    | SQLite `cache` (WAL)           | `get_data_dir()/data_cache.db`                 |
+| Custom agents (`/custom-agents` CRUD)                                          | Sidecar    | SQLite                         | `get_data_dir()/custom_agents.db`              |
+| Plugin install/enable state                                                    | Sidecar    | SQLite                         | `get_data_dir()/plugins.db`                    |
+| Durable Delegate runs (`services/runs_store.py`)                               | Sidecar    | SQLite `runs`                  | `get_data_dir()/delegate_runs.db`              |
+| Fundamentals TTL cache                                                         | Sidecar    | SQLite                         | `get_data_dir()/fundamentals_cache.db`         |
+| Node-editor workflows                                                          | Sidecar    | SQLite                         | `get_data_dir()/workflows.db`                  |
 
 There is no order audit log any more (D81); the append-only `audit_orders`
 table and `audit_log.db` existed only to record order placement. A user who
@@ -821,9 +826,16 @@ per-broker namespace any more, D81). The `provider-keys` store tracks
 effectively Tauri-only** — outside the shell `getSecret` rejects →
 `"unknown"`, no localStorage fallback by design.
 
-**Honest gaps:** **no DB migrations anywhere** (all three SQLite stores use
-`CREATE TABLE IF NOT EXISTS` — adding a column to an existing install would not
-migrate); workspace blobs are server-unvalidated (corruption caught only at
+**Honest gaps:** **no DB migrations for six of the seven SQLite stores**
+(`portfolio.db`, `data_cache.db`, `custom_agents.db`, `plugins.db`,
+`fundamentals_cache.db`, `workflows.db` use bare `CREATE TABLE IF NOT
+EXISTS` — adding a column to an existing install would not migrate).
+`delegate_runs.db` is the one exception: `runs_store._ensure_added_columns`
+is a real additive migration, `ALTER TABLE runs ADD COLUMN` guarded by
+`PRAGMA table_info(runs)`, run for every column `CREATE TABLE IF NOT EXISTS`
+can't retrofit onto an existing file.
+
+Workspace blobs are server-unvalidated (corruption caught only at
 `fromJSON` on the client); autosave is best-effort (a transient failure silently
 fails to persist until the next layout change); `data_cache` stale rows are never
 auto-evicted.
