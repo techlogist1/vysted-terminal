@@ -24,8 +24,6 @@
  * in-memory within the session, re-ranks recent picks within their group).
  */
 
-import type { LucideIcon } from "lucide-react";
-import { BarChart2, BookOpen, List, ScanSearch } from "lucide-react";
 import { create } from "zustand";
 
 import { applyLayoutMode, MENU_PAYLOAD_TO_MODE } from "@/lib/layout-templates";
@@ -62,65 +60,6 @@ export interface PaletteItem {
    */
   action?: () => void;
 }
-
-// ---------------------------------------------------------------------------
-// Suggested items — shown in the empty-query state
-// ---------------------------------------------------------------------------
-
-/** A static suggestion entry for the empty-query "Suggested" group. */
-export interface SuggestedItem {
-  /** Unique stable id for cmdk value + recency tracking. */
-  id: string;
-  /** Primary label shown in the row. */
-  label: string;
-  /** Supporting hint. */
-  description?: string;
-  /** Lucide icon to render. */
-  Icon: LucideIcon;
-  /** Corpus item id to resolve (e.g. "panel:notes", "action:notes.open"). */
-  corpusId: string;
-  /** Fallback: open this panel id directly if corpus resolution fails. */
-  panelId?: string;
-}
-
-/**
- * Curated default actions shown when the palette query is empty.
- * NOT a dump of all agents — these are the 4 most-useful entry points.
- */
-export const SUGGESTED_ITEMS: SuggestedItem[] = [
-  {
-    id: "suggested:notes",
-    label: "Open Notes",
-    description: "Jump to the notes panel",
-    Icon: BookOpen,
-    corpusId: "panel:notes",
-    panelId: "notes",
-  },
-  {
-    id: "suggested:research",
-    label: "New Research Space",
-    description: "Start a fresh research session",
-    Icon: ScanSearch,
-    corpusId: "panel:research",
-    panelId: "research",
-  },
-  {
-    id: "suggested:chart",
-    label: "Open Chart",
-    description: "View the price chart",
-    Icon: BarChart2,
-    corpusId: "panel:chart",
-    panelId: "chart",
-  },
-  {
-    id: "suggested:watchlist",
-    label: "Search a Ticker",
-    description: "Open the watchlist to add or find a symbol",
-    Icon: List,
-    corpusId: "panel:watchlist",
-    panelId: "watchlist",
-  },
-];
 
 // ---------------------------------------------------------------------------
 // Cross-group score offsets
@@ -253,7 +192,8 @@ export function buildPaletteCorpus(): PaletteItem[] {
   }
 
   // 2. Actions (commands)
-  for (const cmd of modulesState.enabledCommands()) {
+  const commands = modulesState.enabledCommands();
+  for (const cmd of commands) {
     items.push({
       id: `action:${cmd.id}`,
       kind: "action",
@@ -278,8 +218,11 @@ export function buildPaletteCorpus(): PaletteItem[] {
     });
   }
 
-  // 3. Panels
+  // 3. Panels — a panel an enabled command already opens is left to that
+  // command's row (which carries its chord), so no two rows open one panel.
+  const commandedPanels = new Set(commands.map((cmd) => cmd.opensPanel));
   for (const panel of modulesState.enabledPanels()) {
+    if (commandedPanels.has(panel.id)) continue;
     items.push({
       id: `panel:${panel.id}`,
       kind: "panel",

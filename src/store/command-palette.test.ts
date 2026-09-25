@@ -45,6 +45,11 @@ function makeModule(id: string): VystedModule {
   };
 }
 
+/** A module whose panel no command opens — it gets its own Panels row. */
+function makePanelOnlyModule(id: string): VystedModule {
+  return { ...makeModule(id), commands: [] };
+}
+
 function makeAgent(id: string): AgentSummary {
   return {
     id,
@@ -233,7 +238,7 @@ describe("buildPaletteCorpus", () => {
   });
 
   it("returns panel items with kind=panel", () => {
-    useModulesStore.getState().registerModules([makeModule("watchlist")]);
+    useModulesStore.getState().registerModules([makePanelOnlyModule("watchlist")]);
     const corpus = buildPaletteCorpus();
     const panels = corpus.filter((i) => i.kind === "panel");
     expect(panels.some((p) => p.id === "panel:watchlist-panel")).toBe(true);
@@ -248,7 +253,7 @@ describe("buildPaletteCorpus", () => {
 
   it("agents appear before actions, actions before panels, panels before symbols", () => {
     useAgentsStore.getState().setFirstPartyAgents([makeAgent("copilot")]);
-    useModulesStore.getState().registerModules([makeModule("chart")]);
+    useModulesStore.getState().registerModules([makeModule("chart"), makePanelOnlyModule("macro")]);
     const corpus = buildPaletteCorpus();
     const firstAgent = corpus.findIndex((i) => i.kind === "agent");
     const firstAction = corpus.findIndex((i) => i.kind === "action");
@@ -268,6 +273,19 @@ describe("buildPaletteCorpus", () => {
     const corpus = buildPaletteCorpus();
     const symbols = corpus.filter((i) => i.kind === "symbol");
     expect(symbols).toHaveLength(SYMBOL_CAP);
+  });
+
+  it("no two empty-query rows share a panelId", () => {
+    // chart's panel is opened by chart.open; macro's panel has no command.
+    useModulesStore.getState().registerModules([makeModule("chart"), makePanelOnlyModule("macro")]);
+    const rows = buildPaletteCorpus().filter((i) => i.kind !== "symbol"); // symbols are query-gated
+    const panelIds = rows
+      .map((i) => i.commandSpec?.opensPanel ?? i.panelSpec?.id)
+      .filter((id): id is string => id !== undefined);
+    expect(panelIds.sort()).toEqual(["chart-panel", "macro-panel"]);
+    expect(rows.find((i) => i.commandSpec?.opensPanel === "chart-panel")?.id).toBe(
+      "action:chart.open",
+    );
   });
 
   it("disabled module commands and panels are excluded", () => {
