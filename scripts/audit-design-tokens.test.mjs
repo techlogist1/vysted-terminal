@@ -47,4 +47,26 @@ describe("audit-design-tokens", () => {
     expect(match).not.toBeNull();
     expect(match[1]).toContain('"zero" 1');
   });
+
+  it("a mismatched fallback fails the audit", () => {
+    // --color-charcoal-900 is #161616 in the real styles/tokens.css; this fallback
+    // is a stale value that no longer matches.
+    writeFileSync(
+      join(root, "stale.css"),
+      `.panel { background: var(--color-charcoal-900, #1a1814); }\n`,
+    );
+    const r = audit(root);
+    expect(r.status).toBe(1);
+    expect(r.stdout).toContain("stale var() fallback");
+    expect(r.stdout).toContain("--color-charcoal-900, #1a1814");
+  });
+
+  it("an agreeing fallback passes the audit", () => {
+    writeFileSync(
+      join(root, "fresh.css"),
+      `.panel { background: var(--color-charcoal-900, #161616); }\n`,
+    );
+    const r = audit(root);
+    expect(r.status).toBe(0);
+  });
 });

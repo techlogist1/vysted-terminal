@@ -13,6 +13,11 @@
  *      `tokens-ok:` comment with a justification.
  *   3. Dead type sizes: raw font-size in CSS must be one of 11/13/16/19/23/28 px
  *      (or derive from a --text-* token). text-{12,14,15,17,18,22,...}px utilities fail.
+ *   4. Stale var() fallbacks: `var(--token, fallback)` in a CSS file must agree with
+ *      --token's current value in styles/tokens.css (px/rem compared numerically;
+ *      functional values like cubic-bezier() are generic fallbacks, not mirrored
+ *      literals, and are skipped) — a fallback only renders if the token is undefined,
+ *      but a stale value is a misleading trap for a reader (R15-CODE-PLATFORM-070).
  *
  * Usage: node scripts/audit-design-tokens.mjs [--report] [paths...]
  *   --report  print violations but exit 0 (inventory mode for the sweep team)
@@ -58,10 +63,41 @@ const ARB_RE = new RegExp(
   "g",
 );
 const CSS_FONT_RE = /font-size:\s*([0-9.]+)(px|rem)/g;
+const VAR_FALLBACK_RE = /var\((--[a-z0-9-]+),\s*([^)]+)\)/gi;
 
 const SKIP_DIRS = new Set(["node_modules", "dist", ".git", "target", "__pycache__"]);
 const EXTS = new Set([".tsx", ".ts", ".css"]);
 const SKIP_FILES = new Set(["styles/tokens.css"]); // the token source itself
+
+// --- var() fallback vs styles/tokens.css (check 4) -------------------------
+// tokenName -> literal value string, straight from the real @theme block.
+// Composite values (font stacks that themselves reference var(...)) are not
+// literal-mirrored anywhere, so they are excluded from this check.
+const TOKEN_VALUES = new Map();
+try {
+  const tokensSrc = readFileSync(join(ROOT, "styles/tokens.css"), "utf8");
+  for (const m of tokensSrc.matchAll(/^\s*(--[a-z0-9-]+):\s*([^;]+);/gim)) {
+    const value = m[2].split("/*")[0].trim();
+    if (!value.includes("var(")) TOKEN_VALUES.set(m[1], value);
+  }
+} catch {
+  // styles/tokens.css missing (e.g. an isolated test fixture) — check 4 finds nothing.
+}
+
+const UNIT_RE = /^(-?[0-9.]+)(px|rem)?$/;
+function fallbackDisagrees(fallback, tokenValue) {
+  const fb = fallback.trim();
+  const tok = tokenValue.trim();
+  if (fb.toLowerCase() === tok.toLowerCase()) return false;
+  if (tok.includes("(")) return false; // functional value (cubic-bezier, ...): generic fallback, not mirrored
+  const fbM = UNIT_RE.exec(fb);
+  const tokM = UNIT_RE.exec(tok);
+  if (fbM && tokM) {
+    const toPx = (m) => parseFloat(m[1]) * (m[2] === "rem" ? 16 : 1);
+    return toPx(fbM) !== toPx(tokM);
+  }
+  return true;
+}
 
 function* walk(dir) {
   for (const name of readdirSync(dir)) {
@@ -101,6 +137,15 @@ for (const scanRoot of SCAN) {
           const px = m[2] === "rem" ? parseFloat(m[1]) * 16 : parseFloat(m[1]);
           if (!ALLOWED_FONT_PX.has(Math.round(px * 100) / 100)) {
             violations.push(`${rel}:${i + 1}  off-scale font-size  ${m[0]}`);
+          }
+        }
+        for (const m of line.matchAll(VAR_FALLBACK_RE)) {
+          const [full, name, fallback] = m;
+          const tokenValue = TOKEN_VALUES.get(name);
+          if (tokenValue !== undefined && fallbackDisagrees(fallback, tokenValue)) {
+            violations.push(
+              `${rel}:${i + 1}  stale var() fallback  ${full.trim()} (token: ${tokenValue})`,
+            );
           }
         }
       }
