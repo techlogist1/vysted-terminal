@@ -356,12 +356,13 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     subscribe: onChange(useLLMProvidersStore, (s) => s.defaultProviderId),
   },
   {
-    // Older blobs lack it (or carry an empty list) — keep the default set.
+    // Older blobs lack it — keep the default set. An empty list is the user's
+    // own choice and restores as empty (R15-CODE-FRONTEND-037).
     key: "watchlist",
     scope: "global",
     read: () => ({ watchlist: useSymbolsStore.getState().entries }),
     restore: (workspace) => {
-      if (Array.isArray(workspace.watchlist) && workspace.watchlist.length > 0) {
+      if (Array.isArray(workspace.watchlist)) {
         useSymbolsStore.getState().setEntries(workspace.watchlist);
       }
     },

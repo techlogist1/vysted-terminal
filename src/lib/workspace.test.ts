@@ -19,7 +19,7 @@ import { useResearchSpacesStore } from "@/store/research-spaces";
 import { useScreenerStore } from "@/store/screener";
 import { resetSearchSettingsStoreForTests, useSearchSettingsStore } from "@/store/search-settings";
 import { DEFAULT_SETTINGS, resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
-import { useSymbolsStore } from "@/store/symbols";
+import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { DrawingSpec } from "../../types/drawings";
 
@@ -410,6 +410,23 @@ describe("workspace serialization", () => {
     });
     const entries = useSymbolsStore.getState().entries;
     expect(entries.map((e) => e.symbol)).toEqual(["TSLA", "BTC/USDT"]);
+  });
+
+  it("R15-CODE-FRONTEND-037: empty watchlist round-trips to []; a blob without the key keeps defaults", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useSymbolsStore.setState({ entries: [] });
+    const saved = serializeWorkspace("emptied");
+    expect(saved.watchlist).toEqual([]);
+
+    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    deserializeWorkspace(saved);
+    expect(useSymbolsStore.getState().entries).toEqual([]);
+
+    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    const { watchlist: _absent, ...older } = saved;
+    deserializeWorkspace(older);
+    expect(useSymbolsStore.getState().entries).toEqual(DEFAULT_SYMBOLS);
   });
 
   it("round-trips: serialize then deserialize restores the layout and enabled map", () => {
