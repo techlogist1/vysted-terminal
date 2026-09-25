@@ -618,6 +618,38 @@ def _coerce_history(raw: Any) -> tuple[list[LLMMessage], int]:
     return [LLMMessage(role="user", content="\n".join(lines)), *recent], len(older)
 
 
+#: A ``[tool steps: ...]`` trailer line, verbatim or folded into the summary.
+_TOOL_STEPS_LINE = re.compile(r"^(?:- )?\[tool steps: (.*)\]$", re.MULTILINE)
+#: The client's fixed step labels (``readToolLabel``); every other read tool is
+#: labelled ``Using <id with spaces>``.
+_FIXED_STEP_TOOLS = {
+    "reading what you're looking at": "get_terminal_state",
+    "reading your portfolio": "get_portfolio",
+}
+
+
+def _history_tools(history: list[LLMMessage], known: set[str]) -> set[str]:
+    """The known tool ids the history's ``[tool steps: ...]`` trailers name:
+    tools an earlier turn of this chat ran, so a follow-up may cite them
+    (R15-LEAD-030).
+    ponytail: a trailer records a CALL, not an ok result, so a follow-up citing
+    a tool that errored in an earlier turn is kept; ``research`` has no step
+    line (the client renders its ResearchActivity), so a citation of an earlier
+    research run is replaced with the "in this turn" note, which stays true.
+    """
+    tools: set[str] = set()
+    for message in history:
+        for steps in _TOOL_STEPS_LINE.findall(message.content):
+            for step in steps.split(";"):
+                label = step.strip().lower()
+                tool = _FIXED_STEP_TOOLS.get(label) or re.sub(
+                    r"[\s-]+", "_", label.removeprefix("using ")
+                )
+                if tool in known:
+                    tools.add(tool)
+    return tools
+
+
 def _render_session_preamble() -> str:
     """Anchor the turn in the SERVER clock + the user's locale and forbid answering
     a time-sensitive question from (stale) training memory.
@@ -1806,6 +1838,9 @@ class _RunSetup:
     opts: dict[str, Any]
     #: Retired-tool and folded-history notices, yielded before anything else.
     notices: list[LLMResearchStepEvent]
+    #: Tools the turn may cite without calling them (R15-LEAD-030): those the
+    #: history's trailers name, and ``web_search`` on a native-search lane.
+    cited_tools: set[str] = field(default_factory=set)
 
 
 #: R15-AGENT-090: the one sentence an untraced depositary-ratio claim becomes.
@@ -1956,6 +1991,16 @@ _CURRENCY_FIGURE = re.compile(
     re.IGNORECASE,
 )
 _GENERIC_TOOL_REF = re.compile(r"\b(?:tool results?|tool output|the tool returned)\b", re.I)
+#: A sentence that reports what a tool gave, as against one that plans a call.
+_RESULT_VERB = re.compile(r"\b(?:returned|shows?|showed|reports?|says|according to)\b", re.I)
+_INTENT_CUE = re.compile(
+    r"\b(?:let me|let['’]s|I['’]ll|I will|I['’]m going to|I am going to|I need to|we['’]ll"
+    r"|next,? I|going to|about to)\b",
+    re.IGNORECASE,
+)
+#: The ``depth`` of a round whose replaced citation ended in ``:``/``=`` with no
+#: bracket yet: a dump that opens next (after whitespace) is dropped too.
+DUMP_PENDING = -1
 
 
 def _guard_tool_citations(
@@ -1964,15 +2009,20 @@ def _guard_tool_citations(
     """``text`` with each sentence that cites a tool no ok result came from
     replaced (R15-LEAD-030): a reference to tool ``T`` (backticked, a bare id
     with an underscore, or ``T`` then tool/returned/result/output/data or a
-    ``:``/``=`` dump) carrying a claim cue or a currency figure while ``T`` has
-    returned nothing ok this turn. ``depth``: the brackets a replaced dump left
-    open; the text until they balance is dropped. Returns the text and the
-    depth left open.
+    ``:``/``=`` dump; in the first two and last, ``T`` may be humanised, as
+    "Price Data" or "price-data") carrying a claim cue or a currency figure
+    while ``T`` has returned nothing ok. A figure-less, bracket-less intent
+    ("Let me fetch the `news` data") with no result verb is kept. ``depth``:
+    the brackets a replaced dump left open, or :data:`DUMP_PENDING`; the text
+    until they balance is dropped. Returns the text and the depth left open.
     ponytail: a bare figure with no tool reference ("₹4,411 cr") is not
-    screened — derived arithmetic and a user's figure are legitimate; a
-    pre-call narration with a cue ("I'll fetch the `news` data") is replaced.
+    screened — derived arithmetic and a user's figure are legitimate.
     """
-    ids = "|".join(sorted(map(re.escape, tool_ids)))
+
+    def _names(ids: list[str]) -> str:
+        return "|".join(sorted(re.escape(t).replace("_", r"[\s_-]") for t in ids))
+
+    ids = _names(list(tool_ids))
     bare = "|".join(sorted(re.escape(t) for t in tool_ids if "_" in t))
     ref = re.compile(
         rf"`({ids})`|\b({ids})(?:\s+(?:tool|returned|results?|output|data)\b|\s*[:=]\s*[{{\[])"
@@ -1982,6 +2032,14 @@ def _guard_tool_citations(
     out: list[str] = []
     for match in _SENTENCE.finditer(text):
         sentence = match.group()
+        if depth == DUMP_PENDING:
+            body = sentence.lstrip()
+            if not body:
+                out.append(sentence)
+                continue
+            depth = 0
+            if body[0] in "{[":
+                sentence, depth = body[1:], 1
         if depth:
             for i, ch in enumerate(sentence):
                 depth += (ch in "{[") - (ch in "}]")
@@ -1989,22 +2047,35 @@ def _guard_tool_citations(
                     out.append(sentence[i + 1 :])
                     break
             continue
-        refs = [next(g for g in m.groups() if g).lower() for m in ref.finditer(sentence)]
+        refs: list[str] = []
+        blanked = sentence
+        for m in ref.finditer(sentence):
+            group = next(i for i in range(1, 4) if m.group(i))
+            refs.append(re.sub(r"[\s-]", "_", m.group(group).lower()))
+            start, end = m.span(group)
+            blanked = blanked[:start] + " " * (end - start) + blanked[end:]
         untraced = [t for t in refs if t not in ok_tools]
         generic = not refs and not ok_tools and _GENERIC_TOOL_REF.search(sentence)
-        if (untraced or generic) and (
-            _CITATION_CUE.search(sentence) or _CURRENCY_FIGURE.search(sentence)
-        ):
+        figure = _CURRENCY_FIGURE.search(sentence)
+        intent = (
+            not figure
+            and not any(c in sentence for c in "{[")
+            and not _RESULT_VERB.search(sentence)
+            and _INTENT_CUE.search(sentence)
+        )
+        if (untraced or generic) and not intent and (_CITATION_CUE.search(blanked) or figure):
             logger.info("tool-citation guard replaced an untraced claim: %r", sentence.strip())
             note = (
-                f"The {untraced[0]} tool returned no data for this in this session."
+                f"The {untraced[0]} tool returned no data for this in this turn."
                 if untraced
-                else "No tool returned data for this in this session."
+                else "No tool returned data for this in this turn."
             )
             lead = sentence[: len(sentence) - len(sentence.lstrip())]
             depth = max(
                 sum(sentence.count(c) for c in "{[") - sum(sentence.count(c) for c in "}]"), 0
             )
+            if not depth and sentence.rstrip().endswith((":", "=")):
+                depth = DUMP_PENDING
             sentence = lead + note + sentence[len(sentence.rstrip()) :]
         out.append(sentence)
     return "".join(out), depth
@@ -2040,8 +2111,9 @@ class _TurnState:
     # The last released sentence named a depositary term, so the next one is
     # read in depositary context (R15-AGENT-090, the split-sentence claim).
     ratio_context: bool = False
-    # The tools that returned an ok result this turn: a sentence citing any
-    # other tool's result is replaced (R15-LEAD-030).
+    # The tools that returned an ok result this turn, seeded with the run's
+    # cited_tools: a sentence citing any other tool's result is replaced
+    # (R15-LEAD-030).
     ok_tools: set[str] = field(default_factory=set)
 
 
@@ -2180,6 +2252,9 @@ def _prepare_run(
         if isinstance(effective_depth, str) and effective_depth.strip()
         else None,
     )
+    cited_tools = _history_tools(history, set(catalog.CAPABILITY_CATALOG) | set(tool_ids))
+    if opts.get("web_search"):
+        cited_tools.add("web_search")
     return _RunSetup(
         provider_id=provider_id,
         model=resolved_model,
@@ -2193,6 +2268,7 @@ def _prepare_run(
         # ``**opts`` into stream_chat (the one allowlist, R15-CODE-AGENT-005).
         opts=scrub_adapter_options(opts),
         notices=notices,
+        cited_tools=cited_tools,
     )
 
 
@@ -2236,7 +2312,7 @@ async def _consume_round(
     before any other event but a heartbeat, so the relay order is kept.
     """
     held: list[str] = []  # the provider's delta texts not yet released
-    dump_depth = 0  # brackets a replaced tool-result dump left open
+    dump_depth = 0  # brackets a replaced tool-result dump left open, or DUMP_PENDING
     tool_ids = set(catalog.CAPABILITY_CATALOG) | set(run.tool_ids)
 
     def _release(chunks: list[str]) -> list[LLMDeltaEvent]:
@@ -2637,7 +2713,7 @@ async def invoke_agent(
     if plan_event is not None:
         yield plan_event
 
-    turn = _TurnState()
+    turn = _TurnState(ok_tools=set(run.cited_tools))
     idle = LOCAL_IDLE_TIMEOUT_S if run.provider_id == "ollama" else IDLE_TIMEOUT_S
     while True:
         rnd = _open_round(run, turn)
