@@ -12,10 +12,12 @@ backtest digest).
 from __future__ import annotations
 
 import asyncio
+from typing import get_args
 
 from services import mcp_server
 from services.agent_tools.catalog import (
     CAPABILITY_CATALOG,
+    ToolKind,
     internal_tool_ids,
     mcp_capabilities,
     mcp_tool_ids,
@@ -169,3 +171,10 @@ _MCP_EXPOSED = {
 
 def test_mcp_projection_is_explicit_per_entry() -> None:
     assert set(mcp_tool_ids()) == _MCP_EXPOSED
+
+
+def test_toolkind_has_no_unprojected_mcp_endpoint() -> None:
+    """R15-CODE-AGENT-026: every ToolKind member is used by a catalog entry, so no
+    dead kind (the former mcp_endpoint, which the projection routed nowhere) waits
+    to swallow a future capability."""
+    assert set(get_args(ToolKind)) == {cap.kind for cap in CAPABILITY_CATALOG.values()}

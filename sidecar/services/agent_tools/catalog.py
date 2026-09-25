@@ -141,9 +141,9 @@ DOMAIN_CUES: dict[Domain, tuple[str, ...]] = {
 #   read_handler  — a handler registered in the agent_tools registry.
 #   per_invocation — resolved inside ``invoke_agent`` from request scope.
 #   host_action    — executed by the frontend (drives the cockpit).
-#   mcp_endpoint   — projected only to the external MCP surface (F5), bound to a
-#                    sidecar HTTP route or runtime call rather than a registry id.
-ToolKind = Literal["read_handler", "per_invocation", "host_action", "mcp_endpoint"]
+# The MCP-only runtime tools (agents, workspaces, workflows) are hand-written in
+# ``services.mcp_server``, not catalog entries (R15-CODE-AGENT-026).
+ToolKind = Literal["read_handler", "per_invocation", "host_action"]
 
 _TF_ENUM = ["1d", "1h", "1wk", "1mo"]
 _ASSET_ENUM = ["equity", "crypto"]
@@ -211,8 +211,8 @@ class Capability:
 
     @property
     def internal(self) -> bool:
-        """Projected to the internal copilot/persona adapters (every kind but ``mcp_endpoint``)."""
-        return self.kind != "mcp_endpoint"
+        """Projected to the internal copilot/persona adapters (every catalog kind is)."""
+        return True
 
     @property
     def mcp(self) -> bool:
