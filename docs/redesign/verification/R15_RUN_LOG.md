@@ -91,7 +91,15 @@ cross-checked against that run's `journal.jsonl` and against the matching
 | wf_152b123d-228 | Stage C batch-20 (LEAD-030 sixth attempt) | adjudicate, plan, W1 (fable) writer, integrate, review, verify | 25 Sep 20:17 | 109.2min | 6 | opus 4, sonnet 1, fable 1 | 897,548 | Merged `1abef99b`; LEAD-036 fixed, LEAD-030 NOT certified a 6th time — the new figure-grounding mechanism holds every pinned shape but `_NEGATIVE` still exempts error-acknowledging clauses before rule 1 runs (live SBIN.NS ₹742.35 fabrication vs app truth 983.0) and subject aliasing matches by ticker only, missing company-name mentions | run file + run-state ledger line 67 |
 | wf_3e8a9abe-7f7 | Stage C batch-21 (LEAD-030 seventh round + LEAD-035) | adjudicate, plan, W1 (opus) + W2 (sonnet) writers, integrate, review, verify | 25 Sep 22:12 | 74.2min | 7 | opus 5, sonnet 2 | 926,139 | Merged `86ae79c4`; LEAD-036 fixed, LEAD-030 NOT certified a 7th time (short-name aliases SBI/Airtel/L&T still unmatched; a REGRESSION — an unclosed trailing fence streams its figure), LEAD-035 first attempt fails (closed no-tool-cue list misses live phrasings, a write still dispatches) — STOP-RULE AMENDMENT: batch-22 runs, an 8th LEAD-030 or 3rd LEAD-035 failure is final | run file + run-state ledger line 69 |
 | wf_c1b4581a-8d6 | Stage C batch-22 (LEAD-030 eighth round + LEAD-035 second) | adjudicate, plan, W1 (opus) + W2 (sonnet) writers, integrate, review, verify | 25 Sep 23:29 | 80.9min | 7 | opus 5, sonnet 2 | 1,001,263 | Merged W1-only as `c155e5ad` (00:53 IST Sat 26 Sep); W2 excluded as a verified regression (six explicit data requests lose the tool surface); LEAD-030 NOT certified an 8th time — paragraph inheritance lets a fabricated figure for an unrecognised/never-called subject stream beside an ok subject — STOP RULE fired (final), DECISIONS 4.9 disposition (recommend blocked_tier4) pending a fresh verifier's concurrence in batch-23; LEAD-036 holds | run file + run-state ledger line 70 |
-| wf_727db864-af6 | Stage C batch-23 (LEAD-035 third/final round + LEAD-030 disposition concurrence) — **IN FLIGHT** | adjudicate, plan, W1 (opus) writer, integrate, review, verify | 26 Sep 01:03 | in flight (~3min elapsed at write, 01:06 IST Sat 26 Sep) | 6 (adjudicate running, none landed yet) | not recorded (in flight) | not recorded (in flight) | Adjudicate applies batch-22 VERDICTS (nothing certifies; LEAD-030 stays open under the stop rule); planner targets exactly one Opus writer W1 on planner.py's no-tool-cue matcher (LEAD-035 third/final round) while the fresh verifier separately rules CONCUR/REFUSE on the LEAD-030 `blocked_tier4` disposition | run file + run-state ledger line 71 |
+| wf_727db864-af6 | Stage C batch-23 (LEAD-035 third/final round + LEAD-030 disposition concurrence) | adjudicate, plan, W1 (opus) writer, integrate, review, verify | 26 Sep 01:03 | 86.4min | 6 | opus 5, sonnet 1 | 952k | int `worktree-agent-batch-23-int@9aa9fb6c` left UNMERGED: W1 `5a0f1ffe` (per-clause `_no_tool_cue`) NOT certified a THIRD time and a REGRESSION vs base — 7 fresh qualified-negation phrasings ('Never call the tools twice…', 'Don't call functions you don't need…') lose every tool and live llama fabricated prices 7/7; STOP RULE FIRED for LEAD-035 (final, no fourth round) — base (batch-21's closed cue list) ships as the fail-safe; LEAD-030 disposition CONCURRENCE = CONCUR on `blocked_tier4` with a corrected, broader wording (rule 2c only fires on an errored call, so a never-called subject's figure streams in all-ok/no-call turns too); two new mediums filed (LEAD-037 stale-bar grounding, LEAD-038 narrated false write); adjudicator's staged register edits swept into the lead's `014bb7f1` by the shared index (byte-verified, harmless) | run file + run-state ledger line 72; evidence `d38a090f` (batch-23 docs) + `75354204` (batch-22 docs, cited alongside) |
+| wf_78d193b7-ea8 | DISPOSITION DOCS | one Opus writer, effort high, docs + register only | 26 Sep 02:35 | 85.8min (pair; shares this run with the concurrence row below) | 1 | opus 1 | not split by agent (411k combined for the pair) | `535307c8`: DECISIONS 4.9 rewritten to the batch-23 verifier's concurred, broader wording + the ninth-fix spec; new 4.10 R15-LEAD-035, 4.11 R15-LEAD-037, 4.12 R15-LEAD-038 filed (Blocked/Why operator-attended/Recommendation/Risk/Status); register LEAD-030 → `blocked_tier4` with the concurrence note, 035/037/038 noted and left open; `FACTS.md` gains the 'Known limitations at rc1' block | run file + run-state ledger line 74 |
+| wf_78d193b7-ea8 | DISPOSITION CONCURRENCE | one FRESH Opus verifier, 141 live runs on its own source sidecar :52310 (llama3.1:8b) | 26 Sep 02:35 | 85.8min (pair; shares this run with the docs row above) | 1 | opus 1 | not split by agent (411k combined for the pair) | `4fd3cbfd`: R15-LEAD-038 CONCUR (calls=[] 21/21, nothing staged/written, but narration falsely claims a completed write 10/21); R15-LEAD-037 REFUSE on wording only (the corrected wording alone makes it a CONCUR — guard never checks an ok-subject figure; 2/18 stale-bar answers, 1/18 invented ₹20,820 off-payload); R15-LEAD-035 REFUSE on (a)(b)(c) — shipping list under-matches 17/67 phrasings (fail-safe) AND over-matches 7 explicit data requests (15/21 live runs invented a price as fetched); named narrowing-only fix recorded (not built), feeds batch-24 | run file + run-state ledger line 75 |
+| wf_e17e21c5-cb8 | Stage C batch-24 (LEAD-035 = the disposition verifier's named narrowing-only fix, nothing else) — **IN FLIGHT** | adjudicate, plan, W1 (sonnet) writer, integrate, review, verify | 26 Sep 04:04 | in flight (~20min elapsed at write, 04:24 IST Sat 26 Sep) | 6 (adjudicate + plan landed, W1 writer running, integrate/review/verify not yet started) | sonnet 1 (adjudicate), opus 1 (plan), sonnet 1 (W1, running) | not recorded (in flight) | Adjudicator (Sonnet) applied batch-23 VERDICTS + `DISPOSITION-CONCURRENCE.md` verbatim: LEAD-038 → `blocked_tier4`, LEAD-037 → `blocked_tier4` on the corrected wording, LEAD-035 stays open, LEAD-030 gets the struck-clause note; DECISIONS/FACTS updated; expected open c/h/m after this batch = exactly LEAD-035. Planner (Opus): one Sonnet writer W1 on `planner.py` adding the disposition verifier's closed-tail lookahead + reported-speech guard — a strict subset of the shipping `_NO_TOOL_CUE` regex (can only turn an over-strip into a keep), scoring 50/0/17 (correct/over-strip/miss) vs the shipping 43/7/17 on the 67-phrasing set | run file + run-state ledger line 76 |
+| a199fd740bcafc37d | RUN REPORT NARRATIVE PRE-REFRESH | one Sonnet/high agent (own-hands dispatch, not a Workflow run) | 26 Sep 04:05 | 11.6min | 1 | sonnet 1 | 239k | `b3b4034d`: `R15_RUN_REPORT.md` rewritten (Outcome so far, Stages incl. the batch table through row 24 + the LEAD-030/035/037/038 disposition paragraph, Register now, What is still ahead); counts from the register JSON's own `counts` (652 entries: fixed 391 / open 206 / needs_gui 11 / blocked_tier4 25 / removed_with_feature 14 / not_a_defect 5; open c/h/m = LEAD-035 only); disclosed caveat — `register.py status` recomputes from `r15/census/merge/` and lags the JSON (603 vs 652); the JSON is authoritative, the rc1 gate's register criterion must read it | task output (agent `a199fd740bcafc37d`) + run-state ledger line 77 |
+| wf_1d24a3f2-c0e | VERSION BRANCH | one Opus agent | 26 Sep 04:13 | 7.5min | 1 | opus 1 | 163k | `origin/worktree-agent-r15-version-0.9.0` pushed, exactly two commits, NOT merged (merge plan: right after the r15-rc1 tag, `git restore CLAUDE.md` first, then `merge --no-ff`): `517da226` bumps 0.9.0 across package.json, Cargo.toml + Cargo.lock, tauri.conf.json, sidecar `app.py`, `plugin-bootstrap.ts` HOST_VERSION, the marketplace test fixture, README status line; `c1e9164c` the single CLAUDE.md commit (dev-keystore rule replaces the stale keychain gotcha, §6.5 + plugin-companion text rewritten to the code, new local-lane known-limitation rule). Checks green: typecheck, lint, format:check, cargo fmt/clippy, ruff, 112/112 version-touching vitest, 76 version-touching pytest | run file + run-state ledger line 79 |
+| wf_acb50b5c-0d7 | STAGE D REFRESH — **IN FLIGHT** | facts + 5 drafts refresh, secrets/licence scans (off-machine, pacing change 4 item 1) | 26 Sep 04:19 | in flight (~5min elapsed at write, 04:24 IST Sat 26 Sep) | 1 (facts agent running, drafts not yet started) | sonnet 1 (running) | not recorded (in flight) | Refreshes all five drafts + regenerates `FACTS.md` at head `4d893147`, CARRYING the hand-added 'Known limitations at rc1' block; the sign-off wording (fail-safe described, shipping matcher named) goes verbatim into RELEASE_NOTES/OPERATOR_BRIEFING/CURRENT_STATE; done looks like: drafts + FACTS committed on 004, 0 case-insensitive hits of the redacted groundwork name | run file + run-state ledger line 78 |
+| — (watcher `bsfn184oo`) | BUNDLE REHEARSAL — QUEUED, not launched | production-bundle rehearsal from a clean profile, heavy lane once free | armed 04:13 | not launched | 0 (background watcher only) | — | 0 | Watcher fires one Opus agent the moment batch-24's integrate phase ends: `pnpm install --frozen-lockfile`, forced sidecar build, unsigned `tauri build`, sidecar smoke, then the built `.app` against a fresh app-data dir (Quartz capture); evidence will land at `r15/stage-d/bundle-rehearsal/REHEARSAL.md` | run-state ledger line 80 |
+| this run | RUN LOG BACKFILL #5 (handover refresh, second half) | one Sonnet/high agent, effort high, docs only, no machine lane | 26 Sep 04:20 | in flight (writing this row now) | 1 (running) | sonnet 1 | not recorded (in flight) | Adds every Waves row for a run finished or launched since backfill #4 (`34875d1a`), corrects the stale batch-23 IN FLIGHT row to its unmerged outcome, refreshes Strategy changes (pacing change 3, the compaction rule, pacing change 4 + the Tier-4 sign-off) and re-reads the spend ledger; commit sha stamped at push | this session's journal (`wf_6bab09f0-cfe`, task `wkxem9bzu`) + run-state ledger line 81 |
 
 ## Strategy changes
 
@@ -125,6 +133,34 @@ cross-checked against that run's `journal.jsonl` and against the matching
   worker prompt (`COMMON.md`) now forbids running a long command (`ci-local`, full pytest, sidecar
   boots, `sleep`-loops) inside a single tool call — detach and poll instead. Saved to project
   memory as `harness-stall-watchdog.md`.
+- **04:44 IST Fri 25 Sep — COMPACTION RULE (process note 2).** After every compaction, before any
+  other action, the lead re-reads the run-state header, the in-flight ledger and the Boundaries
+  section of `R15_BRIEF.md`; the compaction summary is a hint, the disk is the truth, and where
+  they disagree the ledger wins. Lead turns stay short — anything longer than a compact return
+  goes to a worker first. Mirrored in the lead's memory index so a fresh context window starts
+  here.
+- **17:15/17:23 IST Fri 25 Sep — PACING CHANGE 3.** The weekly pool resets Sat 15:30 IST and is
+  mostly unspent — the pool is not the constraint, this Mac is. Up to FOUR workflows in flight on
+  different lanes (the judge panel and docs lanes run off-machine and do not count), 18
+  test-running writers max on this Mac, single lanes stay single, waves run full-size; every lane
+  busy, every idle window filled with work that needs no machine whenever the machine is the
+  bottleneck. Applied: the Stage E judge panel launched off-machine; the three lows WRITE runs
+  launch beside batch-18 step 2's adjudication instead of waiting for the rc1 tag; gate round 2
+  waits until no writer is still running tests.
+- **04:12/04:15 IST Sat 26 Sep — PACING CHANGE 4 + TIER-4 SIGN-OFF.** DECISIONS 4.9–4.12 ACCEPTED:
+  LEAD-030/037/038 stay `blocked_tier4` as documented known limitations of the local-model lane;
+  LEAD-035's residual joins them on batch-24's verifier concurrence; NO further rounds on this
+  class this release (a fresh instance is filed against the limitation, not fixed); the wording
+  goes VERBATIM into the release notes, the operator briefing and CURRENT_STATE under the local
+  lane, with the fail-safe described and the shipping matcher named. The 15:30 IST reset is not a
+  deadline — plan around the tags. Up to FOUR workflows on different lanes, ≤18 test-running
+  writers, single lanes stay single. NEW RULE: any register entry that fails certification THREE
+  times in this run stops and goes to DECISIONS for the operator, whatever its severity. Order
+  after batch-24's merge: adjudicate → 0 open c/h/m → rc1 GATE ROUND 2 at once (skip_gui true,
+  max_fix_rounds 2) → tag `r15-rc1`, push, hygiene prune, merge the version branch, handover →
+  lows integrate P1/P2/P3 (fresh verifier each) ∥ the GUI round ∥ docs promoted ∥ one bundle
+  rehearsal on the heavy lane whenever idle → `r15-rc2` → the panel's top survivor if small →
+  `r15-rc3` → one final adversarial pass → `r15-launch`.
 
 ## Limit walls and failures
 
@@ -176,6 +212,13 @@ cross-checked against that run's `journal.jsonl` and against the matching
   and synthesis landed, so `PANEL.md`/`PANEL.json` carry one judge's scores for the whole backlog.
   Completion re-run separately as `wf_407df695-831` to add the missing judge B. (journal
   `wf_d855d73b-b6b`; run-state ledger line 53)
+- **26 Sep 02:33-04:04 IST, shared-index register-edit sweep (`014bb7f1`).** batch-23's Sonnet
+  adjudicator staged its register edits (`DISPOSITION-CONCURRENCE.md` verdicts applied to
+  `vysted-r15-register.json`/`.md`) directly against the shared worktree's git index; the lead's
+  own commit swept them into `014bb7f1` before they were reviewed as a separate change. Content
+  verified byte-for-byte against the adjudicator's intended edit, so nothing was lost — but the
+  lead now stages and commits every file by explicit path (`-- <path>`) rather than trusting the
+  shared index's staged state, per the multi-agent build discipline in `CLAUDE.md`.
 
 ## API spend
 
@@ -184,9 +227,12 @@ Caps: session 1 (D8, 19 Sep) set a $2.00 OpenAI-direct hard stop + the OpenRoute
 Superseded by the SCOPE CHANGE (03:46 IST 23 Sep): OpenAI-direct hard stop raised to **$8.00**
 (`vy.py` refuses at $7.50).
 
-**Refreshed** for this backfill: read at 01:07 IST 26 Sep from
-`docs/redesign/verification/r15/spend-ledger.jsonl` (393 lines, 19 Sep 14:58 → 25 Sep 20:10 IST;
-this file is dirty on purpose and stays uncommitted — read only, never git-added). By provider:
+**Re-read for backfill #5** at 04:22 IST Sat 26 Sep from
+`docs/redesign/verification/r15/spend-ledger.jsonl`: still **393 lines**, byte-identical in count
+to backfill #4's read (this file is dirty on purpose and stays uncommitted — read only, never
+git-added) — 0 new rows from the disposition docs/concurrence pair, batch-24's adjudicate/plan/W1
+so far, the version branch or the Stage D refresh (none of those agents call `scripts/r15/vy.py`'s
+metered lane). By provider:
 
 | Provider | Calls | Paid (est_usd) |
 |---|---|---|
@@ -198,10 +244,9 @@ this file is dirty on purpose and stays uncommitted — read only, never git-add
 | **Total** | **393** | **$0.201076** |
 
 30 rows are paid (all via `openai`); 362 are free (256 `ollama`, 104 `openrouter` free-tier, 2
-`deepseek`); 1 is a non-call bookkeeping note (the `budget-change` cap-raise entry). No new paid
-calls since the prior read (the +9 lines are all free `ollama`, from batch-19/20/21/22's verify
-live bars). Total
-spend $0.20 is well under both the original $2.00 cap and the raised $8.00 cap.
+`deepseek`); 1 is a non-call bookkeeping note (the `budget-change` cap-raise entry). Paid total
+unchanged at $0.201076 since backfill #4 — well under both the original $2.00 cap and the raised
+$8.00 cap.
 
 <details>
 <summary>Prior snapshot (23:31 IST 24 Sep, 173 rows, by lane)</summary>
