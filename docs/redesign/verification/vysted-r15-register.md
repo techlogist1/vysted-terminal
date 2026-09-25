@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 650 entries + 76 rejections. critical: 16 . high: 116 . medium: 291 . low: 227
+887 raw findings -> 652 entries + 76 rejections. critical: 16 . high: 116 . medium: 293 . low: 227
 
-Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open: 207 . removed_with_feature: 14
+Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open: 209 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -123,7 +123,7 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _open_
 - **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _open_
 
-### Agent / chat (99)
+### Agent / chat (101)
 
 - **R15-AGENT-002** [high] Stop does not stop: aborting the chat stream leaves the in-flight tool task (research, LLM and web calls) running for minutes, spending the BYOK key and holding the single Ollama slot — _fixed_
 - **R15-AGENT-003** [high] At the 6-round tool cap the capped round's tool calls are streamed to the UI (and may be auto-applied as host actions) but never dispatched, and the turn ends with no answer text — _fixed_
@@ -148,6 +148,9 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-AGENT-023** [high] Nothing runs unattended and nothing can reach the user out of the app: no alerts, schedules or triggers, and workflows can only end in a log line or a desktop notification — _fixed_
 - **R15-AGENT-024** [high] Agent screen authoring fails on the default local lane: write_screener_filters criteria arrive as a JSON string, the host action applies nothing, and the model says the filters were staged — _fixed_
 - **R15-AGENT-080** [high] AUTO autonomy silently auto-applies portfolio cost-basis edits/deletes, note writes, saved layouts/screens and region settings, not only the UI/layout/chart/watchlist changes AUTO is documented and specified to cover — _fixed_
+- **R15-AGENT-090** [high] Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure — _fixed_
+- **R15-AGENT-092** [high] A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes — _fixed_
+- **R15-AGENT-093** [high] The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures — _fixed_
 - **R15-DATA-028** [high] The agent's earnings calendar defaults to ten US mega-caps and the India results calendar is unreachable from the tool loop, so 'which Indian companies report this week' returns AAPL..WMT — _fixed_
 - **R15-DATA-041** [high] compare_symbols ranks best/worst across return windows of different lengths (a 2-bar new listing vs a 6-month series) and the payload carries no window metadata — _fixed_
 - **R15-LEAD-007** [high] Every Gemini agent turn fails client-side before the API call with 8 validation errors for GenerateContentConfig (non-string enum values in coupons_per_year, and panels.items.type ['string','object']) — _fixed_
@@ -212,18 +215,17 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-AGENT-085** [low] Plain chat answers carry no citation object and no unverified-claim check: the citation and [unverified] machinery exists only on research briefs and the Equity Overview narrative — _open_
 - **R15-AGENT-086** [low] A Delegate run can never be paused for a question: pause_run has no caller (no ask_user tool, no pause route), so the answer route serves a state no run can reach — _open_
 - **R15-AGENT-089** [low] close_panel/focus_panel steps can never appear in the planner's plan: planner._coerce_steps drops them (absent from PLAN_ACTIONS) and the runtime's stageable set omits them, so R4 register S-17's fix is half-done — _open_
+- **R15-AGENT-091** [low] get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) — _open_
 - **R15-CODE-PLATFORM-076** [low] copilot.json's system prompt is 8751 bytes (2-3x every other agent) while running on the small local default qwen2.5:7b, inflating per-call token and latency cost — _open_
 - **R15-DATA-101** [low] market_overview returns region 'GLOBAL' with the US index set and no note in the payload — _open_
-- **R15-AGENT-090** [high] Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure — _fixed_
-- **R15-AGENT-091** [low] get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) — _open_
-- **R15-AGENT-092** [high] A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes — _fixed_
-- **R15-AGENT-093** [high] The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures — _fixed_
 - **R15-LEAD-030** [high] After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries — _open_
-- **R15-LEAD-032** [medium] adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol — _fixed_
 - **R15-LEAD-031** [low] The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator — _fixed_
+- **R15-LEAD-032** [medium] adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol — _fixed_
 - **R15-LEAD-033** [medium] The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose — _fixed_
 - **R15-LEAD-035** [medium] Told explicitly 'without calling any tool', llama3.1:8b stages a portfolio_update_position write anyway — _open_
 - **R15-LEAD-036** [low] The all-errored fabrication guard's replacement prose renders inside the original code fence, leaving a ```json block that contains a sentence instead of JSON — _open_
+- **R15-LEAD-037** [medium] The fabrication guard grounds a stated figure by VALUE only, so an older bar buried in the same price_data payload counts as grounded for the current-price sentence — _open_
+- **R15-LEAD-038** [medium] When an explicit no-tool instruction correctly empties the tool surface, llama3.1:8b still narrates a false completed portfolio write with no tool call behind it — _open_
 
 ### Research / web search (53)
 
@@ -380,6 +382,10 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-DATA-094** [medium] Marketplace saves any NewsAPI key as 'configured' without a probe, and a rejected key is swallowed server-side, so the feed silently stays RSS-only (and slower) while the user believes NewsAPI is on — _fixed_
 - **R15-DATA-096** [medium] The four throttle-prone fundamentals routes (income/balance/cashflow/ratings) are uncached while their three siblings cache into data_cache, which never evicts and runs SQLite on the event loop (already 2,753 rows / 5.7 MB) — _fixed_
 - **R15-DATA-097** [medium] The live-lookup LRU caches a successful empty search forever, so a stock listed after the first miss stays unresolvable for that query until the app restarts — _fixed_
+- **R15-DATA-112** [medium] A row with no fundamentals currency (and a null market_cap) ranks FIRST in a market_cap-desc screen, breaking R15-UI-006's missing-values-last rule — _fixed_
+- **R15-DATA-113** [medium] Earnings-estimate revenue for a foreign reporter is labelled in the trading currency: WIT's revenue_estimate_mean (INR-sized) is served as currency USD — _fixed_
+- **R15-DATA-114** [medium] The options-chain provider re-probes today's F&O file on every request because a negative probe (404/transport error) is never cached, so a transient error can 502 a request while a good cached day sits in cache — _fixed_
+- **R15-DATA-115** [medium] A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history — _fixed_
 - **R15-LEAD-003** [medium] Rows cached before a correctness fix keep being served for up to 24 h after the fix (fabricated SEC 10-K rows, the FOCUS merged split) — _fixed_
 - **R15-LEAD-004** [medium] The 'half-yearly filer' TTM label also fires on quarterly filers — _fixed_
 - **R15-LEAD-005** [medium] yfinance get_quote still stamps as_of with now() instead of the provider's quote time — _fixed_
@@ -406,10 +412,6 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-LEAD-017** [low] CSL's shareholding-pattern (SHP) history carries a duplicate quarter row (2026-08-20) — _open_
 - **R15-LEAD-020** [low] exchange_financials.get_filed_periods caches only successful lookups, so a transient NSE miss falls back to Yahoo (flagged) and the very next call for the same symbol can serve NSE instead, showing a different provider on consecutive loads — _open_
 - **R15-LEAD-025** [low] The fundamentals warmer hits openbb-mcp hard at boot with no observed throttling on the default (non-IN) universe warm path — _open_
-- **R15-DATA-112** [medium] A row with no fundamentals currency (and a null market_cap) ranks FIRST in a market_cap-desc screen, breaking R15-UI-006's missing-values-last rule — _fixed_
-- **R15-DATA-113** [medium] Earnings-estimate revenue for a foreign reporter is labelled in the trading currency: WIT's revenue_estimate_mean (INR-sized) is served as currency USD — _fixed_
-- **R15-DATA-114** [medium] The options-chain provider re-probes today's F&O file on every request because a negative probe is never cached, so a transient error can 502 a request while a good cached day sits in cache — _fixed_
-- **R15-DATA-115** [medium] A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history — _fixed_
 - **R15-LEAD-034** [medium] Background India fundamentals warming passes bare screener-universe symbols to the correctness gate, which never strips yfinance's Emerge (SME) '-SM' infix, so every NSE Emerge symbol fails as a symbol mismatch — _fixed_
 
 ## All entries by severity
@@ -456,6 +458,9 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-AGENT-023 | high | agent | workflow-engine | Nothing runs unattended and nothing can reach the user out of the app: no alerts, schedules or triggers, and workflows can only end in a log line or a desktop notification | fixed | WLD-T-1, INT-blueprint-48-6, INT-blueprint-288-1 |
 | R15-AGENT-024 | high | agent | host-actions-proposed-changes | Agent screen authoring fails on the default local lane: write_screener_filters criteria arrive as a JSON string, the host action applies nothing, and the model says the filters were staged | fixed | SURF-SCREENER-5 |
 | R15-AGENT-080 | high | agent | host-actions-proposed-changes | AUTO autonomy silently auto-applies portfolio cost-basis edits/deletes, note writes, saved layouts/screens and region settings, not only the UI/layout/chart/watchlist changes AUTO is documented and specified to cover | fixed | INT-spec-180-205, INT-spec-135-156 |
+| R15-AGENT-090 | high | agent | agent-tools | Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure | fixed | rc1-scenarios:5, rc1-verifier:16 |
+| R15-AGENT-092 | high | agent | agent-runtime | A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes | fixed | rc1-verifier:4-adjacent |
+| R15-AGENT-093 | high | agent | agent-runtime | The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures | fixed | batch-11-backlog-2 |
 | R15-CODE-AGENT-001 | high | code | mcp-servers | The whole sidecar (including the unauthenticated /mcp surface with 36 tools, invoke_agent among them) answers any browser Origin with access-control-allow-origin: * and performs no Origin validation | needs_gui | COD-mcp-servers-1 |
 | R15-CODE-DATA-001 | high | data | resolver | A bare-ticker NSE/BSE join stamps one company's ISIN, BSE code and BSE shareholding split onto a different company (live: NSE FOCUS = Focus Lighting carries Focus Business Solution's INE0DXR01010 / 543312) | fixed | COD-resolver-8 |
 | R15-CODE-FRONTEND-002 | high | code | frontend-stores | Switching a chat tab mid-stream drops the reply, archives a forever-pending partial and unlocks a concurrent second run; entering a research space discards the active chat tab's transcript | fixed | COD-frontend-stores-1 |
@@ -601,6 +606,7 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-CODE-AGENT-011 | medium | code | runs-durable-delegate | The FR-028 pause/answer control plane can never fire in production: pause_run has no caller or route, so status 'paused', the question column, POST /runs/{id}/answer and the AgentsRail answer form are dead (plus resumeDelegateRun, clearFinished, active_run_ids, RunLaunchResponse) | fixed | COD-runs-durable-delegate-10 |
 | R15-CODE-AGENT-012 | medium | code | mcp-servers | The invoke_agent MCP tool publishes api_key as a tool argument, so any external MCP client must route a BYOK secret through a third-party model's context and transcript | fixed | COD-mcp-servers-11 |
 | R15-CODE-AGENT-013 | medium | code | agent-tools-catalog-ledger | Five Capability knobs are dead (internal/default_grant never False, aliases unread, mcp overwritten, _cap re-declares every default), so agent_selectable_tool_ids() documented as the Custom Agent Builder allow-list is the identity function | fixed | COD-agent-tools-catalog-ledger-4 |
+| R15-CODE-AGENT-033 | medium | code | agent-eval | The agent-eval grader passes a trial whose tool call returned an error, because the tool's ok/error result is not carried in the vy eval stream | fixed | batch-11-backlog-3 |
 | R15-CODE-DATA-002 | medium | agent | resolver | resolve() re-runs a 300-900 ms SequenceMatcher scan over ~17.9k master names on every call with no result memo | fixed | COD-resolver-4 |
 | R15-CODE-DATA-003 | medium | agent | resolver | The agent's resolve_symbol tool gets a drifted copy of the Instrument wire shape: no rename provenance (effective date / note), confidence rounded differently | fixed | COD-resolver-6 |
 | R15-CODE-DATA-004 | medium | ui | screener | An India-region user's screener opens on the S&P 500: the FR-060 region-aware default (default_universe_for_region) has no caller, while the router docstring claims it is shipped | fixed | COD-screener-4 |
@@ -706,6 +712,10 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-DATA-095 | medium | code | fundamentals-profile | The fundamentals store's column vocabulary is declared by hand in four places and _migrate adds only three hard-coded columns, so the next numeric field crashes every existing install mid-screen (CI passes on fresh DBs) | fixed | COD-fundamentals-profile-2, COD-fundamentals-profile-5 |
 | R15-DATA-096 | medium | data | fundamentals-profile | The four throttle-prone fundamentals routes (income/balance/cashflow/ratings) are uncached while their three siblings cache into data_cache, which never evicts and runs SQLite on the event loop (already 2,753 rows / 5.7 MB) | fixed | COD-fundamentals-profile-14 |
 | R15-DATA-097 | medium | data | resolver | The live-lookup LRU caches a successful empty search forever, so a stock listed after the first miss stays unresolvable for that query until the app restarts | fixed | COD-resolver-10 |
+| R15-DATA-112 | medium | data | screener | A row with no fundamentals currency (and a null market_cap) ranks FIRST in a market_cap-desc screen, breaking R15-UI-006's missing-values-last rule | fixed | rc1-verifier:15 |
+| R15-DATA-113 | medium | data | earnings | Earnings-estimate revenue for a foreign reporter is labelled in the trading currency: WIT's revenue_estimate_mean (INR-sized) is served as currency USD | fixed | rc1-fix-r2-triage:1, rc1-verifier:17 |
+| R15-DATA-114 | medium | data | option-chain | The options-chain provider re-probes today's F&O file on every request because a negative probe (404/transport error) is never cached, so a transient error can 502 a request while a good cached day sits in cache | fixed | batch-11-backlog-1 |
+| R15-DATA-115 | medium | data | market-data-providers | A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history | fixed | batch-11-backlog-5 |
 | R15-DOCS-001 | medium | docs | safety-audit | Safety contract comments and SAFETY_ARCHITECTURE.md state behaviour the code does not have: 'Halt All Trading' claimed to cancel open orders (it only blocks new ones), wrong trigger exception type, wrong file pointers, a removed toolbar fallback | removed_with_feature | COD-safety-audit-13 |
 | R15-DOCS-002 | medium | docs | scripts-build | COMMERCIAL_LICENSE.md and LICENSING.md give commercial@vysted.com as the only commercial contact, but vysted.com has no MX or A record, so a would-be licensee under PolyForm Strict has no working way to buy a license | blocked_tier4 | INT-blueprint-144-9 |
 | R15-DOCS-003 | medium | docs | frontend-panels-shell-chrome | BLUEPRINT §2 Locked Decisions and CLAUDE.md (project DNA) name Next.js 16 App Router static export as the frontend stack; the repo has no Next.js and ships Vite 8 + React 19 (D6) | blocked_tier4 | INT-blueprint-0-3, INT-blueprint-192-6, INT-pdd-readme-90-1, INT-spec-45-1, INT-pdd-readme-225-1 |
@@ -845,6 +855,7 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-AGENT-086 | low | agent | runs-durable-delegate | A Delegate run can never be paused for a question: pause_run has no caller (no ask_user tool, no pause route), so the answer route serves a state no run can reach | open | INT-spec-90-7 |
 | R15-AGENT-087 | low | docs | frontend-stores | Spec FR-003/SC-029 and the agent-mode store docblock still describe four hotkeyed modes (Ask/Edit/Build/Delegate, alt+1-4) while the app ships two (Agent/Delegate) plus a layered intent gate and a separate autonomy axis | open | INT-spec-90-6, INT-spec-180-209 |
 | R15-AGENT-089 | low | agent | agent-runtime | close_panel/focus_panel steps can never appear in the planner's plan: planner._coerce_steps drops them (absent from PLAN_ACTIONS) and the runtime's stageable set omits them, so R4 register S-17's fix is half-done | open | INT-spec-135-164 |
+| R15-AGENT-091 | low | agent | agent-tools | get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) | open | rc1-gate8:2 |
 | R15-CODE-AGENT-014 | low | code | agent-tools-catalog-ledger | Tool-call failures come back as a hand-copied {ok:false,error} envelope in ~11 handler files while invoke_tool is a bare await, with an outlier 'news fetch failed:' prefix | open | COD-agent-tools-catalog-ledger-7 |
 | R15-CODE-AGENT-015 | low | code | agent-tools-catalog-ledger | sec_filings_list and sec_insider_transactions pass an unclamped model-supplied limit (100000, -1) upstream while every sibling tool clamps | open | COD-agent-tools-catalog-ledger-8 |
 | R15-CODE-AGENT-016 | low | code | agent-runtime | An agent JSON declaring defaultProvider 'openrouter' fails the stale _schema.json enum and silently vanishes from the roster with only a warning log | fixed | COD-agent-runtime-10 |
@@ -941,6 +952,7 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-CODE-PLATFORM-074 | low | code | rust-core | mcp-endpoint.json is never removed, so after every normal quit or failed relaunch it still advertises the previous sidecar port, contradicting MCP_INTEGRATION.md's 'a stale file never points at a dead port' | open | INT-pdd-readme-315-3 |
 | R15-CODE-PLATFORM-075 | low | code | workflow-engine | WorkflowRunRequest's mode='resume-from' / resumeFrom are dead fields: the router never reads them, so a resume request silently re-runs the whole graph | open | INT-deferred-42-5 |
 | R15-CODE-PLATFORM-076 | low | agent | agent-runtime | copilot.json's system prompt is 8751 bytes (2-3x every other agent) while running on the small local default qwen2.5:7b, inflating per-call token and latency cost | open | INT-pdd-readme-270-6 |
+| R15-CODE-PLATFORM-077 | low | code | lifecycle-upgrade | Data-dir upgrade backups (backups/<old-build>/) are never pruned; each build change adds a full data-dir copy | open | batch-11-backlog-4 |
 | R15-CODE-RESEARCH-005 | low | code | research-depth-iter-deep | iter.py and verify.py import 14 underscore-private names from deep.py, so deep.py's private surface is a de-facto public API | open | COD-research-depth-iter-deep-8 |
 | R15-CODE-RESEARCH-006 | low | code | research-depth-iter-deep | depth.py claims 'no second copy of these numbers exists' but _MIN_HEAVY_ANGLES duplicates iter._MIN_ANGLES under a lockstep comment | open | COD-research-depth-iter-deep-9 |
 | R15-CODE-RESEARCH-007 | low | code | research-extraction-synthesis | types/brief.ts BriefDerivedMetrics omits four metrics the sidecar emits (dividend_per_share_ttm, dividend_declared, promoter_percent_exchange, institutions_percent_exchange) | open | COD-research-extraction-synthesis-6 |
@@ -991,7 +1003,6 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-LEAD-021 | low | code | error-layer | The sidecar status chip never renders the termination/error reason: a terminated engine reads bare 'Sidecar error' in the chip and its tooltip, though panels show the reason | open |  |
 | R15-LEAD-025 | low | data | fundamentals-profile | The fundamentals warmer hits openbb-mcp hard at boot with no observed throttling on the default (non-IN) universe warm path | open |  |
 | R15-LEAD-027 | low | ui | frontend-panels-shell-chrome | The command palette's empty-query starter row 'Open Chart' duplicates the chart.open command row and shows no keyboard chord, unlike every other row | open |  |
-| R15-LEAD-029 | low | code | screener | screener_universe_india.py's _nse_lookup docstring still hardcodes a stale india-all count ('~5,156') distinct from the counts R15-CODE-DATA-023 fixed elsewhere in the same file | open |  |
 | R15-LIFECYCLE-027 | low | lifecycle | error-layer | No timeout or AbortSignal anywhere in the shared sidecar client: one hung /health probe holds the shared readyPromise past its 120 s budget, a hung route is an eternal spinner, and the boot-time plugin path fetches every plugin's config twice, serially, with no ceiling | open | COD-error-layer-12, COD-plugins-11 |
 | R15-LIFECYCLE-028 | low | ui | frontend-panels-shell-chrome | The debounced layout autosave has no flush on close, so a rearrange followed by quit within 1.5 s is lost | open | COD-frontend-panels-shell-chrome-10 |
 | R15-LIFECYCLE-029 | low | ui | frontend-panels-shell-chrome | PanelHost restores the saved layout as soon as first-party modules register, before plugin modules exist, so any plugin panel in the saved layout deterministically trips the restore-failure path (latent: no bundled plugin contributes panels yet) | open | COD-frontend-panels-shell-chrome-11 |
@@ -1049,20 +1060,13 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-UI-089 | low | ui | plugins | Plugin data credentials (the optional NewsAPI key) are saved from a separate Marketplace form with no validation, unlike LLM keys, which are live-probed before save | open | INT-spec-90-8 |
 | R15-UI-093 | low | ui | frontend-panels-agent-shell | The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change | open | INT-spec-135-158 |
 | R15-UI-094 | low | ui | fundamentals-profile | The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) | open | INT-spec-135-174 |
-| R15-AGENT-090 | high | agent | agent-tools | Agent fabricates SIFY's ADR ratio with a fake 'fundamentals data' citation (true ratio is 1 ADS = 6 ordinary shares; the model states 1:1, later 1:2), on top of the currency-mislabeled TTM revenue figure | fixed | rc1-scenarios:5, rc1-verifier:16 |
-| R15-DATA-112 | medium | data | screener | A row with no fundamentals currency (and a null market_cap) ranks FIRST in a market_cap-desc screen, breaking R15-UI-006's missing-values-last rule | fixed | rc1-verifier:15 |
-| R15-DATA-113 | medium | data | earnings | Earnings-estimate revenue for a foreign reporter is labelled in the trading currency: WIT's revenue_estimate_mean (INR-sized) is served as currency USD | fixed | rc1-fix-r2-triage:1, rc1-verifier:17 |
-| R15-AGENT-091 | low | agent | agent-tools | get_portfolio holdings carry no currency field, so the agent guesses one per holding (llama3.1:8b gave a USD AAPL cost basis as ₹190) | open | rc1-gate8:2 |
-| R15-AGENT-092 | high | agent | agent-runtime | A Delegate run halted by a budget ceiling still persists the halted round's undispatched host_actions, and delegate-runs.ts enqueues them as proposed changes | fixed | rc1-verifier:4-adjacent |
-| R15-DATA-114 | medium | data | option-chain | The options-chain provider re-probes today's F&O file on every request because a negative probe is never cached, so a transient error can 502 a request while a good cached day sits in cache | fixed | batch-11-backlog-1 |
-| R15-AGENT-093 | high | agent | agent-runtime | The tool-argument schema gate rejects a numeric parameter sent as a JSON string instead of coercing it, which is llama3.1:8b's consistent calling style and drives most of its eval failures | fixed | batch-11-backlog-2 |
-| R15-CODE-AGENT-033 | medium | code | agent-eval | The agent-eval grader passes a trial whose tool call returned an error, because the tool's ok/error result is not carried in the vy eval stream | fixed | batch-11-backlog-3 |
-| R15-CODE-PLATFORM-077 | low | code | lifecycle-upgrade | Data-dir upgrade backups (backups/<old-build>/) are never pruned; each build change adds a full data-dir copy | open | batch-11-backlog-4 |
-| R15-DATA-115 | medium | data | market-data-providers | A .BO request for a dual-listed name is still served by nse_direct instead of the BSE provider, when the instrument's NSE listing is shorter than its BSE history | fixed | batch-11-backlog-5 |
+| R15-LEAD-029 | low | code | screener | screener_universe_india.py's _nse_lookup docstring still hardcodes a stale india-all count ('~5,156') distinct from the counts R15-CODE-DATA-023 fixed elsewhere in the same file | open |  |
 | R15-LEAD-030 | high | agent | agent-tools | After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries | open |  |
-| R15-LEAD-032 | medium | agent | agent-tools | adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol | fixed |  |
 | R15-LEAD-031 | low | agent | agent-tools | The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator | fixed |  |
+| R15-LEAD-032 | medium | agent | agent-tools | adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol | fixed |  |
 | R15-LEAD-033 | medium | agent | frontend-stores | The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose | fixed |  |
 | R15-LEAD-034 | medium | data | fundamentals-profile | Background India fundamentals warming passes bare screener-universe symbols to the correctness gate, which never strips yfinance's Emerge (SME) '-SM' infix, so every NSE Emerge symbol fails as a symbol mismatch | fixed |  |
 | R15-LEAD-035 | medium | agent | agent-tools | Told explicitly 'without calling any tool', llama3.1:8b stages a portfolio_update_position write anyway | open |  |
 | R15-LEAD-036 | low | agent | agent-tools | The all-errored fabrication guard's replacement prose renders inside the original code fence, leaving a ```json block that contains a sentence instead of JSON | open |  |
+| R15-LEAD-037 | medium | agent | agent-tools | The fabrication guard grounds a stated figure by VALUE only, so an older bar buried in the same price_data payload counts as grounded for the current-price sentence | open |  |
+| R15-LEAD-038 | medium | agent | agent-tools | When an explicit no-tool instruction correctly empties the tool surface, llama3.1:8b still narrates a false completed portfolio write with no tool call behind it | open |  |
