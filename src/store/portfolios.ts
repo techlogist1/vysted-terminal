@@ -65,26 +65,83 @@ function makeEmptyPortfolio(name: string = DEFAULT_PORTFOLIO_NAME, id?: string):
   return { id: id ?? genId("pf"), name: name.trim() || DEFAULT_PORTFOLIO_NAME, holdings: [] };
 }
 
+/** The largest quantity a hand-entered holding can hold — big enough for any
+ *  real lot, small enough to catch a fat-fingered extra zero (e.g. 1e20). */
+export const MAX_HOLDING_QUANTITY = 1e12;
+
+export interface HoldingValidation {
+  valid: boolean;
+  /** Which field to blame, for a field-specific form/agent message. */
+  field?: "symbol" | "quantity" | "costBasis";
+  message?: string;
+}
+
+/**
+ * The one rule set every writer shares (the panel form, the agent path via
+ * addHolding/updateHolding, and blob restore via normalizeHolding): a
+ * non-empty symbol, a finite quantity in (0, {@link MAX_HOLDING_QUANTITY}],
+ * and a finite, non-negative cost basis. Takes raw (possibly string, possibly
+ * blank/missing) values so a blank cost is rejected as blank, never coerced
+ * to 0 by `Number("")`. Each failure names its field.
+ */
+export function validateHolding(raw: {
+  symbol?: unknown;
+  quantity?: unknown;
+  costBasis?: unknown;
+}): HoldingValidation {
+  const symbol = typeof raw.symbol === "string" ? raw.symbol.trim() : "";
+  if (symbol === "") {
+    return { valid: false, field: "symbol", message: "Symbol is required" };
+  }
+  if (raw.quantity === "" || raw.quantity === null || raw.quantity === undefined) {
+    return { valid: false, field: "quantity", message: "Quantity is required" };
+  }
+  const quantity = Number(raw.quantity);
+  if (!Number.isFinite(quantity)) {
+    return {
+      valid: false,
+      field: "quantity",
+      message: `Quantity must be a plain number (got "${String(raw.quantity)}")`,
+    };
+  }
+  if (quantity <= 0) {
+    return { valid: false, field: "quantity", message: "Quantity must be greater than 0" };
+  }
+  if (quantity > MAX_HOLDING_QUANTITY) {
+    return { valid: false, field: "quantity", message: "Quantity is too large" };
+  }
+  if (raw.costBasis === "" || raw.costBasis === null || raw.costBasis === undefined) {
+    return { valid: false, field: "costBasis", message: "Avg cost per share is required" };
+  }
+  const costBasis = Number(raw.costBasis);
+  if (!Number.isFinite(costBasis)) {
+    return {
+      valid: false,
+      field: "costBasis",
+      message: `Avg cost must be a plain number (got "${String(raw.costBasis)}")`,
+    };
+  }
+  if (costBasis < 0) {
+    return { valid: false, field: "costBasis", message: "Avg cost cannot be negative" };
+  }
+  return { valid: true };
+}
+
 /** Coerce an arbitrary (possibly corrupt-blob) holding to a valid one, or drop
- *  it. The same rules as the panel form hold for every caller (restore, the
- *  agent, the form): a positive finite quantity and a non-negative finite cost
- *  basis — garbage is dropped, never coerced to a plausible 0. */
+ *  it — via {@link validateHolding}, the same rules as the panel form, for
+ *  every caller (restore, the agent, the form). Garbage is dropped, never
+ *  coerced to a plausible 0. */
 function normalizeHolding(raw: unknown): Holding | null {
   if (!raw || typeof raw !== "object") {
     return null;
   }
   const h = raw as Record<string, unknown>;
-  const symbol = typeof h.symbol === "string" ? h.symbol.trim().toUpperCase() : "";
-  if (symbol === "") {
+  if (!validateHolding(h).valid) {
     return null;
   }
+  const symbol = (h.symbol as string).trim().toUpperCase();
   const quantity = Number(h.quantity);
   const costBasis = Number(h.costBasis);
-  if (
-    !(Number.isFinite(quantity) && quantity > 0 && Number.isFinite(costBasis) && costBasis >= 0)
-  ) {
-    return null;
-  }
   const note = typeof h.note === "string" && h.note.trim() !== "" ? h.note.trim() : undefined;
   return {
     id: typeof h.id === "string" && h.id !== "" ? h.id : genId("h"),

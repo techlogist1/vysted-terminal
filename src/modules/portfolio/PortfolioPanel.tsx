@@ -28,6 +28,7 @@ import {
   type Holding,
   type HoldingInput,
   usePortfoliosStore,
+  validateHolding,
 } from "@/store/portfolios";
 import type { Quote } from "../../../types/data";
 import { benchmarkSymbolForCurrency, fetchDailyCloses, fetchPositionQuotes } from "./api";
@@ -474,24 +475,21 @@ export function PortfolioPanel() {
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    const quantity = Number(form.quantity);
-    const costBasis = Number(form.costBasis);
-    if (form.symbol.trim() === "" || !Number.isFinite(quantity) || !Number.isFinite(costBasis)) {
-      setError("Symbol, quantity, and avg cost per share are required");
-      return;
-    }
-    if (quantity <= 0) {
-      setError("Quantity must be greater than 0");
-      return;
-    }
-    if (costBasis < 0) {
-      setError("Avg cost cannot be negative");
+    // Raw (still-string) form values — validateHolding tells a blank cost
+    // (Number("") === 0) apart from an actually-entered 0.
+    const result = validateHolding({
+      symbol: form.symbol,
+      quantity: form.quantity,
+      costBasis: form.costBasis,
+    });
+    if (!result.valid) {
+      setError(result.message ?? "Invalid holding");
       return;
     }
     const input: HoldingInput = {
       symbol: form.symbol.trim().toUpperCase(),
-      quantity,
-      costBasis,
+      quantity: Number(form.quantity),
+      costBasis: Number(form.costBasis),
       assetClass: form.assetClass,
       note: form.note.trim() === "" ? undefined : form.note.trim(),
     };

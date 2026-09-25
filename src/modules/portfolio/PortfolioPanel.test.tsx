@@ -423,7 +423,7 @@ describe("PortfolioPanel", () => {
       fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
     });
     expect(screen.getByRole("button", { name: /Add/ })).toBeInTheDocument();
-    expect(screen.getByText(/are required/)).toBeInTheDocument();
+    expect(screen.getByText("Symbol is required")).toBeInTheDocument();
     expect(usePortfoliosStore.getState().portfolios).toEqual(before);
   });
 
@@ -494,9 +494,28 @@ describe("PortfolioPanel", () => {
     await act(async () => {
       fireEvent.submit(screen.getByLabelText("Symbol").closest("form")!);
     });
-    expect(
-      screen.getByText("Symbol, quantity, and avg cost per share are required"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Symbol is required")).toBeInTheDocument();
+    expect(activeHoldings()).toHaveLength(0);
+  });
+
+  it("R15-UI-078: a blank cost basis is refused, not saved as 0", async () => {
+    render(<PortfolioPanel />);
+    await addHolding("nvda", "5", "");
+    expect(screen.getByText("Avg cost per share is required")).toBeInTheDocument();
+    expect(activeHoldings()).toHaveLength(0);
+  });
+
+  it("R15-UI-078: a comma-formatted quantity like '1,000' names the field, not a generic message", async () => {
+    render(<PortfolioPanel />);
+    await addHolding("nvda", "1,000", "150");
+    expect(screen.getByText(/^Quantity must be a plain number/)).toBeInTheDocument();
+    expect(activeHoldings()).toHaveLength(0);
+  });
+
+  it("R15-UI-078: an absurd quantity (1e20) is refused, not saved unbounded", async () => {
+    render(<PortfolioPanel />);
+    await addHolding("nvda", "1e20", "150");
+    expect(screen.getByText("Quantity is too large")).toBeInTheDocument();
     expect(activeHoldings()).toHaveLength(0);
   });
 
