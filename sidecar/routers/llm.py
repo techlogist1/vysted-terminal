@@ -58,9 +58,11 @@ async def get_models(
 ) -> LLMModelCatalog:
     """Return a provider's LIVE model catalog, with a registry fallback.
 
-    The BYOK key rides the ``X-LLM-Key`` header (read-only-plugin pattern: secret
-    in a header, never the body/query/log) so the OpenRouter path can narrow to
-    the caller's account-routable models. When the live fetch fails or returns
+    This route alone carries the key in the ``X-LLM-Key`` header — a GET can't
+    carry a body — so the OpenRouter path can narrow to the caller's
+    account-routable models; ``POST /llm/chat`` and ``POST /llm/keys/validate``
+    below carry it as an ``api_key`` JSON body field instead (never the query
+    string or a log, on any of the three). When the live fetch fails or returns
     nothing, the registry ``known_models`` are served with ``source="fallback"``
     so the picker is never empty. GET-only, never echoes the key.
     """
