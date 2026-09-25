@@ -88,7 +88,7 @@ ROLE: PREFLIGHT (Sonnet, mechanical; label rc1-preflight). You alone may build i
 (3) Seed ${SEED} from ${ISO}/data: sqlite3 '.backup' per .db, the non-sqlite files ISO_STACK.md copies, a fresh keyless dev-keystore.json reading exactly {"secrets": {}, "migrated": true} (chmod 600; ISOLATION_MAP.md §2.4), no audit_log.db.
 (4) Shared stack: kill only the sleep pids ${ISO}/pids.json lists (each must be 'sleep 86400'); boot :52153/:52154 from the worktree's src-tauri/binaries and :52152 from its sidecar/ on ${ISO}/data per ISO_STACK.md; new pids → pids.json; /health ok with openbb-mcp available. A port held by an unlisted process: never kill it → 'blocked'.
 (5) Env: llama3.1:8b in ollama list; /search/status + /search/searxng/status on :52152 (never start Docker); df -h (block < 10 GB, warn < 25 GB); idle: ${IDLE_CMD}; frontmost: ${FRONT_CMD}.
-(6) Register: register.py status; counts by status; critical/high/medium ids whose status is exactly 'open'; needs_gui ids; blocked_tier4 ids.
+(6) Register: read docs/redesign/verification/vysted-r15-register.json DIRECTLY at the candidate (its own 'counts' field + the 'entries' list); NEVER 'register.py status', which recomputes from r15/census/merge/ and lags the JSON that the Stage-C adjudicators write. Counts by status; critical/high/medium ids whose status is exactly 'open'; needs_gui ids; blocked_tier4 ids.
 Return model, status, sha, build_log, stack_ok, ollama_llama31, searxng, disk_free_gb, idle_s, frontmost, status_counts, open_chm, needs_gui, blocked_tier4, blockers, notes, summary ≤120 words.`, { label: 'rc1-preflight', phase: 'Preflight', model: 'sonnet', effort: 'medium', schema: PRE })
 
 if (!pre || pre.status !== 'ready') {
