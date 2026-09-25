@@ -744,11 +744,71 @@ async def test_get_filing_never_widens_past_what_the_upstream_serves(
     recorder: _RecordingClient,
 ) -> None:
     """A heavy filer's miss past row 100 is an honest not_found after the
-    40- and 100-row windows, never a request the upstream cannot serve."""
+    40- and 100-row windows, then the three periodic-form fallback passes
+    (R15-LEAD-010) — never a request the upstream cannot serve."""
     older = [("4", f"0000320193-24-{n:06d}") for n in range(60)]
     _emulate_upstream_failing_over_100(recorder, _HEAVY_FILER_FORMS + older)
     with pytest.raises(ProviderError) as info:
         await sec_filings_provider.get_filing("0000320193-99-999999", cik_or_symbol="AAPL")
     assert info.value.kind == "not_found"
-    limits = [c["arguments"]["limit"] for c in recorder.calls if c["name"] == "get_recent_filings"]
-    assert limits == [40, 100]
+    calls = [c["arguments"] for c in recorder.calls if c["name"] == "get_recent_filings"]
+    assert [c["limit"] for c in calls] == [40, 100, 40, 40, 40]
+    assert all(limit <= 100 for limit in (c["limit"] for c in calls))
+    assert [c.get("form_type") for c in calls] == [None, None, "10-K", "10-Q", "20-F"]
+
+
+#: A filer whose 10-K sits past row 100 of the unfiltered recency stream
+#: (R15-LEAD-010): both the 40- and 100-row unfiltered windows are FULL and
+#: still miss it — only a form_type=10-K filtered list finds it.
+_DEEP_FILER_FORMS = (
+    [("4" if n % 4 else "144", f"0000789019-26-{n:06d}") for n in range(120)]
+    + [("10-K", "0000789019-25-000079")]
+    + [("4", f"0000789019-25-{n:06d}") for n in range(200, 210)]
+)
+
+
+@pytest.mark.asyncio
+async def test_get_filing_resolves_a_10k_beyond_the_unfiltered_ceiling_with_no_hint(
+    recorder: _RecordingClient,
+) -> None:
+    """R15-LEAD-010: with no form_type hint, once both unfiltered windows
+    (40 and 100 rows, both full) miss, get_filing falls back to a
+    form_type=10-K filtered list rather than raising not_found."""
+    recorder.respond("get_filing_sections", _AAPL_SECTIONS_PAYLOAD)
+    _emulate_upstream(recorder, _DEEP_FILER_FORMS)
+    detail = await sec_filings_provider.get_filing("0000789019-25-000079", cik_or_symbol="MSFT")
+    assert detail.filing.form_type == "10-K"
+    calls = [c["arguments"] for c in recorder.calls if c["name"] == "get_recent_filings"]
+    assert [c["limit"] for c in calls] == [40, 100, 40]
+    assert calls[-1].get("form_type") == "10-K"
+
+
+@pytest.mark.asyncio
+async def test_get_filing_resolves_a_10q_beyond_the_ceiling_after_the_10k_pass_misses(
+    recorder: _RecordingClient,
+) -> None:
+    """Class pin on a case the fix was not written against: the periodic
+    fallback must keep going past a 10-K-filtered miss to 10-Q, not stop
+    after the first filtered pass."""
+    forms = _DEEP_FILER_FORMS + [("10-Q", "0000789019-25-000091")]
+    recorder.respond("get_filing_sections", _AAPL_SECTIONS_PAYLOAD)
+    _emulate_upstream(recorder, forms)
+    detail = await sec_filings_provider.get_filing("0000789019-25-000091", cik_or_symbol="MSFT")
+    assert detail.filing.form_type == "10-Q"
+
+
+@pytest.mark.asyncio
+async def test_get_filing_sections_forwards_the_form_type_hint(
+    recorder: _RecordingClient,
+) -> None:
+    """R15-LEAD-010: get_filing_sections must accept and forward form_type
+    to get_filing so its section-only callers get the same lookup hint."""
+    recorder.respond("get_filing_sections", _AAPL_SECTIONS_PAYLOAD)
+    _emulate_upstream(recorder, _DEEP_FILER_FORMS)
+    sections = await sec_filings_provider.get_filing_sections(
+        "0000789019-25-000079", cik_or_symbol="MSFT", form_type="10-K"
+    )
+    assert len(sections) > 0
+    calls = [c["arguments"] for c in recorder.calls if c["name"] == "get_recent_filings"]
+    # The explicit hint means only the hinted pass runs — no unfiltered fallback.
+    assert [c.get("form_type") for c in calls] == ["10-K"]
