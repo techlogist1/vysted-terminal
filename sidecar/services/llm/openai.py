@@ -55,7 +55,7 @@ from .native_search import (
     openrouter_web_search_tool,
 )
 from .reasoning_split import ReasoningSplitter
-from .tool_call_rescue import rescue_leaked_tool_call
+from .tool_call_rescue import LeakHold, rescue_leaked_tool_call
 
 logger = logging.getLogger(__name__)
 
@@ -664,8 +664,12 @@ class OpenAIProvider(LLMProvider):
             tool_buffers: dict[int, dict[str, str]] = {}
             # Accumulate assistant text for the content-leak rescue (Step 2):
             # a round that finishes with no native tool buffers may still carry
-            # a leaked ``{"name", "arguments"}`` block in the text.
-            content_parts: list[str] = []
+            # a leaked ``{"name", "arguments"}`` block in the text. On the gated
+            # providers the text from a leaked call's marker on is held until
+            # the rescue decides (rc1-drive-onboarding-stranger:1).
+            hold = LeakHold(
+                known_tool_ids if self._provider_id in _CONTENT_LEAK_PROVIDERS else set()
+            )
             # Accumulate DeepSeek-reasoner ``reasoning_content`` (Step 4): the
             # reasoner streams its chain-of-thought in a SEPARATE delta field;
             # surface it as a thinking event so the runtime can echo it on the
@@ -694,7 +698,10 @@ class OpenAIProvider(LLMProvider):
                             split += splitter.content(content)
                         for event in split:
                             if isinstance(event, LLMDeltaEvent):
-                                content_parts.append(event.text)
+                                shown = hold.feed(event.text)
+                                if shown:
+                                    yield LLMDeltaEvent(text=shown)
+                                continue
                             yield event
                         tool_calls = getattr(delta, "tool_calls", None) or []
                         for tool_call in tool_calls:
@@ -732,7 +739,10 @@ class OpenAIProvider(LLMProvider):
                     )
             for event in splitter.flush():
                 if isinstance(event, LLMDeltaEvent):
-                    content_parts.append(event.text)
+                    shown = hold.feed(event.text)
+                    if shown:
+                        yield LLMDeltaEvent(text=shown)
+                    continue
                 yield event
             # Stream ended with buffers still pending (no explicit
             # ``tool_calls`` finish_reason from this provider) — flush them so
@@ -750,20 +760,24 @@ class OpenAIProvider(LLMProvider):
             # known tool, recover it. GATED to providers whose models do this
             # (DeepSeek / OpenRouter / Ollama) so a chatty-but-correct
             # OpenAI/Anthropic answer never mis-fires a tool the user did not
-            # intend.
+            # intend. A rescued call's held text is dropped; otherwise the held
+            # text is shown now, so none is lost.
+            rescued = None
             if (
                 not emitted_tool_events
                 and finish_reason != "tool_calls"
                 and self._provider_id in _CONTENT_LEAK_PROVIDERS
                 and known_tool_ids
             ):
-                rescued = rescue_leaked_tool_call("".join(content_parts), known_tool_ids)
-                if rescued is not None:
-                    for event in await self._resolve_tool_events(
-                        [rescued], [], model=model, api_key=api_key, repairs=repairs
-                    ):
-                        emitted_tool_events = True
-                        yield event
+                rescued = rescue_leaked_tool_call(hold.text, known_tool_ids)
+            if rescued is not None:
+                for event in await self._resolve_tool_events(
+                    [rescued], [], model=model, api_key=api_key, repairs=repairs
+                ):
+                    emitted_tool_events = True
+                    yield event
+            elif hold.held():
+                yield LLMDeltaEvent(text=hold.held())
             # A stream that ended with no finish_reason and no tool call never
             # finished (a cut socket, a 200 non-SSE body, empty choices): do not
             # fabricate a clean ``done`` for it — the consumer reports the

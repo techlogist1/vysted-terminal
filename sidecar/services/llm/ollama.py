@@ -38,7 +38,7 @@ from .base import (
     invalid_tool_args,
 )
 from .reasoning_split import ReasoningSplitter
-from .tool_call_rescue import rescue_leaked_tool_call
+from .tool_call_rescue import LeakHold, rescue_leaked_tool_call
 
 #: Ollama's per-model default (4096) silently truncates the prompt once the
 #: copilot agent's ~50 tool schemas are serialized into it, before the user's
@@ -213,7 +213,9 @@ class OllamaProvider(LLMProvider):
         try:
             usage: LLMUsage | None = None
             finish_reason: str | None = None
-            content_parts: list[str] = []
+            # Text from a leaked call's marker on is held until the rescue
+            # decides whether it was a call (rc1-drive-onboarding-stranger:1).
+            hold = LeakHold(offered)
             emitted_tool_call = False
             # <think> spans in content come out as thinking (R15-LEAD-018).
             splitter = ReasoningSplitter()
@@ -223,7 +225,10 @@ class OllamaProvider(LLMProvider):
                     content = _attr(message, "content", "") or ""
                     for event in splitter.content(content) if content else []:
                         if isinstance(event, LLMDeltaEvent):
-                            content_parts.append(event.text)
+                            shown = hold.feed(event.text)
+                            if shown:
+                                yield LLMDeltaEvent(text=shown)
+                            continue
                         yield event
                     # Ollama returns tool calls on the (non-streamed) assistant
                     # message rather than as token deltas: emit one tool_use
@@ -253,15 +258,20 @@ class OllamaProvider(LLMProvider):
                     )
             for event in splitter.flush():
                 if isinstance(event, LLMDeltaEvent):
-                    content_parts.append(event.text)
+                    shown = hold.feed(event.text)
+                    if shown:
+                        yield LLMDeltaEvent(text=shown)
+                    continue
                 yield event
             # Local models often write the call as JSON text instead of using
             # tool_calls (llama3.1:8b: ``{"name": "write_note", "parameters":
-            # {...}}``). Rescue it so the call runs instead of rendering as prose.
-            if not emitted_tool_call:
-                rescued = rescue_leaked_tool_call("".join(content_parts), offered)
-                if rescued is not None:
-                    yield rescued
+            # {...}}``). Rescue it so the call runs instead of rendering as
+            # prose; the held call text and its made-up result are dropped.
+            rescued = None if emitted_tool_call else rescue_leaked_tool_call(hold.text, offered)
+            if rescued is not None:
+                yield rescued
+            elif hold.held():
+                yield LLMDeltaEvent(text=hold.held())
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
         except ollama.ResponseError as exc:  # pragma: no cover — network path
             _h = humanize("ollama", exc)

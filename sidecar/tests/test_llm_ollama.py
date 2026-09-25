@@ -235,14 +235,19 @@ async def test_native_tool_call_arguments_never_coerce_to_empty(
         assert tool_use[0].input == expected
 
 
-async def _ollama_text_round(monkeypatch: pytest.MonkeyPatch, text: str) -> list[Any]:
-    """A round where the model streams ``text`` as content and no tool_calls."""
-    half = len(text) // 2
-    chunks = [
-        {"message": {"content": text[:half]}, "done": False},
-        {"message": {"content": text[half:]}, "done": False},
-        {"message": {"content": ""}, "done": True, "done_reason": "stop"},
+async def _ollama_text_round(
+    monkeypatch: pytest.MonkeyPatch, text: str, step: int | None = None
+) -> list[Any]:
+    """A round where the model streams ``text`` as content and no tool_calls,
+    in two halves or in ``step``-character tokens."""
+    if step is None:
+        pieces = [text[: len(text) // 2], text[len(text) // 2 :]]
+    else:
+        pieces = [text[i : i + step] for i in range(0, len(text), step)]
+    chunks: list[dict[str, Any]] = [
+        {"message": {"content": piece}, "done": False} for piece in pieces
     ]
+    chunks.append({"message": {"content": ""}, "done": True, "done_reason": "stop"})
     _patch(monkeypatch, chunks=chunks)
     return [
         e
@@ -263,8 +268,9 @@ async def test_leaked_text_tool_call_is_rescued(monkeypatch: pytest.MonkeyPatch)
         '"text": "Valuation looks stretched at ~54x trailing P/E."}}'
     )
     out = await _ollama_text_round(monkeypatch, leaked)
-    assert [e.kind for e in out] == ["delta", "delta", "tool_use", "done"]
-    call = out[2]
+    # The rescued call's text is held, not shown (rc1-drive-onboarding-stranger:1).
+    assert [e.kind for e in out] == ["tool_use", "done"]
+    call = out[0]
     assert call.name == "write_note"
     assert call.input == {
         "scope": "COCHINSHIP.NS",
@@ -273,7 +279,50 @@ async def test_leaked_text_tool_call_is_rescued(monkeypatch: pytest.MonkeyPatch)
     assert call.tool_call_id
     # Two rescued calls never share an id.
     again = await _ollama_text_round(monkeypatch, leaked)
-    assert again[2].tool_call_id != call.tool_call_id
+    assert again[0].tool_call_id != call.tool_call_id
+
+
+_ZOMATO_ROUND = """There is no Zomato data in the market overview. Let me fetch it.
+
+**Tool call:** `price_data(symbol="ZOMATO.NS")`
+
+Result:
+```json
+{"symbol": "ZOMATO.NS", "name": "Zomato Ltd.", "current_price": 164.4, "currency": "INR"}
+```
+As per the live data, Zomato's stock price is currently ₹164.4."""
+
+
+@pytest.mark.asyncio
+async def test_rescued_leak_hides_the_call_and_its_made_up_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # rc1-drive-onboarding-stranger:1: the leaked call and the hand-typed
+    # "live data" after it streamed before the rescue ran at stream end.
+    out = await _ollama_text_round(monkeypatch, _ZOMATO_ROUND, step=3)
+    shown = "".join(e.text for e in out if e.kind == "delta")
+    assert "164.4" not in shown
+    assert shown.startswith("There is no Zomato data in the market overview. Let me fetch it.")
+    calls = [e for e in out if e.kind == "tool_use"]
+    assert [(c.name, c.input) for c in calls] == [("price_data", {"symbol": "ZOMATO.NS"})]
+    assert out[-1].kind == "done"
+
+
+@pytest.mark.asyncio
+async def test_text_that_is_not_a_rescued_call_streams_whole(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    prose = 'Try get_quote(symbol="TCS.NS") elsewhere; {"name": "screener_run"} is not mine.'
+    out = await _ollama_text_round(monkeypatch, prose, step=4)
+    # Unoffered names: the chunks pass through byte for byte.
+    assert [e.text for e in out if e.kind == "delta"] == [
+        prose[i : i + 4] for i in range(0, len(prose), 4)
+    ]
+    # An offered name that never parses as a call is held, then shown whole.
+    held = 'Pricing works like price_data(symbol=lookup("TCS")) under the hood.'
+    out = await _ollama_text_round(monkeypatch, held, step=4)
+    assert "".join(e.text for e in out if e.kind == "delta") == held
+    assert [e.kind for e in out if e.kind != "delta"] == ["done"]
 
 
 @pytest.mark.asyncio

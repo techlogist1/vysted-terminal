@@ -116,6 +116,61 @@ def _call_syntax(text: str, offered: set[str]) -> tuple[str, dict[str, Any]] | N
     return None
 
 
+_MARKER = re.compile(r'\{\s*"name"\s*:\s*"([A-Za-z_]\w*)"|\b([A-Za-z_]\w*)\(')
+
+
+def leak_start(text: str, offered: set[str]) -> int | None:
+    """Where a leaked call to an offered tool begins in ``text``, or ``None``.
+
+    The first ``{"name": "<offered>"`` or ``<offered>(`` marker, taken back to
+    the start of its line, or to a code-fence line just before it. The adapters
+    hold streamed text from here, so a rescued call and the result the model
+    typed after it never reach the user or the history
+    (rc1-drive-onboarding-stranger:1).
+    """
+    for match in _MARKER.finditer(text):
+        if (match.group(1) or match.group(2)) not in offered:
+            continue
+        start = text.rfind("\n", 0, match.start()) + 1
+        if start:
+            prev = text.rfind("\n", 0, start - 1) + 1
+            if text[prev : start - 1].lstrip().startswith("```"):
+                start = prev
+        return start
+    return None
+
+
+class LeakHold:
+    """Streams text up to a leaked-call marker, then holds the rest.
+
+    :meth:`feed` returns the part of each chunk to show now. At end of stream
+    the adapter drops :meth:`held` when the rescue fires and shows it
+    otherwise, so no text is ever lost. An empty ``offered`` never holds.
+    """
+
+    def __init__(self, offered: set[str]) -> None:
+        self.offered = offered
+        self.text = ""
+        self._shown = 0
+        self._hold: int | None = None
+
+    def feed(self, chunk: str) -> str:
+        self.text += chunk
+        if self._hold is None and self.offered:
+            # ponytail: rescans the whole text per chunk (quadratic in chunks);
+            # scan from the last line start if a long answer ever shows it.
+            start = leak_start(self.text, self.offered)
+            if start is not None:
+                self._hold = max(start, self._shown)
+        end = len(self.text) if self._hold is None else self._hold
+        shown = self.text[self._shown : end]
+        self._shown = end
+        return shown
+
+    def held(self) -> str:
+        return self.text[self._shown :]
+
+
 def rescue_leaked_tool_call(text: str, offered: set[str]) -> LLMToolUseEvent | None:
     """Recover a tool call written into ``text``, or ``None`` if there is none.
 
@@ -156,4 +211,4 @@ def rescue_leaked_tool_call(text: str, offered: set[str]) -> LLMToolUseEvent | N
     return None
 
 
-__all__ = ["balanced_json_objects", "rescue_leaked_tool_call"]
+__all__ = ["LeakHold", "balanced_json_objects", "leak_start", "rescue_leaked_tool_call"]
