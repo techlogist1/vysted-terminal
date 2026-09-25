@@ -73,7 +73,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 ### 3.1 Tech Stack (multi-language by design)
 
 **Rust layer (Tauri 2.x core):**
-- Desktop shell (windowing, system tray, OS integration)
+- Desktop shell (windowing, OS integration)
 - File system access — custom atomic-write commands (`write_text_atomic`,
   `write_bytes_atomic`), not the `tauri-plugin-fs` capability (R15-CODE-PLATFORM-024:
   no `fs:*` permission is granted in `src-tauri/capabilities/default.json`, but notes
