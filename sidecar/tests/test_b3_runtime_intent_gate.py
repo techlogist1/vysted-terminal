@@ -110,3 +110,26 @@ async def test_positive_read_cue_still_strips_data_writes(monkeypatch: pytest.Mo
     tool_ids = await _agent_tool_ids(monkeypatch, "what is P/E?")
     assert tool_ids.isdisjoint(_DATA_WRITES)
     assert "price_data" in tool_ids
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Can you log 10 TCS at 3400 in my portfolio?",
+        "Can you record that I hold 20 ITC at 410?",
+        # Class pin: neither log nor record, only the "<qty> <symbol> at <price>" shape.
+        "Could you enter 5 HDFCBANK at 1600 into my portfolio?",
+    ],
+)
+async def test_question_shaped_holding_ask_keeps_portfolio_add_position(
+    monkeypatch: pytest.MonkeyPatch, prompt: str
+) -> None:
+    # The trailing "?" is a positive read cue; the bookkeeping cue must still win.
+    assert "portfolio_add_position" in await _agent_tool_ids(monkeypatch, prompt)
+
+
+@pytest.mark.asyncio
+async def test_portfolio_question_still_strips_data_writes(monkeypatch: pytest.MonkeyPatch) -> None:
+    tool_ids = await _agent_tool_ids(monkeypatch, "How is my portfolio doing?")
+    assert tool_ids.isdisjoint(_DATA_WRITES)

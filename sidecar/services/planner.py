@@ -88,6 +88,13 @@ _EDIT_SIGNALS = (
     r"\bdelete\b",
     r"\bchange\b",
     r"\bupdate\b",
+    # Portfolio bookkeeping asks (R15-AGENT-019): "log/record …", and a holding
+    # stated as "<qty> <symbol> at <price>" ("10 TCS at 3400"). The question
+    # form ("Can you log …?") hits the trailing-"?" read cue, so an edit cue
+    # must match or the gate strips portfolio_add_position.
+    r"\blog\b",
+    r"\brecord\b(?! (highs?|lows?)\b)",
+    r"\b\d[\d,.]*\s+[a-z][\w.&-]*\s+at\s+\S*\d",
     # Writes to the user's own surfaces (R15-AGENT-019): notes, saved
     # screens/layouts, and the screener (the /screener expansion is "screen for …").
     r"\bnotes?\b",

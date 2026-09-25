@@ -122,3 +122,33 @@ async def test_groq_shaped_invalid_args_never_reach_the_handler(
     assert result["ok"] is False
     assert "host_action" not in result
     assert "'ten' is not of type 'number'" in result["error"]
+
+
+@pytest.mark.parametrize(
+    ("tool", "args", "key", "expected"),
+    [
+        ("option_chain", {"symbol": "NIFTY", "max_strikes": "10"}, "max_strikes", 10),
+        # Class pin: a tool the coercion was not written against.
+        (
+            "screener_run",
+            {"universe": "nse-all", "criteria": [], "limit": "25"},
+            "limit",
+            25,
+        ),
+    ],
+)
+def test_integer_sent_as_a_string_is_coerced(
+    tool: str, args: dict[str, Any], key: str, expected: int
+) -> None:
+    # R15-AGENT-093: llama3.1:8b sends integers as strings ("10", "25").
+    event = LLMToolUseEvent(tool_call_id="c-1", name=tool, input=dict(args))
+    agent_runtime._normalise_tool_args(event)
+    assert agent_runtime.INVALID_ARGS_SENTINEL not in event.input
+    assert event.input[key] == expected and type(event.input[key]) is int
+
+
+def test_a_non_numeric_integer_string_stays_invalid() -> None:
+    args = {"symbol": "NIFTY", "max_strikes": "ten"}
+    event = LLMToolUseEvent(tool_call_id="c-1", name="option_chain", input=args)
+    agent_runtime._normalise_tool_args(event)
+    assert "'ten' is not of type 'integer'" in event.input[agent_runtime.INVALID_ARGS_SENTINEL]
