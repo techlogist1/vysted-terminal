@@ -60,8 +60,12 @@ function newestMtime(dir, excludeDirs, acc) {
       if (excludeDirs.includes(full)) continue;
       newestMtime(full, excludeDirs, acc);
     } else if (entry.isFile() && !IGNORE_FILE.test(entry.name)) {
-      const m = statSync(full).mtimeMs;
-      if (m > acc.t) acc.t = m;
+      try {
+        const m = statSync(full).mtimeMs;
+        if (m > acc.t) acc.t = m;
+      } catch {
+        /* deleted between readdir and stat (TOCTOU) — contributes nothing */
+      }
     }
   }
   return acc.t;
