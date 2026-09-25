@@ -179,11 +179,11 @@ pub(crate) fn wait_for_port_with_retries(
     false
 }
 
-/// Resolve the per-OS application data directory, falling back to a temp dir on
-/// failure so a resolution/creation error degrades gracefully instead of
-/// panicking the app at boot. The sidecar owns the SQLite stores + saved
-/// workspaces beneath this directory.
-fn resolve_data_dir(app: &AppHandle) -> String {
+/// Resolve (and create) the per-OS application data directory, falling back to a
+/// temp dir on failure so a resolution/creation error degrades gracefully instead
+/// of panicking the app at boot. The one data-dir policy: the sidecar's
+/// `--data-dir`, the renderer's export/notes root and the dev keystore all use it.
+pub(crate) fn app_data_dir(app: &AppHandle) -> PathBuf {
     let dir = match app.path().app_data_dir() {
         Ok(dir) => dir,
         Err(err) => {
@@ -200,24 +200,17 @@ fn resolve_data_dir(app: &AppHandle) -> String {
              sidecar persistence may be degraded"
         );
     }
-    dir.to_string_lossy().to_string()
+    dir
 }
 
 /// Return the per-OS application data directory to the frontend — the
 /// authoritative source the Rust core also passes to the sidecar as
 /// `--data-dir`. Used by the export helpers (notes/brief MD/PNG/PDF) to resolve
 /// `{dataDir}/exports/...`; the sidecar `/health` does NOT expose this, so the
-/// renderer must ask the core directly. Mirrors `resolve_data_dir`'s resolution
-/// (app_data_dir with a temp-dir fallback).
+/// renderer must ask the core directly.
 #[tauri::command]
 fn get_app_data_dir(app: tauri::AppHandle) -> String {
-    match app.path().app_data_dir() {
-        Ok(dir) => dir.to_string_lossy().to_string(),
-        Err(_) => std::env::temp_dir()
-            .join("vysted-terminal")
-            .to_string_lossy()
-            .to_string(),
-    }
+    app_data_dir(&app).to_string_lossy().to_string()
 }
 
 /// The MCP protocol revision the sidecar's FastMCP transport speaks. Mirrors
@@ -272,7 +265,7 @@ fn start_main_sidecar(app: &AppHandle, port: u16) {
         status.fail("The data engine could not start: no free local port.".to_string());
         return;
     }
-    let data_dir = resolve_data_dir(app);
+    let data_dir = app_data_dir(app).to_string_lossy().to_string();
     let command = match app.shell().sidecar("vysted-sidecar") {
         Ok(command) => command.args(["--port", &port.to_string(), "--data-dir", &data_dir]),
         Err(err) => {
@@ -543,7 +536,7 @@ pub fn run() {
         })
         .setup(|app| {
             // Persist every console line from here on (R15-LIFECYCLE-008).
-            diag_log::init(&resolve_data_dir(app.handle()));
+            diag_log::init(&app_data_dir(app.handle()).to_string_lossy());
             // `0` = no free port (extremely rare); the UI still opens and
             // shows disconnected rather than panicking at boot.
             let port = pick_free_port().unwrap_or(0);

@@ -95,7 +95,6 @@ mod dev_keystore {
     use serde::{Deserialize, Serialize};
     use std::collections::BTreeMap;
     use std::path::{Path, PathBuf};
-    use tauri::Manager;
 
     /// Filename under the app data dir. Git-ignored; never in the repo.
     pub const FILENAME: &str = "dev-keystore.json";
@@ -111,16 +110,11 @@ mod dev_keystore {
         migrated: bool,
     }
 
-    /// Resolve `<app-data-dir>/dev-keystore.json`, creating the dir. Falls back
-    /// to a temp dir (mirrors `resolve_data_dir` in `lib.rs`) so a path failure
-    /// can never panic a key read.
+    /// Resolve `<app-data-dir>/dev-keystore.json` (the one data-dir policy in
+    /// `lib.rs`: created, temp-dir fallback) so a path failure can never panic a
+    /// key read.
     pub fn file_path(app: &tauri::AppHandle) -> PathBuf {
-        let dir = app
-            .path()
-            .app_data_dir()
-            .unwrap_or_else(|_| std::env::temp_dir().join("vysted-terminal"));
-        let _ = std::fs::create_dir_all(&dir);
-        dir.join(FILENAME)
+        crate::app_data_dir(app).join(FILENAME)
     }
 
     fn load(file: &Path) -> Store {
