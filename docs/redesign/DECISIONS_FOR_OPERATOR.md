@@ -492,6 +492,10 @@ are done-and-revertable like §1; these are yours to review or act on.
   > against the tool result and every shape pinned in eight fix rounds is replaced by an honest
   > "returned no data" note.
 
+  Struck by the batch-23 disposition verifier: the clause "figures for companies whose call
+  succeeded are grounded against the tool result" — the guard never checks a figure for a subject
+  whose call succeeded (batch-23/DISPOSITION-CONCURRENCE.md, LEAD-037 section).
+
   Post-launch, take the verifier's bounded ninth fix (`LEAD-030-CONCURRENCE.md` §3; not built this
   run) as the LEAD-030 half of the design change named in 4.10–4.12:
   - **The change:** in `agent_runtime._judge_clause` the FAIL-SAFE is no longer gated on
@@ -556,11 +560,23 @@ are done-and-revertable like §1; these are yours to review or act on.
   when its object ends the clause or is followed by a closed tail ({please, at all, whatsoever, for
   this (one|question), here, now, this time, today}, or "and"/"just" plus a verb); any other
   complement keeps the surface.
+
+  > With a keyless local model, the "don't use tools" detector is a fixed phrase list that both under- and
+  > over-matches: an unrecognised phrasing keeps the tools, so the agent may still read data and propose a portfolio
+  > change (always held for your review, never applied; under AUTO a watchlist or chart change does apply) and can
+  > occasionally state a price it never fetched, while a data request that only qualifies tool use ("other than price
+  > data", "for the math, but do fetch", "tools you don't need", "twice", "I never said don't use tools") loses every
+  > tool and the agent then usually states an invented price as if fetched.
+
 - **Risk of not doing it:** a no-tool instruction phrased outside the closed list is not honoured:
   the model may call a read tool, or stage a portfolio write that then waits in the review queue
   for the user's accept. No write applies on its own.
-- **Status:** open — proposed blocked_tier4, fresh verifier's concurrence in flight
-  (batch-23/DISPOSITION-CONCURRENCE.md)
+- **Status:** open — the fresh verifier REFUSED blocked_tier4: the shipping list over-matches too
+  (7 explicit data requests lose every tool; llama then invents prices as fetched in 15/21 live
+  runs); its narrowing-only fix (a closed-tail lookahead plus a reported-speech guard, a strict
+  subset of the shipping regex; 67-phrasing check 50 correct / 0 over-strips / 17 misses vs
+  43 / 7 / 17) is built in batch-24; the under-match residual then goes to blocked_tier4 with the
+  corrected wording
 
 ### 4.11 R15-LEAD-037 — the figure guard grounds a price by value only, so a stale bar passes as the current price
 
@@ -574,16 +590,23 @@ are done-and-revertable like §1; these are yours to review or act on.
   `/quotes/HCLTECH.NS` 1258.0).
 - **Why operator-attended:** as in 4.9, an agent-chat entry needs a fresh verifier's concurrence
   before it is adjudicated away, and shipping with a known limitation is the operator's call.
-- **Recommendation:** `blocked_tier4`, as one known-limitation class with LEAD-030, LEAD-035 and
-  LEAD-038 (no tool result grounds the claim as made). The post-launch claim grounding grounds by
-  field, not by value alone: resolve which payload field a price sentence claims (current/last vs a
-  labelled historical point) and check against that field, pinned with a payload that carries both
-  a current price and an older bar for the same symbol (the register's fix_shape).
+- **Recommendation:** `blocked_tier4`.
+
+  > With a keyless local model, a figure the agent states for a company whose data call succeeded is not checked
+  > against that result at all, so it can give an older bar's value from the same payload as the current price
+  > (2 of 18 live runs, 5-6% off) or a figure that appears nowhere in the payload (1 of 18: ₹20,820 for a ₹2,082
+  > stock).
+
+  The post-launch claim grounding grounds by field, not by value alone: resolve which payload
+  field a price sentence claims (current/last vs a labelled historical point) and check against
+  that field, pinned with a payload that carries both a current price and an older bar for the
+  same symbol (the register's fix_shape).
+
 - **Risk of not doing it:** the agent can state an older value from a successful price result as
   the current price, and nothing flags it, because the number really is in the tool result. It is
   a stale figure, not an invented one.
-- **Status:** open — proposed blocked_tier4, fresh verifier's concurrence in flight
-  (batch-23/DISPOSITION-CONCURRENCE.md)
+- **Status:** blocked_tier4 — fresh verifier concurred on the corrected wording
+  (batch-23/DISPOSITION-CONCURRENCE.md); operator decides at rc1
 
 ### 4.12 R15-LEAD-038 — with the tools withheld, the model narrates a portfolio write that never happened
 
@@ -613,8 +636,13 @@ are done-and-revertable like §1; these are yours to review or act on.
   portfolio or watchlist write was done ("added", "now hold", "updated your position") is checked
   against a matching tool call that landed this turn, pinned with a no-tool fixture asserting no
   false completion claim streams when `calls=[]` (the register's fix_shape).
+
+  > With a keyless local model, when you tell the agent not to use tools and ask for a portfolio change in the same
+  > message, it makes no call and nothing is written or queued, but its reply can say the change was made or staged
+  > for your review and can describe holdings that do not exist.
+
 - **Risk of not doing it:** the user can read that a position was added when nothing changed. The
   portfolio panel and the empty review queue still show the truth, and no write can happen without
   a tool call that stages it for review.
-- **Status:** open — proposed blocked_tier4, fresh verifier's concurrence in flight
-  (batch-23/DISPOSITION-CONCURRENCE.md)
+- **Status:** blocked_tier4 — fresh verifier concurred (batch-23/DISPOSITION-CONCURRENCE.md);
+  operator decides at rc1
