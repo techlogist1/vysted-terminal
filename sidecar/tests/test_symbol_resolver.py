@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from services import provider_health, symbol_resolver
+from services.resolution_policy import BAND_EXACT_TICKER
 
 
 @pytest.fixture(autouse=True)
@@ -242,16 +243,16 @@ def test_exchange_agrees_with_yahoo_suffix_across_full_masters() -> None:
     symbol with the fields the routing layer depends on."""
     suffix_by_exchange = {"NSE": ".NS", "BSE": ".BO", "US": ""}
     for sym, (_name, typ) in symbol_resolver._nse_master().items():
-        inst = symbol_resolver._instrument_nse(sym, 1.0)
+        inst = symbol_resolver._instrument_nse(sym, 1.0, BAND_EXACT_TICKER)
         # An NSE Emerge (SM) listing is Yahoo's -SM.NS form (R15-DATA-017).
         listing = f"{sym}-SM.NS" if typ == "SM" else f"{sym}.NS"
         assert inst.exchange == "NSE" and inst.yahoo_symbol == listing
     for sym, (_name, _group, code, _isin) in symbol_resolver._bse_master().items():
-        inst = symbol_resolver._instrument_bse(sym, 1.0)
+        inst = symbol_resolver._instrument_bse(sym, 1.0, BAND_EXACT_TICKER)
         assert inst.exchange == "BSE" and inst.yahoo_symbol == f"{sym}.BO"
         assert code.isdigit(), f"BSE master row {sym} lacks a numeric scrip code"
     for sym in symbol_resolver._us_master():
-        inst = symbol_resolver._instrument_us(sym, 1.0)
+        inst = symbol_resolver._instrument_us(sym, 1.0, BAND_EXACT_TICKER)
         assert inst.exchange == "US" and inst.yahoo_symbol == sym
         assert suffix_by_exchange[inst.exchange] == ""
 
@@ -915,3 +916,15 @@ def test_garbled_master_degrades_to_no_match_not_500(monkeypatch) -> None:  # no
     finally:
         monkeypatch.undo()
         symbol_resolver.reset_caches_for_tests()
+
+
+def test_autocomplete_exact_ticker_carries_exact_band_and_binds() -> None:
+    """R15-CODE-DATA-017: an autocomplete exact-ticker row states its band (the
+    builders no longer default to BAND_FUZZY), so the ONE policy binds it rather
+    than refusing a score-1.0 row as fuzzy."""
+    from services import resolution_policy
+
+    rows = symbol_resolver.autocomplete("TATASTEEL", "IN")
+    assert rows[0].symbol == "TATASTEEL" and rows[0].band == BAND_EXACT_TICKER
+    r = symbol_resolver.Resolution(query="TATASTEEL", best=rows[0], candidates=rows)
+    assert resolution_policy.decide(r).outcome == "bound"
