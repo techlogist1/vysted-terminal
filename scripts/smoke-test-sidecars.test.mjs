@@ -93,3 +93,14 @@ describe("_shouldProbeExchanges (R15-RELEASE-008)", () => {
     ).toBe(true);
   });
 });
+
+describe("ci-local's pip installs (R15-CROSS-PLATFORM-010)", () => {
+  it("use python3, which resolves in a shell where `python` is not on PATH, not bare python", () => {
+    const pkg = JSON.parse(readFileSync(join(import.meta.dirname, "..", "package.json"), "utf8"));
+    const ciLocal = pkg.scripts["ci-local"];
+    // No occurrence of the bare `python` command (only `python3`).
+    expect(ciLocal).not.toMatch(/(^|[^\w])python(?!3)(\W|$)/);
+    expect(ciLocal).toContain("python3 -m pip install ruff==");
+    expect(ciLocal).toContain("python3 -m pip install -r requirements-dev.txt");
+  });
+});
