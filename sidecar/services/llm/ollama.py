@@ -14,10 +14,12 @@ breaking this adapter.
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import AsyncIterator
 from typing import Any
 
 import ollama
+import pydantic
 
 from models.llm import (
     LLMDeltaEvent,
@@ -25,6 +27,7 @@ from models.llm import (
     LLMErrorEvent,
     LLMMessage,
     LLMModelOption,
+    LLMResearchStepEvent,
     LLMToolUseEvent,
     LLMUsage,
 )
@@ -39,6 +42,8 @@ from .base import (
 )
 from .reasoning_split import ReasoningSplitter
 from .tool_call_rescue import LeakHold, rescue_leaked_tool_call
+
+logger = logging.getLogger(__name__)
 
 #: Ollama's per-model default (4096) silently truncates the prompt once the
 #: copilot agent's ~50 tool schemas are serialized into it, before the user's
@@ -169,46 +174,53 @@ class OllamaProvider(LLMProvider):
                 # so we can retry without it if the tools path fails.
                 tools = built
 
-        # Open the stream. Tool support is best-effort: many local models reject
-        # or ignore a ``tools=`` kwarg, so if opening the tools stream raises we
-        # transparently retry without tools rather than surfacing an error —
-        # text must always stream.
+        # Open the stream. ``client.chat(stream=True)`` sends nothing when
+        # awaited: a daemon/HTTP error (500, model without tool support) surfaces
+        # while iterating and is humanized below. The only failure here is the
+        # SDK rejecting a tool schema client-side (``Tool.model_validate``); the
+        # round then answers without tools and says so (R15-AGENT-076).
         stream = None
         # Tool names actually sent this round: the only names a leaked
         # text-JSON call may be rescued for.
         offered: set[str] = set()
-        if tools is not None:
-            try:
+        try:
+            if tools is not None:
+                try:
+                    stream = await client.chat(
+                        model=model,
+                        messages=api_messages,
+                        stream=True,
+                        tools=tools,
+                        **kwargs,
+                    )
+                    offered = {tool["function"]["name"] for tool in tools}
+                except pydantic.ValidationError as exc:
+                    logger.warning(
+                        "ollama rejected the tool schemas for %s; this round runs without "
+                        "tools: %s",
+                        model,
+                        exc,
+                    )
+                    yield LLMResearchStepEvent(
+                        tool_call_id="",
+                        tool="ollama_tools",
+                        step_kind="notice",
+                        detail=f"Tools could not be sent to {model}; it answered without them.",
+                        status="error",
+                    )
+            if stream is None:
                 stream = await client.chat(
                     model=model,
                     messages=api_messages,
                     stream=True,
-                    tools=tools,
                     **kwargs,
                 )
-                offered = {tool["function"]["name"] for tool in tools}
-            except Exception:  # noqa: BLE001 — degrade gracefully, retry below.
-                stream = None
-        if stream is None:
-            try:
-                stream = await client.chat(
-                    model=model,
-                    messages=api_messages,
-                    stream=True,
-                    **kwargs,
-                )
-            except ollama.ResponseError as exc:  # pragma: no cover — network path
-                _h = humanize("ollama", exc)
-                yield LLMErrorEvent(
-                    message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-                )
-                return
-            except Exception as exc:  # pragma: no cover — defensive
-                _h = humanize("ollama", exc)
-                yield LLMErrorEvent(
-                    message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-                )
-                return
+        except Exception as exc:  # noqa: BLE001 — every failure ends as a humanized error
+            _h = humanize("ollama", exc)
+            yield LLMErrorEvent(
+                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
+            )
+            return
 
         try:
             usage: LLMUsage | None = None
