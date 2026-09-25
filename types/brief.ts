@@ -145,6 +145,18 @@ export interface BriefDerivedMetrics {
   dividend_yield?: BriefDerivedValue;
   /** Dividend in listing currency per share. */
   dividend_per_share?: BriefDerivedValue;
+  /**
+   * Trailing-12m dividend actually PAID (R11 / D56) — present ONLY when it
+   * diverges from `dividend_per_share` or a declared-but-unpaid dividend
+   * coexists (an agreeing figure with no declared leg emits nothing extra).
+   */
+  dividend_per_share_ttm?: BriefDerivedValue;
+  /**
+   * A declared-but-unpaid dividend (R13 / D57) — present ONLY when one is
+   * attached; paired with `dividend_per_share_ttm` in the PAID + DECLARED
+   * reconciliation.
+   */
+  dividend_declared?: BriefDerivedValue;
   /** Revenue growth with its basis named. */
   revenue_growth?: BriefDerivedValue;
   /** Earnings growth with its basis named. */
@@ -187,6 +199,20 @@ export interface BriefDerivedMetrics {
    * the derived leg for the model; the panel's raw grid renders its own card.
    */
   market_cap?: BriefDerivedValue;
+  /**
+   * Promoter shareholding from the exchange SHP filing (R13 / D68) — present
+   * ONLY when the filing carries a promoter figure; a divergence from the
+   * provider's `held_percent_insiders` is flagged as its own conflict, never
+   * substituted.
+   */
+  promoter_percent_exchange?: BriefDerivedValue;
+  /**
+   * Institutional shareholding from the exchange SHP filing (R13 / D68) —
+   * present ONLY when the filing carries an institutions figure; a divergence
+   * from the provider's `held_percent_institutions` is flagged as its own
+   * conflict, never substituted.
+   */
+  institutions_percent_exchange?: BriefDerivedValue;
   /** Cross-source disagreements — flagged, never silently resolved. */
   conflicts?: BriefMetricConflict[];
 }
