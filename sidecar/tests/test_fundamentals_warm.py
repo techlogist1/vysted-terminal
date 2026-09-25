@@ -378,6 +378,69 @@ async def test_in_boot_seeds_exactly_once(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 @pytest.mark.asyncio
+async def test_boot_window_openbb_call_budget(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LEAD-025 (measured, not reproduced at the sha): the boot warm paths'
+    openbb-mcp budget. US: start_warm_precompute + start_warm_fundamentals make
+    ZERO openbb tool calls. IN: the only openbb caller is the deep crawler
+    (registry fundamentals, openbb-mcp rank 10), never more than
+    ``_CRAWL_CONCURRENCY`` calls in flight."""
+    from services import (
+        openbb_mcp_provider,
+        screener,
+        screener_universe_india,
+        yfinance_provider,
+    )
+
+    calls: list[str] = []
+    in_flight = peak = 0
+
+    async def spy_call_tool(name: str, arguments: dict[str, object]) -> object:
+        nonlocal in_flight, peak
+        calls.append(f"{name}:{arguments.get('symbol')}")
+        in_flight += 1
+        peak = max(peak, in_flight)
+        try:
+            await asyncio.sleep(0.01)
+        finally:
+            in_flight -= 1
+        raise ProviderError("stub openbb: no rows")
+
+    def yf_fund(symbol: str) -> Fundamentals:
+        return Fundamentals(symbol=symbol, sector="Technology", roe=0.2, provider="yf")
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+    monkeypatch.setattr(openbb_mcp_provider, "_call_tool", spy_call_tool)
+    monkeypatch.setattr(yfinance_provider, "get_fundamentals", yf_fund)
+
+    # US boot: the arm-only screener warm + the region-idle India workers.
+    monkeypatch.setattr(fundamentals_warm, "get_region", lambda: "US")
+    screener.start_warm_precompute()
+    fundamentals_warm.start_warm_fundamentals()
+    await asyncio.sleep(0.1)
+    await fundamentals_warm.stop_warm_fundamentals()
+    await screener.stop_warm_precompute()
+    assert calls == []
+
+    # IN boot: the real deep crawler over a small universe.
+    symbols = ["A.NS", "B.NS", "C.NS", "D.NS"]
+    real_crawl_once = fundamentals_warm._crawl_once
+    _quiet_in_boot(monkeypatch)
+    monkeypatch.setattr(fundamentals_warm, "_crawl_once", real_crawl_once)
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    monkeypatch.setattr(screener_universe_india, "load_india_universe", _tiny_universe(symbols))
+    await fundamentals_store.seed_universe([{"symbol": s} for s in symbols])
+    fundamentals_warm.start_warm_fundamentals()
+    for _ in range(200):
+        if len({c.split(":", 1)[1] for c in calls}) == len(symbols) and in_flight == 0:
+            break
+        await asyncio.sleep(0.01)
+    await fundamentals_warm.stop_warm_fundamentals()
+    assert {c.split(":", 1)[1] for c in calls} == set(symbols)
+    assert len(calls) <= 2 * len(symbols)  # equity_profile + fundamental_metrics
+    assert peak <= fundamentals_warm._CRAWL_CONCURRENCY == 1
+
+
+@pytest.mark.asyncio
 async def test_start_is_idempotent() -> None:
     fundamentals_warm.start_warm_fundamentals()
     first = fundamentals_warm._sweep_task
