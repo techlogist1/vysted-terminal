@@ -1210,3 +1210,38 @@ def test_prompt_keys_cover_every_derived_metric() -> None:
     emitted = set(data) - {"conflicts"}
     missing = emitted - set(semantics._PROMPT_KEYS)
     assert not missing, f"emitted but missing from _PROMPT_KEYS: {missing}"
+
+
+# --- every leg returns (facts, conflicts) (R15-CODE-RESEARCH-011) ----------------
+
+
+def test_every_leg_returns_facts_and_conflicts() -> None:
+    # R15-CODE-RESEARCH-011: _dividend_leg used to return a positional
+    # (yield, dps, facts, conflicts) 4-tuple unlike every sibling leg's
+    # (facts, conflicts) — pin every ``_*_leg`` function's return annotation to
+    # the same 2-tuple shape so a future leg can't quietly diverge again.
+    import inspect
+    from typing import get_args, get_origin, get_type_hints
+
+    from services.research import semantics
+
+    leg_names = [
+        name
+        for name in dir(semantics)
+        if name.startswith("_")
+        and name.endswith("_leg")
+        and inspect.isfunction(getattr(semantics, name))
+    ]
+    assert len(leg_names) >= 6, f"expected several leg functions, found {leg_names}"
+    for name in leg_names:
+        fn = getattr(semantics, name)
+        hints = get_type_hints(fn)
+        ret = hints.get("return")
+        assert ret is not None, f"{name} has no return type annotation"
+        assert get_origin(ret) is tuple, f"{name} does not return a tuple: {ret}"
+        args = get_args(ret)
+        assert len(args) == 2, (
+            f"{name} returns a {len(args)}-tuple, expected (facts, conflicts): {ret}"
+        )
+        assert get_origin(args[0]) is dict, f"{name}'s first return element is not a dict: {ret}"
+        assert get_origin(args[1]) is list, f"{name}'s second return element is not a list: {ret}"

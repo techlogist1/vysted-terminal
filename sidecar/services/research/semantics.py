@@ -323,7 +323,7 @@ def _declared_reconciliation(ttm: float, amount: float, record_date: str) -> dic
 
 
 def _dividend_ttm_leg(
-    fund: dict[str, Any], dps: float | None, provider: str, currency: str | None
+    fund: dict[str, Any], dps: float | None, provider: str
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Cross-check ``dividend_per_share`` against the trailing-12m PAID history
     and any declared-but-unpaid dividend (R11 / D56, R13 / D57).
@@ -379,7 +379,6 @@ def _dividend_ttm_leg(
         if ttm is not None:
             conflicts.append(_declared_reconciliation(ttm, amount, record_date))
 
-    _ = currency  # currency rides the dps fact's basis; noted here for symmetry
     return facts, conflicts
 
 
@@ -905,27 +904,27 @@ def _market_cap_witness_leg(
 
 def _dividend_leg(
     fund: dict[str, Any], price: float | None, provider: str
-) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Reconcile dividend_yield against dividend_per_share / price, and the
     dividend-per-share scalar against the trailing-12m paid history + any
     declared-but-unpaid dividend.
 
-    Returns ``(dividend_yield_value, dividend_per_share_value, dividend_facts,
-    conflicts)``. ``dividend_facts`` is a dict of the extra ttm/declared cards
-    (possibly empty). The provider yield's unit is reconciled EXPLICITLY
-    (yfinance ships both fraction and percent forms): the interpretation closest
-    to the implied yield wins; past :data:`_DIVIDEND_DIVERGENCE` the disagreement
-    is a conflict and NO single dividend value is emitted. Separately, a
-    trailing-12m-paid figure diverging from ``dividendRate`` (direction-aware,
-    R11 / D56) and a declared-but-unpaid dividend (R13 / D57) are surfaced as
-    their own facts.
+    Returns ``(facts, conflicts)`` like every other leg. ``facts`` always
+    carries ``dividend_yield`` and ``dividend_per_share``, plus the extra
+    ttm/declared cards when present. The provider yield's unit is reconciled
+    EXPLICITLY (yfinance ships both fraction and percent forms): the
+    interpretation closest to the implied yield wins; past
+    :data:`_DIVIDEND_DIVERGENCE` the disagreement is a conflict and NO single
+    dividend value is emitted. Separately, a trailing-12m-paid figure diverging
+    from ``dividendRate`` (direction-aware, R11 / D56) and a declared-but-unpaid
+    dividend (R13 / D57) are surfaced as their own facts.
     """
     reported = _num(fund, "dividend_yield")
     dps = _num(fund, "dividend_per_share")
     implied = dps / price if dps is not None and price else None
     currency = fund.get("currency") if isinstance(fund.get("currency"), str) else None
     dps_basis = f"per share, {currency}" if currency else "per share, listing currency"
-    ttm_facts, ttm_conflicts = _dividend_ttm_leg(fund, dps, provider, currency)
+    ttm_facts, ttm_conflicts = _dividend_ttm_leg(fund, dps, provider)
 
     yield_kwargs: dict[str, Any] = {
         "basis": "fraction of price",
@@ -946,14 +945,16 @@ def _dividend_leg(
         )
         if _relative_divergence(closest, implied) <= _DIVIDEND_DIVERGENCE:
             return (
-                _value(
-                    implied,
-                    "Dividend yield",
-                    formula="dividend per share / price",
-                    **yield_kwargs,
-                ),
-                _value(dps, "Dividend per share", **dps_kwargs),
-                ttm_facts,
+                {
+                    "dividend_yield": _value(
+                        implied,
+                        "Dividend yield",
+                        formula="dividend per share / price",
+                        **yield_kwargs,
+                    ),
+                    "dividend_per_share": _value(dps, "Dividend per share", **dps_kwargs),
+                    **ttm_facts,
+                },
                 list(ttm_conflicts),
             )
         conflict = {
@@ -970,33 +971,39 @@ def _dividend_leg(
             ),
         }
         return (
-            _value(
-                None,
-                "Dividend yield",
-                reason=(
-                    yield_field_reason
-                    or "withheld — provider yield disagrees with dividend/share ÷ price"
+            {
+                "dividend_yield": _value(
+                    None,
+                    "Dividend yield",
+                    reason=(
+                        yield_field_reason
+                        or "withheld — provider yield disagrees with dividend/share ÷ price"
+                    ),
+                    **yield_kwargs,
                 ),
-                **yield_kwargs,
-            ),
-            _value(
-                None,
-                "Dividend per share",
-                reason=(
-                    dps_field_reason
-                    or "withheld — cannot reconcile with the provider dividend yield"
+                "dividend_per_share": _value(
+                    None,
+                    "Dividend per share",
+                    reason=(
+                        dps_field_reason
+                        or "withheld — cannot reconcile with the provider dividend yield"
+                    ),
+                    **dps_kwargs,
                 ),
-                **dps_kwargs,
-            ),
-            ttm_facts,
+                **ttm_facts,
+            },
             [conflict, *ttm_conflicts],
         )
 
     if implied is not None:
         return (
-            _value(implied, "Dividend yield", formula="dividend per share / price", **yield_kwargs),
-            _value(dps, "Dividend per share", **dps_kwargs),
-            ttm_facts,
+            {
+                "dividend_yield": _value(
+                    implied, "Dividend yield", formula="dividend per share / price", **yield_kwargs
+                ),
+                "dividend_per_share": _value(dps, "Dividend per share", **dps_kwargs),
+                **ttm_facts,
+            },
             list(ttm_conflicts),
         )
 
@@ -1006,28 +1013,38 @@ def _dividend_leg(
         # (null), never guessed into a unit — and the null states so (2b).
         plausible = 0 <= reported < _PLAUSIBLE_YIELD_FRACTION
         return (
-            _value(
-                reported if plausible else None,
-                "Dividend yield",
-                reason=(
-                    None
-                    if plausible
-                    else (
-                        yield_field_reason
-                        or "provider value withheld as implausible as a fraction of price"
-                    )
+            {
+                "dividend_yield": _value(
+                    reported if plausible else None,
+                    "Dividend yield",
+                    reason=(
+                        None
+                        if plausible
+                        else (
+                            yield_field_reason
+                            or "provider value withheld as implausible as a fraction of price"
+                        )
+                    ),
+                    **yield_kwargs,
                 ),
-                **yield_kwargs,
-            ),
-            _value(None, "Dividend per share", reason=dps_field_reason, **dps_kwargs),
-            ttm_facts,
+                "dividend_per_share": _value(
+                    None, "Dividend per share", reason=dps_field_reason, **dps_kwargs
+                ),
+                **ttm_facts,
+            },
             list(ttm_conflicts),
         )
 
     return (
-        _value(None, "Dividend yield", reason=yield_field_reason, **yield_kwargs),
-        _value(None, "Dividend per share", reason=dps_field_reason, **dps_kwargs),
-        ttm_facts,
+        {
+            "dividend_yield": _value(
+                None, "Dividend yield", reason=yield_field_reason, **yield_kwargs
+            ),
+            "dividend_per_share": _value(
+                None, "Dividend per share", reason=dps_field_reason, **dps_kwargs
+            ),
+            **ttm_facts,
+        },
         list(ttm_conflicts),
     )
 
@@ -1088,11 +1105,7 @@ def derive_semantics(
         ),
     }
 
-    dividend_yield, dividend_per_share, dividend_facts, dividend_conflicts = _dividend_leg(
-        fund, price, provider
-    )
-    data["dividend_yield"] = dividend_yield
-    data["dividend_per_share"] = dividend_per_share
+    dividend_facts, dividend_conflicts = _dividend_leg(fund, price, provider)
     # D56/D57: the trailing-PAID card appears only when it diverges from
     # dividendRate or a declared-but-unpaid dividend coexists; the declared card
     # appears only when one is attached — an agreeing figure emits nothing extra.
