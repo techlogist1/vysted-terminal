@@ -1,0 +1,150 @@
+[sidecar] 2026-09-26 05:19:26,985 INFO uvicorn.access: 127.0.0.1:52496 - "GET /crypto/ticker?exchange=binance&symbol=BTC%2FUSDT HTTP/1.1" 200
+[sidecar] 2026-09-26 05:19:27,670 WARNING services.provider_health: provider health: yahoo circuit OPEN for 61s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ABB.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52549 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ABB.BO"}}}
+[sidecar] 2026-09-26 05:19:34,271 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08ABB.BO'
+[sidecar] 2026-09-26 05:19:34,568 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ABB.BO"}}}
+[sidecar] 2026-09-26 05:19:34,804 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:19:34,804 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08ABB.BO'
+[openbb-mcp] INFO:     127.0.0.1:52551 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+[sidecar] 2026-09-26 05:19:35,320 INFO uvicorn.access: 127.0.0.1:52553 - "GET /health HTTP/1.1" 200
+[openbb-mcp] INFO:     127.0.0.1:52554 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+[sidecar] 2026-09-26 05:19:35,784 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08ADD.BO'
+[sidecar] 2026-09-26 05:19:36,237 WARNING services.provider_health: provider health: yahoo circuit OPEN for 66s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[sidecar] 2026-09-26 05:19:36,280 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADD.BO"}}}
+[sidecar] 2026-09-26 05:19:36,602 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:19:36,602 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08ADD.BO'
+[openbb-mcp] INFO:     127.0.0.1:52557 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52558 - "POST /mcp HTTP/1.1" 200 OK
+[sidecar] 2026-09-26 05:19:37,485 WARNING services.provider_health: provider health: yahoo circuit OPEN for 65s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADR.BO"}}}
+[sidecar] 2026-09-26 05:19:37,666 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08ADR.BO'
+[sidecar] 2026-09-26 05:19:37,964 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08ADR.BO"}}}
+[sidecar] 2026-09-26 05:19:38,282 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:19:38,283 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08ADR.BO'
+[openbb-mcp] INFO:     127.0.0.1:52560 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:52561 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:52562 - "POST /mcp HTTP/1.1" 200 OK
+[sidecar] 2026-09-26 05:19:39,053 INFO services.provider_registry: provider openbb-mcp returned an incomplete fundamentals; trying next for richer data
+[sidecar] 2026-09-26 05:19:40,939 WARNING services.provider_health: provider health: yahoo circuit OPEN for 65s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[openbb-mcp] INFO:     127.0.0.1:52568 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52569 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMD.BO"}}}
+[sidecar] 2026-09-26 05:19:43,554 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08AMD.BO'
+[sidecar] 2026-09-26 05:19:43,858 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMD.BO"}}}
+[sidecar] 2026-09-26 05:19:43,991 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:19:43,993 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08AMD.BO'
+[openbb-mcp] INFO:     127.0.0.1:52570 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52574 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMR.BO"}}}
+[sidecar] 2026-09-26 05:19:44,892 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08AMR.BO'
+[sidecar] 2026-09-26 05:19:45,189 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AMR.BO"}}}
+[sidecar] 2026-09-26 05:19:45,392 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08AMR.BO'
+[openbb-mcp] INFO:     127.0.0.1:52576 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52577 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQD.BO"}}}
+[sidecar] 2026-09-26 05:19:46,279 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08AQD.BO'
+[sidecar] 2026-09-26 05:19:46,590 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQD.BO"}}}
+[sidecar] 2026-09-26 05:19:46,789 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08AQD.BO'
+[openbb-mcp] INFO:     127.0.0.1:52579 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52581 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQR.BO"}}}
+[sidecar] 2026-09-26 05:19:47,678 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08AQR.BO'
+[sidecar] 2026-09-26 05:19:47,689 WARNING services.provider_health: provider health: yahoo circuit OPEN for 58s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[sidecar] 2026-09-26 05:19:47,985 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08AQR.BO"}}}
+[sidecar] 2026-09-26 05:19:48,131 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:19:48,131 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08AQR.BO'
+[openbb-mcp] INFO:     127.0.0.1:52582 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08BPB.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52583 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08BPB.BO"}}}
+[sidecar] 2026-09-26 05:19:49,055 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08BPB.BO'
+[sidecar] 2026-09-26 05:19:49,348 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08BPB.BO"}}}
+[sidecar] 2026-09-26 05:19:49,496 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08BPB.BO'
+[openbb-mcp] INFO:     127.0.0.1:52584 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:52586 - "POST /mcp HTTP/1.1" 200 OK
+[sidecar] 2026-09-26 05:19:49,960 INFO services.provider_registry: provider openbb-mcp returned an incomplete fundamentals; trying next for richer data
+[sidecar] 2026-09-26 05:19:51,204 WARNING services.provider_health: provider health: yahoo circuit OPEN for 62s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[sidecar] 2026-09-26 05:19:52,741 INFO uvicorn.access: 127.0.0.1:52589 - "GET /health HTTP/1.1" 200
+[sidecar] 2026-09-26 05:19:52,745 INFO uvicorn.access: 127.0.0.1:52589 - "GET /openbb-mcp/status HTTP/1.1" 200
+[sidecar] 2026-09-26 05:19:52,747 INFO uvicorn.access: 127.0.0.1:52589 - "GET /health HTTP/1.1" 200
+[openbb-mcp] INFO:     127.0.0.1:52590 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08DPR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52591 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08DPR.BO"}}}
+[sidecar] 2026-09-26 05:19:53,962 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08DPR.BO'
+[sidecar] 2026-09-26 05:19:54,272 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08DPR.BO"}}}
+[sidecar] 2026-09-26 05:19:54,477 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:19:54,478 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08DPR.BO'
+[openbb-mcp] INFO:     127.0.0.1:52592 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:52593 - "POST /mcp HTTP/1.1" 200 OK
+[sidecar] 2026-09-26 05:19:55,084 INFO services.provider_registry: provider openbb-mcp returned an incomplete fundamentals; trying next for richer data
+[sidecar] 2026-09-26 05:19:56,547 WARNING services.provider_health: provider health: yahoo circuit OPEN for 66s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[openbb-mcp] INFO:     127.0.0.1:52598 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:52599 - "POST /mcp HTTP/1.1" 200 OK
+[sidecar] 2026-09-26 05:19:58,157 INFO services.provider_registry: provider openbb-mcp returned an incomplete fundamentals; trying next for richer data
+[sidecar] 2026-09-26 05:19:58,392 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:19:59,434 WARNING services.provider_health: provider health: yahoo circuit OPEN for 71s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[openbb-mcp] INFO:     127.0.0.1:52602 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08MPR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52603 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08MPR.BO"}}}
+[sidecar] 2026-09-26 05:20:02,963 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08MPR.BO'
+[sidecar] 2026-09-26 05:20:03,264 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08MPR.BO"}}}
+[sidecar] 2026-09-26 05:20:03,467 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:20:03,468 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08MPR.BO'
+[openbb-mcp] INFO:     127.0.0.1:52604 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08QPD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52605 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08QPD.BO"}}}
+[sidecar] 2026-09-26 05:20:04,410 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '08QPD.BO'
+[sidecar] 2026-09-26 05:20:04,715 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 08QPD.BO"}}}
+[sidecar] 2026-09-26 05:20:04,958 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '08QPD.BO'
+[openbb-mcp] INFO:     127.0.0.1:52606 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:52609 - "POST /mcp HTTP/1.1" 200 OK
+[sidecar] 2026-09-26 05:20:05,434 INFO services.provider_registry: provider openbb-mcp returned an incomplete fundamentals; trying next for richer data
+[sidecar] 2026-09-26 05:20:06,599 WARNING services.provider_health: provider health: yahoo circuit OPEN for 67s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[openbb-mcp] INFO:     127.0.0.1:52610 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADD.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52611 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADD.BO"}}}
+[sidecar] 2026-09-26 05:20:10,071 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '11ADD.BO'
+[sidecar] 2026-09-26 05:20:10,467 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADD.BO"}}}
+[sidecar] 2026-09-26 05:20:10,596 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:20:10,597 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '11ADD.BO'
+[openbb-mcp] INFO:     127.0.0.1:52613 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADR.BO"}}}
+[openbb-mcp] INFO:     127.0.0.1:52614 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] ERROR:yfinance:HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADR.BO"}}}
+[sidecar] 2026-09-26 05:20:11,434 WARNING services.provider_registry: provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for '11ADR.BO'
+[sidecar] 2026-09-26 05:20:11,772 ERROR yfinance: HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 11ADR.BO"}}}
+[sidecar] 2026-09-26 05:20:11,781 WARNING services.provider_health: provider health: yahoo circuit OPEN for 59s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[sidecar] 2026-09-26 05:20:11,984 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:20:11,986 WARNING services.provider_registry: provider yfinance failed for fundamentals, falling through: yfinance has no instrument data for '11ADR.BO'
+[openbb-mcp] INFO:     127.0.0.1:52615 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:52618 - "POST /mcp HTTP/1.1" 200 OK
+[sidecar] 2026-09-26 05:20:12,487 INFO services.provider_registry: provider openbb-mcp returned an incomplete fundamentals; trying next for richer data
+[sidecar] 2026-09-26 05:20:13,975 WARNING services.provider_health: provider health: yahoo circuit OPEN for 65s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[openbb-mcp] INFO:     127.0.0.1:52624 - "POST /mcp HTTP/1.1" 200 OK
+[openbb-mcp] INFO:     127.0.0.1:52625 - "POST /mcp HTTP/1.1" 200 OK
+[sidecar] 2026-09-26 05:20:16,852 INFO services.provider_registry: provider openbb-mcp returned an incomplete fundamentals; trying next for richer data
+[sidecar] 2026-09-26 05:20:17,076 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:20:18,517 WARNING services.provider_health: provider health: yahoo circuit OPEN for 50s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[sidecar] 2026-09-26 05:20:22,376 INFO uvicorn.access: 127.0.0.1:52627 - "GET /system/provider-health HTTP/1.1" 200
+[sidecar] 2026-09-26 05:20:22,728 INFO uvicorn.access: 127.0.0.1:52627 - "GET /health HTTP/1.1" 200
+[sidecar] 2026-09-26 05:20:22,730 INFO uvicorn.access: 127.0.0.1:52627 - "GET /openbb-mcp/status HTTP/1.1" 200
+[sidecar] 2026-09-26 05:20:22,732 INFO uvicorn.access: 127.0.0.1:52627 - "GET /health HTTP/1.1" 200
+[sidecar] 2026-09-26 05:20:27,442 INFO services.provider_health: provider health: yahoo circuit CLOSED (healthy round-trip)
+[sidecar] 2026-09-26 05:20:27,461 INFO uvicorn.access: 127.0.0.1:52627 - "GET /quotes?symbols=SPY%2CQQQ%2CNVDA%2CAAPL&asset_class=equity HTTP/1.1" 200
+[sidecar] 2026-09-26 05:20:29,139 WARNING services.provider_health: provider health: yahoo circuit OPEN for 58s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+[sidecar] 2026-09-26 05:20:30,097 INFO uvicorn.access: 127.0.0.1:52633 - "GET /crypto/ticker?exchange=binance&symbol=ETH%2FUSDT HTTP/1.1" 200
+[sidecar] 2026-09-26 05:20:31,266 INFO uvicorn.access: 127.0.0.1:52627 - "GET /crypto/ticker?exchange=binance&symbol=BTC%2FUSDT HTTP/1.1" 200
+[sidecar] 2026-09-26 05:20:31,327 WARNING services.fundamentals_warm: fundamentals warm: rate-limited (streak=1); backing off 650s
