@@ -789,3 +789,37 @@ async def test_errored_run_still_carries_its_partial_answer(
     row = await _await_terminal(run_id)
     assert row is not None and row.status == "error"
     assert row.answer == "Partial analysis before the ceiling."
+
+
+class _NoteThenOverBudgetProvider:
+    """A valid write_note in a round whose usage breaches the token ceiling."""
+
+    async def stream_chat(
+        self, messages: list[LLMMessage], model: str, api_key: str | None = None, **kwargs: Any
+    ) -> AsyncIterator[Any]:
+        note = {"scope": "NVDA", "text": "Watch the margin"}
+        yield LLMToolUseEvent(tool_call_id="c-note", name="write_note", input=note)
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=100_000, output_tokens=0))
+
+
+@pytest.mark.asyncio
+async def test_a_halted_rounds_host_actions_are_not_proposed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-092: the halt stops before dispatch, so the round's write_note
+    must not reach delegate-runs.ts as a proposed change."""
+    _patch(monkeypatch, _NoteThenOverBudgetProvider())
+    dispatched: list[str] = []
+
+    async def _record_dispatch(tool_call: Any, *_a: Any, **_k: Any) -> str:
+        dispatched.append(tool_call.name)
+        return "{}"
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _record_dispatch)
+    run_id = run_manager.launch_run(
+        agent_id="copilot", prompt="x", api_key="sk", budget=RunBudget(max_tokens=1000)
+    )
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "error"
+    assert dispatched == []
+    assert row.host_actions == []
