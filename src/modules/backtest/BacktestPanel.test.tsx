@@ -143,6 +143,23 @@ afterEach(() => {
 // Tests
 // ---------------------------------------------------------------------------
 
+describe("BacktestPanel date defaults (R15-UI-062)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 25)); // 2026-09-25, local time
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("defaults the date range to today and today - 2y, not a frozen literal", () => {
+    render(<BacktestPanel />);
+    expect(screen.getByLabelText("Start date")).toHaveValue("2024-09-25");
+    expect(screen.getByLabelText("End date")).toHaveValue("2026-09-25");
+  });
+});
+
 describe("BacktestPanel", () => {
   it("loads strategies on mount and selects the first", async () => {
     vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
