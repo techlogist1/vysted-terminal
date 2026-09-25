@@ -2034,7 +2034,7 @@ def _tool_reference(tool_ids: set[str]) -> re.Pattern[str]:
         rf"`(?P<tick>{ids})`"
         rf"|(?:according to|as per|per|based on|(?:output|results?|data|response)\s+(?:of|from)"
         r"|(?:obtained|fetched|retrieved|pulled|sourced|taken|got|gotten|came|comes?|derived"
-        r"|drawn|received)\s+(?:from|via|by|using|through))"
+        r"|drawn|received)\b[^,;.\n]{0,60}?\s(?:from|via|by|using|through))"
         rf"\s+(?:the\s+)?`?(?P<lead>{ids})\b"
         rf"|\b(?P<noun>{ids})(?=\s+(?:tool|returned|results?|output|data)\b|\s*[:=])"
         rf"|\b(?P<bare>{bare})\b",
@@ -2112,10 +2112,15 @@ def _guard_sentence(
         refs.append((start, canon.get(tool, tool), cited))
     breaks: list[tuple[int, int]] = []
     for m in _CLAUSE_BREAK.finditer(sentence, 0, cut):
-        # A bare "and"/"so"/"then" parts clauses only before a tool reference
-        # ("had nothing and fundamentals returned:"), not a list ("'annual'
-        # and 'quarterly'").
-        if m.group("weak") and not any(m.end() <= r[0] <= m.end() + 40 for r in refs):
+        # A bare "and"/"so"/"then" parts clauses only right before a tool
+        # reference ("had nothing and fundamentals returned:", "and the
+        # `news` tool ..."), not a list ("'annual' and 'quarterly'") nor a
+        # phrase that names a tool later ("and fundamental metrics using X").
+        if m.group("weak") and not any(
+            r[0] >= m.end()
+            and re.fullmatch(r"(?:(?:the|a|an|then|I|it|my)\s+)?`?", sentence[m.end() : r[0]])
+            for r in refs
+        ):
             continue
         breaks.append(m.span())
     for start, _tool, cited in refs:

@@ -2723,6 +2723,13 @@ _FUND_NOTE = "the fundamentals tool returned no data for this in this turn"
             "'annual' and 'quarterly' parameters respectively.",
             "The financial_statements tool returned no data for this in this turn.",
         ),
+        (
+            {"price_data": _ERRORED},
+            "(Note: I fetched the latest price and fundamental metrics using price_data, but "
+            "was unable to retrieve any income statement due to a provider error.)",
+            "The price_data tool returned no data for this in this turn, but was unable to "
+            "retrieve any income statement due to a provider error.)",
+        ),
     ],
 )
 async def test_a_figure_attributed_to_a_tool_with_no_ok_result_is_replaced(
