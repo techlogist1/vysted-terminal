@@ -17,8 +17,10 @@ class Quote(BaseModel):
 
     symbol: str
     price: float
-    change: float
-    change_percent: float
+    # ``None`` when the lane does not know the day's change (no prior close) —
+    # never a fabricated 0.0 (R15-DATA-103).
+    change: float | None
+    change_percent: float | None
     volume: float | None = None
     # The session's open/high/low and the prior close, where the lane reports
     # them (R15-DATA-053); null when it does not.

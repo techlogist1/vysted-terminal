@@ -383,6 +383,26 @@ async def test_row_to_pair_roundtrip_and_priceless_quote() -> None:
     assert seeded_quote is None
 
 
+def test_null_change_row_keeps_change_unset_and_row_currency() -> None:
+    """R15-DATA-103: a row whose day change is unknown (the bhavcopy lane with
+    no prior close writes NULL) keeps the change unset — never a fabricated
+    0.0 — and a row with no quote currency falls back to its own currency
+    column, not 'USD'."""
+    row = {
+        "symbol": "CCC.NS",
+        "currency": "INR",
+        "quote_price": 100.0,
+        "quote_change": None,
+        "quote_change_percent": None,
+        "quote_currency": None,
+        "provider": "seed",
+    }
+    _, quote = store.row_to_pair(row)
+    assert quote is not None
+    assert quote.change is None and quote.change_percent is None
+    assert quote.currency == "INR"
+
+
 # ---------------------------------------------------------------------------
 # R15-DATA-095: one vocabulary (ScreenerNumericField), a general _migrate,
 # and an asserted SQL identifier.

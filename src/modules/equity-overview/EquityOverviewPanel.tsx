@@ -1038,16 +1038,18 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
                     <span className="text-charcoal-100 text-overview tabular-nums">
                       {formatPrice(quote.price)} {quote.currency}
                     </span>
-                    <span
-                      className={cn(
-                        "text-body whitespace-nowrap tabular-nums",
-                        quote.change_percent >= 0 ? "text-positive" : "text-negative",
-                      )}
-                    >
-                      {quote.change >= 0 ? "+" : ""}
-                      {formatPrice(quote.change)} ({quote.change_percent >= 0 ? "+" : ""}
-                      {quote.change_percent.toFixed(2)}%)
-                    </span>
+                    {quote.change !== null && quote.change_percent !== null && (
+                      <span
+                        className={cn(
+                          "text-body whitespace-nowrap tabular-nums",
+                          quote.change_percent >= 0 ? "text-positive" : "text-negative",
+                        )}
+                      >
+                        {quote.change >= 0 ? "+" : ""}
+                        {formatPrice(quote.change)} ({quote.change_percent >= 0 ? "+" : ""}
+                        {quote.change_percent.toFixed(2)}%)
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

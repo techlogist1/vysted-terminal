@@ -604,10 +604,10 @@ def row_to_pair(row: dict[str, Any]) -> tuple[Fundamentals, Quote | None]:
         quote = Quote(
             symbol=row["symbol"],
             price=row["quote_price"],
-            change=row.get("quote_change") or 0.0,
-            change_percent=row.get("quote_change_percent") or 0.0,
+            change=row.get("quote_change"),
+            change_percent=row.get("quote_change_percent"),
             volume=row.get("quote_volume"),
-            currency=row.get("quote_currency") or "USD",
+            currency=row.get("quote_currency") or row.get("currency") or "USD",
             market_state=row.get("quote_market_state"),
             timestamp=timestamp,
             provider=row.get("provider") or "fundamentals-store",

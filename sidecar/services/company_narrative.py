@@ -148,8 +148,9 @@ def _source_values(fundamentals: Fundamentals | None, quote: Quote | None) -> li
     if quote is not None:
         add(quote.price)
         add(quote.change)
-        add_fraction(quote.change_percent / 100.0)  # change_percent is already a percent
-        values.append(quote.change_percent)
+        if quote.change_percent is not None:
+            add_fraction(quote.change_percent / 100.0)  # change_percent is already a percent
+            values.append(quote.change_percent)
         add(quote.volume)
 
     if fundamentals is not None:

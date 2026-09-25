@@ -15,8 +15,9 @@ export type Freshness = "live" | "eod" | "stale";
 export interface Quote {
   symbol: string;
   price: number;
-  change: number;
-  change_percent: number;
+  /** `null` when the lane does not know the day's change — never a fabricated 0. */
+  change: number | null;
+  change_percent: number | null;
   volume: number | null;
   /** The session's open/high/low and the prior close, where the lane reports them. */
   open?: number | null;
