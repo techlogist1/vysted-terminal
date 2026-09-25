@@ -12,13 +12,13 @@
  * writes the data through `useSecStore`.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { cn } from "@/lib/utils";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
-import { selectFilings, useSecStore } from "@/store/sec";
+import { EMPTY_FILINGS, filingsKey, useSecStore } from "@/store/sec";
 import { usePanelContextBus } from "@/store/panel-context";
 
 import type { Filing, FilingFormType } from "../../../types/sec";
@@ -39,7 +39,6 @@ const FORM_FILTER_OPTIONS: Array<{ value: FilingFormType | "all"; label: string 
 
 export function SecFilingsPanel() {
   const activeIdentifier = useSecStore((s) => s.activeIdentifier);
-  const filingsByIdentifier = useSecStore((s) => s.filingsByIdentifier);
   const setActiveIdentifier = useSecStore((s) => s.setActiveIdentifier);
   const loadFilings = useSecStore((s) => s.loadFilings);
   const filingsStatus = useSecStore((s) => s.filingsStatus);
@@ -81,10 +80,11 @@ export function SecFilingsPanel() {
   }, [loadFilings, setActiveIdentifier]);
   useRetryOnSidecarReady(loadDefault, []);
 
-  const filings = useMemo(() => {
-    void filingsByIdentifier; // subscribe
-    return selectFilings(activeIdentifier, formFilter === "all" ? undefined : formFilter);
-  }, [filingsByIdentifier, activeIdentifier, formFilter]);
+  const filings = useSecStore((s) => {
+    if (!activeIdentifier) return EMPTY_FILINGS;
+    const key = filingsKey(activeIdentifier, formFilter === "all" ? undefined : formFilter);
+    return s.filingsByIdentifier[key] ?? EMPTY_FILINGS;
+  });
 
   const submitSymbol = useCallback(
     (event?: React.FormEvent<HTMLFormElement>) => {

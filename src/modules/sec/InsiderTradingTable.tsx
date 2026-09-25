@@ -17,7 +17,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { groupDigits } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { selectInsider, useSecStore } from "@/store/sec";
+import { EMPTY_INSIDER, insiderKey, useSecStore } from "@/store/sec";
 
 import type { InsiderTransaction } from "../../../types/sec";
 
@@ -100,19 +100,21 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
   const status = useSecStore((s) => s.insiderStatus);
   const error = useSecStore((s) => s.insiderError);
 
-  // Subscribe to the per-identifier map so re-renders happen when the
-  // loaded payload updates.
-  const byIdentifier = useSecStore((s) => s.insiderByIdentifier);
+  // Selects (and subscribes to) the per-identifier entry directly, so a
+  // store update after mount re-renders without a separate hook + void hack.
+  const raw = useSecStore((s) => {
+    if (!identifier) return EMPTY_INSIDER;
+    const key = insiderKey(identifier, form === "all" ? undefined : form);
+    return s.insiderByIdentifier[key] ?? EMPTY_INSIDER;
+  });
   const response = useMemo(() => {
-    void byIdentifier; // hooked above for subscription
-    const raw = selectInsider(identifier, form === "all" ? undefined : form);
     // Defend against an upstream that returns a shape without `transactions`
     // (e.g. a mocked sidecarGet that returned a generic FilingsListResponse).
     if (!raw || !Array.isArray(raw.transactions)) {
       return { cik: "", issuer_name: "", transactions: [] };
     }
     return raw;
-  }, [byIdentifier, identifier, form]);
+  }, [raw]);
 
   useEffect(() => {
     if (identifier) {
