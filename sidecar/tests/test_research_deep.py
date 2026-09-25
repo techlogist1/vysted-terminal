@@ -597,3 +597,86 @@ def test_reflect_complete_reads_the_leading_token_not_a_substring() -> None:
     assert _reflect_says_complete("COMPLETE") is True
     assert _reflect_says_complete("**COMPLETE** — all four dimensions sourced") is True
     assert _reflect_says_complete("No gaps remain.") is True
+
+
+class _SnapshotTimesOutToolCall(_FakeToolCall):
+    """The up-front snapshot's price/fundamentals legs miss (the rc1 BDL
+    6 s time-out); the researchers' own later legs for the same dims land."""
+
+    async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        first = name not in self.calls
+        result = await super().__call__(name, args)
+        if name in ("price_data", "fundamentals") and first:
+            return {"ok": False, "error": f"{name} timed out after 6s — dropped"}
+        return result
+
+
+def test_deep_note_skipped_when_a_researcher_leg_cites_structured_data() -> None:
+    """rc1-drive-research-briefs:1 — a failed snapshot alone must not stamp the
+    'web sources alone' note when the run itself cites ``vysted://price/…``."""
+    brief = asyncio.run(
+        run_iter_research(
+            "Apple outlook",
+            region="US",
+            tool_call=_SnapshotTimesOutToolCall(),
+            llm_call=_FakeLLM(reflect_complete=True),
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert brief.structured["price"]["ok"] is False
+    assert "vysted://price/AAPL" in {s.url for s in brief.sources}
+    assert "Coverage note" not in brief.markdown
+
+
+def test_heavy_panel_drops_the_note_when_an_angle_cites_structured_data() -> None:
+    """The merged panel: the shared snapshot failed, an angle's researcher
+    cited ``vysted://fundamentals/…`` — no note, even one the synthesist carried."""
+    from services.research.iter import run_heavy_research
+
+    class _PanelLLM(_FakeLLM):
+        async def __call__(self, messages: list[dict[str, Any]]) -> str:
+            low = str(messages[0]["content"]).lower()
+            if "expert research panel" in low:
+                return "Angle A\nAngle B"
+            if "lead synthesist" in low:
+                return "# Panel brief\nMerged [1].\n\n" + deep._WEB_ONLY_FLOOR_NOTE
+            return await super().__call__(messages)
+
+    brief = asyncio.run(
+        run_heavy_research(
+            "Apple outlook",
+            angles=2,
+            region="US",
+            tool_call=_SnapshotTimesOutToolCall(),
+            llm_call=_PanelLLM(reflect_complete=True),
+            budget=BudgetGuard(max_steps=20),
+        )
+    )
+    assert brief.structured["fundamentals"]["ok"] is False
+    assert "vysted://fundamentals/AAPL" in {s.url for s in brief.sources}
+    assert "Coverage note" not in brief.markdown
+
+
+def test_deep_snapshot_is_not_held_to_the_fast_leg_box(monkeypatch: pytest.MonkeyPatch) -> None:
+    """rc1-battery-4:1 — the DEEP caller passes its own snapshot leg box, so a
+    price leg slower than FAST's FR-070 box still backs the metric cards."""
+    from services.research import fast
+
+    monkeypatch.setattr(fast, "_WITNESS_LEG_TIMEOUT_S", 0.05)
+
+    class _SlowPrice(_FakeToolCall):
+        async def __call__(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+            if name == "price_data":
+                await asyncio.sleep(0.2)
+            return await super().__call__(name, args)
+
+    brief = asyncio.run(
+        run_iter_research(
+            "Apple outlook",
+            region="US",
+            tool_call=_SlowPrice(),
+            llm_call=_FakeLLM(reflect_complete=True),
+            budget=BudgetGuard(max_steps=10),
+        )
+    )
+    assert brief.structured["price"]["ok"] is True

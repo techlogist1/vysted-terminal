@@ -741,7 +741,7 @@ async def run_research_model_brief(
     # bound target pins the prompt and backs the brief's structured legs; None
     # proceeds web-only with the no-instrument note.
     from services import agent_tools
-    from services.research.fast import snapshot_structured
+    from services.research.fast import DEEP_SNAPSHOT_LEG_TIMEOUT_S, snapshot_structured
     from services.research.target import (
         NO_INSTRUMENT_NOTE,
         ResearchDisambiguation,
@@ -828,6 +828,7 @@ async def run_research_model_brief(
             target.symbol,
             region=config.get_region(),
             canonical_name=target.name,
+            leg_timeout_s=DEEP_SNAPSHOT_LEG_TIMEOUT_S,
         )
         structured = {"resolved": resolved_payload(target), **snap}
         symbol = target.symbol

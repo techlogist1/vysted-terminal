@@ -104,6 +104,12 @@ _INTRADAY_TIMEFRAMES: frozenset[str] = frozenset({"1m", "5m", "15m", "30m", "1h"
 #: its FR-070 budget (<= 15 s).
 _WITNESS_LEG_TIMEOUT_S = 6.0
 
+#: The snapshot leg box for the DEEP/ULTRA/Tier B callers (rc1-battery-4:1).
+#: The FR-070 6 s box is FAST's; a cold NSE-paced price or fundamentals leg
+#: alone takes 10-11 s (~20 s run together), so under 6 s those runs dropped
+#: the metric cards for nothing. 25 s sits well inside their walls (>= 120 s).
+DEEP_SNAPSHOT_LEG_TIMEOUT_S = 25.0
+
 
 def _suggested_indicators(timeframe: str = "1d", asset_class: str | None = None) -> list[str]:
     """Map an instrument's asset class + timeframe to the cockpit's opening
@@ -147,9 +153,9 @@ async def _safe_call(tool_call: ToolCall, name: str, args: dict[str, Any]) -> di
 
 
 async def _time_boxed(
-    name: str, leg: Awaitable[dict[str, Any]], on_step: OnStep | None
+    name: str, leg: Awaitable[dict[str, Any]], on_step: OnStep | None, timeout_s: float
 ) -> dict[str, Any]:
-    """Await one structured leg under :data:`_WITNESS_LEG_TIMEOUT_S`.
+    """Await one structured leg under ``timeout_s``.
 
     A leg that overruns (a throttled Yahoo) becomes an ``ok: False`` miss and a
     timed-out step with its ``latency_ms``, so the gather never waits on it and
@@ -157,9 +163,9 @@ async def _time_boxed(
     """
     start = time.perf_counter()
     try:
-        return await asyncio.wait_for(leg, _WITNESS_LEG_TIMEOUT_S)
+        return await asyncio.wait_for(leg, timeout_s)
     except TimeoutError:
-        detail = f"{name} timed out after {_WITNESS_LEG_TIMEOUT_S:g}s — dropped"
+        detail = f"{name} timed out after {timeout_s:g}s — dropped"
         await _emit(on_step, ResearchStep("tool", detail, _ms(start), status="error"))
         return {"ok": False, "provider": None, "error": detail, "reason": "provider_error"}
 
@@ -266,6 +272,7 @@ async def snapshot_structured(
     region: str | None = None,
     canonical_name: str | None = None,
     on_step: OnStep | None = None,
+    leg_timeout_s: float | None = None,
 ) -> dict[str, Any]:
     """A price + fundamentals snapshot as provenance-tagged structured legs.
 
@@ -317,9 +324,11 @@ async def snapshot_structured(
     NON-provider (BSE-derived) share count so the market-cap check is not
     circular. All three never raise; an absent figure attaches nothing.
 
-    R15-RESEARCH-027: each witness leg is time-boxed by
-    :data:`_WITNESS_LEG_TIMEOUT_S` (a timed-out leg is dropped like a failed
-    one) and reports one ``on_step`` step carrying its ``latency_ms``.
+    R15-RESEARCH-027: each leg is time-boxed by ``leg_timeout_s`` (a timed-out
+    leg is dropped like a failed one) and reports one ``on_step`` step carrying
+    its ``latency_ms``. The caller owns the box: FAST leaves it at the FR-070
+    :data:`_WITNESS_LEG_TIMEOUT_S`; the deep callers pass
+    :data:`DEEP_SNAPSHOT_LEG_TIMEOUT_S` (rc1-battery-4:1).
     """
     from services import (
         dividend_actions,
@@ -332,10 +341,14 @@ async def snapshot_structured(
     from services.research import range_check
     from services.research.semantics import derive_semantics
 
+    box = _WITNESS_LEG_TIMEOUT_S if leg_timeout_s is None else leg_timeout_s
     price_res, fund_res = await asyncio.gather(
-        _time_boxed("price", _safe_call(tool_call, "price_data", {"symbol": symbol}), on_step),
+        _time_boxed("price", _safe_call(tool_call, "price_data", {"symbol": symbol}), on_step, box),
         _time_boxed(
-            "fundamentals", _safe_call(tool_call, "fundamentals", {"symbol": symbol}), on_step
+            "fundamentals",
+            _safe_call(tool_call, "fundamentals", {"symbol": symbol}),
+            on_step,
+            box,
         ),
     )
     out = {
@@ -387,9 +400,9 @@ async def snapshot_structured(
         async def _witness(name: str, leg: Awaitable[Any]) -> Any:
             start = time.perf_counter()
             try:
-                value = await asyncio.wait_for(leg, _WITNESS_LEG_TIMEOUT_S)
+                value = await asyncio.wait_for(leg, box)
             except TimeoutError:
-                detail = f"{name} cross-check timed out after {_WITNESS_LEG_TIMEOUT_S:g}s — dropped"
+                detail = f"{name} cross-check timed out after {box:g}s — dropped"
             except Exception as exc:  # noqa: BLE001 — a failed witness is a soft miss
                 logger.debug("snapshot cross-check %s for %s failed: %r", name, listing, exc)
                 detail = f"{name} cross-check failed — dropped"
@@ -620,8 +633,15 @@ async def gather_fast(
         t1 = time.perf_counter()
         await _emit(on_step, ResearchStep("tool", f"pulling market data for {symbol}"))
         news_res, filings_value, snapshot = await asyncio.gather(
-            _time_boxed("news", _safe_call(tool_call, "news", {"symbols": [symbol]}), on_step),
-            _time_boxed("filings", _filings_leg(tool_call, target), on_step),
+            _time_boxed(
+                "news",
+                _safe_call(tool_call, "news", {"symbols": [symbol]}),
+                on_step,
+                _WITNESS_LEG_TIMEOUT_S,
+            ),
+            _time_boxed(
+                "filings", _filings_leg(tool_call, target), on_step, _WITNESS_LEG_TIMEOUT_S
+            ),
             snapshot_structured(
                 tool_call, symbol, region=region, canonical_name=target.name, on_step=on_step
             ),
@@ -690,4 +710,4 @@ async def gather_fast(
     }
 
 
-__all__ = ["ToolCall", "gather_fast", "snapshot_structured"]
+__all__ = ["DEEP_SNAPSHOT_LEG_TIMEOUT_S", "ToolCall", "gather_fast", "snapshot_structured"]
