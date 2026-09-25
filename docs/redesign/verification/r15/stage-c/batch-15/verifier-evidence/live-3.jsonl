@@ -1,0 +1,20 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_d14dc9d121e74116ba7cf283890f0163", "name": "resolve_symbol", "input": {"query": "Sify Technologies - ADS share ratio", "region": "US"}}
+{"kind": "tool_result", "tool_call_id": "call_d14dc9d121e74116ba7cf283890f0163", "name": "resolve_symbol", "ok": false, "error": "Could not resolve 'Sify Technologies - ADS share ratio' to a known instrument in the bundled US/NSE/BSE masters or a live lookup. Check the spelling, or add a data source that covers it."}
+{"kind": "delta", "text": "The ADR-to-ordinary-share ratio is not available from this session's sources. "}
+{"kind": "delta", "text": "Could"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " please"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " context"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " clarify"}
+{"kind": "delta", "text": " what"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " are"}
+{"kind": "delta", "text": " looking"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 2921, "output_tokens": 40, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

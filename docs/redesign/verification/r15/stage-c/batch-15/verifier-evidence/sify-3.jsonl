@@ -1,0 +1,39 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_8edda46677d14e409f061664e81591cb", "name": "fundamentals", "input": {"symbol": "SIFY"}}
+{"kind": "tool_result", "tool_call_id": "call_8edda46677d14e409f061664e81591cb", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " one"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " A"}
+{"kind": "delta", "text": "DR"}
+{"kind": "delta", "text": " represents"}
+{"kind": "delta", "text": " six"}
+{"kind": "delta", "text": " equity"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "TM"}
+{"kind": "delta", "text": " revenue"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " S"}
+{"kind": "delta", "text": "IFY"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "651"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "approximately"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "573"}
+{"kind": "delta", "text": " million"}
+{"kind": "delta", "text": " USD"}
+{"kind": "delta", "text": ")."}
+{"kind": "done", "usage": {"input_tokens": 5759, "output_tokens": 32, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
