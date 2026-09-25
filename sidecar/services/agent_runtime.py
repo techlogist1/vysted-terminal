@@ -2043,13 +2043,14 @@ def _tool_reference(tool_ids: set[str]) -> re.Pattern[str]:
 
 
 def _guard_tool_citations(
-    text: str, ok_tools: set[str], tool_ids: set[str], depth: int
+    text: str, ok_tools: set[str], tool_ids: set[str], depth: int, pending: bool = False
 ) -> tuple[str, int]:
     """``text`` with each clause that attributes a result to a tool no ok
     result came from replaced (R15-LEAD-030; :func:`_guard_sentence` decides
     a sentence). ``depth``: the brackets a replaced dump left open, or
-    :data:`DUMP_PENDING`; the text until they balance is dropped. Returns the
-    text and the depth left open."""
+    :data:`DUMP_PENDING`; the text until they balance is dropped. ``pending``:
+    a tool call of this round awaits its result, so a bare dump is fabricated
+    too. Returns the text and the depth left open."""
     ref = _tool_reference(tool_ids)
     canon = {t.replace("_", ""): t for t in tool_ids}  # "PriceData" -> price_data
     out: list[str] = []
@@ -2070,17 +2071,27 @@ def _guard_tool_citations(
                     out.append(sentence[i + 1 :])
                     break
             continue
-        sentence, depth = _guard_sentence(sentence, ok_tools, ref, canon)
+        sentence, depth = _guard_sentence(sentence, ok_tools, ref, canon, pending)
         out.append(sentence)
     return "".join(out), depth
 
 
+#: A bare result label opening a dump: "Returned:\n{...}", "Output = [".
+_DUMP_LABEL = re.compile(r"^\W*(?:returned|returns|output|results?|response)\s*[:=]\s*$", re.I)
+
+
 def _guard_sentence(
-    sentence: str, ok_tools: set[str], ref: re.Pattern[str], canon: dict[str, str]
+    sentence: str,
+    ok_tools: set[str],
+    ref: re.Pattern[str],
+    canon: dict[str, str],
+    pending: bool = False,
 ) -> tuple[str, int]:
     """``sentence`` with each clause that attributes a result to a tool not in
     ``ok_tools`` replaced, and the bracket depth a replaced dump left open
-    (``canon``: each id without its underscores, to the id).
+    (``canon``: each id without its underscores, to the id; ``pending``: a
+    call of this round has no result yet, so a bare dump or a "Returned:"
+    label with no tool named is fabricated as well).
 
     The decision is by attribution, not co-occurrence: a clause (the sentence
     between :data:`_CLAUSE_BREAK` conjunctions, a cited tool after a comma
@@ -2156,9 +2167,11 @@ def _guard_sentence(
             note = f"the {bad[0][1]} tool returned no data for this in this turn"
         elif (
             not inside
-            and not ok_tools
-            and _GENERIC_TOOL_REF.search(prose)
-            and (figure or _RESULT_VERB.search(prose))
+            and (pending or not ok_tools)
+            and (
+                (_GENERIC_TOOL_REF.search(prose) and (figure or _RESULT_VERB.search(prose)))
+                or (pending and (len(prose) < len(clause) or _DUMP_LABEL.match(prose)))
+            )
         ):
             note = "no tool returned data for this in this turn"
         else:
@@ -2418,7 +2431,12 @@ async def _consume_round(
         nonlocal dump_depth
         text = "".join(chunks)
         guarded = _guard_ratio_claims(text, turn.tool_results, turn.ratio_context)
-        guarded, dump_depth = _guard_tool_citations(guarded, turn.ok_tools, tool_ids, dump_depth)
+        # A tool called this round has no result yet: prose after the call
+        # cannot cite it, and a bare "Returned: {...}" is fabricated.
+        pending = {call.name for call in rnd.pending_tools}
+        guarded, dump_depth = _guard_tool_citations(
+            guarded, turn.ok_tools - pending, tool_ids, dump_depth, bool(pending)
+        )
         turn.ratio_context = _depositary_context(text, turn.ratio_context)
         if guarded.strip():
             rnd.streamed_text = True

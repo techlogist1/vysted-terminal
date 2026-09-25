@@ -2783,6 +2783,52 @@ async def test_a_true_error_mention_beside_an_ok_tools_figure_is_kept(
 
 
 @pytest.mark.asyncio
+async def test_a_dump_written_before_the_calls_result_arrives_is_dropped(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-030 batch-18 fresh-2-t2: with turn 1's trailer seeding
+    ``fundamentals``, llama3.1:8b re-called it and, in the same round, wrote
+    "Returned:\\n{'market_cap': ..., 'pe_ratio': {'display': '25.21' ...}}"
+    before any result existed (the real P/E was 38.48). A tool called this
+    round is not citable until its result is in, and a bare dump written
+    meanwhile is dropped; the citation after the result streams."""
+    agent_runtime.reload()
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    call = LLMToolUseEvent(tool_call_id="t", name="fundamentals", input={"symbol": "AAPL"})
+    after = "The market cap figure was from the fundamentals tool, which returned $4.90T."
+    provider = _RecordingRoundsProvider(
+        [
+            [call, LLMDeltaEvent(text="Returned:\n"), LLMDeltaEvent(text="{'pe': 25.21}\n"), done],
+            [LLMDeltaEvent(text=after), done],
+        ]
+    )
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+
+    async def _tool(*_a: Any, **_k: Any) -> str:
+        return json.dumps({"ok": True, "fundamentals": {"market_cap": 4.9e12}})
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    history = [
+        {"role": "user", "content": "AAPL market cap?"},
+        {"role": "assistant", "content": "$4.90T.\n\n[tool steps: Using fundamentals]"},
+    ]
+    answer = "".join(
+        [
+            e.text
+            async for e in agent_runtime.invoke_agent(
+                agent_id="copilot",
+                prompt="Which tool?",
+                api_key="sk-test",
+                autonomy="ask",
+                options={"history": history},
+            )
+            if isinstance(e, LLMDeltaEvent)
+        ]
+    )
+    assert answer == f"No tool returned data for this in this turn.\n\n{after}"
+
+
+@pytest.mark.asyncio
 async def test_an_adr_ratio_a_tool_result_carries_is_kept(monkeypatch: pytest.MonkeyPatch) -> None:
     """R15-AGENT-090: a ratio the session's sources do carry ("Each Repr 6 Ords",
     stated as a number word) passes the guard untouched."""
