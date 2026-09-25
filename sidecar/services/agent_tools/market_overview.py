@@ -140,6 +140,11 @@ async def _market_overview(args: dict[str, Any]) -> dict[str, Any]:
         "indices": indices,
         "headlines": headlines,
     }
+    if region not in _INDICES_BY_REGION:
+        # GLOBAL (and any other unmapped region) silently reuses the US index
+        # set — name that substitution so the model doesn't read "GLOBAL" as
+        # its own benchmark (R15-DATA-101).
+        payload["note"] = f"no index set for region {region!r} — showing the US proxy benchmark"
     if headlines_error:
         payload["headlines_error"] = headlines_error
     if not resolved:
