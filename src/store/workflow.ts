@@ -93,8 +93,8 @@ interface WorkflowState {
   clearRun: (runId: string) => void;
   /** Drop every accumulated run. */
   clearAll: () => void;
-  /** Remove pending-notification intents the dispatcher has consumed. */
-  drainNotifications: () => DesktopNotificationIntent[];
+  /** Atomically return and clear the pending intents (take before send). */
+  takeNotifications: () => DesktopNotificationIntent[];
 
   /**
    * POST the spec to ``/workflow/run`` and consume the SSE stream — the one
@@ -262,10 +262,10 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
   clearAll: () => set({ runs: {}, activeRun: null, pendingNotifications: [] }),
 
-  drainNotifications: () => {
-    const drained = get().pendingNotifications;
+  takeNotifications: () => {
+    const taken = get().pendingNotifications;
     set({ pendingNotifications: [] });
-    return drained;
+    return taken;
   },
 
   runWorkflow: async (spec, inputs, options = {}) => {
