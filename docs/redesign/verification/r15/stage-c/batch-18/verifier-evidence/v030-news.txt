@@ -1,0 +1,20 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  23.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_a7ea83d65fe64193939b296c53198f99", "name": "news", "input": {"limit": 5, "symbols": ["AAPL"]}}
+[  25.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_a7ea83d65fe64193939b296c53198f99", "name": "news", "ok": true, "error": null}
+[  35.8s] heartbeat: {"kind": "heartbeat"}
+[  61.0s] done: {"kind": "done", "usage": {"input_tokens": 5327, "output_tokens": 296, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The latest news on Apple includes the following:
+
+* Apple stock is approaching a buy point after the launch of new iPhone models and a price-target hike from Evercore ISI analyst Amit Daryanani. (Source: Yahoo! Finance)
+* Block expands Square and Cash App's reach with Apple and Workday deals, aiming to boost merchant discovery, direct deposits, and engagement. (Source: Yahoo! Finance)
+* Cloudflare launches new AI crawling controls, including a "Disallow AI Training" setting and an Accountable designation for AI crawlers, giving website owners granular control over search, AI training, and AI agents. (Source: Yahoo! Finance)
+* Apple, Berkshire, and Walmart have new CEOs, with Apple's Tim Cook among those attending a White House state dinner to honor China's Xi Jinping. (Source: Yahoo! Finance)
+* Meta Platforms Inc. has overtaken Space Exploration Technologies Corp. to become the world's seventh-largest public company by market capitalization, as excitement builds around its new AI agent, Muse. (Source: Yahoo! Finance)
+* Apple is reportedly working on a new screen-free fitness tracker and an AI-heavy pendant to broaden its wearable lineup beyond the Apple Watch. (Source: Yahoo! Finance)
+
+Note that these news articles are from various sources, including Yahoo! Finance, and may not be comprehensive or up-to-date. For the most accurate information, it's recommended to check Apple's official website or other reliable news sources.
+
+=== ok · 61.0s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 311, 'done': 1} · usage in=5327 out=296 · est $0.00000 · llama3.1:8b

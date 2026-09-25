@@ -1,0 +1,12 @@
+== batch-18-verify
+SHERA -> SHERA-SM.NS | SHERA ENERGY LIMITED | mcap None | pe None | INR | GATE PASS
+RICHA -> RICHA-SM.NS | RICHA INFO SYSTEMS LTD | mcap None | pe None | INR | GATE PASS
+ONYX -> ONYX-SM.NS | ONYX BIOTEC LIMITED | mcap None | pe None | INR | GATE PASS
+USHAFIN -> USHAFIN-SM.NS | USHA FINANCIAL SERVICES L | mcap None | pe None | INR | GATE PASS
+symbols_match SHERA/SHERA-SM.NS True | SHERA/RICHA-SM.NS False | SMR/SMR.NS True
+== b18v-base
+SHERA -> SHERA-SM.NS | SHERA ENERGY LIMITED | mcap None | pe None | INR | GATE FAIL CorrectnessError: correctness gate: provider 'yfinance' returned fundamentals for 'SHERA-SM.NS', requested 'SHERA' (symbol mismatch)
+RICHA -> RICHA-SM.NS | RICHA INFO SYSTEMS LTD | mcap None | pe None | INR | GATE FAIL CorrectnessError: correctness gate: provider 'yfinance' returned fundamentals for 'RICHA-SM.NS', requested 'RICHA' (symbol mismatch)
+ONYX -> ONYX-SM.NS | ONYX BIOTEC LIMITED | mcap None | pe None | INR | GATE FAIL CorrectnessError: correctness gate: provider 'yfinance' returned fundamentals for 'ONYX-SM.NS', requested 'ONYX' (symbol mismatch)
+USHAFIN -> USHAFIN-SM.NS | USHA FINANCIAL SERVICES L | mcap None | pe None | INR | GATE FAIL CorrectnessError: correctness gate: provider 'yfinance' returned fundamentals for 'USHAFIN-SM.NS', requested 'USHAFIN' (symbol mismatch)
+symbols_match SHERA/SHERA-SM.NS False | SHERA/RICHA-SM.NS False | SMR/SMR.NS True
