@@ -263,6 +263,9 @@ settings surface ever exposed it, and there are no orders left to limit.
 - **Smallest unblock:** approve adding a `catch` → `setError` to the hydrate effect (an
   error-handling fix, not a copy or policy change) so a keychain failure surfaces a retry
   instead of a silent dead end.
+- **Second trigger (26 Sep bundle rehearsal, see §5.10):** a `HOME=`-isolated release launch
+  has no default keychain (errSecNoDefaultKeychain, -25307), so the terms never render there
+  either (`r15/stage-d/bundle-rehearsal/REHEARSAL.md:79`). Same fix, not a new entry.
 
 ## 3. New items from Stage C — trading removal (D81, 23 Sep 2026)
 
@@ -646,3 +649,200 @@ are done-and-revertable like §1; these are yours to review or act on.
   a tool call that stages it for review.
 - **Status:** blocked_tier4 — fresh verifier concurred (batch-23/DISPOSITION-CONCURRENCE.md);
   operator decides at rc1
+
+## 5. New items from Stage D and the bundle rehearsal (26 Sep 2026)
+
+Filed from the refreshed Stage D open-questions list
+(`docs/redesign/verification/r15/stage-d/OPEN_QUESTIONS.md`) and the production-bundle
+rehearsal at `64e9470e` (`r15/stage-d/bundle-rehearsal/REHEARSAL.md`). Items the list raises
+that an earlier section already covers are not repeated here: the Tier-4 dispositions are
+§4.9–4.12, and the R15-LEAD-035 promotion is settled by batch-24's verifier concurrence at the
+close-out (§4.10), with no action from you unless that verifier refuses. Licence facts below
+are facts only. Neither of us is a lawyer, and the legal call is yours.
+
+### 5.1 AGPL-3.0 and GPL components ship inside two of the three sidecar binaries
+
+- **What:** eight `openbb-*` packages (`openbb-core` 1.6.9 and seven others, AGPL-3.0-only)
+  are frozen into the `vysted-openbb-mcp-sidecar` binary. `sec-edgar-mcp` 1.0.8 (AGPL-3.0) and
+  `Unidecode` 1.4.0 (GPLv2+) are frozen into the `vysted-sec-edgar-mcp-sidecar` binary
+  (`r15/stage-d/DEPS_LICENCES.md:57-66`). Both binaries are separate executables. The Tauri
+  core spawns each one as its own process and talks to it over loopback MCP. Both ship inside
+  the same `.app`/`.dmg` as the PolyForm Strict core. None of these packages is modified.
+- **Why it is yours:** no entry above covers it. §1.4 relicensed the core but did not address
+  third-party AGPL programs that ship inside the core's installer.
+- **Options:** (a) keep shipping them as separate programs and add a third-party notices
+  file. It would carry each package's licence text and its exact pinned version, and state
+  where the corresponding source is (the upstream repos, plus
+  `sidecar/openbb_mcp_subprocess/requirements.txt` and
+  `sidecar/sec_edgar_mcp_subprocess/requirements.txt` in this public repo). Link the file from
+  the release notes. (b) Stop bundling the two MCP binaries and have users install them
+  separately. (c) Replace them with first-party data paths.
+- **Recommendation:** (a) for 0.9.0. It is the cheapest path you can defend, because the
+  process boundary already exists and nothing is modified. (b) and (c) cost a release's worth
+  of work, and they remove the SEC and OpenBB data lanes. Get a lawyer's read before you sell
+  the first commercial licence. The question is whether shipping AGPL programs next to a
+  commercially licensed core needs more than notices. Only a lawyer can answer it.
+- **Status: awaiting operator**
+
+### 5.2 `frozendict` 2.4.7 (LGPL v3) is frozen into the main and openbb-mcp sidecars
+
+- **What:** `frozendict` 2.4.7 is licensed `LGPL v3` (classifier LGPLv3). It is frozen into
+  the main sidecar and the openbb-mcp binary (`r15/stage-d/DEPS_LICENCES.md:67-68`). From the
+  installed `frozendict-2.4.7.dist-info` in both `sidecar/.venv` and
+  `sidecar/openbb_mcp_subprocess/.venv`: it is pure Python (six `.py` files in its `RECORD`,
+  no compiled extension). It arrives only as a dependency of `yfinance` 1.3.0
+  (`Requires-Dist: frozendict>=2.3.4`), and it is unmodified. PyInstaller `--onefile` stores
+  it as bytecode inside the binary's archive. The whole build recipe, including the pinned
+  requirements and `scripts/sidecar-specs.mjs`, is public in this repo, so anyone can rebuild
+  the binary with a different `frozendict`.
+- **Options:** (a) attribution plus the LGPL-3.0 and GPL-3.0 texts in the notices file from
+  5.1, with a note that the module is unmodified and replaceable by rebuilding from the public
+  recipe. (b) Replace it. That means forking or dropping `yfinance`, because the dependency
+  is `yfinance`'s and not ours. (c) Move to `--onedir`, which leaves it as a loose, replaceable
+  file. That is already the deferred MCP cold-bind fix (`BLOCKERS.md`), but it needs a
+  Tier-1 `tauri.conf.json` change.
+- **Recommendation:** (a). It is one notices entry, and the public rebuild recipe is what
+  makes swapping the library practical. (c) would make replacement easier still, but only
+  when the cold-bind work lands for its own reasons, not for this.
+- **Status: awaiting operator**
+
+### 5.3 `r-efi` and the four packages with empty licence metadata: no licence gap found
+
+- **`r-efi` 5.3.0 / 6.0.0:** the licence is `MIT OR Apache-2.0 OR LGPL-2.1-or-later`, an
+  OR-choice. It is reachable only through `getrandom`'s
+  `cfg(all(target_os="uefi", getrandom_backend="efi_rng"))` edge, and this app never builds
+  for UEFI (`r15/stage-d/DEPS_LICENCES.md:69-70`). It is not compiled into any shipped
+  artifact.
+- **Empty metadata, resolved from the licence files shipped in each `dist-info`** (header
+  lines read, in `sidecar/.venv` unless noted). `caio` 0.9.25 `licenses/COPYING` is the
+  Apache License 2.0 text. `fredapi` 0.5.2 `LICENSE` is the Apache License 2.0 text.
+  `peewee` 4.0.6 `licenses/LICENSE` is the MIT permission text ("Copyright (c) 2010 Charles
+  Leifer"). `httpxthrottlecache` 0.3.5 (`sidecar/sec_edgar_mcp_subprocess/.venv`)
+  `licenses/LICENSE` is "MIT License, Copyright (c) 2025 paultiq". The PyPI metadata fields
+  are empty, as `r15/stage-d/DEPS_LICENCES.md:71-76` records. The files themselves are
+  permissive.
+- **Recommendation:** no replacement and no action on `r-efi`. List the four packages in
+  the 5.1 notices file under the licences their shipped files state. Separately, the
+  licence scanner (`scripts/r15/licence_scan.py`) could fall back to `License-File`. That
+  is tooling work, not Tier-4.
+- **Status: awaiting operator** (acknowledge only)
+
+### 5.4 `CLAUDE.md` still states AGPL-3.0: fixed on the unmerged version branch
+
+- **What:** the only `LICENCE_CHECK.md` mismatch is `CLAUDE.md:57-58` ("AGPL-3.0 +
+  commercial dual license"), which was stale after the relicense
+  (`r15/stage-d/LICENCE_CHECK.md:21`). This is the `CLAUDE.md` half of §3.4 and §2.19. The
+  fix is already committed as `c1e9164c` on `origin/worktree-agent-r15-version-0.9.0`, and
+  there `CLAUDE.md:59` reads "PolyForm Strict". The branch holds two commits (`517da226` for
+  the version bump and `c1e9164c` for `CLAUDE.md`). It is pushed but not merged. It is
+  scheduled to merge right after the `r15-rc1` tag, so the tag's tree still carries the
+  stale line.
+- **Options:** (a) merge the branch right after the tag, as planned. (b) Merge before the
+  tag, which puts 0.9.0 into the tagged tree too.
+- **Recommendation:** (a). `CLAUDE.md` is agent guidance and does not ship in the bundle, so
+  the stale line misleads no user. Keeping the bump out of the gated sha keeps the gate's
+  verdict valid. Review the `CLAUDE.md` diff in `c1e9164c` before the merge, because it is a
+  Tier-1 file.
+- **Status: awaiting operator**
+
+### 5.5 Windows stays unverified for 0.9.0 (runbook §10, NEEDS-MANUAL-CHECK)
+
+- **What:** nothing about Windows has been run for this release. That covers the NSIS build
+  and install, the three PyInstaller sidecars building and passing the smoke test on
+  Windows, the `windows-native` keyring backend at runtime, the MCP spawn inside a packaged
+  app, and SmartScreen behaviour with an unsigned installer
+  (`r15/stage-d/RELEASE_RUNBOOK.draft.md:637-670`). CI's `windows-latest` leg has never run on
+  this branch (§2.11, §2.17), and Windows signing is still §2.8. The runbook's
+  `<!-- fill at rc2 -->` at `RELEASE_RUNBOOK.draft.md:669` asks for either a real Windows run
+  or an explicit decision.
+- **Options:** (a) ship 0.9.0 with macOS artifacts only and say that Windows is unverified.
+  (b) Build and smoke-test on your Windows machine before the tag.
+- **Recommendation:** (a). The release notes already say it
+  (`r15/stage-d/RELEASE_NOTES.draft.md:146-147`, "Windows is unverified for this release").
+  Attach no Windows installer to the GitHub release until one attended Windows build and
+  smoke test has passed. That would be the first real signal from 655+ commits of work that
+  has never been built on Windows.
+- **Status: awaiting operator**
+
+### 5.6 Secrets scan: nothing classed `real_or_unknown`
+
+- **What:** `r15/stage-d/SECRETS_SCAN.md:27-30` reports 0 `real_or_unknown` hits and 0 pushed
+  ones. It covers the tree at `4d893147` (4949 files), 2090 commits, and a sweep of 10,647
+  blobs. The only `placeholder` hit is the updater's public key (`src-tauri/tauri.conf.json`).
+  The canary literals in the plugin-credential harness have the shape
+  `sk-<11>-fake-<10 digits>`, and they are test fixtures (`SECRETS_SCAN.md:46`). There is no
+  location to rotate and no value to list.
+- **Recommendation:** no action. Re-run the same scan at the tag sha as part of the gate, so
+  that the files landed since `4d893147` are covered too.
+- **Status: awaiting operator** (acknowledge only)
+
+### 5.7 Rollback artefact: no post-D81 build exists to roll back to
+
+- **What:** runbook §11 rules out every pre-D81 tag as a rollback target. They still carry
+  the removed trading surface and the old AGPL licence
+  (`r15/stage-d/RELEASE_RUNBOOK.draft.md:683`). It leaves open whether you keep a
+  locally built prior `.dmg`/`.app` (`:703`). The rehearsal found your installed
+  `/Applications/Vysted.app` (bundle id `com.vysted.desk`, 0.8.0), but its source sha is
+  unknown (`REHEARSAL.md:56`). So it is not a vetted rollback target either.
+- **Options:** (a) keep the rc1 build's own `.dmg` and its sha256 outside the repo, and have
+  every later release keep the one before it. (b) Treat rollback as "pull the GitHub release
+  and fix forward" only.
+- **Recommendation:** (a) from this release on. Until a second post-D81 build exists,
+  rollback for 0.9.0 means pulling the release (§11's first paragraph) and fixing forward.
+  Do not reinstall the `com.vysted.desk` copy as a rollback.
+- **Status: awaiting operator**
+
+### 5.8 The filing-watcher groundwork evidence folder and its two tooling files are in the public tree
+
+- **What:** two sets of files are tracked on the public `origin`. The first is the groundwork's
+  evidence folder, 41 tracked files under `docs/redesign/verification/r15/`, including a
+  `VERDICT.md` and a `PACKAGE_VERIFICATION.md`. The second is its two tooling files under
+  `docs/redesign/verification/r15/tooling/`, a plan `.md` and a workflow `.js`
+  (`git ls-files docs/redesign/verification/r15/tooling | grep -i groundwork` lists them).
+  Both sets name a third-party package that the release must not mention.
+  `docs/redesign/verification/r15/local/` is git-ignored (`.gitignore:66`). The briefing
+  leaves the move to one line from you (`r15/stage-d/OPERATOR_BRIEFING.draft.md:157-159`,
+  `:242-243`). The folder's commits (`b667140c`, `69853b14`, `2d2fb032`) are already on
+  `origin/004-r4-experience-rebuild`.
+- **Options:** (a) move both sets under `r15/local/` before the launch tag: move them on
+  disk, run `git rm -r --cached` on the old paths, and make one commit. (b) Leave them
+  public. (c) Also rewrite the pushed history to remove them.
+- **Recommendation:** (a), before the tag, so that the tagged tree and the release archive
+  never carry them. Do not do (c): it needs a force-push of a public branch, and the files
+  would stay in any clone taken before the rewrite. The measurement work stays on disk, which
+  is all its later use needs.
+- **Status: awaiting operator**
+
+### 5.9 Rehearsal boundary incident: WebKit housekeeping files written under your real `~/Library`
+
+- **What:** the rehearsal ran the release build with `HOME=<fresh>` to isolate app data.
+  WKWebView does not honour `HOME`. It modified 10 files under your real
+  `~/Library/WebKit/com.vysted.terminal/WebsiteData/ResourceLoadStatistics/` (`pcm.db*`,
+  `observations.db*`) and `~/Library/Caches/com.vysted.terminal/WebKit/` (`CacheStorage/salt`,
+  `AlternativeServices/*`) (`REHEARSAL.md:83`). These are caches and housekeeping databases,
+  not app data. No LocalStorage or IndexedDB file changed. The store is the one your dev and
+  rig builds of `com.vysted.terminal` share, not the installed `com.vysted.desk` copy. The
+  files were left untouched under the run's rule never to delete anything outside the repo.
+- **Recommendation:** if you want the state from before the run, clear those two
+  subdirectories yourself. Clear only the two paths named above, not the whole
+  `~/Library/WebKit/com.vysted.terminal`, which also holds the dev build's website data.
+  WebKit recreates them on the next launch. For the runbook, the clean-profile step (§7)
+  should use a separate macOS user account, which has its own login keychain and its own
+  `~/Library/WebKit`. A `HOME=` override proves data-dir isolation and sidecar warm-up only,
+  as `REHEARSAL.md:93-94` corrections 5 and 6 say. That runbook edit is a draft-doc change the
+  lead lands at the runbook refresh, and it needs no sign-off.
+- **Status: awaiting operator** (the cache clear only)
+
+### 5.10 Rehearsal's two medium findings: lead's disposition
+
+- **Terms dialog skipped under `HOME=` isolation** (`REHEARSAL.md:100-103`): with no default
+  keychain, `keychain_get` fails with -25307, and `FirstLaunchTosDialog` awaits
+  `refreshFirstLaunchAck()` with no catch (`src/modules/safety/DisclaimerFlow.tsx:44-49`).
+  `hydrated` then stays false and the dialog returns null (`:68`). **Disposition:** a second
+  trigger of R15-UI-044, which is already `blocked_tier4`. A pointer is added under §2.21. The
+  entry is not reopened, and the one `catch` → `setError` fix covers both triggers.
+- **Unsealed ad-hoc `.app`** (`REHEARSAL.md:104-107`): `codesign --verify --deep --strict`
+  and `spctl -a -t exec` both reject the bundle (`REHEARSAL.md:39`). **Disposition:** this is
+  the documented signing limitation. Signing is the operator-only step in runbook §8 and
+  §2.8 (R15-RELEASE-001). It is not a defect.
+- **Status: awaiting operator** (no new decision: both ride §2.21 and §2.8)
