@@ -91,6 +91,18 @@ const SIDECAR_DIR = join(ROOT, "sidecar");
 
 const isWin = platform() === "win32";
 
+/**
+ * The live-exchange probes (BSE bhavcopy, NSE direct) are a nondeterministic,
+ * advisory reachability check — not the deterministic "does the frozen
+ * binary boot" gate this script exists to enforce (R15-RELEASE-008). They
+ * only run when explicitly requested (`--require-network`, wired to
+ * `pnpm probe:exchanges`) so the default/CI smoke run stays hermetic and
+ * fast, with no live external request.
+ */
+function _shouldProbeExchanges(argv = process.argv) {
+  return argv.includes("--require-network");
+}
+
 // Main-sidecar boot budget. The --onefile binary cold-extracts its `_MEI*`
 // (89 MB — the largest of the three) AND runs the FastMCP Streamable-HTTP
 // lifespan before /health serves; that's ~90s cold on an M1 (Phase 9.5 S0-1).
@@ -942,9 +954,17 @@ async function main() {
     }
   }
 
-  // No-SLA external probes — run regardless of sidecar results, never fail.
-  await _probeBseBhavcopyNoSla();
-  await _probeNseDirectNoSla();
+  // No-SLA external probes — advisory only, gated behind --require-network
+  // (R15-RELEASE-008) so the default hermetic run makes no live request.
+  if (_shouldProbeExchanges()) {
+    await _probeBseBhavcopyNoSla();
+    await _probeNseDirectNoSla();
+  } else {
+    console.log(
+      "[smoke] skipping live-exchange probes (pass --require-network, or run " +
+        "`pnpm probe:exchanges`, to include them).",
+    );
+  }
 
   const spawnSummary = _SPAWN_LOG.map((s) => `${s.binary}(pid=${s.pid})`).join(", ") || "none";
   if (failures.length > 0) {
@@ -975,4 +995,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   });
 }
 
-export { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight };
+export { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight, _shouldProbeExchanges };

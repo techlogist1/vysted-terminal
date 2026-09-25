@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight } =
+const { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight, _shouldProbeExchanges } =
   await import("./smoke-test-sidecars.mjs");
 
 afterEach(() => {
@@ -79,5 +79,17 @@ describe("_scopedOrphanPreflight (R15-LIFECYCLE-039)", () => {
       rmSync(deadFile, { force: true });
       rmSync(liveFile, { force: true });
     }
+  });
+});
+
+describe("_shouldProbeExchanges (R15-RELEASE-008)", () => {
+  it("default run schedules no exchange probe", () => {
+    expect(_shouldProbeExchanges(["node", "scripts/smoke-test-sidecars.mjs"])).toBe(false);
+  });
+
+  it("--require-network (pnpm probe:exchanges) schedules the exchange probes", () => {
+    expect(
+      _shouldProbeExchanges(["node", "scripts/smoke-test-sidecars.mjs", "--require-network"]),
+    ).toBe(true);
   });
 });
