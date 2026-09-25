@@ -241,6 +241,8 @@ def classify_intent(text: str, _context: dict[str, Any] | None = None) -> Intent
 #: import dependency on the catalog and the prompt stays in lock-step.
 PLAN_ACTIONS: tuple[str, ...] = (
     "open_panel",
+    "close_panel",
+    "focus_panel",
     "set_chart_symbol",
     "set_chart_indicators",
     "add_to_watchlist",
@@ -303,6 +305,7 @@ def _build_prompt(goal: str, context: dict[str, Any] | None) -> str:
         "into an ordered list of concrete steps the terminal will execute. Use ONLY "
         f"these action verbs: {actions}.\n"
         "- open_panel{panel}: chart|watchlist|news|portfolio|screener|macro|earnings|brief\n"
+        "- close_panel{panel}; focus_panel{panel} (a panel already open)\n"
         "- set_chart_symbol{symbol}; set_chart_indicators{indicators:[...]}\n"
         "- add_to_watchlist{symbol}; arrange_layout{pattern}: "
         "single-focus|research-cockpit|compare|macro-scan\n"

@@ -57,7 +57,7 @@ from models.llm import (
 )
 from services import action_ledger, agent_tools, budget_guard, model_registry
 from services.agent_tools import catalog
-from services.agent_tools.schemas import openai_tools
+from services.agent_tools.schemas import HOST_ACTION_TOOLS, openai_tools
 from services.llm import get_provider, native_search, oneshot, scrub_adapter_options
 from services.llm.base import (
     IDLE_TIMEOUT_S,
@@ -66,21 +66,14 @@ from services.llm.base import (
     is_length_finish,
 )
 from services.llm.openai import INVALID_ARGS_SENTINEL
-from services.planner import classify_intent, decompose
+from services.planner import PLAN_ACTIONS, classify_intent, decompose
 from services.search.scrub import wrap_untrusted
 
-#: Host-action steps a plan may PRE-STAGE into the diff/accept gate (the planner
-#: vocabulary minus research/answer, which execute inside the loop).
-_STAGEABLE_PLAN_ACTIONS = frozenset(
-    {
-        "open_panel",
-        "set_chart_symbol",
-        "set_chart_indicators",
-        "add_to_watchlist",
-        "arrange_layout",
-        "open_company_overview",
-    }
-)
+#: Host-action steps a plan may PRE-STAGE into the diff/accept gate: every planner
+#: verb that is a catalog host action (research/answer execute inside the loop).
+#: Derived, so a verb added to PLAN_ACTIONS is staged without a second list
+#: (R15-AGENT-089).
+_STAGEABLE_PLAN_ACTIONS = frozenset(PLAN_ACTIONS).intersection(HOST_ACTION_TOOLS)
 
 #: Read-safe panel host-actions RETAINED on a READ intent (locked Decision 4): a
 #: read question may still ground itself by pulling up the relevant chart / index /
