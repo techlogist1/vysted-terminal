@@ -505,10 +505,19 @@ async def run_backtest(
     walk_forward_slices: list[WalkForwardSlice] | None = None
     if request.walk_forward_slices > 1:
         walk_forward_slices = []
-        for idx, (slice_start, slice_end) in enumerate(
-            _slice_dates(request.start_date, request.end_date, request.walk_forward_slices)
-        ):
-            slice_bars = [b for b in bars_sorted if slice_start <= b.timestamp <= slice_end]
+        slice_ranges = _slice_dates(
+            request.start_date, request.end_date, request.walk_forward_slices
+        )
+        for idx, (slice_start, slice_end) in enumerate(slice_ranges):
+            # Half-open on every slice but the last, so a boundary bar is
+            # traded in exactly one slice instead of both neighbours.
+            is_last = idx == len(slice_ranges) - 1
+            slice_bars = [
+                b
+                for b in bars_sorted
+                if slice_start <= b.timestamp
+                and (b.timestamp <= slice_end if is_last else b.timestamp < slice_end)
+            ]
             if not slice_bars:
                 continue
             slice_strategy = strategy_cls(request.params)
