@@ -571,8 +571,10 @@ none use `localStorage`. Notable surfaces:
   `dragDropEnabled:false` is required); 10 built-in nodes unioned with plugin
   nodes; config schema lives host-side (NodeSpec stays locked/serializable). A
   **second workflow consumer** (`store/workflow.ts`) exists with a
-  desktop-notification-intent slice that has **no found dispatcher** — treat as
-  unwired.
+  desktop-notification-intent slice — its dispatcher is
+  `useDesktopNotificationBridge` (`src/lib/desktop-notification.ts`), mounted
+  in `src/app/page.tsx:46`; it drains `pendingNotifications` into OS
+  notifications, so this slice is wired.
 - **Agent Builder** — sidecar-backed custom-agent CRUD; `custom:` prefix
   enforced.
 - **Chat sidebar** (`ChatSidebar.tsx`) — the most cross-cutting surface (6+
