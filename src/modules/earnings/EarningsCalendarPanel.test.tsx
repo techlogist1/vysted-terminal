@@ -151,6 +151,28 @@ describe("EarningsCalendarPanel", () => {
     });
   });
 
+  it("R15-CODE-DATA-015: skeleton and loaded colgroups share widths", async () => {
+    let resolveFetch: (value: EarningsUpcomingResponse) => void = () => {};
+    const pending = new Promise<EarningsUpcomingResponse>((resolve) => {
+      resolveFetch = resolve;
+    });
+    vi.mocked(sidecarGet).mockReturnValueOnce(pending);
+    const { container } = render(<EarningsCalendarPanel />);
+
+    const readWidths = () =>
+      Array.from(container.querySelectorAll("table colgroup col")).map(
+        (col) => (col as HTMLElement).style.width,
+      );
+
+    await waitFor(() => expect(readWidths().length).toBeGreaterThan(0));
+    const skeletonWidths = readWidths();
+
+    resolveFetch(UPCOMING_SAMPLE);
+    await waitFor(() => screen.getByText("AAPL"));
+
+    expect(readWidths()).toEqual(skeletonWidths);
+  });
+
   it("expands an inline drill-down on row click and fetches history/surprises/estimates", async () => {
     vi.mocked(sidecarGet)
       .mockResolvedValueOnce(UPCOMING_SAMPLE)
