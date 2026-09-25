@@ -225,8 +225,7 @@ class OllamaProvider(LLMProvider):
                     content = _attr(message, "content", "") or ""
                     for event in splitter.content(content) if content else []:
                         if isinstance(event, LLMDeltaEvent):
-                            shown = hold.feed(event.text)
-                            if shown:
+                            for shown in hold.feed(event.text):
                                 yield LLMDeltaEvent(text=shown)
                             continue
                         yield event
@@ -258,8 +257,7 @@ class OllamaProvider(LLMProvider):
                     )
             for event in splitter.flush():
                 if isinstance(event, LLMDeltaEvent):
-                    shown = hold.feed(event.text)
-                    if shown:
+                    for shown in hold.feed(event.text):
                         yield LLMDeltaEvent(text=shown)
                     continue
                 yield event

@@ -2397,18 +2397,23 @@ def test_compare_symbols_market_cap_reads_in_each_row_quote_currency() -> None:
 
 
 async def _scripted_answer(
-    monkeypatch: pytest.MonkeyPatch, tool: str, result: dict[str, Any], deltas: list[str]
+    monkeypatch: pytest.MonkeyPatch,
+    tool: str | None,
+    result: dict[str, Any],
+    deltas: list[str],
+    history: list[dict[str, str]] | None = None,
 ) -> str:
     """Round 1 calls ``tool`` (stubbed to return ``result``); round 2 streams
-    ``deltas``. Returns the joined answer the consumer saw."""
+    ``deltas``. With no ``tool`` the only round streams them. ``history`` rides
+    the invoke options as the client sends it. Returns the joined answer the
+    consumer saw."""
     agent_runtime.reload()
     done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
-    provider = _RecordingRoundsProvider(
-        [
-            [LLMToolUseEvent(tool_call_id="t", name=tool, input={"symbol": "SIFY"}), done],
-            [*(LLMDeltaEvent(text=d) for d in deltas), done],
-        ]
-    )
+    rounds: list[list[Any]] = [[*(LLMDeltaEvent(text=d) for d in deltas), done]]
+    if tool is not None:
+        call = LLMToolUseEvent(tool_call_id="t", name=tool, input={"symbol": "SIFY"})
+        rounds.insert(0, [call, done])
+    provider = _RecordingRoundsProvider(rounds)
     monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
 
     async def _tool(*_a: Any, **_k: Any) -> str:
@@ -2419,7 +2424,11 @@ async def _scripted_answer(
         [
             e.text
             async for e in agent_runtime.invoke_agent(
-                agent_id="copilot", prompt="SIFY ADR ratio?", api_key="sk-test", autonomy="ask"
+                agent_id="copilot",
+                prompt="SIFY ADR ratio?",
+                api_key="sk-test",
+                autonomy="ask",
+                options={"history": history} if history else None,
             )
             if isinstance(e, LLMDeltaEvent)
         ]
@@ -2479,7 +2488,7 @@ _LIVE_1_DUMP = [
         (
             _ERRORED,
             _LIVE_1_DUMP,
-            "The fundamentals tool returned no data for this in this session.\n\n"
+            "The fundamentals tool returned no data for this in this turn.\n\n"
             "Revenue is shown above.",
         ),
         (
@@ -2491,7 +2500,7 @@ _LIVE_1_DUMP = [
         (
             _SIFY_FUNDAMENTALS,
             ["According to the `financial_", "statements` tool, revenue was ₹4,411 cr. Done."],
-            "The financial_statements tool returned no data for this in this session. Done.",
+            "The financial_statements tool returned no data for this in this turn. Done.",
         ),
         (_ERRORED, ["I'll call `price_data` next."], "I'll call `price_data` next."),
     ],
@@ -2504,6 +2513,175 @@ async def test_a_citation_of_a_tool_that_returned_nothing_ok_is_replaced(
     tool with no ok result this turn is replaced and its dump dropped; an ok
     tool's citation, a user's figure and a plain mention stream as is."""
     assert await _scripted_answer(monkeypatch, "fundamentals", result, deltas) == answer
+
+
+_FOLLOWUP_1 = [
+    "The tool that provided the market cap figure was `fundamentals`, which returned:\n\n",
+    "{\n",
+    ' "market_cap": 3440000000000\n',
+    "}",
+]
+_FS_CITATION = "The financial_statements output shows revenue of ₹4,411 cr."
+_FS_TRAILER = "SIFY's revenue is ₹4,411 cr.\n\n[tool steps: Using financial statements]"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("history", "deltas", "answer"),
+    [
+        (
+            [
+                {"role": "user", "content": "AAPL market cap?"},
+                {
+                    "role": "assistant",
+                    "content": "AAPL's market cap is $3.44 T.\n\n[tool steps: Using fundamentals]",
+                },
+            ],
+            _FOLLOWUP_1,
+            "".join(_FOLLOWUP_1),
+        ),
+        (
+            [
+                {"role": "user", "content": "SIFY revenue?"},
+                {"role": "assistant", "content": _FS_TRAILER},
+            ],
+            [_FS_CITATION],
+            _FS_CITATION,
+        ),
+        (
+            [
+                {"role": "user", "content": "SIFY revenue?"},
+                {"role": "assistant", "content": _FS_TRAILER},
+                *[{"role": r, "content": "ok"} for _ in range(4) for r in ("user", "assistant")],
+            ],
+            [_FS_CITATION],
+            _FS_CITATION,
+        ),
+        (
+            [
+                {"role": "user", "content": "SIFY revenue?"},
+                {"role": "assistant", "content": "SIFY's revenue is ₹4,411 cr."},
+            ],
+            [_FS_CITATION],
+            "The financial_statements tool returned no data for this in this turn.",
+        ),
+    ],
+)
+async def test_a_citation_of_a_tool_an_earlier_turn_ran_is_kept(
+    monkeypatch: pytest.MonkeyPatch,
+    history: list[dict[str, str]],
+    deltas: list[str],
+    answer: str,
+) -> None:
+    """R15-LEAD-030 followup-1: turn 2 called no tool and truly cited turn 1's
+    ``fundamentals``; the per-turn ok set replaced it with a false "returned no
+    data ... in this session". The history's ``[tool steps: ...]`` trailer
+    (verbatim, or folded into the summary of older turns) seeds the turn; with
+    no trailer the citation is replaced with the "in this turn" note."""
+    assert await _scripted_answer(monkeypatch, None, {}, deltas, history) == answer
+
+
+_FS_OK = {"ok": True, "statements": {"symbol": "SIFY", "revenue": "₹4,411 cr"}}
+_PRICE_NOTE = "The price_data tool returned no data for this in this turn."
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("deltas", "answer"),
+    [
+        (["Price data returned a close of $2.11."], _PRICE_NOTE),
+        (
+            [
+                'Price Data: {"ok": true, "symbol": "SIFY.US", ',
+                '"latest_price": 2.11}\n\nUnfortunately, I am unable.',
+            ],
+            f"{_PRICE_NOTE}\n\nUnfortunately, I am unable.",
+        ),
+        (
+            ["The Fundamentals Tool shows revenue of $1320 m."],
+            "The fundamentals tool returned no data for this in this turn.",
+        ),
+        (["Per `price data`, the close was $2.11."], _PRICE_NOTE),
+        (["I don't have price data for SIFY yet."], "I don't have price data for SIFY yet."),
+    ],
+)
+async def test_a_humanised_tool_name_citation_is_replaced(
+    monkeypatch: pytest.MonkeyPatch, deltas: list[str], answer: str
+) -> None:
+    """R15-LEAD-030 lead030-1: llama3.1:8b called only financial_statements,
+    then streamed a 'Price Data: {... "latest_price": 2.11 ...}' dump for a
+    price_data call it never made (the real price was 13.41). A tool named
+    with spaces, hyphens or capitals is the same tool; plain prose that only
+    mentions price data streams as is."""
+    assert await _scripted_answer(monkeypatch, "financial_statements", _FS_OK, deltas) == answer
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("deltas", "answer"),
+    [
+        (
+            [
+                "- fundamentals returned:\n",
+                "{",
+                '\n "trailing_12m_revenue": {"display": "$13',
+                '20 m"}\n',
+                "}\n",
+                "Revenue is shown above.",
+            ],
+            "The fundamentals tool returned no data for this in this turn.\n\n"
+            "Revenue is shown above.",
+        ),
+        (
+            ["The price_data output =\n", '[\n {"close": 2.11}\n', "]\n", "Done."],
+            f"{_PRICE_NOTE}\n\nDone.",
+        ),
+        (
+            ["The fundamentals tool returned:\n", "Revenue grew."],
+            "The fundamentals tool returned no data for this in this turn.\nRevenue grew.",
+        ),
+    ],
+)
+async def test_a_dump_on_the_line_after_a_replaced_citation_is_dropped(
+    monkeypatch: pytest.MonkeyPatch, deltas: list[str], answer: str
+) -> None:
+    """R15-LEAD-030 probe3/followup-1: '- fundamentals returned:' was replaced
+    but the dump opening on the next line streamed, because the bracket depth
+    was counted only inside the replaced sentence. A replaced citation ending
+    in ':'/'=' drops a dump that opens next; prose that follows it is kept."""
+    assert await _scripted_answer(monkeypatch, "fundamentals", _ERRORED, deltas) == answer
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("tool", "result", "sentence", "answer"),
+    [
+        (None, {}, "Let me look up the fundamentals data for SIFY.", None),
+        (None, {}, "Next I'll check the news data for any sentiment.", None),
+        ("financial_statements", _FS_OK, "Let me look up the fundamentals data for SIFY.", None),
+        ("financial_statements", _FS_OK, "Next I'll check the news data for any sentiment.", None),
+        ("fundamentals", _SIFY_FUNDAMENTALS, "Let me fetch the `financial_statements` data.", None),
+        (None, {}, "I'm going to pull the `financial_statements` data for SIFY next.", None),
+        (
+            None,
+            {},
+            "Let me recap: `news` data shows revenue of $5 bn.",
+            "The news tool returned no data for this in this turn.",
+        ),
+    ],
+)
+async def test_a_figure_less_pre_call_narration_is_kept(
+    monkeypatch: pytest.MonkeyPatch,
+    tool: str | None,
+    result: dict[str, Any],
+    sentence: str,
+    answer: str | None,
+) -> None:
+    """R15-LEAD-030 probe.out: 'Let me look up the fundamentals data for SIFY.'
+    was replaced before the call ran. An intent with no figure, no bracket and
+    no result verb is not a citation; a recap with a figure still is."""
+    got = await _scripted_answer(monkeypatch, tool, result, [sentence])
+    assert got == (answer or sentence)
 
 
 @pytest.mark.asyncio
