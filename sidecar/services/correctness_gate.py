@@ -56,7 +56,7 @@ from services.research.semantics import (
 
 logger = logging.getLogger(__name__)
 
-_SUFFIX_RE = re.compile(r"[.\-](NS|BO|BSE)$", re.IGNORECASE)
+_SUFFIX_RE = re.compile(r"(?:-SM)?[.\-](NS|BO|BSE)$", re.IGNORECASE)
 
 # --- numeric plausibility bounds for fundamentals (R13, deliverable 4) ---------
 # Aligned with services.research.semantics._PLAUSIBLE_YIELD_FRACTION (0.25): a
@@ -117,7 +117,9 @@ class EmptySeriesError(CorrectnessError):
 def _match_key(symbol: str) -> str:
     """Normalise a symbol for cross-provider identity comparison.
 
-    Strips a recognised exchange suffix (``.NS``/``.BO``) then removes dot/dash
+    Strips a recognised exchange suffix (``.NS``/``.BO``) — along with
+    yfinance's Emerge (SME)-only ``-SM`` infix immediately before it
+    (``INSPIRE-SM.NS`` → ``INSPIRE``, R15-LEAD-034) — then removes dot/dash
     quirks, so ``GOLDBEES.NS`` (resolved), ``GOLDBEES-NS`` (yfinance's dash
     form), and ``GOLDBEES`` (NSE) all compare equal — while a genuine ticker
     like ``BRK.B``/``BRK-B`` still collapses to ``BRKB`` without losing identity.
