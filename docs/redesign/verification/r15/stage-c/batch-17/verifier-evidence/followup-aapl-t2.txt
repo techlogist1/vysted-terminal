@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_f60227a3c3734c88bd3710d2e2e06836", "name": "fundamentals", "input": {"symbol": "AAPL"}}
+[  38.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_f60227a3c3734c88bd3710d2e2e06836", "name": "fundamentals", "ok": true, "error": null}
+[  48.6s] heartbeat: {"kind": "heartbeat"}
+[  58.6s] heartbeat: {"kind": "heartbeat"}
+[  65.7s] done: {"kind": "done", "usage": {"input_tokens": 5969, "output_tokens": 88, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The market capitalization of AAPL is $4.90T (USD 4 trillion). The figure was obtained from the `fundamentals` tool, and it represents the current market capitalization of Apple Inc.
+
+Note that the result also mentions that some fields are "unavailable" or have a "reason" associated with them. This means that those specific values could not be fetched by the terminal's data feeds for AAPL.
+
+=== ok · 65.7s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 89, 'done': 1} · usage in=5969 out=88 · est $0.00000 · llama3.1:8b

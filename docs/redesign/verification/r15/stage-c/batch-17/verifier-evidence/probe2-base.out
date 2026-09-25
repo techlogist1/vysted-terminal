@@ -1,0 +1,22 @@
+FAIL err-mention-plus-true-figure: "The fundamentals tool returned no data for this in this session.\nDone." | MISSING '4,411 cr'
+PASS err-mention-plus-true-figure-2: "fundamentals failed for SIFY.NS, but `financial_statements` shows revenue of \u20b94,411 cr.\nDone."
+PASS err-mention-separate-sentence: "The fundamentals tool returned no data for this in this session. Financial statements show revenue of \u20b94,411 cr.\nDone."
+FAIL fab-humanised-titlecase-sameline: "Here is what I found.\n\nEarnings History: {\"ok\": true, \"eps\": \"$0.42\"}\n\nRevenue is above." | LEAK '0.42'; LEAK '"eps"'; MISSING 'earnings_history tool returned no data for this in this turn'
+FAIL fab-humanised-nextline-dump: "The Analyst History output:\n{\n \"target\": \"$25.00\"\n}\nConsensus is buy." | LEAK '25.00'; LEAK '"target"'; MISSING 'analyst_history tool returned no data'
+FAIL fab-hyphen-errored: "Per price-data results, the close was $2.11.\nDone." | LEAK '2.11'; MISSING 'price_data tool returned no data'
+FAIL fab-bracket-array-humanised: "Corporate Actions = [\n {\"split\": \"2:1\", \"dividend\": \"\u20b95\"}\n]\nNo more." | LEAK '₹5'; LEAK 'split'; MISSING 'corporate_actions tool returned no data'
+PASS true-humanised-ok: "Financial Statements returned revenue of \u20b94,411 cr.\nThat is TTM."
+PASS true-backtick-dump-ok: "`price_data` returned:\n{\n \"latest_price\": 13.41\n}\nSo it closed at $13.41."
+PASS precall-narration-fresh: "I'm about to check the earnings history data for SIFY. Done."
+PASS precall-narration-with-other-ok: "Next I'll pull the financial statements data for SIFY. Done."
+PASS precall-with-figure-fabricated: "The news tool returned no data for this in this session. "
+FAIL history-seed-fixed-label: "The get_portfolio tool returned no data for this in this session.\nOK." | LEAK 'returned no data'; MISSING 'The get_portfolio tool returned 10 AAPL shares worth $2,300.'
+PASS history-seed-multi-step: "The Price Data tool returned a close of $13.41.\nOK."
+FAIL history-seed-negative: "The price_data tool returned no data for this in this session.\nOK." | MISSING 'price_data tool returned no data for this in this turn'
+PASS prose-price-data-kept: "I don't have price data for SIFY yet, but revenue grew."
+FAIL 031/orig2-json-fundamentals: shown=['S', 'u', 'r', 'e', '.', ' ', '{', '"', 'n', 'a', 'm', 'e', '"', ':', ' ', '"', 'f', 'u', 'n', 'd', 'a', 'm', 'e', 'n', 't', 'a', 'l', 's'] held='", "arguments": {"symbol": "SIFY"}}' | SHOWN '{"name'; SHOWN 'fund'
+FAIL 031/nospace-json-charwise: shown=['O', 'k', ' ', '{', '"', 'n', 'a', 'm', 'e', '"', ':', '"', 'f', 'i', 'n', 'a', 'n', 'c', 'i', 'a', 'l', '_', 's', 't', 'a', 't', 'e', 'm', 'e', 'n', 't', 's'] held='","arguments":{}}' | SHOWN '{"'; SHOWN 'financial'
+PASS 031/call-syntax-news: shown=['S', 'e', 'e', ' ', 'n', 'e', 'w', 's'] held='(symbol="SIFY")'
+PASS 031/benign-prefix-replay: shown=['T', 'h', 'e', ' ', 'p', 'r', 'i', 'c', 'e', ' ', 'i', 's', ' ', 'u', 'p', '.'] held=''
+PASS 031/unoffered-json-replay: shown=['x', ';', ' ', '{', '"', 'n', 'a', 'm', 'e', '"', ':', ' ', '"', 's', 'c', 'r', 'e', 'e', 'n', 'e', 'r', '_', 'r', 'u', 'n', '"', '}', ' ', 'y'] held=''
+BAD 9

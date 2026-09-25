@@ -1,0 +1,13 @@
+[   4.4s] done: {"kind": "done", "usage": {"input_tokens": 6109, "output_tokens": 68, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I used the `fundamentals` tool to get the market capitalization of AAPL.
+
+Here's the relevant information:
+
+* Tool: `fundamentals`
+* Returned value:
+  - `market_cap`: $4.90T (USD 4 trillion)
+  - Other fundamental ratios and company profile (not requested by the user)
+
+=== ok · 4.4s · events {'delta': 67, 'done': 1} · usage in=6109 out=68 · est $0.00000 · llama3.1:8b

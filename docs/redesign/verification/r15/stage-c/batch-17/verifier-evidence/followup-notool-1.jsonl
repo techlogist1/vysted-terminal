@@ -1,0 +1,43 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " gave"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " figure"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " `"}
+{"kind": "delta", "text": "fund"}
+{"kind": "delta", "text": "amentals"}
+{"kind": "delta", "text": "`."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "It"}
+{"kind": "delta", "text": " returned"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " $"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "90"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "USD"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": " trillion"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6109, "output_tokens": 40, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
