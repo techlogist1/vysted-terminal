@@ -240,6 +240,13 @@ fn mcp_endpoint_path(data_dir: &str) -> PathBuf {
     Path::new(data_dir).join(MCP_ENDPOINT_FILENAME)
 }
 
+/// Remove the discovery file under `data_dir`: a new boot, a sidecar exit and
+/// app exit each clear it, so it never outlives the port it names
+/// (R15-LIFECYCLE-037). A missing file is the normal case.
+fn clear_mcp_endpoint_file(data_dir: &str) {
+    let _ = std::fs::remove_file(mcp_endpoint_path(data_dir));
+}
+
 /// Write the MCP-endpoint discovery file under `data_dir` for a healthy
 /// sidecar on `port`. Best-effort: a write failure is logged, never fatal
 /// (consistent with the rest of the boot path's graceful degradation). A
@@ -287,11 +294,13 @@ fn mcp_port_env(openbb: Option<u16>, sec_edgar: Option<u16>) -> Vec<(&'static st
 /// previously `.expect()`-panicked here (no window, no error).
 fn start_main_sidecar(app: &AppHandle, port: u16, openbb: Option<u16>, sec_edgar: Option<u16>) {
     let status = app.state::<SidecarStatus>();
+    let data_dir = app_data_dir(app).to_string_lossy().to_string();
+    // A previous run's file names a port this boot does not own.
+    clear_mcp_endpoint_file(&data_dir);
     if port == 0 {
         status.fail("The data engine could not start: no free local port.".to_string());
         return;
     }
-    let data_dir = app_data_dir(app).to_string_lossy().to_string();
     let command = match app.shell().sidecar("vysted-sidecar") {
         Ok(command) => command
             .args(["--port", &port.to_string(), "--data-dir", &data_dir])
@@ -313,6 +322,7 @@ fn start_main_sidecar(app: &AppHandle, port: u16, openbb: Option<u16>, sec_edgar
     // Drain the sidecar's stdout/stderr so its pipes never block, and log it.
     // Its exit is recorded and announced (no auto-respawn).
     let events_app = app.clone();
+    let events_data_dir = data_dir.clone();
     tauri::async_runtime::spawn(async move {
         while let Some(event) = rx.recv().await {
             match event {
@@ -324,6 +334,7 @@ fn start_main_sidecar(app: &AppHandle, port: u16, openbb: Option<u16>, sec_edgar
                 }
                 CommandEvent::Terminated(payload) => {
                     let reason = terminated_reason(payload.code, payload.signal);
+                    clear_mcp_endpoint_file(&events_data_dir);
                     events_app.state::<SidecarStatus>().fail(reason.clone());
                     let _ = events_app.emit("vysted://sidecar-terminated", reason);
                 }
@@ -663,6 +674,7 @@ pub fn run() {
             openbb_mcp::kill(app_handle);
             // Reap the sec-edgar-mcp subprocess alongside the main sidecar.
             sec_edgar_mcp::kill(app_handle);
+            clear_mcp_endpoint_file(&app_data_dir(app_handle).to_string_lossy());
         }
     });
 }
@@ -670,10 +682,10 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::{
-        mcp_endpoint_json, mcp_endpoint_path, pick_free_port, terminated_reason,
-        wait_for_port_timeout, wait_for_port_with_retries, write_bytes_atomic, write_text_atomic,
-        SidecarPhase, SidecarStatus, MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS,
-        MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
+        clear_mcp_endpoint_file, mcp_endpoint_json, mcp_endpoint_path, pick_free_port,
+        terminated_reason, wait_for_port_timeout, wait_for_port_with_retries, write_bytes_atomic,
+        write_text_atomic, SidecarPhase, SidecarStatus, MCP_ENDPOINT_FILENAME,
+        MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
     };
     use std::net::TcpListener;
     use std::sync::atomic::{AtomicU32, Ordering};
@@ -810,6 +822,18 @@ mod tests {
         assert_eq!(meta["onboarding-complete"], "cloud");
         assert_eq!(meta["onboarding-banner-dismissed"], "dismissed");
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn clear_mcp_endpoint_file_removes_existing() {
+        // R15-LIFECYCLE-037: a stale discovery file is removed; a missing one is fine.
+        let dir = temp_dir("clear-endpoint");
+        let data_dir = dir.to_string_lossy().to_string();
+        std::fs::write(mcp_endpoint_path(&data_dir), mcp_endpoint_json(50001)).unwrap();
+        clear_mcp_endpoint_file(&data_dir);
+        assert!(!mcp_endpoint_path(&data_dir).exists());
+        clear_mcp_endpoint_file(&data_dir);
+        let _ = std::fs::remove_dir_all(dir);
     }
 
     #[test]
