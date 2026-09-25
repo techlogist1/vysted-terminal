@@ -74,6 +74,7 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
         quantity: 100,
         costBasis: 150,
         assetClass: "equity",
+        currency: "INR", // no currency on the payload -> region default (IN)
         marketValue: 19_000,
         pnl: 4_000,
       },
@@ -82,6 +83,7 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
         quantity: 0.25,
         costBasis: 49_000,
         assetClass: "crypto",
+        currency: "USDT", // no currency on the payload -> the pair's quote side
         marketValue: 12_250,
         pnl: 0,
       },
@@ -114,6 +116,7 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
         quantity: 10,
         costBasis: 5,
         assetClass: "equity",
+        currency: "INR",
         marketValue: null,
         pnl: null,
       },
@@ -164,6 +167,7 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
         symbol: "RELIANCE",
         quantity: 5,
         costBasis: 1263,
+        currency: "INR",
         marketValue: null,
         pnl: null,
       });
@@ -196,10 +200,41 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
         quantity: 2,
         costBasis: 300,
         assetClass: "equity",
+        currency: "INR",
         marketValue: null,
         pnl: null,
       },
     ]);
+  });
+
+  it("get_portfolio holdings carry a currency field on both the panel-published and store-fallback paths (R15-AGENT-091)", () => {
+    // Panel-published path: the payload already carries a currency (as
+    // PortfolioPanel.tsx's publishedHoldings now does) -> passed through.
+    publishPortfolio({
+      positionCount: 1,
+      totalValue: 1_900,
+      holdings: [
+        { symbol: "AAPL", quantity: 10, costBasis: 190, assetClass: "equity", currency: "USD" },
+      ],
+    });
+    expect(captureTerminalState().portfolio?.holdings[0]?.currency).toBe("USD");
+    usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
+
+    // Store-fallback path: panel never published -> the store fallback still
+    // stamps a currency (region default, never undefined/guessed by the model).
+    const store = usePortfoliosStore.getState();
+    const active = store.portfolios.find((p) => p.id === store.activeId)!;
+    store.addHolding(active.id, {
+      symbol: "INFY",
+      quantity: 20,
+      costBasis: 1500,
+      assetClass: "equity",
+    });
+    try {
+      expect(captureTerminalState().portfolio?.holdings[0]?.currency).toBe("INR");
+    } finally {
+      usePortfoliosStore.getState().setAll([], undefined);
+    }
   });
 });
 

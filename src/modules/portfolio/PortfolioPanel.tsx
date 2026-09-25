@@ -20,8 +20,10 @@ import {
   instrumentCurrency,
 } from "@/lib/format";
 import { useMarketSession } from "@/lib/market-session";
+import { regionConfig } from "@/lib/region";
 import { useContainerWidth } from "@/lib/use-container-width";
 import { usePanelContextBus } from "@/store/panel-context";
+import { useSettingsStore } from "@/store/settings";
 import { assetClassOf } from "@/store/symbols";
 import {
   type AssetClass,
@@ -424,12 +426,20 @@ export function PortfolioPanel() {
       // `id` is the real holding id — the agent's portfolio update/delete
       // names it as `position_id`; without it an edit of one of several
       // same-symbol lots could not say which (R15-AGENT-042).
-      summary.rows.map(({ position, marketValue, pnl }) => ({
+      summary.rows.map(({ position, quote, marketValue, pnl }) => ({
         id: position.id,
         symbol: position.symbol,
         quantity: position.quantity,
         costBasis: position.costBasis,
         assetClass: position.assetClass,
+        // R15-AGENT-091: the tracked position's currency, so the agent never
+        // guesses one — a resolved quote's currency, else the pair's quote
+        // side for an unresolved crypto lot, else the region default (the
+        // same fallback chain the form/table money cells use).
+        currency:
+          quote?.currency ??
+          pairCurrency(position.symbol) ??
+          regionConfig(useSettingsStore.getState().region).currency,
         marketValue: marketValue ?? null,
         pnl: pnl ?? null,
       })),
