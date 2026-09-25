@@ -497,6 +497,36 @@ describe("host-actions", () => {
     expect(brief?.webAvailable).toBe(true); // reconciled — never contradictory
   });
 
+  it("briefFromInput with only vysted:// + nsearchives rows -> webAvailable false", () => {
+    // R15-RESEARCH-041: structured pulls and exchange-filing rows are cited
+    // sources but not the web, so the structured-only banner can fire.
+    useBriefStore.getState().clearBrief();
+    const input = {
+      query: "BDL outlook",
+      symbol: "BDL",
+      mode: "deep",
+      markdown: "## Brief\nPrice [1], filing [2].",
+      sources: [
+        { url: "vysted://price/BDL", title: "Price for BDL", domain: "yfinance" },
+        {
+          url: "https://nsearchives.nseindia.com/corporate/BDL_18092026111355_BDL_SE_JS_DIP_Cov-1.pdf",
+          title: "Appointment of a Non-Executive Director",
+          domain: "NSE",
+          source_type: "filing",
+        },
+      ],
+      web_available: false,
+    };
+    applyHostAction("publish_brief", input);
+    const brief = useBriefStore.getState().brief;
+    expect(brief?.sourceCount).toBe(2);
+    expect(brief?.webAvailable).toBe(false);
+    // The diff copy agrees: two cited sources, structured-data-only.
+    expect(describeHostAction("publish_brief", input).after).toMatch(
+      /2 cited sources · structured-data-only/,
+    );
+  });
+
   it("publish_brief keeps a source's date and provenance from the wire (R15-RESEARCH-024)", () => {
     useBriefStore.getState().clearBrief();
     applyHostAction("publish_brief", {

@@ -171,12 +171,11 @@ def test_deep_coverage_floor_blocks_premature_complete() -> None:
     assert isinstance(brief, ResearchBrief)
     # The floor was never met -> the run was cut by the budget, not a clean break.
     assert brief.note == deep.BUDGET_STOP_NOTE
-    # WS3: web COVERAGE was never met, but the structured legs still produced
-    # cited sources — so web_available is reconciled to True (a brief that cites N
-    # sources must NOT also claim the web was unavailable / symptom #2). The honest
-    # "structured data only" banner is reserved for a brief with ZERO sources.
+    # The structured legs produced cited sources, but no web search ever did —
+    # so web_available stays False and the honest "structured data only" banner
+    # fires (R15-RESEARCH-041: structured pulls are not the web).
     assert brief.source_count > 0
-    assert brief.web_available is True
+    assert brief.web_available is False
 
 
 def test_deep_zero_sources_keeps_honest_structured_only_flag() -> None:

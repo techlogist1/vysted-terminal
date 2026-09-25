@@ -253,10 +253,9 @@ def test_heavy_spawns_angles_and_synthesizes_merged_sources() -> None:
     web_urls = [s.url for s in brief.sources if s.url == "https://ex.com/a"]
     assert len(web_urls) == 1
     assert brief.markdown.strip()
-    # WS3: the heavy/panel path reconciles web_available with the merged source
-    # count (= any(angle.web_available) or bool(merged_sources)). A panel brief
-    # that cites N merged sources must report web_available True so it never fires
-    # the "web unavailable" banner alongside its sources (symptom #2).
+    # WS3: a panel brief that cites a merged WEB source reports web_available
+    # True so it never fires the "web unavailable" banner alongside its sources
+    # (symptom #2).
     assert brief.web_available is True
 
 
@@ -674,6 +673,38 @@ def test_ultra_cites_the_preseeded_filings_floor() -> None:
     )
     assert isinstance(brief, ResearchBrief)
     assert "https://www.bseindia.com/xml/kse_bm.pdf" in [s.url for s in brief.sources]
+
+
+def test_structured_only_sources_are_not_web_available() -> None:
+    """R15-RESEARCH-041: vysted:// structured pulls and exchange-filing rows are
+    cited sources but not the web — a DEEP or ULTRA run whose web search found
+    nothing keeps web_available False so the structured-only banner can fire."""
+    for brief in (
+        _run(
+            run_iter_research(
+                "KSE outlook",
+                region="IN",
+                tool_call=_kse_floor_tool_factory(),
+                llm_call=FakeLLM(reflect="complete"),
+                budget=BudgetGuard(max_steps=6),
+            )
+        ),
+        _run(
+            run_heavy_research(
+                "KSE outlook",
+                angles=2,
+                region="IN",
+                tool_call=_kse_floor_tool_factory(),
+                llm_call=FakeLLM(reflect="complete"),
+                budget=BudgetGuard(max_steps=20),
+            )
+        ),
+    ):
+        assert isinstance(brief, ResearchBrief)
+        urls = [s.url for s in brief.sources]
+        assert "https://www.bseindia.com/xml/kse_bm.pdf" in urls
+        assert any(u.startswith("vysted://") for u in urls)
+        assert brief.web_available is False
 
 
 # --- R13 depth integrity: round-1 planning skip -------------------------------

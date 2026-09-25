@@ -835,6 +835,7 @@ async def run_research_model_brief(
     else:
         note = NO_INSTRUMENT_NOTE
 
+    from services.research.deep import is_web_search_source
     from services.research.models import ResearchBrief
 
     brief = ResearchBrief(
@@ -855,7 +856,7 @@ async def run_research_model_brief(
             "estimate": True,
             "provider": _RESEARCH_MODEL_PROVENANCE,
         },
-        web_available=bool(sources),
+        web_available=any(is_web_search_source(s) for s in sources),
         note=note,
     )
     out = brief.to_dict()

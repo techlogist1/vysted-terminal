@@ -64,6 +64,7 @@ from services.research.deep import (
     build_structured_floor,
     coverage_floor_met,
     finalize_markdown,
+    is_web_search_source,
     join_notes,
     record_snapshot_sources,
     remaining_wall,
@@ -1231,12 +1232,9 @@ async def run_heavy_research(
         steps=steps + [s for b in good for s in b.steps],
         source_count=len(merged_sources),
         cost=budget.cost(),
-        # web_available RECONCILED with the merged source count: a panel brief that
-        # cites N merged sources must not also fire the "web unavailable" banner
-        # (symptom #2). True when any angle saw the web, OR when the merged panel
-        # produced any cited source at all. The honest structured-only banner
-        # survives only when the panel gathered ZERO sources.
-        web_available=any(b.web_available for b in good) or bool(merged_sources),
+        # True only when a web search surfaced one of the merged cited sources —
+        # structured pulls and exchange filings never count (R15-RESEARCH-041).
+        web_available=any(is_web_search_source(s) for s in merged_sources),
         # The "heavy:N angles" implementation note is GONE (R8): structured.panel
         # already carries the angle data, and brief.note renders to the USER —
         # human sentences only (a failed-angle count is a dev detail). A lead
