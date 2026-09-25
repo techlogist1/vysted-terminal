@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 648 entries + 76 rejections. critical: 16 . high: 116 . medium: 290 . low: 226
+887 raw findings -> 650 entries + 76 rejections. critical: 16 . high: 116 . medium: 291 . low: 227
 
-Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open: 205 . removed_with_feature: 14
+Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open: 207 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -123,7 +123,7 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _open_
 - **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _open_
 
-### Agent / chat (97)
+### Agent / chat (99)
 
 - **R15-AGENT-002** [high] Stop does not stop: aborting the chat stream leaves the in-flight tool task (research, LLM and web calls) running for minutes, spending the BYOK key and holding the single Ollama slot — _fixed_
 - **R15-AGENT-003** [high] At the 6-round tool cap the capped round's tool calls are streamed to the UI (and may be auto-applied as host actions) but never dispatched, and the turn ends with no answer text — _fixed_
@@ -222,6 +222,8 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-LEAD-032** [medium] adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol — _fixed_
 - **R15-LEAD-031** [low] The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator — _fixed_
 - **R15-LEAD-033** [medium] The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose — _fixed_
+- **R15-LEAD-035** [medium] Told explicitly 'without calling any tool', llama3.1:8b stages a portfolio_update_position write anyway — _open_
+- **R15-LEAD-036** [low] The all-errored fabrication guard's replacement prose renders inside the original code fence, leaving a ```json block that contains a sentence instead of JSON — _open_
 
 ### Research / web search (53)
 
@@ -1062,3 +1064,5 @@ Status: blocked_tier4: 22 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-LEAD-031 | low | agent | agent-tools | The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator | fixed |  |
 | R15-LEAD-033 | medium | agent | frontend-stores | The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose | fixed |  |
 | R15-LEAD-034 | medium | data | fundamentals-profile | Background India fundamentals warming passes bare screener-universe symbols to the correctness gate, which never strips yfinance's Emerge (SME) '-SM' infix, so every NSE Emerge symbol fails as a symbol mismatch | fixed |  |
+| R15-LEAD-035 | medium | agent | agent-tools | Told explicitly 'without calling any tool', llama3.1:8b stages a portfolio_update_position write anyway | open |  |
+| R15-LEAD-036 | low | agent | agent-tools | The all-errored fabrication guard's replacement prose renders inside the original code fence, leaving a ```json block that contains a sentence instead of JSON | open |  |
