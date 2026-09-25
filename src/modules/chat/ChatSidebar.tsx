@@ -1305,9 +1305,9 @@ export function ChatSidebar() {
           finalize(id, null);
         }}
       />
-      {/* The standing "Context: none" row is dead (R9 stray-item audit) — the
-          badge renders only when there is REAL panel context to report. */}
-      {contextBadge !== "Context: none" && <ContextBadge text={contextBadge} />}
+      {/* No standing "no context" row (R9 stray-item audit) — the badge
+          renders only when there is REAL panel context to report. */}
+      {contextBadge.kind === "panels" && <ContextBadge text={contextBadge.text} />}
       <div
         ref={scrollRef}
         role="log"
@@ -2265,23 +2265,26 @@ function makeHandlers(internal: InternalHandlers): {
   };
 }
 
-/** Render the panel-context badge text from the snapshot. */
-function describeContext(snapshot: {
+/** The panel-context badge: `none` renders nothing, `panels` its text. */
+export type ContextDescription = { kind: "none" } | { kind: "panels"; text: string };
+
+/** Describe the panel context for the badge from the snapshot. */
+export function describeContext(snapshot: {
   focusedSource: string | null;
   lastEventBySource: Record<string, { payload: unknown }>;
-}): string {
+}): ContextDescription {
   if (!snapshot.focusedSource) {
     const count = Object.keys(snapshot.lastEventBySource).length;
     return count === 0
-      ? "Context: none"
-      : `Context: ${count} panel${count === 1 ? "" : "s"} active`;
+      ? { kind: "none" }
+      : { kind: "panels", text: `Context: ${count} panel${count === 1 ? "" : "s"} active` };
   }
   const symbol = focusedSymbolFromBus(snapshot.lastEventBySource, snapshot.focusedSource);
   if (!symbol) {
-    return `Context: ${snapshot.focusedSource}`;
+    return { kind: "panels", text: `Context: ${snapshot.focusedSource}` };
   }
   const payload = snapshot.lastEventBySource[snapshot.focusedSource]?.payload;
   const timeframe = (payload as { timeframe?: unknown } | undefined)?.timeframe;
   const tf = typeof timeframe === "string" ? `, ${timeframe}` : "";
-  return `Context: ${snapshot.focusedSource} (${symbol}${tf})`;
+  return { kind: "panels", text: `Context: ${snapshot.focusedSource} (${symbol}${tf})` };
 }

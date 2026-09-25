@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ChatSidebar } from "@/modules/chat/ChatSidebar";
+import { ChatSidebar, describeContext } from "@/modules/chat/ChatSidebar";
 import {
   resetMessageNoticesForTests,
   useMessageNoticesStore,
@@ -533,6 +533,26 @@ describe("ChatSidebar", () => {
     };
     expect(terminal.focusedSymbol).toBe("SPY");
     expect(terminal.charts[0].symbol).toBe("SPY");
+  });
+
+  it("ContextBadge hidden with no bus events, shown with one panel event (asserted on kind) (R15-CODE-FRONTEND-021)", () => {
+    const bus = usePanelContextBus.getState();
+    expect(describeContext(bus).kind).toBe("none");
+    const { unmount } = render(<ChatSidebar />);
+    expect(screen.queryByLabelText("Panel context")).toBeNull();
+    unmount();
+    bus.publish({
+      source: "chart",
+      kind: "snapshot",
+      payload: { symbol: "SPY", timeframe: "1d" },
+      emittedAt: 1,
+    });
+    const described = describeContext(usePanelContextBus.getState());
+    expect(described.kind).toBe("panels");
+    render(<ChatSidebar />);
+    expect(screen.getByLabelText("Panel context")).toHaveTextContent(
+      described.kind === "panels" ? described.text : "unreachable",
+    );
   });
 
   it("a focused Equity Overview's ticker drives the badge, the chips and the snapshot (R15-CODE-FRONTEND-015)", async () => {
