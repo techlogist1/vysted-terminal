@@ -194,22 +194,16 @@ async def _sweep_once() -> bool:
 
 async def _sweep_loop() -> None:
     """India v7 sweep every 15 min, region-gated, with the screener's shared
-    exponential 429 backoff. The boot seed runs on the first IN cycle."""
+    exponential 429 backoff. The boot seed is :func:`start_warm_fundamentals`'s
+    (R15-LIFECYCLE-030)."""
     from services import screener
 
     consecutive_throttles = 0
-    seeded = False
     try:
         while True:
             if get_region() != "IN":
                 await asyncio.sleep(_REGION_RECHECK_SECONDS)
                 continue
-            if not seeded:
-                try:
-                    await seed_india_store()
-                    seeded = True
-                except Exception as exc:  # noqa: BLE001 — seed is best-effort
-                    logger.warning("fundamentals warm: seed failed: %s", exc)
             # R11 (D53): never sweep beside a foreground screen (the user's
             # run owns the upstream) and never sweep into an open circuit.
             await _idle_event.wait()

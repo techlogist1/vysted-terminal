@@ -302,6 +302,38 @@ async def test_start_stop_clean_no_leaked_tasks() -> None:
     assert fundamentals_warm._crawl_task is None
 
 
+def _quiet_in_boot(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """An IN-region boot with every network lane stubbed; returns the log of
+    ``seed_india_store`` calls (by task name)."""
+    seeds: list[str] = []
+
+    async def _seed() -> int:
+        seeds.append(asyncio.current_task().get_name())
+        await asyncio.sleep(0)
+        return 0
+
+    async def _cycle() -> int:
+        return 0
+
+    monkeypatch.setattr(fundamentals_warm, "get_region", lambda: "IN")
+    monkeypatch.setattr(fundamentals_warm, "seed_india_store", _seed)
+    monkeypatch.setattr(fundamentals_warm, "_sweep_once", _cycle)
+    monkeypatch.setattr(fundamentals_warm, "_crawl_once", _cycle)
+    monkeypatch.setattr(fundamentals_warm, "bhavcopy_refresh_once", _cycle)
+    return seeds
+
+
+@pytest.mark.asyncio
+async def test_in_boot_seeds_exactly_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LIFECYCLE-030: start_warm_fundamentals owns the boot seed; the
+    sweep loop's first IN cycle must not run it a second time."""
+    seeds = _quiet_in_boot(monkeypatch)
+    fundamentals_warm.start_warm_fundamentals()
+    await asyncio.sleep(0.05)
+    await fundamentals_warm.stop_warm_fundamentals()
+    assert len(seeds) == 1, seeds
+
+
 @pytest.mark.asyncio
 async def test_start_is_idempotent() -> None:
     fundamentals_warm.start_warm_fundamentals()
