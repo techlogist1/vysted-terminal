@@ -140,12 +140,30 @@ def leak_start(text: str, offered: set[str]) -> int | None:
     return None
 
 
+#: A marker cut off at the end of the text: ``{`` plus a prefix of
+#: ``"name": "<ident>``, or a trailing identifier (``<ident>(`` to come).
+_PARTIAL_JSON = re.compile(r'\{\s*(?:"(?:n(?:a(?:m(?:e(?:"\s*(?::\s*(?:"(\w*))?)?)?)?)?)?)?)?\Z')
+_PARTIAL_CALL = re.compile(r"\b([A-Za-z_]\w*)\Z")
+
+
+def _partial_start(text: str, pos: int, offered: set[str]) -> int | None:
+    """Where a marker that may still become a leaked call to an offered tool
+    starts at the end of ``text`` (searched from ``pos``), or ``None``."""
+    for pattern in (_PARTIAL_JSON, _PARTIAL_CALL):
+        match = pattern.search(text, pos)
+        if match and any(name.startswith(match.group(1) or "") for name in offered):
+            return match.start()
+    return None
+
+
 class LeakHold:
     """Streams text up to a leaked-call marker, then holds the rest.
 
-    :meth:`feed` returns the part of each chunk to show now. At end of stream
-    the adapter drops :meth:`held` when the rescue fires and shows it
-    otherwise, so no text is ever lost. An empty ``offered`` never holds.
+    :meth:`feed` returns the chunks to show now. A chunk where a marker may be
+    starting (``{"na``, ``price``) is held whole until the marker completes or
+    stops matching an offered name, then replayed as it came (R15-LEAD-031).
+    At end of stream the adapter drops :meth:`held` when the rescue fires and
+    shows it otherwise, so no text is ever lost. An empty ``offered`` never holds.
     """
 
     def __init__(self, offered: set[str]) -> None:
@@ -153,8 +171,9 @@ class LeakHold:
         self.text = ""
         self._shown = 0
         self._hold: int | None = None
+        self._pending: list[str] = []  # chunks held while a partial marker may complete
 
-    def feed(self, chunk: str) -> str:
+    def feed(self, chunk: str) -> list[str]:
         self.text += chunk
         if self._hold is None and self.offered:
             # ponytail: rescans the whole text per chunk (quadratic in chunks);
@@ -162,10 +181,18 @@ class LeakHold:
             start = leak_start(self.text, self.offered)
             if start is not None:
                 self._hold = max(start, self._shown)
-        end = len(self.text) if self._hold is None else self._hold
-        shown = self.text[self._shown : end]
-        self._shown = end
-        return shown
+        if self._hold is not None:
+            shown = self.text[self._shown : self._hold]
+            self._shown = self._hold
+            self._pending = []
+            return [shown] if shown else []
+        self._pending.append(chunk)
+        cut = _partial_start(self.text, self._shown, self.offered) if self.offered else None
+        out: list[str] = []
+        while self._pending and (cut is None or self._shown + len(self._pending[0]) <= cut):
+            out.append(self._pending.pop(0))
+            self._shown += len(out[-1])
+        return [c for c in out if c]
 
     def held(self) -> str:
         return self.text[self._shown :]

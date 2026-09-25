@@ -7,7 +7,9 @@ the JSON-only rescue ran nothing.
 
 from __future__ import annotations
 
-from services.llm.tool_call_rescue import leak_start, rescue_leaked_tool_call
+import pytest
+
+from services.llm.tool_call_rescue import LeakHold, leak_start, rescue_leaked_tool_call
 
 _OFFERED = {"price_data", "fundamentals", "research", "market_overview"}
 
@@ -62,3 +64,39 @@ def test_leak_start_backs_up_to_the_marker_line_and_its_fence() -> None:
     assert leak_start(head + '**Tool call:** `price_data(symbol="X")`', _OFFERED) == len(head)
     assert leak_start(head + '```json\n{"name": "fundamentals"}\n```', _OFFERED) == len(head)
     assert leak_start(head + 'Try get_quote(symbol="X") or {"name": "screener"}', _OFFERED) is None
+
+
+def _fed(hold: LeakHold, chunks: list[str]) -> list[str]:
+    return [shown for chunk in chunks for shown in hold.feed(chunk)]
+
+
+@pytest.mark.parametrize(
+    "chunks",
+    [
+        [' {"', "name", '":', ' "', "price", "_data"],
+        ["price", "_data", '(symbol="SIFY")'],
+    ],
+)
+def test_a_partial_marker_of_an_offered_tool_never_shows(chunks: list[str]) -> None:
+    """R15-LEAD-031 sify-1/orig-2: the hold fired only once the whole marker
+    arrived, so ' {"name": "price_data' streamed first and the runtime's text
+    spliced onto it ('{"name": "fundamentalsSIFY's ...')."""
+    hold = LeakHold(_OFFERED)
+    shown = "".join(_fed(hold, chunks))
+    assert "{" not in shown and "price" not in shown, shown
+    assert shown + hold.held() == "".join(chunks)
+
+
+@pytest.mark.parametrize(
+    "chunks",
+    [
+        ["The price", " is up."],
+        ['; {"', "name", '": "', "scre"],
+    ],
+)
+def test_a_held_partial_that_stops_matching_replays_its_chunks(chunks: list[str]) -> None:
+    """R15-LEAD-031: a chunk held for a marker that turns out to be prose (or
+    an unoffered name) comes back as it came, nothing lost or re-chunked."""
+    hold = LeakHold(_OFFERED)
+    assert _fed(hold, chunks) == chunks
+    assert hold.held() == ""
