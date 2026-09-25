@@ -86,7 +86,12 @@ cross-checked against that run's `journal.jsonl` and against the matching
 | wf_f724edac-bff | LOWS WRITE P1 | load, W1-W9 writers, collate | 25 Sep 18:56 | 37.6min | 11 | sonnet 7, opus 4 | 1,613,751 | `06ce565f` + 9 branches on origin: 61 fixed, 2 could_not (CODE-RESEARCH-005, CODE-AGENT-031) deferred to the serial set | run file + run-state ledger line 62 |
 | wf_a342e2a8-74a | LOWS WRITE P2 | load, W1-W9 writers, collate | 25 Sep 18:56 | 39.8min | 11 | sonnet 8, opus 3 | 1,728,661 | `2ea83865` + 9 branches on origin: 60 fixed, 3 could_not (CODE-DATA-019, LIFECYCLE-035, CODE-FRONTEND-027) to the P2 integrator, 1 not_a_defect_proposed (LEAD-025) — all three lows write waves now done (184 fixed, 7 could_not, 3 not_a_defect_proposed) | run file + run-state ledger line 63 |
 | wf_e64eeddf-e23 | LOWS WRITE P3 | load, W1-W9 writers, collate | 25 Sep 18:56 | 37.7min | 11 | sonnet 8, opus 3 | 1,629,773 | `c40bf690` + 9 branches on origin: 63 fixed, 2 could_not (AGENT-077, DATA-102) to the P3 integrator, 2 not_a_defect_proposed (CODE-PLUGINS-045/046) | run file + run-state ledger line 64 |
-| wf_dab096e5-3ae | Stage C batch-19 (LEAD-030 strategy change) — **IN FLIGHT** | adjudicate, plan, W1 (opus) writer, integrate | 25 Sep 18:57 | in flight (~46min elapsed at write, 19:43 IST) | 4 (adjudicate + plan + W1 done, integrate running) | sonnet 1, opus 3 (integrate in progress) | not recorded (in flight) | Adjudicate applies batch-18 verdicts (LEAD-033/034 fixed at `ebc5ed41`, LEAD-030 stays open); W1 (Opus) targets the two surviving no-ok-source dump shapes; integrator running | run file + run-state ledger line 65 |
+| wf_dab096e5-3ae | Stage C batch-19 (LEAD-030 strategy change) | adjudicate, plan, W1 (opus) writer, integrate, review, verify | 25 Sep 18:57 | 73.9min | 6 | opus 5, sonnet 1 | 847,353 | Merged `ec7f7cd6`; LEAD-030 NOT certified a 5th time (code-fenced dump for an errored/uncalled tool, all-errored markdown table, annotated bullets and an inline JSON dump still stream; a user's own figure list now over-replaced) — shape-matching leaked on fresh shapes five times, batch-20 switches the mechanism to figure grounding | run file + run-state ledger line 65 |
+| wf_d9c19941-576 | RUN LOG TELEMETRY BACKFILL #3 | one Sonnet/high agent | 25 Sep 19:41 | 3.4min | 1 | sonnet 1 | 166,282 | `5bb43ff0`: 6 rows added (61 total; 2 replaced in place — batch-18 step 2 + panel completion finalised), IN FLIGHT row added for batch-19, spend refreshed to 384 ledger lines ($0.201076, all new lines free ollama), 0 banned-word hits | run file + run-state ledger line 66 |
+| wf_152b123d-228 | Stage C batch-20 (LEAD-030 sixth attempt) | adjudicate, plan, W1 (fable) writer, integrate, review, verify | 25 Sep 20:17 | 109.2min | 6 | opus 4, sonnet 1, fable 1 | 897,548 | Merged `1abef99b`; LEAD-036 fixed, LEAD-030 NOT certified a 6th time — the new figure-grounding mechanism holds every pinned shape but `_NEGATIVE` still exempts error-acknowledging clauses before rule 1 runs (live SBIN.NS ₹742.35 fabrication vs app truth 983.0) and subject aliasing matches by ticker only, missing company-name mentions | run file + run-state ledger line 67 |
+| wf_3e8a9abe-7f7 | Stage C batch-21 (LEAD-030 seventh round + LEAD-035) | adjudicate, plan, W1 (opus) + W2 (sonnet) writers, integrate, review, verify | 25 Sep 22:12 | 74.2min | 7 | opus 5, sonnet 2 | 926,139 | Merged `86ae79c4`; LEAD-036 fixed, LEAD-030 NOT certified a 7th time (short-name aliases SBI/Airtel/L&T still unmatched; a REGRESSION — an unclosed trailing fence streams its figure), LEAD-035 first attempt fails (closed no-tool-cue list misses live phrasings, a write still dispatches) — STOP-RULE AMENDMENT: batch-22 runs, an 8th LEAD-030 or 3rd LEAD-035 failure is final | run file + run-state ledger line 69 |
+| wf_c1b4581a-8d6 | Stage C batch-22 (LEAD-030 eighth round + LEAD-035 second) | adjudicate, plan, W1 (opus) + W2 (sonnet) writers, integrate, review, verify | 25 Sep 23:29 | 80.9min | 7 | opus 5, sonnet 2 | 1,001,263 | Merged W1-only as `c155e5ad` (00:53 IST Sat 26 Sep); W2 excluded as a verified regression (six explicit data requests lose the tool surface); LEAD-030 NOT certified an 8th time — paragraph inheritance lets a fabricated figure for an unrecognised/never-called subject stream beside an ok subject — STOP RULE fired (final), DECISIONS 4.9 disposition (recommend blocked_tier4) pending a fresh verifier's concurrence in batch-23; LEAD-036 holds | run file + run-state ledger line 70 |
+| wf_727db864-af6 | Stage C batch-23 (LEAD-035 third/final round + LEAD-030 disposition concurrence) — **IN FLIGHT** | adjudicate, plan, W1 (opus) writer, integrate, review, verify | 26 Sep 01:03 | in flight (~3min elapsed at write, 01:06 IST Sat 26 Sep) | 6 (adjudicate running, none landed yet) | not recorded (in flight) | not recorded (in flight) | Adjudicate applies batch-22 VERDICTS (nothing certifies; LEAD-030 stays open under the stop rule); planner targets exactly one Opus writer W1 on planner.py's no-tool-cue matcher (LEAD-035 third/final round) while the fresh verifier separately rules CONCUR/REFUSE on the LEAD-030 `blocked_tier4` disposition | run file + run-state ledger line 71 |
 
 ## Strategy changes
 
@@ -179,22 +184,23 @@ Caps: session 1 (D8, 19 Sep) set a $2.00 OpenAI-direct hard stop + the OpenRoute
 Superseded by the SCOPE CHANGE (03:46 IST 23 Sep): OpenAI-direct hard stop raised to **$8.00**
 (`vy.py` refuses at $7.50).
 
-**Refreshed** for this backfill: read at 19:43 IST 25 Sep from
-`docs/redesign/verification/r15/spend-ledger.jsonl` (384 lines, 19 Sep 14:58 → 25 Sep 18:49 IST;
+**Refreshed** for this backfill: read at 01:07 IST 26 Sep from
+`docs/redesign/verification/r15/spend-ledger.jsonl` (393 lines, 19 Sep 14:58 → 25 Sep 20:10 IST;
 this file is dirty on purpose and stays uncommitted — read only, never git-added). By provider:
 
 | Provider | Calls | Paid (est_usd) |
 |---|---|---|
 | `openai` | 30 | $0.201076 |
-| `ollama` | 247 | $0.00 |
+| `ollama` | 256 | $0.00 |
 | `openrouter` | 104 | $0.00 |
 | `deepseek` | 2 | $0.00 |
 | `none` (bookkeeping note row, not an API call) | 1 | $0.00 |
-| **Total** | **384** | **$0.201076** |
+| **Total** | **393** | **$0.201076** |
 
-30 rows are paid (all via `openai`); 353 are free (247 `ollama`, 104 `openrouter` free-tier, 2
+30 rows are paid (all via `openai`); 362 are free (256 `ollama`, 104 `openrouter` free-tier, 2
 `deepseek`); 1 is a non-call bookkeeping note (the `budget-change` cap-raise entry). No new paid
-calls since the prior read (the +10 lines are all free `ollama`, from the lows write waves). Total
+calls since the prior read (the +9 lines are all free `ollama`, from batch-19/20/21/22's verify
+live bars). Total
 spend $0.20 is well under both the original $2.00 cap and the raised $8.00 cap.
 
 <details>

@@ -206,8 +206,10 @@ The handover is refreshed at every tag.
 ## Where the evidence lives
 
 - Header, in-flight ledger and loop log: `docs/redesign/verification/vysted-r15-run-state.md`
-- Waves table and spend: `docs/redesign/verification/R15_RUN_LOG.md`; paid-call ledger
-  `docs/redesign/verification/r15/spend-ledger.jsonl`
+- Waves table and spend: `docs/redesign/verification/R15_RUN_LOG.md` (66 workflow runs tabulated
+  as of run-log backfill #4, 01:07 IST 26 Sep 2026; ~83.8M tokens summed over the rows with a
+  recorded figure; $0.201076 paid spend, all OpenAI-direct, unchanged since backfill #3); paid-call
+  ledger `docs/redesign/verification/r15/spend-ledger.jsonl`
 - Register: `docs/redesign/verification/vysted-r15-register.json` (+ `.md` view); new leads
   waiting to be filed: `r15/stage-c/LEAD_FOUND.json`
 - Gate 2: `docs/redesign/verification/R15_GATE2.md`
