@@ -791,3 +791,38 @@ def test_debt_free_zero_debt_to_equity_passes_a_threshold_screen() -> None:
     matched, missing = evaluate_formula(compiled, fund, None)
     assert missing is None
     assert matched is True
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-112: a missing listing currency must sort LAST, not first.
+# ---------------------------------------------------------------------------
+
+
+def test_apply_criteria_missing_currency_sorts_last_desc() -> None:
+    """MANIKA.NS has no fundamentals currency (None) — it must never form its
+    own leading group ahead of every real currency code."""
+    rows = [
+        (_make_fundamentals("MANIKA.NS", market_cap=None, currency=None), _make_quote("MANIKA.NS")),
+        (
+            _make_fundamentals("RELIANCE.NS", market_cap=1.655e13, currency="INR"),
+            _make_quote("RELIANCE.NS"),
+        ),
+        (_make_fundamentals("TCS.NS", market_cap=7.55e12, currency="INR"), _make_quote("TCS.NS")),
+    ]
+    result = screener.apply_criteria(rows, [], sort_by="market_cap", sort_dir="desc")
+    assert [r.symbol for r in result] == ["RELIANCE.NS", "TCS.NS", "MANIKA.NS"]
+
+
+def test_apply_criteria_missing_currency_sorts_last_asc() -> None:
+    """Same rule holds ascending — the missing-currency group stays last
+    regardless of sort_dir (it is not scaled by the value's sign)."""
+    rows = [
+        (_make_fundamentals("MANIKA.NS", market_cap=None, currency=None), _make_quote("MANIKA.NS")),
+        (
+            _make_fundamentals("RELIANCE.NS", market_cap=1.655e13, currency="INR"),
+            _make_quote("RELIANCE.NS"),
+        ),
+        (_make_fundamentals("TCS.NS", market_cap=7.55e12, currency="INR"), _make_quote("TCS.NS")),
+    ]
+    result = screener.apply_criteria(rows, [], sort_by="market_cap", sort_dir="asc")
+    assert [r.symbol for r in result] == ["TCS.NS", "RELIANCE.NS", "MANIKA.NS"]

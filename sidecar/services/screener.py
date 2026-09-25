@@ -423,6 +423,11 @@ def apply_criteria(
     sign = -1.0 if sort_dir == "desc" else 1.0
     matched.sort(
         key=lambda pair: (
+            # R15-DATA-112: a missing listing currency (``''``) must sort LAST
+            # regardless of sort_dir, same as the missing-value-last rule below
+            # — it must not form its own leading group by sorting alphabetically
+            # ahead of every real currency code.
+            _currency_sort_key(pair[1].currency) == "",
             _currency_sort_key(pair[1].currency),
             pair[0] is None,
             sign * (pair[0] or 0.0),
