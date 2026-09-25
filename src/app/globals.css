@@ -113,6 +113,7 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings:
       "tnum" 1,
+      "zero" 1,
       "calt" 0;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
