@@ -2521,3 +2521,48 @@ async def test_each_dispatched_call_streams_its_tool_result(
         (calls[1].tool_call_id, "price_data", True, None),
     ]
     assert events.index(results[0]) > events.index(calls[1])
+
+
+_SIFY_WEB_SEARCH = {
+    "ok": True,
+    "results": [{"title": "Sify Technologies Ltd ADS (Each Repr 6 Ords)"}],
+}
+
+
+@pytest.mark.parametrize(
+    "claim",
+    [
+        "SIFY American Depositary Shares each represent six underlying equity shares. ",
+        "Each ADR is equivalent to 2 shares of common stock. ",
+        "The ADR-to-share ratio is 1 ADR : 6 shares. ",
+        "One ADS equals fifteen ordinary shares. ",
+        "Every SIFY ADS corresponds to 3 shares. ",
+    ],
+)
+def test_a_depositary_ratio_claim_in_any_wording_is_replaced(claim: str) -> None:
+    """R15-AGENT-090 batch 13: the claim was recognised by the shape of the
+    number's neighbours, so each new wording escaped. A claim is now a depositary
+    term, a ratio cue and a non-money quantity, whatever sits between them."""
+    result = json.dumps(_SIFY_FUNDAMENTALS)
+    assert (
+        agent_runtime._guard_ratio_claims(claim, [result]) == agent_runtime.RATIO_UNAVAILABLE + " "
+    )
+
+
+@pytest.mark.parametrize(
+    ("sentence", "result"),
+    [
+        ("The ADR traded between 10 and 12 dollars. ", _SIFY_FUNDAMENTALS),
+        ("Each ADR closed at $12.50 on volume of 40,000 shares. ", _SIFY_FUNDAMENTALS),
+        ("Revenue represents 12% of the total. ", _SIFY_FUNDAMENTALS),
+        ("The PE ratio is 22.4. ", _SIFY_FUNDAMENTALS),
+        # Traced: the unit side 1 is not part of the claim, the 6 is sourced.
+        ("The ADR-to-share ratio is 1 ADR : 6 shares. ", _SIFY_WEB_SEARCH),
+    ],
+)
+def test_a_price_volume_other_ratio_or_traced_ratio_streams_as_is(
+    sentence: str, result: dict[str, Any]
+) -> None:
+    """R15-AGENT-090: money, a percent, a trade volume, a non-depositary ratio and
+    a ratio a tool result carries are not replaced."""
+    assert agent_runtime._guard_ratio_claims(sentence, [json.dumps(result)]) == sentence
