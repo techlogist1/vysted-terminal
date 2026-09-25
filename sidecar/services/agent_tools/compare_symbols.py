@@ -246,9 +246,20 @@ async def _compare_symbols(args: dict[str, Any]) -> dict[str, Any]:
     if asset_class not in _VALID_ASSET_CLASSES:
         return {"ok": False, "error": f"asset_class must be one of {list(_VALID_ASSET_CLASSES)}"}
 
-    results = await asyncio.gather(
-        *(_compare_one(symbol, timeframe, asset_class) for symbol in symbols)
+    raw_results = await asyncio.gather(
+        *(_compare_one(symbol, timeframe, asset_class) for symbol in symbols),
+        return_exceptions=True,
     )
+    # ``_compare_one`` already catches every known failure path internally, but
+    # ``return_exceptions=True`` is the outer backstop so a truly unexpected
+    # exception still degrades to a per-symbol error row instead of raising
+    # out of ``gather`` and crashing the whole comparison (R15-AGENT-069).
+    results = [
+        {"symbol": symbol, "error": str(r), "note": f"unexpected error fetching {symbol}: {r}"}
+        if isinstance(r, BaseException)
+        else r
+        for symbol, r in zip(symbols, raw_results, strict=True)
+    ]
 
     resolved = [r for r in results if "error" not in r]
     if len(resolved) < 2:
