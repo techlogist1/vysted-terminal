@@ -301,3 +301,123 @@ describe("no crypto WebSocket helper (R15-DATA-109)", () => {
     expect("openCryptoStream" in mod).toBe(false);
   });
 });
+
+/**
+ * R15-LIFECYCLE-027: no timeout anywhere in the shared client let one hung
+ * `/health` probe or a hung route spin past its intended budget.
+ */
+describe("request timeouts", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    invokeMock.mockReset();
+    vi.unstubAllGlobals();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  /**
+   * A hung-fetch mock that never settles on its own — matching what a real
+   * "engine bound but not answering" call looks like. It must check
+   * `signal.aborted` FIRST, not just listen for a future "abort" event: by
+   * the time `sidecarRequest` builds its combined signal (several awaits in
+   * — the health probe, then `buildSearchHeaders`), a caller-side abort fired
+   * synchronously earlier in the test has often already landed, and an
+   * "abort" listener added after the event already fired never runs — the
+   * promise (and the test) hangs instead of rejecting.
+   */
+  function hangOnSignal(init: RequestInit | undefined): Promise<Response> {
+    return new Promise<Response>((_resolve, reject) => {
+      if (init?.signal?.aborted) {
+        reject(init.signal.reason);
+        return;
+      }
+      init?.signal?.addEventListener("abort", () => reject(init.signal!.reason));
+    });
+  }
+
+  it("a never-settling /health probe is bounded per round (AbortSignal.timeout), not one eternal fetch", async () => {
+    invokeMock.mockResolvedValue(READY);
+    // `AbortSignal.timeout`'s internal timer is native and not driven by
+    // vitest's fake `setTimeout` — mock it to a signal this test controls,
+    // so firing "the round timed out" is deterministic instead of racing a
+    // real 5s wall-clock timer inside a unit test.
+    const roundSignals: AbortController[] = [];
+    vi.spyOn(AbortSignal, "timeout").mockImplementation(() => {
+      const controller = new AbortController();
+      roundSignals.push(controller);
+      return controller.signal;
+    });
+    let fetchCalls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((_url: string, init?: RequestInit) => {
+        fetchCalls += 1;
+        // Round 1 hangs (the bug this pins); round 2 succeeds, so the probe
+        // settles deterministically instead of leaving a dangling retry loop.
+        if (fetchCalls === 1) return hangOnSignal(init);
+        return Promise.resolve({ ok: true } as Response);
+      }),
+    );
+    vi.useFakeTimers();
+    const ready = (await import("@/lib/sidecar-client")).getSidecarBaseUrl();
+    await vi.advanceTimersByTimeAsync(0); // let the get_sidecar_port microtask settle
+    expect(fetchCalls).toBe(1);
+    expect(roundSignals).toHaveLength(1);
+
+    // The round's own bounding signal fires (as the real one would after
+    // HEALTH_PROBE_TIMEOUT_MS): the stuck fetch is abandoned...
+    roundSignals[0].abort(new DOMException("The operation timed out.", "TimeoutError"));
+    // ...the 250ms backoff elapses...
+    await vi.advanceTimersByTimeAsync(300);
+    // ...and a second, fresh round is attempted — proving the wait is bounded
+    // per call, never hung on one fetch forever.
+    expect(fetchCalls).toBe(2);
+    await expect(ready).resolves.toBe("http://127.0.0.1:54321");
+  });
+
+  it("sidecarRequest attaches a bounding AbortSignal even when the caller supplies none", async () => {
+    invokeMock.mockResolvedValue(READY);
+    let capturedSignal: AbortSignal | null | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (new URL(url).pathname === "/health") return { ok: true } as Response;
+        capturedSignal = init?.signal;
+        return { ok: true, json: async () => ({}) } as Response;
+      }),
+    );
+    const { sidecarGet } = await import("@/lib/sidecar-client");
+
+    await sidecarGet("/macro/series");
+
+    expect(capturedSignal).toBeInstanceOf(AbortSignal);
+    expect(capturedSignal?.aborted).toBe(false);
+  });
+
+  it("sidecarRequest honours a caller-supplied signal (aborting it aborts the fetch)", async () => {
+    invokeMock.mockResolvedValue(READY);
+    let capturedSignal: AbortSignal | null | undefined;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string, init?: RequestInit) => {
+        if (new URL(url).pathname === "/health") return Promise.resolve({ ok: true } as Response);
+        capturedSignal = init?.signal;
+        return hangOnSignal(init);
+      }),
+    );
+    const { sidecarRequest } = await import("@/lib/sidecar-client");
+    const controller = new AbortController();
+
+    const pending = sidecarRequest("GET", "/macro/series", { signal: controller.signal }).catch(
+      (e: unknown) => e,
+    );
+    controller.abort(new Error("caller cancelled"));
+    const error = await pending;
+
+    expect(capturedSignal?.aborted).toBe(true);
+    expect((error as Error).message).toBe("caller cancelled");
+  });
+});

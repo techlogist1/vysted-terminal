@@ -207,10 +207,22 @@ export class PluginRuntime {
    * accessors (`getDataSources` / `getPanels` / `getCommands` / etc.) — the
    * runtime calls them only when the matching `capabilities` flag is set.
    *
+   * `preloadedConfig` (R15-LIFECYCLE-027): pass the persisted config the
+   * caller already fetched (or `null` when it fetched and found none) so this
+   * call skips its own `persistence.load` round-trip — the boot loop reads
+   * every plugin's config once to decide whether to load it, and previously
+   * loaded it again here, serially, for every installed+enabled plugin. Omit
+   * the argument to have this call fetch it itself (the default, and what
+   * `installPlugin`/`enablePlugin`/`reloadPlugin` still do after their own
+   * config write).
+   *
    * On success, transitions the record to `active`; on failure, to `error`
    * with the captured message.
    */
-  async loadPlugin(plugin: DiscoveredPlugin): Promise<LoadedPluginSnapshot> {
+  async loadPlugin(
+    plugin: DiscoveredPlugin,
+    preloadedConfig?: PluginPersistedConfig | null,
+  ): Promise<LoadedPluginSnapshot> {
     let record = this.plugins.get(plugin.manifest.id);
     if (!record) {
       record = this.discover(plugin) as LoadedPlugin;
@@ -235,7 +247,10 @@ export class PluginRuntime {
 
     let persisted: PluginPersistedConfig;
     try {
-      const stored = await this.context.persistence.load(plugin.manifest.id);
+      const stored =
+        preloadedConfig !== undefined
+          ? preloadedConfig
+          : await this.context.persistence.load(plugin.manifest.id);
       persisted = stored ?? this.defaultConfig(plugin.manifest.id);
       // Persist the default the first time we see this plugin so a second
       // launch finds an explicit row (not falling back through the default).

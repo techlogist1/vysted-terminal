@@ -134,6 +134,11 @@ export function getSidecarBaseUrl(): Promise<string> {
   return readyPromise;
 }
 
+/** Per-round budget for one `/health` probe attempt (R15-LIFECYCLE-027): bounds
+ *  a hung-not-exited engine to this long per retry instead of hanging the
+ *  shared `readyPromise` past its overall 120 s deadline. */
+const HEALTH_PROBE_TIMEOUT_MS = 5_000;
+
 async function resolveAndAwaitReady(): Promise<string> {
   const deadline = Date.now() + 120_000;
   let delay = 250;
@@ -141,12 +146,15 @@ async function resolveAndAwaitReady(): Promise<string> {
     // Re-read each round: a spawn that fails while we probe stops the wait.
     const base = await resolvePortToBaseUrl();
     try {
-      const response = await fetch(new URL("/health", base).toString());
+      const response = await fetch(new URL("/health", base).toString(), {
+        signal: AbortSignal.timeout(HEALTH_PROBE_TIMEOUT_MS),
+      });
       if (response.ok) {
         return base;
       }
     } catch {
-      // Connection refused — sidecar has a port assigned but is not bound yet.
+      // Connection refused, or the probe timed out — sidecar has a port
+      // assigned but is not bound (or not answering) yet.
     }
     if (Date.now() > deadline) {
       throw new SidecarError(503, "The data engine did not become ready in time.");
@@ -215,12 +223,19 @@ export interface SidecarRequestOptions {
   signal?: AbortSignal;
 }
 
+/** Default per-request budget (R15-LIFECYCLE-027) when the caller supplies no
+ *  `signal` — bounds an otherwise-eternal spinner on a hung route. Generous:
+ *  well above any real data-layer or agent-run call. */
+const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
+
 /**
  * Typed request against a sidecar endpoint — the one client verb. `headers`
  * carries BYOK credentials read from the OS keychain (the read-only-plugin
  * pattern: secret in a header, never the body/query) — e.g. the
  * `X-Vysted-Newsapi-Key` the news feed sends. A non-2xx throws
- * `SidecarError(status, <human detail>)`; a 204 resolves `undefined`.
+ * `SidecarError(status, <human detail>)`; a 204 resolves `undefined`. `signal`
+ * aborts the call (a hung route never spins forever): a caller-supplied signal
+ * is combined with a generous default timeout, so either can fire.
  */
 export async function sidecarRequest<T>(
   method: "GET" | "POST" | "PUT" | "DELETE",
@@ -259,7 +274,9 @@ export async function sidecarRequest<T>(
       requestHeaders[key] = value;
     }
   }
-  const init: RequestInit = { method, headers: requestHeaders, signal: opts.signal };
+  const timeoutSignal = AbortSignal.timeout(DEFAULT_REQUEST_TIMEOUT_MS);
+  const signal = opts.signal ? AbortSignal.any([opts.signal, timeoutSignal]) : timeoutSignal;
+  const init: RequestInit = { method, headers: requestHeaders, signal };
   if (opts.body !== undefined) {
     requestHeaders["Content-Type"] = "application/json";
     init.body = JSON.stringify(opts.body);
