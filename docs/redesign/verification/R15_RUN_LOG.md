@@ -79,8 +79,14 @@ cross-checked against that run's `journal.jsonl` and against the matching
 | wf_50973ceb-819 | HANDOVER PRE-REFRESH | one Opus agent | 25 Sep 17:27 | 12.2min | 1 | opus 1 | 250,888 | `ac227f43` on origin/004: `R15_RUN_REPORT.md` + `OPERATOR_BRIEFING.draft.md` refreshed; surfaced CHANGELOG gap (batches 12–17) and a CLAUDE.md keychain doc mismatch | run file + run-state ledger line 54 |
 | wf_cd489d8e-cf7 | LOWS BUCKET ADJUDICATION | one Sonnet/high agent | 25 Sep 17:28 | 2.9min | 1 | sonnet 1 | 98,766 | `3483b699` on origin/004: 4 lows → blocked_tier4, 2 → needs_gui; register now fixed 388 / open 206 / needs_gui 11 / blocked_tier4 22 | run file + run-state ledger line 55 |
 | wf_dc281379-fb7 | CHANGELOG BACKFILL | one Sonnet/high agent | 25 Sep 17:41 | 6.9min | 1 | sonnet 1 | 189,033 | `b1ee6aa5` on origin/004: added CHANGELOG sections for batches 12–17 + rc1 round 1; 56 cited shas resolve; zero banned-phrase hits | run file + run-state ledger line 56 |
-| wf_ea0144f4-04a | Stage C batch-18 STEP 2 — **IN FLIGHT** | adjudicate, plan, W1 (opus) + W2 (sonnet) writers | 25 Sep 17:43 | in flight (~26min elapsed at write, 18:09 IST) | 4 (adjudicate + plan + W2 done, W1 opus still running) | sonnet 2, opus 2 (W1 in progress) | not recorded (in flight) | Adjudicate applied batch-17 verdicts + filed LEAD-033/034; plan split W1 (LEAD-030 validate + LEAD-033) / W2 (LEAD-034); W2 done — LEAD-034 fixed `d74a4a4d`, 112 tests passed | run file + run-state ledger line 57 |
-| wf_407df695-831 | Stage E PANEL COMPLETION — **IN FLIGHT** | Fable judge B (independent) → Fable synthesis | 25 Sep 17:59 | in flight (~10min elapsed at write, 18:09 IST) | 1 (judge B running) | fable 1 (in progress) | not recorded (in flight) | Independent judge B re-run to complete the 2-judge panel (judge A's raw verdicts from `scratchpad/panel/judge-A.json`); synthesis not yet dispatched | run file + run-state ledger line 58 |
+| wf_ea0144f4-04a | Stage C batch-18 STEP 2 | adjudicate, plan, W1 (opus) + W2 (sonnet) writers, integrate, review, verify | 25 Sep 17:43 | 68.5min | 7 | opus 5, sonnet 2 | 982,271 | Merged `ebc5ed41`; LEAD-033 + LEAD-034 CERTIFIED, LEAD-030 NOT certified a 4th time (colon-terminated attribution + errored-tool figure list escapes) — strategy change for batch-19 | run file + run-state ledger line 57 |
+| wf_407df695-831 | Stage E PANEL COMPLETION | Fable judge B (independent) → Fable synthesis | 25 Sep 17:59 | 15.9min | 2 | fable 2 | 349,041 | `52b47455`: judge B ran clean (50 survivors, 9 kills), synthesis merged both judges — 47 survivors, top BL-03 'Reasons about you', runners-up BL-18/BL-11; panel now meets the 2-judge requirement | run file + run-state ledger line 58 |
+| wf_69fa6332-fb7 | RUN LOG TELEMETRY BACKFILL #2 | one Sonnet/high agent | 25 Sep 18:04 | 9.1min | 1 | sonnet 1 | 189,548 | `704fa8c5`: 29 rows added (55 total), batch-10 finalised, spend section refreshed, 0 banned-word hits | run file + run-state ledger line 59 |
+| wf_f1d7f06d-d22 | TAIL SCRIPT AUTHORING | 2 Opus/high authors, parallel | 25 Sep 18:23 | 17.0min | 2 | opus 2 | 479,831 | `ade877ed` (small-build.js + plan) + `fb918b9b` (final-pass.js + plan) on origin/004; both node --check clean, stubbed dry runs spawn nothing; neither script run for real yet | run file + run-state ledger line 61 |
+| wf_f724edac-bff | LOWS WRITE P1 | load, W1-W9 writers, collate | 25 Sep 18:56 | 37.6min | 11 | sonnet 7, opus 4 | 1,613,751 | `06ce565f` + 9 branches on origin: 61 fixed, 2 could_not (CODE-RESEARCH-005, CODE-AGENT-031) deferred to the serial set | run file + run-state ledger line 62 |
+| wf_a342e2a8-74a | LOWS WRITE P2 | load, W1-W9 writers, collate | 25 Sep 18:56 | 39.8min | 11 | sonnet 8, opus 3 | 1,728,661 | `2ea83865` + 9 branches on origin: 60 fixed, 3 could_not (CODE-DATA-019, LIFECYCLE-035, CODE-FRONTEND-027) to the P2 integrator, 1 not_a_defect_proposed (LEAD-025) — all three lows write waves now done (184 fixed, 7 could_not, 3 not_a_defect_proposed) | run file + run-state ledger line 63 |
+| wf_e64eeddf-e23 | LOWS WRITE P3 | load, W1-W9 writers, collate | 25 Sep 18:56 | 37.7min | 11 | sonnet 8, opus 3 | 1,629,773 | `c40bf690` + 9 branches on origin: 63 fixed, 2 could_not (AGENT-077, DATA-102) to the P3 integrator, 2 not_a_defect_proposed (CODE-PLUGINS-045/046) | run file + run-state ledger line 64 |
+| wf_dab096e5-3ae | Stage C batch-19 (LEAD-030 strategy change) — **IN FLIGHT** | adjudicate, plan, W1 (opus) writer, integrate | 25 Sep 18:57 | in flight (~46min elapsed at write, 19:43 IST) | 4 (adjudicate + plan + W1 done, integrate running) | sonnet 1, opus 3 (integrate in progress) | not recorded (in flight) | Adjudicate applies batch-18 verdicts (LEAD-033/034 fixed at `ebc5ed41`, LEAD-030 stays open); W1 (Opus) targets the two surviving no-ok-source dump shapes; integrator running | run file + run-state ledger line 65 |
 
 ## Strategy changes
 
@@ -173,22 +179,23 @@ Caps: session 1 (D8, 19 Sep) set a $2.00 OpenAI-direct hard stop + the OpenRoute
 Superseded by the SCOPE CHANGE (03:46 IST 23 Sep): OpenAI-direct hard stop raised to **$8.00**
 (`vy.py` refuses at $7.50).
 
-**Refreshed** for this backfill: read at 18:07 IST 25 Sep from
-`docs/redesign/verification/r15/spend-ledger.jsonl` (374 lines, 19 Sep 14:58 → 25 Sep 16:48 IST;
+**Refreshed** for this backfill: read at 19:43 IST 25 Sep from
+`docs/redesign/verification/r15/spend-ledger.jsonl` (384 lines, 19 Sep 14:58 → 25 Sep 18:49 IST;
 this file is dirty on purpose and stays uncommitted — read only, never git-added). By provider:
 
 | Provider | Calls | Paid (est_usd) |
 |---|---|---|
 | `openai` | 30 | $0.201076 |
-| `ollama` | 237 | $0.00 |
+| `ollama` | 247 | $0.00 |
 | `openrouter` | 104 | $0.00 |
 | `deepseek` | 2 | $0.00 |
 | `none` (bookkeeping note row, not an API call) | 1 | $0.00 |
-| **Total** | **374** | **$0.201076** |
+| **Total** | **384** | **$0.201076** |
 
-30 rows are paid (all via `openai`); 343 are free (237 `ollama`, 104 `openrouter` free-tier, 2
-`deepseek`); 1 is a non-call bookkeeping note (the `budget-change` cap-raise entry). Total spend
-$0.20 is well under both the original $2.00 cap and the raised $8.00 cap.
+30 rows are paid (all via `openai`); 353 are free (247 `ollama`, 104 `openrouter` free-tier, 2
+`deepseek`); 1 is a non-call bookkeeping note (the `budget-change` cap-raise entry). No new paid
+calls since the prior read (the +10 lines are all free `ollama`, from the lows write waves). Total
+spend $0.20 is well under both the original $2.00 cap and the raised $8.00 cap.
 
 <details>
 <summary>Prior snapshot (23:31 IST 24 Sep, 173 rows, by lane)</summary>
