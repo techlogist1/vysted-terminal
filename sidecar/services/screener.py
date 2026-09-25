@@ -817,7 +817,39 @@ async def _finalize(
     )
     limit = max(1, min(int(req.limit), _MAX_LIMIT))
     matched_count = len(matched)
-    rows = matched[:limit]
+    # R15-DATA-043: ``matched`` is grouped by currency (apply_criteria's sort
+    # key), so a naive ``matched[:limit]`` cut exhausts the alphabetically-
+    # first currency group before any other currency is ever represented.
+    # Cut fairly instead: round-robin one row per currency group (by rank,
+    # i.e. in ``matched`` order within the group) until ``limit`` is reached,
+    # then re-serve the picked rows in the original grouped-by-currency order.
+    if limit >= len(matched):
+        rows = matched
+    else:
+        group_indices: dict[str, list[int]] = {}
+        group_order: list[str] = []
+        for idx, row in enumerate(matched):
+            key = row.currency or ""
+            if key not in group_indices:
+                group_indices[key] = []
+                group_order.append(key)
+            group_indices[key].append(idx)
+        cursors = dict.fromkeys(group_order, 0)
+        picked: set[int] = set()
+        while len(picked) < limit:
+            progressed = False
+            for key in group_order:
+                if len(picked) >= limit:
+                    break
+                pos = cursors[key]
+                indices = group_indices[key]
+                if pos < len(indices):
+                    picked.add(indices[pos])
+                    cursors[key] += 1
+                    progressed = True
+            if not progressed:
+                break
+        rows = [row for idx, row in enumerate(matched) if idx in picked]
 
     # R11 (D52/D57): stamp every served row with its honesty labels — the
     # listing currency and the serving basis computed above.
@@ -844,10 +876,14 @@ async def _finalize(
     evaluated_count = len(pairs_by_symbol) + len(state.pruned_failed)
     total = len(state.universe.symbols)
     coverage = f"screened {evaluated_count:,} of {total:,} — {len(skip_details):,} unavailable"
-    # R15-DATA-043: a served result set spanning currencies is ranked within
-    # each currency (no FX layer, §6 D-B2-4) — say so, rather than let the
-    # ordering look like a single cross-currency ranking.
-    served_currencies = sorted({r.currency for r in rows if r.currency})
+    # R15-DATA-043: a matched set spanning currencies is ranked within each
+    # currency (no FX layer, §6 D-B2-4) — say so, rather than let the
+    # ordering look like a single cross-currency ranking. Computed over the
+    # full ``matched`` set, not the served ``rows`` page: a top-K cut can
+    # legitimately serve only one currency's rows (e.g. limit smaller than
+    # that currency's own count) while the underlying match set still spans
+    # more than one, and the disclosure must not vanish in that case.
+    served_currencies = sorted({r.currency for r in matched if r.currency})
     if len(served_currencies) > 1:
         coverage += f" · spans {', '.join(served_currencies)} — ranked within each currency"
     not_live = basis_counts.get("snapshot", 0) + basis_counts.get("mixed", 0)
