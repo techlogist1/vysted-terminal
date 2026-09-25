@@ -194,6 +194,21 @@ async def _run_sonar(query: str, key: str | None, model: str | None = None) -> d
     return out
 
 
+def _stamp_source_floor(out: dict[str, Any]) -> None:
+    """Measure the brief's distinct cited sources against SC-016's floor
+    (R15-RESEARCH-042): the leg rides a bound instrument's ``structured`` bundle
+    (an unbound run has none) and, below the floor, the markdown states it."""
+    from services.research.depth import source_floor_leg
+
+    leg = source_floor_leg(s.get("url") for s in out.get("sources") or [] if isinstance(s, dict))
+    if out.get("structured"):
+        out["structured"] = {**out["structured"], "source_floor": leg}
+    note = leg.get("note")
+    markdown = out.get("markdown")
+    if note and isinstance(markdown, str) and markdown.strip():
+        out["markdown"] = f"{markdown.rstrip()}\n\n_Cited: {note}._"
+
+
 def _research_budget(profile: DepthProfile, rounds: int, wall: int) -> BudgetGuard:
     """The run's :class:`BudgetGuard`: steps + wall scale with the fan-out, and
     the token/spend ceilings come from the depth profile.
@@ -434,6 +449,7 @@ async def _run_native(query: str, profile: DepthProfile, rounds: int, wall: int)
     # carries the R7 surface naming (normal/deep/ultra) for new consumers.
     out["mode"] = "heavy" if profile.is_panel else "deep"
     out["depth"] = profile.depth
+    _stamp_source_floor(out)
     return out
 
 
@@ -859,6 +875,7 @@ async def run_research_model_brief(
     out["backend"] = backend_id
     out["depth"] = stop
     out["execution_loop"] = "research-model"
+    _stamp_source_floor(out)
     return out
 
 

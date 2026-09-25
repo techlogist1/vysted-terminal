@@ -27,6 +27,7 @@ import time
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any
 
+from .depth import source_floor_leg
 from .models import ResearchStep
 
 if TYPE_CHECKING:  # import-light: no runtime dependency (see module docstring)
@@ -695,6 +696,12 @@ async def gather_fast(
         return web
 
     structured, web = await asyncio.gather(_structured(), _web())
+    # The brief's cited sources are the web round's rows (the same rows the
+    # auto-publish maps into brief.sources) — measured against SC-016's floor.
+    rows = web["citations"] or web["results"]
+    structured["source_floor"] = source_floor_leg(
+        row.get("url") for row in rows if isinstance(row, dict)
+    )
     await _emit(on_step, ResearchStep("synthesize", "assembling the research bundle"))
 
     return {
