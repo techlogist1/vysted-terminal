@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  35.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_d34d7d1df00647388814ca0c1f2a6ac0", "name": "fundamentals", "input": {"symbol": "TCS.NS"}}
+[  38.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_d34d7d1df00647388814ca0c1f2a6ac0", "name": "fundamentals", "ok": true, "error": null}
+[  48.8s] heartbeat: {"kind": "heartbeat"}
+[  58.8s] heartbeat: {"kind": "heartbeat"}
+[  62.0s] done: {"kind": "done", "usage": {"input_tokens": 5900, "output_tokens": 28, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current P/E ratio of TCS.NS is 15.12, and its market cap is ₹753,286 cr.
+
+=== ok · 62.0s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 27, 'done': 1} · usage in=5900 out=28 · est $0.00000 · llama3.1:8b

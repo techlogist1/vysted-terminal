@@ -1,0 +1,11 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  36.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_003b191d298e4d35825713fa324dac0f", "name": "web_search", "input": {"query": "AAPL stock price rise", "num_results": 1, "category": "news"}}
+[  40.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_003b191d298e4d35825713fa324dac0f", "name": "web_search", "ok": true, "error": null}
+[  44.0s] done: {"kind": "done", "usage": {"input_tokens": 3159, "output_tokens": 20, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I cannot confirm the accuracy of this statement. Is there anything else I can help you with?
+
+=== ok · 44.0s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 20, 'done': 1} · usage in=3159 out=20 · est $0.00000 · llama3.1:8b
