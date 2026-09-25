@@ -1921,11 +1921,15 @@ def _guard_ratio_claims(text: str, tool_results: list[str], in_context: bool = F
     for match in _SENTENCE.finditer(text):
         sentence = match.group()
         if sentence.strip():
+            # From the sentence as written, as _depositary_context reads it across
+            # releases: RATIO_UNAVAILABLE names the ADR, so reading the replacement
+            # would extend the context a second hop only within one release.
+            names_term = bool(_CLAIM_TERM.search(sentence))
             if not _ratio_claim_traced(sentence, tool_results, in_context):
                 logger.info("ratio guard replaced an untraced claim: %r", sentence.strip())
                 lead = sentence[: len(sentence) - len(sentence.lstrip())]
                 sentence = lead + RATIO_UNAVAILABLE + sentence[len(sentence.rstrip()) :]
-            in_context = bool(_CLAIM_TERM.search(sentence))
+            in_context = names_term
         out.append(sentence)
     return "".join(out)
 

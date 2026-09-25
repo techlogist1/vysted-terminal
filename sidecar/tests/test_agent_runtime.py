@@ -2604,6 +2604,25 @@ def test_a_claim_split_over_two_sentences_is_replaced() -> None:
     assert agent_runtime._guard_ratio_claims(kept, []) == kept
 
 
+def test_the_depositary_context_does_not_depend_on_how_prose_is_released() -> None:
+    """R15-AGENT-090 batch-15 review: the context is one hop whether the three
+    sentences are guarded in one release or one release each. It was read off the
+    replacement text (which names the ADR), so one release reached a second hop."""
+    sentences = [
+        "SIFY trades as an ADR on Nasdaq. ",
+        "For SIFY, one ordinary share represents 1 share. ",
+        "Holders hold 2 shares each. ",
+    ]
+    whole = agent_runtime._guard_ratio_claims("".join(sentences), [])
+    piecewise, context, released = "", False, ""
+    for sentence in sentences:
+        piecewise += agent_runtime._guard_ratio_claims(sentence, [], context)
+        released += sentence
+        context = agent_runtime._depositary_context(released, context)
+    assert whole == piecewise
+    assert whole.endswith("Holders hold 2 shares each. ")
+
+
 @pytest.mark.asyncio
 async def test_the_depositary_context_survives_the_stream_chunking(
     monkeypatch: pytest.MonkeyPatch,
