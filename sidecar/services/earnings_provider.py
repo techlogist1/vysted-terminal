@@ -55,6 +55,7 @@ from models.earnings import (
     EarningsSurprisesResponse,
     EarningsUpcomingResponse,
 )
+from services import provider_health
 from services.errors import ProviderError
 from services.nse_provider import _EVENT_CALENDAR_PATH, _get_json
 from services.yfinance_provider import _yahoo_symbol
@@ -62,6 +63,11 @@ from services.yfinance_provider import _yahoo_symbol
 logger = logging.getLogger(__name__)
 
 PROVIDER = "yfinance"
+
+#: Concurrency cap on the per-symbol calendar fan-out (R15-DATA-104), mirroring
+#: bar_loader._LOAD_CONCURRENCY / yahoo_batch_provider._BATCH_CONCURRENCY — an
+#: unbounded gather over a large watchlist is 3-4 Yahoo round trips PER symbol.
+_UPCOMING_CONCURRENCY = 8
 
 # Default US universe used when no watchlist is supplied outside the IN
 # region — small list, deterministic, large-cap so the upstream has data for
@@ -377,15 +383,21 @@ async def get_upcoming(
         events_in.sort(key=lambda event: (event.scheduled_date, event.symbol))
         return EarningsUpcomingResponse(start_date=start_date, end_date=end_date, events=events_in)
     universe = list(watchlist) if watchlist else list(_DEFAULT_UNIVERSE)
+    sem = asyncio.Semaphore(_UPCOMING_CONCURRENCY)
 
     async def _one(symbol: str) -> EarningsEvent | None:
-        try:
-            payload = await asyncio.to_thread(_fetch_calendar_sync, symbol)
-        except ProviderError as exc:
-            # Was a silent drop; log it like the _event_from_calendar path so a
-            # symbol vanishing from the calendar is traceable (Phase 9.5).
-            logger.warning("earnings: calendar fetch failed for %r: %s", symbol, exc)
+        # R15-DATA-104: consult the shared Yahoo breaker before spending a
+        # thread on a symbol that will only fail (mirrors yahoo_batch_provider).
+        if provider_health.is_open(provider_health.YAHOO):
             return None
+        async with sem:
+            try:
+                payload = await asyncio.to_thread(_fetch_calendar_sync, symbol)
+            except ProviderError as exc:
+                # Was a silent drop; log it like the _event_from_calendar path so
+                # a symbol vanishing from the calendar is traceable (Phase 9.5).
+                logger.warning("earnings: calendar fetch failed for %r: %s", symbol, exc)
+                return None
         try:
             return _event_from_calendar(payload, start_date, end_date)
         except Exception:  # noqa: BLE001 — log and continue past one bad symbol
