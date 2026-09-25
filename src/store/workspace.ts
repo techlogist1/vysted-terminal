@@ -113,6 +113,9 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     }
     const spec = useModulesStore.getState().findPanel(panelId);
     if (!spec) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error(`openPanel: no registered panel "${panelId}" (a component id?)`);
+      }
       return;
     }
     // Seed the opened panel's size from the spec's declared defaultSize (a

@@ -69,7 +69,7 @@ export const PluginManagerPanel: FunctionComponent = () => {
           cta={{
             label: "Open Marketplace",
             primary: true,
-            onClick: () => openPanel("marketplace-panel"),
+            onClick: () => openPanel("marketplace"),
           }}
         />
       ) : (

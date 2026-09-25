@@ -1706,7 +1706,7 @@ function IntegrationsSection() {
           <span className="text-charcoal-400 text-caption">
             Data providers, agent packs and panels are managed in the Marketplace.
           </span>
-          <Button size="sm" variant="outline" onClick={() => openPanel("marketplace-panel")}>
+          <Button size="sm" variant="outline" onClick={() => openPanel("marketplace")}>
             Open Marketplace
           </Button>
         </div>
