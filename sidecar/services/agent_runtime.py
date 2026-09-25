@@ -72,13 +72,18 @@ from services.search.scrub import wrap_untrusted
 #: Host-action steps a plan may PRE-STAGE into the diff/accept gate: every planner
 #: verb that is a catalog host action (research/answer execute inside the loop).
 #: Derived, so a verb added to PLAN_ACTIONS is staged without a second list
-#: (R15-AGENT-089).
+#: (R15-AGENT-089). Unrelated to _READ_SAFE_PANEL_ACTIONS below: the plan
+#: pre-pass never runs on a read turn, so the two sets are never consulted
+#: together and neither must contain the other; both are host-action subsets
+#: (R15-CODE-AGENT-018, pinned in test_toolbelt_integrity).
 _STAGEABLE_PLAN_ACTIONS = frozenset(PLAN_ACTIONS).intersection(HOST_ACTION_TOOLS)
 
 #: Read-safe panel host-actions RETAINED on a READ intent (locked Decision 4): a
 #: read question may still ground itself by pulling up the relevant chart / index /
 #: layout. No ``data-write`` action (portfolio, notes, screens, saved layouts) is
-#: in this set, so a read turn can never edit the user's tracked portfolio.
+#: in this set, so a read turn can never edit the user's tracked portfolio. A
+#: separate property from _STAGEABLE_PLAN_ACTIONS (see there): widening one never
+#: widens the other.
 _READ_SAFE_PANEL_ACTIONS = frozenset(
     {
         "open_panel",
