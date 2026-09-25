@@ -7,9 +7,10 @@ all. So the flow is:
 
 1. Fetch the SAME real :class:`~models.fundamentals.Fundamentals` +
    :class:`~models.market.Quote` the equity-overview panel renders.
-2. Ask the configured BYOK model for a tight 2–4 sentence narrative + 2–4 key
-   insights, with the real numbers handed to it in the prompt and a hard
-   instruction to use ONLY those figures (no external/recalled/invented data).
+2. Ask the configured BYOK model for FR-124's five typed sections (The Take,
+   business, storyline, a balanced bull/bear, risks), with the real numbers
+   handed to it in the prompt and a hard instruction to use ONLY those figures
+   (no external/recalled/invented data).
 3. **Numeric-verification pass** (the load-bearing part): extract every numeric
    claim from the model's output, normalise it (handling ``$``, ``%``, K/M/B/T
    suffixes, ``x`` ratio markers, commas), and match it against the source
@@ -359,13 +360,16 @@ def _build_messages(
         + (f" — {profile}" if profile else "")
         + "\n\nVerified facts (the ONLY numbers you may cite):\n"
         + facts_block
-        + "\n\nWrite the overview as exactly this structure:\n"
-        "SUMMARY: a tight 2-4 sentence narrative of what the company is and what "
-        "the numbers say about it.\n"
-        "INSIGHTS:\n"
-        "- one short insight\n"
-        "- one short insight\n"
-        "(2 to 4 insight bullets, each a single line starting with '- ')."
+        + "\n\nWrite the overview as exactly these five sections, in this order:\n"
+        "TAKE: the 2-4 sentence headline view of the company and what the numbers "
+        "say about it.\n"
+        "BUSINESS: 1-3 sentences on what the company does and how it earns.\n"
+        "STORYLINE: 1-3 sentences on the trajectory the facts show.\n"
+        "BULL:\n- one short bull point\n"
+        "BEAR:\n- one short bear point\n"
+        "(1 to 3 bull and 1 to 3 bear bullets — keep them balanced.)\n"
+        "RISKS:\n- one short risk\n"
+        "(1 to 3 risk bullets; every bullet a single line starting with '- ')."
     )
     return [
         {"role": "system", "content": system},
@@ -378,52 +382,63 @@ def _build_messages(
 # ---------------------------------------------------------------------------
 
 
-def _parse_output(text: str) -> tuple[str, list[str]]:
-    """Split the model's ``SUMMARY:`` / ``INSIGHTS:`` block into prose + bullets.
+_PROSE_SECTIONS = ("summary", "business", "storyline")
+_LIST_SECTIONS = ("insights", "bull_case", "bear_case", "risks")
+# Section header (upper-cased, colon stripped) → CompanyNarrative field. TAKE is
+# FR-124's name for the headline; SUMMARY / INSIGHTS are the older contract.
+_SECTION_HEADERS = {
+    "TAKE": "summary",
+    "THE TAKE": "summary",
+    "SUMMARY": "summary",
+    "BUSINESS": "business",
+    "STORYLINE": "storyline",
+    "INSIGHTS": "insights",
+    "KEY INSIGHTS": "insights",
+    "BULL": "bull_case",
+    "BULL CASE": "bull_case",
+    "BEAR": "bear_case",
+    "BEAR CASE": "bear_case",
+    "RISKS": "risks",
+}
 
-    Tolerant: if the model omits the markers we treat the first paragraph as the
-    summary and any ``- ``/``* `` lines as insights. Returns ``("", [])`` for an
-    empty completion.
+
+def _parse_output(text: str) -> tuple[dict[str, str], dict[str, list[str]]]:
+    """Split the model's sectioned block into prose fields + bullet lists.
+
+    Tolerant: text before any marker is the headline take, and a bullet under a
+    prose section is a legacy insight. Every field is present in the result
+    (empty when the model skipped it).
     """
-    if not text.strip():
-        return "", []
-
-    summary_lines: list[str] = []
-    insights: list[str] = []
+    lines: dict[str, list[str]] = {key: [] for key in (*_PROSE_SECTIONS, *_LIST_SECTIONS)}
     section = "summary"
     for raw_line in text.splitlines():
         line = raw_line.strip()
         if not line:
             continue
-        upper = line.upper()
-        if upper.startswith("SUMMARY:"):
-            section = "summary"
-            rest = line[len("SUMMARY:") :].strip()
+        header = re.match(r"^([A-Za-z ]+):\s*(.*)$", line)
+        key = _SECTION_HEADERS.get(header.group(1).strip().upper()) if header else None
+        if header and key is not None:
+            section = key
+            rest = header.group(2).strip()
             if rest:
-                summary_lines.append(rest)
-            continue
-        if upper.startswith("INSIGHTS:") or upper.startswith("KEY INSIGHTS:"):
-            section = "insights"
+                lines[key].append(rest)
             continue
         bullet = re.match(r"^[-*•]\s+(.*)$", line)
         if bullet:
-            insights.append(bullet.group(1).strip())
-            section = "insights"
+            if section in _PROSE_SECTIONS:
+                section = "insights"
+            lines[section].append(bullet.group(1).strip())
             continue
-        if section == "summary":
-            summary_lines.append(line)
+        if section in _PROSE_SECTIONS or not lines[section]:
+            lines[section].append(line)
         else:
-            # A non-bullet line after INSIGHTS: — fold it into the previous bullet
-            # if any, else treat as more summary.
-            if insights:
-                insights[-1] = f"{insights[-1]} {line}".strip()
-            else:
-                summary_lines.append(line)
+            # A wrapped bullet — fold into the previous item.
+            lines[section][-1] = f"{lines[section][-1]} {line}".strip()
 
-    summary = " ".join(summary_lines).strip()
-    # Cap insights at 4 (the contract) and drop empties.
-    insights = [i for i in insights if i][:4]
-    return summary, insights
+    prose = {key: " ".join(lines[key]).strip() for key in _PROSE_SECTIONS}
+    # Cap each list at 4 (the contract) and drop empties.
+    lists = {key: [item for item in lines[key] if item][:4] for key in _LIST_SECTIONS}
+    return prose, lists
 
 
 # ---------------------------------------------------------------------------
@@ -499,8 +514,8 @@ async def generate_narrative(
         messages=messages,
         timeout=_LLM_TIMEOUT_SECS,
     )
-    summary_raw, insights_raw = _parse_output(raw)
-    if not summary_raw and not insights_raw:
+    prose_raw, lists_raw = _parse_output(raw)
+    if not any(prose_raw.values()) and not any(lists_raw.values()):
         return CompanyNarrative(
             symbol=normalized,
             source_provider=source_provider,
@@ -510,23 +525,35 @@ async def generate_narrative(
 
     # 4. Numeric-verification pass — the load-bearing step. Redact any figure that
     #    matches no source value; collect the redactions.
+    #    Every section goes through the same pass.
     source = _source_values(fundamentals, quote)
-    summary_clean, summary_unverified = _verify_text(summary_raw, source)
-    insights_clean: list[str] = []
-    all_unverified: list[UnverifiedClaim] = list(summary_unverified)
-    for insight in insights_raw:
-        cleaned, unverified = _verify_text(insight, source)
-        insights_clean.append(cleaned)
+    all_unverified: list[UnverifiedClaim] = []
+    prose: dict[str, str | None] = {}
+    for key, text in prose_raw.items():
+        cleaned, unverified = _verify_text(text, source)
+        # A section that became empty / placeholder-only after redaction is dropped.
+        prose[key] = cleaned.strip() or None
         all_unverified.extend(unverified)
+    lists: dict[str, list[str]] = {}
+    for key, items in lists_raw.items():
+        lists[key] = []
+        for item in items:
+            cleaned, unverified = _verify_text(item, source)
+            lists[key].append(cleaned)
+            all_unverified.extend(unverified)
 
-    # A summary that became empty / placeholder-only after redaction is dropped.
-    summary_final: str | None = summary_clean.strip() or None
+    summary_final = prose["summary"]
     verified = len(all_unverified) == 0 and summary_final is not None
 
     return CompanyNarrative(
         symbol=normalized,
         summary=summary_final,
-        insights=insights_clean,
+        insights=lists["insights"],
+        business=prose["business"],
+        storyline=prose["storyline"],
+        bull_case=lists["bull_case"],
+        bear_case=lists["bear_case"],
+        risks=lists["risks"],
         verified=verified,
         unverified_claims=all_unverified,
         source_provider=source_provider,

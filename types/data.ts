@@ -336,10 +336,20 @@ export interface UnverifiedClaim {
  */
 export interface CompanyNarrative {
   symbol: string;
-  /** 2-4 sentence narrative with unverified numbers redacted; null when none. */
+  /** FR-124 "The Take": 2-4 sentence headline, unverified numbers redacted; null when none. */
   summary: string | null;
-  /** 2-4 short key-insight bullets, verified the same way as `summary`. */
+  /** Legacy key-insight bullets (an older completion), verified the same way. */
   insights: string[];
+  /** FR-124 business: what the company does and how it earns. */
+  business: string | null;
+  /** FR-124 storyline: the trajectory the served numbers show. */
+  storyline: string | null;
+  /** FR-124 balanced bull points. */
+  bull_case: string[];
+  /** FR-124 balanced bear points. */
+  bear_case: string[];
+  /** FR-124 key risks. */
+  risks: string[];
   /** True when a narrative ran AND every numeric claim matched a source value. */
   verified: boolean;
   /** Numeric claims that failed verification and were redacted from the prose. */

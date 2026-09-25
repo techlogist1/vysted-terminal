@@ -313,6 +313,44 @@ function VerifiedProse({ text }: { text: string }) {
   );
 }
 
+/** One FR-124 narrative block — a micro heading over verified prose or bullets;
+ *  renders nothing when the model left the section empty. */
+function NarrativeBlock({
+  label,
+  text = null,
+  items = [],
+}: {
+  label: string;
+  text?: string | null;
+  items?: string[];
+}) {
+  if (!text && items.length === 0) {
+    return null;
+  }
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      <h4 className="text-charcoal-500 text-micro">{label}</h4>
+      {text ? (
+        <p className="text-charcoal-200 text-caption leading-relaxed">
+          <VerifiedProse text={text} />
+        </p>
+      ) : null}
+      {items.length > 0 ? (
+        <ul className="flex flex-col gap-1">
+          {items.map((item, i) => (
+            <li key={i} className="text-charcoal-300 text-caption flex gap-2 leading-relaxed">
+              <span className="text-charcoal-500 mt-px select-none">—</span>
+              <span className="min-w-0">
+                <VerifiedProse text={item} />
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * AI narrative section — an LLM-written, numerically-verified company overview
  * rendered above the field groups. Every number in it was checked against the
@@ -365,6 +403,17 @@ function NarrativeSection({
           <p className="text-charcoal-100 text-prose leading-relaxed">
             <VerifiedProse text={narrative.summary} />
           </p>
+
+          {/* Secondary tier — FR-124's typed sections, each verified like the take. */}
+          <NarrativeBlock label="Business" text={narrative.business} />
+          <NarrativeBlock label="Storyline" text={narrative.storyline} />
+          {narrative.bull_case.length + narrative.bear_case.length > 0 && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <NarrativeBlock label="Bull case" items={narrative.bull_case} />
+              <NarrativeBlock label="Bear case" items={narrative.bear_case} />
+            </div>
+          )}
+          <NarrativeBlock label="Risks" items={narrative.risks} />
 
           {/* Tertiary tier — key insights. */}
           {narrative.insights.length > 0 && (
@@ -677,6 +726,11 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
           symbol,
           summary: null,
           insights: [],
+          business: null,
+          storyline: null,
+          bull_case: [],
+          bear_case: [],
+          risks: [],
           verified: false,
           unverified_claims: [],
           source_provider: null,

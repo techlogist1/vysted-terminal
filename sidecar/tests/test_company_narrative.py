@@ -337,6 +337,39 @@ async def test_generate_no_key_returns_graceful_null(
 
 
 @pytest.mark.asyncio
+async def test_five_section_fixture_parses_all_fields(
+    monkeypatch: pytest.MonkeyPatch, _patch_data: None
+) -> None:
+    """R15-UI-094 / FR-124: The Take, business, storyline, a balanced bull/bear
+    and risks each land in their own field, and each passes the numeric verifier
+    (the invented 64.2% in RISKS is redacted like one in the take would be)."""
+    _patch_llm(
+        monkeypatch,
+        "TAKE: Apple trades at a P/E of 31.5.\n"
+        "BUSINESS: Designs phones and services.\n"
+        "STORYLINE: A mature, cash-rich franchise\n"
+        "with a beta of 1.25.\n"
+        "BULL:\n- EPS of 6.13\n- Deep ecosystem\n"
+        "BEAR:\n- Rich multiple\n"
+        "RISKS:\n- Margin squeeze to 64.2%\n- Regulation",
+    )
+    result = await company_narrative.generate_narrative(
+        "AAPL", provider="anthropic", model="claude-opus-4-7", api_key="sk-test"
+    )
+    assert result.summary == "Apple trades at a P/E of 31.5."
+    assert result.business == "Designs phones and services."
+    assert result.storyline == "A mature, cash-rich franchise with a beta of 1.25."
+    assert result.bull_case == ["EPS of 6.13", "Deep ecosystem"]
+    assert result.bear_case == ["Rich multiple"]
+    assert len(result.risks) == 2
+    assert "64.2%" not in result.risks[0]
+    assert result.risks[1] == "Regulation"
+    assert result.insights == []
+    assert [c.text for c in result.unverified_claims] == ["64.2%"]
+    assert result.verified is False
+
+
+@pytest.mark.asyncio
 async def test_generate_empty_model_output_returns_reason(
     monkeypatch: pytest.MonkeyPatch, _patch_data: None
 ) -> None:
