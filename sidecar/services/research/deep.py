@@ -349,8 +349,12 @@ def finalize_markdown(
 _LEADING_LIST_MARKER_RE = re.compile(r"^\d+[.)]$")
 
 #: A leading "Label:" word ("Verdict:", "Answer:") to skip before the verdict
-#: word, tolerating markdown emphasis around the colon ("**Verdict:**").
-_LEADING_LABEL_WORD_RE = re.compile(r"^[A-Za-z]+:$")
+#: word, tolerating markdown emphasis around the colon ("**Verdict:**"). A
+#: closed set: a verdict word followed by a colon ("Unverified: ...",
+#: "COMPLETE: ...") is the verdict itself and must never be skipped.
+_LEADING_LABEL_WORDS = frozenset(
+    {"VERDICT:", "ANSWER:", "STATUS:", "RESULT:", "ASSESSMENT:", "CONCLUSION:", "RESPONSE:"}
+)
 
 
 def leading_token(text: str) -> str:
@@ -370,7 +374,7 @@ def leading_token(text: str) -> str:
         words = line.strip().strip("*:-#> ").split()
         while words:
             bare = words[0].strip("*")
-            if _LEADING_LIST_MARKER_RE.fullmatch(bare) or _LEADING_LABEL_WORD_RE.fullmatch(bare):
+            if _LEADING_LIST_MARKER_RE.fullmatch(bare) or bare.upper() in _LEADING_LABEL_WORDS:
                 words = words[1:]
                 continue
             break

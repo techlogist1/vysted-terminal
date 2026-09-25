@@ -229,6 +229,15 @@ def test_parse_verdict_reads_a_labelled_verdict_word() -> None:
     assert _parse_verdict("Verdict: AGREE - reuters confirms")[0] == "agree"
 
 
+def test_a_verdict_word_followed_by_a_colon_is_the_verdict_not_a_label() -> None:
+    """R15-RESEARCH-002 review: the label skip must not swallow the verdict word
+    itself, or a title-case "Unverified:" reply falls through to the marker scan
+    and its reason's "agree" upgrades the claim."""
+    reply = "Unverified: the sources agree on revenue but not the 23% margin"
+    assert _parse_verdict(reply)[0] == "unverified"
+    assert _reflect_says_complete("Complete: all four sourced, margins not covered in depth")
+
+
 def test_reflect_says_complete_class_pin_on_bracket_and_list_marker() -> None:
     """Class pin (R15-RESEARCH-002): the same leading_token fix that unblocks
     labelled verdict words must also unblock a bracketed or list-numbered
