@@ -48,7 +48,9 @@ class ActionAckRequest(BaseModel):
 
     tool_call_id: str = Field(alias="toolCallId", min_length=1)
     #: ``staged`` = waiting in the user's review queue (non-terminal, C1).
-    status: Literal["applied", "kept_previous", "failed", "staged"]
+    #: Derived from ``action_ledger.KNOWN_STATUSES`` (R15-CODE-AGENT-027) —
+    #: the two used to be independent literals that could drift.
+    status: Literal[*action_ledger.KNOWN_STATUSES]
     #: Optional applied-brief identity ({run_id, created_at, symbol,
     #: source_count}) so the divergence notice can name what actually rendered.
     brief: dict[str, Any] | None = None

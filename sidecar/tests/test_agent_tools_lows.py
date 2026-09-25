@@ -27,3 +27,25 @@ def test_no_agent_tools_registry_v0_6_0_module() -> None:
     agent_tools.register_v0_6_0_tools()
     for tool_id in ("macro_series", "sec_filings_list", "compare_symbols", "research"):
         assert agent_tools.is_registered(tool_id)
+
+
+def test_reset_for_tests_restores_every_import_time_tool(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-027: reset_for_tests() used to hardcode ``backtest_summary``
+    as the only re-registered tool, so a second module-level ``register_tool(...)``
+    call anywhere in the package would silently vanish on reset. It now restores
+    a snapshot taken at package-import time — generic over however many tools
+    that snapshot holds."""
+    from services import agent_tools
+
+    async def _fake_handler(args: dict) -> dict:  # noqa: ARG001
+        return {"ok": True}
+
+    monkeypatch.setitem(agent_tools._IMPORT_TIME_TOOLS, "fake_import_time_tool", _fake_handler)
+    try:
+        agent_tools.reset_for_tests()
+        assert agent_tools.is_registered("backtest_summary")
+        assert agent_tools.is_registered("fake_import_time_tool")
+    finally:
+        agent_tools._TOOLS.pop("fake_import_time_tool", None)

@@ -68,21 +68,16 @@ async def invoke_tool(tool_id: str, args: dict[str, Any]) -> dict[str, Any]:
 def reset_for_tests() -> None:
     """Clear the registry — used only from the test suite.
 
-    Re-registers the import-time foundation tool (``backtest_summary``)
-    so the v0.5.0 invariant — ``agent_tools.is_registered("backtest_summary")``
-    is True immediately after import — survives a reset. The v0.5.0
-    flat-file ``agent_tools.py`` had the same shape implicitly via the
-    bottom-of-file ``register_tool(...)`` call; the F4 package refactor
-    moved that to ``backtest_summary.py``'s import-time side effect, so
-    a naive ``_TOOLS.clear()`` would leave the registry empty until a
-    test re-imported the submodule. Re-registering here keeps the test
-    contract identical to v0.5.0.
+    Restores whatever registered itself at package-import time (a snapshot
+    taken below, right after those imports run) — currently just
+    ``backtest_summary``, but generically: any future module-level
+    ``register_tool(...)`` call anywhere in the package survives a reset
+    without this function needing to name it (R15-CODE-AGENT-027 — the old
+    hardcoded ``backtest_summary`` re-registration silently dropped a second
+    import-time tool, making tests that reset order-dependent).
     """
     _TOOLS.clear()
-    # Re-register import-time foundation tools.
-    from services.agent_tools.backtest_summary import _backtest_summary
-
-    register_tool("backtest_summary", _backtest_summary)
+    _TOOLS.update(_IMPORT_TIME_TOOLS)
 
 
 # ---------------------------------------------------------------------------
@@ -99,6 +94,11 @@ def reset_for_tests() -> None:
 # ``register_tool`` is defined above; the submodule imports it from this
 # package's __init__.
 from services.agent_tools import backtest_summary as _backtest_summary_mod  # noqa: E402, F401
+
+#: Snapshot of whatever registered at package-import time (above), so
+#: :func:`reset_for_tests` can restore it generically instead of naming
+#: ``backtest_summary`` by hand (R15-CODE-AGENT-027).
+_IMPORT_TIME_TOOLS: dict[str, AgentToolHandler] = dict(_TOOLS)
 
 
 def register_v0_5_0_tools() -> None:
