@@ -33,7 +33,12 @@ import { useAppStore } from "@/store/app";
 import { useCommandPalette } from "@/store/command-palette";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalogStore } from "@/store/model-catalog";
-import { getRegisteredAction, resolveKeyboardAction } from "@/store/keybindings";
+import {
+  formatBinding,
+  getRegisteredAction,
+  resolveKeyboardAction,
+  useKeybindingsStore,
+} from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
 import { usePluginsStore } from "@/store/plugins";
 import { useProviderKeysStore } from "@/store/provider-keys";
@@ -201,6 +206,8 @@ export default function Page() {
   const agentCollapsed = useAgentDockStore((state) => state.collapsed);
   const agentMaximized = useAgentDockStore((state) => state.maximized);
   const toggleAgentMaximized = useAgentDockStore((state) => state.toggleMaximized);
+  const agentChord = formatBinding(useKeybindingsStore((s) => s.bindingFor("agent.toggle")));
+  const paletteChord = formatBinding(useKeybindingsStore((s) => s.bindingFor("palette.open")));
 
   return (
     <MotionConfig reducedMotion="user" transition={{ ease: EASE_INSTRUMENT }}>
@@ -228,7 +235,7 @@ export default function Page() {
                 : "text-charcoal-100 hover:text-lume",
             )}
             aria-label={agentCollapsed ? "Show agent panel" : "Hide agent panel"}
-            title={agentCollapsed ? "Show agent panel (⌘B)" : "Hide agent panel (⌘B)"}
+            title={`${agentCollapsed ? "Show" : "Hide"} agent panel (${agentChord})`}
           >
             {agentCollapsed ? (
               <PanelLeftOpen className="h-4 w-4" />
@@ -262,7 +269,7 @@ export default function Page() {
             <LayoutGrid className="h-4 w-4" />
             Open panel
             <kbd className="border-charcoal-700 text-charcoal-500 rounded-control text-micro border px-1 py-0.5">
-              ⌘K
+              {paletteChord}
             </kbd>
           </button>
           <button

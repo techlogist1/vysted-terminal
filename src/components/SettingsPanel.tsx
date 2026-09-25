@@ -1876,13 +1876,14 @@ function PaletteSection() {
   const setShowRecents = useSettingsStore((s) => s.setPaletteShowRecents);
   const symbolScope = useSettingsStore((s) => s.paletteSymbolScope);
   const setSymbolScope = useSettingsStore((s) => s.setPaletteSymbolScope);
+  const paletteChord = formatBinding(useKeybindingsStore((s) => s.bindingFor("palette.open")));
 
   return (
     <section aria-labelledby="settings-palette">
       <SubsectionHeader
         id="settings-palette"
         title="Command palette"
-        hint="How ⌘K ranks and scopes its results."
+        hint={`How ${paletteChord} ranks and scopes its results.`}
       />
       <Card>
         <ToggleRow
@@ -1911,13 +1912,14 @@ function ModulesSection() {
   const modules = useModulesStore((state) => state.modules);
   const enabled = useModulesStore((state) => state.enabled);
   const setModuleEnabled = useModulesStore((state) => state.setModuleEnabled);
+  const paletteChord = formatBinding(useKeybindingsStore((s) => s.bindingFor("palette.open")));
 
   return (
     <section aria-labelledby="settings-modules">
       <SubsectionHeader
         id="settings-modules"
         title="Modules"
-        hint="Disabled modules contribute no panels or ⌘K commands."
+        hint={`Disabled modules contribute no panels or ${paletteChord} commands.`}
       />
       <Card>
         {modules.map((module) => {
