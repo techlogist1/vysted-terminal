@@ -15,13 +15,10 @@ routes ride the same cache, keyed on the resolved listing (R15-DATA-096).
 from __future__ import annotations
 
 import asyncio
-import logging
-from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Header
-from pydantic import BaseModel
 
 from config import get_region
 from models.analyst_extended import (
@@ -38,11 +35,11 @@ from models.fundamentals import (
     Fundamentals,
     IncomeStatement,
 )
+from routers._cached import cached as _cached
 from services import (
     analyst_ratings_extended,
     company_narrative,
     correctness_gate,
-    data_cache,
     exchange_financials,
     identity_crosscheck,
     provider_registry,
@@ -51,29 +48,9 @@ from services import (
 )
 from services.yfinance_provider import _yahoo_symbol
 
-logger = logging.getLogger(__name__)
-
 router = APIRouter(prefix="/fundamentals", tags=["fundamentals"])
 
 _TTL_RATINGS = 6 * 60 * 60  # 6 hours
-
-
-async def _cached[M: BaseModel](
-    key: str, model: type[M], fetch: Callable[[], Awaitable[M]]
-) -> tuple[M, datetime]:
-    """Serve ``key`` from the data cache within the TTL, else fetch and store it.
-
-    Returns the response and when it was fetched (the cache row's write time on
-    a hit), so an envelope can say how old it is (R15-DATA-068)."""
-    hit = await data_cache.get_with_meta(key, _TTL_RATINGS)
-    if hit is not None and isinstance(hit[0], dict):
-        try:
-            return model.model_validate(hit[0]), datetime.fromtimestamp(hit[1], UTC)
-        except Exception:  # noqa: BLE001
-            logger.warning("fundamentals: cache deserialise failed for %s; refetching", key)
-    response = await fetch()
-    fetched_at = await data_cache.set(key, response.model_dump(mode="json"))
-    return response, datetime.fromtimestamp(fetched_at, UTC)
 
 
 def _listing_key(symbol: str, what: str) -> str:
@@ -213,6 +190,7 @@ async def get_income_statement(
     """Return the income statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
     statement, _ = await _cached(
         _listing_key(symbol, f"income:{period}"),
+        _TTL_RATINGS,
         IncomeStatement,
         lambda: provider_registry.get_income_statement(symbol, period=period),
     )
@@ -226,6 +204,7 @@ async def get_balance_sheet(
     """Return the balance sheet excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
     statement, _ = await _cached(
         _listing_key(symbol, f"balance:{period}"),
+        _TTL_RATINGS,
         BalanceSheet,
         lambda: provider_registry.get_balance_sheet(symbol, period=period),
     )
@@ -239,6 +218,7 @@ async def get_cash_flow(
     """Return the cash-flow statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
     statement, _ = await _cached(
         _listing_key(symbol, f"cashflow:{period}"),
+        _TTL_RATINGS,
         CashFlowStatement,
         lambda: provider_registry.get_cash_flow(symbol, period=period),
     )
@@ -250,6 +230,7 @@ async def get_analyst_rating(symbol: str) -> AnalystRating:
     """Return aggregated analyst ratings and price targets for ``symbol``."""
     rating, as_of = await _cached(
         _listing_key(symbol, "ratings"),
+        _TTL_RATINGS,
         AnalystRating,
         lambda: provider_registry.get_analyst_rating(symbol),
     )
@@ -268,6 +249,7 @@ async def get_ratings_history(symbol: str) -> RatingsHistoryResponse:
     normalized = symbol.strip().upper()
     response, as_of = await _cached(
         f"ratings:{_yahoo_symbol(normalized)}:history",  # the resolved listing
+        _TTL_RATINGS,
         RatingsHistoryResponse,
         lambda: analyst_ratings_extended.get_ratings_history(normalized),
     )
@@ -281,6 +263,7 @@ async def get_price_target_history(symbol: str) -> PriceTargetHistoryResponse:
     normalized = symbol.strip().upper()
     response, as_of = await _cached(
         f"ratings:{_yahoo_symbol(normalized)}:price-targets",  # the resolved listing
+        _TTL_RATINGS,
         PriceTargetHistoryResponse,
         lambda: analyst_ratings_extended.get_price_target_history(normalized),
     )
@@ -294,6 +277,7 @@ async def get_individual_analysts(symbol: str) -> IndividualAnalystResponse:
     normalized = symbol.strip().upper()
     response, as_of = await _cached(
         f"ratings:{_yahoo_symbol(normalized)}:individual",  # the resolved listing
+        _TTL_RATINGS,
         IndividualAnalystResponse,
         lambda: analyst_ratings_extended.get_individual_analysts(normalized),
     )
