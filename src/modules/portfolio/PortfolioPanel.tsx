@@ -29,7 +29,7 @@ import {
   type HoldingInput,
   usePortfoliosStore,
 } from "@/store/portfolios";
-import type { Position, Quote } from "../../../types/data";
+import type { Quote } from "../../../types/data";
 import { benchmarkSymbolForCurrency, fetchDailyCloses, fetchPositionQuotes } from "./api";
 import {
   buildPortfolioSummary,
@@ -203,23 +203,6 @@ export function PortfolioPanel() {
   const [pfName, setPfName] = useState("");
   const pfInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Adapt holdings -> the Position shape buildPortfolioSummary expects (keeps
-  // metrics.ts + its tests untouched). Order is preserved, so summary.rows[i]
-  // corresponds to holdings[i] for edit/delete.
-  const positions = useMemo<Position[]>(
-    () =>
-      holdings.map((h, i) => ({
-        id: i,
-        symbol: h.symbol,
-        quantity: h.quantity,
-        cost_basis: h.costBasis,
-        asset_class: h.assetClass,
-        opened_at: null,
-        note: h.note ?? null,
-      })),
-    [holdings],
-  );
-
   // Live quotes — refetched whenever the holding SET changes (symbols/classes).
   // Holdings render synchronously from the store; only the price / market-value
   // / P&L columns wait on the quote (they show "—" until it resolves).
@@ -272,7 +255,7 @@ export function PortfolioPanel() {
     return () => clearInterval(timer);
   }, [hasHoldings]);
 
-  const summary = useMemo(() => buildPortfolioSummary(positions, quotes), [positions, quotes]);
+  const summary = useMemo(() => buildPortfolioSummary(holdings, quotes), [holdings, quotes]);
   const mixedCurrencies = summary.mixedCurrencies;
   // The totals are only as fresh as their OLDEST quote.
   const quotesAsOf = summary.rows.reduce<string | null>((oldest, { quote }) => {
@@ -298,7 +281,7 @@ export function PortfolioPanel() {
       const list = buckets.get(currency) ?? [];
       list.push({
         symbol: row.position.symbol,
-        assetClass: row.position.asset_class === "crypto" ? "crypto" : "equity",
+        assetClass: row.position.assetClass,
         marketValue: row.marketValue,
       });
       buckets.set(currency, list);
@@ -437,19 +420,19 @@ export function PortfolioPanel() {
   // only fires when the holdings (or their resolved P&L) actually change.
   const publishedHoldings = useMemo(
     () =>
-      // `id` is the holding id the agent's portfolio update/delete names as
-      // `position_id` (rows[i] is holdings[i]) — without it an edit of one of
-      // several same-symbol lots could not say which (R15-AGENT-042).
-      summary.rows.map(({ position, marketValue, pnl }, i) => ({
-        id: holdings[i]?.id,
+      // `id` is the real holding id — the agent's portfolio update/delete
+      // names it as `position_id`; without it an edit of one of several
+      // same-symbol lots could not say which (R15-AGENT-042).
+      summary.rows.map(({ position, marketValue, pnl }) => ({
+        id: position.id,
         symbol: position.symbol,
         quantity: position.quantity,
-        costBasis: position.cost_basis,
-        assetClass: position.asset_class === "crypto" ? "crypto" : "equity",
+        costBasis: position.costBasis,
+        assetClass: position.assetClass,
         marketValue: marketValue ?? null,
         pnl: pnl ?? null,
       })),
-    [summary.rows, holdings],
+    [summary.rows],
   );
   const holdingsKey = JSON.stringify(publishedHoldings);
   useEffect(() => {
@@ -550,11 +533,11 @@ export function PortfolioPanel() {
     [editingId, removeHolding, active.id],
   );
 
-  // Join each computed metrics row to its source holding (by order) so the
-  // action column can edit/delete; rebuilt only when the metrics or holdings move.
+  // Each metrics row's `position` IS the source Holding (real id, no index
+  // join) — carry it through as `holding` for the action column's edit/delete.
   const tableRows = useMemo<PortfolioTableRow[]>(
-    () => summary.rows.map((row, i) => ({ ...row, holding: holdings[i] })),
-    [summary.rows, holdings],
+    () => summary.rows.map((row) => ({ ...row, holding: row.position })),
+    [summary.rows],
   );
 
   // Measured table-area width drives the §3.2 drop ladder (null = first paint
@@ -599,7 +582,7 @@ export function PortfolioPanel() {
         // it renders with the quote's currency when one resolved; the region
         // default applies only while no quote has identified the instrument.
         format: (r) =>
-          lotMoney(r.position.cost_basis, r.quote?.currency ?? pairCurrency(r.position.symbol)),
+          lotMoney(r.position.costBasis, r.quote?.currency ?? pairCurrency(r.position.symbol)),
       });
     }
     if (showPrice) {
@@ -729,8 +712,8 @@ export function PortfolioPanel() {
       summary.rows.map(({ position, quote, marketValue, pnl, pnlPercent, weight }) => [
         position.symbol,
         position.quantity,
-        position.cost_basis,
-        position.asset_class,
+        position.costBasis,
+        position.assetClass,
         quote?.currency ?? "",
         quote?.price ?? "",
         marketValue ?? "",
