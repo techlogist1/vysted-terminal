@@ -1156,7 +1156,7 @@
     "research-search"
    ],
    "status": "open",
-   "note": "batch-12: mined from R15_GATE_RC1.md blocker 3 (rc1-scenarios:5, new_defect) and rc1-verifier:16 (reproduces at candidate sha 1d6511c8, currency half fixed, ratio half still fabricated). Not a prior register entry. || batch-12 verifier @3d588a29: Still reproduces on the running sidecar. The original repro prompt on llama3.1:8b (ollama, autonomy ask) fabricated an ADR ratio in 3 of 5 runs. Run 1: '10 ordinary shares'. Run 4: 'approximately 144869230 ordinary shares', derived from the fundamentals tool result's shares-outstanding field and a made-up 'typically two'. Run 5: '1 ordinary share'. Truth is 1 ADS = 6 ordinary shares. Runs 2 and 3 followed the new preamble rule ('unavailable in the terminal's data'). The fix is a prompt rule only; the ponytail note records that no deterministic guard landed. nemotron-3-super:free now reasons that fundamentals has no ADR field and web-searches instead (it found 'Each Repr 6 Ords'), but both of its runs hit an upstream 'Nvidia overloaded' 5xx before the final answer. || batch-13: stage-c/batch-12/VERDICTS.md 'Issues found' item 3 (llama3.1:8b answered 'SIFY's TTM revenue in USD' in INR, ₹4,651 cr, without converting or saying it had not) — same repro prompt/symbol as this entry; folded here rather than filed separately."
+   "note": "batch-12: mined from R15_GATE_RC1.md blocker 3 (rc1-scenarios:5, new_defect) and rc1-verifier:16 (reproduces at candidate sha 1d6511c8, currency half fixed, ratio half still fabricated). Not a prior register entry. || batch-12 verifier @3d588a29: Still reproduces on the running sidecar. The original repro prompt on llama3.1:8b (ollama, autonomy ask) fabricated an ADR ratio in 3 of 5 runs. Run 1: '10 ordinary shares'. Run 4: 'approximately 144869230 ordinary shares', derived from the fundamentals tool result's shares-outstanding field and a made-up 'typically two'. Run 5: '1 ordinary share'. Truth is 1 ADS = 6 ordinary shares. Runs 2 and 3 followed the new preamble rule ('unavailable in the terminal's data'). The fix is a prompt rule only; the ponytail note records that no deterministic guard landed. nemotron-3-super:free now reasons that fundamentals has no ADR field and web-searches instead (it found 'Each Repr 6 Ords'), but both of its runs hit an upstream 'Nvidia overloaded' 5xx before the final answer. || batch-13: stage-c/batch-12/VERDICTS.md 'Issues found' item 3 (llama3.1:8b answered 'SIFY's TTM revenue in USD' in INR, ₹4,651 cr, without converting or saying it had not) — same repro prompt/symbol as this entry; folded here rather than filed separately. || batch-13 verifier @e02073bd: Live bar met (0/5 llama3.1:8b runs state an untraced ratio; the guard fired in runs 1, 3, 4), but the class guard fails fresh phrasings it was not written against: 'SIFY American Depositary Shares each represent six underlying equity shares.', 'Each ADR is equivalent to 2 shares of common stock.' and 'The ADR-to-share ratio is 1 ADR : 6 shares.' all pass through _guard_ratio_claims untouched against a fundamentals result with no depositary term. _CLAIM_NUMBERS needs the number directly before (ordinary|equity|underlying|common) shares, or directly beside ':'/'to'/'-for-'; a two-word qualifier, 'shares of common stock', or an 'N ADR : M shares' form escapes."
   },
   {
    "id": "R15-AGENT-092",
@@ -3193,9 +3193,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "closure_evidence": "c81d879 fix(r15): Stage C batch 3",
-   "note": "Verifier batch-3 residual: certifying this fix demoted first-party IR pages (tcs.com/investor-relations, reliance.com/investors, infosys.com/investors) from PRIMARY to GENERAL, below press, since a path marker alone is no longer PRIMARY. Expected side effect of the shipped fix shape; giving IR its own tier would avoid it. || rc1 refutation audit @6741387b: partial — root cause: sidecar/services/research/finance.py:146. _looks_like_ir matches host.startswith('investors.'/'investor.'/'ir.') without requiring that label to be a subdomain. After the www. strip, the news site investors.com (IBD) therefore ranks PRIMARY. finance.py:79-89: _IR_PLATFORM_DENYLIST lacks github.io, wixsite.com, netlify.app and hubpages.com, and matches blogspot only on .com. So ir.blogspot.in, investors.github.io, investors.wixsite.com and ir.netlify.app rank PRIMARY.; acceptance: Add sidecar/tests/test_research_finance.py::test_ir_host_prefix_never_promotes_news_or_platform_hosts. Assert domain_tier(u) != TIER_PRIMARY for https://www.investors.com/news/technology/nvidia-stock-buy-now/, https://investors.github.io/pump, https://ir.blogspot.in/post, https://investors.wixsite.com/x, https://ir.netlify.app/x and https://investors.hubpages.com/x. Assert rank_sources([IBD, GH, Reuters])[0].title == 'Reuters', and that priority_note does not name IBD or GH as a primary record. The controls ir.nvidia.com, investors.infosys.com, investor.apple.com and ir.tatamotors.com must stay TIER_PRIMARY. || batch-12 verifier @3d588a29: Acceptance cases pass, but the class fix fails fresh cases. The fix enumerates nine platforms in a denylist, so other free-hosting platforms still rank TIER_PRIMARY: ir.firebaseapp.com, investors.web.app, ir.azurewebsites.net, ir.onrender.com, ir.fly.dev, ir.glitch.me, investors.notion.site, ir.webflow.io, ir.herokuapp.com. The three-label 'IR label is a subdomain' check also misses ccSLD registrable domains: https://www.investors.co.uk/news/x, https://ir.co.in/x and https://investors.com.au/x rank 1, which is the original investors.com mechanism on a two-part TLD. Root fix: decide 'IR label sits on a registrable domain' from the Public Suffix List, including its private section (github.io, web.app, herokuapp.com, blogspot.* etc. are PSL private suffixes). No PSL package is in the venv today."
+   "status": "fixed",
+   "closure_evidence": "a217a529 merge(r15): Stage C batch 13 — RESEARCH-007 PSL check, DOCS-017 live universe counts, AGENT-090 ratio guard (partial)",
+   "note": "Verifier batch-3 residual: certifying this fix demoted first-party IR pages (tcs.com/investor-relations, reliance.com/investors, infosys.com/investors) from PRIMARY to GENERAL, below press, since a path marker alone is no longer PRIMARY. Expected side effect of the shipped fix shape; giving IR its own tier would avoid it. || rc1 refutation audit @6741387b: partial — root cause: sidecar/services/research/finance.py:146. _looks_like_ir matches host.startswith('investors.'/'investor.'/'ir.') without requiring that label to be a subdomain. After the www. strip, the news site investors.com (IBD) therefore ranks PRIMARY. finance.py:79-89: _IR_PLATFORM_DENYLIST lacks github.io, wixsite.com, netlify.app and hubpages.com, and matches blogspot only on .com. So ir.blogspot.in, investors.github.io, investors.wixsite.com and ir.netlify.app rank PRIMARY.; acceptance: Add sidecar/tests/test_research_finance.py::test_ir_host_prefix_never_promotes_news_or_platform_hosts. Assert domain_tier(u) != TIER_PRIMARY for https://www.investors.com/news/technology/nvidia-stock-buy-now/, https://investors.github.io/pump, https://ir.blogspot.in/post, https://investors.wixsite.com/x, https://ir.netlify.app/x and https://investors.hubpages.com/x. Assert rank_sources([IBD, GH, Reuters])[0].title == 'Reuters', and that priority_note does not name IBD or GH as a primary record. The controls ir.nvidia.com, investors.infosys.com, investor.apple.com and ir.tatamotors.com must stay TIER_PRIMARY. || batch-12 verifier @3d588a29: Acceptance cases pass, but the class fix fails fresh cases. The fix enumerates nine platforms in a denylist, so other free-hosting platforms still rank TIER_PRIMARY: ir.firebaseapp.com, investors.web.app, ir.azurewebsites.net, ir.onrender.com, ir.fly.dev, ir.glitch.me, investors.notion.site, ir.webflow.io, ir.herokuapp.com. The three-label 'IR label is a subdomain' check also misses ccSLD registrable domains: https://www.investors.co.uk/news/x, https://ir.co.in/x and https://investors.com.au/x rank 1, which is the original investors.com mechanism on a two-part TLD. Root fix: decide 'IR label sits on a registrable domain' from the Public Suffix List, including its private section (github.io, web.app, herokuapp.com, blogspot.* etc. are PSL private suffixes). No PSL package is in the venv today. || batch-14: certified by batch-13 verifier @e02073bd — the PSL-backed domain_tier check holds on all fresh cases (rank_sources/priority_note correct, controls unaffected, PSL bundled in the built binary); status -> fixed."
   },
   {
    "id": "R15-RESEARCH-008",
@@ -5171,7 +5171,7 @@
     "agent-chat"
    ],
    "status": "open",
-   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 3. || batch-12 planner (PLAN.md §9): deferred to batch 13 — the agent SSE stream carries no tool-result event (models/llm.py event kinds: delta, tool_use, research_step, agent_plan, thinking, heartbeat, done, error), so vy.py cannot record an ok/error for the grader. The fix needs a new stream event emitted from agent_runtime.py (owned by W5 in batch 12, so the file could not be shared this batch), then models/llm.py + scripts/agent_eval/grader.py, plus a frontend check that unknown event kinds are ignored."
+   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 3. || batch-12 planner (PLAN.md §9): deferred to batch 13 — the agent SSE stream carries no tool-result event (models/llm.py event kinds: delta, tool_use, research_step, agent_plan, thinking, heartbeat, done, error), so vy.py cannot record an ok/error for the grader. The fix needs a new stream event emitted from agent_runtime.py (owned by W5 in batch 12, so the file could not be shared this batch), then models/llm.py + scripts/agent_eval/grader.py, plus a frontend check that unknown event kinds are ignored. || batch-13 verifier @e02073bd: No fix landed. The integration branch does not touch models/llm.py, services/llm/base.py, types/ai.ts, streaming.ts or scripts/agent_eval/grader.py, and the W1 branch carries only the AGENT-090 commit. The live stream still has no tool_result kind (events seen: heartbeat/tool_use/delta/done), and grade({'expect':{}}, [tool_use option_chain expiry=nearest, tool_result ok:false '422', delta, done]) still returns [] (a pass)."
   },
   {
    "id": "R15-CODE-DATA-002",
@@ -8324,9 +8324,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "closure_evidence": "f407107 merge: R15 Stage C batch 10",
-   "note": "rc1 refutation audit @6741387b: partial — root cause: docs/CURRENT_STATE.md:358-365 (section 3.3 screener bullet) never documents the nse-all, bse-all and india-all universes, although the entry title and fix_shape name them; the whole doc has 0 hits. The sp500 clause (506 symbols, 2026-06-04, 'R15-LEAD-013 open') was correct at batch-10 certification (the f407107 pack had 506 symbols). It went stale when batch 11's R15-LEAD-013 fix (34c2bbec) regenerated the pack to 503 symbols with snapshot_date 2026-09-24 and did not update the doc.; acceptance: sidecar/tests/test_sp500_universe.py (or new test_current_state_doc.py): section 3.3 of docs/CURRENT_STATE.md must contain f\"{len(sp500['symbols'])} symbols\" and sp500['snapshot_date'], must not contain 'R15-LEAD-013 open', and must name every ScreenerUniverseId literal except 'custom' in backticks (nse-all, bse-all, india-all). || batch-12 verifier @3d588a29: The rewritten section 3.3 bullet has the same drift class the entry is about. It says nse-all is 'every NSE master row (EQ + ETF) ... ~2,675', but the running code's load_india_universe('nse-all') returns 3,506 symbols: EQ 2584 + ETF 351 + SM 571 (the NSE Emerge rows added by 1df9cb0e, R15-DATA-017). bse-all is 5,042 and india-all is 5,891, and the doc gives no count for either. The count came from a stale module docstring (screener_universe_india.py:6), not the master. The sp500 count and snapshot date (503, 2026-09-24) and the universe names are correct."
+   "status": "fixed",
+   "closure_evidence": "a217a529 merge(r15): Stage C batch 13 — RESEARCH-007 PSL check, DOCS-017 live universe counts, AGENT-090 ratio guard (partial)",
+   "note": "rc1 refutation audit @6741387b: partial — root cause: docs/CURRENT_STATE.md:358-365 (section 3.3 screener bullet) never documents the nse-all, bse-all and india-all universes, although the entry title and fix_shape name them; the whole doc has 0 hits. The sp500 clause (506 symbols, 2026-06-04, 'R15-LEAD-013 open') was correct at batch-10 certification (the f407107 pack had 506 symbols). It went stale when batch 11's R15-LEAD-013 fix (34c2bbec) regenerated the pack to 503 symbols with snapshot_date 2026-09-24 and did not update the doc.; acceptance: sidecar/tests/test_sp500_universe.py (or new test_current_state_doc.py): section 3.3 of docs/CURRENT_STATE.md must contain f\"{len(sp500['symbols'])} symbols\" and sp500['snapshot_date'], must not contain 'R15-LEAD-013 open', and must name every ScreenerUniverseId literal except 'custom' in backticks (nse-all, bse-all, india-all). || batch-12 verifier @3d588a29: The rewritten section 3.3 bullet has the same drift class the entry is about. It says nse-all is 'every NSE master row (EQ + ETF) ... ~2,675', but the running code's load_india_universe('nse-all') returns 3,506 symbols: EQ 2584 + ETF 351 + SM 571 (the NSE Emerge rows added by 1df9cb0e, R15-DATA-017). bse-all is 5,042 and india-all is 5,891, and the doc gives no count for either. The count came from a stale module docstring (screener_universe_india.py:6), not the master. The sp500 count and snapshot date (503, 2026-09-24) and the universe names are correct. || batch-14: certified by batch-13 verifier @e02073bd — section 3.3 now quotes the loader's live counts (nse-all 3506, bse-all 5042, india-all 5891, sp500 503) matching the running route; status -> fixed."
   },
   {
    "id": "R15-DOCS-018",
@@ -12652,8 +12652,9 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "batch-13: mined from stage-c/batch-12/VERDICTS.md 'Issues found (not in this batch's scope; for the backlog)' item 4."
+   "status": "fixed",
+   "note": "batch-13: mined from stage-c/batch-12/VERDICTS.md 'Issues found (not in this batch's scope; for the backlog)' item 4. || batch-14: batch-13 reviewer @e02073bd confirmed 3cb5bc29 covers this entry's whole named scope (screener_universe_india.py module docstring + models/screener.py:34 comment, both now name row types instead of stale counts); status -> fixed. A separate stale count at screener_universe_india.py:95 (_nse_lookup docstring), outside this entry's original evidence, is filed as R15-LEAD-029.",
+   "closure_evidence": "3cb5bc29 docs(screener): re-derive India universe counts from loader (R15-DOCS-017)"
   },
   {
    "id": "R15-CODE-FRONTEND-021",
@@ -16797,6 +16798,28 @@
    ],
    "status": "open",
    "note": "triage@e032be7: still_reproduces, confidence 5, prompt + parser + model + TS mirror + typed render blocks, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-094"
+  },
+  {
+   "id": "R15-LEAD-029",
+   "title": "screener_universe_india.py's _nse_lookup docstring still hardcodes a stale india-all count ('~5,156') distinct from the counts R15-CODE-DATA-023 fixed elsewhere in the same file",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "screener",
+   "files": [
+    "sidecar/services/screener_universe_india.py"
+   ],
+   "repro": "sidecar/services/screener_universe_india.py:95, the _nse_lookup docstring: \"The boot seed calls it once per ``india-all`` symbol (~5,156)\". load_india_universe('india-all') returns 5,891 symbols (nse-all 3,506 + bse-all 5,042 union). This count was not part of R15-CODE-DATA-023's scope (module docstring line 6 and models/screener.py:34), so 3cb5bc29 (R15-CODE-DATA-023's fix) did not touch it and it remains stale.",
+   "evidence": "docs/redesign/verification/r15/stage-c/batch-13/VERDICTS.md 'Issues found' item 1; sidecar/services/screener_universe_india.py:95",
+   "root_cause": "Same current-state-drift class as R15-DOCS-017/R15-CODE-DATA-023 (a hardcoded count written before 1df9cb0e/R15-DATA-017 added the NSE Emerge/SME rows), but at a third, separate comment location neither of those two entries' evidence named.",
+   "fix_shape": "Replace the hardcoded '~5,156' with the live count or drop the specific number and describe composition only (as 3cb5bc29 did for the other two comments in this file); pin with a test asserting the comment's count (if kept) matches len(load_india_universe('india-all')).",
+   "defect_class": "current-state-drift",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps"
+   ],
+   "status": "open",
+   "note": "batch-14: mined from stage-c/batch-13/VERDICTS.md 'Issues found' item 1 (source 'lead-found batch-14'). Not covered by R15-CODE-DATA-023, which named only screener_universe_india.py's module docstring and models/screener.py:34; both of those were fixed by 3cb5bc29 and R15-CODE-DATA-023 is closed. This entry tracks the remaining stale count at line 95."
   }
  ],
  "rejections": [
@@ -17107,11 +17130,11 @@
  ],
  "counts": {
   "raw": 887,
-  "entries": 642,
+  "entries": 643,
   "rejections": 76,
   "critical": 16,
   "high": 115,
   "medium": 287,
-  "low": 224
+  "low": 225
  }
 }
