@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import time
 import uuid
 from typing import Any
@@ -478,15 +479,29 @@ def model_content(result_str: str) -> str:
     return json.dumps(view, default=str, ensure_ascii=False)
 
 
-def fundamentals_content(result_str: str) -> str:
-    """The model-facing ``fundamentals`` / ``compare_symbols`` result (R15-AGENT-001 class).
+#: Label tokens of a statement line that is not a money size: per-share
+#: values, share counts and tax rates stay raw (``shareholders`` is money).
+_STATEMENT_NON_MONEY_TOKENS = frozenset({"eps", "share", "shares", "rate"})
 
-    Both carry a raw ``Fundamentals`` dump, and a model read ``revenue_ttm =
-    46506049536.0`` next to ``currency: USD`` as "$46.5B USD" when SIFY reports
-    in INR. The money sizes become :func:`semantics.display_value` strings:
-    statement sizes in ``financial_currency`` (else ``currency``), ``market_cap``
-    in the trading ``currency`` (a compare row's ``quote.currency`` when the dump
-    names none). Every other field is kept.
+
+def _statement_money_line(label: Any) -> bool:
+    tokens = re.split(r"[^a-z0-9]+", str(label).lower())
+    return not _STATEMENT_NON_MONEY_TOKENS.intersection(tokens)
+
+
+def fundamentals_content(result_str: str) -> str:
+    """The model-facing ``fundamentals`` / ``compare_symbols`` /
+    ``financial_statements`` result (R15-AGENT-001 class).
+
+    The first two carry a raw ``Fundamentals`` dump, and a model read
+    ``revenue_ttm = 46506049536.0`` next to ``currency: USD`` as "$46.5B USD"
+    when SIFY reports in INR. The money sizes become
+    :func:`semantics.display_value` strings: statement sizes in
+    ``financial_currency`` (else ``currency``), ``market_cap`` in the trading
+    ``currency`` (a compare row's ``quote.currency`` when the dump names none).
+    A statement's money lines render in its reporting ``currency``; per-share,
+    share-count and rate lines, and every line of a statement whose currency is
+    unknown, stay raw. Every other field is kept.
     """
     from services.research.semantics import display_value
 
@@ -498,6 +513,17 @@ def fundamentals_content(result_str: str) -> str:
         return result_str
     rows = payload.get("symbols")
     changed = False
+    lines = payload.get("lines")
+    statement_code = payload.get("currency")
+    if isinstance(lines, list) and isinstance(statement_code, str) and statement_code:
+        for line in lines:
+            values = line.get("values") if isinstance(line, dict) else None
+            if not isinstance(values, dict) or not _statement_money_line(line.get("label")):
+                continue
+            for period, value in values.items():
+                if _is_number(value):
+                    values[period] = display_value(value, "currency", statement_code)
+                    changed = True
     for holder in [payload, *(rows if isinstance(rows, list) else [])]:
         fund = holder.get("fundamentals") if isinstance(holder, dict) else None
         if not isinstance(fund, dict):
