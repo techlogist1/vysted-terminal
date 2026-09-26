@@ -1,4 +1,4 @@
-<!-- refreshed 26 Sep 2026 04:10 IST at fcac96bd by the run-report narrative pre-refresh; delta-refreshed 07:13 IST at ce0a7abd through the burst launch (batch-24 merged, gate round 2 launched, Stage D refreshed); every line marked "(at the rc1 tag: …)" still changes at the tag, so the at-tag refresh remains a delta -->
+<!-- refreshed 26 Sep 2026 04:10 IST at fcac96bd by the run-report narrative pre-refresh; delta-refreshed 07:13 IST at ce0a7abd through the burst launch (batch-24 merged, gate round 2 launched, Stage D refreshed); delta-refreshed 18:38 IST at 84280221 after gate round 2 failed twice (register reopened to 14 open c/h/m, refutation audit round 2 filed 2 new highs, batch-25 fixing in flight, still no tag); every line marked "(at the rc1 tag: …)" still changes at the tag, so the at-tag refresh remains a delta -->
 
 # R15 LAUNCH — run report
 
@@ -18,10 +18,44 @@ trading path, tracked portfolio intact), ci-local, smoke and the data packs. It 
 register entries, agent scenarios, owner-drives, the fixed-name battery and the fix loop, and on
 an adversarial sample in which all 14 re-tested certified entries failed. A refutation audit
 upheld every refutation (`4f2aba93`): 13 entries were reopened and one adjacent defect was filed.
-Round 2 launched at 06:05 IST Sat 26 Sep (`wf_4ed38558-4d0`, from head `4c6dfe8c`) once the
-register showed zero open critical/high/medium entries and no lows writer was still running
-tests; both gating conditions were met. It is in flight (15/19 agents landed at this refresh,
-four battery shards still running); **its verdict is pending at the tag and is not guessed here.**
+
+**Round 2 has now failed twice and rc1 is still not tagged.** It launched at 06:05 IST Sat 26 Sep
+(`wf_4ed38558-4d0`, from head `4c6dfe8c`) once the register showed zero open critical/high/medium
+entries and no lows writer was still running tests. The first pass FAILED at 14:50 IST (301 min
+active + a wall pause): Gate 8, ci-local, smoke, owner-drives and data packs all passed, but
+`rc1-drive-research-briefs:2` (the citation-integrity net only recognises a bare `[n]`) survived
+two Sonnet fix rounds and the final verifier died twice on `ENOTFOUND` (a DNS/network outage), so
+no gate sheet was produced. The run was RESUMED at 14:50 IST with `max_fix_rounds:3`; the resume
+re-keyed half the run (five lane-serial drives, all 8 battery shards, the collator, the fix loop
+and the vshards re-ran under new prompt keys, and the blocked battery shards briefly deleted 54
+round-1 raw files, restored from HEAD before commit), fix round 3 never ran (the triage timed out
+6x+3 and the writer died `ENOTFOUND` x6 in a second network outage, ~15:00-17:00 IST), and a fresh
+Opus verifier's sheet landed 18:02 IST: **FAIL again.** Gate 8, ci-local, smoke and owner-drives
+all still PASS, but the register criterion FAILS — 9 `fixed` entries were refuted at the candidate
+(DATA-002 critical; AGENT-019, AGENT-093 high; DATA-113, LEAD-028, DATA-064, DATA-059, AGENT-053,
+RESEARCH-015 medium) — plus 2 new highs (`rc1-verifier:1` a BSE shareholding-index 403 over plain
+httpx where the impersonated lane gets 200; `rc1-verifier:2` the MCP `list_workspaces`/
+`get_workspace` tools hitting `/workspaces` instead of the router's `/workspace`), the citation fix
+loop is still unclosed, 2 plausible regressions were flagged (CODE-PLATFORM-013, AGENT-010), and
+the battery/scenarios/data-pack lanes carry harness coverage gaps (a battery-shard re-key left ~80
+fixed ids with no raw row; the hosted scenario lane and 10 of 24 data packs are pre-candidate).
+Evidence `3cd62b02` on origin/004.
+
+A second Opus-led refutation audit (`wf_ba2ae216-f89`, 18:16-18:32 IST, 5 agents, 16 min, 682k
+tokens, zero verifier errors) re-examined all 11 register refutations and both new highs: **all 11
+verdicted `partial`** (the stated repro holds, the class the entry claimed to close does not — each
+with a root cause, fix shape and acceptance test) and **both new highs CONFIRMED**, filed as
+`R15-DATA-116` and `R15-CODE-AGENT-034` (`5dac683a`). None of the 11 reached three certification
+failures yet (five are now at two: DATA-002, LEAD-028, DATA-059, AGENT-019, CODE-PLATFORM-013 — a
+third failure stops each for the operator). A citation-marker grammar defect was filed separately
+as `R15-RESEARCH-043` (medium, two failed fix rounds already on record; next attempt goes to
+Opus). **Open critical/high/medium entries: 14** (the 11 partial reopenings + DATA-116 +
+CODE-AGENT-034 + RESEARCH-043), register at 655 entries (`62c11c8e`). **Stage C batch 25** launched
+18:34 IST (`wf_fbb7a07b-9f8`) to fix exactly those 14 under the operator's three-failure rule (any
+entry that fails certification a third time stays open and goes to DECISIONS, never another
+round); it is in flight, and its outcome is not guessed here. The gate script itself is being
+repaired in parallel (an Agent-tool agent on `worktree-agent-rc1-gate-r3`, in flight) so round 3 —
+if one is needed — replays cleanly instead of re-keying prompts on resume.
 
 Stage C has since merged batches 12 through 22 into `004-r4-experience-rebuild` (22 batches
 merged in total, `a122dbf6` through `c155e5ad`), almost all of that chasing one entry:
@@ -54,8 +88,10 @@ concurrence and naming one further narrowing-only guard (`batch-24/LEAD-035-CONC
 §3/§4). Under the operator's three-failure rule, the lead merged anyway: LEAD-035 is now
 `blocked_tier4` with the refusal on record, not adjudicated away
 (`DECISIONS_FOR_OPERATOR.md` 4.10 offers (a) accept the residual or (b) one bounded round on the
-rc2 line; the lead recommends (b)). Open critical/high/medium entries in the register are now
-**zero**.
+rc2 line; the lead recommends (b)). Open critical/high/medium entries in the register were
+**zero** at the batch-24 merge; gate round 2's refutation audit round 2 has since reopened 11 of
+those and filed 2 new highs, plus one medium filed separately — **14 open now**, batch-25 in
+flight to close them (see above).
 
 Two more mediums were filed from the same batch-22/23 evidence: `R15-LEAD-037` (the figure guard
 grounds a price by value only, so a stale bar from the same tool payload can pass as the current
@@ -90,12 +126,20 @@ unmodified inside two of the three sidecar binaries alongside the PolyForm Stric
 operator's licensing call, status awaiting operator**; a production-bundle rehearsal from a clean
 profile came back **PASS-WITH-FINDINGS** at `64e9470e` (`c584f545`/`69f47e48`); the LEAD-035
 disposition was folded into the Stage D drafts (`ed82d896`) and a new-lows draft filed 6 entries
-(`e29ca6c7`) for the P1 adjudication. Three workflows launched in the same window, all still in
-flight at this refresh: lows pre-integration for P1/P2/P3 (`wf_33fb46f9-580`), the remaining-lows
-sweep — could_not retries, a fresh refuter and the new-lows/deferred writers (`wf_971af170-542`)
-— and the judge-panel build specs plus the final-adversarial-pass authoring and the operator
-handover draft (`wf_8388c01a-1e5`). None of this is integrated or tagged; it is off-lane and
+(`e29ca6c7`) for the P1 adjudication. Three workflows launched in the same window all finished
+clean: lows pre-integration for P1/P2/P3 (`wf_33fb46f9-580`, three candidate branches, none
+merged), the remaining-lows sweep — could_not retries, a fresh refuter and the new-lows/deferred
+writers (`wf_971af170-542`, 27 rows collated, all could_not entries now fixed) — and the
+judge-panel build specs plus the final-adversarial-pass authoring and the operator handover draft
+(`wf_8388c01a-1e5`, BL-03/BL-18 specs small, final pass launch_ready, handover ready_to_promote).
+A CLAUDE.md single-commit audit and a hygiene-prune inventory (both Agent-tool agents) also
+finished, and a lows pre-integration re-run folded in the remaining-lows branches
+(`wf_1eaadd4a-b43`, 07:25-07:47 IST). None of this is integrated or tagged; it is off-lane and
 marked "untested pending integration" until the gate returns.
+
+Gate round 2 then failed twice (see above), the refutation audit round 2 reopened 11 entries and
+confirmed 2 new highs, and Stage C batch 25 is now the fix batch in flight — it is the only
+machine-lane workflow running; everything else above stays parked pending the gate.
 
 (at the rc1 tag: replace this paragraph with the round-2 verdict, its time and the tag sha.)
 
@@ -106,8 +150,19 @@ marked "untested pending integration" until the gate returns.
 | 1 | Truth | **HOLDS** | run-state decisions R15-D1..D6 + `r15/stage0/`; commit `38ded25b` | 04:57 23 Sep |
 | 2 | Census closed | **HOLDS** (after two BLOCKED passes) | `R15_GATE2.md` (three fresh-context Opus verifiers); commit `99e2ae38` | BLOCKED 13:28 and 14:17, HOLDS 15:00, all 23 Sep |
 | 3–7 | not individually named | **not recorded** | The run brief is the only document that names gates 3–7, and this report does not read it. The run-state goes from Gate 2 to Stage C and then to the rc1 gate. | — |
-| 8 | Safety (rewritten by the scope change): no order, broker or simulated-account path anywhere; tracked portfolio intact | **PASS in rc1 round 1** | `R15_GATE_RC1.md` items 2–3, `r15/rc1/GATE8.md`: 111 routes, none for orders, brokers, the kill switch or the audit log; 40 MCP tools, none for orders; the portfolio round-trip passed, including an agent write held for review | 09:57 25 Sep (at the rc1 tag: re-proved by round 2) |
-| rc1 | Release-candidate gate | **round 1 FAILED 09:57 IST 25 Sep, no tag; round 2 LAUNCHED 06:05 IST 26 Sep (`wf_4ed38558-4d0`), in flight — verdict pending, not guessed here** | `R15_GATE_RC1.md` + `r15/rc1/` (commit `b2cfbb68`); the gate's own fix rounds merged as `57897778` | (at the rc1 tag: round-2 verdict, time and tag sha) |
+| 8 | Safety (rewritten by the scope change): no order, broker or simulated-account path anywhere; tracked portfolio intact | **PASS in rc1 round 1; re-PASSED both round-2 passes** | `R15_GATE_RC1.md` items 2–3, `r15/rc1/GATE8.md`: 111 routes, none for orders, brokers, the kill switch or the audit log; 40 MCP tools, none for orders; the portfolio round-trip passed, including an agent write held for review; round 2's fresh verifier re-proved it both at 14:50 and at 18:02 IST (36-row safety surface all listed, candidate-to-HEAD surface diff 0) | 09:57 25 Sep; re-proved 14:50 and 18:02 26 Sep |
+| rc1 | Release-candidate gate | **round 1 FAILED 09:57 IST 25 Sep; round 2 FAILED TWICE 26 Sep (first pass 14:50, resume 18:02) — no tag; Stage C batch 25 (`wf_fbb7a07b-9f8`) in flight now to close the 14 open c/h/m** | `R15_GATE_RC1.md` (round-2 sheet, written 18:02, committed `3cd62b02`) + `r15/rc1/` (round-1 commit `b2cfbb68`); round 1's fix rounds merged as `57897778`; round-2 refutation audit `5dac683a` | round 2, first pass 06:05→14:50; resume 14:50→18:02 (at the rc1 tag: round-3/verdict, time and tag sha) |
+
+rc1 round 2, item by item (run `wf_4ed38558-4d0`, first pass 42 agents/301 min, resume 192 min; candidate `4c6dfe8c`; sheet written 18:02 IST):
+
+| Item | Result | Item | Result |
+|---|---|---|---|
+| 1 Register criterion | FAIL — 9 `fixed` entries refuted (1 critical, 2 high, 6 medium) + 2 new highs open | 7 Owner-drives | PASS |
+| 2 Gate 8: no trading path | PASS | 8 Fixed-name battery | HARNESS FAIL — ~80 fixed ids with no raw row after a re-key |
+| 3 Gate 8: tracked portfolio | PASS | 9 Data packs | HARNESS FAIL — 10 of 24 pre-candidate |
+| 4 ci-local | PASS — pytest 3596+1 skipped, vitest 152/1831, cargo 19 | 10 Fix loop closed | FAIL — the citation-marker net still unclosed after 2 rounds |
+| 5 smoke | PASS — 3 sidecars, MCP toolCount 40 | 11 GUI round | DEFERRED — operator away-sentinel not armed |
+| 6 Agent scenarios | HARNESS FAIL — the hosted lane is entirely pre-candidate | 12 Plausible regressions (not certified) | FLAGGED — CODE-PLATFORM-013, AGENT-010 |
 
 rc1 round 1, item by item (run `wf_7c4b2e60-141`, 43 agents, 296 min; candidate `1d6511c8`):
 
