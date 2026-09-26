@@ -19,6 +19,7 @@ import {
   openCompanyOverview,
   parseHostAction,
   publishAckStatus,
+  undoPreImage,
 } from "@/lib/host-actions";
 import { composeBriefMarkdown } from "@/lib/brief-ingest";
 import { useBacktestStore } from "@/store/backtest";
@@ -221,6 +222,69 @@ describe("host-actions", () => {
       reason: '"MAZAGONDOCK" did not resolve to a listing',
     });
     expect(useSymbolsStore.getState().entries.map((e) => e.symbol)).toEqual(["MAZDOCK"]);
+  });
+
+  // /resolve as the IN-session sidecar answers it: the bare ticker AMAL binds to
+  // Amal Ltd (IN), the company names bind to their own listing.
+  function mockResolve(byQuery: Record<string, { symbol: string; region: string }>) {
+    sidecarGetMock.mockReset();
+    sidecarGetMock.mockImplementation(async (_path: string, { q }: { q: string }) => {
+      const hit = byQuery[q];
+      return {
+        resolved: hit ? { ...hit, name: q } : null,
+        needs_disambiguation: false,
+        candidates: [],
+      };
+    });
+  }
+
+  it("an agent add of another listing of a tracked ticker adds it, and undo removes only it (R15-DATA-002)", async () => {
+    resetSettingsStoreForTests();
+    useSettingsStore.getState().setRegion("IN");
+    useSymbolsStore.setState({ entries: [{ symbol: "AMAL", assetClass: "equity" }] });
+    mockResolve({
+      "AMALGAMATED FINANCIAL": { symbol: "AMAL", region: "US" },
+      AMAL: { symbol: "AMAL", region: "IN" },
+    });
+    const result = await applyIntentAsync(
+      parseHostAction("add_to_watchlist", {
+        symbol: "Amalgamated Financial",
+        asset_class: "equity",
+      }),
+    );
+    expect(result.label).toMatch(/^Added AMAL/);
+    expect(useSymbolsStore.getState().entries).toEqual([
+      { symbol: "AMAL", assetClass: "equity" },
+      { symbol: "AMAL", assetClass: "equity", region: "US" },
+    ]);
+    undoPreImage(result.preImage!);
+    expect(useSymbolsStore.getState().entries).toEqual([{ symbol: "AMAL", assetClass: "equity" }]);
+  });
+
+  it("an agent add by name of the listing a region-less entry already binds to is a no-op (R15-DATA-002)", async () => {
+    resetSettingsStoreForTests();
+    useSettingsStore.getState().setRegion("IN");
+    useSymbolsStore.setState({ entries: [{ symbol: "AAPL", assetClass: "equity" }] });
+    mockResolve({
+      APPLE: { symbol: "AAPL", region: "US" },
+      AAPL: { symbol: "AAPL", region: "US" },
+    });
+    expect(
+      await applyHostActionAsync("add_to_watchlist", { symbol: "Apple", asset_class: "equity" }),
+    ).toBe('AAPL is already on your watchlist (resolved from "APPLE")');
+    expect(useSymbolsStore.getState().entries).toEqual([{ symbol: "AAPL", assetClass: "equity" }]);
+  });
+
+  it("remove_from_watchlist removes the found listing only, and undo puts it back (R15-DATA-002)", async () => {
+    const us = { symbol: "AMAL", assetClass: "equity" as const, region: "US" };
+    const bare = { symbol: "AMAL", assetClass: "equity" as const };
+    useSymbolsStore.setState({ entries: [us, bare] });
+    const { preImage } = await applyIntentAsync(
+      parseHostAction("remove_from_watchlist", { symbol: "amal" }),
+    );
+    expect(useSymbolsStore.getState().entries).toEqual([bare]);
+    undoPreImage(preImage!);
+    expect(useSymbolsStore.getState().entries).toEqual([us, bare]);
   });
 
   it("write_screener_filters describes + writes a nested AND/OR tree into the panel", () => {

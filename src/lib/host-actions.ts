@@ -51,7 +51,7 @@ import {
 } from "@/store/portfolios";
 import { useScreenerStore, type SavedScreen } from "@/store/screener";
 import { useSettingsStore } from "@/store/settings";
-import { useSymbolsStore, type SymbolEntry } from "@/store/symbols";
+import { entryKey, useSymbolsStore, type SymbolEntry } from "@/store/symbols";
 import { isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 
 import type {
@@ -881,7 +881,7 @@ export type PreImage =
   | { kind: "holding"; portfolioId: string; holding: Holding; index: number }
   | { kind: "note"; scope: string; text: string }
   | { kind: "screen"; name: string; screen: SavedScreen | null }
-  | { kind: "watchlist-added"; symbol: string }
+  | { kind: "watchlist-added"; symbol: string; region?: string }
   | { kind: "watchlist-removed"; entry: SymbolEntry; index: number }
   | { kind: "region"; region: Region };
 
@@ -1729,7 +1729,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         return fail("no symbol given");
       }
       const symbols = useSymbolsStore.getState();
-      if (symbols.entries.some((e) => e.symbol.toUpperCase() === symbol)) {
+      if (tracksRegionless(symbol)) {
         // Truthful idempotent no-op: the desired end state already holds.
         return done(`${symbol} is already on your watchlist`);
       }
@@ -1753,7 +1753,8 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         return done(`${symbol} was not on your watchlist`);
       }
       const entry = symbols.entries[index];
-      symbols.removeSymbol(symbol);
+      // Only the found listing, so the single-entry undo is an exact inverse.
+      symbols.removeSymbol(symbol, entry.region ?? null);
       return done(`Removed ${symbol} from your watchlist`, {
         kind: "watchlist-removed",
         entry,
@@ -1969,12 +1970,12 @@ export function undoPreImage(preImage: PreImage): ApplyResult {
       return done(`Restored the saved screen "${name}"`);
     }
     case "watchlist-added":
-      useSymbolsStore.getState().removeSymbol(preImage.symbol);
+      useSymbolsStore.getState().removeSymbol(preImage.symbol, preImage.region ?? null);
       return done(`Removed ${preImage.symbol} from your watchlist`);
     case "watchlist-removed": {
       const symbols = useSymbolsStore.getState();
       const { entry, index } = preImage;
-      if (!symbols.entries.some((e) => e.symbol.toUpperCase() === entry.symbol.toUpperCase())) {
+      if (!symbols.entries.some((e) => entryKey(e) === entryKey(entry))) {
         symbols.setEntries([
           ...symbols.entries.slice(0, index),
           entry,
@@ -2030,7 +2031,7 @@ export async function applyIntentAsync(intent: HostIntent): Promise<ApplyResult>
     intent.name === "add_to_watchlist" &&
     intent.assetClass === "equity" &&
     intent.symbol &&
-    !useSymbolsStore.getState().entries.some((e) => e.symbol.toUpperCase() === intent.symbol)
+    !tracksRegionless(intent.symbol)
   ) {
     return addResolvedEquity(intent.symbol);
   }
@@ -2040,7 +2041,7 @@ export async function applyIntentAsync(intent: HostIntent): Promise<ApplyResult>
 /** The slice of the `GET /resolve` reply (`sidecar/routers/resolve.py`) the
  *  watchlist add reads. */
 interface ResolveReply {
-  resolved: { symbol: string; name: string } | null;
+  resolved: { symbol: string; name: string; region?: string } | null;
   needs_disambiguation: boolean;
   candidates: { symbol: string; name: string }[];
 }
@@ -2071,13 +2072,40 @@ async function addResolvedEquity(raw: string): Promise<ApplyResult> {
     );
   }
   const symbol = reply.resolved.symbol.toUpperCase();
+  const { region } = reply.resolved;
   const from = symbol === raw ? "" : ` (resolved from "${raw}")`;
-  const symbols = useSymbolsStore.getState();
-  if (symbols.entries.some((e) => e.symbol.toUpperCase() === symbol)) {
+  // Idempotence is on the listing, not the ticker (R15-DATA-002): "Amalgamated
+  // Financial" is AMAL · US, which a region-less AMAL (Amal Ltd in an IN
+  // session) is not. A region-less entry is whatever the bare ticker binds to
+  // under the session region, so ask the one resolution policy for that.
+  let tracked = useSymbolsStore
+    .getState()
+    .entries.some((e) => e.symbol.toUpperCase() === symbol && e.region === region);
+  if (!tracked && tracksRegionless(symbol)) {
+    try {
+      const bare = await sidecarGet<ResolveReply>("/resolve", { q: symbol });
+      tracked = bare.resolved?.region === region;
+    } catch {
+      return fail(`could not resolve "${symbol}" — the sidecar did not answer`);
+    }
+  }
+  if (tracked) {
     return done(`${symbol} is already on your watchlist${from}`);
   }
-  symbols.addSymbol(symbol, "equity");
-  return done(`Added ${symbol} to your watchlist${from}`, { kind: "watchlist-added", symbol });
+  useSymbolsStore.getState().addSymbol(symbol, "equity", region);
+  return done(`Added ${symbol} to your watchlist${from}`, {
+    kind: "watchlist-added",
+    symbol,
+    region,
+  });
+}
+
+/** A region-less (session-following) entry of `symbol` is tracked: the listing
+ *  a bare ticker names, the only one the sync path can judge without /resolve. */
+function tracksRegionless(symbol: string): boolean {
+  return useSymbolsStore
+    .getState()
+    .entries.some((e) => e.symbol.toUpperCase() === symbol && e.region === undefined);
 }
 
 /** {@link applyIntentAsync} from raw args — the label, or null when it did not land. */

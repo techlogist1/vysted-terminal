@@ -2,13 +2,13 @@
  * Watchlist sidecar access.
  *
  * Built on the shared `sidecarApi` accessors — equities resolve through the
- * batch `/quotes` endpoint, crypto through `/crypto/ticker` (one call per
- * symbol, since the batch endpoint is equity-only). The panel polls
+ * batch `/quotes` endpoint (one call per region), crypto through
+ * `/crypto/ticker` (one call per symbol, since the batch endpoint is equity-only). The panel polls
  * `fetchWatchlistQuotes` on an interval for near-real-time updates.
  */
 
 import { sidecarApi } from "@/lib/sidecar-client";
-import type { SymbolEntry } from "@/store/symbols";
+import { entryKey, type SymbolEntry } from "@/store/symbols";
 import type { Quote } from "../../../types/data";
 
 /** The crypto exchange the watchlist resolves crypto symbols against. */
@@ -25,23 +25,33 @@ export interface WatchlistRow {
 /**
  * Fetch the latest quote for every tracked entry.
  *
- * Equity symbols go through one batched `/quotes` call, which stamps each quote
- * with the requested spelling (C14); crypto symbols are fetched individually. A
- * symbol absent from the completed batch (or a failed crypto fetch) comes back
+ * Equity symbols go through one batched `/quotes` call per region — a picked
+ * listing sends its own region, a region-less entry the session's
+ * (R15-DATA-002) — and each quote is stamped with the requested spelling (C14);
+ * crypto symbols are fetched individually. Rows join on {@link entryKey}. A
+ * symbol absent from its completed batch (or a failed crypto fetch) comes back
  * with a `null` quote, which the panel shows as unavailable, rather than failing
  * the whole refresh.
  */
 export async function fetchWatchlistQuotes(entries: SymbolEntry[]): Promise<WatchlistRow[]> {
-  const equitySymbols = entries
-    .filter((entry) => entry.assetClass === "equity")
-    .map((entry) => entry.symbol);
+  const equityByRegion = new Map<string | undefined, string[]>();
+  for (const entry of entries) {
+    if (entry.assetClass === "equity") {
+      equityByRegion.set(entry.region, [...(equityByRegion.get(entry.region) ?? []), entry.symbol]);
+    }
+  }
   const cryptoEntries = entries.filter((entry) => entry.assetClass === "crypto");
 
   const equityQuotes = new Map<string, Quote>();
-  if (equitySymbols.length > 0) {
-    const quotes = await sidecarApi.quotes(equitySymbols);
+  const batches = await Promise.all(
+    [...equityByRegion].map(async ([region, symbols]) => ({
+      region,
+      quotes: await sidecarApi.quotes(symbols, "equity", region),
+    })),
+  );
+  for (const { region, quotes } of batches) {
     for (const quote of quotes) {
-      equityQuotes.set(quote.symbol.toUpperCase(), quote);
+      equityQuotes.set(entryKey({ symbol: quote.symbol, assetClass: "equity", region }), quote);
     }
   }
 
@@ -49,16 +59,16 @@ export async function fetchWatchlistQuotes(entries: SymbolEntry[]): Promise<Watc
     cryptoEntries.map(async (entry): Promise<[string, Quote | null]> => {
       try {
         const quote = await sidecarApi.cryptoTicker(WATCHLIST_CRYPTO_EXCHANGE, entry.symbol);
-        return [entry.symbol.toUpperCase(), quote];
+        return [entryKey(entry), quote];
       } catch {
-        return [entry.symbol.toUpperCase(), null];
+        return [entryKey(entry), null];
       }
     }),
   );
   const cryptoQuotes = new Map<string, Quote | null>(cryptoResults);
 
   return entries.map((entry) => {
-    const key = entry.symbol.toUpperCase();
+    const key = entryKey(entry);
     const quote =
       entry.assetClass === "crypto"
         ? (cryptoQuotes.get(key) ?? null)

@@ -204,7 +204,7 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
             // The always-consumed chart-command channel (opens a chart if none
             // is on screen) — not the opt-in sync bus, which the chart ignores
             // by default.
-            loadSymbolIntoChart(item.symbolEntry.symbol);
+            loadSymbolIntoChart(item.symbolEntry.symbol, undefined, item.symbolEntry.region);
           }
           break;
       }
