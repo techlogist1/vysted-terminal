@@ -434,6 +434,20 @@ describe("SettingsPanel", () => {
     expect(useModulesStore.getState().enabled.chart).toBe(false);
   });
 
+  it("an import cannot flip a lifecycle-owned plugin:* flag; its non-plugin toggles still apply (R15-CODE-PLATFORM-013)", async () => {
+    const mod = moduleForPlugin(CATALOG_BY_ID["vysted-example"]);
+    if (!mod) throw new Error("vysted-example plugin has no panels/commands to bridge");
+    useModulesStore.getState().appendModules([mod]);
+    useModulesStore.getState().setModuleEnabled(mod.id, false);
+
+    render(<SettingsPanel />);
+    doImport({ enabledModules: { [mod.id]: true, chart: false } });
+    await screen.findByText(/Imported settings/i);
+
+    expect(useModulesStore.getState().enabled[mod.id]).toBe(false);
+    expect(useModulesStore.getState().enabled.chart).toBe(false);
+  });
+
   it("R15-UI-058: search-settings setAll preserves the CURRENT searxngUrl when a later bundle omits it", () => {
     useSearchSettingsStore.getState().setSearxngUrl("https://searx.example.com");
     // A partial re-import that only carries a research-model tweak must not
