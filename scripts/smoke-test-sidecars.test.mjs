@@ -1,0 +1,156 @@
+// @vitest-environment node
+import { spawn, spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+const REPO_ROOT = join(import.meta.dirname, "..");
+
+const { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight, _shouldProbeExchanges } =
+  await import("./smoke-test-sidecars.mjs");
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+/** Spawn-then-wait-for-exit so the returned PID is real but guaranteed dead. */
+function deadPid() {
+  return new Promise((resolveP) => {
+    const child = spawn(process.execPath, ["-e", ""]);
+    child.on("exit", () => resolveP(child.pid));
+  });
+}
+
+describe("_httpGetOk (R15-CODE-PLATFORM-062)", () => {
+  it("a 404 and an offline host (ENOTFOUND-shaped failure) yield different shapes", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce({ ok: false, status: 404 })
+        .mockRejectedValueOnce(
+          Object.assign(new Error("fetch failed"), { cause: { code: "ENOTFOUND" } }),
+        ),
+    );
+
+    const notFound = await _httpGetOk("https://example.invalid/a");
+    expect(notFound).toEqual({ ok: false, status: 404, error: null });
+
+    const offline = await _httpGetOk("https://example.invalid/b");
+    expect(offline.ok).toBe(false);
+    expect(offline.status).toBeNull();
+    expect(offline.error).toMatch(/fetch failed/);
+
+    // The two failures must be distinguishable, never the same collapsed shape.
+    expect(notFound).not.toEqual(offline);
+  });
+
+  it("a 200 reports ok:true with its status", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValueOnce({ ok: true, status: 200 }));
+    await expect(_httpGetOk("https://example.invalid/c")).resolves.toEqual({
+      ok: true,
+      status: 200,
+      error: null,
+    });
+  });
+});
+
+describe("_scopedOrphanPreflight (R15-LIFECYCLE-039)", () => {
+  it("two ledgers coexist; pre-flight reaps only the dead-owner one and leaves the live-owner ledger alone", async () => {
+    mkdirSync(_STATE_DIR, { recursive: true });
+    const dead = await deadPid();
+    const live = process.pid; // this test process — guaranteed alive throughout
+    const deadFile = join(_STATE_DIR, `live-children-${dead}.json`);
+    const liveFile = join(_STATE_DIR, `live-children-${live}.json`);
+    const liveContents = JSON.stringify([]);
+    writeFileSync(deadFile, JSON.stringify([]));
+    writeFileSync(liveFile, liveContents);
+
+    try {
+      expect(existsSync(deadFile)).toBe(true);
+      expect(existsSync(liveFile)).toBe(true);
+
+      await _scopedOrphanPreflight();
+
+      // The dead run's ledger is resolved and removed.
+      expect(existsSync(deadFile)).toBe(false);
+      // A concurrently-running smoke-test's ledger is never inspected or touched.
+      expect(existsSync(liveFile)).toBe(true);
+      expect(readFileSync(liveFile, "utf8")).toBe(liveContents);
+    } finally {
+      rmSync(deadFile, { force: true });
+      rmSync(liveFile, { force: true });
+    }
+  });
+});
+
+describe("_shouldProbeExchanges (R15-RELEASE-008)", () => {
+  it("default run schedules no exchange probe", () => {
+    expect(_shouldProbeExchanges(["node", "scripts/smoke-test-sidecars.mjs"])).toBe(false);
+  });
+
+  it("--require-network (pnpm probe:exchanges) schedules the exchange probes", () => {
+    expect(
+      _shouldProbeExchanges(["node", "scripts/smoke-test-sidecars.mjs", "--require-network"]),
+    ).toBe(true);
+  });
+});
+
+describe("ci-local's pip installs (R15-CROSS-PLATFORM-010)", () => {
+  it("use python3, which resolves in a shell where `python` is not on PATH, not bare python", () => {
+    const pkg = JSON.parse(readFileSync(join(import.meta.dirname, "..", "package.json"), "utf8"));
+    const ciLocal = pkg.scripts["ci-local"];
+    // No occurrence of the bare `python` command (only `python3`).
+    expect(ciLocal).not.toMatch(/(^|[^\w])python(?!3)(\W|$)/);
+    expect(ciLocal).toContain("python3 -m pip install ruff==");
+    expect(ciLocal).toContain("python3 -m pip install -r requirements-dev.txt");
+  });
+});
+
+describe("coverage gate (R15-RELEASE-011)", () => {
+  it("vitest.config.ts wires a self-bootstrapping v8 threshold, and ci-local runs with --coverage", () => {
+    const cfg = readFileSync(join(REPO_ROOT, "vitest.config.ts"), "utf8");
+    expect(cfg).toMatch(/provider:\s*"v8"/);
+    expect(cfg).toMatch(/lines:\s*[\d.]+/);
+    expect(cfg).toMatch(/autoUpdate:\s*true/);
+
+    const pkg = JSON.parse(readFileSync(join(REPO_ROOT, "package.json"), "utf8"));
+    expect(pkg.scripts["ci-local"]).toContain("vitest run --coverage");
+  });
+
+  it("a threshold raised above the measured coverage fails the run (no more silent 0%-coverage regressions)", () => {
+    const vitestBin = join(REPO_ROOT, "node_modules", ".bin", "vitest");
+    const coverageDir = join(REPO_ROOT, "coverage-release-011-pin-test");
+    try {
+      const result = spawnSync(
+        vitestBin,
+        [
+          "run",
+          "scripts/sidecar-staleness.test.mjs",
+          "--coverage",
+          "--coverage.thresholds.lines=100",
+          "--coverage.thresholds.autoUpdate=false",
+          `--coverage.reportsDirectory=${coverageDir}`,
+        ],
+        { cwd: REPO_ROOT, encoding: "utf8", timeout: 60_000 },
+      );
+      expect(result.status).not.toBe(0);
+      expect(result.stdout + result.stderr).toMatch(/does not meet global threshold/);
+    } finally {
+      rmSync(coverageDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("dead Phase-6 screenshot generators stay deleted (R15-CODE-PLATFORM-064)", () => {
+  it("the Windows-only-font, undeclared-Pillow generator scripts are not present", () => {
+    // Both scripts silently collapsed every requested font size to
+    // ImageFont.load_default() on macOS/Linux (load_font only tried
+    // C:/Windows/Fonts paths) and depended on a Pillow that was in none
+    // of the four requirements files. Deleted rather than fixed in place
+    // (dead v0.6.0-era tooling, superseded by real chrome-devtools captures) —
+    // this guards against either script quietly reappearing.
+    expect(existsSync(join(REPO_ROOT, "scripts/render_phase_6_e_screenshots.py"))).toBe(false);
+    expect(existsSync(join(REPO_ROOT, "scripts/render_phase_6_sc_screenshots.py"))).toBe(false);
+  });
+});

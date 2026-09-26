@@ -70,7 +70,14 @@
 // Run via: `node scripts/smoke-test-sidecars.mjs`
 
 import { spawn, execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { createServer, connect as netConnect } from "node:net";
 import { basename, join, resolve } from "node:path";
 import { tmpdir, platform } from "node:os";
@@ -83,6 +90,18 @@ const ROOT = resolve(import.meta.dirname, "..");
 const SIDECAR_DIR = join(ROOT, "sidecar");
 
 const isWin = platform() === "win32";
+
+/**
+ * The live-exchange probes (BSE bhavcopy, NSE direct) are a nondeterministic,
+ * advisory reachability check — not the deterministic "does the frozen
+ * binary boot" gate this script exists to enforce (R15-RELEASE-008). They
+ * only run when explicitly requested (`--require-network`, wired to
+ * `pnpm probe:exchanges`) so the default/CI smoke run stays hermetic and
+ * fast, with no live external request.
+ */
+function _shouldProbeExchanges(argv = process.argv) {
+  return argv.includes("--require-network");
+}
 
 // Main-sidecar boot budget. The --onefile binary cold-extracts its `_MEI*`
 // (89 MB — the largest of the three) AND runs the FastMCP Streamable-HTTP
@@ -111,22 +130,45 @@ const MCP_SETTLE_MS = 3_000;
 const _SMOKE_MARKER_ENV = "VYSTED_SMOKE_TEST_MARKER";
 const _SMOKE_MARKER = "vysted-smoke-test-v1";
 
-// Fixed (not per-run) path so a crashed prior run's ledger is discoverable
-// by the next run's pre-flight.
+// Fixed (not per-run) DIR so a crashed prior run's ledger is discoverable by
+// the next run's pre-flight, but each run's ledger FILE is named by its own
+// node PID (R15-LIFECYCLE-039): a single shared `live-children.json` meant
+// two concurrent runs on one host clobbered each other's writes, and one
+// run's pre-flight could tree-kill the OTHER run's still-live sidecars.
+// Per-run files let concurrent ledgers coexist; pre-flight only ever reaps a
+// ledger whose OWNING node process (the run that wrote it) is itself dead.
 const _STATE_DIR = join(tmpdir(), "vysted-smoke-test");
-const _STATE_FILE = join(_STATE_DIR, "live-children.json");
+const _STATE_FILE_RE = /^live-children-(\d+)\.json$/;
+const _STATE_FILE = join(_STATE_DIR, `live-children-${process.pid}.json`);
 
-/** Read the PID ledger; `[]` on any read/parse failure (never blocks a run). */
-function _readState() {
+/** Every per-run ledger file (this run's and any others') found in _STATE_DIR. */
+function _listStateFiles() {
   try {
-    const parsed = JSON.parse(readFileSync(_STATE_FILE, "utf8"));
+    return readdirSync(_STATE_DIR)
+      .filter((f) => _STATE_FILE_RE.test(f))
+      .map((f) => join(_STATE_DIR, f));
+  } catch {
+    return [];
+  }
+}
+
+/** The node PID that owns (wrote) a given ledger file, from its filename. */
+function _ownerPidOfStateFile(file) {
+  const m = _STATE_FILE_RE.exec(basename(file));
+  return m ? Number(m[1]) : null;
+}
+
+/** Read one ledger file; `[]` on any read/parse failure (never blocks a run). */
+function _readStateFile(file) {
+  try {
+    const parsed = JSON.parse(readFileSync(file, "utf8"));
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 }
 
-/** Persist the PID ledger; best-effort — a write failure must never fail the run. */
+/** Persist THIS run's ledger; best-effort — a write failure must never fail the run. */
 function _writeState(entries) {
   try {
     mkdirSync(_STATE_DIR, { recursive: true });
@@ -137,13 +179,13 @@ function _writeState(entries) {
 }
 
 function _recordChild(pid, binaryBaseName) {
-  const entries = _readState();
+  const entries = _readStateFile(_STATE_FILE);
   entries.push({ pid, binary: binaryBaseName, marker: _SMOKE_MARKER, spawnedAt: Date.now() });
   _writeState(entries);
 }
 
 function _forgetChild(pid) {
-  const entries = _readState().filter((e) => e.pid !== pid);
+  const entries = _readStateFile(_STATE_FILE).filter((e) => e.pid !== pid);
   _writeState(entries);
 }
 
@@ -171,6 +213,11 @@ function _registerCleanup() {
       _forgetChild(pid);
     }
     _LIVE_PIDS.clear();
+    try {
+      unlinkSync(_STATE_FILE); // this run's own ledger — now empty — don't litter tmp
+    } catch {
+      // Never written, or already gone — fine either way.
+    }
   };
   // `exit` runs synchronously and last — guarantees orphan cleanup on
   // any path including uncaught throws. SIGINT/SIGTERM let interactive
@@ -269,18 +316,24 @@ async function _confirmOwnedByMarker(entry) {
 
 /**
  * Scoped orphan pre-flight (CLAUDE.md Gotcha: "a pre-flight orphan check").
- * Reaps ONLY children a PRIOR RUN OF THIS SCRIPT recorded in `_STATE_FILE`
- * and failed to clean up (e.g. a hard crash, SIGKILL of the node process
- * itself). This is the replacement for the old blanket
+ * Reaps ONLY children a PRIOR RUN OF THIS SCRIPT recorded in its own ledger
+ * file and failed to clean up (e.g. a hard crash, SIGKILL of the node
+ * process itself). This is the replacement for the old blanket
  * `pgrep -f vysted-.*sidecar` scan: that scan matched every vysted-*sidecar*
  * process on the box BY NAME, including the operator's own running app, and
  * told the operator to `pkill -9 -f vysted-.*sidecar` to proceed — killing
  * the app they're using. This function never inspects, matches, or touches
  * any PID it did not itself write to its own ledger file in a previous run.
+ *
+ * A ledger's OWNER (the node PID in its filename) is checked FIRST
+ * (R15-LIFECYCLE-039): a ledger whose owner is still alive belongs to
+ * another smoke-test run in progress on this host and is left completely
+ * untouched — a single shared ledger used to let one run's pre-flight
+ * tree-kill another concurrent run's still-live sidecars.
  */
 async function _scopedOrphanPreflight() {
-  const entries = _readState();
-  if (entries.length === 0) {
+  const files = _listStateFiles();
+  if (files.length === 0) {
     console.log(
       "[smoke] pre-flight (ATTENDED-SAFE): no leaked children from a prior smoke-test " +
         "run's PID ledger — nothing to reap. (This check never inspects processes it did " +
@@ -291,52 +344,73 @@ async function _scopedOrphanPreflight() {
   }
   let reaped = 0;
   let stale = 0;
-  for (const entry of entries) {
-    if (!_isPidAlive(entry.pid)) {
-      stale += 1;
-      continue; // already gone — just a dangling ledger row
+  let liveOwners = 0;
+  for (const file of files) {
+    const ownerPid = _ownerPidOfStateFile(file);
+    if (ownerPid !== null && _isPidAlive(ownerPid)) {
+      // A different smoke-test run's process is still alive and owns this
+      // ledger — it may still be writing to it. Never touch it.
+      liveOwners += 1;
+      continue;
     }
-    const owned = await _confirmOwnedByMarker(entry);
-    if (owned) {
-      console.warn(
-        `[smoke] pre-flight: reaping a leaked child from a PRIOR RUN OF THIS SCRIPT ` +
-          `(pid=${entry.pid}, binary=${entry.binary}) — confirmed via this script's own ` +
-          `marker, tree-killing.`,
-      );
-      _killTree(entry.pid);
-      reaped += 1;
-    } else {
-      // Alive, but the marker/command-name doesn't match what we recorded —
-      // the PID was almost certainly reassigned to an unrelated process
-      // (possibly the operator's own app) since the ledger row was written.
-      // Never touch it; just drop the stale row.
-      console.log(
-        `[smoke] pre-flight: dropping stale ledger row for pid=${entry.pid} — a live ` +
-          `process now holds that PID but does not match this script's marker (PID reuse), ` +
-          `so it is left untouched.`,
-      );
-      stale += 1;
+    const entries = _readStateFile(file);
+    for (const entry of entries) {
+      if (!_isPidAlive(entry.pid)) {
+        stale += 1;
+        continue; // already gone — just a dangling ledger row
+      }
+      const owned = await _confirmOwnedByMarker(entry);
+      if (owned) {
+        console.warn(
+          `[smoke] pre-flight: reaping a leaked child from a PRIOR RUN OF THIS SCRIPT ` +
+            `(pid=${entry.pid}, binary=${entry.binary}) — confirmed via this script's own ` +
+            `marker, tree-killing.`,
+        );
+        _killTree(entry.pid);
+        reaped += 1;
+      } else {
+        // Alive, but the marker/command-name doesn't match what we recorded —
+        // the PID was almost certainly reassigned to an unrelated process
+        // (possibly the operator's own app) since the ledger row was written.
+        // Never touch it; just drop the stale row.
+        console.log(
+          `[smoke] pre-flight: dropping stale ledger row for pid=${entry.pid} — a live ` +
+            `process now holds that PID but does not match this script's marker (PID reuse), ` +
+            `so it is left untouched.`,
+        );
+        stale += 1;
+      }
+    }
+    try {
+      unlinkSync(file); // dead run, every row resolved above — its ledger is done
+    } catch {
+      // Already gone — fine.
     }
   }
-  _writeState([]); // every row has been resolved (reaped or dropped) above
   if (reaped > 0) {
     await sleep(500); // let the OS release file locks after the reap
   }
   console.log(
     `[smoke] pre-flight (ATTENDED-SAFE) complete: reaped ${reaped} leaked child(ren), ` +
-      `dropped ${stale} stale/unowned ledger row(s).`,
+      `dropped ${stale} stale/unowned ledger row(s), left ${liveOwners} ledger(s) owned by ` +
+      `a still-running concurrent smoke-test process untouched.`,
   );
 }
 
-/** Probe an HTTP GET endpoint with a single timeout. */
+/**
+ * Probe an HTTP GET endpoint with a single timeout. Returns a shape that
+ * distinguishes "reached the server, got a non-2xx" from "never reached the
+ * server at all" (R15-CODE-PLATFORM-062) — a 404 and an offline host are
+ * different signals, not both a silent `false`.
+ */
 async function _httpGetOk(url, timeoutMs = 1500) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const resp = await fetch(url, { signal: ctrl.signal });
-    return resp.ok;
-  } catch {
-    return false;
+    return { ok: resp.ok, status: resp.status, error: null };
+  } catch (err) {
+    return { ok: false, status: null, error: err instanceof Error ? err.message : String(err) };
   } finally {
     clearTimeout(t);
   }
@@ -377,21 +451,19 @@ async function _probeBseBhavcopyNoSla() {
     `https://www.bseindia.com/download/BhavCopy/Equity/` +
     `BhavCopy_BSE_CM_0_0_0_${ymd}_F_0000.CSV`;
   console.log(`[smoke] BSE bhavcopy probe (no-SLA): GET ${url} ...`);
-  try {
-    const ok = await _httpGetOk(url, 4000);
-    if (ok) {
-      console.log("[smoke] BSE bhavcopy probe OK (endpoint reachable).");
-    } else {
-      console.warn(
-        `[smoke] WARN: BSE bhavcopy probe did not return 200 (no-SLA — not a failure). ` +
-          `Common + benign: weekend/holiday/not-yet-published day, geo-fence, or no ` +
-          `outbound network in CI. Only investigate if the URL SHAPE changed.`,
-      );
-    }
-  } catch (err) {
+  const result = await _httpGetOk(url, 4000);
+  if (result.ok) {
+    console.log("[smoke] BSE bhavcopy probe OK (endpoint reachable).");
+  } else if (result.status !== null) {
     console.warn(
-      `[smoke] WARN: BSE bhavcopy probe errored (no-SLA — not a failure): ` +
-        `${err instanceof Error ? err.message : String(err)}`,
+      `[smoke] WARN: BSE bhavcopy probe returned HTTP ${result.status} (no-SLA — not a ` +
+        `failure). Common + benign: weekend/holiday/not-yet-published day. Only ` +
+        `investigate if the URL SHAPE changed.`,
+    );
+  } else {
+    console.warn(
+      `[smoke] WARN: BSE bhavcopy probe is offline: ${result.error} (no-SLA — not a ` +
+        `failure). Common + benign: geo-fence, or no outbound network in CI.`,
     );
   }
 }
@@ -607,7 +679,7 @@ async function _smokeTestMainSidecar(triple) {
           `commit cf96031). Tail of stdout/stderr:\n${tail}`,
       );
     }
-    if (await _httpGetOk(url)) {
+    if ((await _httpGetOk(url)).ok) {
       healthy = true;
       break;
     }
@@ -643,7 +715,7 @@ async function _smokeTestMainSidecar(triple) {
   // the MAIN_ADD_DATA list in scripts/sidecar-specs.mjs.
   const universeUrl = `http://127.0.0.1:${port}/screener/universe?id=sp500`;
   console.log(`[smoke] vysted-sidecar: probing screener universe endpoint ...`);
-  const universeOk = await _httpGetOk(universeUrl, 5000);
+  const universeOk = (await _httpGetOk(universeUrl, 5000)).ok;
 
   // ICONIKSPEV resolve check (R7 Component 4, HARD) — verifies the regenerated
   // BSE scrip master under services/resolver_masters/ rides the frozen binary
@@ -882,9 +954,17 @@ async function main() {
     }
   }
 
-  // No-SLA external probes — run regardless of sidecar results, never fail.
-  await _probeBseBhavcopyNoSla();
-  await _probeNseDirectNoSla();
+  // No-SLA external probes — advisory only, gated behind --require-network
+  // (R15-RELEASE-008) so the default hermetic run makes no live request.
+  if (_shouldProbeExchanges()) {
+    await _probeBseBhavcopyNoSla();
+    await _probeNseDirectNoSla();
+  } else {
+    console.log(
+      "[smoke] skipping live-exchange probes (pass --require-network, or run " +
+        "`pnpm probe:exchanges`, to include them).",
+    );
+  }
 
   const spawnSummary = _SPAWN_LOG.map((s) => `${s.binary}(pid=${s.pid})`).join(", ") || "none";
   if (failures.length > 0) {
@@ -906,7 +986,13 @@ async function main() {
   );
 }
 
-main().catch((err) => {
-  console.error("[smoke] unexpected error:", err);
-  process.exit(1);
-});
+// Guarded so this module can be imported by vitest (to unit-test the pure
+// helpers below) without spawning real sidecar processes as a side effect.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((err) => {
+    console.error("[smoke] unexpected error:", err);
+    process.exit(1);
+  });
+}
+
+export { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight, _shouldProbeExchanges };

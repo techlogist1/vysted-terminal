@@ -2,9 +2,24 @@
 import { mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { assertFresh, isStale } from "./sidecar-staleness.mjs";
+// A path in `failPath` fails statSync with ENOENT, simulating a file deleted
+// between readdirSync and statSync (R15-CODE-PLATFORM-061's TOCTOU window).
+let failPath = null;
+vi.mock("node:fs", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    statSync: (p, ...rest) => {
+      if (p === failPath) throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+      return actual.statSync(p, ...rest);
+    },
+  };
+});
+
+const { statSync } = await import("node:fs");
+const { assertFresh, isStale, newestSourceMtime } = await import("./sidecar-staleness.mjs");
 
 const OLD = new Date("2026-01-01T00:00:00Z");
 const BIN_TIME = new Date("2026-02-01T00:00:00Z");
@@ -32,7 +47,10 @@ beforeEach(() => {
   utimesSync(bin, BIN_TIME, BIN_TIME);
 });
 
-afterEach(() => rmSync(root, { recursive: true, force: true }));
+afterEach(() => {
+  failPath = null;
+  rmSync(root, { recursive: true, force: true });
+});
 
 describe("isStale", () => {
   it("is false when every source file predates the binary", () => {
@@ -75,5 +93,12 @@ describe("isStale", () => {
     writeFileSync(recipe, "r");
     utimesSync(recipe, NEW, NEW);
     expect(isStale(bin, src, { extraFiles: [recipe] })).toBe(true);
+  });
+
+  it("survives a source file deleted between readdir and stat (TOCTOU, R15-CODE-PLATFORM-061)", () => {
+    const gone = put("services/gone.py", NEW);
+    const kept = put("services/kept.py", OLD);
+    failPath = gone;
+    expect(newestSourceMtime(src)).toBe(statSync(kept).mtimeMs);
   });
 });
