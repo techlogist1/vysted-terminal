@@ -33,12 +33,21 @@ import { useAppStore } from "@/store/app";
 import { useCommandPalette } from "@/store/command-palette";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import { useModelCatalogStore } from "@/store/model-catalog";
-import { getRegisteredAction, resolveKeyboardAction } from "@/store/keybindings";
+import {
+  formatBinding,
+  getRegisteredAction,
+  resolveKeyboardAction,
+  useKeybindingsStore,
+} from "@/store/keybindings";
 import { useModulesStore } from "@/store/modules";
+import { usePluginsStore } from "@/store/plugins";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { registerSavedWebhooks } from "@/store/workflow";
 import { useWorkspaceStore } from "@/store/workspace";
 import { StatusChrome } from "@/components/StatusChrome";
+
+/** How long the layout restore waits on plugin bootstrap before going ahead. */
+const PLUGINS_READY_FALLBACK_MS = 15_000;
 
 export default function Page() {
   // Bridge workflow ``action.notify_desktop`` intents to the OS notification
@@ -46,12 +55,12 @@ export default function Page() {
   useDesktopNotificationBridge();
 
   useEffect(() => {
-    // Register the module registry, seed the command palette from the enabled
-    // modules, and connect to the Python sidecar. Runs once on mount — which is
-    // also why `PanelHost` only mounts dockview after this point, keeping the
-    // static-export build SSR-safe.
+    // Register the module registry and connect to the Python sidecar. Runs once
+    // on mount. `PanelHost`
+    // mounts dockview only after this point: dockview resolves each panel's
+    // component id when a layout loads, so the component map must be complete
+    // before its `onReady` fires the restore.
     useModulesStore.getState().registerModules(vystedModules);
-    useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
     void useAppStore.getState().connectSidecar();
 
     // One-time dev-keystore migration (R9): in a dev build, copy existing
@@ -81,7 +90,7 @@ export default function Page() {
 
     // Dev-only: bring up the tauri-plugin-mcp in-webview bridge so the local
     // test-automation rig (snapshot / click / console + network capture) can
-    // drive the real app. No-op in the production static export (dead-stripped)
+    // drive the real app. No-op in a production build (dead-stripped)
     // and harmless outside the Tauri webview.
     initDevMcpBridge();
 
@@ -91,25 +100,30 @@ export default function Page() {
 
     let teardown: (() => void) | null = null;
     let alive = true;
-    void bootstrapPlugins().then((dispose) => {
-      if (!alive) {
-        dispose();
-        return;
-      }
-      teardown = dispose;
-      useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
-    });
+    // PanelHost restores the saved layout only once plugin modules have
+    // registered. ponytail: a fixed fallback so a hung bootstrap (e.g. a slow
+    // cold sidecar) can't hold the cockpit empty; a plugin panel saved in the
+    // layout is lost only when bootstrap outlives it.
+    const pluginsReadyFallback = setTimeout(
+      () => usePluginsStore.getState().setPluginsReady(true),
+      PLUGINS_READY_FALLBACK_MS,
+    );
+    void bootstrapPlugins()
+      .then((dispose) => {
+        if (!alive) {
+          dispose();
+          return;
+        }
+        teardown = dispose;
+      })
+      .finally(() => {
+        // Settled either way (a failed bootstrap has nothing more to register).
+        if (alive) {
+          clearTimeout(pluginsReadyFallback);
+          usePluginsStore.getState().setPluginsReady(true);
+        }
+      });
 
-    const unsubscribeEnabled = useModulesStore.subscribe((state, previous) => {
-      if (state.enabled !== previous.enabled) {
-        useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
-      }
-    });
-    const unsubscribeModules = useModulesStore.subscribe((state, previous) => {
-      if (state.modules !== previous.modules) {
-        useCommandPalette.getState().setCommands(useModulesStore.getState().enabledCommands());
-      }
-    });
     // Every persisted workspace slice autosaves through one registry (the
     // dockview layout's own trigger is wired by PanelHost after the restore).
     const unwireAutosave = wireAutosaveTriggers();
@@ -124,8 +138,8 @@ export default function Page() {
     });
     return () => {
       alive = false;
-      unsubscribeEnabled();
-      unsubscribeModules();
+      clearTimeout(pluginsReadyFallback);
+      usePluginsStore.getState().setPluginsReady(false);
       unwireAutosave();
       unsubscribeDefaultProvider();
       disposeMenu();
@@ -179,6 +193,8 @@ export default function Page() {
   const agentCollapsed = useAgentDockStore((state) => state.collapsed);
   const agentMaximized = useAgentDockStore((state) => state.maximized);
   const toggleAgentMaximized = useAgentDockStore((state) => state.toggleMaximized);
+  const agentChord = formatBinding(useKeybindingsStore((s) => s.bindingFor("agent.toggle")));
+  const paletteChord = formatBinding(useKeybindingsStore((s) => s.bindingFor("palette.open")));
 
   return (
     <MotionConfig reducedMotion="user" transition={{ ease: EASE_INSTRUMENT }}>
@@ -206,7 +222,7 @@ export default function Page() {
                 : "text-charcoal-100 hover:text-lume",
             )}
             aria-label={agentCollapsed ? "Show agent panel" : "Hide agent panel"}
-            title={agentCollapsed ? "Show agent panel (⌘B)" : "Hide agent panel (⌘B)"}
+            title={`${agentCollapsed ? "Show" : "Hide"} agent panel (${agentChord})`}
           >
             {agentCollapsed ? (
               <PanelLeftOpen className="h-4 w-4" />
@@ -240,7 +256,7 @@ export default function Page() {
             <LayoutGrid className="h-4 w-4" />
             Open panel
             <kbd className="border-charcoal-700 text-charcoal-500 rounded-control text-micro border px-1 py-0.5">
-              ⌘K
+              {paletteChord}
             </kbd>
           </button>
           <button

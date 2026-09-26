@@ -1,8 +1,9 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CommandPalette } from "@/components/CommandPalette";
 import type { VystedModule } from "@/lib/module-registry";
+import { useActiveAgentStore } from "@/store/active-agent";
 import { useAgentsStore } from "@/store/agents";
 import { resetChartCommandStoreForTests, useChartCommandStore } from "@/store/chart-command";
 import { useCommandPalette } from "@/store/command-palette";
@@ -102,7 +103,6 @@ function seedStores() {
   });
   resetKeybindingsStoreForTests();
   resetSettingsStoreForTests();
-  useCommandPalette.setState({ commands });
 }
 
 beforeEach(() => {
@@ -113,7 +113,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
-  useCommandPalette.setState({ open: false, commands: [], recents: [] });
+  useCommandPalette.setState({ open: false, recents: [] });
 });
 
 describe("CommandPalette (cmdk)", () => {
@@ -248,5 +248,32 @@ describe("CommandPalette (cmdk)", () => {
     tickersGroup = screen.getByText("Tickers").closest("[cmdk-group]") as HTMLElement;
     fireEvent.click(within(tickersGroup).getByText("NSE"));
     expect(useChartCommandStore.getState().command).toMatchObject({ symbol: "AMAL", region: "IN" });
+  });
+
+  it("agent row selection uses agentSummary.id", () => {
+    useActiveAgentStore.getState().setActiveAgent(null);
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.click(screen.getByText("Warren Buffett"));
+    expect(useActiveAgentStore.getState().activeAgentId).toBe("buffett");
+  });
+
+  it("custom agent added while open appears", () => {
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    expect(screen.queryByText("Momentum Scout")).not.toBeInTheDocument();
+    act(() => {
+      useAgentsStore.getState().setCustomAgents([
+        {
+          id: "momentum-scout",
+          name: "Momentum Scout",
+          philosophy: "Trend following.",
+          systemPrompt: "",
+          tools: [],
+          defaultProvider: "openai",
+        },
+      ]);
+    });
+    expect(screen.getByText("Momentum Scout")).toBeInTheDocument();
   });
 });

@@ -31,7 +31,7 @@
 
 import { create } from "zustand";
 
-import { getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
+import { extractSidecarDetail, getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
 
 import type { LLMProviderId } from "../../types/ai";
 import type { AgentSpec } from "../../types/plugin";
@@ -167,8 +167,6 @@ interface AgentsState {
   refreshCustom: () => Promise<void>;
   /** Convenience: refresh both in parallel. Chat sidebar (A) calls this on mount. */
   refresh: () => Promise<void>;
-  /** Alias for :func:`refresh` — present so Teammate C's existing call sites compile. */
-  refreshAll: () => Promise<void>;
 }
 
 export const useAgentsStore = create<AgentsState>((set, get) => ({
@@ -221,8 +219,15 @@ export const useAgentsStore = create<AgentsState>((set, get) => ({
       const base = await getSidecarBaseUrl();
       const response = await fetch(new URL("/custom-agents", base).toString());
       if (!response.ok) {
-        // Soft-fail: keep the slice empty so the picker still renders.
-        set({ customAgents: [], customSummaries: [], customStatus: "ready", customError: null });
+        // A failed load is an error with the server's detail, never an empty
+        // "ready" list that reads as "you have no custom agents".
+        let detail = response.statusText || `HTTP ${response.status}`;
+        try {
+          detail = extractSidecarDetail(await response.json(), detail);
+        } catch {
+          // Body was not JSON — keep the status text.
+        }
+        set({ customStatus: "error", customError: detail });
         return;
       }
       const wire = (await response.json()) as CustomAgentWire[];
@@ -244,10 +249,6 @@ export const useAgentsStore = create<AgentsState>((set, get) => ({
     const { refreshFirstParty, refreshCustom } = get();
     await Promise.all([refreshFirstParty(), refreshCustom()]);
     set({ loading: false });
-  },
-
-  refreshAll: async () => {
-    await get().refresh();
   },
 }));
 

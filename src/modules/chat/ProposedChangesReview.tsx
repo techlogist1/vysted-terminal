@@ -6,6 +6,7 @@ import { Check, Undo2, X } from "lucide-react";
 
 import { tween } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { formatBinding, useKeybindingsStore } from "@/store/keybindings";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 
 import type { ProposedChange } from "../../../types/proposed-change";
@@ -24,6 +25,12 @@ export function ProposedChangesReview() {
   const acceptAll = useProposedChangesStore((state) => state.acceptAll);
   const rejectAll = useProposedChangesStore((state) => state.rejectAll);
   const undo = useProposedChangesStore((state) => state.undo);
+  const acceptAllChord = formatBinding(
+    useKeybindingsStore((s) => s.bindingFor("changes.acceptAll")),
+  );
+  const rejectAllChord = formatBinding(
+    useKeybindingsStore((s) => s.bindingFor("changes.rejectAll")),
+  );
 
   const pending = useMemo(() => changes.filter((c) => c.status === "pending"), [changes]);
   const undoable = useMemo(
@@ -54,7 +61,7 @@ export function ProposedChangesReview() {
                   type="button"
                   onClick={() => void acceptAll()}
                   className="border-positive/40 text-positive hover:bg-positive/10 text-micro rounded-control border px-2 py-0.5"
-                  title="Accept all (⌘↵)"
+                  title={`Accept all (${acceptAllChord})`}
                 >
                   Accept all
                 </button>
@@ -62,7 +69,7 @@ export function ProposedChangesReview() {
                   type="button"
                   onClick={() => rejectAll()}
                   className="border-charcoal-700 text-charcoal-400 hover:text-negative text-micro rounded-control border px-2 py-0.5"
-                  title="Reject all (⌘⌫)"
+                  title={`Reject all (${rejectAllChord})`}
                 >
                   Reject all
                 </button>

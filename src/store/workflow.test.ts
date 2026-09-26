@@ -135,8 +135,8 @@ describe("useWorkflowStore — event accumulation", () => {
     expect(useWorkflowStore.getState().pendingNotifications).toEqual([]);
   });
 
-  it("drainNotifications returns and clears the queue", () => {
-    const { appendEvent, drainNotifications } = useWorkflowStore.getState();
+  it("takeNotifications returns and clears the queue", () => {
+    const { appendEvent, takeNotifications } = useWorkflowStore.getState();
     appendEvent({
       kind: "node-output",
       runId: "r1",
@@ -144,9 +144,26 @@ describe("useWorkflowStore — event accumulation", () => {
       outputs: { intent: "desktop-notification", notified: true, title: "T", message: "M" },
       durationMs: 1,
     });
-    const drained = drainNotifications();
+    const drained = takeNotifications();
     expect(drained).toHaveLength(1);
     expect(useWorkflowStore.getState().pendingNotifications).toEqual([]);
+  });
+
+  it("append a, take, append b -> b still pending", () => {
+    const { appendEvent, takeNotifications } = useWorkflowStore.getState();
+    const notify = (nodeId: string, title: string) =>
+      appendEvent({
+        kind: "node-output",
+        runId: "r1",
+        nodeId,
+        outputs: { intent: "desktop-notification", notified: true, title, message: "M" },
+        durationMs: 1,
+      });
+    notify("na", "a");
+    const taken = takeNotifications();
+    notify("nb", "b");
+    expect(taken.map((i) => i.title)).toEqual(["a"]);
+    expect(useWorkflowStore.getState().pendingNotifications.map((i) => i.title)).toEqual(["b"]);
   });
 
   it("clearRun drops one run's log; clearAll drops all", () => {

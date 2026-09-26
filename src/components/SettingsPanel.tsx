@@ -56,7 +56,7 @@ import {
   useModelSelectionStore,
 } from "@/store/model-selection";
 import { useMarketplaceStore } from "@/store/marketplace";
-import { useModulesStore } from "@/store/modules";
+import { contributesNothing, useModulesStore } from "@/store/modules";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { fetchHardwareReport, type ScoredModel, verdictMeta } from "@/lib/hardware-fit";
 import { getSidecarBaseUrl, sidecarGet, sidecarRequest } from "@/lib/sidecar-client";
@@ -76,8 +76,8 @@ import type { LLMModelOption, LLMProviderId } from "../../types/ai";
  * Settings — the discoverable control surface (Cursor-grade preferences,
  * FR-037/FR-038/FR-039, SC-011).
  *
- * R9 layout — a sectioned hierarchy instead of a wall; ONE search surface;
- * every control demonstrably round-trips (change → persist → reload →
+ * R9 layout — a sectioned hierarchy instead of a wall; every control
+ * demonstrably round-trips (change → persist → reload →
  * applied) or it does not exist (the R9 settings-truth pass — the dead
  * Interface section died; see the kill list in
  * `verification/R9_DEFECT_CATALOGUE.md`. R15-UI-087 brought the provider order,
@@ -619,7 +619,7 @@ function ProvidersSection() {
 function DefaultsGroup() {
   const firstParty = useAgentsStore(selectFirstPartyAgents);
   const custom = useAgentsStore(selectCustomAgents);
-  const agentsLoading = useAgentsStore((s) => s.loading);
+  const agentsLoading = useAgentsStore((s) => s.firstPartyStatus === "loading");
   const refreshAgents = useAgentsStore((s) => s.refresh);
 
   const providers = useLLMProvidersStore((s) => s.providers);
@@ -1706,7 +1706,7 @@ function IntegrationsSection() {
           <span className="text-charcoal-400 text-caption">
             Data providers, agent packs and panels are managed in the Marketplace.
           </span>
-          <Button size="sm" variant="outline" onClick={() => openPanel("marketplace-panel")}>
+          <Button size="sm" variant="outline" onClick={() => openPanel("marketplace")}>
             Open Marketplace
           </Button>
         </div>
@@ -1876,13 +1876,14 @@ function PaletteSection() {
   const setShowRecents = useSettingsStore((s) => s.setPaletteShowRecents);
   const symbolScope = useSettingsStore((s) => s.paletteSymbolScope);
   const setSymbolScope = useSettingsStore((s) => s.setPaletteSymbolScope);
+  const paletteChord = formatBinding(useKeybindingsStore((s) => s.bindingFor("palette.open")));
 
   return (
     <section aria-labelledby="settings-palette">
       <SubsectionHeader
         id="settings-palette"
         title="Command palette"
-        hint="How ⌘K ranks and scopes its results."
+        hint={`How ${paletteChord} ranks and scopes its results.`}
       />
       <Card>
         <ToggleRow
@@ -1911,18 +1912,19 @@ function ModulesSection() {
   const modules = useModulesStore((state) => state.modules);
   const enabled = useModulesStore((state) => state.enabled);
   const setModuleEnabled = useModulesStore((state) => state.setModuleEnabled);
+  const paletteChord = formatBinding(useKeybindingsStore((s) => s.bindingFor("palette.open")));
 
   return (
     <section aria-labelledby="settings-modules">
       <SubsectionHeader
         id="settings-modules"
         title="Modules"
-        hint="Disabled modules contribute no panels or ⌘K commands."
+        hint={`Disabled modules contribute no panels or ${paletteChord} commands.`}
       />
       <Card>
         {modules.map((module) => {
-          const isPlatform = module.id === PLATFORM_MODULE_ID;
-          const isEnabled = enabled[module.id] !== false;
+          const alwaysOn = module.id === PLATFORM_MODULE_ID || contributesNothing(module);
+          const isEnabled = alwaysOn || enabled[module.id] !== false;
           return (
             <ToggleRow
               key={module.id}
@@ -1931,13 +1933,13 @@ function ModulesSection() {
                 <>
                   {module.panels.length} panel{module.panels.length === 1 ? "" : "s"} ·{" "}
                   {module.commands.length} command{module.commands.length === 1 ? "" : "s"}
-                  {isPlatform ? " · always on" : ""}
+                  {alwaysOn ? " · always on" : ""}
                 </>
               }
               checked={isEnabled}
-              disabled={isPlatform}
+              disabled={alwaysOn}
               onChange={(next) => {
-                if (isPlatform) return;
+                if (alwaysOn) return;
                 // A bridged plugin module's enabled flag is owned by the
                 // marketplace lifecycle (runtime + plugins.db), not the
                 // workspace-persisted module map — routing through
