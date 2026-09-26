@@ -52,6 +52,8 @@ describe("--color-warning stays a data-provenance-only token (R15-UI-073)", () =
   it("no file outside the provenance allowlist uses text/bg/border-warning", () => {
     const offenders = listSourceFiles(SRC_ROOT)
       .filter((file) => !PROVENANCE_FILES.has(file))
+      // This file names the classes in its own comments and regex.
+      .filter((file) => file !== path.join(SRC_ROOT, "lib/warning-token-scope.test.ts"))
       .filter((file) => WARNING_CLASS.test(fs.readFileSync(file, "utf-8")))
       .map((file) => path.relative(REPO_ROOT, file));
     expect(offenders).toEqual([]);
