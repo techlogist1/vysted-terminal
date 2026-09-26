@@ -127,6 +127,14 @@ _READ_SIGNALS = (
     r"\?\s*$",
 )
 
+#: The bare trailing-"?" cue (the last `_READ_SIGNALS` pattern) does not count
+#: when the text addresses the agent directly (R15-AGENT-019 round 3): a
+#: question-shaped REQUEST ("Could you drop WIPRO from my portfolio?") is not
+#: a read. Real read words ("explain", "how do", etc.) are unaffected and
+#: still strip.
+_AGENT_REQUEST_CUE = re.compile(r"\b(?:can|could|would|will) you\b|\bplease\b")
+_TRAILING_QUESTION_MARK = r"\?\s*$"
+
 # R15-LEAD-035: an explicit instruction not to call any tool at all, checked
 # BEFORE the signal table so it overrides every action cue elsewhere in the
 # same turn (e.g. "sold", "<qty> X at Y"). Deliberately narrow: it must NOT
@@ -219,10 +227,13 @@ def classify_intent(text: str, _context: dict[str, Any] | None = None) -> Intent
         # (R15-LEAD-035) — the caller strips the whole tool surface on it.
         return IntentResult("read", 0.95, ["no-tool"], False)
 
+    is_agent_request = bool(_AGENT_REQUEST_CUE.search(lowered))
     scores: dict[str, int] = {i: 0 for i in INTENTS}
     matched: dict[str, list[str]] = {i: [] for i in INTENTS}
     for intent, patterns in _SIGNAL_TABLE:
         for pat in patterns:
+            if pat == _TRAILING_QUESTION_MARK and is_agent_request:
+                continue
             if re.search(pat, lowered):
                 scores[intent] += 1
                 matched[intent].append(pat)
