@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import httpx
 import pytest
 
 from services import provider_health, symbol_resolver
@@ -620,6 +621,91 @@ def test_live_lookup_passes_an_explicit_short_search_timeout(monkeypatch) -> Non
     assert recorded_kwargs["timeout"] <= 10
 
 
+def _fake_isin_suggest_response(text: str):  # noqa: ANN201
+    return lambda symbol: httpx.Response(200, text=text)
+
+
+@pytest.mark.parametrize(
+    ("symbol", "suggest_text", "expected_isin"),
+    [
+        # The live one first, the retired one second — take the first exact token.
+        (
+            "SIFY",
+            '"SIFY|US82655M2061|Sify Technologies Limited|Aktie|SIFY.OQ",'
+            '"SIFY|US82655M1071|Sify Technologies Limited (Retired)|Aktie|old"',
+            "US82655M2061",
+        ),
+        ("ONC", '"ONC|US07725L1026|BeiGene Ltd|Aktie|ONC.OQ"', "US07725L1026"),
+        # The fresh case: not one of the two register-cited tickers.
+        ("AAPL", '"AAPL|US0378331005|Apple Inc|Aktie|AAPL.OQ"', "US0378331005"),
+        # No exact "<SYMBOL>|" token at all (only a longer ticker's row).
+        ("SIFY", '"SIFYX|US1234567890|Some Other Co|Aktie|X"', None),
+        # An Indian ISIN must never land on a US namesake (the R13 TCI guard).
+        ("SIFY", '"SIFY|INE154A01025|Some Other Co|Aktie|X"', None),
+        # Right format, wrong Luhn check digit.
+        ("SIFY", '"SIFY|US0378331000|Some Other Co|Aktie|X"', None),
+    ],
+)
+def test_us_isin_lookup_parses_the_first_exact_token(
+    monkeypatch,  # noqa: ANN001
+    symbol: str,
+    suggest_text: str,
+    expected_isin: str | None,
+) -> None:
+    """R15-DATA-059: the lookup takes the FIRST exact ``"<SYMBOL>|<ISIN>|"``
+    token (the retired ISIN sorts second), and only a format- and check-digit-
+    valid, non-``IN``-prefixed value is accepted."""
+    monkeypatch.setattr(
+        symbol_resolver, "_us_isin_http_get", _fake_isin_suggest_response(suggest_text)
+    )
+    assert symbol_resolver._us_isin(symbol) == expected_isin
+
+
+def test_us_isin_lookup_transport_failure_opens_its_own_cooldown(monkeypatch) -> None:  # noqa: ANN001
+    calls = 0
+
+    def _boom(symbol: str) -> httpx.Response:  # noqa: ARG001
+        nonlocal calls
+        calls += 1
+        raise RuntimeError("connection reset")
+
+    monkeypatch.setattr(symbol_resolver, "_us_isin_http_get", _boom)
+    assert symbol_resolver._us_isin("SIFY") is None
+    assert calls == 1
+    # Inside the cooldown window, even a DIFFERENT symbol short-circuits.
+    assert symbol_resolver._us_isin("ONC") is None
+    assert calls == 1, "cooldown must skip the network entirely"
+
+
+def test_us_isin_lookup_caches_a_hit_per_symbol(monkeypatch) -> None:  # noqa: ANN001
+    calls = 0
+
+    def _search(symbol: str) -> httpx.Response:  # noqa: ARG001
+        nonlocal calls
+        calls += 1
+        return httpx.Response(200, text='"SIFY|US82655M2061|Sify Technologies Limited"')
+
+    monkeypatch.setattr(symbol_resolver, "_us_isin_http_get", _search)
+    assert symbol_resolver._us_isin("SIFY") == "US82655M2061"
+    assert symbol_resolver._us_isin("SIFY") == "US82655M2061"
+    assert calls == 1, "a repeated symbol must not re-hit the network"
+
+
+def test_resolve_applies_the_looked_up_isin_only_to_the_us_best(monkeypatch) -> None:  # noqa: ANN001
+    """R15-DATA-059: ``resolve()`` fills a US best's missing ISIN and keeps the
+    matching candidate row in sync, without touching any non-US candidate."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    monkeypatch.setattr(
+        symbol_resolver,
+        "_us_isin_http_get",
+        _fake_isin_suggest_response('"AAPL|US0378331005|Apple Inc|Aktie|AAPL.OQ"'),
+    )
+    res = symbol_resolver.resolve("AAPL", "US")
+    assert res.best is not None
+    assert res.best.isin == "US0378331005"
+    assert res.candidates[0] is res.best
+
+
 def test_live_lookup_cache_is_bounded_lru(monkeypatch) -> None:  # noqa: ANN001
     import yfinance as yf
 
@@ -688,12 +774,19 @@ def test_uncovered_micro_cap_industry_stays_none_never_fabricated() -> None:
     assert best is not None and best.industry is None
 
 
-def test_us_ticker_enrichment_is_all_none() -> None:
-    """A US listing has no India identity data — every enrichment field is None,
-    additive and harmless."""
+def test_us_ticker_enrichment_is_all_none(monkeypatch) -> None:  # noqa: ANN001
+    """A US listing has no India identity data — ``bse_code``/``industry`` stay
+    None (India-only fields). ``isin`` is the exception (R15-DATA-059): it is
+    filled by the lazy US ISIN lookup, mocked here so the test stays offline."""
+    monkeypatch.setattr(
+        symbol_resolver,
+        "_us_isin_http_get",
+        lambda symbol: httpx.Response(200, text='"AAPL|US0378331005|Apple Inc|Aktie|AAPL.OQ"'),
+    )
     best = symbol_resolver.resolve("AAPL", "US").best
     assert best is not None
-    assert best.isin is None and best.bse_code is None and best.industry is None
+    assert best.isin == "US0378331005"
+    assert best.bse_code is None and best.industry is None
 
 
 def test_enrichment_flows_to_candidates() -> None:
@@ -782,6 +875,12 @@ def test_us_ticker_resolve_carries_its_most_recent_former_name(monkeypatch) -> N
     newest SEC former name that is not a respelling of the current name wins
     (AAPL's "APPLE INC" beside "Apple Inc." is skipped); no Indian field leaks in."""
     monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    # The US ISIN lookup (R15-DATA-059) is a separate concern from former-name
+    # resolution; give it a definite no-token miss so this test stays offline
+    # and its own assertions are not coupled to the lookup's own fixtures.
+    monkeypatch.setattr(
+        symbol_resolver, "_us_isin_http_get", lambda symbol: httpx.Response(200, text="")
+    )
     cases = {"ONC": "BeiGene, Ltd.", "SIFY": "SIFY LTD", "AAPL": "APPLE COMPUTER INC"}
     for ticker, former in cases.items():
         best = symbol_resolver.resolve(ticker, "US").best
