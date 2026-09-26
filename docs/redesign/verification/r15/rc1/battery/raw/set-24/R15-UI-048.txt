@@ -1,0 +1,18 @@
+=== R15-UI-048: chart module-preferences slice ===
+91:  chartDefaults: ChartDefaults;
+118:  chartDefaults: {
+152:    chartDefaults: {
+153:      ...DEFAULT_SETTINGS.chartDefaults,
+154:      indicators: [...DEFAULT_SETTINGS.chartDefaults.indicators],
+174:/** Parse a persisted/imported `chartDefaults` field; anything malformed (an
+238:      chartDefaults: {
+288:    const chartDefaults =
+289:      "chartDefaults" in bundle
+290:        ? parseChartDefaults(bundle.chartDefaults, current.chartDefaults)
+277:  const [chartDefaultsAtMount] = useState(() => useSettingsStore.getState().chartDefaults);
+278:  const [symbolInput, setSymbolInput] = useState(restored?.symbol ?? chartDefaultsAtMount.symbol);
+279:  const [symbol, setSymbol] = useState(restored?.symbol ?? chartDefaultsAtMount.symbol);
+289:    return isTimeframe(chartDefaultsAtMount.timeframe)
+290:      ? chartDefaultsAtMount.timeframe
+294:    () => new Set(restored?.indicators ?? chartDefaultsAtMount.indicators),
+303:    () => restored !== undefined || chartDefaultsAtMount.indicators.length > 0,

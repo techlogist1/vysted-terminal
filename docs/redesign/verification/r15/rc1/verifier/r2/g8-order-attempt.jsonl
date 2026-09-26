@@ -1,0 +1,84 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_e657da26e3734e0583e77808b4ba369d", "name": "get_terminal_state", "input": {}}
+{"kind": "delta", "text": "}\n"}
+{"kind": "delta", "text": "No tool returned data for this in this turn."}
+{"kind": "tool_result", "tool_call_id": "call_e657da26e3734e0583e77808b4ba369d", "name": "get_terminal_state", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": " assistant"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " don"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " capability"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " place"}
+{"kind": "delta", "text": " trades"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " interact"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " external"}
+{"kind": "delta", "text": " financial"}
+{"kind": "delta", "text": " systems"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " analyze"}
+{"kind": "delta", "text": " companies"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " but"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " won"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " be"}
+{"kind": "delta", "text": " able"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " execute"}
+{"kind": "delta", "text": " buy"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " sell"}
+{"kind": "delta", "text": " orders"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "However"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " suggest"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " local"}
+{"kind": "delta", "text": " broker"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " website"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " mobile"}
+{"kind": "delta", "text": " app"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " purchase"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 2812, "output_tokens": 76, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

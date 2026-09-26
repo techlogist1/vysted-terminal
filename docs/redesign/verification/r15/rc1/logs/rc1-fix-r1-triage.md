@@ -1,8 +1,14 @@
-# rc1-fix-r1-triage working log
+# rc1-fix-r1-triage working log (gate round 2, candidate 4c6dfe8c)
 
-- 2026-09-25 06:57 IST own sidecar :52331 from rc1-cand source, data dir scratchpad/rc1-data-rc1-fix-r1-triage, sleep pid 36327 (worker 36328).
-- Re-probed on :52331. /fundamentals/SIFY: currency USD, financial_currency INR, P/S withheld, pe_ratio -103.15 derived ok. /fundamentals/ELCIDIN: both 52w bounds flagged with the NSE+BSE range reason. /history ELCIDIN.NS 1y: min low 102,210.
-- In-process (rc1-cand venv, cold): price_data SAIL 10.8 s with 9 NSE waits; fundamentals 11.3 s; gather 20.4 s; snapshot_structured BHEL/COALINDIA/NTPC/POWERGRID dropped both legs at 6 s. The 5d price-range A/B did not help. Yahoo getcrumb returned 429, and the NSE warm-up hit a connection reset (environment).
-- Evidence read: or/ollama sk3/sk4/rb2/rb4 jsonl; onboarding A1 stdout; research-briefs 1-deep-bdl stdout (note present plus vysted://price/BDL cited as [6]).
-- Decisions: 7 real in 4 writer sets (W1 opus research-coverage, W2 opus agent-model-boundary, W3 sonnet fundamentals-derived, W4 sonnet portfolio+docs). 5 rejected (scenarios:1-4, portfolio-notes:2). 0 deferred. See ../fix-r1/PLAN.md.
-- 2026-09-25 07:08 IST stopped own sidecar (killed sleep pid 36327 only).
+- 2026-09-26 07:46 IST own sidecar :52331 from rc1-cand source (HEAD 4c6dfe8c), data dir scratchpad/rc1-data-rc1-fix-r1-triage, sleep pid 48182 (sh 48180, worker 48183). Prior-round (25 Sep, base 4097dac4) triage artefacts in this dir are superseded by this run.
+- Probes on :52331 and in-process (rc1-cand venv), saved under ../fix-r1/triage/: ELCIDIN.NS 1y has 111 bars since 2026-04-20; min low 102,210 in all bars and in the last 90; the stated 110,095 is the 2026-07-31 bar low. /fundamentals/SIFY: USD / financial_currency INR, P/S withheld. /resolve Sify (ADR): SIFY 0.913 listed in the reserved last slot. financial_statements SIFY cashflow carries ads_ratio 6 (20-F cover), and _ratio_claim_traced is True against it and False against an ads-free result. citecheck and _remap_markers leave '[2, 3]' and '[New findings]' untouched (remap keeps the local numbering for a group).
+- Decisions: 1 real (rc1-drive-research-briefs:2 -> W1 sonnet citation-marker-grammar). 5 rejected (scenarios:1 -> register note under LEAD-037; datapack:1; datapack:2; set67; set28 = harness coverage gap, and the lead should re-run set-28 with the INDEX ids). 0 deferred. See ../fix-r1/PLAN.md.
+- 2026-09-26 07:56 IST stopped own sidecar (killed sleep pid 48182 only).
+
+## Resumed run (2026-09-26 16:07 IST; finding list: rc1-scenarios:1, rc1-datapack:1, rc1-datapack:2, rc1-drive-research-briefs:2, rc1-drive-onboarding-stranger:1)
+
+- Restart of this role on the same sha 4c6dfe8c: the 07:56 plan is preserved as ../fix-r1/PLAN.gr2-attempt1.md and its triage/ probes are reused (same sha). Rounds 1 and 2 of this gate already tried rc1-drive-research-briefs:2 (branches ...-fix-r1-W1-citation-marker-grammar, ...-fix-r2-W1-citation-grammar-r2 @ 39585dc3; int 81fbfe91) and both rechecks failed it (fresh escapes: [NSE filing, August 2026], [... ; 2][3], [Structured: {...}], [Source 2]).
+- No sidecar booted: every record conclusive (07:56 probes on :52331 at this sha; r2 recheck live + in-process). Nothing to stop.
+- New evidence: triage/r3-bracket-corpus.txt (non-numeric bracket tokens across 28 published briefs in r15/**.jsonl: legit system brackets are [basis: ...], [= formula], [CONFLICT], [PDF]); triage/r3-classifier-proto.* (balanced-bracket scan + mixed-group members + source-noun head lexicon: all escapes resolved, all must-survive cases byte-identical; URL-in-content needs a whole-content check, noted in PLAN).
+- Root cause located: deep.py researcher extraction prompt says 'Cite concretely' over unnumbered evidence (Structured line, exchange-disclosures block, URLs, 'Web evidence:'), so models invent bracket cites; both nets know only digit groups + one label family.
+- Decisions: 1 real -> W1 citation-pseudo-class (opus; third attempt, three-failure rule). 4 rejected: scenarios:1 (LEAD-037 class, register note :1), datapack:1, datapack:2 (not regressions; code re-read at 4c6dfe8c), onboarding-stranger:1 (LEAD-030 class, register note :3). 0 deferred.

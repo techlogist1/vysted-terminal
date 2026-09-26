@@ -1,0 +1,8 @@
+--- list ---
+<class 'dict'>
+{"cik": "AAPL", "company_name": "", "symbol": null, "filings": [{"accession": "0001140361-26-037584", "cik": "0000320193", "company_name": "Apple Inc.", "symbol": null, "form_type": "4", "filed_date": "2026-09-24", "period_of_report": "2026-09-22", "edgar_url": "https://www.sec.gov/Archives/edgar/da
+count 40
+{'accession': '0001140361-26-037584', 'cik': '0000320193', 'company_name': 'Apple Inc.', 'symbol': None, 'form_type': '4', 'filed_date': '2026-09-24', 'period_of_report': '2026-09-22', 'edgar_url': 'https://www.sec.gov/Archives/edgar/data/320193/000114036126037584/'}
+--- out of range ---
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP:404

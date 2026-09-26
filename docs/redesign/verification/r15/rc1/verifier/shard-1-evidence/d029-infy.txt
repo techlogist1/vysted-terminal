@@ -1,0 +1,3 @@
+currency INR financialCurrency USD totalRevenue 20298999808
+cal {'Revenue High': 510007656000, 'Revenue Low': 472000000000, 'Revenue Average': 491180745790}
+last qtr revenue 5082000000.0

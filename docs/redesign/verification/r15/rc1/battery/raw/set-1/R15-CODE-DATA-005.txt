@@ -1,35 +1,13 @@
---- def is_applicable ---
-services/market_cap_witness.py:100:is_applicable = is_india_listing
-services/dividend_actions.py:60:def is_applicable(symbol: str) -> bool:
-services/earnings_quality.py:123:def is_applicable(symbol: str) -> bool:
-services/ownership_check.py:104:is_applicable = is_india_listing
-services/research/range_check.py:127:is_applicable = is_india_listing
---- def _is_blocked ---
---- def is_india_target ---
-services/research/relevance.py:374:def is_india_target(target: ResearchTarget | None) -> bool:
---- callers of is_india_target ---
-services/research/fast.py:451:    from services.research.relevance import is_india_target
-services/research/fast.py:453:    if is_india_target(target):
-services/research/relevance.py:374:def is_india_target(target: ResearchTarget | None) -> bool:
-services/research/relevance.py:513:    if not is_india_target(target):
-services/research/relevance.py:585:    if is_india_target(target) and _foreign_shadow(text, host):
-services/research/relevance.py:637:    if not items or not (is_india_target(target) and target.is_equity_like()):
-services/research/relevance.py:659:    "is_india_target",
-services/research/disclosures.py:33:from services.research.relevance import is_india_target
-services/research/disclosures.py:120:    return is_india_target(target) and is_disclosure_question(sub_question)
-services/research/disclosures.py:138:    return is_india_target(target)
-services/research/disclosures.py:173:    if not is_india_target(target):
-services/research/disclosures.py:341:    "is_india_target",
---- _row_value ---
-services/growth_check.py:94:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
-services/earnings_quality.py:134:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
-services/witness.py:24:def is_block_error(exc: BaseException) -> bool:
-services/witness.py:35:__all__ = ["is_block_error", "is_india_listing"]
-services/dividend_actions.py:33:from services.witness import is_block_error, is_india_listing
-services/dividend_actions.py:105:    blocked = any(is_block_error(ProviderError(msg)) for msg in response.errors.values())
-services/dividend_actions.py:123:        if is_block_error(exc):
-services/ownership_check.py:47:from services.witness import is_block_error, is_india_listing
-services/ownership_check.py:143:        if is_block_error(exc):
-services/research/range_check.py:46:from services.witness import is_block_error, is_india_listing
-services/research/range_check.py:201:        if is_block_error(exc):
-services/research/range_check.py:268:            if is_block_error(result):
+-- is_applicable defs --
+sidecar/services/market_cap_witness.py:100:is_applicable = is_india_listing
+sidecar/services/dividend_actions.py:60:def is_applicable(symbol: str) -> bool:
+sidecar/services/earnings_quality.py:123:def is_applicable(symbol: str) -> bool:
+sidecar/services/ownership_check.py:104:is_applicable = is_india_listing
+sidecar/services/research/range_check.py:127:is_applicable = is_india_listing
+-- is_block_error defs --
+sidecar/services/witness.py:24:def is_block_error(exc: BaseException) -> bool:
+-- is_india_target defs --
+sidecar/services/research/relevance.py:374:def is_india_target(target: ResearchTarget | None) -> bool:
+-- _row_value defs --
+sidecar/services/growth_check.py:94:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+sidecar/services/earnings_quality.py:134:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:

@@ -1,0 +1,6 @@
+=== call 1 ===
+as_of 2026-09-26T01:31:45.853959Z
+=== call 2 (should be same cached as_of) ===
+as_of 2026-09-26T01:31:45.853959Z
+=== uncached MSFT ===
+as_of 2026-09-26T01:31:46.423100Z

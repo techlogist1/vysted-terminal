@@ -1,0 +1,30 @@
+=== DATA-084 source ===
+        symbol=normalized,
+        consensus=str(row.get("consensus") or row.get("rating") or "") or None,
+        target_mean=_coerce_float(row.get("target_mean") or row.get("price_target_mean")),
+        target_high=_coerce_float(row.get("target_high") or row.get("price_target_high")),
+        target_low=_coerce_float(row.get("target_low") or row.get("price_target_low")),
+        strong_buy=int(_coerce_float(row.get("strong_buy")) or 0),
+        buy=int(_coerce_float(row.get("buy")) or 0),
+        hold=int(_coerce_float(row.get("hold")) or 0),
+        sell=int(_coerce_float(row.get("sell")) or 0),
+        strong_sell=int(_coerce_float(row.get("strong_sell")) or 0),
+        provider=PROVIDER,
+    )
+
+
+async def get_macro_series(series_id: str, provider: str | None = None) -> MacroSeries:
+    """Return a macro time-series by id via openbb-mcp."""
+    upstream = provider or _DEFAULT_PROVIDERS["macro"]
+    decoded = await _call_tool(
+        "economy_fred_series",
+        {"symbol": series_id, "provider": upstream},
+    )
+    rows = _result_rows(decoded)
+    if not rows:
+        raise ProviderError(f"openbb-mcp macro series returned no rows for {series_id!r}")
+
+    title = ""
+
+=== in-process ===
+[(datetime.datetime(2021, 1, 4, 0, 0, tzinfo=datetime.timezone.utc), 0.0), (datetime.datetime(2021, 1, 5, 0, 0, tzinfo=datetime.timezone.utc), 0.07)]

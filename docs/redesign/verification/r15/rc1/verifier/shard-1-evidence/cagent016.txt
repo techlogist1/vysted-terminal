@@ -1,0 +1,3 @@
+agent t-bogus.json: schema violation at ['defaultProvider']: 'bogus' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']
+loaded ['t-deepseek', 't-openrouter', 't-xai']
+degraded ['t-bogus.json']

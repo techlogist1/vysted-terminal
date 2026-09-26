@@ -1,18 +1,12 @@
-# batch-10/W4-screener-routes-statedocs (rc1-battery-7)
+# batch-10/W2-catalog-hostactions
 
-Candidate `4097dac4`. Own sidecar on `:52347`. 8 certified entries re-run.
+Candidate `4c6dfe8c` (rc1-cand worktree). Own sidecar `127.0.0.1:52340`.
 
 | id | repro run | observed | verdict |
 |---|---|---|---|
-| R15-DATA-061 | `GET /macro/NOT.A.REAL.WB.ID?provider=world-bank`, `?provider=ecb`, `GET /quotes/ZZQXNOTASYM`, `/macro/CPIAUCSL?provider=fred` (no key) | 502 "unexpected response" (wb + ecb, no raw upstream text), 404 "not_found" copy, 502 authored FRED-key-needed copy | holds |
-| R15-DATA-087 | `GET /macro/CPIAUCSL` (no provider) | 422 "provider is required for a series id" | holds |
-| R15-CROSS-PLATFORM-003 | `GET /system/hardware` on this M1 Pro | `ramGib: 16.0`, `estimated: false`, `chip: "Apple M1 Pro"` — exact match to cert | holds |
-| R15-RESEARCH-025 | `POST /screener/formula/validate` x5 | `(pe>10)+1` and `(pe>10)*2+1` rejected at position 10 "a boolean expression can't be used in arithmetic"; `abs(pe>10)`/`max(pe>10,1)` rejected "needs a numeric argument, not a boolean expression"; `pe>10 and pb<3` ok, fields [pe_ratio, price_to_book] | holds |
-| R15-DATA-095 | in-process probe: built a `fundamentals` table missing `seed_updated_at`/`eod_updated_at`/`provider` via `fundamentals_store`'s own `_ALL_COLUMNS` minus those 3, then called the real `_connect()` | all 3 columns present after `_connect()` (the general `_migrate` ALTERs every column in `_ALL_COLUMNS`, not a hand-picked subset) | holds |
-| R15-DOCS-016 | `grep` `CURRENT_STATE.md` §0.x/§3.10 + in-process `catalog.CAPABILITY_CATALOG` count | doc states "19 host actions ... no order action exists, D81 — none auto-apply"; live catalog has exactly 19 `kind='host_action'` capabilities, no order-shaped id | holds |
-| R15-DOCS-017 | `grep` `CURRENT_STATE.md:359-363` | "506 symbols, a static snapshot dated 2026-06-04 ... R15-LEAD-013 open" and "nested AND/OR via `CriterionGroup`" both present verbatim | holds |
-| R15-DOCS-018 | `grep` `CURRENT_STATE.md:93-94,320` + `GET /data-sources` | doc: "resolves by standard model key + preference order (not the asset-class chain); every result carries its serving provider"; live `/data-sources` returns per-provider `keys`/`rank`/`asset_classes` rows matching that model | holds |
+| R15-UI-010 | `POST /backtest/run` with `strategyId: "mean_reversion"`, `params.window` = `0`, `-5`, `""`. | `0`/`-5` → `422 {"detail":"`window` must be between 5 and 200"}`; `""` → `422 {"detail":"`window` must be an integer"}` — a clean bounded validation error, not a raw Python `StatisticsError`/`ValueError` traceback. | holds |
+| R15-UI-011 | grep `src/modules/backtest/BacktestPanel.tsx`/`.test.tsx`. | `controllerRef` (`AbortController`, line 119) and a "Stop backtest" button (line 281) exist; `describe("BacktestPanel Stop (R15-UI-011)", ...)` at `BacktestPanel.test.tsx:481` names the entry directly. | ci_pinned (BacktestPanel.test.tsx:481) |
+| R15-LEAD-018 | Live: `vy.py invoke copilot "What is TCS trailing P/E ratio and recent news?" --provider openrouter --model nvidia/nemotron-3-super-120b-a12b:free` against my own sidecar (free lane, tagged `rc1-battery-0:LEAD-018`). | See raw log; the published/rendered content field carries only the answer text, no leaked `<think>`/chain-of-thought block ahead of or inside it (full transcript in `raw/set-41/R15-LEAD-018.txt`). | holds |
+| R15-CODE-PLATFORM-021 | grep `src/modules/portfolio/api.ts`, `sidecar/routers/portfolio.py`. | `fetchLegacyPositions()` (api.ts:70) now DOES read `GET /portfolio/positions` in production code (previously unreachable) — but the fork is resolved by making the sidecar SQLite ledger a one-time LEGACY IMPORT source only; holdings live authoritatively in the client store/workspace blob (same fix as R15-LIFECYCLE-009's pinned import test). No surface still forks live truth between two writers. | holds |
 
-Excluded (not certified in batch-10): R15-LEAD-013 (reverted out of batch 10, register stays open).
-
-Raw output: `battery/raw/set-41/*`.
+**Set result: 3/4 holds, 1/4 ci_pinned.**

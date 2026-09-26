@@ -1,10 +1,22 @@
 # RC1 owner-drive — panels-layouts
 
-Worker: claude-sonnet-5 (label `rc1-drive-panels-layouts`). Candidate
-`4097dac423bd6d6fb49245e7ee9e0ab2bc64f18a`. Reads against the shared candidate sidecar
-`127.0.0.1:52152` (+ MCP `:52153`/`:52154`); writes against my own isolated sidecar
-`127.0.0.1:52323`, data dir `rc1-data-rc1-drive-panels-layouts` (a `cp -R` of
-`rc1-seed-data`, keyless).
+Worker: claude-sonnet-5 (label `rc1-drive-panels-layouts`). **Round 2** (gate round 2, after
+Tier-4 sign-off): a prior attempt of this same role had already run to completion against
+candidate `4097dac423bd6d6fb49245e7ee9e0ab2bc64f18a`. The RC1 gate facts for this round name a
+newer candidate, `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2` (297 commits ahead). `git diff
+--stat` between the two shas showed real, non-doc changes touching this group's surface (not
+just test/docs churn): `sidecar/routers/sec_filings.py` (R15-LEAD-010 `form_type` hint),
+`sidecar/services/earnings_provider.py` + `models/earnings.py` + `types/earnings.ts` +
+`EpsEstimateGrid.tsx` (R15-DATA-113, revenue currency), `src/modules/chart/{ChartPanel.tsx,
+api.ts}` + `sidecar-client.ts` (R15-DATA-002, region-scoped listing), `services/option_chain.py`
+(R15-DATA-114, F&O probe caching) — four register-tracked `fixed` entries the round-1 pass never
+drove because they postdate it. This round continues from the round-1 evidence (never
+re-litigating what didn't change) and adds a re-drive of exactly these four, plus a regression
+spot-check of the round-1-verified fixes whose backing code could plausibly have moved.
+
+Reads against the shared candidate sidecar `127.0.0.1:52152` (+ MCP `:52153`/`:52154`); writes
+against my own isolated sidecar `127.0.0.1:52323` (rebooted from the `4c6dfe8c` worktree source,
+reusing the round-1 data dir `rc1-data-rc1-drive-panels-layouts`, keyless).
 
 Method: re-drove the group scope (`panels-layouts` in
 `docs/redesign/verification/r15/tooling/PROMPT_surface_s2.md`, OWNER-DRIVE section) against
@@ -41,6 +53,29 @@ rc1/COVERAGE.json` (32 rows, same shape as census).
 | panel-broker-order-entry | NOT TESTED | **removed_with_feature** | scope change | same |
 | panel-audit-log | partial | **removed_with_feature** | scope change | order-audit-only viewer removed with the feature; no `src/modules/*audit*` on candidate |
 | all other rows (17) | as census | **unchanged, carried forward** | none | not tied to a register fix or the D81 scope change; not re-driven this pass |
+
+## Round-2 deltas (4097dac4 -> 4c6dfe8c)
+
+| Register id | Row | Verified | Evidence |
+|---|---|---|---|
+| R15-DATA-002 | panel-chart | **fixed, confirmed** | `GET /quotes/SMR` no header -> SMR Jewels (INR/BSE, 94); `X-Vysted-Region: US` -> NuScale (USD/yfinance, 8.42) |
+| R15-DATA-113 | panel-earnings-calendar | **fixed, confirmed** | `GET /earnings/WIT/estimates`: `currency:"USD"` (trading), `revenue_currency:"INR"` (Wipro's statement currency) — now split, was folded into one field |
+| R15-LEAD-010 | panel-sec-filings | **fixed, confirmed, no regression** | `form_type=10-K` hint on `get_filing`/`get_filing_sections` for the same AAPL accession: identical 200 + 2 sections with or without the param — additive, backward compatible |
+| R15-DATA-114 | (F&O options-chain provider, no dedicated coverage row in this group) | **verified by code read + working endpoint**, not by direct failure-path repro | `GET /quant/option/chain/RELIANCE` 200 twice in a row, `as_of` yesterday's cached bhavcopy; the specific probe-caching branch (today's file 404/transport-failure) wasn't independently forced within this pass's budget — code diff matches the register's described fix, no regression observed |
+
+Regression spot-checks on round-1-verified rows whose backing files could plausibly have moved
+(all confirmed unchanged, no regressions):
+- `panel-macro` (IMF India GDP: still 200, 52 real observations)
+- `layouts-workspace-save-load` (colon-name save still 200, 300-char name still honest 400,
+  round-trip still clean)
+- `panel-chart` 30m SPY history hit a `429 rate_limited` on both my own sidecar and the shared
+  `:52152` (Yahoo-side throttling under this run's concurrent load) — the backend lookback logic
+  (`sidecar/routers/history.py`) is byte-identical to the round-1 baseline, so this is environment
+  noise (correctly surfaced as an honest 429 error frame, not a silent failure), not a regression
+- `src/modules/*broker*`, `src/modules/*audit*` still absent from the candidate (D81 trading
+  removal holds)
+
+No new defects, no regressions this round either. `findings/panels-layouts.json` stays `[]`.
 
 ## Notes
 

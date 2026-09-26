@@ -1,0 +1,24 @@
+=== R15-CODE-PLATFORM-026: shared sidecar-specs.mjs ===
+ensure-all-sidecars.mjs
+ensure-openbb-mcp-sidecar.mjs
+ensure-sec-edgar-mcp-sidecar.mjs
+ensure-sidecar.mjs
+sidecar-freshness-gate.test.mjs
+sidecar-specs.mjs
+sidecar-specs.test.mjs
+sidecar-staleness.mjs
+sidecar-staleness.test.mjs
+smoke-test-sidecars.mjs
+
+      14 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/ensure-sidecar.mjs
+      16 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/ensure-openbb-mcp-sidecar.mjs
+      15 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/ensure-sec-edgar-mcp-sidecar.mjs
+      45 total
+
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/ensure-sidecar.mjs:9:import { SIDECAR_SPECS, buildSidecar } from "./sidecar-specs.mjs";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/ensure-sidecar.mjs:12:  SIDECAR_SPECS.find((s) => s.name === "vysted-sidecar"),
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/sidecar-specs.mjs:6:// the smoke-test freshness gate all read SIDECAR_SPECS, so adding a sidecar is a
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/sidecar-specs.mjs:180:export const SIDECAR_SPECS = SPECS.map((spec) => ({
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/scripts/sidecar-specs.mjs:207:  for (const spec of SIDECAR_SPECS) {
+
+sidecar-specs.test.mjs

@@ -1,15 +1,10 @@
-# unplanned-6
+# batch-11/W4-registry-loop (rc1-battery-1, candidate 4c6dfe8c)
 
-Candidate 4097dac4. Own sidecar :52346. Raw output: `raw/set-51/`.
+Note: both ids closed in batch-11 per `closure_evidence` (matches the task's own set label).
 
 | id | repro run | observed | verdict |
-| --- | --- | --- | --- |
-| R15-DATA-071 | Read `sidecar/models/market.py:66-71` | `OHLCVSeries` now carries `partial: bool = False` and `coverage_start: date \| None = None`, comment cites R15-DATA-071 directly — a truncated series is now labeled, not silently presented as full | holds |
-| R15-DATA-078 | `grep -n "alpha_vantage\|R15-DATA-078" docs/BLUEPRINT.md` | `docs/BLUEPRINT.md:266-267`: "yfinance fallback (no API key needed for basic use; R15-DATA-078 — alpha_vantage was never built and is dropped from this list, not just unimplemented)" — the doc no longer promises a provider that doesn't exist | holds |
-| R15-DATA-079 | `curl :52346/quant/option/chain/RELIANCE` | Full real options chain: 78 contracts across multiple expiries with real `open_interest`/`strike`/`last_price`/`settle_price`/`volume`, provider `nse-fo-bhavcopy`; `open_interest: float \| None` present in `sidecar/models/market.py:102` and mirrored in `types/data.ts:92` — a working options-chain capability now exists end to end | holds |
-| R15-DOCS-018 | Read `docs/CURRENT_STATE.md:93`, `sidecar/services/provider_registry.py` docstring | Docs now describe "resolves by standard model key + [preference order]" matching the actual resolver code ("dispatch is no longer a hardcoded if asset_class switch — it is a resolver keyed by a STANDARD MODEL KEY... PREFERENCE ORDER") — doc and code agree | holds |
-| R15-LEAD-010 | Read `sidecar/services/sec_filings_provider.py:582-604` (`get_filing`) | Docstring cites R15-LEAD-010 directly: the lookup runs over the form-filtered list first when a form-type hint is given, then falls back to the unfiltered list on a miss; each pass opens with a 40-row window widening to 100 only when a full window misses | holds |
-| R15-LEAD-013 | In-process python: loaded `sidecar/services/screener_universes/sp500.json` (503 symbols), checked the register's 14 named delisted tickers and 3 named missing tickers | All 14 delisted tickers (MMC, FI, ANSS, CTLT, DAY, DFS, HES, HOLX, IPG, JNPR, K, MRO, WBA, CTRA) absent; all 3 missing tickers (BXP, NVR, UDR) present | holds |
-| R15-LIFECYCLE-026 | `ps -o time=,%cpu=,etime= -p 19284` (own sidecar worker) sampled 3x across a 291s window with zero curl/HTTP activity to the sidecar in between | Instantaneous 0.1% CPU at the final sample; window-average ~4.75% (includes settling right after a prior curl burst) — far below the register's ~60% buggy baseline and in line with the fix_shape's <5%-over-idle bound | holds |
+|---|---|---|---|
+| R15-LIFECYCLE-026 | live `ps -o pid,time` on own sidecar (:52341, idle) sampled twice 32s apart; grep `asyncio.to_thread` in `provider_registry.py` | CPU time 1:15.42 → 1:16.84 over 32s wall = 1.42s CPU / 32s ≈ 4.4% process-wide during a short idle window with no active traffic — same order of magnitude as batch-11's certified 3.3% over its full 5-minute window (a 32s sample is noisier but consistent; nowhere near the pre-fix ~60%-of-a-core regression the register describes). `_resolve_async` confirmed still routing accessors via `asyncio.to_thread` unchanged. The full 5-minute window + loop-thread `sample` profile was not repeated this shard given the time budget | holds |
+| R15-DATA-071 | live `GET /history/KARNAVATI.BO?range=1y` and `GET /history/TRADEWELL.BO?range=1y` on own sidecar (:52341) | KARNAVATI: 256 bars (2025-09-11 to 2026-09-24+), bse lane; TRADEWELL: 145 bars, bse lane — both far above the pre-fix 8-bar cap, exact bar-count match to batch-11's certified figures (256 complete / 145 partial) | holds |
 
-Summary: 7 holds. No regressions.
+COVERAGE: 2/2 ids raw; no raw: none.

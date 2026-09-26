@@ -1,0 +1,20 @@
+103:from services.errors import ProviderError
+193:        raise ProviderError(f"missing universe snapshot {filename!r}") from exc
+222:        raise ProviderError("custom universe requires a non-empty symbol list")
+268:    raise ProviderError(f"unknown universe id {universe_id!r}")
+558:    except TimeoutError:
+561:    except ProviderError as exc:
+566:    except Exception as exc:  # noqa: BLE001
+577:    except (ProviderError, TimeoutError) as exc:
+580:    except Exception as exc:  # noqa: BLE001
+622:    def emit(phase: str, done: int, total: int, detail: str) -> None:
+977:        emit("sweep", done, total, f"sweeping quotes {done:,}/{total:,}")
+981:    except TimeoutError:
+1024:            emit("sweep", done, total, f"retrying misses {done:,}/{total:,}")
+1028:    except TimeoutError:
+1081:                except (TimeoutError, ProviderError) as exc:  # field stays missing
+1082:                    if isinstance(exc, ProviderError) and exc.kind == "rate_limited":
+1086:                except Exception as exc:  # noqa: BLE001 — a code bug, not an upstream miss
+1095:        finally:
+1098:                emit("enrich", done, total, f"enriching fundamentals {done:,}/{total:,}")
+1102:    except TimeoutError:

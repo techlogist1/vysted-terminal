@@ -1,0 +1,15 @@
+{
+ "request": "GET /history/ELCIDIN.NS?timeframe=1d&range=1y on :52331 @4c6dfe8c",
+ "bars_total": 111,
+ "first": "2026-04-20T00:00:00Z",
+ "last": "2026-09-25T00:00:00Z",
+ "min_low_all_bars": 102210.0,
+ "min_low_last_90": 102210.0,
+ "bars_matching_110095": [
+  {
+   "timestamp": "2026-07-31T00:00:00Z",
+   "field": "low",
+   "value": 110095.0
+  }
+ ]
+}

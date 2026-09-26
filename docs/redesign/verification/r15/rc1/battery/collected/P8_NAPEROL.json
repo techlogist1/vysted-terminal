@@ -4,14 +4,14 @@
  "manifest_name": "Naperol Investments Ltd",
  "exchange": "BSE",
  "bse_code": "500298",
- "collected_at": "2026-09-25T05:26:47+0530",
+ "collected_at": "2026-09-26T06:34:12+0530",
  "sidecar": "http://127.0.0.1:52313",
  "complete": true,
  "calls": {
   "resolve_bare_symbol": {
    "url": "http://127.0.0.1:52313/resolve?q=NAPEROL",
    "status": 200,
-   "elapsed_ms": 1,
+   "elapsed_ms": 3,
    "body": {
     "ok": true,
     "query": "NAPEROL",
@@ -61,7 +61,7 @@
   "resolve_company_name": {
    "url": "http://127.0.0.1:52313/resolve?q=Naperol+Investments+Ltd",
    "status": 200,
-   "elapsed_ms": 662,
+   "elapsed_ms": 738,
    "body": {
     "ok": true,
     "query": "Naperol Investments Ltd",
@@ -191,7 +191,7 @@
   "resolve_bse_code": {
    "url": "http://127.0.0.1:52313/resolve?q=500298",
    "status": 200,
-   "elapsed_ms": 1,
+   "elapsed_ms": 2,
    "body": {
     "ok": true,
     "query": "500298",
@@ -241,20 +241,20 @@
   "quote": {
    "url": "http://127.0.0.1:52313/quotes/NAPEROL?asset_class=equity",
    "status": 200,
-   "elapsed_ms": 1846,
+   "elapsed_ms": 696,
    "body": {
     "symbol": "NAPEROL",
-    "price": 638.15,
-    "change": 0.0,
-    "change_percent": 0.0,
-    "volume": 357.0,
-    "open": 645.9,
-    "high": 648.0,
-    "low": 638.0,
-    "prev_close": 645.9,
+    "price": 640.2,
+    "change": 2.050000000000068,
+    "change_percent": 0.3212410875186192,
+    "volume": 459.0,
+    "open": 638.0,
+    "high": 647.7,
+    "low": 630.3,
+    "prev_close": 638.15,
     "currency": "INR",
     "market_state": "CLOSED",
-    "timestamp": "2026-09-24T00:00:00Z",
+    "timestamp": "2026-09-25T00:00:00Z",
     "provider": "bse",
     "freshness": "eod"
    },
@@ -266,7 +266,7 @@
   "fundamentals": {
    "url": "http://127.0.0.1:52313/fundamentals/NAPEROL",
    "status": 200,
-   "elapsed_ms": 4444,
+   "elapsed_ms": 4431,
    "body": {
     "symbol": "NAPEROL.BO",
     "name": "Naperol Investments Limited",
@@ -275,22 +275,22 @@
     "sector_source": "resolver",
     "currency": "INR",
     "financial_currency": null,
-    "ratio_price": 638.15,
-    "market_cap": 3667448064.0,
-    "pe_ratio": 33.944153,
+    "ratio_price": 640.2,
+    "market_cap": 3679229440.0,
+    "pe_ratio": 34.1258,
     "forward_pe": null,
     "peg_ratio": null,
-    "price_to_book": 0.39989924,
-    "price_to_sales": 11.1308155,
-    "ev_to_ebitda": 31.769,
+    "price_to_book": 0.40118387,
+    "price_to_sales": 11.166573,
+    "ev_to_ebitda": 31.873,
     "book_value": 1595.777,
-    "dividend_yield": 0.0302,
+    "dividend_yield": 0.0305,
     "dividend_per_share": 19.48,
     "eps": 18.79,
     "beta": 0.423,
     "fifty_two_week_high": 990.0,
     "fifty_two_week_low": 490.1,
-    "fifty_two_week_change": -0.2901808,
+    "fifty_two_week_change": -0.28081506,
     "fifty_two_week_high_date": "2025-10-23",
     "fifty_two_week_low_date": "2026-03-30",
     "listing_date": null,
@@ -323,7 +323,7 @@
      "name": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -331,7 +331,7 @@
      "sector": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -339,7 +339,7 @@
      "industry": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -347,7 +347,7 @@
      "sector_source": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -355,7 +355,7 @@
      "currency": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -363,7 +363,7 @@
      "ratio_price": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:04+00:00",
+      "as_of": "2026-09-25T09:50:50+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -371,7 +371,7 @@
      "market_cap": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:04+00:00",
+      "as_of": "2026-09-25T09:50:50+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -379,7 +379,7 @@
      "pe_ratio": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:04+00:00",
+      "as_of": "2026-09-25T09:50:50+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -387,7 +387,7 @@
      "forward_pe": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:04+00:00",
+      "as_of": "2026-09-25T09:50:50+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -395,7 +395,7 @@
      "peg_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:04+00:00",
+      "as_of": "2026-09-25T09:50:50+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -403,7 +403,7 @@
      "price_to_book": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:04+00:00",
+      "as_of": "2026-09-25T09:50:50+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -411,7 +411,7 @@
      "price_to_sales": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:04+00:00",
+      "as_of": "2026-09-25T09:50:50+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -419,7 +419,7 @@
      "ev_to_ebitda": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:04+00:00",
+      "as_of": "2026-09-25T09:50:50+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -427,7 +427,7 @@
      "book_value": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -435,7 +435,7 @@
      "dividend_yield": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:04+00:00",
+      "as_of": "2026-09-25T09:50:50+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -443,7 +443,7 @@
      "dividend_per_share": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -459,7 +459,7 @@
      "beta": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -467,7 +467,7 @@
      "fifty_two_week_high": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -475,7 +475,7 @@
      "fifty_two_week_low": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -483,7 +483,7 @@
      "fifty_two_week_change": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:04+00:00",
+      "as_of": "2026-09-25T09:50:50+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -491,7 +491,7 @@
      "fifty_two_week_high_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -499,7 +499,7 @@
      "fifty_two_week_low_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -507,7 +507,7 @@
      "listing_date": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -515,7 +515,7 @@
      "first_trade_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -523,7 +523,7 @@
      "forward_pe_fiscal_year": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -531,7 +531,7 @@
      "roe": {
       "status": "ok",
       "provider": "derived",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": "net income (TTM) / stockholders equity"
@@ -539,7 +539,7 @@
      "roa": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -547,7 +547,7 @@
      "gross_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -555,7 +555,7 @@
      "operating_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -563,7 +563,7 @@
      "profit_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -571,7 +571,7 @@
      "debt_to_equity": {
       "status": "ok",
       "provider": "derived",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": "total debt / stockholders equity"
@@ -579,7 +579,7 @@
      "current_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -587,7 +587,7 @@
      "quick_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -595,7 +595,7 @@
      "roce": {
       "status": "ok",
       "provider": "derived",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": "annual EBIT / (total assets - current liabilities)"
@@ -603,7 +603,7 @@
      "basis": {
       "status": "ok",
       "provider": "exchange-filings",
-      "as_of": "2026-09-24T23:56:35.191188+00:00",
+      "as_of": "2026-09-26T01:03:59.965438+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -627,7 +627,7 @@
      "free_cash_flow": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -635,7 +635,7 @@
      "shares_outstanding": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -659,7 +659,7 @@
      "held_percent_insiders": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": "unreconciled: exchange shareholding unavailable (insiders \u2260 promoter group)",
       "label": null,
       "basis_note": null
@@ -667,7 +667,7 @@
      "held_percent_institutions": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": "unreconciled: exchange shareholding unavailable (provider institutions \u2260 exchange institutional holding)",
       "label": null,
       "basis_note": null
@@ -675,7 +675,7 @@
      "identity_note": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:31.907856+00:00",
+      "as_of": "2026-09-26T01:03:56.707695+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -700,7 +700,7 @@
   "income": {
    "url": "http://127.0.0.1:52313/fundamentals/NAPEROL/income",
    "status": 200,
-   "elapsed_ms": 402,
+   "elapsed_ms": 248,
    "body": {
     "symbol": "NAPEROL.BO",
     "periods": [
@@ -785,10 +785,10 @@
       "label": "selling_general_and_admin_expense",
       "values": {
        "2026-03-31": 6537000.0,
-       "2025-03-31": 11241000.0,
+       "2025-03-31": null,
        "2024-03-31": 3959000.0,
        "2023-03-31": 2228000.0,
-       "2022-03-31": null
+       "2022-03-31": 94311000.0
       }
      },
      {
@@ -855,10 +855,10 @@
       "label": "interest_income_non_operating",
       "values": {
        "2026-03-31": 88000.0,
-       "2025-03-31": 5677000.0,
+       "2025-03-31": null,
        "2024-03-31": 95000.0,
        "2023-03-31": 14000.0,
-       "2022-03-31": null
+       "2022-03-31": 0.0
       }
      },
      {
@@ -875,10 +875,10 @@
       "label": "net_non_operating_interest_income_expense",
       "values": {
        "2026-03-31": 88000.0,
-       "2025-03-31": 5677000.0,
+       "2025-03-31": null,
        "2024-03-31": 95000.0,
        "2023-03-31": 14000.0,
-       "2022-03-31": null
+       "2022-03-31": 0.0
       }
      },
      {
@@ -1076,7 +1076,7 @@
       "values": {
        "2026-03-31": 5747000.0,
        "2025-03-31": 5747000.0,
-       "2024-03-31": 5747000.0,
+       "2024-03-31": 5710938.0,
        "2023-03-31": 5747000.0,
        "2022-03-31": null
       }
@@ -1145,10 +1145,10 @@
       "label": "net_interest_income",
       "values": {
        "2026-03-31": 88000.0,
-       "2025-03-31": 5677000.0,
+       "2025-03-31": null,
        "2024-03-31": 95000.0,
        "2023-03-31": 14000.0,
-       "2022-03-31": null
+       "2022-03-31": 0.0
       }
      },
      {
@@ -1263,7 +1263,7 @@
   "balance": {
    "url": "http://127.0.0.1:52313/fundamentals/NAPEROL/balance",
    "status": 200,
-   "elapsed_ms": 379,
+   "elapsed_ms": 458,
    "body": {
     "symbol": "NAPEROL.BO",
     "periods": [
@@ -1308,7 +1308,7 @@
       "label": "short_term_investments",
       "values": {
        "2026-03-31": 70983000.0,
-       "2025-03-31": 30746000.0,
+       "2025-03-31": 44456000.0,
        "2024-03-31": 20809000.0,
        "2023-03-31": 15362000.0,
        "2022-03-31": null
@@ -1328,20 +1328,20 @@
       "label": "gross_accounts_receivable",
       "values": {
        "2026-03-31": 74062000.0,
-       "2025-03-31": 40986000.0,
+       "2025-03-31": null,
        "2024-03-31": 0.0,
        "2023-03-31": 10000000.0,
-       "2022-03-31": null
+       "2022-03-31": 197636000.0
       }
      },
      {
       "label": "allowance_for_doubtful_accounts_receivable",
       "values": {
        "2026-03-31": -70000.0,
-       "2025-03-31": 0.0,
+       "2025-03-31": null,
        "2024-03-31": 0.0,
        "2023-03-31": 0.0,
-       "2022-03-31": null
+       "2022-03-31": -8872000.0
       }
      },
      {
@@ -1398,10 +1398,10 @@
       "label": "prepaid_assets",
       "values": {
        "2026-03-31": 56020000.0,
-       "2025-03-31": 5024000.0,
+       "2025-03-31": null,
        "2024-03-31": 23761000.0,
        "2023-03-31": 300000.0,
-       "2022-03-31": null
+       "2022-03-31": 55499000.0
       }
      },
      {
@@ -1458,10 +1458,10 @@
       "label": "properties",
       "values": {
        "2026-03-31": 0.0,
-       "2025-03-31": 0.0,
+       "2025-03-31": null,
        "2024-03-31": 0.0,
        "2023-03-31": 0.0,
-       "2022-03-31": null
+       "2022-03-31": 0.0
       }
      },
      {
@@ -1518,7 +1518,7 @@
       "label": "plant_property_equipment_gross",
       "values": {
        "2026-03-31": 495000.0,
-       "2025-03-31": 470000.0,
+       "2025-03-31": 449000.0,
        "2024-03-31": 329000.0,
        "2023-03-31": 329000.0,
        "2022-03-31": null
@@ -1718,7 +1718,7 @@
       "label": "payables",
       "values": {
        "2026-03-31": 25220000.0,
-       "2025-03-31": 18255000.0,
+       "2025-03-31": 7150000.0,
        "2024-03-31": 39301000.0,
        "2023-03-31": 14667000.0,
        "2022-03-31": null
@@ -1848,10 +1848,10 @@
       "label": "non_current_pension_and_other_postretirement_benefit_plans",
       "values": {
        "2026-03-31": 1821000.0,
-       "2025-03-31": 1944000.0,
+       "2025-03-31": null,
        "2024-03-31": 3773000.0,
        "2023-03-31": 0.0,
-       "2022-03-31": null
+       "2022-03-31": 32347000.0
       }
      },
      {
@@ -2096,7 +2096,7 @@
   "cashflow": {
    "url": "http://127.0.0.1:52313/fundamentals/NAPEROL/cashflow",
    "status": 200,
-   "elapsed_ms": 430,
+   "elapsed_ms": 268,
    "body": {
     "symbol": "NAPEROL.BO",
     "periods": [
@@ -2569,7 +2569,7 @@
   "ratings": {
    "url": "http://127.0.0.1:52313/fundamentals/NAPEROL/ratings",
    "status": 200,
-   "elapsed_ms": 401,
+   "elapsed_ms": 532,
    "body": {
     "symbol": "NAPEROL.BO",
     "consensus": null,
@@ -2581,7 +2581,8 @@
     "hold": 0,
     "sell": 0,
     "strong_sell": 0,
-    "provider": "yfinance"
+    "provider": "yfinance",
+    "as_of": "2026-09-26T01:04:06.516537Z"
    },
    "polite": {
     "yahoo_open": false,
@@ -2591,7 +2592,7 @@
   "shareholding": {
    "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=NAPEROL",
    "status": 502,
-   "elapsed_ms": 105,
+   "elapsed_ms": 86,
    "body": {
     "detail": "The data provider returned an unexpected response.",
     "code": "provider_error",
@@ -2605,7 +2606,7 @@
   "announcements": {
    "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=NAPEROL&limit=25",
    "status": 200,
-   "elapsed_ms": 382,
+   "elapsed_ms": 420,
    "body": {
     "symbol": "NAPEROL",
     "exchange": null,
@@ -2819,7 +2820,7 @@
     "windows": {
      "BSE": {
       "window_start": "2026-04-30",
-      "window_end": "2026-09-25"
+      "window_end": "2026-09-26"
      }
     },
     "coverage": "covered",
@@ -2833,7 +2834,7 @@
   "results_calendar": {
    "url": "http://127.0.0.1:52313/disclosures/results?symbol=NAPEROL",
    "status": 200,
-   "elapsed_ms": 116,
+   "elapsed_ms": 212,
    "body": {
     "symbol": "NAPEROL",
     "count": 10,

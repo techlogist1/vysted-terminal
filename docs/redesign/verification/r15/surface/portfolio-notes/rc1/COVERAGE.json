@@ -11,9 +11,9 @@
    "tenth-item"
   ],
   "drive": "browser",
-  "notes": "Driven through the REAL PortfolioPanel in jsdom (harness/portfolio.s2c.test.tsx, adapted from census) against my own live sidecar (:52324, candidate 4097dac4). Census harness ported: aria-label 'Cost basis' -> 'Avg cost / share', delete control rewritten for the new ConfirmButton arm/confirm gate.",
-  "driven": "partial",
-  "evidence": "surface/portfolio-notes/rc1/portfolio-replay.json P1-P9; surface/portfolio-notes/rc1/sidecar-log-p8-wedged-window.log",
+  "notes": "Driven through the REAL PortfolioPanel in jsdom (harness/portfolio.s2c.test.tsx, adapted from census) against my own live sidecar (:52324, candidate 4097dac4). Census harness ported: aria-label 'Cost basis' -> 'Avg cost / share', delete control rewritten for the new ConfirmButton arm/confirm gate. ROUND 2 (candidate 4c6dfe8c): only PortfolioPanel.tsx changed in this group's scope since round 1 (git diff 4097dac4..4c6dfe8c) -- the P8 quote-refresh backlog guard cited below. Nothing else in the portfolio/notes surface (sidecar/routers/portfolio.py, src/modules/notes/**, ConfirmButton.tsx) has any diff, so round-1 states below stand unchanged except P8/quote-refresh.",
+  "driven": "ok",
+  "evidence": "surface/portfolio-notes/rc1/portfolio-replay.json P1-P9; surface/portfolio-notes/rc1/sidecar-log-p8-wedged-window.log; surface/portfolio-notes/rc1/round2-vitest-p8-fix-confirmed.log; surface/portfolio-notes/rc1/round2-diff-portfolio-panel.stat.txt",
   "states_driven": {
    "empty(no positions)": "ok (P1: EmptyState copy + CTA, Export disabled, 0 network calls -- unchanged from census)",
    "error(form validation)": "partial (P2: empty/qty0/neg-cost/abc/neg-qty rejected same as census; blank cost basis still saves as 0 -- R15-UI-078 form-path still open; agent-path negative cost basis now BLOCKED via host-actions.ts holdingProblem/portfolio_add_position, fixing the agent-path half of R15-UI-078's scope even though the register entry stays open pending the form-path fix)",
@@ -22,7 +22,7 @@
    "quote-transport-failure": "ok ('Couldn't refresh live quotes' style reason string now renders instead of a fabricated ₹0 total -- R15-UI-004/R15-UI-005 fixed)",
    "agent get_portfolio / host actions": "ok (publishedHoldings now carries holdings[i].id per row -- R15-AGENT-042 fixed; intent-gate classification of write/delete phrasings -- R15-AGENT-019 fixed, confirmed via code read of host-actions.ts and the N2 write-note live replay)",
    "sidecar /portfolio/positions CRUD": "broken-by-design-change (route is now GET-only; holdings truth moved entirely to the frontend workspace blob / Zustand store -- R15-CODE-PLATFORM-021, a confirmed architecture change not a bug; sidecar/tests/test_portfolio.py 18/18 pass on candidate)",
-   "quote auto-refresh under slow/unresolvable symbols": "broken (NEW DEFECT: unbounded in-flight backlog, no AbortController/overlap guard -- see rc1-drive-portfolio-notes:1)"
+   "quote auto-refresh under slow/unresolvable symbols": "ok (FIXED on candidate 4c6dfe8c: PortfolioPanel.tsx now has a quoteFetchInFlightRef guard -- the setInterval tick is skipped while the previous fan-out hasn't settled (PortfolioPanel.tsx:194, 229, 250, 269-271), same pattern as WatchlistPanel's existing inFlightRef. The fix's own test cites rc1-drive-portfolio-notes:1 by name and passes: 'skips a quote-refresh tick while the previous fan-out is still in flight, then refetches once it settles' -- re-ran the full PortfolioPanel.test.tsx + notes suites on the candidate worktree, 65/65 passed, see round2-vitest-p8-fix-confirmed.log. rc1-drive-portfolio-notes:1 is resolved, not re-filed as open.)"
   }
  },
  {

@@ -3,40 +3,45 @@
   "id": "panel-brief",
   "area": "brief",
   "surface": "Research Brief panel (lifecycle)",
-  "rc1_candidate": "4097dac423bd6d6fb49245e7ee9e0ab2bc64f18a",
-  "rc1_rig": "own sidecar from rc1-cand source on 127.0.0.1:52321, data dir scratchpad/rc1-data-rc1-drive-research-briefs (cp of rc1-seed-data, keyless), MCP env pointing at the shared read-only :52153/:52154 binaries.",
-  "method": "re-drove the exact repro prompts the census used to find SURF-RESEARCH-BRIEFS-1..13 (BDL DEEP paid, CG Power DEEP local-ollama, Kaynes ULTRA paid) via scripts/r15/surface/research-briefs/harness/turn.py (same frontend-accurate turn/ack player the census used), read back every publish_brief tool_use payload, and cross-referenced each of the 13 census raw findings against the register's fix_shape + closure commit before checking whether the candidate's source still contains the described bug or the fix.",
+  "rc1_candidate": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
+  "rc1_round1_candidate": "4097dac423bd6d6fb49245e7ee9e0ab2bc64f18a",
+  "rc1_rig": "own sidecar from rc1-cand source on 127.0.0.1:52321, data dir scratchpad/rc1-data-rc1-drive-research-briefs-r2 (fresh cp of rc1-seed-data, keyless), MCP env pointing at the shared read-only :52153/:52154 binaries.",
+  "method": "Gate round 2 re-drive. Diffed 4097dac4..4c6dfe8c for every file touched under sidecar/services/research/*, sidecar/services/agent_tools/{research,deep_research}.py, sidecar/services/correctness_gate.py, the new sidecar/services/figure_grounding.py, src/lib/host-actions.ts and src/modules/chat/streaming.ts to scope what could regress. Re-ran the census's three exact repro shapes (BDL DEEP paid, CG Power DEEP local-ollama, Kaynes ULTRA paid) via harness/turn.py against the new candidate, plus two direct code-level repros (services.research.verify._parse_verdict, services.research.finance.domain_tier, services.research.verify._split_claims) matching the register's own repro commands for R15-RESEARCH-002/004/007, and ran sidecar/tests/test_research_verify.py (25/25 passed).",
   "driven": "ok",
-  "evidence": "docs/redesign/verification/r15/surface/research-briefs/rc1/1-deep-bdl-4omini.stdout.txt; .../2-deep-cgpower-llama.stdout.txt; .../3-ultra-kaynes-4omini.stdout.txt; docs/redesign/verification/r15/rc1/drives/research-briefs.md",
+  "evidence": "docs/redesign/verification/r15/surface/research-briefs/rc1/r2/1-deep-bdl-4omini.stdout.txt; .../r2/2-deep-cgpower-llama.stdout.txt; .../r2/3-ultra-kaynes-4omini.stdout.txt; .../r2/4-search-status.json; .../r2/4-searxng-status.json; .../r2/5-badkey-humanize.txt; docs/redesign/verification/r15/rc1/drives/research-briefs.md (round 2 section)",
   "states_driven": {
    "empty": {
     "driven": "NOT TESTED",
-    "reason": "unchanged from census (no code touched this state on the fix commits in scope); not re-driven at rc1 to keep the budget on the fixed surfaces"
+    "reason": "unchanged from round 1; no code touched this state between 4097dac4 and 4c6dfe8c"
    },
    "streaming/loading": {
     "driven": "ok",
-    "evidence": "all three rc1 runs show live research_step/heartbeat progression before publish_brief (1-deep-bdl-4omini.stdout.txt, 2-deep-cgpower-llama.stdout.txt, 3-ultra-kaynes-4omini.stdout.txt)"
+    "evidence": "all three r2 runs show live research_step/heartbeat progression before publish_brief"
    },
    "populated": {
     "driven": "ok",
-    "evidence": "BDL DEEP (paid): 8 sources, citations [1]-[8] all resolve, structured news [8]=BDL's own Rs 811cr MoD contract (not a rival's) -- R15-RESEARCH-001/003 fixed. CG Power DEEP (local ollama): real synthesis in 36.5s (no 60s-timeout floor fallback) -- R15-RESEARCH-005 fixed. Kaynes ULTRA (paid, heavy mode): cross-check section keeps every figure intact (40.47%, ₹38.99bn, 8.87%, P/E 68.57) and the step trace says '0 verified, 5 unverified' (no longer falsely 'verified') -- R15-RESEARCH-004 fixed; 0 out-of-range markers, 0 model-written source lists in all three runs -- R15-RESEARCH-029 fixed."
+    "evidence": "BDL DEEP (paid): 9/26 sources cited, all in-range, no cross-entity misattribution (R15-RESEARCH-001/003 hold). CG Power DEEP (local ollama): real synthesis in 45.0s (well under the 150s cap), degraded_reason:null, honest 'not explicitly mentioned' for order-book/margins instead of the old structured-floor fabrication (R15-RESEARCH-005 holds). Kaynes ULTRA (paid, heavy mode): cross-check step 'checked 5 numeric claim(s): 0 verified, 5 unverified, 0 disagreement(s)' with every figure intact (40.5%, ₹9,604.48 million, 5.87%, ₹245.36 billion) -- R15-RESEARCH-002 (critical) and R15-RESEARCH-004 hold, confirmed both live and via direct _parse_verdict/_split_claims repro. Zero model-authored 'Merged Sources'/'References' sections in any of the 3 runs -- R15-RESEARCH-029 holds. domain_tier() repro: Medium/WordPress IR-shaped URLs now tier 3, below Reuters' tier 2 -- R15-RESEARCH-007 holds."
    },
    "error(image load errored :181)": {
     "driven": "NEEDS-GUI",
-    "reason": "unchanged from census -- jsdom never fires <img onError>, no GUI lane in Stage B/rc1 either"
+    "reason": "unchanged from census/round1 -- jsdom never fires <img onError>, no GUI lane"
    },
    "divergence-notice": {
     "driven": "partial",
-    "evidence": "src/modules/chat/message-notices.ts:63-69 now keys the notice on the runtime's structured step_kind:'notice' field (not the old regex) and message-notices.test.ts is a pinned test file -- code-verified fix for R15-UI-054; not re-triggered live at rc1 (would need a manufactured stale-ack race, out of this drive's time budget after the three DEEP/ULTRA runs)."
+    "evidence": "src/modules/chat/message-notices.ts byte-identical to round 1 (0 diff lines between 4097dac4 and 4c6dfe8c) -- R15-UI-054 fix unchanged, code-verified only, not re-triggered live (same budget tradeoff as round 1)"
    },
    "no-web-honest-banner(:701)": {
     "driven": "ok",
-    "evidence": "src/lib/host-actions.ts:287 (webAvailable = sources.length > 0 || web_available===true) and BriefPanel.tsx:746 are byte-identical to census -- R15-RESEARCH-041 (low, open, no closure commit) confirmed STILL OPEN as the register states; not a regression."
+    "evidence": "src/lib/host-actions.ts's webAvailable calc (sources.length > 0 || web_available===true) is functionally unchanged (the only r2 diff in this file is an unrelated region param for loadSymbolIntoChart, R15-DATA-002) -- R15-RESEARCH-041 (low, open) confirmed STILL OPEN, matches register; not a regression."
    }
   },
   "regressions_checked": {
-   "SURF-RESEARCH-BRIEFS-7 / R15-UI-080": "still open (low) -- BriefPanel.tsx FaviconDot (line ~196-215) still renders vysted:// rows through the Google favicon lookup, unchanged from census. Matches register status 'open'; not a regression."
+   "SURF-RESEARCH-BRIEFS-7 / R15-UI-080": "still open (low), BriefPanel.tsx FaviconDot unchanged between candidates; not a regression.",
+   "R15-AGENT-027 (401 humanize)": "ok -- vy.py --bad-key against openai on my own sidecar returns 'The OpenAI API key was rejected — check it in Settings.' / 'Re-enter the API key in Settings.'",
+   "R15-AGENT-046 (tool_call_id uniqueness)": "ok -- both the BDL (openai) and CG Power (ollama) runs' publish_brief ack id was '<unique-call-id>__autobrief', both acked 200 {\"ok\":true}.",
+   "R15-RESEARCH-028 (SearXNG honest status)": "ok -- /search/searxng/status on my own sidecar still reports state:degraded with per-engine CAPTCHA/suspension reasons, not a false 'ready'.",
+   "figure_grounding.py (new module, R15-LEAD-030)": "code-read only: wired exclusively into sidecar/services/agent_runtime.py's streaming-chat figure guard, not into the research/deep|fast|iter synthesis path that builds a brief's markdown -- no brief-pipeline regression surface from this new module. LEAD-030 itself is blocked_tier4 per the operator's Gate Round 2 note; out of scope for a fix round."
   },
-  "new_finding": "rc1-research-briefs:1 -- see findings file"
+  "new_finding": "rc1-drive-research-briefs:2 (medium, new_defect) -- see docs/redesign/verification/r15/rc1/findings/rc1-drive-research-briefs.json. The round-1 finding (rc1-drive-research-briefs:1, coverage-note false-web-only) is FIXED in this candidate: sidecar/services/research/deep.py now has structured_source_gathered() wired into web_only_floor_note(), landed at commit 83ec78e8."
  }
 ]

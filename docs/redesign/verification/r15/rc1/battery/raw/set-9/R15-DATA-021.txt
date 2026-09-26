@@ -1,7 +1,18 @@
-2021-09-30: institutions_percent=None split_source=None (days from BSE quarter=1188)
-2022-06-30: institutions_percent=None split_source=None (days from BSE quarter=915)
-2022-12-31: institutions_percent=None split_source=None (days from BSE quarter=731)
-2023-06-30: institutions_percent=None split_source=None (days from BSE quarter=550)
-2023-12-31: institutions_percent=None split_source=None (days from BSE quarter=366)
-2024-06-30: institutions_percent=None split_source=None (days from BSE quarter=184)
-2024-09-30: institutions_percent=43.86 split_source=BSE (days from BSE quarter=92)
+$ grep -n "_SPLIT_MERGE_MAX_DAYS" sidecar/services/corporate_disclosures.py
+1228:_SPLIT_MERGE_MAX_DAYS = 100
+(and the merge function body at :1231-1280 unchanged: nearest-BSE-quarter search,
+100-day bound check, split_source="BSE" + split_as_of stamping, no-op on BSE
+lane failure/exception -- byte-identical logic to the batch-3-certified shape)
+
+$ curl -s -m 10 -w "HTTP:%{http_code}" -A Mozilla/5.0 https://api.bseindia.com/BseIndiaAPI/api/AnnGetData/w?...
+<HTML>Access Denied (Akamai)</HTML>
+HTTP:403
+
+BSE api.bseindia.com SHP/scrip-header endpoints are still 403-blocked (Akamai) from
+this IP this session -- the same environment condition every prior batch (3, 11)
+recorded, and the same block the ORIGINAL DATA-021 certification itself worked
+around (it substituted a refuter-quoted BSE row because the live index was 403
+"at verification time"). A full live re-derivation with real BSE rows is blocked
+by this same upstream condition; the merge function's code path (the part that
+does NOT depend on live BSE reachability) is confirmed byte-identical to the
+certified shape above.

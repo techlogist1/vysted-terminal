@@ -1,0 +1,127 @@
+[
+  {
+    "key": "rc1-vshard-1:1",
+    "kind": "new_defect",
+    "severity": "high",
+    "register_id": null,
+    "title": "BSE shareholding-pattern index fetched with plain httpx gets 403 Access Denied live: no FII/DII split for any name, BSE-only shareholding provider_error",
+    "repro": "sidecar/.venv/bin/python3 verifier/shard-1-evidence/bseprobe.py @81fbfe91 -> bse_provider._http_get('https://api.bseindia.com/BseIndiaAPI/api/SHPQNewFormat/w?scripcode=530017') 403 'Access Denied'; bse_provider._api_json('SHPQNewFormat/w', {'scripcode':'530017'}) 200 with data. GET :52601 shareholding ELCIDIN (503681, BSE-only) -> provider_error; SIL/DIXON split fields all None.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/d021diag.txt",
+    "suspected_files": [
+      "sidecar/services/bse_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "INFY.NS earnings estimate labels an INR revenue estimate (491,180,745,790 = Rs 49,118 cr) as revenue_currency USD, so the grid renders about $491B",
+    "repro": "curl :52601/earnings/INFY/estimates @81fbfe91 -> symbol INFY.NS, currency INR, revenue_estimate_mean 491180745790, revenue_currency USD. yfinance: INFY.NS financialCurrency USD, quarterly Total Revenue 5.08e9 (USD), calendar 'Revenue Average' 4.91e11 (INR, trading currency). _revenue_currency applies financialCurrency to the calendar figure, which Yahoo quotes in the trading currency.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/d029-infy.txt",
+    "suspected_files": [
+      "sidecar/services/earnings_provider.py",
+      "src/modules/earnings/EpsEstimateGrid.tsx"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:3",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-UI-090",
+    "title": "UI-090 not certified: non-US, non-IN listings (BHP.AX, VOD.L) still read 'live' after their own exchange closes, because instrument_region defaults everything non-IN to the US calendar",
+    "repro": "verifier/shard-1-evidence/ui090.py @81fbfe91 (in-process, frozen clock in US hours): locale.instrument_region('BHP.AX') and ('VOD.L') -> US; freshness_for -> live while ASX closed since 06:10Z and LSE closed. Literal AAPL@NSE-hours -> eod holds; ^NSEI/^NSEBANK/^CNXIT/^INDIAVIX live under IN and US holds. Live :52601 /quote serves BHP.AX and VOD.L via yfinance.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/ui090.txt",
+    "suspected_files": [
+      "sidecar/services/locale.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:4",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-AGENT-010",
+    "title": "AGENT-010 fix_shape part unfixed: yf.Search still has no explicit timeout (yfinance default 30 s)",
+    "repro": "sed -n 1574p sidecar/services/symbol_resolver.py @81fbfe91 -> yf.Search(query, max_results=5, news_count=0) with no timeout. Loop stall itself is fixed (a010.py: 17 ms loop lag with a 1 s blocking stub; raising resolver -> ok:false).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/a010.txt",
+    "suspected_files": [
+      "sidecar/services/symbol_resolver.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:5",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": null,
+    "title": "Research news-lane sources drop published_at and carry a feed label as domain ('Yahoo! Finance: DIXON News'); filing-floor rows carry the date only inside the excerpt",
+    "repro": "verifier/shard-1-evidence/research024.txt and r016-jonjua.txt @81fbfe91: deep._record_structured builds news ResearchSource with domain=item['source'] and no published_at; disclosures.announcement_rows floor rows have published_at None.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/research024.txt",
+    "suspected_files": [
+      "sidecar/services/research/deep.py",
+      "sidecar/services/research/iter.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:6",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "web_search category (news/financial) never reaches any backend: dispatch passes 'category', SearXNG reads 'categories', other backends ignore it",
+    "repro": "grep -n categor sidecar/services/search/searxng.py sidecar/services/agent_tools/web_search.py @81fbfe91 -> opts.get('categories') vs dispatch key 'category'.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/research020.txt",
+    "suspected_files": [
+      "sidecar/services/search/searxng.py",
+      "sidecar/services/agent_tools/web_search.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:7",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "DAL fundamentals withhold the 52-week range but still ship 52-week high/low dates (2025-09-25, a forward-filled bar) and fifty_two_week_change 0.0 with status ok",
+    "repro": "curl :52601 fundamentals DAL @81fbfe91 -> fifty_two_week_high/low withheld 'no trades in 52 weeks (last trade 2025-03-12)', fifty_two_week_high_date/low_date 2025-09-25 ok, fifty_two_week_change 0.0 ok.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/d016-dal.json",
+    "suspected_files": [
+      "sidecar/services/yfinance_provider.py",
+      "sidecar/services/correctness_gate.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:8",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "Sibling stream consumers still surface raw FastAPI error bodies: workflow runWorkflow throws the raw text, screener stream interpolates a 422 detail array",
+    "repro": "curl -X POST :52601/workflow/run -d '{\"spec\":{}}' -> 422 JSON array; src/store/workflow.ts runWorkflow !ok -> throw new Error(_safeText(response)) (raw 500 chars). curl POST :52601/screener/run/stream with value 'abc' -> 422 array; src/store/screener.ts sets detail = parsed.detail (array) -> '[object Object],...'. Neither uses extractSidecarDetail.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1.md",
+    "suspected_files": [
+      "src/store/workflow.ts",
+      "src/store/screener.ts"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:9",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-CODE-AGENT-018",
+    "title": "CODE-AGENT-018 still reproduces (register status open, never certified): _STAGEABLE_PLAN_ACTIONS and _READ_SAFE_PANEL_ACTIONS identical with no stated relation or pinning test",
+    "repro": "PYTHONPATH=sidecar python3 -c 'from services import agent_runtime as a; print(a._STAGEABLE_PLAN_ACTIONS == a._READ_SAFE_PANEL_ACTIONS)' @81fbfe91 -> True",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/cagent018-020.txt",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-1:10",
+    "kind": "regression",
+    "severity": "low",
+    "register_id": "R15-CODE-AGENT-020",
+    "title": "CODE-AGENT-020 still reproduces (register status open, never certified): get_provider drops base_url for gemini and groq",
+    "repro": "sed -n on sidecar/services/llm/__init__.py @81fbfe91 -> get_provider returns GeminiProvider() / GroqProvider() without base_url",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-1-evidence/cagent018-020.txt",
+    "suspected_files": [
+      "sidecar/services/llm/__init__.py"
+    ]
+  }
+]

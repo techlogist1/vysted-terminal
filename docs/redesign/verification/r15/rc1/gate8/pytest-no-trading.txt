@@ -20,4 +20,4 @@ tests/test_no_trading_surface.py::test_tracked_portfolio_legacy_ledger_still_imp
     from starlette.testclient import TestClient as TestClient  # noqa
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-========================= 8 passed, 1 warning in 1.77s =========================
+========================= 8 passed, 1 warning in 1.78s =========================

@@ -1,0 +1,73 @@
+# candidate 81fbfe910d472ecd154fa62e42d86bce213a697e, candidate venv, in-process: strip_invalid_markers(strip_model_bibliography(expand_marker_groups(md))[0], n) == ensure_citation_integrity's structural pass
+--- finding (a) BDL literal (sources=32)
+ in : 'an operating margin of 10.98% [New findings]. Dividend per Share: ₹4.90 [New findings].'
+ out: 'an operating margin of 10.98%. Dividend per Share: ₹4.90.'  removed=2 bib/literal=0
+--- finding (b) Kaynes literal (sources=25)
+ in : 'P/E of 71.23 [2, 3]. Margin [2, 4].'
+ out: 'P/E of 71.23 [2][3]. Margin [2][4].'  removed=0 bib/literal=0
+--- triage: range hyphen (sources=5)
+ in : 'Revenue grew 18% [2-4].'
+ out: 'Revenue grew 18% [2][3][4].'  removed=0 bib/literal=0
+--- triage: range en dash (sources=5)
+ in : 'Revenue grew 18% [2–4].'
+ out: 'Revenue grew 18% [2][3][4].'  removed=0 bib/literal=0
+--- triage: out-of-range range (sources=5)
+ in : 'Order book [7-9].'
+ out: 'Order book.'  removed=3 bib/literal=0
+--- triage: mixed group (sources=5)
+ in : 'Sales rose [1, 3-4].'
+ out: 'Sales rose [1][3][4].'  removed=0 bib/literal=0
+--- triage: label then marker (sources=5)
+ in : 'Margin 10.98% [New findings][2].'
+ out: 'Margin 10.98% [2].'  removed=1 bib/literal=0
+--- triage: label then out-of-range (sources=5)
+ in : 'Margin 10.98% [Web evidence][9].'
+ out: 'Margin 10.98%.'  removed=2 bib/literal=0
+--- triage: basis qualifier (must survive) (sources=5)
+ in : 'Yield 0.43% [basis: fraction of price].'
+ out: 'Yield 0.43% [basis: fraction of price].'  removed=0 bib/literal=0
+--- triage: ticker (must survive) (sources=5)
+ in : 'BDL [NSE: BDL] trades at 1155 [1].'
+ out: 'BDL [NSE: BDL] trades at 1155 [1].'  removed=0 bib/literal=0
+--- triage: editorial (must survive) (sources=5)
+ in : 'He said [the Company] expects growth [1].'
+ out: 'He said [the Company] expects growth [1].'  removed=0 bib/literal=0
+--- FRESH: descending spaced range (sources=5)
+ in : 'EBITDA rose [4 - 2].'
+ out: 'EBITDA rose [2][3][4].'  removed=0 bib/literal=0
+--- FRESH: straddling range, 3 sources (sources=3)
+ in : 'Capex guidance [2–4] and order inflow [3;1].'
+ out: 'Capex guidance [2][3] and order inflow [3][1].'  removed=1 bib/literal=0
+--- FRESH: dense no-space group (sources=6)
+ in : 'ROE 21% [1,3,5-6].'
+ out: 'ROE 21% [1][3][5][6].'  removed=0 bib/literal=0
+--- FRESH: Title-case other label (sources=8)
+ in : 'Net debt nil [Current Report]. Capex [Working Report].'
+ out: 'Net debt nil. Capex.'  removed=2 bib/literal=0
+--- FRESH: marker then label (sources=8)
+ in : 'Order book ₹23,000 cr [1][Panel reports].'
+ out: 'Order book ₹23,000 cr [1].'  removed=1 bib/literal=0
+--- FRESH: long label + group (sources=8)
+ in : 'Guidance raised [New findings this round][2, 3].'
+ out: 'Guidance raised [2][3].'  removed=1 bib/literal=0
+--- FRESH: Known sources / the sources this round (sources=8)
+ in : 'Stake sale [Known sources]. Promoter pledge nil [the sources this round].'
+ out: 'Stake sale. Promoter pledge nil.'  removed=2 bib/literal=0
+--- FRESH: lower-case source (observed 8x in corpus) (sources=8)
+ in : 'Revenue up 12% [source].'
+ out: 'Revenue up 12%.'  removed=1 bib/literal=0
+--- FRESH: markdown link (must survive) (sources=8)
+ in : 'See [the filing](https://example.com) [1].'
+ out: 'See [the filing](https://example.com) [1].'  removed=0 bib/literal=0
+--- FRESH: reference-style def (must survive) (sources=8)
+ in : '[Sources]: https://example.com'
+ out: '[Sources]: https://example.com'  removed=0 bib/literal=0
+--- FRESH: bibliography + [n] literal (sources=8)
+ in : 'Margin up [n] 3.\n\nSources:\n1. a\n2. b'
+ out: 'Margin up.'  removed=0 bib/literal=2
+--- FRESH adjacent: year range (must survive) (sources=8)
+ in : 'Revenue CAGR [2019-2024] was 14% [1].'
+ out: 'Revenue CAGR [2019-2024] was 14% [1].'  removed=0 bib/literal=0
+--- FRESH adjacent: sic/Note (must survive) (sources=8)
+ in : 'Revenue [Note: consolidated] rose 12% [2]. [sic]'
+ out: 'Revenue [Note: consolidated] rose 12% [2]. [sic]'  removed=0 bib/literal=0

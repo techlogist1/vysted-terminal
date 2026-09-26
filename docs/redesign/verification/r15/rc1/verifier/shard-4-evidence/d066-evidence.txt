@@ -1,0 +1,10 @@
+sha 81fbfe910d472ecd154fa62e42d86bce213a697e (rc1-4c6dfe8-fix-int), own sidecar :52604, Sat 26 Sep 2026 IST (market closed)
+1) entry batch (20 NIFTY names HDFCBANK..POWERGRID), 09:41:30: cold 81.50s 200 (20 quotes, nse_direct); warm 0.0022s 200  -> EOD cache leg holds
+   concurrent GET /quotes/RELIANCE.NS (EOD-cached, 0.002s idle) during that cold batch: curl timed out at 30.01s (000)
+2) fresh batch (20 other NIFTY names ADANIENT..ONGC), 09:43:40:
+   pre:    cached RELIANCE.NS single 0.002291s 200
+   cold2 batch 22.727416s 200
+   during: cached RELIANCE.NS single 5.546775s 200
+   during: /history/RELIANCE.NS?range=1mo 14.284169s 200
+   after:  cached RELIANCE.NS single 0.0018s / 0.0012s / 0.0012s
+Code: sidecar/services/nse_provider.py _Throttle.wait() reserves the slot under the lock and then time.sleep()s OUTSIDE the lock but still INSIDE the asyncio.to_thread worker (routers/quotes.py get_quotes fans out one to_thread per symbol), so 20 queued names park the default executor's threads for up to ~20 x 1.2 s; fix_shape leg 'move the throttle wait off the executor' is not delivered.

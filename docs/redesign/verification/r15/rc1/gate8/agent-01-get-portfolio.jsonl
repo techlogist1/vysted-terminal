@@ -2,117 +2,88 @@
 {"kind": "heartbeat"}
 {"kind": "heartbeat"}
 {"kind": "heartbeat"}
-{"kind": "tool_use", "tool_call_id": "call_1292a57a31504a4fa704decc1454d057", "name": "get_portfolio", "input": {}}
-{"kind": "delta", "text": "To"}
-{"kind": "delta", "text": " see"}
-{"kind": "delta", "text": " the"}
-{"kind": "delta", "text": " current"}
-{"kind": "delta", "text": " holdings"}
-{"kind": "delta", "text": " in"}
-{"kind": "delta", "text": " your"}
+{"kind": "tool_use", "tool_call_id": "call_e23cc19d565e4d048047c5182e737ed9", "name": "get_portfolio", "input": {}}
+{"kind": "tool_result", "tool_call_id": "call_e23cc19d565e4d048047c5182e737ed9", "name": "get_portfolio", "ok": true, "error": null}
+{"kind": "delta", "text": "Your"}
 {"kind": "delta", "text": " portfolio"}
-{"kind": "delta", "text": ","}
-{"kind": "delta", "text": " I"}
-{"kind": "delta", "text": "'ve"}
-{"kind": "delta", "text": " opened"}
-{"kind": "delta", "text": " the"}
-{"kind": "delta", "text": " Portfolio"}
-{"kind": "delta", "text": " panel"}
-{"kind": "delta", "text": "."}
-{"kind": "delta", "text": " The"}
-{"kind": "delta", "text": " live"}
-{"kind": "delta", "text": " values"}
-{"kind": "delta", "text": " for"}
-{"kind": "delta", "text": " each"}
-{"kind": "delta", "text": " holding"}
-{"kind": "delta", "text": " are"}
-{"kind": "delta", "text": " not"}
-{"kind": "delta", "text": " marked"}
-{"kind": "delta", "text": "-to"}
-{"kind": "delta", "text": "-market"}
-{"kind": "delta", "text": ","}
-{"kind": "delta", "text": " so"}
-{"kind": "delta", "text": " you"}
-{"kind": "delta", "text": " can"}
-{"kind": "delta", "text": " open"}
-{"kind": "delta", "text": " the"}
-{"kind": "delta", "text": " panel"}
-{"kind": "delta", "text": " to"}
-{"kind": "delta", "text": " view"}
-{"kind": "delta", "text": " the"}
-{"kind": "delta", "text": " latest"}
-{"kind": "delta", "text": " information"}
-{"kind": "delta", "text": ".\n\n"}
-{"kind": "delta", "text": "Here"}
-{"kind": "delta", "text": " is"}
-{"kind": "delta", "text": " a"}
-{"kind": "delta", "text": " summary"}
+{"kind": "delta", "text": " contains"}
+{"kind": "delta", "text": " two"}
+{"kind": "delta", "text": " positions"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": " shares"}
 {"kind": "delta", "text": " of"}
-{"kind": "delta", "text": " your"}
-{"kind": "delta", "text": " holdings"}
-{"kind": "delta", "text": ":\n\n"}
-{"kind": "delta", "text": "*"}
 {"kind": "delta", "text": " Apple"}
 {"kind": "delta", "text": " ("}
 {"kind": "delta", "text": "AAP"}
 {"kind": "delta", "text": "L"}
 {"kind": "delta", "text": ")"}
-{"kind": "delta", "text": " -"}
-{"kind": "delta", "text": " "}
-{"kind": "delta", "text": "8"}
-{"kind": "delta", "text": " shares"}
-{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
 {"kind": "delta", "text": " cost"}
 {"kind": "delta", "text": " basis"}
-{"kind": "delta", "text": ":"}
-{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " $"}
 {"kind": "delta", "text": "190"}
-{"kind": "delta", "text": " per"}
-{"kind": "delta", "text": " share"}
-{"kind": "delta", "text": "\n"}
-{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " unknown"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "20"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": " of"}
 {"kind": "delta", "text": " Infos"}
 {"kind": "delta", "text": "ys"}
 {"kind": "delta", "text": " ("}
 {"kind": "delta", "text": "INF"}
 {"kind": "delta", "text": "Y"}
 {"kind": "delta", "text": ")"}
-{"kind": "delta", "text": " -"}
-{"kind": "delta", "text": " "}
-{"kind": "delta", "text": "20"}
-{"kind": "delta", "text": " shares"}
-{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
 {"kind": "delta", "text": " cost"}
 {"kind": "delta", "text": " basis"}
-{"kind": "delta", "text": ":"}
-{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " $"}
 {"kind": "delta", "text": "150"}
 {"kind": "delta", "text": "0"}
-{"kind": "delta", "text": " per"}
-{"kind": "delta", "text": " share"}
-{"kind": "delta", "text": "\n\n"}
-{"kind": "delta", "text": "To"}
-{"kind": "delta", "text": " see"}
-{"kind": "delta", "text": " the"}
-{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " unknown"}
 {"kind": "delta", "text": " market"}
 {"kind": "delta", "text": " value"}
-{"kind": "delta", "text": " and"}
-{"kind": "delta", "text": " any"}
-{"kind": "delta", "text": " changes"}
-{"kind": "delta", "text": " in"}
-{"kind": "delta", "text": " profit"}
-{"kind": "delta", "text": "/"}
-{"kind": "delta", "text": "loss"}
-{"kind": "delta", "text": " for"}
-{"kind": "delta", "text": " each"}
-{"kind": "delta", "text": " holding"}
-{"kind": "delta", "text": ","}
-{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Note"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " total"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " marked"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-market"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "You"}
 {"kind": "delta", "text": " can"}
 {"kind": "delta", "text": " open"}
 {"kind": "delta", "text": " the"}
 {"kind": "delta", "text": " Portfolio"}
 {"kind": "delta", "text": " panel"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " view"}
+{"kind": "delta", "text": " live"}
+{"kind": "delta", "text": " values"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " details"}
 {"kind": "delta", "text": "."}
-{"kind": "done", "usage": {"input_tokens": 3000, "output_tokens": 113, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+{"kind": "done", "usage": {"input_tokens": 3066, "output_tokens": 82, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

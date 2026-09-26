@@ -1,0 +1,2 @@
+src/components/PluginManagerPanel.test.tsx:118:  it("toggling an active plugin off persists enabled:false and detaches it (R15-CODE-PLATFORM-012)", async () => {
+src/lib/plugin-runtime.test.ts:585:  it("disablePlugin persists enabled:false and detaches the plugin's contributions", async () => {

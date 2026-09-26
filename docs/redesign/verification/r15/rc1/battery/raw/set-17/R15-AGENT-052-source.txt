@@ -1,0 +1,3 @@
+src/modules/equity-overview/EquityOverviewPanel.tsx:619:      source: busSource,
+src/modules/backtest/BacktestResultView.tsx:429:      source: BUS_SOURCE,
+src/modules/chart/ChartPanel.tsx:1030:      source: panelId,

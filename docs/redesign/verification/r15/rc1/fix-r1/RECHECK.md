@@ -1,34 +1,38 @@
-# RC1 fix round 1 — recheck
+# RC1 fix round 1 (gate round 2): recheck
 
-Rechecker: rc1-fix-r1-recheck (Opus, fresh). Candidate `b0f2b256f2fc2379f742bf9e0687eb54db44d290`
-(worktree `scratchpad/rc1-4097dac-fix-int`, used read-only). Own sidecar from that source on
-`:52336`, with a fresh seed-data copy (`scratchpad/rc1-data-rc1-fix-r1-recheck`). There was no GUI,
-so the frontend behaviour was checked with vitest in a scratch copy
-(`scratchpad/recheck-fe`, `node_modules` symlinked, nothing written in the worktree). Evidence is
-in `fix-r1/recheck/`, the working log is `../logs/rc1-fix-r1-recheck.md`, and new findings are in
-`../findings/rc1-fix-r1-recheck.json`.
+The rechecker was rc1-fix-r1-recheck (Opus, fresh). The candidate was
+`ca6ec990d226bb8a3ba2eb2cc89b5af056a6e19c`, from worktree `scratchpad/rc1-4c6dfe8-fix-int`,
+which was used read-only. I ran my own sidecar from that source on `:52336`, with a fresh seed
+copy in `scratchpad/rc1-data-rc1-fix-r1-recheck`. The evidence is in `fix-r1/recheck/gr2-*`,
+the working log is `../logs/rc1-fix-r1-recheck.md` (gate round 2 section), and the new findings
+are in `../findings/rc1-fix-r1-recheck.json`. This file replaces the 25 Sep recheck for
+`b0f2b256`, which is in git at `b2cfbb68`.
 
-Chain status at b0f2b256: `ci-local.log` ends `CI_EXIT=0 run=2 head=b0f2b256…`, and `smoke.log`
-ends `SMOKE_EXIT=0 head=b0f2b256…`.
+There was no GUI, so the frontend net was checked by running the candidate's own
+`src/lib/brief-ingest.ts` under node type-stripping in a scratch directory. The backend net ran
+in-process with the candidate venv.
+
+**Chain status at ca6ec990.** `ci-local.log` shows `CI_EXIT=0` twice (02:51:38Z and
+02:58:25Z). `smoke.log` shows `SMOKE_EXIT=0` (02:54:04Z).
 
 | key | repro | observed | verdict |
 |---|---|---|---|
-| rc1-gate8:1 | Open docs/README.md:32, then docs/PHASE_10_HANDOFF.md:116-140 at b0f2b256. On the running app, check openapi and `/custom-agents/tool-ids` for broker/order surfaces. Variant: every non-archive `docs/*.md` that mentions kite, /brokers, broker_portfolio or place_order. | The handoff has a D81 "Historical" banner at :3 and at §3 :123. The README row reads "Historical phase handoff … its §3 broker/Kite content is superseded by D81". The app serves 101 openapi paths and none is a broker, order or kite route. Its 56 tool ids include no broker, order, trade or kite tool. Variant: CURRENT_STATE, PHASE_10_HANDOFF, README and SAFETY_ARCHITECTURE all carry D81. | **fixed** |
-| rc1-datapack:1 | `GET /fundamentals/SIFY` and `/fundamentals/VERTEX` on :52336. Variant: RIVN, a US loss-maker that was not in the fixtures. Positive controls: AAPL, TCS.NS and IDEA.NS. | SIFY (eps -0.13), VERTEX (eps -0.25) and RIVN (eps -2.64) all return `pe_ratio: null` with field_meta `{status: unavailable, reason: "P/E not meaningful for a loss-making company (negative EPS)"}`. AAPL (38.6), TCS.NS (15.2) and IDEA.NS (4.17) keep status ok. | **fixed** |
-| rc1-drive-portfolio-notes:1 | There is no GUI. Ran vitest `src/modules/portfolio/` in a scratch copy of the frontend at b0f2b256, with the pinned test plus a scratch variant: holdings change while a fan-out is in flight, and the live fan-out later rejects. Live side: one quote fan-out on :52336 for the finding's 9 no-EOD symbols plus RELIANCE.NS. | 50/50 passed, including the pinned "skips a quote-refresh tick…" test and the variant. The stale fan-out settling late does not reopen the gate. A rejected live fan-out reopens it, and exactly one refetch follows per tick. The live fan-out took 58 s wall and every symbol returned 200. With the guard that is one fan-out per ~58 s. Before the fix, 5 s ticks would have stacked about 11. | **fixed** |
-| rc1-drive-research-briefs:1 | **Exact repro, twice:** `vy invoke copilot 'Bharat Dynamics — order book, margins and valuation' --provider openai --model gpt-4o-mini --autonomy auto --options '{"research_depth":"deep"}'` on :52336. **Forced precondition:** the W1 25 s box now usually lets the snapshot succeed, so the snapshot-fails path was forced. My own sidecar was rebooted from the same source through `scratchpad/recheck/patched_main.py`, which sets `iter.DEEP_SNAPSHOT_LEG_TIMEOUT_S = 0.001`. Then ran `vy invoke copilot 'Run a deep research brief: Bharat Dynamics — order book, margins and valuation'` with the same options. | **Exact repro:** gpt-4o-mini answered from fundamentals/financial_statements both times and never called `research`, so the note path was not exercised. **Forced run** (IterResearch, 194 s): `structured.price` and `structured.fundamentals` both "timed out after 0.001s — dropped", which is the finding's precondition. The researcher legs recorded `vysted://price/BDL` [20] and `vysted://fundamentals/BDL` [21], and the brief leads with "Share Price: ₹1155.0". The published markdown has **no** "web sources alone" / Coverage note, and `note` is null. The negative case (web-only keeps the note) is pinned by the W1 tests, which are green in ci-local at b0f2b256. | **fixed** |
-| rc1-scenarios:5 | `vy invoke copilot "How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?"` on :52336. Run once on llama3.1:8b/Ollama and once on nvidia/nemotron-3-super-120b-a12b:free (OpenRouter), autonomy ask. In-process, compared `_model_facing_content` for the `fundamentals` and `financial_statements` results. | **llama3.1:8b:** called `financial_statements` (SIFY income, annual) and answered "SIFY's TTM revenue is **$44.877 billion**" and "there are **5 ADRs per share**". **nemotron:** its fundamentals read made it fetch a USD/INR rate, then it hit the 6-round cap without an answer. **In-process:** the `fundamentals` result now reads revenue_ttm "₹4,651 cr", so W2 works for that tool. The `financial_statements` result has no currency key and passes total_revenue 44877000000.0 (INR) raw. This is the same AGENT-001 class on a sibling tool the fix does not cover. The ADR-ratio half still reproduces (recorded as model capability). Filed as rc1-fix-r1-recheck:1. | **still failing** |
-| rc1-drive-onboarding-stranger:1 | The exact keyless prompt, run 6 times on llama3.1:8b via :52336. In-process `rescue_leaked_tool_call` on the original assistant text, 2 fresh call-syntax forms and 4 negatives. Variant prompt: "how is Tata Motors stock doing today?" (run twice). | **In-process:** the original text rescues to `price_data {symbol: ZOMATO.NS}`. `news(symbols=[…], limit=5)` and inline `fundamentals(symbol='HDFCBANK.NS')` also rescue. A bare name, a name not offered, a positional arg and an expression all stay text. **Live:** runs 1-5 were honest, and in run 5 two leaked JSON calls were rescued into real calls. **Run 6 reproduces the harm.** Only get_terminal_state was called, and the text says "Here are the results: … Fetching price data for Zomato (ZOMATO.NS)… The current price of Zomato's stock is ₹157.30 per share … my knowledge cutoff is December 2023". **Tata Motors variant run 1:** "currently at ₹443.15", which matches no served value (TMPV.NS = ₹295). **Code path:** ollama.py:257-264 streams every delta before the rescue, so a leaked call's hand-typed result still reaches the user. Filed as rc1-fix-r1-recheck:2. | **still failing** |
-| rc1-battery-4:1 | In-process with the candidate venv and a fresh seed copy: cold `gather(price_data, fundamentals)` for RELIANCE, then `snapshot_structured(…, region='IN')` for cold BHEL and COALINDIA under the DEEP box and for NTPC under the default box. Live FAST check: `vy invoke copilot 'Research Cochin Shipyard — order book, margins and valuation' --options '{"research_depth":"normal"}'` (gpt-4o-mini). | **Pacer:** the gather took 21.8 s with both legs ok, so pacer queueing is still real, as designed. **DEEP box (25 s):** BHEL finished in 24.8 s and COALINDIA in 30.5 s, all legs ok. The deep, iter, heavy and Tier B callers pass it (all 4 call sites checked). **Default (FAST) box:** NTPC price and fundamentals were both "timed out after 6s — dropped". **Live FAST:** Cochin showed "price timed out after 6s — dropped", "fundamentals timed out after 6s — dropped" and "pulled 2/4 data sources". The model then fetched both itself and they succeeded, so the data was available. The finding's literal call still drops on FAST, which triage scoped out under FR-070. Filed as rc1-fix-r1-recheck:3. | **still failing** (FAST path; the DEEP half is fixed) |
+| rc1-drive-research-briefs:2 | **Literal repro, in-process.** Ran the finding's tokens through both nets: `[New findings]` (BDL) and `[2, 3]` / `[2, 4]` (Kaynes), plus the triage string. **Literal repro, live on :52336** (gpt-4o-mini, auto, acked through `harness/turn.py`). The exact BDL deep prompt did not call `research`. It was re-run as "Run a deep research brief: Bharat Dynamics — …" (`gr2-1b`). Kaynes ran at ultra, and with "Run an ultra (heavy) research brief: …" (`gr2-3b`). **Fresh live variant:** HAL deep (`gr2-4`). **Fresh class cases, in-process:** range groups `[2-4]`, `[2–4]` and `[7-9]` (5 sources); `[New findings][2]`; `[Web evidence][9]`; ULTRA `_remap_markers` on `[1-2]`. **Adjacent:** the finding's own BDL brief markdown was pushed through the candidate nets (`gr2-original-bdl-brief-through-candidate.txt`), plus `[NSE: BDL]` and `[Note: consolidated]`. | **Literal holds.** In the backend, `[New findings]` is stripped. `[2, 3]` becomes `[2][3]`, and `[6][New findings]` becomes `[6]`. In the frontend, `[New findings]` becomes `[?]` and is counted broken, and `[2, 3]` becomes two chips. **Live:** BDL (31 sources, markers 1/2/18/27), Kaynes ULTRA (25 sources, markers 1-3) and HAL (9 sources) all published cleanly. Citecheck stripped 0 out-of-range markers. No pseudo or group token appeared, so the live runs did not exercise the new rules. **Class NOT fixed:** `[2-4]`, `[2–4]` and out-of-range `[7-9]` ship verbatim in both nets. They are never range-checked, and countBroken is 0. In ULTRA, `[1-2]` keeps the angle-local numbering, while `[1, 2]` remaps to `[3][1]`. `[New findings][2]` ships verbatim, because the `(?![(\[:])` lookahead spares it. `[Web evidence][9]` leaves `[Web evidence]` in the backend and `[Web evidence][?]` in the frontend. **Adjacent breakage:** the pseudo rule matches any bracket token that starts with a letter. On the finding's own BDL brief, the backend deletes `[basis: fraction of price]` and `[basis: trailing 52 weeks]`, which carry the basis disclosure fed by `semantics.py:1290`. The frontend renders both as `[?]` and counts 9 broken citations, 2 of them false. `[NSE: BDL]` and `[Note: consolidated]` are deleted or flagged the same way. | **not certified.** The multi-numeric half is fixed only for `,` and `;`, so range groups still ship unresolved. The pseudo half misses a label that is followed by a marker. The rule also over-matches: it strips basis qualifiers and bracketed prose and flags them as broken citations. Filed as rc1-fix-r1-recheck:1 and rc1-fix-r1-recheck:2. |
 
 ## Result
 
-4 fixed (gate8:1, datapack:1, drive-portfolio-notes:1, drive-research-briefs:1). 3 still
-failing (scenarios:5, drive-onboarding-stranger:1, battery-4:1), filed as
-rc1-fix-r1-recheck:1-3. Nothing adjacent broke in what was exercised: positive-EPS P/E, the
-deep snapshot on cold IN names, the fundamentals money projection, JSON-leak rescue, the
-portfolio suite (50/50), and ci-local plus smoke green at b0f2b256.
+0 fixed, 1 still failing (rc1-drive-research-briefs:2).
 
-Own sidecar :52336 was stopped by killing its sleep pids only (61375, then the patched boot's
-69517). The shared :52152-:52154 stack was not touched. OpenAI-direct spend for this recheck was
-about $0.018 across 5 gpt-4o-mini runs, under the vy.py guard.
+The literal tokens `[New findings]` and `[2, 3]` are handled. The title claim does not hold for
+the same class written another way:
+
+- A range group such as `[2-4]` still ships as dead text, and in ULTRA it is mis-numbered.
+- A pseudo-label followed by a marker still ships as dead text.
+
+The fix also breaks something next to it. Metric basis qualifiers and ordinary bracketed text
+are now deleted, or shown as broken citations.
+
+I spent about $0.02 on OpenAI-direct across 5 gpt-4o-mini runs, under the vy.py guard. The
+Kaynes client was stopped after its first publish, while it was starting its known second
+research round. Own sidecar `:52336` was stopped by killing only its own sleep pid, 68130. The
+shared `:52152`-`:52154` stack was not touched.

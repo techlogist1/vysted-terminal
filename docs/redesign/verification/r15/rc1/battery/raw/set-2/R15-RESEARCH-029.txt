@@ -1,13 +1,16 @@
-removed count: 4
---- cleaned markdown ---
+removed items: 2
+--- cleaned ---
 ## Findings
-
-Earnings growth: -0.4% (as reported)
-
-
+Revenue grew 12% [1]. Margins expanded [2].
 
 ## Cross-check
-Below is the verified section.
---- literal [n] remaining? --- False
---- 'Merged Sources' remaining? --- False
---- 'References:' remaining? --- False
+UNVERIFIED - 12% [1]
+--- marker strip over 2 sources ---
+marker-removed: 0
+## Findings
+Revenue grew 12% [1]. Margins expanded [2].
+
+## Cross-check
+UNVERIFIED - 12% [1]
+removed: 1
+Revenue grew 12% [1]. Something else [n]. Out of range.

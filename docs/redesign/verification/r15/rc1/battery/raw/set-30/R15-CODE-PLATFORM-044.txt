@@ -1,0 +1,42 @@
+=== CODE-PLATFORM-044 ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/anthropic.py:149:    async def stream_chat(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/base.py:132:    async def stream_chat(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/gemini.py:106:    async def stream_chat(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/groq.py:109:    async def stream_chat(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/ollama.py:142:    async def stream_chat(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/openai.py:578:    async def stream_chat(
+ugrep: warning: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_tools/native_search.py: No such file or directory
+ugrep: warning: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/oneshot.py: No such file or directory
+3270:            run.adapter.stream_chat(
+
+    The constructor takes adapter-level config (currently just an optional
+    ``base_url`` for the OpenAI-shaped providers); per-request fields like
+    the API key and the model id are passed into :meth:`stream_chat`.
+    """
+
+    @abstractmethod
+    async def stream_chat(
+        self,
+        messages: list[LLMMessage],
+        model: str,
+        api_key: str | None = None,
+        **kwargs: Any,
+    ) -> AsyncIterator[LLMStreamEvent]:
+        """Stream a chat completion as discriminated :class:`LLMStreamEvent`s.
+
+        Adapters MUST emit a final :class:`LLMDoneEvent` on clean completion or
+        an :class:`LLMErrorEvent` on failure — the router relies on the
+        terminator to close the SSE response.
+
+        :param messages: The conversation, oldest first. The adapter may
+--- find native_search / oneshot ---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/tests/test_native_search_live.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/tests/test_native_search.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/oneshot.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/native_search.py
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/__pycache__/native_search.cpython-313.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/__pycache__/oneshot.cpython-313.pyc
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/routers/llm.py:156:            async for event in adapter.stream_chat(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_runtime.py:3270:            run.adapter.stream_chat(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/native_search.py:276:        stream = adapter.stream_chat(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/llm/oneshot.py:107:        stream = adapter.stream_chat(

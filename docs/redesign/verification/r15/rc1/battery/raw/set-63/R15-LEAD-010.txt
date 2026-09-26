@@ -1,0 +1,8 @@
+=== AAPL 10-K by accession, no form_type hint ===
+{"filing":{"accession":"0000320193-21-000105","cik":"0000320193","company_name":"Apple Inc.","symbol":null,"form_type":"10-K","filed_date":"2021-10-29","period_of_report":"2021-09-25","edgar_url":"https://www.sec.gov/Archives/edgar/data/320193/000032019321000105/"},"sections":[{"id":"business","title":"Business","text":"Item 1.    Business\n\nCompany Background\n\nThe Company designs, manufactures and markets smartphones, personal computers, tablets, wearables and accessories, and sells a va
+=== /sections?form_type=10-K ===
+{"sections":[{"id":"business","title":"Business","text":"Item 1.    Business\n\nCompany Background\n\nThe Company designs, manufactures and markets smartphones, personal computers, tablets, wearables and accessories, and sells a variety of related services. The Company’s fiscal year is the 52-
+=== fresh: MSFT 10-Q oldest of a 12-row list, unhinted ===
+
+HTTP 000
+{"filing":{"accession":"0001564590-22-035087","cik":"0000789019","company_name":"MICROSOFT CORP","symbol":null,"form_type":"10-Q","filed_date":"2022-10-25","period_of_report":"2022-09-30","edgar_url":"https://www.sec.gov/Archives/edgar/data/789019/000156459022035087/"},"sections":[],"total_chars":0}

@@ -1,9 +1,9 @@
-# unplanned-8
+# batch-11/W6-options-chain (rc1-battery-1, candidate 4c6dfe8c)
 
-Candidate 4097dac4. Raw output: `raw/set-53/`.
+Note: closed in batch-11 per `closure_evidence` (matches the task's own set label).
 
 | id | repro run | observed | verdict |
-| --- | --- | --- | --- |
-| R15-CODE-PLATFORM-023 | Register's own sidecar-side repro: `grep -rn 'value_at_risk\|\bVaR\b\|def.*beta\|correlation_matrix' sidecar/services sidecar/routers` and `grep -n 'sharpe\|sortino\|calmar' sidecar/services/*.py`; then `grep -n "sharpe\|sortino\|calmar\|VaR\|correlation\|beta" src/modules/portfolio/metrics.ts` and its test file | Sidecar-side grep still returns 0 hits for VaR/beta/correlation_matrix and sharpe/sortino/calmar still only inside `backtest_engine.py` — matching the register's own repro text exactly, because the fix intentionally landed CLIENT-SIDE per `fix_shape` option 1 ("client-side in metrics.ts over price history, since the sidecar portfolio store is slated for deletion"): `src/modules/portfolio/metrics.ts` now exports `sharpeRatio`, `sortinoRatio`, `calmarRatio`, `historicalVaR95`, `correlation`, `beta`, a `CorrelationMatrix`, and a `PortfolioRiskSummary` shape wiring all seven metrics (line 330-420ish). `metrics.test.ts` has two describe blocks explicitly named for this id: `"risk metric primitives (R15-CODE-PLATFORM-023)"` and `"computeCurrencyRisk (R15-CODE-PLATFORM-023)"`, covering each primitive, a MIN_RISK_HISTORY_DAYS null-guard, empty holdings, per-currency-bucket computation, and a null beta when the benchmark lacks history. Register's own closure_evidence note additionally records an independent cross-check: TCS.NS vs ^NSEI 1y closes run through metrics.ts under node AND an independent Python `statistics` reference agreed to within 1e-15 | holds |
+|---|---|---|---|
+| R15-DATA-079 | live `GET /quant/option/chain/NIFTY` on own sidecar (:52341); full JSON saved | 200 OK, expiry 2026-09-29, underlying_price 23140.5, contracts populated with real `open_interest`/`change_in_oi` on multiple strikes (e.g. 15000 PE: OI 121680, chg 12480; 16500 PE: OI 154700, chg 8190) — matches batch-11's certified shape (provider `nse-fo-bhavcopy`, independently cross-checked against the NSE UDiFF bhavcopy directly by that verifier). Batch-11 also logged a pre-existing, not-a-regression issue (today's-file re-probe on every request can surface a transient 502 even with a good cached prior day) — not newly observed this shard, just noted for completeness | holds |
 
-Summary: 1 hold. No regressions. (Sidecar-only grep — the register's literal repro command — necessarily still shows 0 hits post-fix because the fix deliberately moved risk analytics to the frontend, not the sidecar; verified the frontend implementation directly instead of treating the unchanged sidecar grep as a regression.)
+COVERAGE: 1/1 ids raw; no raw: none.

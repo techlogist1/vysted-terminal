@@ -1,0 +1,2 @@
+src/lib/plugin-runtime.test.ts:138:  it("loadPlugin honours a persisted disabled config (no initialize)", async () => {
+src/lib/plugin-runtime.test.ts:175:  it("loadPlugin is idempotent, while reloadPlugin re-runs initialize with fresh secrets", async () => {

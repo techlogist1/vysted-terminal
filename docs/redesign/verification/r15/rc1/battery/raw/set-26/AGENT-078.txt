@@ -1,0 +1,9 @@
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/layout-templates.ts:290:  if (typeof requestAnimationFrame === "function") {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/layout-templates.ts:291:    requestAnimationFrame(run);
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/layout-templates.ts:310: * The whole re-tile is wrapped in a single `requestAnimationFrame` (when
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/layout-templates.ts:322:  if (typeof requestAnimationFrame === "function") {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/layout-templates.ts:323:    requestAnimationFrame(run);
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/layout-templates.ts:391:    if (typeof requestAnimationFrame === "function") {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/layout-templates.ts:392:      requestAnimationFrame(run);
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/layout-templates.ts:599:  if (typeof requestAnimationFrame === "function") {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/layout-templates.ts:600:    requestAnimationFrame(run);

@@ -1,0 +1,7 @@
+$ node -e 're=/^research:begin\s+(\S+)\s+depth=(\S+)(?:\s+query=(.*))?$/; console.log(!!re.exec("research:begin r1 depth=deep query=Compare TCS and Infosys:\n1) margins\n2) attrition"))'
+false
+
+Register status: open (never fixed, no closure_evidence). This node one-liner is the
+register's own repro, re-run verbatim against the candidate's committed regex (grep
+confirms the same single-line pattern is still what parses research:begin). Still
+reproduces as expected for an open, unfixed, low-severity defect -- not a regression.

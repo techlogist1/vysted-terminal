@@ -69,3 +69,55 @@ chronological record.
 Result: 0 regressions among the 5 owned findings; 1 environment-kind observation filed for
 visibility; 1 methodology note (nodocker induction technique needs updating, not a product
 bug) recorded in the drive file.
+
+## Round 2 — gate round 2, candidate `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`
+
+1. Re-entered this task fresh (LEAD NOTE gate-round-2, new candidate sha). Found the round-1
+   outputs above intact under this same task's files — read them first per the continuation
+   rule, then checked whether the candidate had actually moved: `git -C rc1-cand rev-parse
+   HEAD` = `4c6dfe8c...`, round-1's drive file says `4097dac4` → confirmed a real, non-trivial
+   move (`git log --oneline 4097dac4..4c6dfe8c -- sidecar/services/agent_runtime.py` = 20+
+   commits, all R15-LEAD-030/033/035/036 tool-citation work in the exact file the
+   R15-AGENT-025 idle-watchdog fix lives in). Decided: re-drive live, not assume-carries-over.
+2. Confirmed all 5 register ids still `status: fixed` in `vysted-r15-register.json` at this
+   sha (counts: `entries:652, critical:16, high:116, medium:293, low:227`).
+3. Booted own sidecar `:52327` fresh from `rc1-cand` (HEAD confirmed), fresh data dir
+   `rc1-data-failure-inducer-r2` (never touched the round-1 dir). `/health` ok.
+4. Junk stub: `:52341` and `:52342` were both already bound by other concurrent roles'
+   sidecars (`rc1-data-battery-1`/`-2`) — checked with `lsof` before binding, moved to `:52350`
+   (confirmed free first).
+5. Ran `junk-truncated`/`junk-emptychoices`/`junk-html` via `OPENAI_BASE_URL` → stub:
+   byte-identical to round 1's frames. R15-AGENT-026 holds.
+6. Ran `junk-429`/`junk-500`: byte-identical to round 1, still honest.
+7. Restarted clean (unset `OPENAI_BASE_URL`), ran `zzz-nonsense/not-a-model-9000:free` via
+   real OpenRouter free lane: byte-identical `model_not_found` frame. R15-AGENT-027 holds.
+   Also ran the retired slug `z-ai/glm-4.5-air:free`: still an explicit `model_not_found`
+   (OpenRouter's own message text changed to a 404 upgrade-path wording — their side, not
+   ours — still honest/actionable, not filed).
+8. Restarted with `ALL_PROXY`/`HTTP(S)_PROXY=127.0.0.1:9` (netdown, my process only):
+   `/history/AAPL` → `503 network`, `/news` → `502 provider_error`,
+   `/quotes?symbols=RELIANCE,TCS,AAPL` → RELIANCE/TCS answer (BSE lane unaffected), AAPL
+   silently dropped — re-read `routers/quotes.py` on THIS sha to confirm the documented
+   skip-on-failure semantic is still there before not-filing it again. Also re-tested
+   `/quotes/%20%20%20`/`/quotes/%24%24%24` under netdown: now `503 network` (was `404` in
+   round 1's clean-profile test) — restarted clean afterward specifically to re-run the
+   original clean-profile repro and confirm it's a route-ordering difference under netdown,
+   not a regression: clean profile still gives `404 not_found` for both, `AAPL` still
+   resolves `200` — no `AttributeError` leak in either profile. R15-DATA-061 holds.
+9. Ran the two pinned test files together fresh on this sha (not reused from round 1):
+   `test_b5_runtime_liveness.py` + `test_keyless_backend.py` → **27/27 pass**, 31.44s. Confirms
+   R15-AGENT-025 (watchdog constants unmoved despite the `agent_runtime.py` churn) and
+   R15-RESEARCH-008 (`ENGINE_DEADLINE_SECS` unmoved) both hold.
+10. Restarted with `PATH=/usr/bin:/bin:/usr/sbin:/sbin` (nodocker profile): `/search/
+    searxng/status` still `cli_present:true` — same fallback-to-known-paths hardening as
+    round 1, same non-finding methodology note.
+11. Direct-probed the shared `:52152`'s `/search/searxng/status` again: still `degraded`,
+    same three engines CAPTCHA'd/rate-limited by upstream — same `kind: environment`
+    observation, not re-filed as new.
+12. Stopped my sidecar and stub each restart (`pkill` on the sleep+worker for `:52327`,
+    `kill` on the stub pid for `:52350`), confirmed via `lsof` after each stop and at the
+    end. Never touched `:52152-54`, `:52341`, or `:52342` (other roles' ports).
+
+Result: 0 regressions on round 2 (same as round 1, now proven live against the actual
+gate-round-2 candidate rather than inherited from a stale round). No new defects. The one
+`environment` observation and one methodology note both persist unchanged.

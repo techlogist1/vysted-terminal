@@ -37,27 +37,27 @@
     "ok": true,
     "detail": {
       "ids": [
-        "h-23969a3e-649b-4229-9e61-4aa3e708e234",
-        "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
-        "h-3d80897a-0672-40a2-a78e-253b6b5f693b"
+        "h-ffb6f3b9-48eb-45d6-9805-b4fff7a37e6a",
+        "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
+        "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231"
       ],
       "holdings": [
         {
-          "id": "h-23969a3e-649b-4229-9e61-4aa3e708e234",
+          "id": "h-ffb6f3b9-48eb-45d6-9805-b4fff7a37e6a",
           "symbol": "RELIANCE",
           "quantity": 10,
           "costBasis": 1100,
           "assetClass": "equity"
         },
         {
-          "id": "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
+          "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
           "symbol": "AAPL",
           "quantity": 5,
           "costBasis": 180,
           "assetClass": "equity"
         },
         {
-          "id": "h-3d80897a-0672-40a2-a78e-253b6b5f693b",
+          "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
           "symbol": "INFY",
           "quantity": 20,
           "costBasis": 1500,
@@ -73,21 +73,21 @@
     "detail": {
       "blob": [
         {
-          "id": "h-23969a3e-649b-4229-9e61-4aa3e708e234",
+          "id": "h-ffb6f3b9-48eb-45d6-9805-b4fff7a37e6a",
           "symbol": "RELIANCE",
           "quantity": 10,
           "costBasis": 1100,
           "assetClass": "equity"
         },
         {
-          "id": "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
+          "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
           "symbol": "AAPL",
           "quantity": 5,
           "costBasis": 180,
           "assetClass": "equity"
         },
         {
-          "id": "h-3d80897a-0672-40a2-a78e-253b6b5f693b",
+          "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
           "symbol": "INFY",
           "quantity": 20,
           "costBasis": 1500,
@@ -103,49 +103,49 @@
     "detail": [
       {
         "symbol": "RELIANCE",
-        "price": 1219.2,
+        "price": 1226,
         "currency": "INR",
         "qty": 10,
         "cost": 1100,
         "recomputed": {
-          "mv": 12192,
-          "pnl": 1192.0000000000005
+          "mv": 12260,
+          "pnl": 1260
         },
         "panel": {
-          "mv": 12192,
-          "pnl": 1192
+          "mv": 12260,
+          "pnl": 1260
         },
         "match": true
       },
       {
         "symbol": "AAPL",
-        "price": 335.9200134277344,
+        "price": 341.07,
         "currency": "USD",
         "qty": 5,
         "cost": 180,
         "recomputed": {
-          "mv": 1679.6000671386719,
-          "pnl": 779.6000671386719
+          "mv": 1705.35,
+          "pnl": 805.3499999999999
         },
         "panel": {
-          "mv": 1679.6000671386719,
-          "pnl": 779.6000671386719
+          "mv": 1705.35,
+          "pnl": 805.3499999999999
         },
         "match": true
       },
       {
         "symbol": "INFY",
-        "price": 1014.5,
+        "price": 1000.2,
         "currency": "INR",
         "qty": 20,
         "cost": 1500,
         "recomputed": {
-          "mv": 20290,
-          "pnl": -9710
+          "mv": 20004,
+          "pnl": -9996
         },
         "panel": {
-          "mv": 20290,
-          "pnl": -9710
+          "mv": 20004,
+          "pnl": -9996
         },
         "match": true
       }
@@ -178,10 +178,10 @@
             "1100",
             "equity",
             "INR",
-            "1219.2",
-            "12192",
-            "1192",
-            "10.836363636363638",
+            "1226",
+            "12260",
+            "1260",
+            "11.454545454545455",
             "",
             ""
           ],
@@ -195,10 +195,10 @@
             "180",
             "equity",
             "USD",
-            "335.9200134277344",
-            "1679.6000671386719",
-            "779.6000671386719",
-            "86.62222968207465",
+            "341.07",
+            "1705.35",
+            "805.3499999999999",
+            "89.48333333333332",
             "",
             ""
           ],
@@ -212,10 +212,10 @@
             "1500",
             "equity",
             "INR",
-            "1014.5",
-            "20290",
-            "-9710",
-            "-32.36666666666667",
+            "1000.2",
+            "20004",
+            "-9996",
+            "-33.32",
             "",
             "Core IT holding, review after Q2 results"
           ],
@@ -229,7 +229,7 @@
     "ok": true,
     "detail": [
       {
-        "id": "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
+        "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
         "symbol": "AAPL",
         "quantity": 8,
         "costBasis": 190,
@@ -237,7 +237,7 @@
         "note": "added on dip"
       },
       {
-        "id": "h-3d80897a-0672-40a2-a78e-253b6b5f693b",
+        "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
         "symbol": "INFY",
         "quantity": 20,
         "costBasis": 1500,
@@ -345,7 +345,7 @@
       "activePortfolioName": "Portfolio",
       "holdings": [
         {
-          "id": "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
+          "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
           "symbol": "AAPL",
           "quantity": 8,
           "costBasis": 190,
@@ -354,7 +354,7 @@
           "pnl": null
         },
         {
-          "id": "h-3d80897a-0672-40a2-a78e-253b6b5f693b",
+          "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
           "symbol": "INFY",
           "quantity": 20,
           "costBasis": 1500,

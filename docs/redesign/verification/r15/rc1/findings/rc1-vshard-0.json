@@ -1,0 +1,121 @@
+[
+  {
+    "key": "rc1-vshard-0:1",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-DATA-002",
+    "title": "NOT CERTIFIED: watchlist/screener/agent overview paths still re-query the bare symbol; a picked NASDAQ:AMAL shows Amal Ltd (INR) in an IN session",
+    "repro": "Watchlist autocomplete 'AMAL' lists NSE Amal Ltd and US Amalgamated (both conf 1.0); pickCandidate -> addSymbol(symbol,'equity') drops the region (SymbolEntry={symbol,assetClass}); batch /quotes uses the session region: GET /quotes/AMAL (X-Vysted-Region IN) = INR 674.4 nse_direct vs (US) = USD 47.58; row click openCompanyOverview(row.entry.symbol) passes no region; ScreenerResultsTable:567 and host-actions:1529/1675 likewise.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/data002.log",
+    "suspected_files": [
+      "src/modules/watchlist/WatchlistPanel.tsx",
+      "src/store/symbols.ts",
+      "src/modules/screener/ScreenerResultsTable.tsx",
+      "src/lib/host-actions.ts"
+    ]
+  },
+  {
+    "key": "rc1-vshard-0:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-RESEARCH-015",
+    "title": "NOT CERTIFIED: cross-check counts two hosts of ONE registrable domain as independent channels (nseindia.com + nsearchives.nseindia.com -> AGREE)",
+    "repro": "In-process verify.cross_check: SearXNG row https://www.nseindia.com/..., native row https://nsearchives.nseindia.com/... for '40.5% revenue growth' -> '**AGREE (corroborated across channels)** — (nsearchives.nseindia.com, nseindia.com)', step '1 verified'. verify._row_domains uses finance.domain_of (host) not finance._registrable_domain despite its docstring.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/verify_015_min.out.log",
+    "suspected_files": [
+      "sidecar/services/research/verify.py",
+      "sidecar/services/research/finance.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-0:3",
+    "kind": "regression",
+    "severity": "high",
+    "register_id": "R15-CODE-FRONTEND-002",
+    "title": "NOT CERTIFIED: a chat-tab click (or '+') inside an open research space drops the research transcript, then leaving the space saves the chat tab's conversation as the space's memory and wipes the tab",
+    "repro": "vitest (scratch copy of candidate src): tab A live, tab B archived; switchSpace(null,R); live=R turns; agentSpaces.switchTo('B') (tab strip always rendered); switchSpace(R,null) -> R memory=['B question'] (expected R turns), live=[] (tab B lost). newSpace variant: R memory=[]. Two owners remain; fix_shape's single-thread-owner not implemented.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/fe_vitest.log",
+    "suspected_files": [
+      "src/store/agent-spaces.ts",
+      "src/store/research-spaces.ts",
+      "src/modules/chat/ChatSidebar.tsx"
+    ]
+  },
+  {
+    "key": "rc1-vshard-0:4",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-AGENT-045",
+    "title": "NOT CERTIFIED: compare_symbols ['COCHINSHIP','MAZAGONDOCK'] still does not compare MAZDOCK (fix_shape's own test)",
+    "repro": "In-process _compare_symbols({'symbols':['COCHINSHIP','MAZAGONDOCK']}) -> ok=false, MAZAGONDOCK: \"unresolved name ... matched no listing\". The wording is now honest, but the guessed ticker is never resolved (/resolve?q=MAZAGONDOCK has no candidates; 'MAZAGON' -> MAZDOCK 0.97). Company names do resolve ('Mazagon Dock' -> MAZDOCK).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/cmp045.log",
+    "suspected_files": [
+      "sidecar/services/agent_tools/compare_symbols.py",
+      "sidecar/services/agent_tools/fundamentals.py",
+      "sidecar/services/symbol_resolver.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-0:5",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-RESEARCH-003",
+    "title": "Deep brief cites fundamentals-only figures (P/E, market cap, EPS, dividend yield) to exchange result PDFs instead of vysted://fundamentals",
+    "repro": "vy.py deep runs gpt-4o-mini on :52396 (candidate): BLUESTARCO market cap/revenue TTM/growth -> [1]/[2] exchange PDFs, 'P/E Not currently available [7]' while pe_ratio=61.74, citation audit skipped ('10s wall remaining < 15s'); VOLTAS published brief 'P/E 81.98 (as of Sept 26) [2]', market cap/EPS/52-week change [2] = BSE Q1 results PDF while [12] is vysted://fundamentals. Numbering itself is stable (append-only).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/r003-fresh.jsonl",
+    "suspected_files": [
+      "sidecar/services/research/iter.py",
+      "sidecar/services/research/citecheck.py",
+      "sidecar/services/research/deep.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-0:6",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-AGENT-008",
+    "title": "A 3-result round on a multi-cue prompt overflows the ollama num_ctx by estimate; _fit_to_window never trims the latest round and only debug-logs",
+    "repro": "In-process copilot on ollama window 16384: multi-cue prompt -> 43-tool subset est 11,622 tok; one round with three capped (8,192-char) results -> est 18,114 > 16,384 num_ctx; no elision (latest round untouched), no warning event.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/ctx008.out.log",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-0:7",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-AGENT-082",
+    "title": "Chat footer pairs last-round tokens with whole-turn spend",
+    "repro": "Multi-round copilot turn: done.usage = last round only (29,826 tok) while spend_usd (0.037645) is summed over all rounds (~62.7k tok) -> footer 'N tok · ~$X' inconsistent.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/r003-literal.stdout.txt",
+    "suspected_files": [
+      "sidecar/services/agent_runtime.py",
+      "src/modules/chat/ChatSidebar.tsx"
+    ]
+  },
+  {
+    "key": "rc1-vshard-0:8",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-007",
+    "title": "10-Q and 8-K filing detail returns 200 with zero sections",
+    "repro": "GET /sec/filings/0000320193-23-000077?identifier=AAPL -> 10-Q metadata correct, n_sections 0, total_chars 0; NVDA 8-K same; 10-K returns 2 sections.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/data007.log",
+    "suspected_files": [
+      "sidecar/services/providers/sec_filings_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-vshard-0:9",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-009",
+    "title": "Backtest skips a buy sized exactly to available cash (float rounding)",
+    "repro": "scripts/bt_exactcash.py (bt009_010.py with allocation 100000/n of initialCapital 100000, N=3 seed 20260926): 'insufficient cash for 347.619 S2 @ 95.89 (have 33333.33, need 33333.33) — order skipped'; one leg never bought (sharpe 0.4296 vs 0.8942 reference).",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-0-evidence/bt_exactcash.log",
+    "suspected_files": [
+      "sidecar/services/backtest_engine.py"
+    ]
+  }
+]

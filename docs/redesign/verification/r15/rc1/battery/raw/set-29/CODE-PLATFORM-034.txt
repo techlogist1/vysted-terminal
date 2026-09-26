@@ -1,0 +1,4 @@
+=== CODE-PLATFORM-034: walk-forward slice boundary double-count ===
+[('2024-01-01', '2024-01-06'), ('2024-01-06', '2024-01-11')]
+205:def _slice_dates(start_date: str, end_date: str, slices: int) -> list[tuple[str, str]]:
+511:            slice_bars = [b for b in bars_sorted if slice_start <= b.timestamp <= slice_end]

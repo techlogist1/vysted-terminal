@@ -1,0 +1,6 @@
+option_chain {'symbol': 'NIFTY', 'max_strikes': '10'} -> {'symbol': 'NIFTY', 'max_strikes': 10}
+option_chain {'symbol': 'NIFTY', 'max_strikes': 'ten'} -> {'__vysted_invalid_args__': "invalid arguments for option_chain: 'ten' is not of type 'integer'; call again with valid args"}
+screener_run {'universe': 'nse-all', 'sort_by': 'market_cap', 'limit': '25', 'criteria': []} -> {'universe': 'nse-all', 'sort_by': 'market_cap', 'limit': 25, 'criteria': []}
+news {'limit': '5'} -> {'limit': 5}
+sec_insider_transactions {'symbol': 'AAPL', 'limit': '5'} -> {'symbol': 'AAPL', 'limit': 5}
+sec_insider_transactions {'symbol': 'AAPL', 'limit': '5.0'} -> {'__vysted_invalid_args__': "invalid arguments for sec_insider_transactions: '5.0' is not of type 'integer'; call again with valid args"}

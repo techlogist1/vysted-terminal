@@ -4,7 +4,7 @@
  "manifest_name": "Fusion Finance Ltd",
  "exchange": "NSE+BSE",
  "bse_code": "543652",
- "collected_at": "2026-09-25T05:28:44+0530",
+ "collected_at": "2026-09-26T06:36:24+0530",
  "sidecar": "http://127.0.0.1:52313",
  "complete": true,
  "calls": {
@@ -77,7 +77,7 @@
   "resolve_company_name": {
    "url": "http://127.0.0.1:52313/resolve?q=Fusion+Finance+Ltd",
    "status": 200,
-   "elapsed_ms": 694,
+   "elapsed_ms": 588,
    "body": {
     "ok": true,
     "query": "Fusion Finance Ltd",
@@ -207,7 +207,7 @@
   "resolve_bse_code": {
    "url": "http://127.0.0.1:52313/resolve?q=543652",
    "status": 200,
-   "elapsed_ms": 1,
+   "elapsed_ms": 2,
    "body": {
     "ok": true,
     "query": "543652",
@@ -257,20 +257,20 @@
   "quote": {
    "url": "http://127.0.0.1:52313/quotes/FUSION?asset_class=equity",
    "status": 200,
-   "elapsed_ms": 651,
+   "elapsed_ms": 5477,
    "body": {
     "symbol": "FUSION",
-    "price": 176.8,
-    "change": -7.399999999999977,
-    "change_percent": -4.017372421281204,
-    "volume": 456966.0,
+    "price": 177.14,
+    "change": 0.339999999999975,
+    "change_percent": 0.19230769230767816,
+    "volume": 397315.0,
     "open": null,
     "high": null,
     "low": null,
     "prev_close": null,
     "currency": "INR",
     "market_state": "CLOSED",
-    "timestamp": "2026-09-24T00:00:00Z",
+    "timestamp": "2026-09-25T00:00:00Z",
     "provider": "nse_direct",
     "freshness": "eod"
    },
@@ -282,7 +282,7 @@
   "fundamentals": {
    "url": "http://127.0.0.1:52313/fundamentals/FUSION",
    "status": 200,
-   "elapsed_ms": 14866,
+   "elapsed_ms": 2700,
    "body": {
     "symbol": "FUSION.NS",
     "name": "Fusion Finance Limited",
@@ -291,13 +291,13 @@
     "sector_source": "resolver",
     "currency": "INR",
     "financial_currency": null,
-    "ratio_price": 176.8,
-    "market_cap": 28591448064.0,
-    "pe_ratio": 14.373983,
-    "forward_pe": 5.975497,
+    "ratio_price": 177.14,
+    "market_cap": 28646430720.0,
+    "pe_ratio": 14.389926,
+    "forward_pe": 5.9869876,
     "peg_ratio": null,
-    "price_to_book": 1.1641766,
-    "price_to_sales": 3.33156,
+    "price_to_book": 1.1664153,
+    "price_to_sales": 3.3379667,
     "ev_to_ebitda": null,
     "book_value": 151.867,
     "dividend_yield": 0.0,
@@ -306,7 +306,7 @@
     "beta": 1.03,
     "fifty_two_week_high": 243.0,
     "fifty_two_week_low": 136.5,
-    "fifty_two_week_change": -0.045843065,
+    "fifty_two_week_change": -0.07074529,
     "fifty_two_week_high_date": "2026-07-13",
     "fifty_two_week_low_date": "2026-03-30",
     "listing_date": "2022-11-15",
@@ -339,7 +339,7 @@
      "name": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -347,7 +347,7 @@
      "sector": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -355,7 +355,7 @@
      "industry": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -363,7 +363,7 @@
      "sector_source": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -371,7 +371,7 @@
      "currency": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -379,7 +379,7 @@
      "ratio_price": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T10:00:00+00:00",
+      "as_of": "2026-09-25T09:59:57+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -387,7 +387,7 @@
      "market_cap": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T10:00:00+00:00",
+      "as_of": "2026-09-25T09:59:57+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -395,15 +395,15 @@
      "pe_ratio": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T10:00:00+00:00",
-      "reason": "trailing EPS 12.3 disagrees by 15% with the payload's net income / shares outstanding (1,685,100,032 / 161,552,105 = 10.43); the P/E it implies at the ratio price 176.8 is 16.9 \u2014 the EPS may be from a stale fiscal period; kept, flagged",
+      "as_of": "2026-09-25T09:59:57+00:00",
+      "reason": "trailing EPS 12.31 disagrees by 15% with the payload's net income / shares outstanding (1,685,100,032 / 161,552,105 = 10.43); the P/E it implies at the ratio price 177.1 is 17.0 \u2014 the EPS may be from a stale fiscal period; kept, flagged",
       "label": null,
       "basis_note": null
      },
      "forward_pe": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T10:00:00+00:00",
+      "as_of": "2026-09-25T09:59:57+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -411,7 +411,7 @@
      "peg_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T10:00:00+00:00",
+      "as_of": "2026-09-25T09:59:57+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -419,7 +419,7 @@
      "price_to_book": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T10:00:00+00:00",
+      "as_of": "2026-09-25T09:59:57+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -427,7 +427,7 @@
      "price_to_sales": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T10:00:00+00:00",
+      "as_of": "2026-09-25T09:59:57+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -435,7 +435,7 @@
      "ev_to_ebitda": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T10:00:00+00:00",
+      "as_of": "2026-09-25T09:59:57+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -443,7 +443,7 @@
      "book_value": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -459,7 +459,7 @@
      "dividend_per_share": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -475,7 +475,7 @@
      "beta": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -483,7 +483,7 @@
      "fifty_two_week_high": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -491,7 +491,7 @@
      "fifty_two_week_low": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -499,7 +499,7 @@
      "fifty_two_week_change": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T10:00:00+00:00",
+      "as_of": "2026-09-25T09:59:57+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -507,7 +507,7 @@
      "fifty_two_week_high_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -515,7 +515,7 @@
      "fifty_two_week_low_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -523,7 +523,7 @@
      "listing_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -531,7 +531,7 @@
      "first_trade_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -539,7 +539,7 @@
      "forward_pe_fiscal_year": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -547,7 +547,7 @@
      "roe": {
       "status": "ok",
       "provider": "derived",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": "net income (TTM) / stockholders equity"
@@ -555,7 +555,7 @@
      "roa": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -563,7 +563,7 @@
      "gross_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -571,7 +571,7 @@
      "operating_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -579,7 +579,7 @@
      "profit_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -587,7 +587,7 @@
      "debt_to_equity": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -595,7 +595,7 @@
      "current_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -603,7 +603,7 @@
      "quick_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -611,7 +611,7 @@
      "roce": {
       "status": "ok",
       "provider": "derived",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": "annual EBIT / (total assets - current liabilities)"
@@ -619,7 +619,7 @@
      "basis": {
       "status": "ok",
       "provider": "exchange-filings",
-      "as_of": "2026-09-24T23:58:32.139055+00:00",
+      "as_of": "2026-09-26T01:06:09.541888+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -643,7 +643,7 @@
      "free_cash_flow": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -651,7 +651,7 @@
      "shares_outstanding": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -673,25 +673,25 @@
       "basis_note": null
      },
      "held_percent_insiders": {
-      "status": "flagged",
+      "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
-      "reason": "unreconciled: exchange shareholding unavailable (insiders \u2260 promoter group)",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
+      "reason": null,
       "label": null,
       "basis_note": null
      },
      "held_percent_institutions": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
-      "reason": "unreconciled: exchange shareholding unavailable (provider institutions \u2260 exchange institutional holding)",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
+      "reason": "yfinance institutions 16.42% disagrees with the NSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: no institutional holding reported) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged",
       "label": null,
       "basis_note": null
      },
      "identity_note": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:18.969088+00:00",
+      "as_of": "2026-09-26T01:06:08.160606+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -716,7 +716,7 @@
   "income": {
    "url": "http://127.0.0.1:52313/fundamentals/FUSION/income",
    "status": 200,
-   "elapsed_ms": 336,
+   "elapsed_ms": 246,
    "body": {
     "symbol": "FUSION.NS",
     "periods": [
@@ -1179,7 +1179,7 @@
   "balance": {
    "url": "http://127.0.0.1:52313/fundamentals/FUSION/balance",
    "status": 200,
-   "elapsed_ms": 370,
+   "elapsed_ms": 287,
    "body": {
     "symbol": "FUSION.NS",
     "periods": [
@@ -1892,7 +1892,7 @@
   "cashflow": {
    "url": "http://127.0.0.1:52313/fundamentals/FUSION/cashflow",
    "status": 200,
-   "elapsed_ms": 386,
+   "elapsed_ms": 438,
    "body": {
     "symbol": "FUSION.NS",
     "periods": [
@@ -2355,7 +2355,7 @@
   "ratings": {
    "url": "http://127.0.0.1:52313/fundamentals/FUSION/ratings",
    "status": 200,
-   "elapsed_ms": 459,
+   "elapsed_ms": 238,
    "body": {
     "symbol": "FUSION.NS",
     "consensus": "buy",
@@ -2367,7 +2367,8 @@
     "hold": 2,
     "sell": 0,
     "strong_sell": 0,
-    "provider": "yfinance"
+    "provider": "yfinance",
+    "as_of": "2026-09-26T01:06:15.792853Z"
    },
    "polite": {
     "yahoo_open": false,
@@ -2377,7 +2378,7 @@
   "shareholding": {
    "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=FUSION",
    "status": 200,
-   "elapsed_ms": 608,
+   "elapsed_ms": 1998,
    "body": {
     "symbol": "FUSION",
     "count": 17,
@@ -2754,12 +2755,44 @@
   "announcements": {
    "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=FUSION&limit=25",
    "status": 200,
-   "elapsed_ms": 1308,
+   "elapsed_ms": 3326,
    "body": {
     "symbol": "FUSION",
     "exchange": null,
     "count": 25,
     "announcements": [
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9725f172-f548-4bd5-ab51-624771903b3b.pdf",
+      "ts": "2026-09-25T18:20:27.490000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding Cessation of Mrs Priyanka Seth Wadhera as Chief Strategy Officer of the company w.e.f. September 25, 2026.",
+      "category": "Cessation",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_25092026181925_ChangeinManagement_25Sep2026.pdf",
+      "ts": "2026-09-25T18:19:33+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+      "category": "Trading Window",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_25092026145813_Closure_TradingWindow_Sep26_Sign.pdf",
+      "ts": "2026-09-25T14:58:24+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/de426752-0ada-4eff-94fd-ef9824e0f07a.pdf",
+      "ts": "2026-09-25T14:39:44.817000+05:30"
+     },
      {
       "symbol": "FUSION",
       "exchange": "NSE",
@@ -2927,38 +2960,6 @@
       "category": "General Updates",
       "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_11082026163723_Letter-Reclassification_of_PromotorSIGN.pdf",
       "ts": "2026-08-11T16:37:36+05:30"
-     },
-     {
-      "symbol": "FUSION",
-      "exchange": "NSE",
-      "headline": "Fusion Finance Limited has submitted the Exchange a copy Srutinizers report of  Postal Ballot. Further, the company has informed the Exchange regarding voting results.",
-      "category": "Shareholders meeting",
-      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_11082026162751_Outcome_PostalBallotSIGN.pdf",
-      "ts": "2026-08-11T16:28:27+05:30"
-     },
-     {
-      "symbol": "FUSION",
-      "exchange": "NSE",
-      "headline": "Fusion Finance Limited has informed the Exchange about Link of Recording",
-      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
-      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_10082026212404_IntimationAudioRecordingEarningConferenceCall_10Aug2026.pdf",
-      "ts": "2026-08-10T21:26:09+05:30"
-     },
-     {
-      "symbol": "FUSION",
-      "exchange": "NSE",
-      "headline": "Key Managerial Personnel (KMP s) of our Company are authorized to determine materiality of an event or information and make disclosures to stock exchange(s).",
-      "category": "General Updates",
-      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_10082026201041_DisclosureUnderReg305.pdf",
-      "ts": "2026-08-10T20:10:51+05:30"
-     },
-     {
-      "symbol": "FUSION",
-      "exchange": "NSE",
-      "headline": "Grant of ESOP - Disclosure under Regulation 30 and 51 of SEBI (Listing Obligations & Disclosure Requirements) Regulations, 2015",
-      "category": "Updates",
-      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_10082026194759_GrantESOP_10August2026.pdf",
-      "ts": "2026-08-10T19:48:06+05:30"
      }
     ],
     "sources": [
@@ -2968,12 +2969,12 @@
     "errors": {},
     "windows": {
      "NSE": {
-      "window_start": "2026-08-10",
-      "window_end": "2026-09-25"
+      "window_start": "2026-08-11",
+      "window_end": "2026-09-26"
      },
      "BSE": {
-      "window_start": "2026-08-10",
-      "window_end": "2026-09-25"
+      "window_start": "2026-08-11",
+      "window_end": "2026-09-26"
      }
     },
     "coverage": "covered",
@@ -2987,7 +2988,7 @@
   "results_calendar": {
    "url": "http://127.0.0.1:52313/disclosures/results?symbol=FUSION",
    "status": 200,
-   "elapsed_ms": 382,
+   "elapsed_ms": 1718,
    "body": {
     "symbol": "FUSION",
     "count": 29,

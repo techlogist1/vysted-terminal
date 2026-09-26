@@ -1,0 +1,6 @@
+REPRO numResults=3 -> 3 results 3 citations
+variant numResults=1 -> 1 1
+variant numResults=12 -> 12 12
+variant numResults=25 -> 25 25
+dispatch num=5 -> 5 cits 5 first {'domain': 'ex0.com', 'published_at': '2026-09-01T00:00:00'}
+params seen on news dispatch: {'q': 'q', 'format': 'json'}

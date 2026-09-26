@@ -1,0 +1,24 @@
+--- live Kaynes ULTRA 4o-mini: prose source label (sources=13)
+ in : 'a decrease from ₹746.12 million [NSE filing, August 2026].'
+ out: 'a decrease from ₹746.12 million [NSE filing, August 2026].'  removed=0 bib/literal=0
+--- live Kaynes ULTRA 4o-mini: mixed label+marker group (sources=13)
+ in : 'finance costs at ₹371.36 million [NSE filing, August 2026; 2][3].'
+ out: 'finance costs at ₹371.36 million [NSE filing, August 2026; 2][3].'  removed=0 bib/literal=0
+--- live Cochin DEEP llama: leaked deep.py 'Structured:' block label (sources=7)
+ in : "Search for news articles on Cochin Shipyard's order book yielded no results [Structured: {'ok': True, 'count': 0, 'news': []}]"
+ out: "Search for news articles on Cochin Shipyard's order book yielded no results [Structured: {'ok': True, 'count': 0, 'news': []}]"  removed=0 bib/literal=0
+--- variant: 'Structured' label alone (sources=7)
+ in : 'Revenue ₹4,200 cr [Structured].'
+ out: 'Revenue ₹4,200 cr [Structured].'  removed=0 bib/literal=0
+--- variant: 'Web evidence' + marker in one group (sources=7)
+ in : 'Margin 12% [Web evidence; 2].'
+ out: 'Margin 12% [Web evidence; 2].'  removed=0 bib/literal=0
+--- variant: 'Source 2' spelled out (sources=7)
+ in : 'Margin 12% [Source 2].'
+ out: 'Margin 12% [Source 2].'  removed=0 bib/literal=0
+--- variant: 'Sources 2, 3' (sources=7)
+ in : 'Margin 12% [Sources 2, 3].'
+ out: 'Margin 12% [Sources 2, 3].'  removed=0 bib/literal=0
+--- variant: exchange disclosures label (sources=7)
+ in : 'Order book ₹21,000 cr [exchange disclosures].'
+ out: 'Order book ₹21,000 cr [exchange disclosures].'  removed=0 bib/literal=0

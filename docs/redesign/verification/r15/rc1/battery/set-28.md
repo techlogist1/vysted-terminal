@@ -1,15 +1,29 @@
-# batch-8/W1-sidecar-lifecycle-transport
+# batch-7/W4-research-funnel
 
-Candidate 4097dac4. Own sidecar :52346. Raw output: `raw/set-28/`.
+None of this set's 12 assigned ids (`R15-RESEARCH-044` through `R15-RESEARCH-066`, even numbers)
+exist in `docs/redesign/verification/vysted-r15-register.json` — the register's `R15-RESEARCH-*`
+series stops at `R15-RESEARCH-042` (652 total entries; checked both `entries[]` and the 76-item
+`rejections[]` by exact id, and `grep`ped the whole repo for each id: zero hits anywhere outside
+this file). This is a task/register data mismatch, not a product defect and not an upstream
+outage — there is no register entry to read a repro or certification from, so none of the required
+per-entry work (re-run the original repro, compare against the batch verifier's evidence) is
+possible for this set. Filed as one `environment`-kind finding rather than 12 separate ones.
+No sidecar work was needed for this set.
 
 | id | repro run | observed | verdict |
-| --- | --- | --- | --- |
-| R15-LIFECYCLE-001 | Cold packaged launch main-loop freeze check (needs a real reboot + packaged binary) | Unchanged: original verdict was needs_gui, no headless path exists | needs_gui |
-| R15-LIFECYCLE-010 | Rust pinned tests `boot_returns_at_once_and_spawns_the_sidecar_before_any_mcp_bind_wait_ends`, `a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason`, `the_boot_wait_keeps_an_earlier_exit_reason` present in `src-tauri/src/lib.rs`; renderer half pinned in `src/lib/sidecar-client.test.ts` ("get_sidecar_port answering failed throws its reason at once, without a /health probe"). Not re-run (vitest/cargo suite banned for this shard) | Source unchanged since certification; tests present and named | ci_pinned |
-| R15-UI-014 | `src/lib/sidecar-client.test.ts` ("a refused connection is SidecarError(0) with the unreachable sentence, not 'Load failed'"); Rust `CommandEvent::Terminated` handler in lib.rs unchanged | Test present, not re-run (vitest banned) | ci_pinned |
-| R15-LIFECYCLE-011 | `src/store/app.test.ts` ("a refused call flips connected to error...", "while in error, /health is re-probed until the engine answers") | Test present, not re-run | ci_pinned |
-| R15-UI-012 | `curl -X POST :52346/agents/nope/invoke -d '{"prompt":"hi","provider":"ollama"}'`; then `-d '{"mode":"bogus-mode"}'` | `{"detail":"unknown agent: 'nope'"}`; 422 array with `mode` literal_error "Input should be 'agent', 'ask', 'edit', 'build' or 'delegate'" — matches register repro exactly | holds |
-| R15-CODE-PLATFORM-011 | `curl -X POST :52346/agents/buffett/runs -d '{"prompt":"x","budget":{"max_tokens":"abc"}}'`; `curl -X POST :52346/runs/run-does-not-exist-rc1b6/cancel` | `{"detail":[{"type":"int_parsing",...,"msg":"Input should be a valid integer, unable to parse string as an integer"}]}`; cancel → `{"detail":"unknown run: 'run-does-not-exist-rc1b6'"}`. Backend contract matches register exactly. Frontend string-formatting fix pinned by `src/lib/delegate-runs.test.ts` ("a rejected launch shows the 422 field errors, not [object Object]", "a refused cancel names the sidecar's reason...(class pin, R15-CODE-PLATFORM-011)") | holds |
-| R15-RESEARCH-032 | `curl :52346/search/searxng/status`; `curl :52346/system/hardware`; `src/components/SettingsPanel.test.tsx` ("searxngChipMeta speaks the designed chip vocabulary for every state") | status → well-formed `degraded` state with reason string (engines suspended this session, matches batch-8 Issue 6, not a crash/500); hardware → full device/ollama JSON, no 500. Chip-vocabulary logic pinned by test | holds |
+|---|---|---|---|
+| R15-RESEARCH-044 | Looked up the id in the register (`jq`/Python exact-id match over `entries[]` and `rejections[]`) and `grep -r` over the whole repo. | No such entry exists; the register's RESEARCH series tops out at R15-RESEARCH-042 (register `counts.entries: 652`). | blocked_env |
+| R15-RESEARCH-046 | (same lookup) | No such entry exists. | blocked_env |
+| R15-RESEARCH-048 | (same lookup) | No such entry exists. | blocked_env |
+| R15-RESEARCH-050 | (same lookup) | No such entry exists. | blocked_env |
+| R15-RESEARCH-052 | (same lookup) | No such entry exists. | blocked_env |
+| R15-RESEARCH-054 | (same lookup) | No such entry exists. | blocked_env |
+| R15-RESEARCH-056 | (same lookup) | No such entry exists. | blocked_env |
+| R15-RESEARCH-058 | (same lookup) | No such entry exists. | blocked_env |
+| R15-RESEARCH-060 | (same lookup) | No such entry exists. | blocked_env |
+| R15-RESEARCH-062 | (same lookup) | No such entry exists. | blocked_env |
+| R15-RESEARCH-064 | (same lookup) | No such entry exists. | blocked_env |
+| R15-RESEARCH-066 | (same lookup) | No such entry exists. | blocked_env |
 
-Summary: 1 needs_gui (unchanged), 3 ci_pinned (frontend/Rust behavior unrun per stall rule, source unchanged, tests present), 3 holds (live backend contract matches register exactly). No regressions.
+Raw output: `raw/set-28/RESEARCH-044-066-register-lookup.txt` (one shared probe file covering all
+12 ids — the lookup result is identical for each: not found).

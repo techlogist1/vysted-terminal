@@ -1,0 +1,10 @@
+=== setModuleEnabled('plugin:...) callers ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/plugin-bootstrap.ts:193:  useModulesStore.getState().setModuleEnabled(`plugin:${pluginId}`, false);
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.tsx
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/plugin-bootstrap.ts
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/store/modules.ts
+--- occurrences with plugin: prefix context ---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/plugin-bootstrap.ts:186:  useModulesStore.getState().setModuleEnabled(mod.id, true);
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/lib/plugin-bootstrap.ts:193:  useModulesStore.getState().setModuleEnabled(`plugin:${pluginId}`, false);
+=== pinned test ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/SettingsPanel.test.tsx:148:  it("toggling a bridged plugin module routes through the marketplace lifecycle, not setModuleEnabled directly", () => {

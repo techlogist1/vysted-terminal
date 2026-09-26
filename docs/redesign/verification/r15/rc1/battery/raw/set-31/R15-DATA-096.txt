@@ -1,0 +1,79 @@
+=== DATA-096 source ===
+async def get_income_statement(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> IncomeStatement:
+    """Return the income statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    statement, _ = await _cached(
+        _listing_key(symbol, f"income:{period}"),
+        IncomeStatement,
+        lambda: provider_registry.get_income_statement(symbol, period=period),
+    )
+    return statement
+
+
+@router.get("/{symbol}/balance")
+async def get_balance_sheet(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> BalanceSheet:
+    """Return the balance sheet excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    statement, _ = await _cached(
+        _listing_key(symbol, f"balance:{period}"),
+        BalanceSheet,
+        lambda: provider_registry.get_balance_sheet(symbol, period=period),
+    )
+    return statement
+
+
+@router.get("/{symbol}/cashflow")
+async def get_cash_flow(
+    symbol: str, period: provider_registry.StatementPeriod = "annual"
+) -> CashFlowStatement:
+    """Return the cash-flow statement excerpt for ``symbol``; ``?period=quarterly`` for quarters."""
+    statement, _ = await _cached(
+        _listing_key(symbol, f"cashflow:{period}"),
+        CashFlowStatement,
+        lambda: provider_registry.get_cash_flow(symbol, period=period),
+    )
+    return statement
+
+
+@router.get("/{symbol}/ratings")
+async def get_analyst_rating(symbol: str) -> AnalystRating:
+    """Return aggregated analyst ratings and price targets for ``symbol``."""
+    rating, as_of = await _cached(
+        _listing_key(symbol, "ratings"),
+        AnalystRating,
+        lambda: provider_registry.get_analyst_rating(symbol),
+    )
+    rating.as_of = as_of
+    return rating
+
+
+# ---------------------------------------------------------------------------
+--- data_cache.py evict/size ---
+29:  it evicts the least recently written rows, so per-symbol keys cannot grow
+32:  cache are microseconds; an extra LRU layer adds complexity without
+38:  - :func:`get(key, ttl_seconds)` — returns the cached JSON value if the
+39:    row's ``updated_at`` is within ``ttl_seconds`` of now, else ``None``.
+40:  - :func:`get_with_meta(key, ttl_seconds)` — like :func:`get`, but also
+51:  - :func:`size()` — current row count. Test helper.
+82:#: The most rows kept; a ``set`` past it evicts the least recently written.
+196:async def get(key: str, ttl_seconds: float) -> Any | None:
+201:        ttl_seconds: maximum allowed staleness in seconds. The row's
+202:            ``updated_at`` must satisfy ``now - updated_at <= ttl_seconds``
+204:            is returned (the row is NOT auto-evicted — a subsequent
+210:    hit = await get_with_meta(key, ttl_seconds)
+214:async def get_with_meta(key: str, ttl_seconds: float) -> tuple[Any, float] | None:
+219:        ttl_seconds: same freshness window as :func:`get`.
+226:    if ttl_seconds <= 0:
+237:    if time.time() - updated_at > ttl_seconds:
+296:async def size() -> int:
+--- _cached helper ---
+61:async def _cached[M: BaseModel](
+214:    statement, _ = await _cached(
+227:    statement, _ = await _cached(
+240:    statement, _ = await _cached(
+251:    rating, as_of = await _cached(
+269:    response, as_of = await _cached(
+282:    response, as_of = await _cached(
+295:    response, as_of = await _cached(

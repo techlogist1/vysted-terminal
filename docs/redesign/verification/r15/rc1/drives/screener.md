@@ -67,3 +67,57 @@ functional defects surfaced in this drive (raw findings file is `[]`).
 - `/health` → `{"status":"ok","version":"0.8.0",...,"openbb-mcp":"available"}`.
 - Induced-edge tool used: `POST /system/provider-health/trip?provider=yahoo` on MY OWN sidecar only (never the shared `:52152` stack) to force the zero-evaluated and cold-sp500 repros without waiting on a real Yahoo throttle window.
 - Stopped via `kill $(cat rc1-screener-sleep.pid)` at the end of the drive.
+
+## Continuation (candidate `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`, gate round 2)
+
+The row above ran against `4097dac4`, which the RC1 gate facts confirm is an ancestor of the
+current candidate `4c6dfe8c`. `git diff 4097dac4..4c6dfe8c -- sidecar/services/screener.py
+sidecar/services/agent_runtime.py src/lib/host-actions.ts` shows the screener-relevant surface
+changed twice more since that drive:
+
+1. **`_normalise_tool_args`** (agent_runtime.py:908, the code path certifying finding #5 above)
+   gained R15-AGENT-093 (exact numeric/boolean JSON-string coercion) and dropped its
+   `value.lstrip()[:1] in ("[","{")` prefilter, but kept the R15-AGENT-024 array/object-string
+   rescue the screener finding depends on (now `type(parsed) in _JSON_STRING_TYPES[expected]`
+   instead of `isinstance(parsed, _JSON_CONTAINER_TYPES[expected])` — a strict superset, not a
+   narrowing). **No regression** — finding #5's code-confirmed verdict still holds.
+2. **`services/screener.py` `_finalize`/`apply_criteria`** gained two NEW fixes not present at
+   `4097dac4` and not covered by the row above: **R15-DATA-043** (round-robin the top-K cut
+   across currency groups, was a naive `matched[:limit]` that exhausted the alphabetically-first
+   currency) and **R15-DATA-112** (a missing listing currency sorts LAST, not first, regardless
+   of `sort_dir`).
+3. `src/lib/host-actions.ts`'s only diff in this range is `loadSymbolIntoChart` gaining a
+   `region` param (R15-DATA-002, panels-layouts/chart group) — unrelated to the screener
+   criterion-parsing path finding #6 covers.
+
+Re-booted my own sidecar on `:52322` from the current `rc1-cand` source against the SAME
+`rc1-data-rc1-drive-screener` data dir left by the prior attempt (already warm-loaded with NSE
+quotes; reused per the continuation rule rather than re-copying seed data), and live-drove the
+two new fixes plus one regression recheck:
+
+- **R15-DATA-043 round-robin, live.** `custom` universe `[AAPL, MSFT, RELIANCE.NS, TCS.NS,
+  INFY.NS, HDFCBANK.NS, ICICIBANK.NS, SBIN.NS]` (2 USD, 6 INR), `limit: 4`, sorted by
+  `market_cap desc`. Result: `RELIANCE.NS(INR), HDFCBANK.NS(INR), AAPL(USD), MSFT(USD)` — 2
+  rows per currency group, not the 4-INR-only page a naive `matched[:limit]` slice on a
+  currency-grouped list would have served (INR sorts alphabetically before USD, so the pre-fix
+  cut would starve USD entirely whenever a currency group outnumbers `limit`). `coverage` also
+  correctly says `"spans INR, USD — ranked within each currency"` even though only 2 of the 8
+  matched currencies are non-INR in the served page (computed off `matched`, not `rows`, per the
+  `4c6dfe8c` comment). **ok** — `07b-req/out-roundrobin-6to2.json`.
+- **R15-DATA-112 currency-sort-last.** Code-read only this pass (`screener.py:420-433`): the
+  sort key's first tuple element is `_currency_sort_key(currency) == ""`, so an empty/`None`
+  currency sorts into its own trailing group regardless of `sort_dir` — confirmed by reading the
+  comment + key construction, not independently forced live (no live symbol in this universe
+  resolved with an empty `currency` this pass; forcing one would need stubbing the fundamentals
+  provider, out of this continuation's time budget). **ok (code-confirmed)**.
+- **Regression recheck, finding #1 (zero-evaluated/throttled).** Same `provider-health/trip
+  yahoo` induce + 3-bogus-symbol custom screen on the current sha → identical shape to the
+  original drive: `{"evaluated_count":0,"partial":true,"coverage":"screened 0 of 3 — 3
+  unavailable"}`. **No regression** — `08-req/out-zero-evaluated-recheck.json`.
+
+No new functional defects found in this continuation; `findings/screener.json` stays `[]`.
+Own sidecar reused the prior attempt's data dir (continuation rule), booted on `:52322` from
+`rc1-cand` (now at `4c6dfe8c`), stopped by killing its own worker pid (`58488`) after confirming
+a clean `uvicorn.error: Finished server process` line in `rc1-screener-sidecar.log` — no other
+agent's port (`52311/52313/52320/52321/52153/52154`, all seen live in `pgrep -f "sleep 86400"`
+at teardown) was touched.

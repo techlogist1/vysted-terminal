@@ -1,155 +1,169 @@
-# RC1 fix round 1 — triage plan
+# RC1 fix round 1 (gate round 2, resumed run): triage plan
 
-Triage lead: rc1-fix-r1-triage (Opus). Base `4097dac4` (sidecar/src are byte-identical at
-`29b9ae9b`). Reproductions ran on my own sidecar `:52331` (rc1-cand source, seed-data copy
-`rc1-data-rc1-fix-r1-triage`) and in-process with the rc1-cand venv. Scratch output:
-`scratchpad/triage/`. Working log: `../logs/rc1-fix-r1-triage.md`.
+Triage lead: rc1-fix-r1-triage (Opus). Candidate and base `4c6dfe8c`. Written 26 Sep, 16:06 IST, for
+the resumed gate-round-2 run. The first attempt of this role ran at 07:56. Its plan is kept
+verbatim in `PLAN.gr2-attempt1.md`, and its probes in `triage/` are reused here because they ran
+on the same sha. Working log: `../logs/rc1-fix-r1-triage.md`.
 
-12 findings: **7 real** in 4 file-disjoint writer sets, **5 rejected**, **0 deferred**.
+There are 5 findings: **1 real** in 1 writer set, **4 rejected** and **0 deferred**.
 
-## Writer sets
+No sidecar was booted for this attempt. Every record was conclusive, either through the 07:56
+probes on `:52331` at this sha or through the round-2 recheck's live and in-process evidence. The
+new work is an in-process prototype of the round-3 classifier (`triage/r3-classifier-proto.*`)
+and a scan of every published brief markdown in `r15/**.jsonl` for non-numeric bracket tokens
+(`triage/r3-bracket-corpus.txt`, 28 briefs).
 
-### W1 research-coverage (opus): rc1-drive-research-briefs:1, rc1-battery-4:1
+## Writer set
 
-Files: `sidecar/services/research/deep.py`, `sidecar/services/research/iter.py`,
-`sidecar/services/research/fast.py`, `sidecar/services/agent_tools/deep_research.py`,
-`sidecar/tests/test_research_deep.py`, `sidecar/tests/test_research_fast.py`.
+### W1 citation-pseudo-class (opus): rc1-drive-research-briefs:2
 
-- **research-briefs:1 (confirmed from the evidence).** `deep.web_only_floor_note` (deep.py:301)
-  and the heavy-panel copy (iter.py:1169-1174) decide "web sources alone" from the up-front
-  snapshot only (`structured_feeds_available`). A researcher `price`/`fundamentals` leg that
-  later succeeds (`_record_structured`, deep.py:438, sets `findings.coverage[dim]` and appends
-  `vysted://<dim>/<SYM>`) is ignored. BDL deep brief: snapshot legs both timed out, the brief
-  cites `vysted://price/BDL` as [6], and it still carries the note. Fix: the note applies only
-  when no structured price or fundamentals source was gathered anywhere in the run. For deep,
-  that means the snapshot OR `findings.coverage`/`structured_sources`. For iter, it means the
-  snapshots OR `merged_sources` holding a `vysted://price|fundamentals/` url.
-  Tests: (a) deep, where the snapshot failed but the findings hold `vysted://price/BDL`, so
-  there is no note. (b) The iter synth path, where the snapshots failed but a merged
-  `vysted://fundamentals/` source exists, so there is no note. (c) Both paths still add the
-  note when only web sources exist.
-- **battery-4:1 (reproduced, mechanism corrected).** The in-process runs were cold and on the
-  rc1-cand venv. `price_data` alone took 10.8 s (9 paced NSE waits: cookie warm-up, 3
-  history windows for the default 6mo range, and the quote). `fundamentals` alone took 11.3 s.
-  Run under gather they took 20.4 s. `snapshot_structured` then dropped BOTH legs at 6 s
-  (BHEL, COALINDIA, NTPC, POWERGRID). So each leg alone already overruns the box when cold.
-  Throttle queueing only makes it worse. Cutting the price range to 5d did not help (A/B, NTPC).
-  The root cause is that `_WITNESS_LEG_TIMEOUT_S` = 6 s is the FAST/NORMAL FR-070 budget, but
-  the same box governs the snapshot on the DEEP (180 s wall), iter/heavy and Tier-B paths.
-  There it throws away the metric cards for nothing. Fix: `snapshot_structured` takes the
-  leg time box from its caller. FAST keeps 6 s. The deep, iter, heavy and deep_research callers
-  pass a longer box (≤ 25 s, and well inside their wall). Do not touch the nse_direct pacer:
-  it is an intentional anti-bot measure (R15-DATA-066).
-  Test: a fake `tool_call` whose price leg resolves after longer than the FAST box. The
-  snapshot is ok under the longer box and dropped under the default box. Monkeypatch the
-  boxes small, so the test never sleeps seconds.
-- Why opus: this is research-runtime timing against the wall budgets, and the note is an
-  honesty surface. The fix must not let the FAST path exceed FR-070.
+**Why opus.** This is the third fix attempt on this finding. Round 1
+(`worktree-agent-rc1-4c6dfe8-fix-r1-W1-citation-marker-grammar`, then integrator fix `ca6ec990`)
+and round 2 (`…-fix-r2-W1-citation-grammar-r2` @ `39585dc3`, integrated at `81fbfe91`) both
+failed recheck (`RECHECK.md`, `../fix-r2/RECHECK.md`). If it fails again, the three-failure rule
+stops it and sends it to DECISIONS. The fix is a root-cause change that has to stay identical in
+two regex dialects.
 
-### W2 agent-model-boundary (opus): rc1-scenarios:5, rc1-drive-onboarding-stranger:1
+**Start point.** Branch from `4c6dfe8c`, then run
+`git merge --ff-only 39585dc3`, which is `origin/worktree-agent-rc1-4c6dfe8-fix-r2-W1-citation-grammar-r2`.
+That brings in the r1 writer, the integrator fix and r2 as-is. All r1 and r2 tests must pass
+unchanged.
 
-Files: `sidecar/services/agent_runtime.py` (only `_model_facing_content` / `_RESEARCH_TOOLS`),
-`sidecar/services/agent_tools/research.py`, `sidecar/services/llm/tool_call_rescue.py`, and
-their tests (`sidecar/tests/test_research_semantics.py` or `test_agent_runtime.py`, and
-`sidecar/tests/test_llm_openai.py` or a new `test_tool_call_rescue.py`).
+**Mechanism.** There are two causes, and both are verified in the source.
 
-- **scenarios:5 (revenue half, reproduced).** `/fundamentals/SIFY` correctly carries
-  `currency: USD` and `financial_currency: INR`, and P/S is withheld. But
-  `_model_facing_content` (agent_runtime.py:957) only applies the R15-AGENT-001 money
-  projection (`research.model_view`) to the `research` tool. The direct `fundamentals` tool
-  hands the model a raw `revenue_ttm: 46506049536.0` next to `currency: "USD"`, and two models
-  then stated "$46.51 billion USD". This is the same defect class as AGENT-001, on a sibling
-  tool. Fix: apply the money projection (statement sizes in `financial_currency ?? currency`
-  via `semantics.display_value`, and trading-currency money such as `market_cap` in
-  `currency`) to every tool result that carries a Fundamentals dump, meaning `fundamentals`
-  and `compare_symbols`.
-  Tests: a SIFY-shaped `fundamentals` result reads `₹4,651 cr` for revenue, not the raw float.
-  The same holds for a `compare_symbols` result (a case the fix was not written against).
-- **scenarios:5 ADR-ratio half: not fixable in product.** None of the tools carries an ADR
-  ratio, and copilot.json rule 2 already forbids inventing figures. Both small models broke
-  that rule. This half is recorded as a model-capability issue and is not fixed by W2.
-- **onboarding-stranger:1 (confirmed from the evidence).** `rescue_leaked_tool_call` only
-  parses JSON `{"name", "arguments"|"parameters"}` blocks. llama3.1:8b leaked the call as
-  call syntax (`price_data(symbol="ZOMATO.NS")`) with a hand-typed result, so nothing ran.
-  This is the R15-AGENT-018 class in a new form. Fix: also rescue a
-  `<offered_name>(k=<literal>, ...)` call, parsed with `ast` and literal values only. Only
-  names offered this round are rescued, and anything that does not parse stays text.
-  Tests: the Zomato text rescues to `price_data {"symbol": "ZOMATO.NS"}`. A second form
-  (a fenced multi-kwarg `fundamentals(symbol="TCS.NS")`) also rescues. Prose that mentions
-  `research(X)` with a bare name, or a name not offered, does not fire.
-  Not in scope, logged as an issue: the fabricated result that already streamed stays visible.
-- Why opus: this is the agent-runtime tool boundary. A false-fire rescue would run tools the
-  user never asked for.
+1. **Source.** The researcher extraction prompt (`deep.py:1003-1015`) says "Cite concretely", but
+   the evidence it gives the model is unnumbered. That evidence is the
+   `Structured (<tool>): {…}` line (`deep.py:987-997`), the `wrap_untrusted("exchange disclosures
+   (NSE/BSE feeds)", …)` block, raw URLs and "Web evidence:". So the model makes up its own
+   bracket citations, and synthesis copies them into the brief. The live escapes were
+   `[Structured: {'ok': True, 'count': 0, 'news': []}]` (Cochin, llama) and
+   `[NSE filing, August 2026]` (Kaynes ULTRA, 4o-mini).
+2. **Net.** Both `citecheck.py` and `brief-ingest.ts` recognise only digit groups plus one
+   enumerated label family (`_PSEUDO_CITE_RE`). So a group that mixes a label with a marker
+   (`[NSE filing, August 2026; 2][3]`, `[Web evidence; 2]`), a spelled-out marker (`[Source 2]`),
+   a label with a payload (`[Structured: {…}]`, which also nests `[]`) and a paraphrased source
+   label all ship verbatim (`../fix-r2/recheck/gr2/fresh-backend-probe.txt`).
 
-### W3 fundamentals-derived (sonnet): rc1-datapack:1
+**Fix.** The class is "a bracket token that names a source but does not resolve to the rail". It
+is defined by what the token names, not by its shape or its position. That avoids both the round-1
+over-match and the round-2 enumeration gap.
 
-Files: `sidecar/services/yfinance_provider.py`, `sidecar/tests/test_yfinance_provider.py`.
+- **The scanner, in both `citecheck.py` and `brief-ingest.ts`.** Scan balanced `[…]` tokens on
+  one line, counting nesting depth, so that `[Structured: {… 'news': [{'tags': []}]}]` is one
+  token. Skip these tokens exactly as today:
+  - markdown links `[..](`,
+  - reference-link halves `[text][ref]`,
+  - definitions `[ref]:`,
+  - single-character tokens `[x]`,
+  - pure numeric markers and groups (the existing r2 grammar).
+- **Mixed group.** Split on `,` and `;`. A member matching
+  `(?:sources?|refs?|references?)?\s*#?\d{1,3}(?:\s*[-–—]\s*\d{1,3})?` becomes a marker (ranges
+  expand inclusive, as in r2), and every other member is dropped. So
+  `[NSE filing, August 2026; 2]` becomes `[2]`, `[Source 2]` becomes `[2]` and `[Sources 2, 3]`
+  becomes `[2][3]`. The markers produced then go through the normal range check.
+- **Source-named token.** A token whose head names a source is a pseudo-citation. The head is the
+  text before the first `:`, or the whole content when there is no colon. It names a source when
+  it matches, case-insensitive with word boundaries, `sources?|references?|refs?|evidence|findings?|reports?|filings?|disclosures?|announcements?|releases?|transcripts?|presentations?|articles?|news|press|websites?|feeds?|structured|documents?`,
+  or when the whole content holds a URL (`https?://` or `www.`). The backend strips it, counts it
+  in `removed` and tidies the spacing. The frontend renders it as `[?]` and counts it in
+  `countBrokenCitations`.
+  - This replaces `_PSEUDO_CITE_RE`/`PSEUDO_CITE_RE`. The r2 label family is a subset of it.
+  - Leave `data` out of the lexicon, so a disclaimer such as `[data unavailable]` survives.
+    Mark that choice with a `ponytail:` comment.
+- **`iter.py` `_remap_markers`.** It must use the same expansion, so that `[Source 2]` and
+  `[Web evidence; 1]` from an angle remap per number.
+- **`deep.py` extraction prompt.** Replace "Cite concretely" with an instruction to name the
+  source in plain words and never write square-bracket citations, because numbered citations are
+  added at synthesis.
+- **No net change for these.** Positional heuristics, exchange or ticker words, and legitimate
+  system brackets such as `[basis: …]`, `[= formula]` and `[CONFLICT]` need no rule. They carry
+  no source noun in their head, so the rule never touches them.
 
-- **Reproduced.** `/fundamentals/SIFY` on :52331 returns `pe_ratio -103.15` with
-  `field_meta {status: ok, provider: derived, basis_note: "price / EPS"}`. The guard at
-  yfinance_provider.py:695 is `if fund.pe_ratio is None and fund.ratio_price is not None and
-  fund.eps:`, which lets a negative EPS through. Fix: derive only when `eps > 0`. Otherwise
-  leave `pe_ratio` None, with field_meta stating that it is not meaningful for a loss-making
-  company (negative EPS). Use the existing unavailable / not-applicable vocabulary.
-  Tests: a SIFY-shaped fixture (eps -0.13) gets no P/E and a stated reason. A second fixture
-  (VERTEX-shaped, eps -0.25) gets the same. A positive-EPS fixture still derives price / EPS.
+**Acceptance tests.** Put the same cases in `test_research_citecheck.py` and
+`brief-ingest.test.ts`, one test per behaviour:
 
-### W4 portfolio-and-docs (sonnet): rc1-drive-portfolio-notes:1, rc1-gate8:1
+- **Literal escapes.**
+  - `[NSE filing, August 2026]` is stripped, or becomes `[?]` and counts as broken.
+  - `…million [NSE filing, August 2026; 2][3].` with 13 sources becomes `…million [2][3].`
+  - `…no results [Structured: {'ok': True, 'count': 0, 'news': []}]` is stripped whole.
+- **Cases the fix was not written against.**
+  - `[Company presentation; 1-2]` with 5 sources becomes `[1][2]`.
+  - `[Ref 7]` with 5 sources is removed (removed=1), or becomes `[?]`.
+  - `[per the Q1 transcript]` is stripped.
+  - `[Structured (fundamentals): {'rows': [{'tags': []}]}]`, which nests two levels, is
+    stripped whole.
+  - `[https://nseindia.com/x]` is stripped.
+- **Must survive byte-identical, with 0 broken.**
+  - `[= (52w high - price) / 52w high]`
+  - `[FY25]`
+  - `[Note: consolidated per the annual report]`
+  - `see [CONFLICT] note`
+  - `[PDF] - 2026-09`
+  - the r2 string with `[basis: …]`, `[NSE: BDL]`, `[the Company]` and `[sic]`
+- **Remap.** In `test_research_iter.py`, `_remap_markers('x [Source 2] y [Web evidence; 1].')`
+  maps each number to the merged list.
 
-Files: `src/modules/portfolio/PortfolioPanel.tsx`, `src/modules/portfolio/PortfolioPanel.test.tsx`,
-`docs/PHASE_10_HANDOFF.md`, `docs/README.md`.
+**Scratch check (not committed).** Push these through both nets:
 
-- **portfolio-notes:1 (confirmed by code read).** PortfolioPanel.tsx:255-259 bumps
-  `quotesNonce` every 5 s whether or not the previous fetch is still in flight. The
-  `cancelled` flag in the fetch effect (:224-248) only gates the state write, so every tick
-  starts another full per-symbol fan-out on top of the one still running. Fix: mirror
-  WatchlistPanel's `inFlightRef` guard (WatchlistPanel.tsx:182-251), so a tick is skipped
-  while the previous fan-out has not settled.
-  Test (vitest, fake timers): quotes never resolve, advance 3 intervals, and `sidecarApi.quote`
-  is called once per holding, not 4 times. Once they resolve, the next tick refetches.
-- **gate8:1 (confirmed).** docs/README.md:32 indexes PHASE_10_HANDOFF.md as the "Latest phase
-  handoff". Its §3 (:116-141) tells users to connect Kite, lists `/brokers/*` routes and names
-  `broker_portfolio`, and the file has no D81 notice. Fix: add a D81 removal banner at the top
-  of the handoff and at §3, worded like docs/BROKER_INTEGRATIONS.md. Mark the README row as
-  historical. Do not move the file, because CURRENT_STATE.md and archive/README.md link it.
-  Run `pnpm exec prettier --write` on both files.
-  Check: `grep -n D81 docs/PHASE_10_HANDOFF.md` hits both at the top and in §3.
-  `pnpm format:check` passes.
+- the finding's BDL markdown (`../fix-r1/recheck/gr2-original-bdl-brief-through-candidate.txt`
+  input),
+- r2's live Kaynes #1 and Cochin markdown (`../fix-r2/recheck/gr2/2-ultra-kaynes-4omini.jsonl`,
+  `3-deep-cochin-llama.jsonl`),
+- `triage/r3-bracket-corpus.txt`.
 
-## Rejected (evidence)
+Afterwards, no bracket token whose head names a source may remain, and every `[basis: …]` must
+be unchanged.
 
-- **rc1-scenarios:1: not a regression.** On :52331, `/fundamentals/SIFY` returns
-  `currency USD`, `financial_currency INR` and `price_to_sales` withheld (it "mixes bases").
-  That is the register's fix_shape option 2, and the UI and brief format these values in
-  `financial_currency ?? currency` (EquityOverviewPanel.tsx:833, brief-blocks.tsx:336). The
-  agent-path misstatement is real, and W2 closes it under rc1-scenarios:5.
-- **rc1-scenarios:2: not a regression.** Both 52-week bounds are served `status: flagged`,
-  with the reason "…disagrees with the NSE + BSE exchange range 87,003.00-144,500.00 since
-  2025-09-10". That is exactly the certified batch-5 outcome (stage-c/batch-5/VERDICTS.md:123-125,
-  "the flag is the honest outcome"). The window and venue are stated in the reason.
-- **rc1-scenarios:3: not a regression.** The runtime emits the certified end-of-turn notice
-  ("Staged for your review, not applied yet: arrange_layout TCS") at the end of the stream.
-  The tool result for arrange_layout is byte-identical to the portfolio_add_position and
-  write_note results that the same model hedged correctly (agent_runtime.py:1570-1582). The
-  gap is llama3.1:8b narration variance, which the certified fix explicitly covers with the
-  deterministic notice.
-- **rc1-scenarios:4: the number is not served data.** `price_data` returns no 52-week field.
-  It returns 90 bars with `bars_available` and `window_start`, and the served bars' minimum
-  low is 102,210 (/history ELCIDIN.NS 1y on :52331). The model's "52-week low ₹106,505"
-  matches no served value. It is a llama3.1:8b computation or hallucination against the
-  existing grounding rule, not the R15-DATA-015 mechanism.
-- **rc1-drive-portfolio-notes:2: not a defect.** The record itself concludes that this is
-  harness drift against the new ConfirmButton arm/confirm gate, and that R15-UI-035 still holds.
+**Files (W1 owns all of them).**
 
-## Issues outside the entries (not in any diff)
+- `sidecar/services/research/citecheck.py`
+- `sidecar/services/research/iter.py`
+- `sidecar/services/research/deep.py`
+- `src/lib/brief-ingest.ts`
+- `sidecar/tests/test_research_citecheck.py`
+- `sidecar/tests/test_research_iter.py`
+- `src/lib/brief-ingest.test.ts`
 
-- The scenarios:5 ADR-ratio fabrication. No product data source has the ratio, and the
-  grounding rule already exists. This is a model-capability limit.
-- The fabricated tool result that a leaked-call model already streamed stays in the
-  transcript even after a rescue (W2 note).
-- `nse_provider.get_archive_text` (:747-749) and `_SessionHolder.ensure` (:261) call
-  `_throttle.wait()` while holding the module `_lock`. The R15-DATA-066 rule is "pace before
-  the lock", so a queued archive fetch blocks every other nse_direct caller for its whole wait.
-- The SAIL/ONGC traces show `nse_direct` quote-equity stalling for about 11 s before the
-  history fallback, and the NSE cookie warm-up failing with a connection reset. Yahoo's
-  getcrumb returned 429 at probe time. These are environment conditions during triage.
+## Rejected (the final verifier must concur)
+
+- **rc1-scenarios:1: in the accepted known-limitation class, not a mechanism defect.**
+  - The "silent 90-bar cap" is disclosed in the payload through `bars_returned`,
+    `bars_available` and `window_start` (the R15-AGENT-062 fix).
+  - For ELCIDIN the cap changed nothing. `/history/ELCIDIN.NS` 1y has 111 bars from the
+    2026-04-20 listing, and the minimum low is 102,210 both over all bars and over the last 90.
+  - The stated "52-week low ₹110,095" is the `low` of the 2026-07-31 bar, which is inside the
+    payload (`triage/elcidin-1y-summary.json`). "103,800 is 6,295 above 110,095" is the local
+    model's own arithmetic.
+  - That is value-only grounding of the wrong field, R15-LEAD-037, which is blocked_tier4 and
+    accepted in DECISIONS 4.11. Per the lead note it is filed as a register note
+    (`findings/rc1-fix-r1-triage.json` :1), with no fix round.
+- **rc1-datapack:1: not a regression.** R15-DATA-008's fix_shape offered "carry a separate
+  financial_currency on the model and format with it". That was built, and the mixed-basis P/S is
+  withheld (`triage/sify-fundamentals-summary.json`).
+  - The finding's premise is false. Both consumers format revenue with
+    `financial_currency ?? currency` (`EquityOverviewPanel.tsx:833`, `brief-blocks.tsx:336`,
+    re-read at `4c6dfe8c`).
+  - Tests pin it: `EquityOverviewPanel.test.tsx:591` expects "₹14.0B" and asserts no "$14.0B",
+    and `brief-blocks.test.ts:661` expects "₹12.0B".
+- **rc1-datapack:2: not a regression.** R15-DATA-058's defect was truncation, and its fix_shape
+  allowed "reserve a slot for the best cross-region match". `_capped`
+  (`symbol_resolver.py:1116`) does that, SIFY 0.913 is listed (`triage/sify-resolve.json`), and
+  batch 8 certified it.
+  - Its last-place order is the D58c / V5 locale tie-break: "under an IN session a foreign row
+    can never outrank an IN row at the same band" (`symbol_resolver.py:1103-1109`).
+  - Reordering the list would reverse that decision, not fix a regression.
+- **rc1-drive-onboarding-stranger:1: the drive itself filed this as a reclassification note.** It
+  is the "hallucinated-tool-result-citation" class of R15-LEAD-030: Zomato figures stated with
+  only `get_terminal_state` ok behind them. That class is blocked_tier4 and accepted in
+  DECISIONS 4.9. It is filed as a register note under R15-LEAD-030
+  (`findings/rc1-fix-r1-triage.json` :3), with no fix round.
+
+## Deferred
+
+None. No finding needs a Tier-1 file or reverses a locked decision.
+
+## Carried from the 07:56 attempt (not in this run's finding list)
+
+`findings/rc1-fix-r1-triage.json` :2 is still open for the lead: battery set-28 ran against 12
+nonexistent ids. It is a coverage gap, and set-28 should be re-run with the ids at
+`battery/INDEX.md:81`.

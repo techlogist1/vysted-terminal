@@ -4,14 +4,14 @@
  "manifest_name": "Jumbo Bag Ltd",
  "exchange": "BSE",
  "bse_code": "516078",
- "collected_at": "2026-09-25T05:26:21+0530",
+ "collected_at": "2026-09-26T06:33:45+0530",
  "sidecar": "http://127.0.0.1:52313",
  "complete": true,
  "calls": {
   "resolve_bare_symbol": {
    "url": "http://127.0.0.1:52313/resolve?q=JUMBO",
    "status": 200,
-   "elapsed_ms": 1,
+   "elapsed_ms": 2,
    "body": {
     "ok": true,
     "query": "JUMBO",
@@ -61,7 +61,7 @@
   "resolve_company_name": {
    "url": "http://127.0.0.1:52313/resolve?q=Jumbo+Bag+Ltd",
    "status": 200,
-   "elapsed_ms": 456,
+   "elapsed_ms": 509,
    "body": {
     "ok": true,
     "query": "Jumbo Bag Ltd",
@@ -191,7 +191,7 @@
   "resolve_bse_code": {
    "url": "http://127.0.0.1:52313/resolve?q=516078",
    "status": 200,
-   "elapsed_ms": 1,
+   "elapsed_ms": 3,
    "body": {
     "ok": true,
     "query": "516078",
@@ -241,20 +241,20 @@
   "quote": {
    "url": "http://127.0.0.1:52313/quotes/JUMBO?asset_class=equity",
    "status": 200,
-   "elapsed_ms": 1495,
+   "elapsed_ms": 1589,
    "body": {
     "symbol": "JUMBO",
-    "price": 89.47,
-    "change": 0.0,
-    "change_percent": 0.0,
-    "volume": 914.0,
-    "open": 88.58,
-    "high": 90.88,
-    "low": 88.58,
-    "prev_close": 88.58,
+    "price": 89.95,
+    "change": 0.480000000000004,
+    "change_percent": 0.5364926791103208,
+    "volume": 4581.0,
+    "open": 90.62,
+    "high": 90.62,
+    "low": 88.0,
+    "prev_close": 89.47,
     "currency": "INR",
     "market_state": "CLOSED",
-    "timestamp": "2026-09-24T00:00:00Z",
+    "timestamp": "2026-09-25T00:00:00Z",
     "provider": "bse",
     "freshness": "eod"
    },
@@ -266,7 +266,7 @@
   "fundamentals": {
    "url": "http://127.0.0.1:52313/fundamentals/JUMBO",
    "status": 200,
-   "elapsed_ms": 8090,
+   "elapsed_ms": 5343,
    "body": {
     "symbol": "JUMBO.BO",
     "name": "Jumbo Bag Limited",
@@ -275,22 +275,22 @@
     "sector_source": "yfinance",
     "currency": "INR",
     "financial_currency": null,
-    "ratio_price": 89.47,
-    "market_cap": 749194944.0,
-    "pe_ratio": 6.5354276,
+    "ratio_price": 89.95,
+    "market_cap": 753214272.0,
+    "pe_ratio": 6.5704894,
     "forward_pe": null,
     "peg_ratio": null,
-    "price_to_book": 1.6458491,
-    "price_to_sales": 0.5762103,
-    "ev_to_ebitda": 6.298,
+    "price_to_book": 1.6546788,
+    "price_to_sales": 0.5793016,
+    "ev_to_ebitda": 6.321,
     "book_value": 54.361,
-    "dividend_yield": null,
+    "dividend_yield": 0.0,
     "dividend_per_share": null,
     "eps": 13.9,
     "beta": 0.182,
     "fifty_two_week_high": 105.0,
     "fifty_two_week_low": 49.06,
-    "fifty_two_week_change": 0.042117596,
+    "fifty_two_week_change": 0.023098946,
     "fifty_two_week_high_date": "2025-10-24",
     "fifty_two_week_low_date": "2026-03-30",
     "listing_date": null,
@@ -315,7 +315,7 @@
     "growth_basis": "mrq_yoy",
     "held_percent_insiders": 0.64648,
     "held_percent_institutions": 0.01517,
-    "dividend_per_share_ttm": null,
+    "dividend_per_share_ttm": 0.0,
     "revenue_growth_computed": null,
     "earnings_growth_computed": null,
     "growth_computed_quarters": null,
@@ -323,7 +323,7 @@
      "name": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -331,7 +331,7 @@
      "sector": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -339,7 +339,7 @@
      "industry": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -347,7 +347,7 @@
      "sector_source": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -355,7 +355,7 @@
      "currency": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -363,7 +363,7 @@
      "ratio_price": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:55:24+00:00",
+      "as_of": "2026-09-25T09:52:19+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -371,7 +371,7 @@
      "market_cap": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:55:24+00:00",
+      "as_of": "2026-09-25T09:52:19+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -379,7 +379,7 @@
      "pe_ratio": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:55:24+00:00",
+      "as_of": "2026-09-25T09:52:19+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -387,7 +387,7 @@
      "forward_pe": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:55:24+00:00",
+      "as_of": "2026-09-25T09:52:19+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -395,7 +395,7 @@
      "peg_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:55:24+00:00",
+      "as_of": "2026-09-25T09:52:19+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -403,15 +403,15 @@
      "price_to_book": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:55:24+00:00",
-      "reason": "P/B 1.646 disagrees by 4.6% with market cap / the provider's newest filed stockholders' equity (749,194,944 / 477,377,000 as of 2026-03-31 = 1.57) \u2014 the book value behind it may sit on a stale share count; kept, flagged",
+      "as_of": "2026-09-25T09:52:19+00:00",
+      "reason": "P/B 1.655 disagrees by 4.6% with market cap / the provider's newest filed stockholders' equity (753,214,272 / 477,377,000 as of 2026-03-31 = 1.58) \u2014 the book value behind it may sit on a stale share count; kept, flagged",
       "label": null,
       "basis_note": null
      },
      "price_to_sales": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:55:24+00:00",
+      "as_of": "2026-09-25T09:52:19+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -419,7 +419,7 @@
      "ev_to_ebitda": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:55:24+00:00",
+      "as_of": "2026-09-25T09:52:19+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -427,23 +427,23 @@
      "book_value": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "book value per share 54.36 disagrees by 4.6% with the provider's newest filed stockholders' equity / shares outstanding (477,377,000 as of 2026-03-31 / 8,373,700 = 57.01) \u2014 it may sit on a stale share count; kept, flagged",
       "label": null,
       "basis_note": null
      },
      "dividend_yield": {
-      "status": "unavailable",
+      "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:55:24+00:00",
-      "reason": "provider did not publish this field",
-      "label": null,
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
       "basis_note": null
      },
      "dividend_per_share": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -459,7 +459,7 @@
      "beta": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -467,7 +467,7 @@
      "fifty_two_week_high": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -475,7 +475,7 @@
      "fifty_two_week_low": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -483,7 +483,7 @@
      "fifty_two_week_change": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:55:24+00:00",
+      "as_of": "2026-09-25T09:52:19+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -491,7 +491,7 @@
      "fifty_two_week_high_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -499,7 +499,7 @@
      "fifty_two_week_low_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -507,7 +507,7 @@
      "listing_date": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -515,7 +515,7 @@
      "first_trade_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -523,7 +523,7 @@
      "forward_pe_fiscal_year": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -531,7 +531,7 @@
      "roe": {
       "status": "ok",
       "provider": "derived",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": "net income (TTM) / stockholders equity"
@@ -539,7 +539,7 @@
      "roa": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -547,7 +547,7 @@
      "gross_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -555,7 +555,7 @@
      "operating_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -563,7 +563,7 @@
      "profit_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -571,7 +571,7 @@
      "debt_to_equity": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -579,7 +579,7 @@
      "current_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -587,7 +587,7 @@
      "quick_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -595,7 +595,7 @@
      "roce": {
       "status": "ok",
       "provider": "derived",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": "annual EBIT / (total assets - current liabilities)"
@@ -603,7 +603,7 @@
      "basis": {
       "status": "ok",
       "provider": "exchange-filings",
-      "as_of": "2026-09-24T23:56:08.658471+00:00",
+      "as_of": "2026-09-26T01:03:33.445391+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -627,7 +627,7 @@
      "free_cash_flow": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -635,7 +635,7 @@
      "shares_outstanding": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -659,7 +659,7 @@
      "held_percent_insiders": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "unreconciled: exchange shareholding unavailable (insiders \u2260 promoter group)",
       "label": null,
       "basis_note": null
@@ -667,7 +667,7 @@
      "held_percent_institutions": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "unreconciled: exchange shareholding unavailable (provider institutions \u2260 exchange institutional holding)",
       "label": null,
       "basis_note": null
@@ -675,17 +675,17 @@
      "identity_note": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:56:01.847786+00:00",
+      "as_of": "2026-09-26T01:03:29.453642+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
      },
      "dividend_per_share_ttm": {
-      "status": "unavailable",
+      "status": "ok",
       "provider": "yfinance",
       "as_of": null,
-      "reason": "dividend history unavailable",
-      "label": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
       "basis_note": null
      }
     },
@@ -694,13 +694,13 @@
    },
    "polite": {
     "yahoo_open": false,
-    "parked_s": 66.6
+    "parked_s": 0.0
    }
   },
   "income": {
    "url": "http://127.0.0.1:52313/fundamentals/JUMBO/income",
    "status": 200,
-   "elapsed_ms": 361,
+   "elapsed_ms": 575,
    "body": {
     "symbol": "JUMBO.BO",
     "periods": [
@@ -716,7 +716,7 @@
       "values": {
        "2026-03-31": 1148397000.0,
        "2025-03-31": 1228309000.0,
-       "2024-03-31": 1019555000.0,
+       "2024-03-31": 1049734000.0,
        "2023-03-31": 1083436000.0,
        "2022-03-31": null
       }
@@ -726,7 +726,7 @@
       "values": {
        "2026-03-31": 1148397000.0,
        "2025-03-31": 1228309000.0,
-       "2024-03-31": 1019555000.0,
+       "2024-03-31": 1049734000.0,
        "2023-03-31": 1083436000.0,
        "2022-03-31": null
       }
@@ -736,7 +736,7 @@
       "values": {
        "2026-03-31": 749081000.0,
        "2025-03-31": 896129000.0,
-       "2024-03-31": 743504000.0,
+       "2024-03-31": 587683000.0,
        "2023-03-31": 811681000.0,
        "2022-03-31": null
       }
@@ -746,7 +746,7 @@
       "values": {
        "2026-03-31": 399316000.0,
        "2025-03-31": 332180000.0,
-       "2024-03-31": 276051000.0,
+       "2024-03-31": 462051000.0,
        "2023-03-31": 271755000.0,
        "2022-03-31": null
       }
@@ -755,7 +755,7 @@
       "label": "rent_and_landing_fees",
       "values": {
        "2026-03-31": 2120000.0,
-       "2025-03-31": 1527000.0,
+       "2025-03-31": null,
        "2024-03-31": 971000.0,
        "2023-03-31": 0.0,
        "2022-03-31": null
@@ -765,10 +765,10 @@
       "label": "general_and_administrative_expense",
       "values": {
        "2026-03-31": 9014000.0,
-       "2025-03-31": 6822000.0,
+       "2025-03-31": null,
        "2024-03-31": 9049000.0,
        "2023-03-31": 10107000.0,
-       "2022-03-31": null
+       "2022-03-31": 8852000.0
       }
      },
      {
@@ -875,7 +875,7 @@
       "label": "total_other_finance_cost",
       "values": {
        "2026-03-31": null,
-       "2025-03-31": 4081000.0,
+       "2025-03-31": null,
        "2024-03-31": 4292000.0,
        "2023-03-31": 10896000.0,
        "2022-03-31": 7141000.0
@@ -886,7 +886,7 @@
       "values": {
        "2026-03-31": -16597000.0,
        "2025-03-31": -18249000.0,
-       "2024-03-31": -21850000.0,
+       "2024-03-31": -32578000.0,
        "2023-03-31": -30769000.0,
        "2022-03-31": null
       }
@@ -905,20 +905,20 @@
       "label": "write_off",
       "values": {
        "2026-03-31": 53000.0,
-       "2025-03-31": 2300000.0,
+       "2025-03-31": null,
        "2024-03-31": 0.0,
        "2023-03-31": 0.0,
-       "2022-03-31": null
+       "2022-03-31": 600000.0
       }
      },
      {
       "label": "other_special_charges",
       "values": {
        "2026-03-31": -18300000.0,
-       "2025-03-31": -685000.0,
+       "2025-03-31": null,
        "2024-03-31": 17871000.0,
        "2023-03-31": 3671000.0,
-       "2022-03-31": null
+       "2022-03-31": 36123000.0
       }
      },
      {
@@ -936,7 +936,7 @@
       "values": {
        "2026-03-31": 787000.0,
        "2025-03-31": 31000.0,
-       "2024-03-31": 1425000.0,
+       "2024-03-31": 4516000.0,
        "2023-03-31": 306000.0,
        "2022-03-31": null
       }
@@ -1065,7 +1065,7 @@
       "label": "rent_expense_supplemental",
       "values": {
        "2026-03-31": 2120000.0,
-       "2025-03-31": 1527000.0,
+       "2025-03-31": null,
        "2024-03-31": 971000.0,
        "2023-03-31": 0.0,
        "2022-03-31": null
@@ -1126,7 +1126,7 @@
       "values": {
        "2026-03-31": -16597000.0,
        "2025-03-31": -18249000.0,
-       "2024-03-31": -21850000.0,
+       "2024-03-31": -32578000.0,
        "2023-03-31": -30769000.0,
        "2022-03-31": null
       }
@@ -1156,7 +1156,7 @@
       "values": {
        "2026-03-31": 749081000.0,
        "2025-03-31": 896129000.0,
-       "2024-03-31": 743504000.0,
+       "2024-03-31": 587683000.0,
        "2023-03-31": 811681000.0,
        "2022-03-31": null
       }
@@ -1243,7 +1243,7 @@
   "balance": {
    "url": "http://127.0.0.1:52313/fundamentals/JUMBO/balance",
    "status": 200,
-   "elapsed_ms": 393,
+   "elapsed_ms": 367,
    "body": {
     "symbol": "JUMBO.BO",
     "periods": [
@@ -1268,7 +1268,7 @@
       "label": "cash_equivalents",
       "values": {
        "2026-03-31": null,
-       "2025-03-31": 0.0,
+       "2025-03-31": null,
        "2024-03-31": 0.0,
        "2023-03-31": 0.0,
        "2022-03-31": 0.0
@@ -1278,7 +1278,7 @@
       "label": "cash_and_cash_equivalents",
       "values": {
        "2026-03-31": 64000.0,
-       "2025-03-31": 6253000.0,
+       "2025-03-31": 31440000.0,
        "2024-03-31": 6408000.0,
        "2023-03-31": 14460000.0,
        "2022-03-31": null
@@ -1308,8 +1308,8 @@
       "label": "gross_accounts_receivable",
       "values": {
        "2026-03-31": 302535000.0,
-       "2025-03-31": 351590000.0,
-       "2024-03-31": 304392000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
        "2023-03-31": null,
        "2022-03-31": null
       }
@@ -1318,8 +1318,8 @@
       "label": "allowance_for_doubtful_accounts_receivable",
       "values": {
        "2026-03-31": 0.0,
-       "2025-03-31": 0.0,
-       "2024-03-31": 0.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
        "2023-03-31": null,
        "2022-03-31": null
       }
@@ -1358,30 +1358,30 @@
       "label": "raw_materials",
       "values": {
        "2026-03-31": 82382000.0,
-       "2025-03-31": 76849000.0,
+       "2025-03-31": null,
        "2024-03-31": 82664000.0,
        "2023-03-31": 69973000.0,
-       "2022-03-31": null
+       "2022-03-31": 56435000.0
       }
      },
      {
       "label": "work_in_process",
       "values": {
        "2026-03-31": 95803000.0,
-       "2025-03-31": 75279000.0,
+       "2025-03-31": null,
        "2024-03-31": 72812000.0,
        "2023-03-31": 97140000.0,
-       "2022-03-31": null
+       "2022-03-31": 149865000.0
       }
      },
      {
       "label": "finished_goods",
       "values": {
        "2026-03-31": 68169000.0,
-       "2025-03-31": 65041000.0,
+       "2025-03-31": null,
        "2024-03-31": 53805000.0,
        "2023-03-31": 71226000.0,
-       "2022-03-31": null
+       "2022-03-31": 53725000.0
       }
      },
      {
@@ -1438,7 +1438,7 @@
       "label": "other_current_assets",
       "values": {
        "2026-03-31": -1000.0,
-       "2025-03-31": 7334000.0,
+       "2025-03-31": 30483000.0,
        "2024-03-31": 14717000.0,
        "2023-03-31": 17871000.0,
        "2022-03-31": null
@@ -1458,10 +1458,10 @@
       "label": "properties",
       "values": {
        "2026-03-31": 0.0,
-       "2025-03-31": 0.0,
-       "2024-03-31": 0.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
        "2023-03-31": 0.0,
-       "2022-03-31": null
+       "2022-03-31": 0.0
       }
      },
      {
@@ -1469,9 +1469,9 @@
       "values": {
        "2026-03-31": 121486000.0,
        "2025-03-31": 119951000.0,
-       "2024-03-31": 120000000.0,
+       "2024-03-31": null,
        "2023-03-31": 120000000.0,
-       "2022-03-31": null
+       "2022-03-31": 120000000.0
       }
      },
      {
@@ -1489,9 +1489,9 @@
       "values": {
        "2026-03-31": 204366000.0,
        "2025-03-31": 137450000.0,
-       "2024-03-31": 112674000.0,
+       "2024-03-31": null,
        "2023-03-31": 87659000.0,
-       "2022-03-31": null
+       "2022-03-31": 149603000.0
       }
      },
      {
@@ -1559,7 +1559,7 @@
       "values": {
        "2026-03-31": 5970000.0,
        "2025-03-31": 5025000.0,
-       "2024-03-31": 0.0,
+       "2024-03-31": null,
        "2023-03-31": null,
        "2022-03-31": null
       }
@@ -1588,7 +1588,7 @@
       "label": "available_for_sale_securities",
       "values": {
        "2026-03-31": 1241000.0,
-       "2025-03-31": 1261000.0,
+       "2025-03-31": 12791000.0,
        "2024-03-31": 861000.0,
        "2023-03-31": 798000.0,
        "2022-03-31": null
@@ -1598,7 +1598,7 @@
       "label": "investmentin_financial_assets",
       "values": {
        "2026-03-31": 3245000.0,
-       "2025-03-31": 1261000.0,
+       "2025-03-31": 12791000.0,
        "2024-03-31": 861000.0,
        "2023-03-31": 798000.0,
        "2022-03-31": null
@@ -1808,7 +1808,7 @@
       "label": "non_current_deferred_revenue",
       "values": {
        "2026-03-31": 2998000.0,
-       "2025-03-31": 3297000.0,
+       "2025-03-31": null,
        "2024-03-31": 3597000.0,
        "2023-03-31": 0.0,
        "2022-03-31": null
@@ -1828,8 +1828,8 @@
       "label": "non_current_pension_and_other_postretirement_benefit_plans",
       "values": {
        "2026-03-31": 5109000.0,
-       "2025-03-31": 8975000.0,
-       "2024-03-31": 6017000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
        "2023-03-31": null,
        "2022-03-31": null
       }
@@ -1838,7 +1838,7 @@
       "label": "other_non_current_liabilities",
       "values": {
        "2026-03-31": 2628000.0,
-       "2025-03-31": 2792000.0,
+       "2025-03-31": 6089000.0,
        "2024-03-31": 3360000.0,
        "2023-03-31": 2992000.0,
        "2022-03-31": null
@@ -1888,10 +1888,10 @@
       "label": "additional_paid_in_capital",
       "values": {
        "2026-03-31": 38120000.0,
-       "2025-03-31": 38120000.0,
+       "2025-03-31": null,
        "2024-03-31": 38120000.0,
        "2023-03-31": 38120000.0,
-       "2022-03-31": null
+       "2022-03-31": 38120000.0
       }
      },
      {
@@ -2066,7 +2066,7 @@
   "cashflow": {
    "url": "http://127.0.0.1:52313/fundamentals/JUMBO/cashflow",
    "status": 200,
-   "elapsed_ms": 405,
+   "elapsed_ms": 319,
    "body": {
     "symbol": "JUMBO.BO",
     "periods": [
@@ -2509,7 +2509,7 @@
   "ratings": {
    "url": "http://127.0.0.1:52313/fundamentals/JUMBO/ratings",
    "status": 200,
-   "elapsed_ms": 863,
+   "elapsed_ms": 439,
    "body": {
     "symbol": "JUMBO.BO",
     "consensus": null,
@@ -2521,7 +2521,8 @@
     "hold": 0,
     "sell": 0,
     "strong_sell": 0,
-    "provider": "yfinance"
+    "provider": "yfinance",
+    "as_of": "2026-09-26T01:03:39.910765Z"
    },
    "polite": {
     "yahoo_open": false,
@@ -2531,7 +2532,7 @@
   "shareholding": {
    "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=JUMBO",
    "status": 502,
-   "elapsed_ms": 528,
+   "elapsed_ms": 183,
    "body": {
     "detail": "The data provider returned an unexpected response.",
     "code": "provider_error",
@@ -2545,7 +2546,7 @@
   "announcements": {
    "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=JUMBO&limit=25",
    "status": 200,
-   "elapsed_ms": 915,
+   "elapsed_ms": 167,
    "body": {
     "symbol": "JUMBO",
     "exchange": null,
@@ -2694,8 +2695,8 @@
     "errors": {},
     "windows": {
      "BSE": {
-      "window_start": "2026-03-29",
-      "window_end": "2026-09-25"
+      "window_start": "2026-03-30",
+      "window_end": "2026-09-26"
      }
     },
     "coverage": "covered",
@@ -2709,7 +2710,7 @@
   "results_calendar": {
    "url": "http://127.0.0.1:52313/disclosures/results?symbol=JUMBO",
    "status": 200,
-   "elapsed_ms": 524,
+   "elapsed_ms": 425,
    "body": {
     "symbol": "JUMBO",
     "count": 10,

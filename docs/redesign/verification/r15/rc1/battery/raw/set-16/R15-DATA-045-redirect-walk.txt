@@ -1,0 +1,4 @@
+23:by a public page that 302s to loopback / link-local / the LAN.
+70:#: Statuses that carry a ``Location`` to follow.
+71:_REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
+125:    303/301/302 re-issues as GET; 307/308 keep the method and body. Raises

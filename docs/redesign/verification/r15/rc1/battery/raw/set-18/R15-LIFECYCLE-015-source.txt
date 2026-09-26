@@ -1,0 +1,9 @@
+6:``<data-dir>/backtests/<run_id>.json`` (the directory resolves per call, so a
+10:(R15-LIFECYCLE-015), and :func:`list_runs` is newest first.
+69:        return BacktestResult.model_validate_json(path.read_text(encoding="utf-8"))
+78:        (_dir() / f"{result.run_id}.json").write_text(
+79:            result.model_dump_json(by_alias=True), encoding="utf-8"
+92:    path = _dir() / f"{run_id}.json"
+99:def list_runs() -> list[BacktestResult]:
+100:    """Every stored run, newest first."""
+103:    for path in _dir().glob("*.json"):

@@ -1,0 +1,6 @@
+=== R15-RESEARCH-072 ===
+grep -rl "R15-RESEARCH-072" docs/redesign/verification/
+docs/redesign/verification/r15/rc1/battery/set-34.md
+exit: 0
+-- register check --
+found in register: False

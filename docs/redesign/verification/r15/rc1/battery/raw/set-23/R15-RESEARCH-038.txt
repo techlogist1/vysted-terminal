@@ -1,0 +1,86 @@
+=== R15-RESEARCH-038: keyless breaker record_failure-once-per-search ===
+                    # against the breaker and never report it as "found nothing".
+                    breaker.record_failure()
+                    any_rate_limited = True
+                    engine_notes[engine_id] = "blocked (challenge page)"
+                    continue
+                breaker.record_success()
+                any_engine_answered = True
+                if results:
+                    return SearchResponse(
+                        results=results,
+                        citations=normalize_results_to_citations(results, limit=len(results)),
+                        backend=f"{BACKEND_ID}:{engine_id}",
+                        query=query,
+                    )
+                # Transport + parse worked, just nothing useful — the engine is
+                # HEALTHY; rotate to cross-check before declaring "found nothing".
+                engine_notes[engine_id] = "no results"
+                continue
+
+            # SearchError (already counted against the breaker, once) — note
+            # the typed reason and rotate.
+            if outcome.reason == SEARCH_REASON_RATE_LIMITED:
+                any_rate_limited = True
+                engine_notes[engine_id] = "rate-limiting"
+            else:
+                engine_notes[engine_id] = "unreachable"
+
+        if any_engine_answered:
+            # At least one engine genuinely searched and found nothing — an
+            # empty result set is a valid answer, not an outage.
+            return SearchResponse(results=[], citations=[], backend=BACKEND_ID, query=query)
+
+-- _try_engine / record_failure call sites --
+201:                    breaker.record_failure()
+242:    async def _try_engine(
+281:        breaker.record_failure()
+
+-- breaker test --
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/tests/test_search_breaker.py:27:    return CircuitBreaker(fail_threshold=threshold, cooldown_secs=cooldown, clock=clock)
+    async def _try_engine(
+        self,
+        engine_id: str,
+        engine: SearchBackend,
+        breaker,  # noqa: ANN001 — CircuitBreaker
+        query: str,
+        options: dict | None,
+    ) -> SearchResponse | SearchError:
+        """Run one engine with pacing + bounded backoff retry, under a deadline.
+
+        Returns the response on success, or the LAST :class:`SearchError` after
+        the retry budget — never raises (the caller folds the error into the
+        rotation accounting). A failed engine turn counts ONE failure against
+        the breaker however many attempts it spent, so the breaker benches an
+        engine after ``fail_threshold`` bad SEARCHES, not one search's retries;
+        a failed HALF_OPEN probe gets no second attempt. The whole engine turn
+        runs under :data:`ENGINE_DEADLINE_SECS`: an engine still silent at the
+        deadline is abandoned (no second attempt) and the chain rotates.
+        """
+        last_error = SearchError(f"{engine_id} produced no attempt")
+        try:
+            async with asyncio.timeout(ENGINE_DEADLINE_SECS):
+                for attempt in range(ATTEMPTS_PER_ENGINE):
+                    await get_queue().acquire(engine_id)
+                    try:
+                        return await engine.search(query, options=options)
+                    except SearchError as exc:
+                        last_error = exc
+                    except Exception as exc:  # noqa: BLE001 — any engine crash is a soft miss
+                        last_error = SearchError(f"{engine_id} engine failed: {exc}")
+                    if attempt + 1 < ATTEMPTS_PER_ENGINE:
+                        if breaker.state != "closed":
+                            break  # a failed probe, or benched meanwhile — rotate
+                        await self._sleep(backoff_delay(attempt))
+        except TimeoutError:
+            last_error = SearchError(
+                f"{engine_id} did not answer within {ENGINE_DEADLINE_SECS:g}s",
+                reason=SEARCH_REASON_UNREACHABLE,
+            )
+        breaker.record_failure()
+        return last_error
+
+
+def tier_status() -> dict[str, object]:
+after 1 failure, state: closed
+after 2 failures, state: open

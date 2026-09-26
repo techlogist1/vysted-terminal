@@ -1,0 +1,188 @@
+=== R15-UI-054: divergence notice regex / structured field ===
+
+=== R15-UI-056: screener error frame handling ===
+531:      if (frame.event === "progress") {
+544:      if (frame.event === "result") {
+551:      if (frame.event === "error") {
+
+=== R15-UI-058: settings export/import v2 ===
+145:const ICON_14 = "size-3.5"; // tokens-ok: the law's 14px icon step inside 28/32px controls (R9 §3)
+1975:export interface SettingsExport {
+1993:export function buildSettingsExport(): SettingsExport {
+2020:    const bundle = buildSettingsExport();
+2036:      const parsed = JSON.parse(text) as Partial<SettingsExport>;
+2039:      // old unconditional "Imported settings." told the user their file
+2085:          ? { kind: "ok", message: "Imported settings. Secrets re-enter via the keychain." }
+2217:              className="bg-charcoal-850 text-charcoal-300 text-micro max-h-64 overflow-auto p-2 font-mono whitespace-pre-wrap" /* tokens-ok: diagnostics preview scroll cap - layout */
+
+=== R15-UI-060 (open): backtest progress/trade SSE ===
+196:        logger.warning("backtest_engine: on_event callback raised %s", exc)
+442:    on_event: EventCallback | None = None,
+470:        on_event,
+472:            kind="run-start",
+544:    await _emit(on_event, BacktestRunEvent(kind="run-complete", runId=run_id, result=result))
+-- message-notices.ts full grep --
+6: *   - the runtime's notices (`step_kind: "notice"` — publish divergence,
+19:export interface MessageErrorFrame {
+27:  notices: Record<string, string[]>;
+28:  /** Per message: the runtime's history-compaction notice (R15-AGENT-040),
+32:  addNotice: (messageId: string, notice: string) => void;
+37:/** The notice `tool` the runtime tags a history compaction with. */
+38:export const HISTORY_NOTICE_TOOL = "history";
+40:export const useMessageNoticesStore = create<MessageNoticesState>((set) => ({
+42:  notices: {},
+48:  addNotice: (messageId, notice) =>
+50:      notices: {
+51:        ...state.notices,
+52:        [messageId]: [...(state.notices[messageId] ?? []), notice],
+59:  clear: () => set({ errorFrames: {}, notices: {}, compactions: {} }),
+63: * A runtime notice (C9): the sidecar marks every notice it emits — publish
+65: * `notice` step kind, so the chat renders it as a transcript chip by KIND.
+68:export function isRuntimeNotice(stepKind: string): boolean {
+69:  return stepKind === "notice";
+73:export function resetMessageNoticesForTests(): void {
+74:  useMessageNoticesStore.setState({ errorFrames: {}, notices: {}, compactions: {} });
+
+-- agent_runtime.py notice step_kind for kept_previous --
+1361:    contradiction — a per-call ``kept_previous`` chip firing while the panel
+1379:    no ack → "the panel did not confirm"; ``kept_previous`` → the panel kept the
+1385:    ``research_step`` with ``step_kind="notice"`` (C9): the frontend renders it
+1410:        elif status == "kept_previous":
+1544:    ``applied`` → confirmed (the model may state it done); ``kept_previous`` /
+1580:        elif status == "kept_previous":
+1583:                "status": "kept_previous",
+3180:    # kept_previous / failed / not-yet-confirmed) so the model's NEXT stream
+export interface SettingsExport {
+  /** A small version tag so a future import can migrate older bundles. */
+  version: 2;
+  /** Remappable-keybinding overrides, keyed by action id. */
+  keybindingOverrides: Record<string, string>;
+  /** The local preferences bundle. */
+  settings: SettingsBundle;
+  /** Research tier, SearXNG URL and per-stop research models. */
+  searchSettings: SearchSettingsBundle;
+  /** The default provider the copilot uses when an agent has no preference. */
+  defaultProviderId: LLMProviderId;
+  /** The model selected for `defaultProviderId`. */
+  defaultModel: string;
+  /** Per-module enabled flags (Advanced → Modules). */
+  enabledModules: Record<string, boolean>;
+}
+
+/** Build the export bundle from the live stores. Pure of secrets by construction. */
+export function buildSettingsExport(): SettingsExport {
+  const defaultProviderId = useLLMProvidersStore.getState().defaultProviderId;
+  return {
+    version: 2,
+    keybindingOverrides: { ...useKeybindingsStore.getState().overrides },
+    settings: useSettingsStore.getState().toBundle(),
+    searchSettings: useSearchSettingsStore.getState().toBundle(),
+    defaultProviderId,
+    defaultModel: useModelSelectionStore.getState().modelFor(defaultProviderId),
+    enabledModules: { ...useModulesStore.getState().enabled },
+  };
+}
+
+function ExportImportSection() {
+  const setOverrides = useKeybindingsStore((s) => s.setOverrides);
+  const setAll = useSettingsStore((s) => s.setAll);
+  const setSearchSettingsAll = useSearchSettingsStore((s) => s.setAll);
+  const setDefaultProviderId = useLLMProvidersStore((s) => s.setDefaultProviderId);
+  const setModelOverrides = useModelSelectionStore((s) => s.setOverrides);
+  const setEnabledModules = useModulesStore((s) => s.setEnabledMap);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [status, setStatus] = useState<{ kind: "ok" | "error"; message: string } | null>(null);
+
+  function handleExport() {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const bundle = buildSettingsExport();
+    const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "vysted-settings.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setStatus({ kind: "ok", message: "Exported vysted-settings.json (no secrets included)." });
+  }
+
+  async function handleImportFile(file: File) {
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as Partial<SettingsExport>;
+      // A file that recognises NOTHING (an empty object, another app's JSON,
+      // a bare `{theme:'dark'}`) must not report success — R15-UI-058: the
+      // old unconditional "Imported settings." told the user their file
+      // loaded when in fact nothing was applied. Each branch below only
+      // fires when its section is structurally the right shape.
+      let appliedAny = false;
+
+      if (parsed.keybindingOverrides && typeof parsed.keybindingOverrides === "object") {
+        setOverrides(parsed.keybindingOverrides);
+        appliedAny = true;
+      }
+      if (parsed.settings && typeof parsed.settings === "object") {
+        setAll(parsed.settings);
+        appliedAny = true;
+      }
+      if (parsed.searchSettings && typeof parsed.searchSettings === "object") {
+        setSearchSettingsAll(parsed.searchSettings as SearchSettingsInput);
+        appliedAny = true;
+      }
+      if (
+        typeof parsed.defaultProviderId === "string" &&
+        REGISTRY_PROVIDERS.some((p) => p.id === parsed.defaultProviderId)
+      ) {
+        const providerId = parsed.defaultProviderId as LLMProviderId;
+        setDefaultProviderId(providerId);
+        if (typeof parsed.defaultModel === "string" && parsed.defaultModel.trim() !== "") {
+          const overrides = useModelSelectionStore.getState().overrides;
+          setModelOverrides(
+            { ...overrides, [providerId]: parsed.defaultModel.trim() },
+            { trusted: true },
+          );
+        }
+        appliedAny = true;
+      }
+      if (parsed.enabledModules && typeof parsed.enabledModules === "object") {
+        const known = new Set(useModulesStore.getState().modules.map((m) => m.id));
+        const next = { ...useModulesStore.getState().enabled };
+        for (const [id, value] of Object.entries(parsed.enabledModules)) {
+          if (known.has(id) && typeof value === "boolean") {
+            next[id] = value;
+          }
+        }
+        setEnabledModules(next);
+        appliedAny = true;
+      }
+
+      setStatus(
+        appliedAny
+          ? { kind: "ok", message: "Imported settings. Secrets re-enter via the keychain." }
+          : { kind: "error", message: "Could not read that file — expected a Vysted export." },
+      );
+    } catch {
+      setStatus({ kind: "error", message: "Could not read that file — expected a Vysted export." });
+    }
+  }
+
+  return (
+    <section aria-labelledby="settings-export">
+      <SubsectionHeader
+        id="settings-export"
+        title="Export / Import"
+        hint="Carry your keybindings and preferences to another machine. Secrets are NEVER exported — re-enter your API keys via the keychain on the new machine."
+      />
+      <Card>
+
+-- BacktestRunEvent kind literal type --
+137:class BacktestRunEvent(BaseModel):
+142:    kind: Literal["run-start", "progress", "trade", "run-complete", "run-error"]
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/store/backtest.ts:195:      if (event.kind === "progress") {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/store/backtest.ts:214:      if (event.kind === "trade") {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/types/backtest.ts:165:  | { kind: "progress"; runId: string; barsProcessed: number; equity: number }
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/types/backtest.ts:166:  | { kind: "trade"; runId: string; trade: BacktestTrade }

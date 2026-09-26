@@ -1,0 +1,6 @@
+=== openrouter fake key ===
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+=== gemini fake key ===
+{"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
+=== xai fake key ===
+{"ok":false,"reason":"invalid","detail":"xAI rejected this key."}

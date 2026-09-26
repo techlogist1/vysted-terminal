@@ -4,14 +4,14 @@
  "manifest_name": "Icon Facilitators Ltd",
  "exchange": "BSE",
  "bse_code": "544426",
- "collected_at": "2026-09-25T05:24:44+0530",
+ "collected_at": "2026-09-26T06:33:18+0530",
  "sidecar": "http://127.0.0.1:52313",
  "complete": true,
  "calls": {
   "resolve_bare_symbol": {
    "url": "http://127.0.0.1:52313/resolve?q=ICON",
    "status": 200,
-   "elapsed_ms": 1,
+   "elapsed_ms": 2,
    "body": {
     "ok": true,
     "query": "ICON",
@@ -77,7 +77,7 @@
   "resolve_company_name": {
    "url": "http://127.0.0.1:52313/resolve?q=Icon+Facilitators+Ltd",
    "status": 200,
-   "elapsed_ms": 629,
+   "elapsed_ms": 1271,
    "body": {
     "ok": true,
     "query": "Icon Facilitators Ltd",
@@ -207,7 +207,7 @@
   "resolve_bse_code": {
    "url": "http://127.0.0.1:52313/resolve?q=544426",
    "status": 200,
-   "elapsed_ms": 1,
+   "elapsed_ms": 2,
    "body": {
     "ok": true,
     "query": "544426",
@@ -257,7 +257,7 @@
   "quote": {
    "url": "http://127.0.0.1:52313/quotes/ICON?asset_class=equity",
    "status": 200,
-   "elapsed_ms": 1488,
+   "elapsed_ms": 587,
    "body": {
     "symbol": "ICON",
     "price": 64.45,
@@ -282,61 +282,430 @@
   "fundamentals": {
    "url": "http://127.0.0.1:52313/fundamentals/ICON",
    "status": 200,
-   "elapsed_ms": 1595,
+   "elapsed_ms": 3694,
    "body": {
     "symbol": "ICON.BO",
     "name": "Icon Facilitators Limited",
     "sector": "Industrials",
     "industry": "Specialty Business Services",
-    "sector_source": null,
-    "currency": null,
+    "sector_source": "yfinance",
+    "currency": "INR",
     "financial_currency": null,
-    "ratio_price": null,
+    "ratio_price": 64.45,
     "market_cap": 506551200.0,
-    "pe_ratio": null,
+    "pe_ratio": 10.688225,
     "forward_pe": null,
     "peg_ratio": null,
-    "price_to_book": null,
-    "price_to_sales": null,
-    "ev_to_ebitda": null,
-    "book_value": null,
-    "dividend_yield": null,
+    "price_to_book": 1.4141834,
+    "price_to_sales": 0.78849614,
+    "ev_to_ebitda": 7.027,
+    "book_value": 45.574,
+    "dividend_yield": 0.0,
     "dividend_per_share": null,
-    "eps": null,
+    "eps": 6.03,
     "beta": null,
-    "fifty_two_week_high": null,
-    "fifty_two_week_low": null,
-    "fifty_two_week_change": null,
-    "fifty_two_week_high_date": null,
-    "fifty_two_week_low_date": null,
+    "fifty_two_week_high": 85.0,
+    "fifty_two_week_low": 38.05,
+    "fifty_two_week_change": 0.16994429,
+    "fifty_two_week_high_date": "2026-08-10",
+    "fifty_two_week_low_date": "2026-02-11",
     "listing_date": null,
-    "first_trade_date": null,
+    "first_trade_date": "2025-07-01",
     "forward_pe_fiscal_year": null,
-    "roe": null,
-    "roa": null,
-    "gross_margin": null,
-    "operating_margin": null,
-    "profit_margin": null,
-    "debt_to_equity": null,
-    "current_ratio": null,
-    "quick_ratio": null,
-    "roce": null,
+    "roe": 0.17668,
+    "roa": 0.11192001,
+    "gross_margin": 0.98307997,
+    "operating_margin": 0.11067,
+    "profit_margin": 0.06777,
+    "debt_to_equity": 0.016040000000000002,
+    "current_ratio": 5.718,
+    "quick_ratio": 4.98,
+    "roce": 0.16732732348741555,
     "basis": "standalone",
-    "revenue_ttm": null,
-    "net_income_ttm": null,
-    "free_cash_flow": null,
-    "shares_outstanding": null,
-    "revenue_growth": null,
-    "earnings_growth": null,
+    "revenue_ttm": 642427008.0,
+    "net_income_ttm": 43538000.0,
+    "free_cash_flow": -65419376.0,
+    "shares_outstanding": 7859600.0,
+    "revenue_growth": 0.151,
+    "earnings_growth": -0.04,
     "growth_basis": "mrq_yoy",
-    "held_percent_insiders": null,
-    "held_percent_institutions": null,
-    "dividend_per_share_ttm": null,
+    "held_percent_insiders": 0.73649,
+    "held_percent_institutions": 0.0,
+    "dividend_per_share_ttm": 0.0,
     "revenue_growth_computed": null,
     "earnings_growth_computed": null,
     "growth_computed_quarters": null,
-    "field_meta": null,
-    "provider": "openbb-mcp",
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector_source": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ratio_price": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T03:39:23+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T03:39:23+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "pe_ratio": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T03:39:23+00:00",
+      "reason": "trailing EPS 6.03 disagrees by 8% with the payload's net income / shares outstanding (43,538,000 / 7,859,600 = 5.54); the P/E it implies at the ratio price 64.45 is 11.6 \u2014 the EPS may be from a stale fiscal period; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T03:39:23+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T03:39:23+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T03:39:23+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T03:39:23+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ev_to_ebitda": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T03:39:23+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
+      "basis_note": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "eps": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": "trailing EPS 6.03 disagrees by 8% with the payload's net income / shares outstanding (43,538,000 / 7,859,600 = 5.54); the P/E it implies at the ratio price 64.45 is 11.6 \u2014 the EPS may be from a stale fiscal period; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "beta": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-24T03:39:23+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "listing_date": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "first_trade_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe_fiscal_year": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "roa": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "current_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "quick_ratio": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "roce": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "annual EBIT / (total assets - current liabilities)"
+     },
+     "basis": {
+      "status": "ok",
+      "provider": "exchange-filings",
+      "as_of": "2026-09-26T01:03:05.989812+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "free_cash_flow": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_insiders": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": "unreconciled: exchange shareholding unavailable (insiders \u2260 promoter group)",
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_institutions": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": "unreconciled: exchange shareholding unavailable (provider institutions \u2260 exchange institutional holding)",
+      "label": null,
+      "basis_note": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T01:03:03.890705+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
+      "basis_note": null
+     }
+    },
+    "provider": "yfinance",
     "identity_note": null
    },
    "polite": {
@@ -347,7 +716,7 @@
   "income": {
    "url": "http://127.0.0.1:52313/fundamentals/ICON/income",
    "status": 200,
-   "elapsed_ms": 358,
+   "elapsed_ms": 290,
    "body": {
     "symbol": "ICON.BO",
     "periods": [
@@ -810,7 +1179,7 @@
   "balance": {
    "url": "http://127.0.0.1:52313/fundamentals/ICON/balance",
    "status": 200,
-   "elapsed_ms": 528,
+   "elapsed_ms": 512,
    "body": {
     "symbol": "ICON.BO",
     "periods": [
@@ -1390,7 +1759,7 @@
   "cashflow": {
    "url": "http://127.0.0.1:52313/fundamentals/ICON/cashflow",
    "status": 200,
-   "elapsed_ms": 370,
+   "elapsed_ms": 258,
    "body": {
     "symbol": "ICON.BO",
     "periods": [
@@ -1726,12 +2095,21 @@
   },
   "ratings": {
    "url": "http://127.0.0.1:52313/fundamentals/ICON/ratings",
-   "status": 429,
-   "elapsed_ms": 72,
+   "status": 200,
+   "elapsed_ms": 242,
    "body": {
-    "detail": "The data provider is throttled right now \u2014 try again shortly.",
-    "code": "rate_limited",
-    "action": "Wait a minute, then retry."
+    "symbol": "ICON.BO",
+    "consensus": null,
+    "target_mean": null,
+    "target_high": null,
+    "target_low": null,
+    "strong_buy": 0,
+    "buy": 0,
+    "hold": 0,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance",
+    "as_of": "2026-09-26T01:03:12.252014Z"
    },
    "polite": {
     "yahoo_open": false,
@@ -1741,7 +2119,7 @@
   "shareholding": {
    "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=ICON",
    "status": 502,
-   "elapsed_ms": 66,
+   "elapsed_ms": 79,
    "body": {
     "detail": "The data provider returned an unexpected response.",
     "code": "provider_error",
@@ -1755,7 +2133,7 @@
   "announcements": {
    "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=ICON&limit=25",
    "status": 200,
-   "elapsed_ms": 315,
+   "elapsed_ms": 209,
    "body": {
     "symbol": "ICON",
     "exchange": null,
@@ -1961,7 +2339,7 @@
     "windows": {
      "BSE": {
       "window_start": "2026-04-18",
-      "window_end": "2026-09-25"
+      "window_end": "2026-09-26"
      }
     },
     "coverage": "covered",
@@ -1975,7 +2353,7 @@
   "results_calendar": {
    "url": "http://127.0.0.1:52313/disclosures/results?symbol=ICON",
    "status": 200,
-   "elapsed_ms": 250,
+   "elapsed_ms": 132,
    "body": {
     "symbol": "ICON",
     "count": 3,

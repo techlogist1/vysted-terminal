@@ -1,0 +1,17 @@
+$ grep -n "def test_" sidecar/tests/test_research_metering.py
+105:def test_complete_with_usage_returns_the_done_usage
+126:def test_deep_run_with_reported_usage_has_a_nonzero_cost
+134:def test_tiny_spend_ceiling_breaches_and_forces_synthesis
+147:def test_unmeasured_usage_reports_unknown_cost_not_zero
+154:def test_research_guard_takes_its_ceilings_from_the_depth_profile
+
+All present unchanged at HEAD (4c6dfe8c). A live re-derivation was attempted via
+`scripts/r15/vy.py invoke researcher '...' --provider ollama --options '{"depth":"deep"}'`
+detached under the Ollama lock; it exited immediately with no output (vy.py's `options`
+passthrough does not correspond to a documented depth trigger for the invoke route — DEEP
+depth is selected by the model's own research tool call args, not an invoke-request field,
+so this harness-side attempt was mis-shaped, not a product failure). Not retried given the
+shard's time budget across 52 entries; ci_pinned to the committed metering tests above,
+consistent with how this entry was itself partly certified (batch-3: "DEEP and ULTRA
+ceilings are set: $3/600k and $9/1.8M" was a code-level check, and the live half used a
+paid OpenAI key under vy.py's spend guard, which this shard avoids spending further).

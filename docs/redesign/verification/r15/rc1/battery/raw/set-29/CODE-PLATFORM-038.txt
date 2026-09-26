@@ -1,0 +1,49 @@
+=== CODE-PLATFORM-038: error code dead / retry offered for unretryable errors ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/chat/streaming.ts:43:  /** Machine tag ("provider_402", "network", "auth", …). */
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/chat/streaming.ts:71:  "provider_402",
+          {notice}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * The transcript error row (R10 D43 — every failure speaks human): the plain
+ * message in the negative color, the NEXT STEP as its own quiet line, and the
+ * raw provider text behind a "Details" disclosure (charcoal — telemetry, not
+ * alarm). A legacy plain-string error (no structured frame) renders exactly
+ * as before. Retry stays.
+ */
+function ErrorRow({
+  messageId,
+  message,
+  onRetry,
+}: {
+  messageId: string;
+  message: string;
+  onRetry?: () => void;
+}) {
+  const frame = useMessageNoticesStore((s) => s.errorFrames[messageId]);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  return (
+    <div className="text-caption mt-1 flex flex-col gap-1">
+      <div className="flex items-center gap-2">
+        <span className="text-negative">
+          {frame ? message : `Something went wrong — ${message}`}
+        </span>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            className="text-charcoal-300 hover:text-lume shrink-0 underline transition-colors"
+          >
+            Retry
+          </button>
+        )}
+      </div>
+      {frame?.action && <div className="text-charcoal-300">{frame.action}</div>}
+      {frame?.detail && (
+        <div className="flex flex-col gap-1">
+          <button
+            type="button"

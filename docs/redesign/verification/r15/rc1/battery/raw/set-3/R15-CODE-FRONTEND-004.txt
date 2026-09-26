@@ -1,17 +1,31 @@
---- POST Research: NVDA ---
+--POST name=Research: NVDA--
 {"status":"saved","name":"Research: NVDA"}
---- GET Research: NVDA ---
-{}
---- POST Research: RELIANCE.NS ---
+--POST name=Research: RELIANCE.NS--
 {"status":"saved","name":"Research: RELIANCE.NS"}
---- POST Research: M&M ---
+--POST name=Research: M&M--
 {"status":"saved","name":"Research: M&M"}
---- POST My Layout (2) ---
+--POST name=My Layout (2)--
 {"status":"saved","name":"My Layout (2)"}
---- DELETE Research: NVDA ---
-
---- path traversal attempt ../escape ---
+--POST name=../escape--
 {"status":"saved","name":"../escape"}
---- POST Hindi name ---
-{"status":"saved","name":"अनुसंधान: टीसीएस"}
---- POST a/b{"status":"saved","name":"a/b\\c"}
+--POST name=a/b{"detail":[{"type":"json_invalid","loc":["body",12],"msg":"JSON decode error","input":{},"ctx":{"error":"Invalid \\escape"}}]}
+--Hindi name--
+{"status":"saved","name":"शोध रिपोर्ट"}
+--GET NVDA--
+{}
+--DELETE NVDA--
+
+{"status":"saved","name":"a/b\\c"}/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/%2E%2E%2Fescape.vysted-workspace.bak
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/My Layout %282%29.vysted-workspace
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/%2E%2E%2Fescape.vysted-workspace
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/Research%3A RELIANCE%2ENS.vysted-workspace
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/Research%3A RELIANCE%2ENS.vysted-workspace.bak
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/%E0%A4%B6%E0%A5%8B%E0%A4%A7 %E0%A4%B0%E0%A4%BF%E0%A4%AA%E0%A5%8B%E0%A4%B0%E0%A5%8D%E0%A4%9F.vysted-workspace
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/__autosave__.vysted-workspace
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/Research%3A M%26M.vysted-workspace.bak
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/a%2Fb%5Cc.vysted-workspace
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/My Layout %282%29.vysted-workspace.bak
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/Research%3A M%26M.vysted-workspace
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/a%2Fb%5Cc.vysted-workspace.bak
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-data-rc1-battery-0/workspaces/%E0%A4%85%E0%A4%A8%E0%A5%81%E0%A4%B8%E0%A4%82%E0%A4%A7%E0%A4%BE%E0%A4%A8%3A %E0%A4%9F%E0%A5%80%E0%A4%B8%E0%A5%80%E0%A4%8F%E0%A4%B8.vysted-workspace

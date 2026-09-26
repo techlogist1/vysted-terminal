@@ -1,27 +1,21 @@
-== tools-CAPABILITY_CATALOG.txt
-portfolio_add_position	host_action
-portfolio_delete_position	host_action
-portfolio_update_position	host_action
-shareholding_pattern	read_handler
-== tools-KNOWN_TOOL_IDS.txt
-portfolio_add_position
-portfolio_delete_position
-portfolio_update_position
-shareholding_pattern
-== tools-TOOL_SCHEMAS.txt
-portfolio_add_position
-portfolio_delete_position
-portfolio_update_position
-shareholding_pattern
-== tools-default_grant.txt
-portfolio_add_position
-portfolio_delete_position
-portfolio_update_position
-shareholding_pattern
-== tools-mcp_list_tools.txt
-shareholding_pattern
-== tools-registered_tools.txt
-shareholding_pattern
-== app-routes.txt
-GET /disclosures/shareholding
-GET /portfolio/positions
+tools-CAPABILITY_CATALOG.txt:portfolio_add_position	host_action
+tools-CAPABILITY_CATALOG.txt:portfolio_delete_position	host_action
+tools-CAPABILITY_CATALOG.txt:portfolio_update_position	host_action
+tools-CAPABILITY_CATALOG.txt:shareholding_pattern	read_handler
+tools-KNOWN_TOOL_IDS.txt:portfolio_add_position
+tools-KNOWN_TOOL_IDS.txt:portfolio_delete_position
+tools-KNOWN_TOOL_IDS.txt:portfolio_update_position
+tools-KNOWN_TOOL_IDS.txt:shareholding_pattern
+tools-TOOL_SCHEMAS.txt:portfolio_add_position
+tools-TOOL_SCHEMAS.txt:portfolio_delete_position
+tools-TOOL_SCHEMAS.txt:portfolio_update_position
+tools-TOOL_SCHEMAS.txt:shareholding_pattern
+tools-default_grant.txt:portfolio_add_position
+tools-default_grant.txt:portfolio_delete_position
+tools-default_grant.txt:portfolio_update_position
+tools-default_grant.txt:shareholding_pattern
+tools-mcp-live-52310.txt:compare_symbols	Compare 2-4 instruments side by side — latest quote, valuation (P/E, market cap, margins), and recent relative performance. Use when the use
+tools-mcp-live-52310.txt:fundamentals	Valuation ratios (P/E, P/B, market cap, margins) + a company profile for a symbol. Use for value/quality analysis.
+tools-mcp-live-52310.txt:shareholding_pattern	Quarterly shareholding pattern for an NSE- or BSE-listed Indian company, newest quarter first: promoter(+group), public (incl. institutions)
+tools-mcp_list_tools.txt:shareholding_pattern
+tools-registered_tools.txt:shareholding_pattern

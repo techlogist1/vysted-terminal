@@ -4,7 +4,7 @@
  "manifest_name": "Dhanlaxmi Bank Ltd",
  "exchange": "NSE+BSE",
  "bse_code": "532180",
- "collected_at": "2026-09-25T05:29:22+0530",
+ "collected_at": "2026-09-26T06:37:52+0530",
  "sidecar": "http://127.0.0.1:52313",
  "complete": true,
  "calls": {
@@ -77,7 +77,7 @@
   "resolve_company_name": {
    "url": "http://127.0.0.1:52313/resolve?q=Dhanlaxmi+Bank+Ltd",
    "status": 200,
-   "elapsed_ms": 585,
+   "elapsed_ms": 550,
    "body": {
     "ok": true,
     "query": "Dhanlaxmi Bank Ltd",
@@ -241,20 +241,20 @@
   "quote": {
    "url": "http://127.0.0.1:52313/quotes/DHANBANK?asset_class=equity",
    "status": 200,
-   "elapsed_ms": 282,
+   "elapsed_ms": 544,
    "body": {
     "symbol": "DHANBANK",
-    "price": 29.68,
-    "change": -0.33000000000000185,
-    "change_percent": -1.0996334555148346,
-    "volume": 361353.0,
+    "price": 29.31,
+    "change": -0.370000000000001,
+    "change_percent": -1.2466307277628066,
+    "volume": 239224.0,
     "open": null,
     "high": null,
     "low": null,
     "prev_close": null,
     "currency": "INR",
     "market_state": "CLOSED",
-    "timestamp": "2026-09-24T00:00:00Z",
+    "timestamp": "2026-09-25T00:00:00Z",
     "provider": "nse_direct",
     "freshness": "eod"
    },
@@ -266,7 +266,7 @@
   "fundamentals": {
    "url": "http://127.0.0.1:52313/fundamentals/DHANBANK",
    "status": 200,
-   "elapsed_ms": 15909,
+   "elapsed_ms": 2924,
    "body": {
     "symbol": "DHANBANK.NS",
     "name": "Dhanlaxmi Bank Limited",
@@ -275,13 +275,13 @@
     "sector_source": "resolver",
     "currency": "INR",
     "financial_currency": null,
-    "ratio_price": 29.68,
-    "market_cap": 11714662400.0,
-    "pe_ratio": 10.164383,
+    "ratio_price": 29.31,
+    "market_cap": 11568622592.0,
+    "pe_ratio": 10.037671,
     "forward_pe": null,
     "peg_ratio": null,
-    "price_to_book": 0.77552193,
-    "price_to_sales": 1.5096992,
+    "price_to_book": 0.765854,
+    "price_to_sales": 1.4908787,
     "ev_to_ebitda": null,
     "book_value": 38.271,
     "dividend_yield": 0.0,
@@ -290,7 +290,7 @@
     "beta": 0.662,
     "fifty_two_week_high": 36.85,
     "fifty_two_week_low": 19.45,
-    "fifty_two_week_change": 0.17455971,
+    "fifty_two_week_change": 0.198004,
     "fifty_two_week_high_date": "2026-07-07",
     "fifty_two_week_low_date": "2026-03-30",
     "listing_date": "2004-04-01",
@@ -323,7 +323,7 @@
      "name": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -331,7 +331,7 @@
      "sector": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -339,7 +339,7 @@
      "industry": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -347,7 +347,7 @@
      "sector_source": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -355,7 +355,7 @@
      "currency": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -363,7 +363,7 @@
      "ratio_price": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:57+00:00",
+      "as_of": "2026-09-25T09:59:34+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -371,7 +371,7 @@
      "market_cap": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:57+00:00",
+      "as_of": "2026-09-25T09:59:34+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -379,7 +379,7 @@
      "pe_ratio": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:57+00:00",
+      "as_of": "2026-09-25T09:59:34+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -387,7 +387,7 @@
      "forward_pe": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:57+00:00",
+      "as_of": "2026-09-25T09:59:34+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -395,7 +395,7 @@
      "peg_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:57+00:00",
+      "as_of": "2026-09-25T09:59:34+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -403,7 +403,7 @@
      "price_to_book": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:57+00:00",
+      "as_of": "2026-09-25T09:59:34+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -411,7 +411,7 @@
      "price_to_sales": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:57+00:00",
+      "as_of": "2026-09-25T09:59:34+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -419,7 +419,7 @@
      "ev_to_ebitda": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:57+00:00",
+      "as_of": "2026-09-25T09:59:34+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -427,7 +427,7 @@
      "book_value": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -443,7 +443,7 @@
      "dividend_per_share": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -459,7 +459,7 @@
      "beta": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -467,7 +467,7 @@
      "fifty_two_week_high": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -475,7 +475,7 @@
      "fifty_two_week_low": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -483,7 +483,7 @@
      "fifty_two_week_change": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:57+00:00",
+      "as_of": "2026-09-25T09:59:34+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -491,7 +491,7 @@
      "fifty_two_week_high_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -499,7 +499,7 @@
      "fifty_two_week_low_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -507,7 +507,7 @@
      "listing_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -515,7 +515,7 @@
      "first_trade_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -523,7 +523,7 @@
      "forward_pe_fiscal_year": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -531,7 +531,7 @@
      "roe": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -539,7 +539,7 @@
      "roa": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -547,7 +547,7 @@
      "gross_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -555,7 +555,7 @@
      "operating_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -563,7 +563,7 @@
      "profit_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -571,7 +571,7 @@
      "debt_to_equity": {
       "status": "ok",
       "provider": "derived",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": "total debt / stockholders equity"
@@ -579,7 +579,7 @@
      "current_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -587,7 +587,7 @@
      "quick_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -595,7 +595,7 @@
      "roce": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": "insufficient statement data to derive ROCE",
       "label": null,
       "basis_note": null
@@ -603,7 +603,7 @@
      "basis": {
       "status": "ok",
       "provider": "exchange-filings",
-      "as_of": "2026-09-24T23:59:10.157664+00:00",
+      "as_of": "2026-09-26T01:06:35.848563+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -627,7 +627,7 @@
      "free_cash_flow": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -635,7 +635,7 @@
      "shares_outstanding": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -659,7 +659,7 @@
      "held_percent_insiders": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": "yfinance insiders 51.18% disagrees with the NSE shareholding filing for the quarter ended 2026-06-30 (promoter group: 0.00%) beyond 3pp (insiders \u2260 promoter group); kept, flagged",
       "label": null,
       "basis_note": null
@@ -667,7 +667,7 @@
      "held_percent_institutions": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": "yfinance institutions 6.02% disagrees with the NSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: no institutional holding reported) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged",
       "label": null,
       "basis_note": null
@@ -675,7 +675,7 @@
      "identity_note": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:58:55.326463+00:00",
+      "as_of": "2026-09-26T01:06:34.022815+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -700,7 +700,7 @@
   "income": {
    "url": "http://127.0.0.1:52313/fundamentals/DHANBANK/income",
    "status": 200,
-   "elapsed_ms": 398,
+   "elapsed_ms": 373,
    "body": {
     "symbol": "DHANBANK.NS",
     "periods": [
@@ -1055,7 +1055,7 @@
   "balance": {
    "url": "http://127.0.0.1:52313/fundamentals/DHANBANK/balance",
    "status": 200,
-   "elapsed_ms": 552,
+   "elapsed_ms": 873,
    "body": {
     "symbol": "DHANBANK.NS",
     "periods": [
@@ -1067,217 +1067,27 @@
     ],
     "lines": [
      {
-      "label": "net_loan",
+      "label": "Ordinary Shares Number",
       "values": {
-       "2026-03-31": 148218495000.0,
-       "2025-03-31": 118684610000.0,
-       "2024-03-31": 100021854000.0,
-       "2023-03-31": 94096130000.0,
+       "2026-03-31": 394698851.0,
+       "2025-03-31": 394698851.0,
+       "2024-03-31": 311989327.0,
+       "2023-03-31": 311989327.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "cash_cash_equivalents_and_federal_funds_sold",
+      "label": "Share Issued",
       "values": {
-       "2026-03-31": 12626246000.0,
-       "2025-03-31": 12576909000.0,
-       "2024-03-31": 12115329000.0,
-       "2023-03-31": 11019914000.0,
+       "2026-03-31": 394698851.0,
+       "2025-03-31": 394698851.0,
+       "2024-03-31": 311989327.0,
+       "2023-03-31": 311989327.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "cash_financial",
-      "values": {
-       "2026-03-31": 952207000.0,
-       "2025-03-31": 960710000.0,
-       "2024-03-31": 1060649000.0,
-       "2023-03-31": 1051031000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "cash_equivalents",
-      "values": {
-       "2026-03-31": 0.0,
-       "2025-03-31": 499970000.0,
-       "2024-03-31": 1999975000.0,
-       "2023-03-31": 0.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "cash_and_cash_equivalents",
-      "values": {
-       "2026-03-31": 12626246000.0,
-       "2025-03-31": 12576909000.0,
-       "2024-03-31": 12115329000.0,
-       "2023-03-31": 11019914000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "net_receivables",
-      "values": {
-       "2026-03-31": 4112708000.0,
-       "2025-03-31": 3306871000.0,
-       "2024-03-31": 3036755000.0,
-       "2023-03-31": 2257006000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "prepaid_assets",
-      "values": {
-       "2026-03-31": 312770000.0,
-       "2025-03-31": 571328000.0,
-       "2024-03-31": 597363000.0,
-       "2023-03-31": 514313000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "properties",
-      "values": {
-       "2026-03-31": 2913784000.0,
-       "2025-03-31": 2257135000.0,
-       "2024-03-31": 2257135000.0,
-       "2023-03-31": 2257135000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "other_properties",
-      "values": {
-       "2026-03-31": 3604157000.0,
-       "2025-03-31": 3236034000.0,
-       "2024-03-31": 3113763000.0,
-       "2023-03-31": 2743265000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "construction_in_progress",
-      "values": {
-       "2026-03-31": 65379000.0,
-       "2025-03-31": 151426000.0,
-       "2024-03-31": 78224000.0,
-       "2023-03-31": 67153000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "plant_property_equipment_gross",
-      "values": {
-       "2026-03-31": 6583320000.0,
-       "2025-03-31": 5644595000.0,
-       "2024-03-31": 5449122000.0,
-       "2023-03-31": 5067553000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "accumulated_depreciation",
-      "values": {
-       "2026-03-31": -3682958000.0,
-       "2025-03-31": -2829019000.0,
-       "2024-03-31": -2705769000.0,
-       "2023-03-31": -2491812000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "plant_property_equipment_net",
-      "values": {
-       "2026-03-31": 2900362000.0,
-       "2025-03-31": 2815576000.0,
-       "2024-03-31": 2743353000.0,
-       "2023-03-31": 2575741000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "long_term_equity_investment",
-      "values": {
-       "2026-03-31": 0.0,
-       "2025-03-31": 0.0,
-       "2024-03-31": 0.0,
-       "2023-03-31": 0.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "available_for_sale_securities",
-      "values": {
-       "2026-03-31": 1000.0,
-       "2025-03-31": null,
-       "2024-03-31": 258323000.0,
-       "2023-03-31": 13278000.0,
-       "2022-03-31": 717143000.0
-      }
-     },
-     {
-      "label": "investmentin_financial_assets",
-      "values": {
-       "2026-03-31": 42574415000.0,
-       "2025-03-31": 39551519000.0,
-       "2024-03-31": 39423992000.0,
-       "2023-03-31": 38886427000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "investments_and_advances",
-      "values": {
-       "2026-03-31": 42574415000.0,
-       "2025-03-31": 39551519000.0,
-       "2024-03-31": 39423992000.0,
-       "2023-03-31": 38886427000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "total_assets",
-      "values": {
-       "2026-03-31": 212376553000.0,
-       "2025-03-31": 179369373000.0,
-       "2024-03-31": 159618888000.0,
-       "2023-03-31": 151321325000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "accounts_payable",
-      "values": {
-       "2026-03-31": 426182000.0,
-       "2025-03-31": 242823000.0,
-       "2024-03-31": 263462000.0,
-       "2023-03-31": 278684000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "other_payable",
-      "values": {
-       "2026-03-31": 216338000.0,
-       "2025-03-31": 267753000.0,
-       "2024-03-31": 173000000.0,
-       "2023-03-31": 270374000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "payables",
-      "values": {
-       "2026-03-31": 642520000.0,
-       "2025-03-31": 510576000.0,
-       "2024-03-31": 436462000.0,
-       "2023-03-31": 549058000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "long_term_debt_and_capital_lease_obligation",
+      "label": "Total Debt",
       "values": {
        "2026-03-31": 5366256000.0,
        "2025-03-31": 2000000000.0,
@@ -1287,57 +1097,77 @@
       }
      },
      {
-      "label": "total_liabilities_net_minority_interest",
+      "label": "Tangible Book Value",
       "values": {
-       "2026-03-31": 197637316000.0,
-       "2025-03-31": 165416516000.0,
-       "2024-03-31": 149321266000.0,
-       "2023-03-31": 141709819000.0,
+       "2026-03-31": 14739237000.0,
+       "2025-03-31": 13952857000.0,
+       "2024-03-31": 10297622000.0,
+       "2023-03-31": 9611506000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "common_stock",
+      "label": "Invested Capital",
       "values": {
-       "2026-03-31": 3946989000.0,
-       "2025-03-31": 3946989000.0,
-       "2024-03-31": 2530121000.0,
-       "2023-03-31": 2530121000.0,
+       "2026-03-31": 20105493000.0,
+       "2025-03-31": 15952900000.0,
+       "2024-03-31": 13287972000.0,
+       "2023-03-31": 14535291000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "capital_stock",
+      "label": "Net Tangible Assets",
       "values": {
-       "2026-03-31": 3946989000.0,
-       "2025-03-31": 3946989000.0,
-       "2024-03-31": 2530121000.0,
-       "2023-03-31": 2530121000.0,
+       "2026-03-31": 14739237000.0,
+       "2025-03-31": 13952857000.0,
+       "2024-03-31": 10297622000.0,
+       "2023-03-31": 9611506000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "additional_paid_in_capital",
+      "label": "Common Stock Equity",
       "values": {
-       "2026-03-31": 11560538000.0,
-       "2025-03-31": 11560538000.0,
-       "2024-03-31": 10054482000.0,
-       "2023-03-31": 10054482000.0,
+       "2026-03-31": 14739237000.0,
+       "2025-03-31": 13952857000.0,
+       "2024-03-31": 10297622000.0,
+       "2023-03-31": 9611506000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "retained_earnings",
+      "label": "Total Capitalization",
       "values": {
-       "2026-03-31": -6406401000.0,
-       "2025-03-31": -7112474000.0,
-       "2024-03-31": -7612278000.0,
-       "2023-03-31": -7887965000.0,
+       "2026-03-31": 20105493000.0,
+       "2025-03-31": 15952900000.0,
+       "2024-03-31": 13287972000.0,
+       "2023-03-31": 14535291000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "fixed_assets_revaluation_reserve",
+      "label": "Total Equity Gross Minority Interest",
+      "values": {
+       "2026-03-31": 14739237000.0,
+       "2025-03-31": 13952857000.0,
+       "2024-03-31": 10297622000.0,
+       "2023-03-31": 9611506000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Stockholders Equity",
+      "values": {
+       "2026-03-31": 14739237000.0,
+       "2025-03-31": 13952857000.0,
+       "2024-03-31": 10297622000.0,
+       "2023-03-31": 9611506000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Fixed Assets Revaluation Reserve",
       "values": {
        "2026-03-31": 1647911000.0,
        "2025-03-31": 1586381000.0,
@@ -1347,77 +1177,57 @@
       }
      },
      {
-      "label": "total_common_equity",
+      "label": "Retained Earnings",
       "values": {
-       "2026-03-31": 14739237000.0,
-       "2025-03-31": 13952857000.0,
-       "2024-03-31": 10297622000.0,
-       "2023-03-31": 9611506000.0,
+       "2026-03-31": -6406401000.0,
+       "2025-03-31": -7112474000.0,
+       "2024-03-31": -7612278000.0,
+       "2023-03-31": -7887965000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "total_equity_non_controlling_interests",
+      "label": "Additional Paid In Capital",
       "values": {
-       "2026-03-31": 14739237000.0,
-       "2025-03-31": 13952857000.0,
-       "2024-03-31": 10297622000.0,
-       "2023-03-31": 9611506000.0,
+       "2026-03-31": 11560538000.0,
+       "2025-03-31": 11560538000.0,
+       "2024-03-31": 10054482000.0,
+       "2023-03-31": 10054482000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "total_capitalization",
+      "label": "Capital Stock",
       "values": {
-       "2026-03-31": 20105493000.0,
-       "2025-03-31": 15952900000.0,
-       "2024-03-31": 13287972000.0,
-       "2023-03-31": 14535291000.0,
+       "2026-03-31": 3946989000.0,
+       "2025-03-31": 3946989000.0,
+       "2024-03-31": 2530121000.0,
+       "2023-03-31": 2530121000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "common_stock_equity",
+      "label": "Common Stock",
       "values": {
-       "2026-03-31": 14739237000.0,
-       "2025-03-31": 13952857000.0,
-       "2024-03-31": 10297622000.0,
-       "2023-03-31": 9611506000.0,
+       "2026-03-31": 3946989000.0,
+       "2025-03-31": 3946989000.0,
+       "2024-03-31": 2530121000.0,
+       "2023-03-31": 2530121000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "net_tangible_assets",
+      "label": "Total Liabilities Net Minority Interest",
       "values": {
-       "2026-03-31": 14739237000.0,
-       "2025-03-31": 13952857000.0,
-       "2024-03-31": 10297622000.0,
-       "2023-03-31": 9611506000.0,
+       "2026-03-31": 197637316000.0,
+       "2025-03-31": 165416516000.0,
+       "2024-03-31": 149321266000.0,
+       "2023-03-31": 141709819000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "invested_capital",
-      "values": {
-       "2026-03-31": 20105493000.0,
-       "2025-03-31": 15952900000.0,
-       "2024-03-31": 13287972000.0,
-       "2023-03-31": 14535291000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "tangible_book_value",
-      "values": {
-       "2026-03-31": 14739237000.0,
-       "2025-03-31": 13952857000.0,
-       "2024-03-31": 10297622000.0,
-       "2023-03-31": 9611506000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "total_debt",
+      "label": "Long Term Debt And Capital Lease Obligation",
       "values": {
        "2026-03-31": 5366256000.0,
        "2025-03-31": 2000000000.0,
@@ -1427,27 +1237,207 @@
       }
      },
      {
-      "label": "share_issued",
+      "label": "Payables",
       "values": {
-       "2026-03-31": 394698851.0,
-       "2025-03-31": 394698851.0,
-       "2024-03-31": 311989327.0,
-       "2023-03-31": 311989327.0,
+       "2026-03-31": 642520000.0,
+       "2025-03-31": 510576000.0,
+       "2024-03-31": 436462000.0,
+       "2023-03-31": 549058000.0,
        "2022-03-31": null
       }
      },
      {
-      "label": "ordinary_shares_number",
+      "label": "Other Payable",
       "values": {
-       "2026-03-31": 394698851.0,
-       "2025-03-31": 394698851.0,
-       "2024-03-31": 311989327.0,
-       "2023-03-31": 311989327.0,
+       "2026-03-31": 216338000.0,
+       "2025-03-31": 267753000.0,
+       "2024-03-31": 173000000.0,
+       "2023-03-31": 270374000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Accounts Payable",
+      "values": {
+       "2026-03-31": 426182000.0,
+       "2025-03-31": 242823000.0,
+       "2024-03-31": 263462000.0,
+       "2023-03-31": 278684000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Total Assets",
+      "values": {
+       "2026-03-31": 212376553000.0,
+       "2025-03-31": 179369373000.0,
+       "2024-03-31": 159618888000.0,
+       "2023-03-31": 151321325000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Investments And Advances",
+      "values": {
+       "2026-03-31": 42574415000.0,
+       "2025-03-31": 39551519000.0,
+       "2024-03-31": 39423992000.0,
+       "2023-03-31": 38886427000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Investmentin Financial Assets",
+      "values": {
+       "2026-03-31": 42574415000.0,
+       "2025-03-31": 39551519000.0,
+       "2024-03-31": 39423992000.0,
+       "2023-03-31": 38886427000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Available For Sale Securities",
+      "values": {
+       "2026-03-31": 1000.0,
+       "2025-03-31": null,
+       "2024-03-31": 258323000.0,
+       "2023-03-31": 13278000.0,
+       "2022-03-31": 717143000.0
+      }
+     },
+     {
+      "label": "Long Term Equity Investment",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Net PPE",
+      "values": {
+       "2026-03-31": 2900362000.0,
+       "2025-03-31": 2815576000.0,
+       "2024-03-31": 2743353000.0,
+       "2023-03-31": 2575741000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Accumulated Depreciation",
+      "values": {
+       "2026-03-31": -3682958000.0,
+       "2025-03-31": -2829019000.0,
+       "2024-03-31": -2705769000.0,
+       "2023-03-31": -2491812000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Gross PPE",
+      "values": {
+       "2026-03-31": 6583320000.0,
+       "2025-03-31": 5644595000.0,
+       "2024-03-31": 5449122000.0,
+       "2023-03-31": 5067553000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Construction In Progress",
+      "values": {
+       "2026-03-31": 65379000.0,
+       "2025-03-31": 151426000.0,
+       "2024-03-31": 78224000.0,
+       "2023-03-31": 67153000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Other Properties",
+      "values": {
+       "2026-03-31": 3604157000.0,
+       "2025-03-31": null,
+       "2024-03-31": 3113763000.0,
+       "2023-03-31": 2743265000.0,
+       "2022-03-31": 2538561000.0
+      }
+     },
+     {
+      "label": "Properties",
+      "values": {
+       "2026-03-31": 2913784000.0,
+       "2025-03-31": 2257135000.0,
+       "2024-03-31": 2257135000.0,
+       "2023-03-31": 2257135000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Prepaid Assets",
+      "values": {
+       "2026-03-31": 312770000.0,
+       "2025-03-31": 571328000.0,
+       "2024-03-31": 597363000.0,
+       "2023-03-31": 514313000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Receivables",
+      "values": {
+       "2026-03-31": 4112708000.0,
+       "2025-03-31": 3306871000.0,
+       "2024-03-31": 3036755000.0,
+       "2023-03-31": 2257006000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Cash And Cash Equivalents",
+      "values": {
+       "2026-03-31": 12626246000.0,
+       "2025-03-31": 12576909000.0,
+       "2024-03-31": 12115329000.0,
+       "2023-03-31": 11019914000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Cash Equivalents",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 499970000.0,
+       "2024-03-31": 1999975000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Cash Financial",
+      "values": {
+       "2026-03-31": 952207000.0,
+       "2025-03-31": 960710000.0,
+       "2024-03-31": 1060649000.0,
+       "2023-03-31": 1051031000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "Cash Cash Equivalents And Federal Funds Sold",
+      "values": {
+       "2026-03-31": 12626246000.0,
+       "2025-03-31": 12576909000.0,
+       "2024-03-31": 12115329000.0,
+       "2023-03-31": 11019914000.0,
        "2022-03-31": null
       }
      }
     ],
-    "provider": "openbb-mcp",
+    "provider": "yfinance",
     "gaps": []
    },
    "polite": {
@@ -1458,329 +1448,12 @@
   "cashflow": {
    "url": "http://127.0.0.1:52313/fundamentals/DHANBANK/cashflow",
    "status": 200,
-   "elapsed_ms": 385,
+   "elapsed_ms": 695,
    "body": {
     "symbol": "DHANBANK.NS",
-    "periods": [
-     "2026-03-31",
-     "2025-03-31",
-     "2024-03-31",
-     "2023-03-31",
-     "2022-03-31"
-    ],
-    "lines": [
-     {
-      "label": "net_income_from_continuing_operations",
-      "values": {
-       "2026-03-31": 1382202000.0,
-       "2025-03-31": 716224000.0,
-       "2024-03-31": 704777000.0,
-       "2023-03-31": 316135000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "gain_loss_on_sale_of_ppe",
-      "values": {
-       "2026-03-31": -1252000.0,
-       "2025-03-31": -2426000.0,
-       "2024-03-31": -2524000.0,
-       "2023-03-31": -7669000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "pension_and_employee_benefit_expense",
-      "values": {
-       "2026-03-31": null,
-       "2025-03-31": 0.0,
-       "2024-03-31": 85756000.0,
-       "2023-03-31": 28585000.0,
-       "2022-03-31": 28585000.0
-      }
-     },
-     {
-      "label": "depreciation",
-      "values": {
-       "2026-03-31": 299668000.0,
-       "2025-03-31": 253266000.0,
-       "2024-03-31": 250769000.0,
-       "2023-03-31": 211074000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "depreciation_and_amortization",
-      "values": {
-       "2026-03-31": 299668000.0,
-       "2025-03-31": 253266000.0,
-       "2024-03-31": 250769000.0,
-       "2023-03-31": 211074000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "provisionand_write_offof_assets",
-      "values": {
-       "2026-03-31": 780589000.0,
-       "2025-03-31": 221541000.0,
-       "2024-03-31": -259821000.0,
-       "2023-03-31": 943552000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "other_non_cash_items",
-      "values": {
-       "2026-03-31": 37184000.0,
-       "2025-03-31": -7624000.0,
-       "2024-03-31": 207341000.0,
-       "2023-03-31": 203554000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "change_in_other_current_assets",
-      "values": {
-       "2026-03-31": -726490000.0,
-       "2025-03-31": -69063000.0,
-       "2024-03-31": 52110000.0,
-       "2023-03-31": -201217000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "change_in_other_current_liabilities",
-      "values": {
-       "2026-03-31": 456553000.0,
-       "2025-03-31": -225091000.0,
-       "2024-03-31": 110886000.0,
-       "2023-03-31": -218757000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "change_in_working_capital",
-      "values": {
-       "2026-03-31": 3814540000.0,
-       "2025-03-31": -1335974000.0,
-       "2024-03-31": -789812000.0,
-       "2023-03-31": 101700000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "taxes_refund_paid",
-      "values": {
-       "2026-03-31": -22195000.0,
-       "2025-03-31": 93840000.0,
-       "2024-03-31": -70487000.0,
-       "2023-03-31": 1260000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "operating_cash_flow",
-      "values": {
-       "2026-03-31": 6314870000.0,
-       "2025-03-31": -47876000.0,
-       "2024-03-31": 172925000.0,
-       "2023-03-31": 2163956000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "investments_in_property_plant_and_equipment",
-      "values": {
-       "2026-03-31": -335356000.0,
-       "2025-03-31": -326216000.0,
-       "2024-03-31": -419051000.0,
-       "2023-03-31": -351927000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "sale_of_ppe",
-      "values": {
-       "2026-03-31": 23169000.0,
-       "2025-03-31": 3153000.0,
-       "2024-03-31": 3194000.0,
-       "2023-03-31": 8533000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "net_ppe_purchase_and_sale",
-      "values": {
-       "2026-03-31": -312187000.0,
-       "2025-03-31": -323063000.0,
-       "2024-03-31": -415857000.0,
-       "2023-03-31": -343394000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "net_investment_purchase_and_sale",
-      "values": {
-       "2026-03-31": -7582885000.0,
-       "2025-03-31": 0.0,
-       "2024-03-31": 1522910000.0,
-       "2023-03-31": -712700000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "net_other_investing_changes",
-      "values": {
-       "2026-03-31": null,
-       "2025-03-31": -100000.0,
-       "2024-03-31": null,
-       "2023-03-31": null,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "investing_cash_flow",
-      "values": {
-       "2026-03-31": -7895072000.0,
-       "2025-03-31": -323063000.0,
-       "2024-03-31": 1107053000.0,
-       "2023-03-31": -1056094000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "net_long_term_debt_issuance",
-      "values": {
-       "2026-03-31": null,
-       "2025-03-31": null,
-       "2024-03-31": null,
-       "2023-03-31": null,
-       "2022-03-31": 0.0
-      }
-     },
-     {
-      "label": "net_issuance_payments_of_debt",
-      "values": {
-       "2026-03-31": null,
-       "2025-03-31": null,
-       "2024-03-31": null,
-       "2023-03-31": null,
-       "2022-03-31": 0.0
-      }
-     },
-     {
-      "label": "issuance_of_common_equity",
-      "values": {
-       "2026-03-31": 0.0,
-       "2025-03-31": 2922923000.0,
-       "2024-03-31": 0.0,
-       "2023-03-31": null,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "net_common_stock_issuance",
-      "values": {
-       "2026-03-31": 0.0,
-       "2025-03-31": 2922923000.0,
-       "2024-03-31": 0.0,
-       "2023-03-31": null,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "net_other_financing_charges",
-      "values": {
-       "2026-03-31": 1500000000.0,
-       "2025-03-31": -1500000000.0,
-       "2024-03-31": null,
-       "2023-03-31": null,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "financing_cash_flow",
-      "values": {
-       "2026-03-31": 1500000000.0,
-       "2025-03-31": 1422923000.0,
-       "2024-03-31": 0.0,
-       "2023-03-31": 0.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "net_change_in_cash_and_equivalents",
-      "values": {
-       "2026-03-31": -80202000.0,
-       "2025-03-31": 1051984000.0,
-       "2024-03-31": 1279978000.0,
-       "2023-03-31": 1107862000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "beginning_cash_position",
-      "values": {
-       "2026-03-31": 10798231000.0,
-       "2025-03-31": 9746247000.0,
-       "2024-03-31": 8466269000.0,
-       "2023-03-31": 7358407000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "other_cash_adjustment_outside_changein_cash",
-      "values": {
-       "2026-03-31": null,
-       "2025-03-31": 100000.0,
-       "2024-03-31": null,
-       "2023-03-31": null,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "end_cash_position",
-      "values": {
-       "2026-03-31": 10718029000.0,
-       "2025-03-31": 10798231000.0,
-       "2024-03-31": 9746247000.0,
-       "2023-03-31": 8466269000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "capital_expenditure",
-      "values": {
-       "2026-03-31": -335356000.0,
-       "2025-03-31": -326216000.0,
-       "2024-03-31": -419051000.0,
-       "2023-03-31": -351927000.0,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "issuance_of_capital_stock",
-      "values": {
-       "2026-03-31": 0.0,
-       "2025-03-31": 2922923000.0,
-       "2024-03-31": 0.0,
-       "2023-03-31": null,
-       "2022-03-31": null
-      }
-     },
-     {
-      "label": "free_cash_flow",
-      "values": {
-       "2026-03-31": 5979514000.0,
-       "2025-03-31": -374092000.0,
-       "2024-03-31": -246126000.0,
-       "2023-03-31": 1812029000.0,
-       "2022-03-31": null
-      }
-     }
-    ],
-    "provider": "openbb-mcp",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance",
     "gaps": []
    },
    "polite": {
@@ -1790,20 +1463,12 @@
   },
   "ratings": {
    "url": "http://127.0.0.1:52313/fundamentals/DHANBANK/ratings",
-   "status": 200,
-   "elapsed_ms": 209,
+   "status": 429,
+   "elapsed_ms": 121,
    "body": {
-    "symbol": "DHANBANK.NS",
-    "consensus": null,
-    "target_mean": null,
-    "target_high": null,
-    "target_low": null,
-    "strong_buy": 0,
-    "buy": 0,
-    "hold": 0,
-    "sell": 0,
-    "strong_sell": 0,
-    "provider": "yfinance"
+    "detail": "The data provider is throttled right now \u2014 try again shortly.",
+    "code": "rate_limited",
+    "action": "Wait a minute, then retry."
    },
    "polite": {
     "yahoo_open": false,
@@ -1813,7 +1478,7 @@
   "shareholding": {
    "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=DHANBANK",
    "status": 200,
-   "elapsed_ms": 322,
+   "elapsed_ms": 583,
    "body": {
     "symbol": "DHANBANK",
     "count": 20,
@@ -2253,7 +1918,7 @@
   "announcements": {
    "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=DHANBANK&limit=25",
    "status": 200,
-   "elapsed_ms": 1602,
+   "elapsed_ms": 1764,
    "body": {
     "symbol": "DHANBANK",
     "exchange": null,
@@ -2272,7 +1937,7 @@
       "exchange": "BSE",
       "headline": "Announcement under Regulation 30 (LODR)-Appointment of Statutory Auditor/s",
       "category": "Company Update",
-      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/b7cd80d8-96e5-4b91-8135-aa16fdaf4acd.pdf",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b7cd80d8-96e5-4b91-8135-aa16fdaf4acd.pdf",
       "ts": "2026-09-23T19:51:11.440000+05:30"
      },
      {
@@ -2296,7 +1961,7 @@
       "exchange": "BSE",
       "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
       "category": "Company Update",
-      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/83547c60-95cf-4d47-a7c2-b096df71a937.pdf",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/83547c60-95cf-4d47-a7c2-b096df71a937.pdf",
       "ts": "2026-09-23T19:32:15.827000+05:30"
      },
      {
@@ -2312,7 +1977,7 @@
       "exchange": "BSE",
       "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
       "category": "AGM/EGM",
-      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9d836149-6a43-407f-9d73-c9d9ef40a72a.pdf",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9d836149-6a43-407f-9d73-c9d9ef40a72a.pdf",
       "ts": "2026-09-23T19:27:47.177000+05:30"
      },
      {
@@ -2468,11 +2133,11 @@
     "windows": {
      "NSE": {
       "window_start": "2026-07-29",
-      "window_end": "2026-09-25"
+      "window_end": "2026-09-26"
      },
      "BSE": {
       "window_start": "2026-07-29",
-      "window_end": "2026-09-25"
+      "window_end": "2026-09-26"
      }
     },
     "coverage": "covered",
@@ -2480,13 +2145,13 @@
    },
    "polite": {
     "yahoo_open": false,
-    "parked_s": 0.0
+    "parked_s": 63.3
    }
   },
   "results_calendar": {
    "url": "http://127.0.0.1:52313/disclosures/results?symbol=DHANBANK",
    "status": 200,
-   "elapsed_ms": 535,
+   "elapsed_ms": 878,
    "body": {
     "symbol": "DHANBANK",
     "count": 75,
@@ -2743,7 +2408,7 @@
       "symbol": "DHANBANK",
       "company": "Dhanlaxmi Bank Limited",
       "purpose": "Fund Raising",
-      "description": "DHANBANK : 01-May-2021 :  The Company has informed the Exchange that a Board meeting to be held on April 29, 2021 has been re-scheduled. Further, the Company has informed the Exchange that the meeting of the Board of Directors of the Company will be held on May 01, 2021,  To consider Fund Raising",
+      "description": "To consider Fund Raising",
       "date": "2021-04-29",
       "exchange": "NSE"
      },
@@ -2751,7 +2416,7 @@
       "symbol": "DHANBANK",
       "company": "Dhanlaxmi Bank Limited",
       "purpose": "Fund Raising",
-      "description": "To consider Fund Raising",
+      "description": "DHANBANK : 01-May-2021 :  The Company has informed the Exchange that a Board meeting to be held on April 29, 2021 has been re-scheduled. Further, the Company has informed the Exchange that the meeting of the Board of Directors of the Company will be held on May 01, 2021,  To consider Fund Raising",
       "date": "2021-04-29",
       "exchange": "NSE"
      },
@@ -2918,16 +2583,16 @@
      {
       "symbol": "DHANBANK",
       "company": "Dhanlaxmi Bank Limited",
-      "purpose": "Results",
-      "description": "inter-alia to consider/approve the financial results of the Bank for the quarter ended December 31, 2016.",
+      "purpose": "Others",
+      "description": "To inter-alia consider the proposal for raising further equity shares on preferential allotment basis and seek shareholders approval for the same.",
       "date": "2017-02-14",
       "exchange": "NSE"
      },
      {
       "symbol": "DHANBANK",
       "company": "Dhanlaxmi Bank Limited",
-      "purpose": "Others",
-      "description": "To inter-alia consider the proposal for raising further equity shares on preferential allotment basis and seek shareholders approval for the same.",
+      "purpose": "Results",
+      "description": "inter-alia to consider/approve the financial results of the Bank for the quarter ended December 31, 2016.",
       "date": "2017-02-14",
       "exchange": "NSE"
      },

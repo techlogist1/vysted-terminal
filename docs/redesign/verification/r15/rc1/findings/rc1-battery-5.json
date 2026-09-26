@@ -1,0 +1,24 @@
+[
+  {
+    "kind": "environment",
+    "set": "set-28",
+    "ids": [
+      "R15-RESEARCH-044", "R15-RESEARCH-046", "R15-RESEARCH-048", "R15-RESEARCH-050",
+      "R15-RESEARCH-052", "R15-RESEARCH-054", "R15-RESEARCH-056", "R15-RESEARCH-058",
+      "R15-RESEARCH-060", "R15-RESEARCH-062", "R15-RESEARCH-064", "R15-RESEARCH-066"
+    ],
+    "severity": "n/a",
+    "title": "batch-7/W4-research-funnel register/task data mismatch: 12 assigned ids do not exist",
+    "detail": "None of the 12 ids assigned to set-28 (R15-RESEARCH-044 through 066, even numbers) exist in docs/redesign/verification/vysted-r15-register.json. The register's R15-RESEARCH-* series stops at R15-RESEARCH-042 (counts.entries: 652). Verified by exact-id lookup over entries[] and rejections[], and a repo-wide grep for each id (zero hits anywhere outside the battery files this shard wrote). This is a task/harness data-computation gap, not a product defect and not an upstream outage. All 12 ids were given verdict blocked_env in set-28.md with identical evidence (raw/set-28/RESEARCH-044-066-register-lookup.txt).",
+    "evidence": "docs/redesign/verification/r15/rc1/battery/set-28.md; docs/redesign/verification/r15/rc1/battery/raw/set-28/RESEARCH-044-066-register-lookup.txt"
+  },
+  {
+    "kind": "register_note",
+    "set": "set-67",
+    "ids": ["R15-AGENT-090", "R15-LEAD-030"],
+    "severity": "low",
+    "title": "New instance of the local-model untraced-claim pattern surfaced via the AGENT-090 ratio guard, on a tool path the batch-16 certification did not exercise",
+    "detail": "Live re-run of R15-AGENT-090's original repro (SIFY ADR-ratio prompt, ollama llama3.1:8b, port 52345) took a different tool path than all 5 of batch-16's certification runs: the model called financial_statements (cashflow) instead of fundamentals, then stated 'one SIFY ADR represents six ordinary shares' attributed generically to 'the tool call response'. The figure is factually correct (SIFY's 20-F: six equity shares) but untraced -- the cashflow result carries no ADR/depositary term, so the ratio guard's _sourced_counts should have been empty and the sentence should have been replaced with RATIO_UNAVAILABLE; it was not. This is the same general class the LEAD NOTE already governs ('local model states a figure with no ok tool call behind it'): per standing operator decision (DECISIONS 4.9-4.12) this is filed as a register note under R15-LEAD-030's existing blocked_tier4 entry, not a new defect, not a fix round, and not a regressed verdict on R15-AGENT-090 (whose certified fundamentals-calling path was not exercised or shown broken this run). No code change made; verification-only role.",
+    "evidence": "docs/redesign/verification/r15/rc1/battery/set-67.md; docs/redesign/verification/r15/rc1/battery/raw/set-67/AGENT-090-run1.log; docs/redesign/verification/r15/rc1/battery/raw/set-67/AGENT-090-run1.jsonl; docs/redesign/verification/r15/rc1/battery/raw/set-67/LEAD-030-source-check.txt"
+  }
+]

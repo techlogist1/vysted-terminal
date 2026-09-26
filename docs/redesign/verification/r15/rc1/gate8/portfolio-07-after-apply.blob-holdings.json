@@ -1,6 +1,6 @@
 [
   {
-    "id": "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
+    "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
     "symbol": "AAPL",
     "quantity": 8,
     "costBasis": 190,
@@ -8,7 +8,7 @@
     "note": "added on dip"
   },
   {
-    "id": "h-3d80897a-0672-40a2-a78e-253b6b5f693b",
+    "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
     "symbol": "INFY",
     "quantity": 20,
     "costBasis": 1500,
@@ -16,7 +16,7 @@
     "note": "Core IT holding, review after Q2 results"
   },
   {
-    "id": "h-da1ebaee-72bd-4478-bbc7-2b5ce09a1651",
+    "id": "h-233ea3ea-7d38-4eb3-a1b0-939b51266dd4",
     "symbol": "TCS",
     "quantity": 5,
     "costBasis": 3500,

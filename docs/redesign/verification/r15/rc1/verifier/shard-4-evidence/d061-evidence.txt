@@ -1,0 +1,10 @@
+sha 81fbfe910d472ecd154fa62e42d86bce213a697e  Sat Sep 26 09:40:41 IST 2026
+curl :52604/earnings/TCS.NS/estimates -> {"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."} [502]
+curl :52604/earnings/HDFCBANK.NS/estimates -> {"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."} [502]
+curl :52604/fundamentals/HDFCBANK.NS/income -> {"symbol":"HDFCBANK.NS","periods":[],"lines":[],"provider":"yfinance","gaps":[]} [200]
+curl :52604/fundamentals/HDFCBANK.NS -> {"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."} [429]
+curl :52604/health -> {"status":"ok","service":"vysted-sidecar","version":"0.8.0","providers":{"analyst_rating":"openbb-mcp (yfinance fallback)","balance_sheet":"openbb-mcp (yfinance fallback)","cash_flow":"openbb-mcp (yfinance fallback)","fundamentals":"openbb-mcp (yfinance fallback)","income_statement":"openbb-mcp (yfi
+
+--- direct upstream probe (worktree venv yfinance):
+income_stmt shape (0, 0)
+calendar -> YFRateLimitError Too Many Requests. Rate limited. Try after a while.

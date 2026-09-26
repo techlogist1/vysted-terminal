@@ -1,0 +1,14 @@
+data: {"kind":"run-start","runId":"e1ef76ea-8320-48f0-8ddb-91369cd177bc","startedAt":1790385127021}
+
+data: {"kind":"node-start","runId":"e1ef76ea-8320-48f0-8ddb-91369cd177bc","nodeId":"b","nodeType":"logic.branch","startedAt":1790385127021}
+
+data: {"kind":"node-output","runId":"e1ef76ea-8320-48f0-8ddb-91369cd177bc","nodeId":"b","outputs":{"false_path":null},"durationMs":0.094292}
+
+data: {"kind":"node-skipped","runId":"e1ef76ea-8320-48f0-8ddb-91369cd177bc","nodeId":"t","nodeType":"action.notify_desktop"}
+
+data: {"kind":"node-start","runId":"e1ef76ea-8320-48f0-8ddb-91369cd177bc","nodeId":"f","nodeType":"action.notify_desktop","startedAt":1790385127022}
+
+data: {"kind":"node-output","runId":"e1ef76ea-8320-48f0-8ddb-91369cd177bc","nodeId":"f","outputs":{"notified":true,"title":"Workflow","message":"","intent":"desktop-notification"},"durationMs":0.201208}
+
+data: {"kind":"run-complete","runId":"e1ef76ea-8320-48f0-8ddb-91369cd177bc","durationMs":0.98075}
+

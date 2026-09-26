@@ -1,0 +1,7 @@
+$ GET /custom-agents (baseline)
+[]
+$ grep -n "409" src/lib/plugin-agents.ts
+67:        if (response.status === 409) {
+Mechanism is frontend-only (PUT-on-409 re-registration), certified via vitest
+(plugin-agents.test). No vitest run this shard per harness rule; grep confirms the
+handling is present unchanged at HEAD.

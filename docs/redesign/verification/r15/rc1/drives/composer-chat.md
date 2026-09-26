@@ -72,3 +72,65 @@ regression these rows would show.
 
 Local/keyless only this pass — one `ollama`/`llama3.1:8b` invoke via `vy.py`
 (`rc1-cc-t1-cochinship`, 237.6s, $0.00). No paid-provider calls.
+
+---
+
+## Pass 2 — re-verified against 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2 (gate round 2)
+
+The candidate advanced from `4097dac4` (pass 1, above) to `4c6dfe8c` on the same integration
+branch — `4097dac4` confirmed an ancestor (`git merge-base --is-ancestor`), 297 commits between
+them. Most are `R15-LEAD-030/033/035/036` citation-guard and figure-guard rework in
+`agent_runtime.py` plus `R15-AGENT-090/092/093` fixes — none revert or touch the 11 findings'
+own fix sites. Own sidecar re-booted from `rc1-cand` (now at `4c6dfe8c`) on `:52320`, same
+`rc1-data-rc1-drive-composer-chat` data dir (already a keyless copy of `rc1-seed-data`),
+stopped by killing its sleep pid (58519) at the end of this pass.
+
+### Delta method (not a full re-drive — targeted regression check)
+
+1. Grepped every fix anchor cited in pass 1's table against the current source — all present
+   unchanged in mechanism: `tool_call_rescue.py` (shared by `services/llm/ollama.py` +
+   `services/llm/openai.py`), `classify_intent` (`services/planner.py:203`), the `aclose()` ->
+   `task.cancel()` path (`agent_runtime.py:1213-1220`), `addResolvedEquity` calling `GET
+   /resolve` first (`host-actions.ts:2055-2058`), the `call_{uuid4().hex}` id mint
+   (`agent_runtime.py:2863`), `_staged_actions_notice` (`agent_runtime.py:1432`), `run_manager`
+   resume passing `provider=run.provider`/paused-on-halt (`run_manager.py:305-316,551-561`),
+   and the requested-symbol join in `quotes.py`. `semantics.py` moved to
+   `services/research/semantics.py` (path change only) — `display_value`/`_PROMPT_KEYS` still
+   there (line 189); it now also carries a NEW `market_cap_witness` divergence check
+   (lines 830-892) cross-checking provider market cap against an exchange-master-implied
+   figure — an additional safeguard layered on top of the R15-AGENT-001 fix, not a regression.
+2. Ran the sidecar's own regression suite for this surface rather than hand-rolling repros for
+   everything pass 1 covered by test: `pytest tests/test_compare_symbols.py
+   tests/test_tool_call_rescue.py` → 21 passed; `pytest tests/test_agent_runtime.py
+   tests/test_run_manager.py tests/test_planner.py` → 320 passed (`rc1/v2-05-*.txt`,
+   `rc1/v2-06-*.txt`).
+3. Live re-checks on the fresh `:52320` sidecar (`rc1/v2-01..04`): `GET /resolve?q=Mazagon
+   Dock` → MAZDOCK 0.92 confidence (unchanged); `GET /quotes?symbols=RELIANCE.NS,ZZZZNOTREAL,
+   TCS.NS` → both real symbols returned under their REQUESTED spelling, the dead one dropped
+   cleanly (no join failure); `GET /quotes/ZZZZNOTREAL` → clean 404 `not_found` sentence, no
+   raw provider text; in-process `classify_intent` on the same 4 census prompts → 3/4 `edit`,
+   1/4 now `build` (compound-detection path, added since pass 1) but `IntentResult.is_actionable`
+   (`intent != "read"`) is still `True` for all 4 — the original defect (classified `read`,
+   tools stripped) does not recur under any of the 4 prompts.
+4. Re-ran pass 1's own in-process stop-cancel repro (`01-stop-cancel-repro.py`, unmodified)
+   against the current `_dispatch_tool_with_progress` (signature/mechanism unchanged) →
+   `tool task cancelled on aclose: True` (`rc1/v2-08-stop-cancel-repro.out`).
+5. Host-action live acks (watchlist add, note write) remain **NOT independently re-verifiable
+   headless-live**: watchlist-add is a frontend `SerializedWorkspace` store mutation, not a
+   sidecar route (`GET/POST /watchlist` → 404 on the sidecar, confirmed live,
+   `rc1/v2-07-watchlist-roundtrip.txt` — expected, matches pass 1's code-level verification via
+   `/resolve`); notes are not a sidecar router either (no `routers/notes.py`) — both are
+   `NEEDS-GUI` for a live round-trip, consistent with pass 1's scoring, not a new gap.
+
+### Result
+
+**No regression** in any of the 11 pass-1-verified findings at `4c6dfe8c`. **No new defect**
+found in what this pass drove. The `classify_intent` label drift (edit→build on one of the 4
+census prompts) is a labeling change with no behavioural effect (both keep the tool surface)
+and is not filed as a finding. `rc1-drive-composer-chat.json` stays `[]`.
+
+### Spend
+
+Zero live-model spend this pass (no ollama/OpenRouter/OpenAI calls — all checks were
+pytest/code-level/direct-HTTP against the local sidecar, no LLM round-trip needed to
+re-confirm mechanisms already proven end-to-end in pass 1 and in the existing test suite).

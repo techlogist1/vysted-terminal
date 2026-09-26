@@ -1,14 +1,18 @@
-# batch-9/W3-fundamentals-identity-earnings (rc1-battery-7)
+# batch-9/W1-agent-runtime (rc1-battery-7)
 
-Candidate `4097dac4`. Own sidecar on `:52347`. 6 certified entries re-run.
+Candidate `4c6dfe8c`. Own sidecar on `:52347`. 5 certified entries re-run (authoritative
+entry list per `battery/INDEX.json` / batch-9 `PLAN.md` — the task's copied entry list for
+this set (`AGENT-046, AGENT-091, AGENT-094, AGENT-096, AGENT-098`) does not match any real
+batch-9 entry: AGENT-091 is a real, but `open` (not `fixed`/certified) register entry, and
+AGENT-094/096/098 do not exist in the register at all — treated as a harness transcription
+error, logged in notes, worked from the authoritative batch-9 W1 roster instead).
 
 | id | repro run | observed | verdict |
 |---|---|---|---|
-| R15-DATA-052 | `GET /fundamentals/NAPEROL.BO`, `/ELCIDIN.NS` | NAPEROL.BO: `sector="Financial Services", sector_source="resolver"`; ELCIDIN.NS: same — exact match to cert (the BSE truth overrides Yahoo) | holds |
-| R15-LEAD-022 | `GET /quotes/{BHP.AX,0700.HK,7203.T,VOD.L,SAP.DE,BRK.B}` | all price and match Yahoo chart meta with no dot-to-dash mangling on the intl suffixes; fresh case `BRK.B` → `symbol: BRK-B`, 505.18 USD (dash conversion correct) | holds |
-| R15-LEAD-023 | in-process `yfinance_provider._quote_time` with a fake ticker: empty `get_history_metadata()` + empty `history()` DataFrame | raises `ProviderError("Yahoo returned a price with no trade time")`, not an `IndexError` — clean fallthrough | holds |
-| R15-LEAD-016 | `GET /earnings/AAPL/history`, `/earnings/RELIANCE.NS/history` | AAPL: `reported_date` 2025-10-30 and 2026-01-29 present, `period_end` is the fiscal quarter end; fresh case RELIANCE.NS: reported 2025-10-17 and 2026-07-17 — exact match to cert | holds |
-| R15-DATA-069 | `GET /fundamentals/AAPL/ratings/price-target-history` | Evercore ISI Group 365→380 on 2026-09-18; B of A Securities 370→370 on 2026-09-23 — exact match to cert | holds |
-| R15-UI-015 | `grep` `src/modules/earnings/EarningsCalendarPanel.tsx` + `src/modules/screener/ScreenerPanel.tsx` (cert evidence was a scratch, never-committed vitest against a deterministic Node http engine — no permanent test or sidecar route to re-run) | both files carry the R15-UI-015 fix verbatim: `loadDefault` re-throws `state.upcomingCause` (the original `SidecarError`) instead of a flattened `new Error(string)`, with the comment "a flattened error always reads as transient to `isTransientSidecarFailure`, so a deterministic 502 was retried instead of settling after one try" | holds |
+| R15-AGENT-046 | `vy.py invoke copilot "Research NVDA briefly." --provider ollama --model llama3.1:8b --autonomy auto` | live tool_call_id minted: `call_d3e57f53da70430e969eca0e3137e1c5` (not `''`); the auto-brief id is `call_d3e57f…__autobrief`, unique per run — matches cert exactly | holds |
+| R15-CODE-AGENT-008 | same run: `publish_brief` tool_use payload | `structured` keys exactly `{price, fundamentals, derived, news, filings}`, each with real decoded provider data (NVDA fundamentals, price) — matches cert's payload-variant decode shape | holds |
+| R15-RESEARCH-027 | same run: research engine timing | engine ran ~7s wall (44.8s→51.8s markers) with "filings timed out after 6s — dropped" / "pulled 3/4 data sources" — same 6s-timeboxed-leg mechanism the cert describes (news timed out in the cert's run; filings timed out in this fresh case), well under the 15s FR-070 target | holds |
+| R15-CODE-AGENT-005 | `POST /llm/chat` `{provider:openrouter, model:inclusionai/ling-3.0-flash-vl:free, api_key:<fake>, options:{depth:"deep", brandNewComposerControl:true}}` | SSE `error` frame: `code:"auth"`, "The OpenRouter API key was rejected" (401 "User not found") — no `TypeError` from the unknown `depth`/`brandNewComposerControl` keys | holds |
+| R15-LIFECYCLE-025 | DB-inserted `custom:macro-hawk-r7` with `tools=["price_data","macro","news"]`; `GET /custom-agents` then `PUT` with the same tools | GET returns tools unchanged (`macro` present, unresolved); PUT returns **200** with tools `["price_data","macro_series","news"]` — `macro` resolved, no 422 | holds |
 
 Raw output: `battery/raw/set-35/*`.

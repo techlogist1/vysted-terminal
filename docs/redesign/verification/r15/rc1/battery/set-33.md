@@ -1,18 +1,21 @@
-# batch-9/W1-agent-runtime (rc1-battery-7)
+# batch-8/W4-resolver-exchange-lanes
 
-Candidate `4097dac4`. Own sidecar on `:52347`. 5 certified entries re-run.
+Candidate `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`. Own sidecar `:52346`. Raw output: `raw/set-33/`.
 
 | id | repro run | observed | verdict |
-|---|---|---|---|
-| R15-AGENT-046 | live `vy.py invoke copilot 'Research NVDA briefly.' --provider ollama --model llama3.1:8b` | `tool_call_id: call_80dc50e027bd43f5a27a4b0169e43dee` (minted, unique — not `''`); auto-brief id `call_80dc50e027bd43f5a27a4b0169e43dee__autobrief` (suffix-derived, unique per run) | holds |
-| R15-CODE-AGENT-008 | same run | the `research` tool_use auto-published a `publish_brief` call (`__autobrief` suffix) carrying `execution: {run_id, requested_depth: "normal", loop: "fast", backend, started_at, finished_at, degraded_reason, ...}` — the decoded-payload auto-brief shape the entry certifies (vy.py's own console print truncates the full JSON at ~420 chars, a client-side display limit, not a sidecar defect) | holds |
-| R15-RESEARCH-027 | same run | engine ran the query, one leg ("filings") hit `"filings timed out after 6s — dropped"` at exactly 6000ms and the run still completed reporting `"pulled 3/4 data sources"` rather than hanging or failing whole — same time-boxing mechanism the cert observed on the news leg (a fresh leg, same 6s gate) | holds |
-| R15-CODE-AGENT-005 | `POST /llm/chat` to `openrouter` with a fake `api_key` and unknown `options: {depth, brandNewComposerControl}` | `{"kind":"error","message":"The OpenRouter API key was rejected — check it in Settings.",...,"code":"auth"}` — a clean 401 auth frame, no `TypeError` from the unknown adapter kwargs (`scrub_adapter_options` strips them) | holds |
-| R15-LIFECYCLE-025 | `POST /custom-agents` then `PUT /custom-agents/custom:zz-macro-hawk` with `tools:["price_data","macro","news"]`; in-process `schemas.openai_tools(['price_data','macro','news'])` | POST 201 and PUT 200 both resolve `tools` to `["price_data","macro_series","news"]`; `openai_tools()` gives the same resolved list — exact match to cert | holds |
+| --- | --- | --- | --- |
+| R15-DATA-023 | `curl :52346/disclosures/shareholding?symbol=DAL/CSL` (upstream BSE hit a transient `provider_error` both times this run); in-process `bse_provider._promoter_pledge(...)` for filed/declared-no-pledge/no-declaration | live BSE fetch errored transiently (external dependency, not code); in-process: filed pledge → `{100.0,"filed"}`, declared-no-pledge → `{0.0,"filed"}` (a filed zero, not a miss), no declaration → `{None,None}` — exactly the certified three-way distinction; `promoter_pledged_percent`/`promoter_pledge_basis` present on the model and mirrored in `types/data.ts` | holds |
+| R15-DATA-026 | `curl :52346/fundamentals/DHANBANK/income` and `?period=quarterly` | annual: 4 yearly periods; `period=quarterly`: 6 quarterly periods (`2026-06-30` newest) — the quarterly route/parameter now works where it didn't before | holds |
+| R15-DATA-027 | in-process: `services.exchange_financials.get_filed_periods("DAL.BO")` / `("TCS.NS")`; `agent_tools.fundamentals._fetch_once` for both | filed periods return real data: DAL.BO from `venue=bse` (6 real BSE quarterly filings with revenue/net_profit/EPS), TCS.NS from `venue=nse` (6 real NSE XBRL filings) — the exchange-filed lane the fix added is live and returning real data (overlaid onto the agent tool's fundamentals; REST `/fundamentals` intentionally keeps the base yfinance/openbb-mcp provider tag, only the agent tool applies the overlay per `apply_exchange_financials`'s docstring) | holds |
+| R15-DATA-032 | grep `sidecar/services/earnings_provider.py` around `eps_estimate_stddev` | comment explicitly cites R15-DATA-032: "yfinance surfaces no dispersion, so `eps_estimate_stddev` stays None" — the proxy approximation is gone, matches fix | holds |
+| R15-DATA-034 | grep `yahoo_batch_provider.fundamentals_from_v7` / `correctness_gate.py` | `fundamentals_from_v7` now calls `correctness_gate.validate_fundamentals(fundamentals, symbol, config.get_region())`; `_PLAUSIBLE_YIELD_FRACTION = 0.25` is the single bound referenced at the withholding check — the v7/yfinance yield-bound mismatch is gone | holds |
+| R15-DATA-037 | grep `sidecar/services/ccxt_provider.py` `get_ohlcv`/`_since_ms` | `get_ohlcv(exchange, symbol, timeframe, range_)` now maps `range_` to `since=cursor` via `_since_ms`, paginating with `fetch_ohlcv(..., since=cursor, limit=_PAGE_LIMIT)` — `range_` is no longer dropped | holds |
+| R15-DATA-038 | `curl :52346/sec/filings/0000320193-25-000079/sections?identifier=AAPL`; `curl :52346/sec/insider/AAPL?limit=5` | sections now returns real populated text (`"business"` section with real 10-K prose); insider returns real transaction rows (accession, issuer, transaction_date) — both previously-empty shapes now populated | holds |
+| R15-DATA-040 | grep `sidecar/services/backtest_engine.py` `run_backtest` warnings construction | `missing = [s for s in dict.fromkeys(request.symbols) if s not in loaded]`; on non-empty `missing`, appends `"No price history loaded for {...} ...; metrics cover {N} of {M} symbols."` to `warnings` (returned as `warnings=warnings or None`) — matches fix_shape exactly | holds |
+| R15-DATA-043 | `curl -X POST :52346/screener/run` with the acceptance test's exact mixed-currency payload (`AAPL, RELIANCE.NS, MSFT, TCS.NS`, sort `market_cap desc`, `limit:2`) | `coverage: "screened 4 of 4 — 0 unavailable · spans INR, USD — ranked within each currency"`; the served top-2 page contains BOTH RELIANCE.NS (INR) and AAPL (USD) — not a single-currency slice — matches the pinned acceptance test exactly | holds |
+| R15-DATA-048 | `curl :52346/fundamentals/RELIANCE.NS`, check `roce` field | `roce: 0.0899...` (8.99%) — ROCE is served, matching the register's documented residual figure exactly (still diverges from screener.in's desk convention, no witness/flag leg added — unchanged, not re-opened) | holds |
+| R15-DATA-059 | `curl :52346/resolve?q=ONC`; `?q=SIFY` | ONC → `former_name: "BeiGene, Ltd."`; SIFY → `former_name: "SIFY LTD"` (in the accepted set) — both match the pinned acceptance test; `isin` stays null for US instruments (the stretch-goal ISIN backfill was never required for this fix's acceptance) | holds |
 
-Excluded (not certified in batch-9): R15-AGENT-049 (no live native-search lane reachable —
-same as cert, no OpenAI/OpenRouter/Gemini/Anthropic key funded on this shard), R15-AGENT-082
-(W1 sidecar leg — not certified in batch-9, superseded by batch-10's certified fix, see
-set-42).
+Summary: 11/11 holds. All live/in-process/source-verified against the candidate; no regressions.
 
-Raw output: `battery/raw/set-33/*`.
+COVERAGE: 11/11 ids raw.

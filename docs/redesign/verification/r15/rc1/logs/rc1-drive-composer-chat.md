@@ -56,3 +56,18 @@ Role: OWNER-DRIVE composer-chat re-drive against RC1 candidate `4097dac4`.
 
 Spend: one local `ollama`/`llama3.1:8b` call via `vy.py` ($0.00, ledger tag
 `rc1-cc-t1-cochinship`). No paid-provider calls this pass.
+
+---
+
+## Pass 2 (gate round 2, candidate 4c6dfe8c)
+
+Same role, candidate advanced 4097dac4 -> 4c6dfe8c (297 commits, ancestor-confirmed). Re-booted
+own sidecar on :52320 from the (now further-built) rc1-cand worktree against the same
+rc1-data-rc1-drive-composer-chat data dir. Verified all 11 pass-1 fix anchors still present in
+source (grep), ran the sidecar's own relevant pytest files (compare_symbols, tool_call_rescue,
+agent_runtime, run_manager, planner = 341 tests, all green), re-ran 4 live API checks (/resolve,
+/quotes batch join, /quotes single 404, classify_intent) and the pass-1 in-process stop-cancel
+repro unmodified. No regression, no new defect. Full detail + evidence file list in
+docs/redesign/verification/r15/rc1/drives/composer-chat.md ("Pass 2" section) and
+surface/composer-chat/rc1/v2-*. Stopped sidecar: sleep pid 58519 (closed stdin but worker 58522
+outlived it by >5s so killed 58522 directly — port 52320 only, no other owner touched).

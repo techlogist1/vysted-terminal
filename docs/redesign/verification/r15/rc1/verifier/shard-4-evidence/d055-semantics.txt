@@ -1,0 +1,2 @@
+fifty_two_week_change {'value': 0.04287994, 'label': '52-week price change (Yahoo)', 'basis': 'trailing 52 weeks', 'display': '4.29%'}
+drawdown_from_high {'value': 0.11297071129707122, 'label': 'Below 52-week high', 'basis': 'vs 52w high', 'display': '11.30%'}

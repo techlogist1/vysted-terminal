@@ -1,0 +1,5 @@
+option_chain {'symbol': 'NIFTY', 'max_strikes': '10'} -> {'symbol': 'NIFTY', 'max_strikes': 10}
+option_chain {'symbol': 'NIFTY', 'max_strikes': ' 5 '} -> {'symbol': 'NIFTY', 'max_strikes': 5}
+option_chain {'symbol': 'NIFTY', 'max_strikes': '5.0'} -> {'__vysted_invalid_args__': "invalid arguments for option_chain: '5.0' is not of type 'integer'; call again with valid args"}
+add_chart_drawing {'kind': 'horizontal-line', 'points': [{'price': '185.5'}]} -> {'__vysted_invalid_args__': "invalid arguments for add_chart_drawing: '185.5' is not of type 'number'; call again with valid args"}
+yield_curve_value {'valuation_date': '2026-09-25', 'sample_count': '5', 'instruments': [{'type': 'deposit', 'tenor': '3', 'tenor_unit': 'months', 'rate': '0.05'}, {'type': 'swap', 'tenor': 2, 'tenor_unit': 'years', 'rate': 0.055}]} -> {'__vysted_invalid_args__': "invalid arguments for yield_curve_value: '3' is not of type 'integer'; call again with valid args"}

@@ -1,0 +1,16 @@
+== INSPIRE
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+== SCML
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+== QVCEL
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+== BIOPOL
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+== RELIANCE
+{"symbol":"RELIANCE.NS","name":"Reliance Industries Limited","sector":"Energy","industry":"Oil, Gas & Consumable Fuels / Refineries & Marketing","sector_source":"resolver","currency":"INR","financial_currency":null,"ratio_price":1226.0,"market_cap":16590810644480.0,"pe_ratio":22.07418,"forward_pe":1
+== SCML.NS
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+== SCML-SM.NS
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+== INSPIRE-SM.NS
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}

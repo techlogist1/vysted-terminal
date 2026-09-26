@@ -1,0 +1,10 @@
+# rc1-vshard-4 working log
+
+- Candidate 81fbfe910d472ecd154fa62e42d86bce213a697e, worktree rc1-4c6dfe8-fix-int (read-only).
+- Own sidecar :52604, data dir scratchpad/rc1-data-rc1-vshard-4 (copy of rc1-seed-data). sh 90414, sleep pid 90416, python 90417. /health ok 09:31 IST.
+- Pick audit: 14 of the 24 picked ids do not exist in the register at the candidate (max ids DATA-115, AGENT-093, RESEARCH-042, UI-094). The 10 that exist are not members of the named sets either (e.g. batch-8 W3 = DATA-061/AGENT-061/...; picks DATA-114/104/106). Decision: verify the 10 existing picks on their own claims; record the 14 missing ids as inconclusive (id absent); substitute one fixed entry of the named set for each missing id, first in the set's PLAN.md table order not already picked: b8W5 CODE-AGENT-004; b9W1 CODE-AGENT-008, RESEARCH-027; b9W2 RESEARCH-028, LIFECYCLE-018; b9W3 DATA-048, DATA-054, DATA-055; b9W4 DATA-061, DATA-066, DATA-062; b9W5 UI-016, CODE-FRONTEND-016, UI-027.
+- DATA-104, DATA-106, AGENT-087, AGENT-089 are status 'open' (lows) at the candidate: not certified claims; checked for current state only.
+- Verdicts (all at 81fbfe91): holds on DATA-114, DATA-032, DATA-034, DATA-037, AGENT-046, DATA-070, CODE-AGENT-004, CODE-AGENT-008, RESEARCH-027, LIFECYCLE-018, DATA-048, DATA-054, DATA-062, UI-016, CODE-FRONTEND-016, UI-027. Refuted: RESEARCH-028 (fast._web_round drops reason on the ok path), DATA-061 (earnings 502 and statements 200-empty under throttle), DATA-066 (throttle sleep still on the executor), DATA-055 (brief 52w labels for a Sept-2026 listing). Inconclusive: 4 open picks and 14 absent ids.
+- Adjacent: 2 medium (INFY revenue currency, ROCE/ROE divergence), 4 low (older-day walk stop, listing_date provenance, alt+¡ recorder, bogus macro provider 502).
+- Harness: vy.py scratch copy (port 52604 allowed); the ollama lock dir was removed by another process mid-hold; Yahoo throttle about 09:35-09:50 IST.
+- Sidecar stopped: killed own sleep pid 90416 only; python 90417 exited by itself.

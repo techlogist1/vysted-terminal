@@ -1,0 +1,9 @@
+$ python3 -c classify_intent -- full-repro re-run of the register's own 15-phrase list (SURF-PORTFOLIO-NOTES-5) + batch-3's cited phrasings
+edit     conf=0.95 signals=['\\bdelete\\b']                         | Delete TCS from my portfolio
+edit     conf=0.95 signals=['\\bupdate\\b']                         | Update my RELIANCE cost basis to 1180
+read     conf=0.35 signals=[]                                       | My RELIANCE lot is actually 12 shares
+edit     conf=0.95 signals=['\\bbought\\b', '\\btrack\\b']          | I bought 10 shares of INFY at 1500, track it in my portfolio
+edit     conf=0.95 signals=['\\bput\\b.*\\b(on|in|into)\\b']        | Put 25 HDFC Bank at 1600 in my paper portfolio
+edit     conf=0.95 signals=['\\bnotes?\\b', '\\bwrite\\b']          | Write a note on Cochin Shipyard: valuation looks stretched at ~54x trailing P/E; revisit after Q2 results.
+edit     conf=0.95 signals=['\\bsold\\b']                           | Remember that I sold half my WIPRO position last week
+research conf=0.62 signals=['\\bresearch\\b']                       | Save my layout as research desk

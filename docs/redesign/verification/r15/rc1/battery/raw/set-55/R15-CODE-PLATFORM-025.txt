@@ -1,0 +1,3 @@
+cmd: sed -n '249p;322p' docs/BLUEPRINT.md
+output: line 249: "Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)"; line 322: "Drag-drop panel layout (resize, hide; pop-out to a second window is v1.0 roadmap — R15-CODE-PLATFORM-025)". Byte-identical to batch-11's certified doc text; §2 untouched (this file is on the never-edit-unilaterally list, confirmed unmodified).
+verdict: holds

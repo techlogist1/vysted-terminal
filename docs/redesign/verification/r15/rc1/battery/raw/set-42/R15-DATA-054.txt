@@ -1,0 +1,9 @@
+=== DATA-054 basis ===
+--RELIANCE.NS--
+basis consolidated exchange-filings
+--CREST.NS--
+basis consolidated exchange-filings
+--AMAL.NS--
+basis None exchange-filings
+--ELCIDIN.NS--
+basis None exchange-filings

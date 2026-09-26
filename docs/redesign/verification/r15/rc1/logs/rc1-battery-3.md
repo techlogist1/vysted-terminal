@@ -1,27 +1,50 @@
-# rc1-battery-3 — regression battery shard 3 (stage-c batch-5)
+# rc1-battery-3 (Sonnet) — stage-c batch-5 + batch-13 shard
 
-Candidate: 4097dac423bd6d6fb49245e7ee9e0ab2bc64f18a
-Sidecar: :52343, data dir `rc1-data-rc1-battery-3` (copy of rc1-seed-data), sleep pid 98708 (pipeline job [2]; python worker pid 98709).
+- Candidate sha: `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`, worktree `rc1-cand` (read-only, source-only).
+- Sidecar: booted from `rc1-cand/sidecar` against isolated data copy
+  `scratchpad/rc1-data-rc1-battery-3`, `127.0.0.1:52343`, pid group
+  `sh 62933` -> `python 62936` (`sleep 86400 | ./.venv/bin/python3 main.py --host 127.0.0.1 --port 52343 --data-dir ...`).
+  Booted once, reused for every set, killed at end of shard (confirmed `/health`
+  refuses after kill).
+- Method: for each id, read the register entry (`vysted-r15-register.json`) —
+  repro/evidence/fix_shape/closure_evidence/note — then re-ran the ORIGINAL
+  repro live against :52343 where practical (curl / in-process python via the
+  candidate's own venv), or a source read confirming the fix_shape is present
+  and wired into the live call path where a live trigger was impractical
+  (funded-key-gated, GUI-only, or backend-logic-only with a well-known live
+  proof already on file). No vitest/pytest suites run (heavy lane's job); one
+  entry (R15-DATA-062) is `holds (ci_pinned: ...)` because its acceptance
+  behaviour is pinned by a named test, not re-verified independently here.
 
-Sets: batch-5/W1 (set-15.md: R15-AGENT-020, R15-DATA-026), W2 (set-16.md: R15-DATA-026), W3 (set-17.md: R15-AGENT-020).
+## Sets
 
-## set-15 (W1 india-disclosures-agent-surface)
+- **set-15** (`batch-5/W1-india-disclosures-agent-surface`, 11 entries): 10
+  `holds`, 1 `blocked_env` (R15-DATA-056 — BSE SHP index Akamai 403s this dev
+  IP, pre-existing at base; filed as an environment finding, not a regression).
+- **set-16** (`batch-5/W2-resolver-market-data`, 9 entries): 9 `holds` (one
+  annotated ci_pinned for R15-DATA-062).
+- **set-17** (`batch-5/W3-agent-runtime-chat`, 9 entries): 8 `holds`, 1
+  `blocked_env` (R15-AGENT-049 — register status is `blocked_tier4`, never
+  reached "fixed"; nothing to regress-check from this lane).
+- **set-18** (`batch-5/W4-platform-workflow-boundary`, 8 entries): 8 `holds`.
+- **set-19** (`batch-5/W5-screener-earnings-sec`, 11 entries): 11 `holds`
+  (two rows, R15-DATA-067 and R15-LIFECYCLE-017, are the same checks as
+  set-15/set-18 respectively, cross-referenced rather than re-run twice).
+- **set-64** (`batch-13/W2-w2`, 1 entry): R15-RESEARCH-007 `holds` — replayed
+  batch-12's exact 18-URL adversarial acceptance list plus the 4 first-party
+  IR controls against the candidate's `domain_tier`; all 18 non-primary, all
+  4 controls stay `TIER_PRIMARY` — matches batch-14's certified PSL-backed fix.
+- **set-65** (`batch-13/W3-w3`, 1 entry): R15-DOCS-017 `holds` — doc §3.3
+  quoted counts (sp500 503, nse-all 3506, bse-all 5042, india-all 5891) match
+  live loader counts from the candidate exactly; no drift since certification.
 
-- R15-DATA-026: `GET /fundamentals/DHANBANK/income?period=quarterly` returns periods including `2026-06-30` (Q1 FY27) — matches certification. `catalog.py:332` registers `financial_statements` capability with `period` param. raw/set-15/R15-DATA-026.txt.
-- R15-AGENT-020: catalog.py:1179 registers `read_notes` (kind=per_invocation, domain=workspace) per C2 contract. Live agent invoke in flight (llama3.1:8b via vy.py, context_snapshot with `__notes__.bySymbol.BDL`) — raw/set-15/R15-AGENT-020.stdout.txt + .events.jsonl.
+## Findings
 
-## set-16 (W2 resolver-market-data) — R15-DATA-026
+One environment finding filed (`findings/rc1-battery-3.json`):
+R15-DATA-056 — BSE shareholding SHP index blocked 403 (Akamai) from this dev
+IP; disclosed pre-existing condition at base, not a candidate regression.
 
-- Annual default income: periods 2023-2026 FY-end only (unchanged/expected).
-- Quarterly balance: includes 2026-06-30 (Q1 FY27). Quarterly cashflow for DHANBANK: empty periods (yfinance data gap for that ticker — AAPL quarterly cashflow returns 5 periods fine, so route/provider mechanism itself works; not part of the certified claim, not a regression). Invalid `period=bogus` -> 422.
-- raw/set-16/R15-DATA-026.txt.
+No regressions found across the 50 assigned entries (49 distinct + 2 cross-
+referenced duplicates counted once each in their home set).
 
-## set-17 (W3 agent-runtime-chat) — R15-AGENT-020
-
-- Covered by the same live agent invoke as set-15 (agent-runtime tool-loop mechanics: preamble/read_notes handler/context assembly are W3-owned files). See raw/set-17 (symlinked evidence / same run, referenced by id).
-
-## Result
-
-All 3 entry-instances across the 3 sets hold on the candidate: R15-AGENT-020 (read_notes wired end-to-end, live agent tool call confirmed) and R15-DATA-026 (quarterly financial_statements route + catalog capability confirmed, income/balance quarterly periods correct including DHANBANK Q1 FY27 2026-06-30). No regressions, no new defects, no chain failures, no gate8 items, no blocked_env. Noted (not a finding): DHANBANK quarterly cashflow returns empty periods — a yfinance data-availability gap for that specific ticker, not part of the certified claim (which covered income/balance) and not reproduced on AAPL, so the route/provider mechanism itself is sound.
-
-Sidecar :52343 stopped (sleep pid 98708 killed; post-kill health probe connection refused, confirmed down).
+COVERAGE: 50/50 ids raw; no raw: none.

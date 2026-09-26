@@ -4,14 +4,14 @@
  "manifest_name": "Juniper Green Energy Ltd",
  "exchange": "NSE+BSE",
  "bse_code": "544853",
- "collected_at": "2026-09-25T05:22:31+0530",
+ "collected_at": "2026-09-26T06:31:10+0530",
  "sidecar": "http://127.0.0.1:52313",
  "complete": true,
  "calls": {
   "resolve_bare_symbol": {
    "url": "http://127.0.0.1:52313/resolve?q=JNPR",
    "status": 200,
-   "elapsed_ms": 46,
+   "elapsed_ms": 33,
    "body": {
     "ok": true,
     "query": "JNPR",
@@ -71,13 +71,13 @@
    },
    "polite": {
     "yahoo_open": false,
-    "parked_s": 60.0
+    "parked_s": 0.0
    }
   },
   "resolve_company_name": {
    "url": "http://127.0.0.1:52313/resolve?q=Juniper+Green+Energy+Ltd",
    "status": 200,
-   "elapsed_ms": 1090,
+   "elapsed_ms": 748,
    "body": {
     "ok": true,
     "query": "Juniper Green Energy Ltd",
@@ -201,13 +201,13 @@
    },
    "polite": {
     "yahoo_open": false,
-    "parked_s": 0.0
+    "parked_s": 60.0
    }
   },
   "resolve_bse_code": {
    "url": "http://127.0.0.1:52313/resolve?q=544853",
    "status": 200,
-   "elapsed_ms": 19,
+   "elapsed_ms": 2,
    "body": {
     "ok": true,
     "query": "544853",
@@ -251,26 +251,26 @@
    },
    "polite": {
     "yahoo_open": false,
-    "parked_s": 0.0
+    "parked_s": 30.0
    }
   },
   "quote": {
    "url": "http://127.0.0.1:52313/quotes/JNPR?asset_class=equity",
    "status": 200,
-   "elapsed_ms": 7030,
+   "elapsed_ms": 8767,
    "body": {
     "symbol": "JNPR",
-    "price": 257.7,
-    "change": -9.600000000000023,
-    "change_percent": -3.5914702581369333,
-    "volume": 807227.0,
+    "price": 266.05,
+    "change": 8.350000000000023,
+    "change_percent": 3.240201785021352,
+    "volume": 1025878.0,
     "open": null,
     "high": null,
     "low": null,
     "prev_close": null,
     "currency": "INR",
     "market_state": "CLOSED",
-    "timestamp": "2026-09-24T00:00:00Z",
+    "timestamp": "2026-09-25T00:00:00Z",
     "provider": "nse_direct",
     "freshness": "eod"
    },
@@ -282,7 +282,7 @@
   "fundamentals": {
    "url": "http://127.0.0.1:52313/fundamentals/JNPR",
    "status": 200,
-   "elapsed_ms": 12164,
+   "elapsed_ms": 10577,
    "body": {
     "symbol": "JNPR.NS",
     "name": "Juniper Green Energy Limited",
@@ -291,22 +291,22 @@
     "sector_source": "yfinance",
     "currency": "INR",
     "financial_currency": null,
-    "ratio_price": 257.7,
-    "market_cap": 146630918144.0,
-    "pe_ratio": 283.18683,
-    "forward_pe": 20.73412,
+    "ratio_price": 266.05,
+    "market_cap": 151382032384.0,
+    "pe_ratio": 286.07526,
+    "forward_pe": 20.843126,
     "peg_ratio": null,
-    "price_to_book": 3.6803775,
-    "price_to_sales": 17.261621,
-    "ev_to_ebitda": 34.839,
+    "price_to_book": 3.7996287,
+    "price_to_sales": 17.82093,
+    "ev_to_ebitda": 35.416,
     "book_value": 70.02,
     "dividend_yield": null,
     "dividend_per_share": null,
-    "eps": 0.91,
+    "eps": 0.93,
     "beta": null,
     "fifty_two_week_high": 282.0,
     "fifty_two_week_low": 232.11,
-    "fifty_two_week_change": 0.029224873,
+    "fifty_two_week_change": -0.0077394247,
     "fifty_two_week_high_date": "2026-08-27",
     "fifty_two_week_low_date": "2026-08-06",
     "listing_date": "2026-08-06",
@@ -339,7 +339,7 @@
      "name": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -347,7 +347,7 @@
      "sector": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -355,7 +355,7 @@
      "industry": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -363,7 +363,7 @@
      "sector_source": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -371,7 +371,7 @@
      "currency": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -379,7 +379,7 @@
      "ratio_price": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:53+00:00",
+      "as_of": "2026-09-25T10:00:01+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -387,7 +387,7 @@
      "market_cap": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:53+00:00",
+      "as_of": "2026-09-25T10:00:01+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -395,7 +395,7 @@
      "pe_ratio": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:53+00:00",
+      "as_of": "2026-09-25T10:00:01+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -403,7 +403,7 @@
      "forward_pe": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:53+00:00",
+      "as_of": "2026-09-25T10:00:01+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -411,7 +411,7 @@
      "peg_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:53+00:00",
+      "as_of": "2026-09-25T10:00:01+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -419,15 +419,15 @@
      "price_to_book": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:53+00:00",
-      "reason": "P/B 3.68 disagrees by 14.1% with market cap / the provider's newest filed stockholders' equity (146,630,918,144 / 34,238,830,000 as of 2026-03-31 = 4.28) \u2014 the book value behind it may sit on a stale share count; kept, flagged",
+      "as_of": "2026-09-25T10:00:01+00:00",
+      "reason": "P/B 3.8 disagrees by 14.1% with market cap / the provider's newest filed stockholders' equity (151,382,032,384 / 34,238,830,000 as of 2026-03-31 = 4.42) \u2014 the book value behind it may sit on a stale share count; kept, flagged",
       "label": null,
       "basis_note": null
      },
      "price_to_sales": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:53+00:00",
+      "as_of": "2026-09-25T10:00:01+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -435,7 +435,7 @@
      "ev_to_ebitda": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:53+00:00",
+      "as_of": "2026-09-25T10:00:01+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -443,7 +443,7 @@
      "book_value": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "book value per share 70.02 disagrees by 14.1% with the provider's newest filed stockholders' equity / shares outstanding (34,238,830,000 as of 2026-03-31 / 568,998,442 = 60.17) \u2014 it may sit on a stale share count; kept, flagged",
       "label": null,
       "basis_note": null
@@ -451,7 +451,7 @@
      "dividend_yield": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:53+00:00",
+      "as_of": "2026-09-25T10:00:01+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -459,7 +459,7 @@
      "dividend_per_share": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -467,7 +467,7 @@
      "eps": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -475,7 +475,7 @@
      "beta": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -483,7 +483,7 @@
      "fifty_two_week_high": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -491,7 +491,7 @@
      "fifty_two_week_low": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -499,7 +499,7 @@
      "fifty_two_week_change": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T09:59:53+00:00",
+      "as_of": "2026-09-25T10:00:01+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -507,7 +507,7 @@
      "fifty_two_week_high_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -515,7 +515,7 @@
      "fifty_two_week_low_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -523,7 +523,7 @@
      "listing_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -531,7 +531,7 @@
      "first_trade_date": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -539,7 +539,7 @@
      "forward_pe_fiscal_year": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -547,7 +547,7 @@
      "roe": {
       "status": "ok",
       "provider": "derived",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": "net income (TTM) / stockholders equity"
@@ -555,7 +555,7 @@
      "roa": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -563,7 +563,7 @@
      "gross_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -571,7 +571,7 @@
      "operating_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -579,7 +579,7 @@
      "profit_margin": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -587,7 +587,7 @@
      "debt_to_equity": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -595,7 +595,7 @@
      "current_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -603,7 +603,7 @@
      "quick_ratio": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -611,7 +611,7 @@
      "roce": {
       "status": "ok",
       "provider": "derived",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": "annual EBIT / (total assets - current liabilities)"
@@ -619,7 +619,7 @@
      "basis": {
       "status": "ok",
       "provider": "exchange-filings",
-      "as_of": "2026-09-24T23:52:17.547708+00:00",
+      "as_of": "2026-09-26T01:00:51.099672+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -627,7 +627,7 @@
      "revenue_ttm": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "TTM basis: the exchange filings do not cover the trailing year in four quarters (a half-yearly filer) \u2014 annual, not trailing-4Q; kept, flagged",
       "label": null,
       "basis_note": null
@@ -635,7 +635,7 @@
      "net_income_ttm": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "TTM basis: the exchange filings do not cover the trailing year in four quarters (a half-yearly filer) \u2014 annual, not trailing-4Q; kept, flagged",
       "label": null,
       "basis_note": null
@@ -643,7 +643,7 @@
      "free_cash_flow": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -651,7 +651,7 @@
      "shares_outstanding": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -659,7 +659,7 @@
      "revenue_growth": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -667,7 +667,7 @@
      "earnings_growth": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -675,7 +675,7 @@
      "held_percent_insiders": {
       "status": "ok",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": null,
       "label": null,
       "basis_note": null
@@ -683,7 +683,7 @@
      "held_percent_institutions": {
       "status": "flagged",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "yfinance institutions 3.83% disagrees with the NSE shareholding filing for the quarter ended 2026-08-05 (institutional holding: no institutional holding reported) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged",
       "label": null,
       "basis_note": null
@@ -691,7 +691,7 @@
      "identity_note": {
       "status": "unavailable",
       "provider": "yfinance",
-      "as_of": "2026-09-24T23:52:07.721780+00:00",
+      "as_of": "2026-09-26T01:00:41.657795+00:00",
       "reason": "provider did not publish this field",
       "label": null,
       "basis_note": null
@@ -716,7 +716,7 @@
   "income": {
    "url": "http://127.0.0.1:52313/fundamentals/JNPR/income",
    "status": 200,
-   "elapsed_ms": 690,
+   "elapsed_ms": 470,
    "body": {
     "symbol": "JNPR.NS",
     "periods": [
@@ -1129,7 +1129,7 @@
   "balance": {
    "url": "http://127.0.0.1:52313/fundamentals/JNPR/balance",
    "status": 200,
-   "elapsed_ms": 347,
+   "elapsed_ms": 270,
    "body": {
     "symbol": "JNPR.NS",
     "periods": [
@@ -1678,7 +1678,7 @@
   "cashflow": {
    "url": "http://127.0.0.1:52313/fundamentals/JNPR/cashflow",
    "status": 200,
-   "elapsed_ms": 375,
+   "elapsed_ms": 306,
    "body": {
     "symbol": "JNPR.NS",
     "periods": [
@@ -2107,19 +2107,20 @@
   "ratings": {
    "url": "http://127.0.0.1:52313/fundamentals/JNPR/ratings",
    "status": 200,
-   "elapsed_ms": 827,
+   "elapsed_ms": 269,
    "body": {
     "symbol": "JNPR.NS",
     "consensus": "buy",
-    "target_mean": 330.0,
-    "target_high": 330.0,
+    "target_mean": 350.5,
+    "target_high": 371.0,
     "target_low": 330.0,
     "strong_buy": 0,
-    "buy": 1,
+    "buy": 2,
     "hold": 0,
     "sell": 0,
     "strong_sell": 0,
-    "provider": "yfinance"
+    "provider": "yfinance",
+    "as_of": "2026-09-26T01:00:57.390546Z"
    },
    "polite": {
     "yahoo_open": false,
@@ -2129,7 +2130,7 @@
   "shareholding": {
    "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=JNPR",
    "status": 200,
-   "elapsed_ms": 284,
+   "elapsed_ms": 166,
    "body": {
     "symbol": "JNPR",
     "count": 1,
@@ -2170,7 +2171,7 @@
   "announcements": {
    "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=JNPR&limit=25",
    "status": 200,
-   "elapsed_ms": 1122,
+   "elapsed_ms": 8583,
    "body": {
     "symbol": "JNPR",
     "exchange": null,
@@ -2385,11 +2386,11 @@
     "windows": {
      "NSE": {
       "window_start": "2026-08-13",
-      "window_end": "2026-09-25"
+      "window_end": "2026-09-26"
      },
      "BSE": {
       "window_start": "2026-08-13",
-      "window_end": "2026-09-25"
+      "window_end": "2026-09-26"
      }
     },
     "coverage": "covered",
@@ -2403,7 +2404,7 @@
   "results_calendar": {
    "url": "http://127.0.0.1:52313/disclosures/results?symbol=JNPR",
    "status": 200,
-   "elapsed_ms": 1583,
+   "elapsed_ms": 516,
    "body": {
     "symbol": "JNPR",
     "count": 1,

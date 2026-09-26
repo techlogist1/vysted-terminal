@@ -1,7 +1,6 @@
-=== live POST /llm/keys/validate on candidate sidecar :52341, fake key ===
---- openrouter ---
+$ POST /llm/keys/validate fake OpenRouter key
 {"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
---- gemini ---
+$ POST /llm/keys/validate fake Gemini key
 {"ok":false,"reason":"invalid","detail":"Google Gemini rejected this key."}
---- xai ---
+$ POST /llm/keys/validate fake xAI key
 {"ok":false,"reason":"invalid","detail":"xAI rejected this key."}

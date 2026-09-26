@@ -1,0 +1,8 @@
+$ grep -rln "Couldn't apply" src/
+src/modules/chat/ChatSidebar.test.tsx
+src/modules/chat/ChatSidebar.tsx
+
+Entry's own certification is "certified (vitest-executed)": a real vitest render of
+ChatSidebar covering a failing auto-apply. Both the assertion string and the source
+string are present unchanged at HEAD (4c6dfe8c); no vitest suite run this shard
+(heavy lane owns it) per the harness rule.

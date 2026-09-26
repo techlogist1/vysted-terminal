@@ -1,0 +1,7 @@
+74:_STAGEABLE_PLAN_ACTIONS = frozenset(
+89:_READ_SAFE_PANEL_ACTIONS = frozenset(
+1733:                {**step.to_dict(), "staged": step.action in _STAGEABLE_PLAN_ACTIONS}
+1793:            or (keep_panel_actions and t in _READ_SAFE_PANEL_ACTIONS)
+
+Both frozensets (agent_runtime.py:74-97) are still byte-identical sets with different
+docstrings and no stated relation — the register's documented open defect, unchanged.

@@ -1,0 +1,11 @@
+# rc1-drive-research-briefs:2 re-run at the 4c6dfe8c export (/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-verifier-g2/cand, git-archive of 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2); cmd: cd $G/cand/sidecar && PYTHONPATH=. ./.venv/bin/python3 $G/cite_probe.py; 2026-09-26T12:26:13Z
+MARKER_RE on '[2, 3]': []
+has expand_marker_groups: False
+'an operating margin of 10.98% [New findings].' -> 'an operating margin of 10.98% [New findings].' removed= 0
+'Dividend per Share: ₹4.90 [New findings].' -> 'Dividend per Share: ₹4.90 [New findings].' removed= 0
+'Revenue grew 23% [2, 3] and orders rose [2, 4].' -> 'Revenue grew 23% [2, 3] and orders rose [2, 4].' removed= 0
+'Order book 23,000 cr [7] with margin 12% [2].' -> 'Order book 23,000 cr with margin 12% [2].' removed= 1
+## frontend: git show 4c6dfe8c:src/lib/brief-ingest.ts line 396
+const CITE_MARKER_RE = /\[(\d{1,3})\](?!\()/g;
+## sidecar: git show 4c6dfe8c:sidecar/services/research/citecheck.py line 39
+MARKER_RE = re.compile(r"\[(\d{1,3})\](?!\()")

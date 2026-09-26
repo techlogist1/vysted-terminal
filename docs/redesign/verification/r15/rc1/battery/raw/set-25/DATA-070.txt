@@ -1,0 +1,3 @@
+order: [('c', datetime.datetime(2026, 9, 25, 0, 0, tzinfo=datetime.timezone.utc)), ('a', datetime.datetime(2020, 1, 1, 0, 0, tzinfo=datetime.timezone.utc)), ('b', None)]
+PASS: dated-newest-first, undated last with published_at=None
+PASS: parsers return None (never now()) for missing/malformed dates

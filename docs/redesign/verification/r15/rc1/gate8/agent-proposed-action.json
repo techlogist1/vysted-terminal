@@ -1,12 +1,10 @@
 {
- "tool_call_id": "call_4cb2791d27a6482da818b64f6ccb18e2",
+ "tool_call_id": "call_787ca3b3b41c45728c18c3eb504fb1af",
  "name": "portfolio_add_position",
  "input": {
-  "asset_class": "equity",
-  "cost_basis": 3500,
-  "note": "",
-  "purchased_at": "2026-09-24",
+  "purchased_at": "2023-12-01",
+  "symbol": "TCS",
   "quantity": 5,
-  "symbol": "TCS"
+  "cost_basis": 3500
  }
 }

@@ -1,9 +1,9 @@
-# unplanned-9
+# batch-11/W7-preferences (rc1-battery-1, candidate 4c6dfe8c)
 
-Candidate 4097dac4. Own sidecar :52346. Raw output: `raw/set-54/`.
+Note: closed in batch-11 per `closure_evidence` (matches the task's own set label).
 
 | id | repro run | observed | verdict |
-| --- | --- | --- | --- |
-| R15-DATA-059 | `curl :52346/resolve?q=BeiGene` and `curl :52346/resolve?q=Toss%20the%20Coin%20Private%20Limited` (the register's own certified-closure repro, not the raw ticker lookup) | BeiGene: disambiguates to ONC and BEIGF, both `former_name: "BeiGene, Ltd."`. Toss the Coin Private Limited: resolves to TTC (BSE) with `isin: "INE0XAY01012"`, `board: "SME"`, `face_value: 10.0` — matches the register's own batch-11 closure note exactly | holds |
+|---|---|---|---|
+| R15-UI-087 | grep `PROVIDER_FAILURE_CODES` in `src/modules/chat/streaming.ts`; grep the 6 named codes in `sidecar/services/errors.py`; presence of `llm-providers.test.ts` | `PROVIDER_FAILURE_CODES = new Set(["auth","provider_402","insufficient_credit","network","ollama_not_running","provider_5xx"])` at `streaming.ts:69-76` — byte-identical to the certified set; all 6 codes independently confirmed present in `errors.py`. `llm-providers.test.ts` covers `orderedProviders` fallback behaviour. GUI feel (drag reorder, notice chip) remains unexercised headless per batch-11's own note — separate later GUI workflow, not this shard's job | ci_pinned |
 
-Summary: 1 hold. No regressions. Note: a direct `q=ONC`/`q=SIFY` ticker lookup still returns `isin`/`former_name`/`board: null` for US names — this matches the register's own closure note, which lists US-ticker-direct lookups (Facebook/Zomato/Adani/Square) as "fresh cases the fix was not written against"; the fix's certified scope is former-name-query resolution + Indian ISIN/board backfill, not blanket US ISIN/board backfill.
+COVERAGE: 1/1 ids raw; no raw: none.

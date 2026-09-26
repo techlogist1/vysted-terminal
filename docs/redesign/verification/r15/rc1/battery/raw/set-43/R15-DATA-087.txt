@@ -1,0 +1,3 @@
+=== DATA-087 ===
+{"detail":"provider is required for a series id"}
+HTTP:422

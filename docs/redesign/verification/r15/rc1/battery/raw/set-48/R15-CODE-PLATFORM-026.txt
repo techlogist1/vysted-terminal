@@ -1,0 +1,3 @@
+cmd: wc -l scripts/sidecar-specs.mjs scripts/ensure-all-sidecars.mjs; grep -n SIDECAR_SPECS scripts/sidecar-specs.mjs
+output: SIDECAR_SPECS exported at scripts/sidecar-specs.mjs:180 (single table); ensure-all-sidecars.mjs shrunk to 29 lines, imports {SIDECAR_SPECS, buildSidecar} from ./sidecar-specs.mjs; ensure-sidecar.mjs/ensure-openbb-mcp-sidecar.mjs also import from the shared table. Matches batch-11 cert exactly.
+verdict: holds

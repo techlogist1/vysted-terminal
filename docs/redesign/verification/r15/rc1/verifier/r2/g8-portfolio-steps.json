@@ -1,0 +1,254 @@
+[
+  {
+    "name": "initial",
+    "detail": [
+      {
+        "id": "default",
+        "name": "Portfolio",
+        "holdings": []
+      }
+    ]
+  },
+  {
+    "name": "after add + save, read back from sidecar",
+    "detail": [
+      {
+        "id": "h-3aab2407-7ab4-4885-a013-0a7c5d373a3d",
+        "symbol": "AAPL",
+        "quantity": 5,
+        "costBasis": 180,
+        "assetClass": "equity"
+      },
+      {
+        "id": "h-d500cad6-1d24-4a31-8ff2-6c746c0dba4f",
+        "symbol": "RELIANCE.NS",
+        "quantity": 10,
+        "costBasis": 1100,
+        "assetClass": "equity",
+        "note": "rc1v"
+      }
+    ]
+  },
+  {
+    "name": "P&L vs live quote",
+    "detail": {
+      "failed": 0,
+      "rows": [
+        {
+          "symbol": "AAPL",
+          "price": 341.07000732421875,
+          "currency": "USD",
+          "mv": 1705.3500366210938,
+          "pnl": 805.3500366210938,
+          "pnlPct": 89.48333740234375,
+          "check": 805.3500366210938
+        },
+        {
+          "symbol": "RELIANCE.NS",
+          "price": 1226,
+          "currency": "INR",
+          "mv": 12260,
+          "pnl": 1260,
+          "pnlPct": 11.454545454545455,
+          "check": 1260
+        }
+      ]
+    }
+  },
+  {
+    "name": "CSV export (non-Tauri path)",
+    "detail": {
+      "result": {
+        "path": null,
+        "fellBack": true
+      },
+      "lines": 3
+    }
+  },
+  {
+    "name": "after delete AAPL + save, read back",
+    "detail": [
+      {
+        "id": "h-d500cad6-1d24-4a31-8ff2-6c746c0dba4f",
+        "symbol": "RELIANCE.NS",
+        "quantity": 10,
+        "costBasis": 1100,
+        "assetClass": "equity",
+        "note": "rc1v"
+      }
+    ]
+  },
+  {
+    "name": "agent call replayed",
+    "detail": {
+      "id": "call_92375f552258429eb02494b783f62de1",
+      "name": "portfolio_add_position",
+      "input": {
+        "cost_basis": 3500,
+        "asset_class": "equity",
+        "symbol": "TCS",
+        "quantity": 5
+      }
+    }
+  },
+  {
+    "name": "enqueue under ask -> outcome, ledger read back",
+    "detail": {
+      "staged": "staged",
+      "change": {
+        "id": "change-1",
+        "toolCallId": "call_92375f552258429eb02494b783f62de1",
+        "action": {
+          "name": "portfolio_add_position",
+          "input": {
+            "cost_basis": 3500,
+            "asset_class": "equity",
+            "symbol": "TCS",
+            "quantity": 5
+          }
+        },
+        "intent": {
+          "name": "portfolio_add_position",
+          "portfolioId": "default",
+          "holding": {
+            "symbol": "TCS",
+            "quantity": 5,
+            "costBasis": 3500,
+            "assetClass": "equity"
+          },
+          "problem": ""
+        },
+        "kind": "data-write",
+        "title": "Add 5 TCS @ ₹3,500 to the portfolio",
+        "before": "Portfolio: 1 position",
+        "after": "Portfolio: +TCS ×5 @ ₹3,500 (2 total)",
+        "status": "pending",
+        "batchId": "rc1v",
+        "createdAt": 1790399942348
+      },
+      "ledgerStaged": [
+        {
+          "id": "h-d500cad6-1d24-4a31-8ff2-6c746c0dba4f",
+          "symbol": "RELIANCE.NS",
+          "quantity": 10,
+          "costBasis": 1100,
+          "assetClass": "equity",
+          "note": "rc1v"
+        }
+      ]
+    }
+  },
+  {
+    "name": "accept -> applied, ledger read back",
+    "detail": {
+      "res": "applied",
+      "ledgerApplied": [
+        {
+          "id": "h-d500cad6-1d24-4a31-8ff2-6c746c0dba4f",
+          "symbol": "RELIANCE.NS",
+          "quantity": 10,
+          "costBasis": 1100,
+          "assetClass": "equity",
+          "note": "rc1v"
+        },
+        {
+          "id": "h-87ede473-e566-4b33-8957-7ffde8bd742f",
+          "symbol": "TCS",
+          "quantity": 5,
+          "costBasis": 3500,
+          "assetClass": "equity"
+        }
+      ]
+    }
+  },
+  {
+    "name": "order action place_order",
+    "detail": {
+      "staged": "staged",
+      "accept": "failed",
+      "kind": "panel",
+      "detail": "unknown action \"place_order\"",
+      "intent": {
+        "name": "unknown",
+        "raw": "place_order"
+      },
+      "ledger": [
+        {
+          "id": "h-d500cad6-1d24-4a31-8ff2-6c746c0dba4f",
+          "symbol": "RELIANCE.NS",
+          "quantity": 10,
+          "costBasis": 1100,
+          "assetClass": "equity",
+          "note": "rc1v"
+        },
+        {
+          "id": "h-87ede473-e566-4b33-8957-7ffde8bd742f",
+          "symbol": "TCS",
+          "quantity": 5,
+          "costBasis": 3500,
+          "assetClass": "equity"
+        }
+      ]
+    }
+  },
+  {
+    "name": "order action submit_order",
+    "detail": {
+      "staged": "staged",
+      "accept": "failed",
+      "kind": "panel",
+      "detail": "unknown action \"submit_order\"",
+      "intent": {
+        "name": "unknown",
+        "raw": "submit_order"
+      },
+      "ledger": [
+        {
+          "id": "h-d500cad6-1d24-4a31-8ff2-6c746c0dba4f",
+          "symbol": "RELIANCE.NS",
+          "quantity": 10,
+          "costBasis": 1100,
+          "assetClass": "equity",
+          "note": "rc1v"
+        },
+        {
+          "id": "h-87ede473-e566-4b33-8957-7ffde8bd742f",
+          "symbol": "TCS",
+          "quantity": 5,
+          "costBasis": 3500,
+          "assetClass": "equity"
+        }
+      ]
+    }
+  },
+  {
+    "name": "order action propose_order",
+    "detail": {
+      "staged": "staged",
+      "accept": "failed",
+      "kind": "panel",
+      "detail": "unknown action \"propose_order\"",
+      "intent": {
+        "name": "unknown",
+        "raw": "propose_order"
+      },
+      "ledger": [
+        {
+          "id": "h-d500cad6-1d24-4a31-8ff2-6c746c0dba4f",
+          "symbol": "RELIANCE.NS",
+          "quantity": 10,
+          "costBasis": 1100,
+          "assetClass": "equity",
+          "note": "rc1v"
+        },
+        {
+          "id": "h-87ede473-e566-4b33-8957-7ffde8bd742f",
+          "symbol": "TCS",
+          "quantity": 5,
+          "costBasis": 3500,
+          "assetClass": "equity"
+        }
+      ]
+    }
+  }
+]

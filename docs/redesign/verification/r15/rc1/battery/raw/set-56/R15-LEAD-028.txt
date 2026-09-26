@@ -1,0 +1,5 @@
+{"symbol":"AMAL","price":673.05,"change":-15.050000000000068,"change_percent":-2.1871820956256456,"volume":5406.0,"open":689.0,"high":694.95,"low":665.0,"prev_close":688.1,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}
+HTTP 200
+{"symbol":"SMR","price":94.0,"change":-2.0,"change_percent":-2.083333333333333,"volume":9000.0,"open":94.0,"high":94.0,"low":92.0,"prev_close":96.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"bse","freshness":"eod"}
+HTTP 200
+provider bse bars 256

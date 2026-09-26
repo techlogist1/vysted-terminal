@@ -24,3 +24,31 @@
   forward unchanged).
 - No new defects, no regressions. findings/panels-layouts.json = [].
 - Stopped own sidecar (sleep pid 83129 had already exited; killed worker pid 83132 directly - own port, own process), verified port 52323 free.
+
+## Round 2 (gate round 2)
+
+- Found this role's round-1 work already complete (drive.md, findings/panels-layouts.json=[],
+  COVERAGE.json all 32 rows resolved) but pinned to candidate 4097dac4, while this round's task
+  facts name a newer candidate 4c6dfe8c (297 commits ahead).
+- `git diff --stat 4097dac4..4c6dfe8c -- src/ sidecar/ types/`: mostly docs(r15)/test churn, but
+  4 real fixes touch this group's surface and postdate round 1: R15-DATA-002 (chart region
+  binding), R15-DATA-113 (earnings revenue currency), R15-LEAD-010 (SEC filing form_type hint),
+  R15-DATA-114 (F&O option-chain probe caching) — all `fixed` in the register, none driven by
+  round 1.
+- Rebooted my own sidecar from the `4c6dfe8c` worktree source on :52323 (reused the round-1 data
+  dir), health ok, sleep pid recorded.
+- Re-drove all 4: R15-DATA-002 and R15-DATA-113 confirmed fixed with fresh evidence
+  (SMR region-scoped quote, WIT revenue_currency split). R15-LEAD-010 confirmed fixed, no
+  regression (form_type hint is additive). R15-DATA-114 verified by code read + a working
+  option-chain endpoint call (the specific probe-cache-hit branch wasn't independently forced).
+- Regression spot-check on round-1-verified rows whose backing files could have moved: macro IMF,
+  workspace save/load edge cases, trading-module absence — all unchanged, no regressions. Chart
+  30m SPY hit a Yahoo-side 429 on both sidecars (shared-run load, honest error frame) — logged as
+  environment, not a regression (backend lookback code untouched since round 1).
+- No new defects. findings/panels-layouts.json stays []. Updated
+  surface/panels-layouts/rc1/COVERAGE.json (evidence appended to panel-chart, panel-sec-filings,
+  panel-earnings-calendar, panel-macro, layouts-workspace-save-load) and drives/panels-layouts.md
+  (round-2 preamble + deltas table). New evidence files under surface/panels-layouts/rc1/ (no
+  census/round-1 file overwritten).
+- Stopped own sidecar (sleep-launcher pid via panels-layouts-r2-sleep.pid), verified port 52323
+  free after.

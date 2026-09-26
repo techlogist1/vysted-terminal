@@ -1,0 +1,9 @@
+src/modules/node-editor/NodeEditorPanel.tsx:20: * The run goes through `useWorkflowStore.runWorkflow` (the one client for
+src/modules/node-editor/NodeEditorPanel.tsx:413:      await useWorkflowStore.getState().runWorkflow(spec, undefined, {
+src/store/workflow.ts:43:/** Per-run options for {@link WorkflowState.runWorkflow}. */
+src/store/workflow.ts:91:  appendEvent: (event: WorkflowRunEvent) => void;
+src/store/workflow.ts:111:  runWorkflow: (
+src/store/workflow.ts:234:  appendEvent: (event) => {
+src/store/workflow.ts:271:  runWorkflow: async (spec, inputs, options = {}) => {
+src/store/workflow.ts:299:      get().appendEvent(event);
+src/store/workflow.ts:340:      get().appendEvent({ kind: "run-error", runId, message, durationMs: 0 });

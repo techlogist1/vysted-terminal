@@ -1,0 +1,16 @@
+{
+  "id": "custom:macro-hawk-r7",
+  "name": "Macro Hawk R7",
+  "philosophy": "test",
+  "system_prompt": "Always check the macro series first.",
+  "tools": [
+    "price_data",
+    "macro",
+    "news"
+  ],
+  "default_provider": "ollama",
+  "default_model": null,
+  "icon": null,
+  "created_at": 1790387317,
+  "updated_at": 1790387317
+}

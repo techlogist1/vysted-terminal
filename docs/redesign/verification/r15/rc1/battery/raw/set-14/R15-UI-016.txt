@@ -1,0 +1,17 @@
+=== resolveKeyboardAction exists ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/store/keybindings.ts
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/store/keybindings.test.ts
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/notes/suggestion-keyboard-nav.ts
+=== CommandPalette reads store now? ===
+26: * keybindings store; the one app-level dispatcher (`page.tsx`) resolves the
+68:import { formatBinding, registerAction, useKeybindingsStore } from "@/store/keybindings";
+497:    item.commandSpec ? state.bindingFor(item.commandSpec.id) : "",
+=== page.tsx dispatcher ===
+20:import { executeCommand } from "@/lib/commands";
+36:import { getRegisteredAction, resolveKeyboardAction } from "@/store/keybindings";
+137:  // `resolveKeyboardAction` picks the `DEFAULT_KEYBINDINGS` id whose EFFECTIVE
+139:  // registered shell-action handler (`registerAction` — `palette.open`,
+142:  // the module's own command handler via `executeCommand` — the same path the
+152:      const resolved = resolveKeyboardAction(event, typing);
+168:        executeCommand(command);
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/app/page.tsx

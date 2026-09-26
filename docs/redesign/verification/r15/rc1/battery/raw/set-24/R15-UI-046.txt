@@ -1,0 +1,49 @@
+=== R15-UI-046: __autosave__ reserved name filtering ===
+583:    // workspace file (or the `__autosave__` slot) still resolves its memory.
+619:  // persists under `__autosave__` but a space's memory must converge on the
+738:  // The reserved slots (`__autosave__`) are internal, never a user workspace.
+742:/** A user-chosen workspace name: non-empty, never a reserved `__` slot (R15-UI-046). */
+749:    throw new WorkspaceError(`Names starting with "__" are reserved; choose another name.`);
+987:      // The reserved slot's name is internal — present the restored cockpit
+988:      // under the neutral "default" name, not "__autosave__".
+1039: * Schedule a save of the current cockpit to the reserved autosave slot. A
+
+  } catch {
+    throw new WorkspaceError("Could not parse the workspace list response (malformed JSON).");
+  }
+  // The reserved slots (`__autosave__`) are internal, never a user workspace.
+  return names.filter((name) => !isReservedLayoutName(name));
+}
+
+/** A user-chosen workspace name: non-empty, never a reserved `__` slot (R15-UI-046). */
+function userWorkspaceName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new WorkspaceError("A workspace name is required.");
+  }
+  if (isReservedLayoutName(trimmed)) {
+    throw new WorkspaceError(`Names starting with "__" are reserved; choose another name.`);
+  }
+  return trimmed;
+}
+
+/**
+ * Serialise the current workspace under `name` and persist it on the sidecar,
+
+-- listWorkspaces filter --
+727:export async function listWorkspaces(): Promise<string[]> {
+728-  const response = await fetch(await workspaceUrl());
+729-  if (!response.ok) {
+730-    throw await sidecarFailure("Could not list workspaces", response);
+731-  }
+732-  let names: string[];
+733-  try {
+734-    names = (await response.json()) as string[];
+735-  } catch {
+736-    throw new WorkspaceError("Could not parse the workspace list response (malformed JSON).");
+737-  }
+738-  // The reserved slots (`__autosave__`) are internal, never a user workspace.
+739-  return names.filter((name) => !isReservedLayoutName(name));
+740-}
+741-
+742-/** A user-chosen workspace name: non-empty, never a reserved `__` slot (R15-UI-046). */

@@ -1,0 +1,9 @@
+elapsed 1.7
+n sources 0
+floor-shaped (bse/nse attachments): 0
+registered 33
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vshard1r2/r016.py", line 18, in <module>
+    for st in brief.steps[:30]: print('STEP', st.kind, st.status if hasattr(st,'status') else '', str(st.detail)[:160])
+              ^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'steps'. Did you mean: 'items'?

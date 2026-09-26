@@ -1,0 +1,18 @@
+removed 9
+BACKEND: ## Dividend Information
+BACKEND: - **Dividend per Share**: ₹4.90.
+BACKEND: - **Dividend Yield**: 0.43%.
+BACKEND: - **52-Week Price Change**: -22.89%.
+BACKEND: - **Current Price vs 52-Week High**: 30.21% below its 52-week high [= (52w high - price) / 52w high].
+FRONTEND broken=9
+FRONTEND: - **Profit Margin**: 18.83%, with a gross margin of 47.92% and an operating margin of 10.98% [?].
+FRONTEND: - **Forward P/E Ratio**: Projected at 37.49 for the fiscal year ending March 31, 2027 [?].
+FRONTEND: - **Earnings per Share (EPS) Growth**: Expected to increase by approximately 5.47% year-over-year as of June 30, 2026 [?].
+FRONTEND: - **Current Order Book**: Stands at ₹24,000 crore (approximately $3.1 billion) as of September 2023 [?].
+FRONTEND: - **Projected Revenue**: For the fiscal year ending March 31, 2027, BDL is projected to generate revenue of ₹27.66 billion [?].
+FRONTEND: - **Total Operating Expenses**: Reported at ₹51,004.84 million as of March 31, 2026, which includes ₹18,789.82 million for materials and ₹13,637.47 million for employee benefits [6][?].
+FRONTEND: ## Dividend Information
+FRONTEND: - **Dividend per Share**: ₹4.90 [?].
+FRONTEND: - **Dividend Yield**: 0.43% [?].
+FRONTEND: - **52-Week Price Change**: -22.89% [?].
+FRONTEND: - **Current Price vs 52-Week High**: 30.21% below its 52-week high [= (52w high - price) / 52w high].

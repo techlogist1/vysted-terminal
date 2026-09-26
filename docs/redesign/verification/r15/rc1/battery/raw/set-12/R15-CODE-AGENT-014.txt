@@ -1,0 +1,4 @@
+=== CODE-AGENT-014: hand-copied ok:false envelopes ===
+      17
+services/agent_tools/news_tool.py:50:        return {"ok": False, "error": f"news fetch failed: {exc}"}
+62:async def invoke_tool(tool_id: str, args: dict[str, Any]) -> dict[str, Any]:

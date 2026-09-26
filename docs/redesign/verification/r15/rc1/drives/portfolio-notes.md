@@ -4,6 +4,14 @@ Candidate: `4097dac423bd6d6fb49245e7ee9e0ab2bc64f18a` (branch `004-r4-experience
 Own sidecar: `127.0.0.1:52324`, seed data copied from `rc1-seed-data`.
 Method: real `PortfolioPanel`/`NotesPanel`/`NotesToolbar` components mounted in jsdom via the census harness (`harness/portfolio.s2c.test.tsx`, `notes.s2c.test.tsx`, `toolbar.s2c.test.tsx`), driven against a live from-source sidecar, same requests/prompts as census where they exist. Plus direct code reads at the fix commits and direct curl/HTTP probes for the sidecar routes.
 
+## Round 2 (gate round 2, candidate `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`)
+
+`git diff 4097dac4..4c6dfe8c` scoped to this group's surface shows exactly ONE relevant change: `src/modules/portfolio/PortfolioPanel.tsx` (+15/-1). Everything else the group covers (`sidecar/routers/portfolio.py`, `src/modules/notes/**`, `src/components/ConfirmButton.tsx`) has zero diff between the two candidates. The change is a direct fix for `rc1-drive-portfolio-notes:1` (the round-1 quote-refresh backlog defect below): a `quoteFetchInFlightRef` guard (mirroring `WatchlistPanel`'s existing `inFlightRef`) now skips a `setInterval` tick while the previous quote fan-out hasn't settled (`PortfolioPanel.tsx:194,229,250,269-271`). The fix's own new test names the finding directly: `"skips a quote-refresh tick while the previous fan-out is still in flight, then refetches once it settles (rc1-drive-portfolio-notes:1)"`.
+
+Re-verification on my own sidecar (fresh `rc1-seed-data` copy, `127.0.0.1:52324`, `rc1-cand` worktree at `4c6dfe8c`): re-ran `PortfolioPanel.test.tsx` + all of `src/modules/notes/*.test.tsx` on the candidate — **65/65 pass**, including the new guard test (`round2-vitest-p8-fix-confirmed.log`). Live sidecar spot-checks against `:52324` repeat round 1's results unchanged: `GET /portfolio/positions` → `[]`/GET-only, `PUT`/`DELETE` → `405` (R15-CODE-PLATFORM-021 architecture change still holds, confirmed via `sidecar/routers/portfolio.py` — no diff since round 1). Since the fake-timer unit test directly exercises the exact interval-guard logic that produced the round-1 live wedge (same code path, same `setInterval`/`quoteFetchInFlightRef` mechanism), and the sidecar-side pieces are byte-identical to round 1, a full live 100-holding/9-unresolvable-symbol re-wedge was not re-run (would cost 4.5+ min against the 120s-per-call stall-watchdog rule for no additional evidence over the targeted test + code read). **P8 verdict: fixed, confirmed both by code read and by a live-mounted-component test exercising the exact guard.**
+
+No other row in this group's scope changed. The round-1 table below stands as-is except the P8 row, updated inline.
+
 ## Scored table
 
 | # | Interaction | Census | RC1 | Register id | Delta |
@@ -14,7 +22,7 @@ Method: real `PortfolioPanel`/`NotesPanel`/`NotesToolbar` components mounted in 
 | P4 | Delete holding (non-active portfolio) | broken (stale closure) | ok | R15-UI-035 | **fixed** (harness needed a ConfirmButton double-click rewrite, unrelated new safety primitive, not a regression) |
 | P6 | Mixed-currency CSV export | partial (no currency col, formula injection) | partial | R15-DATA-042 / R15-UI-079 | Currency column **fixed**; formula-injection **still open** |
 | P7 | Quote transport failure | broken (₹0 fabricated) | ok | R15-UI-004 | **fixed** |
-| P8 | 100-holding quote fan-out | ok (all 200, slow) | **broken (NEW)** | - | new_defect: unbounded backlog, no AbortController/overlap guard |
+| P8 | 100-holding quote fan-out | ok (all 200, slow) | **ok (round 2, fixed)** | rc1-drive-portfolio-notes:1 | round 1: new_defect (unbounded backlog, no overlap guard); round 2 (4c6dfe8c): `quoteFetchInFlightRef` guard added, verified live-mounted test passes (65/65) |
 | P9 | Agent get_portfolio / host actions | broken (no ids, intent gate strips delete) | ok | R15-AGENT-042 / R15-AGENT-019 | **fixed** |
 | sidecar CRUD | write-only ledger, PUT/DELETE 405 | partial | GET-only by design | R15-CODE-PLATFORM-021 | architecture change (holdings truth moved to frontend store), confirmed intentional, not a regression |
 | N1 | Note lifecycle (clear, fast scope-switch) | broken (stale-clear, lost fast-switch edit) | ok | R15-UI-001 | **fixed** |
@@ -44,6 +52,7 @@ Method: real `PortfolioPanel`/`NotesPanel`/`NotesToolbar` components mounted in 
 - R15-UI-025 -- toolbar Link insert uses a popover, no longer throws without a stubbed `window.prompt`.
 - R15-DATA-081 -- confirmed fixed by code read (not re-driven live this round; crypto pair path handling, out of this group's direct scope but adjacent).
 - R15-CODE-FRONTEND-012 -- confirmed fixed by code read (sidecar ledger write-only sync issue, superseded by R15-CODE-PLATFORM-021's architecture change).
+- `rc1-drive-portfolio-notes:1` (round-1 new_defect, not register-tracked) -- **round 2 (4c6dfe8c): fixed.** `quoteFetchInFlightRef` overlap guard added to `PortfolioPanel.tsx`; live-mounted test passes.
 
 **Still open, confirmed unchanged:**
 - R15-UI-079 -- CSV formula-injection cells (`=`,`+`,`-`,`@`) still written verbatim in `src/lib/csv.ts`, no escaping guard.
@@ -69,4 +78,6 @@ Method: real `PortfolioPanel`/`NotesPanel`/`NotesToolbar` components mounted in 
 - `docs/redesign/verification/r15/surface/portfolio-notes/rc1/A2-write-note.jsonl` (same caveat)
 - `docs/redesign/verification/r15/surface/portfolio-notes/rc1/sidecar-log-p8-wedged-window.log` (the 05:45-05:46 repeating-cycle window, primary evidence for the new quote-backlog defect)
 - `docs/redesign/verification/r15/surface/portfolio-notes/rc1/sidecar-log-p8-backlog-tail.log` (post-recovery tail, showing the sidecar answering /portfolio/positions and /health at 200 again)
+- `docs/redesign/verification/r15/surface/portfolio-notes/rc1/round2-vitest-p8-fix-confirmed.log` (round 2: 65/65 pass on candidate `4c6dfe8c`, including the guard test)
+- `docs/redesign/verification/r15/surface/portfolio-notes/rc1/round2-diff-portfolio-panel.stat.txt` (round 2: the exact `PortfolioPanel.tsx` diff between the two candidate shas)
 - `docs/redesign/verification/r15/rc1/findings/rc1-drive-portfolio-notes.json`

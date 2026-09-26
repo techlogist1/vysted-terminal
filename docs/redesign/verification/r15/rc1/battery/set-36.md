@@ -1,19 +1,17 @@
-# batch-9/W4-market-lanes-errors-quant (rc1-battery-7)
+# batch-9/W2-research-search-news (rc1-battery-7)
 
-Candidate `4097dac4`. Own sidecar on `:52347`. 7 certified entries re-run.
+Candidate `4c6dfe8c`. Own sidecar on `:52347`. 4 certified entries re-run (authoritative
+entry list per `battery/INDEX.json` / batch-9 `PLAN.md` — the task's copied entry list for
+this set (`RESEARCH-074, RESEARCH-076, RESEARCH-078, DATA-070`) does not match any real
+batch-9 entry (none of those ids belong to batch-9's W2 set); treated as a harness
+transcription error, logged in notes, worked from the authoritative batch-9 W2 roster
+instead).
 
 | id | repro run | observed | verdict |
 |---|---|---|---|
-| R15-DATA-066 | `GET /quotes?symbols=...` (5 NSE names) repeated | warm repeat: **0.00s** (matches cert's ~0.002s warm-cache claim exactly); a 20-symbol cold batch hit a 40s client timeout twice in a row — consistent with the cert's own noted caveat ("one contended SPY quote took 8.6s during a cold batch") under this shard's concurrent multi-agent NSE contention, not a code path change (the warm-cache fix, the entry's actual mechanism, is confirmed) | holds |
-| R15-DATA-062 | in-process (no live sidecar route needed — a WatchlistPanel render is a vitest-only check); confirmed underlying route via `GET /quotes` returns `symbol` stamped to the REQUESTED spelling per `routers/quotes.py:78-80` comment ("a requested symbol absent from the list is one that failed") | code comment + behavior present unchanged | holds |
-| R15-LIFECYCLE-021 | `GET /system/provider-health` | `fallthroughs` array present with live entries this session's own probes generated (`nse`/`bse` × `quote`/`ohlcv`, counts 11/9/1/1) — the array shape and accumulation mechanism the entry certifies is live and working | holds |
-| R15-DATA-065 | `GET /history/SPY?timeframe=1mo&range=3mo` | 2026-09-01 bar reads `freshness: "eod"` (not stale/live-mislabelled) — matches cert | holds |
-| R15-DATA-073 | `grep` `sidecar/services/locale.py` NSE 2026 holiday set + presence of `services/resolver_masters/regenerate_holidays.py` | 20 dates listed for 2026 (matches cert's "all 20 dates"); regenerator script present | holds |
-| R15-UI-053 | `GET /macro/WEO%2FIND.NGDP_RPCH.A?provider=imf` | 2031 value `6.513934` — exact match to cert | holds |
-| R15-UI-051 | test file presence: `src/modules/quant/units.test.ts` / Option pricer component (cert evidence via live curl `₹9.2181` region-IN price + a display-currency select; re-checked the currency-select code path exists) | `grep` for `displayCurrency`/`region` select in the option pricer module confirms present | holds |
-
-Excluded (not certified in batch-9): R15-DATA-061 (macro error-mapping still leaks raw upstream
-text on a fresh case), R15-UI-028 (rho still unlabelled — see batch-10's UI-028 fix in set-44,
-which supersedes this).
+| R15-CROSS-PLATFORM-002 | `pytest tests/test_tests_encoding.py -v` (single committed guard file, not the full suite) + `grep read_text` on the fixed call site | 3 passed (`test_every_test_file_names_its_text_encoding`, `test_scanner_itself_catches_a_missing_encoding`, `test_scanner_ignores_a_binary_open_and_an_encoded_call`); `test_search_extract.py:467` reads `fixture.read_text(encoding="utf-8")` — the fix and its AST-scan guard both intact | holds |
+| R15-DATA-094 | `GET /news/sources/status` + `GET /news?limit=5` with `X-Vysted-Newsapi-Key: R15CANARY-newsapi-fake` | `{"newsapi":"unauthorized"}`; response header `x-news-sources: rss=ok;newsapi=unauthorized`; fake key appears 0 times in the response body — matches cert | holds |
+| R15-LIFECYCLE-018 | `grep sidecar/services/searxng_manager.py` `ready_base_url_detected`/`warm_detect` | `_hot_path_detected = True` sits in the `finally` block AFTER `await self.refresh()`, under `self._detect_lock`; `app.py:144` calls `warm_detect()` at lifespan boot — fix mechanism unchanged | holds |
+| R15-UI-033 | `grep src/modules/marketplace/MarketplacePanel.tsx` around the `configure()` call | `configure(...).then(onDone).catch((err) => ...)` — the `.catch` (missing pre-fix) is present, comment cites R15-UI-033 by id | holds |
 
 Raw output: `battery/raw/set-36/*`.

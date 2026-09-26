@@ -1,0 +1,7 @@
+PRESENT: src/store/keybindings.test.ts
+PRESENT: src/store/command-palette.test.ts
+PRESENT: src/components/SettingsPanel.test.tsx
+PRESENT: src/lib/region.test.ts
+PRESENT: src/components/OnboardingBanner.test.tsx
+PRESENT: src/components/OnboardingFlow.test.tsx
+PRESENT: src/store/onboarding.test.ts

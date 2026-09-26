@@ -1,0 +1,42 @@
+[
+  {
+    "key": "rc1-vshard-6:1",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-UI-085",
+    "title": "A readable text label still renders in charcoal-600 (#484848): dockview's hidden-panel tab titles in an inactive group, 2.08:1 on the #101010 tab strip, under the 3:1 floor. The fix and its test cover only the tsx text-charcoal-600 class and miss the CSS-variable route.",
+    "repro": "81fbfe91: src/app/globals.css:355 sets --dv-inactivegroup-hiddenpanel-tab-color: var(--color-charcoal-600). dockview-core 6.2.2 dist/styles/dockview.css applies it as `color:` on `.dv-groupview.dv-inactive-group ... .dv-tab.dv-inactive-tab`, over --dv-tabs-and-actions-container-background-color = charcoal-925 #101010. WCAG ratio #484848 on #101010 = 2.08:1 (charcoal-500 #8a8a8a would be 5.51:1). design-contrast.test.ts guards only unprefixed text-charcoal-600/700 classes in tsx, so it stays green.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-6.md",
+    "suspected_files": ["src/app/globals.css", "src/lib/design-contrast.test.ts"]
+  },
+  {
+    "key": "rc1-vshard-6:2",
+    "kind": "regression",
+    "severity": "medium",
+    "register_id": "R15-DATA-071",
+    "title": "The registry fall-through works, but when no lane is complete the partial BSE series is served with partial=true and nothing reads the flag. ChartPanel and the price_data agent tool drop partial/coverage_start, so the chart still draws the short series as the requested range with no marker.",
+    "repro": "In-process at 81fbfe91 (worktree venv, bse cache pointed at an empty temp dir): bse_provider.get_history('TUTIALKA.BO','1d','1y') -> 8 bars partial=True coverage_start=2026-09-16. provider_registry.get_history then tries nse_direct/nse (not NSE) and yfinance (429 Too Many Requests), and serves provider=bse bars=16 partial=True. The same happens for SUNRAJDI.BO 6mo 1wk (5 bars, partial). grep -rn '\\.partial|coverage_start' src (non-test) hits only ScreenerPanel.tsx. ChartPanel.tsx:460-500 reads series.bars/provider/freshness only. sidecar/services/agent_tools/price_data.py:81-90 returns no partial/coverage_start.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-6.md",
+    "suspected_files": ["src/modules/chart/ChartPanel.tsx", "sidecar/services/agent_tools/price_data.py"]
+  },
+  {
+    "key": "rc1-vshard-6:3",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-UI-091",
+    "title": "Indicator params are silently ignored except ema:N and vwap:week|session. rsi:7 computes RSI(14), sma:50 computes SMA(20), and ema:0/ema:abc compute EMA(20), yet the frontend accepts the spec and labels the chip with the requested param.",
+    "repro": "Live on the candidate sidecar :52606: GET /indicators/INFY.NS?indicators=rsi:7 -> 200 line 'RSI(14)'; sma:50 -> 'SMA(20)'; ema:abc -> 'EMA(20)'. sidecar/services/indicators.py:1335-1387 drops a param for every key but ema/vwap. src/modules/chart/indicators.ts:417-435 indicatorByKey('rsi:7') returns the rsi def with label 'RSI 7'. src/lib/host-actions.ts:571-585 therefore accepts set_chart_indicators ['rsi:7'] as known, so an agent asked for RSI 7 reports success while RSI(14) is drawn.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-6.md",
+    "suspected_files": ["sidecar/services/indicators.py", "src/modules/chart/indicators.ts", "src/lib/host-actions.ts"]
+  },
+  {
+    "key": "rc1-vshard-6:4",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": "R15-DATA-079",
+    "title": "option_chain answers a non-date expiry with the raw Python error \"Invalid isoformat string: 'nearest'\" and not the listed expiries or 'omit for the nearest'. llama3.1:8b retried with the same value and gave up without the chain.",
+    "repro": "Candidate sidecar :52606, ollama llama3.1:8b (under the lock), agent mode: 'Show me the open interest on BANKNIFTY puts for the nearest expiry - which strikes have the most put OI?' -> option_chain {symbol: BANKNIFTY, expiry: 'nearest'} -> ok:false 'invalid argument: Invalid isoformat string: 'nearest''. Retried once identically, and the answer said it was unable to fetch. The same route without expiry returns 312 contracts, which match NSE's bhavcopy.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-6.md",
+    "suspected_files": ["sidecar/services/agent_tools/quant_tools.py"]
+  }
+]

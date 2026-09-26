@@ -1,0 +1,8 @@
+SIFY {'ordinary_shares_per_ads': 6, 'statement': 'American Depositary Shares, each represented by Six Equity Shares', 'provenance': {'source': 'SEC 20-F cover page', 'filed': '2026-06-26', 'url': 'https://www.sec.gov/Archives/edgar/data/1094324/000155485526001437/sify-20260331.htm'}}
+WIT {'ordinary_shares_per_ads': 1, 'statement': 'American Depositary Shares, each represented by one Equity Share', 'provenance': {'source': 'SEC 20-F cover page', 'filed': '2026-06-02', 'url': 'https://www.sec.gov/Archives/edgar/data/1123799/000119312526253514/wit-20260331.htm'}}
+RDY None
+INFY {'ordinary_shares_per_ads': 1, 'statement': 'American Depositary Shares each represented by one Equity Share', 'provenance': {'source': 'SEC 20-F cover page', 'filed': '2026-06-15', 'url': 'https://www.sec.gov/Archives/edgar/data/1067491/000119312526270520/infy-20260331.htm'}}
+IBN {'ordinary_shares_per_ads': 2, 'statement': 'American Depositary Shares, each representing two Equity Shares', 'provenance': {'source': 'SEC 20-F cover page', 'filed': '2026-07-20', 'url': 'https://www.sec.gov/Archives/edgar/data/1103838/000095010326010820/dp249803_20f.htm'}}
+TSM None
+BABA {'ordinary_shares_per_ads': 8, 'statement': 'American Depositary Shares, each representing eight Ordinary Shares', 'provenance': {'source': 'SEC 20-F cover page', 'filed': '2026-05-20', 'url': 'https://www.sec.gov/Archives/edgar/data/1577552/000119312526231755/baba-20260331.htm'}}
+AZN None

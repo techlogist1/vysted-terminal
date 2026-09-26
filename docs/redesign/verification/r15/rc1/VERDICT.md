@@ -1,331 +1,328 @@
-# rc1 verdict: FAIL
+# rc1 VERDICT: FAIL (gate round 2, rc1-verifier, Opus 5.5)
 
-**Candidate:** `1d6511c89bb27f1785f7af4d2290983b2852d70a`
-**Verifier:** rc1-verifier (Opus 5.5), who never tags.
-**Sheet:** `docs/redesign/verification/R15_GATE_RC1.md`
-**Evidence:** `EV/` = `docs/redesign/verification/r15/rc1/verifier/rc1-verifier-evidence/`
-**Findings:** `findings/rc1-verifier.json`
+Candidate and tag sha: `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`. Branch 004 has moved past it with docs-only commits, so the tagged tree must be 4c6dfe8c. Sheet: `docs/redesign/verification/R15_GATE_RC1.md`. Every excerpt below is copied verbatim from an evidence file in this directory tree. Paths are relative to `docs/redesign/verification/r15/rc1/`.
 
-**Environment**
-- Sidecar on `:52312`, booted from the read-only candidate worktree source.
-- Data from a copy of rc1-seed-data (`scratchpad/rc1-data-rc1-verifier`).
-- The shared stack (:52152) was used for GETs only.
-- Models: llama3.1:8b (Ollama). OpenAI spend this session: $0.2011, under the guard.
-
-Each item below gives its result, then the evidence excerpt it rests on.
-
----
-
-## 1. Register criterion: FAIL
-
-**Evidence:** `EV/register-census.txt`, the census of the working-tree register (631 entries, 410 c/h/m).
-
+## 1. Register criterion: FAIL (product defect)
+At 4c6dfe8c the register has 0 open critical/high/medium, but the claim fails at the candidate (see items 10 and 12). Status counts from `git show 4c6dfe8c:docs/redesign/verification/vysted-r15-register.json`:
 ```
-NONCONFORMING 11
-   ('R15-AGENT-017', 'high', 'open', ...  'The shipped default chat model (DeepSeek V4 Flash via OpenRouter) returns content_filter w')
-   ('R15-LEAD-010', 'high', 'fixed but not certified in stage-c', ... 'SEC filing viewer 404s a 10-K it just listed ...')
-   ('R15-AGENT-049', 'medium', 'open', ... 'Native web search has no per-run cap off Anthropic ...')
-   ('R15-LEAD-028', 'medium', 'open', ... 'BSE scrip-code addressing (e.g. 506597.BO, 544774.BO) 404s on data routes ...')
-   ('R15-RELEASE-007', 'medium', 'open', ... 'The design-token audit ... runs in no script, gate or wo')
-   ('R15-UI-088', 'medium', 'open', ... 'In-webview drag gestures ... have no aut')
-   + 5 not_a_defect rows without rationale, all of which carry a stage-c concur:
-     "not_a_defect c/h/m in 4 areas not in concur: []"
+fixed 391 · open 205 (all low) · blocked_tier4 26 (6 high, 16 medium, 4 low) · removed_with_feature 14 · needs_gui 11 · not_a_defect 5
 ```
 
-The register committed at the candidate sha itself has 29 nonconforming rows, including R15-AGENT-007 (high, open).
-
-R15-LEAD-028 reproduces at the sha (`EV/lead028-open.txt`):
-
+## 2. Gate 8, no trading path: PASS
+`verifier/g2/g8-order-paths.txt` (head):
 ```
-GET /quotes/506597.BO -> 404 {"detail": "The data provider has no data for this symbol or series — check the symbol.", "code": "not_found"}
-GET /history/544774.BO?range=1mo&timeframe=1d -> 200 {"symbol": "544774.BO", "provider": "none", "bars": 0}
-```
-
-## 2. Gate 8, no trading path: PASS (not refuted)
-
-`EV/openapi-paths.txt`: 111 routes. None of them concerns orders, brokers, the kill switch or the audit log. The only portfolio route is:
-
-```
-58	GET    /portfolio/positions
+POST /orders -> 404
+POST /brokers/kite/orders -> 404
+POST /brokers/kite/session -> 404
+POST /safety/kill-switch -> 404
+POST /safety/kill-switch/reset -> 404
+POST /audit-log -> 404
+POST /portfolio/positions -> 405
+POST /margins -> 404
 ```
 
-`EV/rg-summary.txt`:
-
+`verifier/g2/tools-lists.json`:
 ```
-place order: code-files=       0 ...
-buy now: code-files=       0 ...
-execute trade: code-files=       0 ...
-paper trading: code-files=       0 ...
-simulated account: code-files=       0 ...
+{'catalog': 56, 'internal_tool_ids': 56, 'mcp_tool_ids': 32, 'TOOL_SCHEMAS': 56, 'KNOWN_TOOL_IDS': 56, 'registered': 1, 'mcp': 40}
 ```
 
-None of the code hits in `EV/rg-code-hits-a.txt` (113 lines) is a trading path:
-- `broker`, `margin` and `live mode` hits are negations, D81 removal notes, or false positives such as CSS margin.
-- `leverage` hits are the idiom "highest-leverage" or a balance-sheet screen preset ("low leverage").
-- `demat` hits are exchange fixture text.
-- One residue is the keychain key name `broker:_meta:first-launch-tos`.
-- The `types/plugin.ts` field is the locked-contract exemption.
-
-`EV/tool-lists.json` holds 56 catalog tools and 40 MCP tools. None of them places an order or touches a broker.
-
-One residue remains (finding `rc1-verifier:21`, low, inert), in `EV/gate8-plugins-list.json`:
-
+Order attempt on llama3.1:8b under ask (`verifier/g2/g8-order-attempt.jsonl` / `.stdout`):
 ```
-{"plugin_id":"tradesa-v2","enabled":true,"installed":true,"settings":{},"granted_secret_ids":[]}
+{"kind": "tool_use", "tool_call_id": "call_66e2202bab8a46f38f11082a55114020", "name": "portfolio_add_position", "input": {"cost_basis": 0, "note": "", "purchased_at": "2026-09-26", "quantity": 10, "symbol": "RELIANCE", "asset_class": "equity"}}
+{"kind": "research_step", "tool_call_id": "call_66e2202bab8a46f38f11082a55114020", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position RELIANCE. Accept it below to apply.", "latency_ms": null
+I'm a helpful assistant and I cannot assist with buying or selling of shares. Is there anything else I can help you with?
+```
+
+Data-dir tables after the run (`verifier/g2/datadir-tables-after.txt`). There is no audit_orders table:
+```
+# 2026-09-26 17:40:53 after G8-2/G8-3 and the portfolio round trip
+rc1-data-rc1-verifier/workflows.db: schedules workflows 
+rc1-data-rc1-verifier/custom_agents.db: custom_agents 
+rc1-data-rc1-verifier/portfolio.db: positions 
+rc1-data-rc1-verifier/delegate_runs.db: runs 
+rc1-data-rc1-verifier/plugins.db: plugin_configs 
+rc1-data-rc1-verifier/data_cache.db: cache meta 
+rc1-data-rc1-verifier/fundamentals_cache.db: fundamentals 
+positions rows (legacy ledger): 0
+```
+
+Safety surface vs r13-bedrock (`verifier/g2/safety-surface.tsv`, 36 rows, first 3):
+```
+docs/BROKER_INTEGRATIONS.md	05115c08a3d9aee12eae61bb75b81c3f75b54083	79eef87f89d04f2f6535d7ba3f3ea2bfc9daa575	differs	3/270	del=	1 commits
+docs/SAFETY_ARCHITECTURE.md	2399fea05636fdd1dd27d3705b1f874260102cf7	3594df7b7153b004af215ba9d3e6308dc9778367	differs	158/249	del=	2 commits
+docs/screenshots/v0.5.0/safety-audit/	f849b92db294ad622a9f53cfd90d4681ff96067b	absent	differs	0/22	del=cce7b007	1 commits
 ```
 
 ## 3. Gate 8, tracked portfolio: PASS
-
-`EV/portfolio-roundtrip.json` records the real PortfolioPanel and stores, driven against my sidecar with only the Tauri IPC stubbed.
-
-**Add, export and delete.**
-
+`verifier/g2/g8-portfolio-steps.json`:
 ```
-01-store-after-add [{"symbol": "RELIANCE", "quantity": 10, "costBasis": 1100, ...}, {"symbol": "AAPL", "quantity": 5, "costBasis": 180, ...}]
-05-export path .../scratchpad/rc1-data-rc1-verifier/exports/csv/vysted-portfolio-portfolio.csv
-Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note
-RELIANCE,10,1100,equity,INR,1219.2,12192,1192,10.836363636363638,,
-AAPL,5,180,equity,USD,335.9200134277344,1679.6000671386719,779.6000671386719,86.62222968207465,,
-06-store-after-delete []
-08-blob-after-delete {"list": [{"id": "default", "name": "Portfolio", "holdings": []}], "activeId": "default"}
-```
-
-**Agent write under ASK.** The proposal came from llama3.1:8b (`EV/agent-02-proposed-action.json`, `portfolio_add_position` TCS 5 @3500).
-
-```
-a2-pending-change {"status": "pending", "kind": "data-write", "title": "Add 5 TCS @ ₹3,500 to the portfolio", ...}
-a4-blob-and-ledger-while-pending {"blobUnchanged": true, ..., "ledgerUnchanged": true, "ledger": []}
-a8-blob-after-accept {... "holdings": [{"symbol": "TCS", "quantity": 5, "costBasis": 3500, ...}]}
-a9-ledger-after-accept []
+initial | [{"id": "default", "name": "Portfolio", "holdings": []}]
+after add + save, read back from sidecar | [{"id": "h-563e4945-0b00-4bb7-919d-a0d858dc3b09", "symbol": "AAPL", "quantity": 5, "costBasis": 180, "assetClass": "equity"}, {"id": "h-9c429569-30bd-442f-b485-7d0cf66487bc", "symbol": "RELIANCE.NS", 
+P&L vs live quote | {"failed": 0, "rows": [{"symbol": "AAPL", "price": 341.07000732421875, "currency": "USD", "mv": 1705.3500366210938, "pnl": 805.3500366210938, "pnlPct": 89.48333740234375, "check": 805.3500366210938}, 
+CSV export (non-Tauri path) | {"result": {"path": null, "fellBack": true}, "lines": 3}
+after delete AAPL + save, read back | [{"id": "h-9c429569-30bd-442f-b485-7d0cf66487bc", "symbol": "RELIANCE.NS", "quantity": 10, "costBasis": 1100, "assetClass": "equity", "note": "rc1v"}]
+agent call replayed | {"id": "call_5baafb71bf0a404d90ca8aff0c963239", "name": "portfolio_add_position", "input": {"quantity": 5, "symbol": "TCS", "asset_class": "equity", "cost_basis": 3500, "note": "", "purchased_at": "20
+enqueue under ask -> outcome, ledger read back | {"staged": "staged", "change": {"id": "change-1", "toolCallId": "call_5baafb71bf0a404d90ca8aff0c963239", "action": {"name": "portfolio_add_position", "input": {"quantity": 5, "symbol": "TCS", "asset_c
+accept -> applied, ledger read back | {"res": "applied", "ledgerApplied": [{"id": "h-9c429569-30bd-442f-b485-7d0cf66487bc", "symbol": "RELIANCE.NS", "quantity": 10, "costBasis": 1100, "assetClass": "equity", "note": "rc1v"}, {"id": "h-b7f
+order action place_order | {"staged": "staged", "accept": "failed", "kind": "panel", "detail": "unknown action \"place_order\"", "intent": {"name": "unknown", "raw": "place_order"}, "ledger": [{"id": "h-9c429569-30bd-442f-b485-
+order action submit_order | {"staged": "staged", "accept": "failed", "kind": "panel", "detail": "unknown action \"submit_order\"", "intent": {"name": "unknown", "raw": "submit_order"}, "ledger": [{"id": "h-9c429569-30bd-442f-b48
+order action propose_order | {"staged": "staged", "accept": "failed", "kind": "panel", "detail": "unknown action \"propose_order\"", "intent": {"name": "unknown", "raw": "propose_order"}, "ledger": [{"id": "h-9c429569-30bd-442f-b
 ```
 
 ## 4. ci-local: PASS
-
-`r15/rc1/fix-r2/ci-local.log`, at the sha:
-
+`verifier/g2/ci-local.log`:
 ```
-769:=========== 3150 passed, 1 skipped, 4 warnings in 201.51s (0:03:21) ============
-770:EXIT=0
-834:      Tests  1825 passed (1825)
-862:test result: ok. 19 passed; 0 failed; ...
-1257:=========== 3150 passed, 1 skipped, 4 warnings in 195.81s (0:03:15) ============
-1258:EXIT=0 2026-09-25T02:59:52Z
+=== ci-local-equivalent at 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2 (git archive export) start 2026-09-26T12:08:23Z
+=== STAGE lint rc=0 2026-09-26T12:08:32Z
+=== STAGE format rc=0 2026-09-26T12:08:42Z
+=== STAGE typecheck rc=0 2026-09-26T12:08:49Z
+=== STAGE cargo-fmt rc=0 2026-09-26T12:08:49Z
+=== STAGE clippy rc=0 2026-09-26T12:09:29Z
+=== STAGE ruff-check rc=0 2026-09-26T12:09:29Z
+=== STAGE ruff-format rc=0 2026-09-26T12:09:29Z
+ Test Files  152 passed (152)
+      Tests  1831 passed (1831)
+=== STAGE vitest rc=0 2026-09-26T12:09:57Z
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.01s
+=== STAGE cargo-test rc=0 2026-09-26T12:10:34Z
+=========== 3596 passed, 1 skipped, 4 warnings in 179.60s (0:02:59) ============
+=== STAGE pytest rc=0 2026-09-26T12:13:39Z
+EXIT=0 2026-09-26T12:13:39Z
 ```
 
 ## 5. Smoke: PASS
-
-`r15/rc1/fix-r2/smoke.log`:
-
+`verifier/g2/smoke.log`:
 ```
-17:[smoke] vysted-sidecar /agents roster OK (13 agents).
-18:[smoke] vysted-sidecar /mcp/status OK (ready=true, toolCount=40).
-30:SMOKE_EXIT=0 2026-09-25T02:55:29Z
-```
-
-## 6. Agent scenarios: FAIL
-
-**The transcripts are incomplete.** From `r15/rc1/scenarios/*.jsonl`:
-- 11 of 20 OpenRouter runs end in `Upstream error from Nvidia: Service temporarily ...`. The affected runs are rb1, rb2, sc2-b, sc2-thread, sc3-a/b/thread, sc4-a/b/thread and sk1.
-- `ollama-sc1-tcs-pe-a.jsonl` is 0 bytes.
-- sc3 and sc4 have no completed run on either lane.
-
-**The transcripts predate the fix rounds.** File mtimes run from 05:26 to 05:42 IST. The first fix-round commit, 23f2ab34, landed at 07:11 IST and the candidate at 08:15 IST.
-
-**rc1-scenarios:5 reproduces at the sha** (`EV/unclosed-sc5-sify-llama.stdout`, llama3.1:8b):
-
-```
-... ADR represents is 2, since the SIFY ADR has 1:2 ratio.
+[smoke] freshness gate: all bundled sidecar binaries are newer than their source.
+[smoke] vysted-sidecar version OK (0.8.0).
+[smoke] vysted-sidecar /agents roster OK (13 agents).
+[smoke] vysted-sidecar /mcp/status OK (ready=true, toolCount=40).
+[smoke] vysted-openbb-mcp-sidecar OK (bound :56031, survived settle window).
+[smoke] vysted-sec-edgar-mcp-sidecar OK (bound :56109, survived settle window).
+[smoke] all sidecars booted cleanly.
+SMOKE_EXIT=0 2026-09-26T12:16:39Z
 ```
 
-The true ratio is 1 ADS = 6 shares, and no tool field carries a ratio.
-
-## 7. Owner-drives: FAIL
-
-Raw evidence exists for all 8 groups (`surface/*/rc1/`). My spot-checks hold for:
-- settings-plugins (`EV/drive-spot-settings-plugins.txt`: fake keys come back invalid or unauthorized, a `../evil-rc1v` name is saved encoded and then deleted with 204, and a long name gets 400);
-- the screener's zero-evaluated case;
-- the portfolio (item 3).
-
-Replaying the screener drive on india-all exposes a defect the drive missed (`EV/drive-spot-screener-india-all.json`):
-
+## 6. Agent scenarios: FAIL (harness/environment)
+File dates in `scenarios/` (the candidate was committed 2026-09-26 06:01 IST):
 ```
-{'evaluated_count': 3951, 'result_count': 200, 'partial': True}
-[('MANIKA.NS', None), ('RELIANCE.NS', 16551566639104.0), ('HDFCBANK.NS', 11237145039544.799)]   # sort_by market_cap desc
+  27 2026-09-25
+   6 2026-09-26
+
+2026-09-26T06:32 ollama-rb4-arrange.jsonl
+2026-09-26T06:33 ollama-sk4-sify-v2.jsonl
+2026-09-26T06:35 ollama-sk3-elcidin-v2.jsonl
+2026-09-26T06:38 ollama-rb2-portfolio.jsonl
+2026-09-26T06:42 ollama-sk1-amal-v2.jsonl
+2026-09-26T06:46 ollama-sc1-tcs-pe-a.jsonl
 ```
 
-It reduces to a three-row repro (`EV/new-manika-sort-custom.json`; `EV/new-manika-fundamentals.json` shows `currency: None, provider: openbb-mcp`):
-
+## 7. Owner-drives: PASS
+Raw files under `r15/surface/<group>/rc1/` newer than the candidate commit:
 ```
-"rows":[{"symbol":"MANIKA.NS", ... "market_cap":null, ... "currency":"INR"}, {"symbol":"RELIANCE.NS", ...
+composer-chat 8
+failure-inducer 10
+onboarding-stranger 6
+panels-layouts 10
+portfolio-notes 3
+research-briefs 14
+screener 7
+settings-plugins 1
 ```
+Spot-checks on my own sidecar: `verifier/g2/spot-screener-07.json`, `verifier/g2/spot-panels-layouts.txt`.
 
-The cause is at `screener.py:818-826` (`EV/code-excerpts.txt`). The sort key groups rows by `fundamentals.currency`, and that currency is re-stamped only after sorting. So the empty currency `''` sorts ahead of `INR`, and a null value ranks first. This is recorded as `rc1-verifier:15` (medium).
-
-## 8. Fixed-name battery: FAIL
-
-The census covers `r15/rc1/battery/raw/**` against the register's 376 fixed c/h/m ids:
-- 160 of those ids have no raw output: 1 critical, 48 high, 109 medium and 2 low.
-- `set-12/` and `set-46/` are empty.
-- set-37, set-45, set-55 and set-57 are absent.
-
-`r15/rc1/findings/` holds `rc1-battery-{0,1,2,4,6,7}.json` only. There is no file for workers 3 and 5.
-
-## 9. Data packs: PASS
-
-Recount of `r15/rc1/battery/collected/*.json`:
-
+## 8. Fixed-name battery: FAIL (harness/environment)
+Walk of `battery/raw/**` over 391 fixed ids: 76 have no raw file and 84 have only pre-candidate raw. Full lists are in `logs/rc1-verifier.md`. CODE-DATA-023 (no stage-c certificate) holds, from `battery/raw/set-71/CODE-DATA-023_probe.txt`:
 ```
-24 packs, 24 complete: True
-283 calls  Counter({200: 263, 502: 16, 429: 4})   sidecar http://127.0.0.1:52313 (x24)
-```
+--- comments ---
+"""Full-market India screener universes from the bundled resolver masters (R10, D40).
 
-The 502s are environmental and reproduce at the sha (`EV/datapack-shareholding-probe.txt`):
+Resolves the three India universe ids the contracts commit added to
+``models/screener.py``:
 
-```
-GET /disclosures/shareholding?symbol=DAL&exchange=BSE -> 502 {"detail":"The data provider returned an unexpected response.", ...}
-GET /disclosures/shareholding?symbol=RELIANCE -> 200 {"symbol":"RELIANCE","count":22, ...}
-```
-
-The sidecar log shows `bse shareholding: index HTTP 403`, which is logged as `rc1-verifier:22` (low).
-
-The rc1-datapack:1 fix holds: `EV/datapack1-vertex-fundamentals.json` and `EV/fixloop-sify-fundamentals.json` both report pe unavailable with the reason "P/E not meaningful for a loss-making company".
-
-## 10. Fix loop closed: FAIL
-
-**Not closed:**
-- **rc1-scenarios:5** (high). See item 6.
-- **rc1-fix-r2-triage:1** (medium). It has no disposition in the fix loop and is live at the sha (`EV/fixr2-triage1-wit-estimates.json`):
-
-  ```
-  "revenue_estimate_mean": 244246846490.0, ... "revenue_analyst_count": 8, "currency": "USD", "provider": "yfinance"
-  ```
-
-  This is Wipro's INR revenue labelled USD.
-
-**Concurred, rejected as not defects** (each re-checked at the sha):
-- **rc1-scenarios:1 (SIFY).** `EV/fixloop-sify-fundamentals.json` shows `financial_currency: INR`, and price_to_sales is withheld with a reason.
-- **rc1-scenarios:2 (ELCIDIN).** `EV/fixloop-elcidin-fundamentals.json` flags the 52-week range 102210 to 137000, with the reason citing the NSE+BSE range 87,003 to 144,500.
-- **rc1-scenarios:3 and 4.** A staged notice was emitted, and 106,505 was never served.
-- **rc1-drive-portfolio-notes:2.** This was harness drift.
-
-**Not reproduced, open:** rc1-drive-onboarding-stranger:1 did not reproduce in 2 of 2 runs (`EV/unclosed-onb1-zomato-llama*.jsonl`). The model answered "not available at this time. We couldn't retrieve its price data." That fits the fix but does not prove closure.
-
-**Tier-4 deferral accepted:** rc1-battery-4:1 (DECISIONS_FOR_OPERATOR.md §4.1).
-
-## 11. GUI round: DEFERRED (allowed)
-
-`r15/rc1/gui/presence.log` has a single line:
-
-```
-2026-09-25T03:18:04Z idle=6609 front="LSDisplayName"="Ghostty"
+  - ``nse-all``   — every NSE master row (EQ + ETF + SM/NSE Emerge) as
+    ``SYMBOL.NS``.
+  - ``bse-all``   — BSE master rows with STATUS == "Active" as ``SYMBOL.BO``
+    (the liquidity ``group`` is retained in the per-symbol meta).
+nse-all 3506
+bse-all 5042
+india-all 5891
 ```
 
-`docs/screenshots/vr15-rc1/` does not exist, so no GUI id is certified. The code fixes for the 9 ids are present, which I spot-checked. These stay needs_gui:
-
-R15-CODE-AGENT-001, R15-LIFECYCLE-001, R15-LIFECYCLE-008, R15-UI-009, R15-UI-022, R15-UI-025, R15-UI-050, R15-UI-083, R15-UI-084
-
-## 12. Adversarial sample: FAIL (14 of 14 refuted at the sha)
-
-**R15-RESEARCH-002** (critical), `EV/inproc-refutations.txt`:
-
+## 9. Data packs: FAIL (harness/environment)
+`battery/collected/*.json` collected_at:
 ```
-'Verdict: UNVERIFIED - no source confirms the 23% operating margin.' -> agree
-'The claim is UNVERIFIED; nothing I found confirms the 23% margin.' -> agree
+P10_VIYASH.json 2026-09-26T06:35:53+0530
+P11_FUSION.json 2026-09-26T06:36:24+0530
+P12_DHANBANK.json 2026-09-26T06:37:52+0530
+P13_ELCIDIN.json 2026-09-26T06:38:15+0530
+P14_JONJUA.json 2026-09-26T06:39:41+0530
+P15_SUMAX.json 2026-09-25T05:32:34+0530
+P16_CREST.json 2026-09-25T05:33:16+0530
+P17_SIFY.json 2026-09-25T05:34:10+0530
+P18_ONC.json 2026-09-25T05:36:24+0530
+P19_AMAL.json 2026-09-25T05:36:50+0530
+P1_JNPR.json 2026-09-26T06:31:10+0530
+P20_SMR.json 2026-09-25T05:37:14+0530
+P2_DAL.json 2026-09-26T06:31:34+0530
+P3_CHTR.json 2026-09-26T06:32:00+0530
+P4_SAFE.json 2026-09-26T06:32:24+0530
+P5_CSL.json 2026-09-26T06:32:53+0530
+P6_ICON.json 2026-09-26T06:33:18+0530
+P7_JUMBO.json 2026-09-26T06:33:45+0530
+P8_NAPEROL.json 2026-09-26T06:34:12+0530
+P9_AMAL.json 2026-09-26T06:35:11+0530
+S1_DHOOTTRANS.json 2026-09-25T05:37:47+0530
+S2_SMR.json 2026-09-25T05:38:11+0530
+S3_VERTEX.json 2026-09-25T05:38:39+0530
+S4_TTC.json 2026-09-25T05:39:05+0530
 ```
-
-**R15-RESEARCH-007** (high), `EV/inproc-refutations.txt`:
-
+Shareholding 502 on BSE-only names (`verifier/g2/spot-shareholding.txt`, `verifier/g2/spot-bse-shp.txt`):
 ```
-https://ir.hotpennypicks.net/2024/xyz -> 1
-https://investors.github.io/pump -> 1
-https://www.investors.com/news/technology/nvidia-stock-buy-now/ -> 1
-```
-
-**R15-AGENT-019** (high), `EV/inproc-refutations.txt`:
-
-```
-'Can you log 10 TCS at 3400 in my portfolio?' -> read READ-ONLY
-'Why not trim my INFY holding to 5 shares?' -> read READ-ONLY
-```
-
-**R15-AGENT-027** (medium), `EV/inproc-refutations.txt`:
-
-```
-openai 429 -> insufficient_credit | Your OpenAI account is out of credit or quota.
-ollama ReadTimeout -> network | Could not reach Ollama — check your network.
-```
-
-**R15-AGENT-003** (high), `EV/agent003-rerun.txt`:
-
-```
-halt yielded [... 'price_data', 'fundamentals', 'write_note', 'price_data', 'fundamentals', 'write_note'] dispatched [3 ids]
-1 failed, 1 passed
-```
-
-**R15-DATA-002** (high), `EV/data002.txt` and `EV/code-excerpts.txt`:
-
-```
-history AMAL (bare, region IN header) -> AMAL nse_direct ... close 687.65
-CommandPalette.tsx:380-395  onSelect={() => { loadSymbolIntoChart(c.symbol); onClose(); }}
+== TCS
+{"symbol":"TCS","count":20,"patterns":[{"symbol":"TCS","quarter_end":"2026-06-30","quarter_basis":null,"promoter_percent":71.77,"fii_percent":null,"dii_percent"
+--
+== AMAL
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+--
+== ELCIDIN
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+plain httpx: 403 <HTML><HEAD> <TITLE>Access Denied</TITLE> </HEAD><BODY> <H1>Access Denied</H1>   You don't have permission to access "ht
+_api_json present: True
+sig: (path: 'str', params: 'dict[str, str]') -> 'object'
+_api_json (curl_cffi lane): dict {'Table': [{'yr': '2026 - 2027', 'qtrid': 130.0, 'qtr': 'June 2026', 'status': 'New', 'filing_date_time': '2026-07-17T15:39:06.967', 'revised_date_time': None, 'XbrlFi
 ```
 
-The US AMAL row is charted as Amal Limited (NSE).
-
-**R15-DATA-043** (medium), `EV/data043.txt`:
-
+## 10. Fix loop closed: FAIL (product defect)
+`verifier/g2/fixloop-briefs2-citecheck.txt`:
 ```
-limit=1 -> rows [('RELIANCE.NS', 'INR', 16551566639104.0)]  coverage "screened 2 of 2 — 0 unavailable"
+MARKER_RE on '[2, 3]': []
+has expand_marker_groups: False
+'an operating margin of 10.98% [New findings].' -> 'an operating margin of 10.98% [New findings].' removed= 0
+'Dividend per Share: ₹4.90 [New findings].' -> 'Dividend per Share: ₹4.90 [New findings].' removed= 0
+'Revenue grew 23% [2, 3] and orders rose [2, 4].' -> 'Revenue grew 23% [2, 3] and orders rose [2, 4].' removed= 0
+'Order book 23,000 cr [7] with margin 12% [2].' -> 'Order book 23,000 cr with margin 12% [2].' removed= 1
+## frontend: git show 4c6dfe8c:src/lib/brief-ingest.ts line 396
+const CITE_MARKER_RE = /\[(\d{1,3})\](?!\()/g;
+## sidecar: git show 4c6dfe8c:sidecar/services/research/citecheck.py line 39
+MARKER_RE = re.compile(r"\[(\d{1,3})\](?!\()")
 ```
-
-The `spans INR, USD — ranked within each currency` note is dropped.
-
-**R15-DATA-059** (medium), `EV/probes-059-068-090.txt`:
-
+Concurrence with the triage rejections (rc1-verifier:26-30): `verifier/g2/fixloop-elcidin-price-data.txt`, `fixloop-sify-fundamentals.json`, `fixloop-sify-resolve.json`:
 ```
-resolve q=SIFY -> {"symbol": "SIFY", ..., "isin": null, "former_name": null, ...}
-```
-
-**R15-DATA-068** (medium), `EV/probes-059-068-090.txt`:
-
-```
-GET /fundamentals/AAPL/ratings keys: [... 'target_mean']   # no as_of
-```
-
-**R15-UI-090** (high), `EV/probes-059-068-090.txt`, taken at 09:29 IST during NSE hours:
-
-```
-quote %5ENSEI: {'provider': 'yfinance', 'freshness': 'eod', 'market_state': None}
+{"ok": true, "symbol": "ELCIDIN", "timeframe": "1d", "provider": "nse_direct", "quote": {"symbol": "ELCIDIN", "price": 103800.0, "change": -1030.0, "change_percent": -0.9825431651244874, "volume": 8.0, "open": null, "high": null, "low": null, "prev_close": null, "currency": "INR", "market_state": "CLOSED", "timestamp": "2026-09-25T00:00:00Z", "provider": "nse_direct", "freshness": null}, "bars_returned": 90, "bars_av
+{'currency': 'USD', 'financial_currency': 'INR', 'revenue_ttm': 46506049536.0, 'price_to_sales': None}
+[('ASMTEC', 0.8), ('IKOMA', 0.766), ('EMIAC', 0.766), ('RELICTEC', 0.766), ('7TEC', 0.766), ('SIFY', 0.913)] needs_disambiguation True
 ```
 
-**R15-LEAD-010** (high), `EV/lead010-cold.txt`:
-
+## 11. GUI round: DEFERRED (operator-attended)
+The round was skipped because the computer-use grant does not cover the built app. needs_gui ids at 4c6dfe8c:
 ```
-GET /sec/filings/0000950170-23-014423/sections?identifier=MSFT -> 404
-GET /sec/filings/0000950170-24-048288/sections?identifier=MSFT&form_type=10-Q -> 404
-```
-
-The same filing returns 200 only on the non-sections route with a form hint.
-
-**R15-DOCS-017** (medium), `EV/docs017-018.txt`:
-
-```
-'506': 1 ['`sp500` (full S&P 500 — 506 symbols ...']   sp500.json entries: 503   'india-all': 0
+R15-CODE-AGENT-001 R15-LIFECYCLE-001 R15-LIFECYCLE-008 R15-UI-009 R15-UI-022 R15-UI-025 R15-UI-050 R15-UI-083 R15-UI-084 R15-DOCS-024 R15-LIFECYCLE-040
 ```
 
-**R15-DOCS-018** (low), `EV/docs017-018.txt`:
-
+## 12. Adversarial sample: FAIL (product defect)
+R15-AGENT-019 (`verifier/g2/adj-agent019-intent-probe.txt`):
 ```
-'nse_direct': 0   'no-key default': 1 ['- **`yfinance_provider.py`** — no-key default for equities.']
+PASS 'LITERAL: Update my RELIANCE cost basis to 1180'                 need portfolio_update_position | intent edit | writes ['portfolio_add_position',
+FAIL 'Could you drop WIPRO from my portfolio?'                        need portfolio_delete_position | intent read | writes []
+FAIL 'I exited my ITC position, can you take it out of my portfolio   need portfolio_delete_position | intent read | writes []
+FAIL 'Can you bump my INFY quantity to 30?'                           need portfolio_update_position | intent read | writes []
 ```
 
-**R15-CODE-PLATFORM-013** (low), `EV/code-excerpts.txt`. At `SettingsPanel.tsx:1936-1941`, the Modules toggle writes the module map only. At `marketplace.ts:150-175`, the Marketplace writes the runtime and `plugins.db`.
+R15-AGENT-093 (`verifier/g2/spot-agent093.txt`):
+```
+option_chain {'symbol': 'NIFTY', 'max_strikes': '10'} -> {'symbol': 'NIFTY', 'max_strikes': 10}
+option_chain {'symbol': 'NIFTY', 'max_strikes': ' 5 '} -> {'symbol': 'NIFTY', 'max_strikes': 5}
+option_chain {'symbol': 'NIFTY', 'max_strikes': '5.0'} -> {'__vysted_invalid_args__': "invalid arguments for option_chain: '5.0' is not of type 'integer'; call again with valid args"}
+add_chart_drawing {'kind': 'horizontal-line', 'points': [{'price': '185.5'}]} -> {'__vysted_invalid_args__': "invalid arguments for add_chart_drawing: '185.5' is not of type 'number'; call again with valid args"}
+yield_curve_value {'valuation_date': '2026-09-25', 'sample_count': '5', 'instruments': [{'type': 'deposit', 'tenor': '3', 'tenor_unit': 'months', 'rate': '0.05'}, {'type': 'swap', 'tenor': 2, 'tenor_unit': 'years', 'rate
+```
 
----
+R15-DATA-113, R15-LEAD-028, R15-DATA-064, R15-DATA-059 (`verifier/g2/spot-refutation-live.txt`):
+```
+== GET /resolve?q=SIFY
+{"ok":true,"query":"SIFY","region":"IN","resolved":{"symbol":"SIFY","name":"SIFY TECHNOLOGIES LTD","exchange":"US","region":"US","asset_class":"equity","yahoo_symbol":"SIFY","confidence":1.0,"isin":null,"bse_code":null,"industry":null,"form
+HTTP 200
+--
+== GET /fundamentals/506597.BO
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+--
+== GET /history/RELIANCE.NS?timeframe=30m&range=1y
+{"symbol":"RELIANCE.NS","timeframe":"30m","bars":[],"provider":"none","freshness":null,"reason":"in_eod_only","partial":false,"coverage_start":null}
+HTTP 200
+--
+== GET /earnings/INFY/estimates
+{"symbol":"INFY.NS","fiscal_period":null,"eps_estimate_mean":19.61527,"eps_estimate_median":null,"eps_estimate_high":20.33,"eps_estimate_low":19.2,"eps_estimate_stddev":null,"estimate_analyst_count":8,"revenue_estimate_mean":491654926200.0,
+HTTP 200
+```
 
-## Sha to tag
+R15-DATA-002, R15-AGENT-053, R15-CODE-PLATFORM-013 (`verifier/g2/spot-refutation-code.txt`):
+```
+== AGENT-053 src/modules/news/NewsFeedPanel.tsx 118-150
+   118	      <a
+   119	        href={item.url}
+   120	        target="_blank"
+   138	        {item.symbols.length > 0 ? (
+   139	          <div className="flex flex-wrap gap-1">
+   140	            {item.symbols.map((symbol) => (
+   141	              <span
+   142	                key={symbol}
+   143	                className="bg-charcoal-800 rounded-control text-micro text-charcoal-300 px-1 py-0.5"
+   144	              >
+   145	                {symbol}
+== DATA-002 src/modules/watchlist/WatchlistPanel.tsx 286-291 and 434; src/store/symbols.ts 15-18
+  const pickCandidate = (symbol: string) => {
+    addSymbol(symbol, "equity");
+                      pickCandidate(c.symbol);
+export interface SymbolEntry {
+  symbol: string;
+  assetClass: "equity" | "crypto";
+== CODE-PLATFORM-013 src/store/workspace.ts resetToDefaultLayout / setEnabledMap
+91:  resetToDefaultLayout: () => void;
+176:  resetToDefaultLayout: () => {
+184:    useModulesStore.getState().setEnabledMap({});
+== RESEARCH-015 sidecar/services/research/verify.py _row_domains + finance.domain_of
+4c6dfe8c:sidecar/services/research/finance.py:139:def domain_of(url_or_domain: str) -> str:
+4c6dfe8c:sidecar/services/research/finance.py-140-    """The bare registrable-ish host of a URL or domain string, lowercased.
+4c6dfe8c:sidecar/services/research/finance.py-141-
+4c6dfe8c:sidecar/services/research/finance.py-142-    Strips the scheme, port, and a leading ``www.`` — enough normalization for
+4c6dfe8c:sidecar/services/research/finance.py-143-    the tier table without pulling in a public-suffix dependency.
+4c6dfe8c:sidecar/services/research/finance.py-144-    """
+4c6dfe8c:sidecar/services/research/finance.py-145-    text = (url_or_domain or "").strip().lower()
+```
 
-The only tree this gate evaluated is `1d6511c89bb27f1785f7af4d2290983b2852d70a`. The verdict is FAIL, so it is **not** to be tagged as rc1.
+R15-RESEARCH-015 (`verifier/g2/spot-research015.txt`):
+```
+_row_domains -> ['nsearchives.nseindia.com', 'nseindia.com'] count 2
+```
 
-Running `git merge-base --is-ancestor 1d6511c8 004-r4-experience-rebuild` returns false. Branch 004 (29b9ae9b) lacks the fix-round code: 23 non-doc files differ, including `src/modules/portfolio/PortfolioPanel.tsx`.
+New high: MCP /workspaces (`verifier/g2/adj-mcp-workspaces.txt`):
+```
+252:     async def list_workspaces() -> dict[str, Any]:
+253:         """List saved workspaces. Maps to GET /workspaces."""
+254:         async with _internal_client() as client:
+255:             response = await client.get("/workspaces")
+256:             response.raise_for_status()
+257:             return response.json()
+258: 
+259:     @mcp.tool
+260:     async def get_workspace(workspace_id: str) -> dict[str, Any]:
+261:         """Return a saved workspace by id. Maps to GET /workspaces/{id}."""
+262:         async with _internal_client() as client:
+263:             response = await client.get(f"/workspaces/{workspace_id}")
+264:             response.raise_for_status()
+265:             return response.json()
+router = APIRouter(prefix="/workspace", tags=["workspace"])
+GET /workspaces -> 404
+GET /workspaces/rc1-verifier-g2-g8 -> 404
+GET /workspace -> 200
+GET /workspace/rc1-verifier-g2-g8 -> 200
+GET    /workspace
+GET    /workspace/{name}
+```
 
-Any rc1 tag must name exactly the sha that a passing gate verified. If it names any other tree, the gate re-runs.
+## Known limitations (operator-attended, not fix rounds)
+R15-LEAD-030/035/037/038 are blocked_tier4. LEAD-035 is adjudicated to the operator (DECISIONS 4.9-4.12, `r15/stage-c/batch-24/LEAD-035-CONCURRENCE.md`). New local-lane note rc1-verifier:15 comes from `scenarios/ollama-sk4-sify-v2.jsonl` and `ollama-sk3-elcidin-v2.jsonl`. The bundle rehearsal PASSED at 64e9470e (`r15/stage-d/bundle-rehearsal/REHEARSAL.md`). I cite it and did not rebuild.
+
+VERDICT: FAIL. Do not tag rc1 at 4c6dfe8c.

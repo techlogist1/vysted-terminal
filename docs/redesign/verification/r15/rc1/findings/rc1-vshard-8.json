@@ -1,0 +1,76 @@
+[
+ {
+  "key": "rc1-vshard-8:1",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-RESEARCH-007",
+  "title": "Blog/newsletter platforms outside the vendored PSL and the 10-host denylist still rank an ir./investors. host TIER_PRIMARY and outrank Reuters (typepad, livejournal, beehiiv, ghost.io, hashnode.dev, over-blog, neocities, jimdosite, godaddysites, tilda.ws, site123.me, mystrikingly, webnode.page, 000webhostapp)",
+  "repro": "cd <cand>/sidecar; .venv/bin/python: rank_sources([Reuters https://www.reuters.com/markets/nvda-earnings, https://investors.beehiiv.com/p/nvda-to-the-moon, https://ir.typepad.com/blog/2026/hot-tip]) -> ['Beehiiv newsletter','Typepad blog','Reuters']; priority_note -> 'primary record (exchange/regulator/filings/IR): [1, 2]; tier-1 press: [3]'. domain_tier == 1 for ir./investors. on all 14 hosts listed. Literal repro and every earlier fresh list hold (tier 3).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8-evidence/r007.out",
+  "suspected_files": [
+   "sidecar/services/research/finance.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:2",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-AGENT-090",
+  "title": "_guard_ratio_claims keeps a fabricated fractional/decimal or 'a dozen'/'half' ADR ratio unchanged, even for SIFY when the tool result carries the true ratio 6",
+  "repro": "cd <cand>/sidecar; .venv/bin/python: _guard_ratio_claims('Each SIFY ADR represents 1.5 ordinary shares.', [SIFY fundamentals result with ads_ratio 6]) -> kept; also kept with a no-depositary fundamentals result: 'Each ADS represents 0.5 ordinary shares.', 'Each SIFY ADR represents 2.5 equity shares.', 'The ADR converts into 0.1 shares of the company.', 'Each ADR represents half an ordinary share.', 'Each ADR corresponds to a dozen ordinary shares.'. Cause: _MARKED blanks every \\d+\\.\\d+ as a non-count, so a decimal share count is never a claim. TSM, RDY and AZN get no ads_ratio, so the guard is their only defence. Live literal repro and a live TSM run held.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8-evidence/a090-offline.out",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:3",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-LEAD-033",
+  "title": "The history trailer's '[failed: …]' line still rides the assistant content to the provider; only '[tool steps:' lines are stripped",
+  "repro": "cd <cand>/sidecar; .venv/bin/python: _without_step_trailers(_coerce_history([... {'role':'assistant','content':\"[tool steps: Using fundamentals; Using price data]\\n\\n[failed: price_data: yfinance has no instrument data for 'MSFT.NS']\"} ...])[0]) keeps the assistant turn \"[failed: price_data: yfinance has no instrument data for 'MSFT.NS']\". src/store/chat-history.ts withTrailer appends that line to every errored assistant turn. Live (llama3.1:8b, :52152, history l033-failed-opts.json, prompt 'Repeat your previous answer word for word...'): the model recites the [failed:] text as its own prior answer ('The initial response was an error message indicating that the provider was throttled and to try again shortly').",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8-evidence/l033-failed.out",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py",
+   "src/store/chat-history.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:4",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-DATA-023",
+  "title": "routers/screener.py:192 get_universe docstring still quotes the dropdown as 'S&P 500 (100 tickers)'; the live universe is 503",
+  "repro": "sed -n 188,193p sidecar/routers/screener.py; curl -s 'http://127.0.0.1:52608/screener/universe?id=sp500' | jq '.symbols|length' -> 503",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8.md",
+  "suspected_files": [
+   "sidecar/routers/screener.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:5",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-090",
+  "title": "When the ratio guard fires, the part of the sentence that was already released streams, then the replacement is spliced mid-sentence ('a standard Y-Share has The ADR-to-ordinary-share ratio is not available…')",
+  "repro": "vy.py invoke copilot 'How many ordinary shares does one TSM ADR represent? Cite where the figure comes from.' --provider ollama --model llama3.1:8b --autonomy ask; the delta stream releases '... a standard Y-Share has ' before the guard replaces the rest.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8-evidence/a090-tsm.out",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-8:6",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-LEAD-030",
+  "title": "With an ok fundamentals(MSFT) call in the turn, llama3.1:8b streams an invented 'previous answer' (MSFT P/E 27.42, market cap ₹1,23,011 cr, EV/EBITDA 14.17) that contradicts the ok result (P/E 28.72, market cap 3.83e12 USD)",
+  "repro": "python3 scripts/r15/vy.py invoke copilot 'Repeat your previous answer word for word, including every line of it, then say what went wrong.' --options \"$(cat shard-8-evidence/l033-failed-opts.json)\" --port 52152 --provider ollama --model llama3.1:8b --autonomy ask. An ok call exists, so this may fall outside the DECISIONS 4.9-4.12 'no ok tool call' known limitation; the lead decides the lane.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/verifier/shard-8-evidence/l033-failed.out",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py",
+   "sidecar/services/figure_grounding.py"
+  ]
+ }
+]

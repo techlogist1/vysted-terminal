@@ -1,0 +1,154 @@
+=== R15-AGENT-053 source check: context-provider.ts source-branch list ===
+      id: h.id,
+      symbol: h.symbol,
+      quantity: h.quantity,
+      costBasis: h.costBasis,
+      assetClass: h.assetClass,
+      marketValue: null,
+      pnl: null,
+    })),
+  };
+}
+
+/** The brief panel's lifecycle identity for the snapshot (R10 D39). */
+function briefStateForSnapshot(): TerminalBrief {
+  const { panel } = useBriefStore.getState();
+  if (panel.phase === "in_flight") {
+    return {
+      phase: "in_flight",
+      runId: panel.runId,
+      symbol: panel.symbol,
+      createdAt: panel.startedAt,
+      depth: panel.depth,
+    };
+  }
+  if (panel.phase === "published" || panel.phase === "archived") {
+    const brief = panel.brief;
+    return {
+      phase: panel.phase,
+      runId: brief.execution?.runId,
+      symbol: brief.symbol,
+      createdAt: brief.createdAt,
+      sourceCount: brief.sourceCount,
+      depth: brief.depth,
+    };
+  }
+  return { phase: "empty" };
+}
+
+/**
+ * The symbol the focused panel publishes, whatever its kind (`symbol` on a
+ * chart, `ticker` on Equity Overview), or null when the focused panel carries
+ * none. The one derivation behind the context badge, the suggestion chips and
+ * the snapshot's `focusedSymbol` (R15-CODE-FRONTEND-015).
+ */
+export function focusedSymbolFromBus(
+  bus: Record<string, { payload: unknown } | undefined>,
+  focusedSource: string | null,
+): string | null {
+  if (!focusedSource) {
+    return null;
+  }
+  const payload = asRecord(bus[focusedSource]?.payload);
+  return asString(payload.symbol) ?? asString(payload.ticker);
+}
+
+/** A generic per-source summary's cap (R15-AGENT-053) — compact enough that
+ *  N un-modelled panels never bloat the snapshot. */
+export const MAX_OTHER_PANEL_SUMMARY_CHARS = 200;
+
+/**
+ * Compactly project an arbitrary published payload into one `key=value, …`
+ * line, capped to {@link MAX_OTHER_PANEL_SUMMARY_CHARS}. Works for ANY panel's
+ * payload shape with zero per-panel code (R15-AGENT-053) — a new publisher is
+ * visible to the copilot the moment it starts publishing. Arrays collapse to
+ * a count, nested objects to `…`, so the line stays terse.
+ */
+export function genericPanelSummary(payload: Record<string, unknown>): string {
+  const parts: string[] = [];
+  for (const [key, value] of Object.entries(payload)) {
+    if (value === null || value === undefined) {
+      continue;
+    }
+
+=== publishers grep ===
+429:      source: BUS_SOURCE,
+200:      source: "news",
+34:// --- formatters (single source: @/lib/format) -----------------------------
+619:      source: busSource,
+=== captureTerminalState body, other-source handling ===
+130:  otherPanels: TerminalPanelSummary[];
+265:export function genericPanelSummary(payload: Record<string, unknown>): string {
+321:  const terminalState = captureTerminalState();
+330:export function captureTerminalState(): TerminalState {
+337:  const otherPanels: TerminalPanelSummary[] = [];
+339:  for (const [source, event] of Object.entries(bySource)) {
+378:      otherPanels.push({
+381:        summary: genericPanelSummary(payload),
+455:    otherPanels,
+export function captureTerminalState(): TerminalState {
+  const bus = usePanelContextBus.getState();
+  const bySource = bus.lastEventBySource;
+
+  const charts: TerminalChart[] = [];
+  let watchlist: { symbols: string[]; selected: string | null } = { symbols: [], selected: null };
+  let portfolio: TerminalPortfolio | null = null;
+  const otherPanels: TerminalPanelSummary[] = [];
+
+  for (const [source, event] of Object.entries(bySource)) {
+    const payload = asRecord(event?.payload);
+    if (source.startsWith("chart")) {
+      const indicators = Array.isArray(payload.activeIndicators)
+        ? (payload.activeIndicators as unknown[]).map(String)
+        : [];
+      charts.push({
+        panelId: source,
+        symbol: asString(payload.symbol),
+        timeframe: asString(payload.timeframe),
+        indicators,
+      });
+    } else if (source === "watchlist") {
+      watchlist = {
+        symbols: Array.isArray(payload.symbols) ? (payload.symbols as unknown[]).map(String) : [],
+        selected: asString(payload.selectedSymbol),
+      };
+    } else if (source === "portfolio") {
+      const activePortfolioId = asString(payload.activePortfolioId);
+      const activePortfolioName = asString(payload.activePortfolioName);
+      const totalValueNote = asString(payload.totalValueNote);
+      portfolio = {
+        positionCount: Number(payload.positionCount ?? 0),
+        // Honest unknown: the panel publishes a real mark-to-market total when
+        // it joined quotes; absent/null → null, never a fabricated 0. The
+        // panel publishes null DELIBERATELY for mixed-currency portfolios
+        // (D57) and says why via totalValueNote — thread the reason through so
+        // the agent can state it instead of guessing.
+        totalValue: payload.totalValue != null ? Number(payload.totalValue) : null,
+        ...(totalValueNote !== null ? { totalValueNote } : {}),
+        ...(activePortfolioId !== null ? { activePortfolioId } : {}),
+        ...(activePortfolioName !== null ? { activePortfolioName } : {}),
+        holdings: extractHoldings(payload.holdings),
+      };
+    } else {
+      // R15-AGENT-053: every other publisher (news, backtest, earnings,
+      // analyst ratings, SEC filings, screener, macro, quant, …) gets a
+      // generic summary instead of silently vanishing from the snapshot.
+      const symbol = asString(payload.symbol) ?? asString(payload.ticker);
+      otherPanels.push({
+        source,
+        ...(symbol !== null ? { symbol } : {}),
+        summary: genericPanelSummary(payload),
+      });
+    }
+  }
+
+  // The shared symbols store is the canonical watchlist if the panel hasn't
+  // published yet (e.g. the watchlist panel is closed).
+  if (watchlist.symbols.length === 0) {
+    const entries = useSymbolsStore.getState().entries;
+    watchlist = { symbols: entries.map((e) => e.symbol), selected: watchlist.selected };
+  }
+
+  // Same store-fallback rule for the portfolio (E6): a closed panel must not
+  // blind get_portfolio — the portfolios store is the canonical truth.
+  if (portfolio === null) {

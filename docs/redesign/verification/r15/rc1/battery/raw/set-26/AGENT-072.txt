@@ -1,0 +1,2 @@
+=== AGENT-072: persona tools dead config ===
+distinct tools-array lengths across 13 agents: {55}

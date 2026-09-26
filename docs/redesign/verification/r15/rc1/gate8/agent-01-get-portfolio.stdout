@@ -2,17 +2,13 @@
 [  20.0s] heartbeat: {"kind": "heartbeat"}
 [  30.0s] heartbeat: {"kind": "heartbeat"}
 [  40.0s] heartbeat: {"kind": "heartbeat"}
-[  43.1s] tool_use: {"kind": "tool_use", "tool_call_id": "call_1292a57a31504a4fa704decc1454d057", "name": "get_portfolio", "input": {}}
-[  50.9s] done: {"kind": "done", "usage": {"input_tokens": 3000, "output_tokens": 113, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+[  45.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e23cc19d565e4d048047c5182e737ed9", "name": "get_portfolio", "input": {}}
+[  46.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_e23cc19d565e4d048047c5182e737ed9", "name": "get_portfolio", "ok": true, "error": null}
+[  52.0s] done: {"kind": "done", "usage": {"input_tokens": 3066, "output_tokens": 82, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
 
 === ASSISTANT TEXT ===
-To see the current holdings in your portfolio, I've opened the Portfolio panel. The live values for each holding are not marked-to-market, so you can open the panel to view the latest information.
+Your portfolio contains two positions: 8 shares of Apple (AAPL) with a cost basis of $190 and an unknown market value, and 20 shares of Infosys (INFY) with a cost basis of $1500 and an unknown market value. Note that the total value of your portfolio is not marked-to-market.
 
-Here is a summary of your holdings:
+You can open the Portfolio panel to view live values and other details.
 
-* Apple (AAPL) - 8 shares, cost basis: ₹190 per share
-* Infosys (INFY) - 20 shares, cost basis: ₹1500 per share
-
-To see the current market value and any changes in profit/loss for each holding, you can open the Portfolio panel.
-
-=== ok · 50.9s · events {'heartbeat': 4, 'tool_use': 1, 'delta': 112, 'done': 1} · usage in=3000 out=113 · est $0.00000 · llama3.1:8b
+=== ok · 52.0s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 82, 'done': 1} · usage in=3066 out=82 · est $0.00000 · llama3.1:8b

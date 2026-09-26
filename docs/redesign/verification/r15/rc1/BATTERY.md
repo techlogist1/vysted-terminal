@@ -1,79 +1,304 @@
-# RC1 battery index
+# RC1 Battery Index
 
-One row per writer set from `rc1/battery/set-*.md` — 59 sets on disk (`set-0.md`..`set-58.md`), matching the 59 expected in `rc1/battery/INDEX.json`.
+Collated from `docs/redesign/verification/r15/rc1/battery/set-*.md` (72 sets) and `battery/INDEX.json` (`candidate_sha 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`, `fixed_total: 391`, `unplanned_fixed: 1`). No new judgement or re-runs.
 
-| set (file) | title | ids | holds | regressed | ci_pinned | needs_gui | blocked_env | total |
-|---|---|---|---|---|---|---|---|---|
-| set-0.md | batch-2/W1-fundamentals-seam | R15-DATA-008, R15-DATA-004, R15-DATA-013, R15-DATA-006, R15-DATA-070, R15-DATA-033 | 6 | 0 | 0 | 0 | 0 | 6 |
-| set-1.md | batch-2/W2-instrument-identity | R15-DATA-012, R15-CODE-DATA-001, R15-DATA-018, R15-DATA-001, R15-DATA-002, R15-DATA-003, R15-CODE-DATA-005 | 6 | 0 | 0 | 0 | 0 | 6 |
-| set-2.md | batch-2/W3-research-integrity | R15-RESEARCH-002, R15-RESEARCH-034, R15-RESEARCH-015, R15-RESEARCH-029, R15-RESEARCH-037, R15-RESEARCH-001, R15-RESEARCH-003, R15-RESEARCH-004 | 8 | 0 | 0 | 0 | 0 | 8 |
-| set-3.md | batch-2/W4-workspace-persistence | R15-CODE-FRONTEND-001, R15-LIFECYCLE-002, R15-LIFECYCLE-003, R15-CODE-FRONTEND-005, R15-CODE-FRONTEND-018, R15-CODE-FRONTEND-004, R15-LIFECYCLE-009 | 1 | 0 | 6 | 0 | 0 | 7 |
-| set-4.md | batch-2/W5-surfaces-and-math | R15-DATA-009, R15-DATA-010, R15-DATA-011, R15-DATA-007, R15-DATA-043, R15-DATA-031, R15-DATA-042, R15-CODE-PLATFORM-053, R15-DATA-100 | 5 | 0 | 4 | 0 | 0 | 9 |
-| set-5.md | batch-3/W1-agent-runtime (set-5) | R15-AGENT-001, R15-AGENT-002, R15-AGENT-003, R15-AGENT-019, R15-AGENT-021, R15-AGENT-022, R15-AGENT-024, R15-AGENT-054, R15-AGENT-047 | 9 | 0 | 0 | 0 | 0 | 9 |
-| set-6.md | batch-3/W2-agent-frontend-gate (set-6) | R15-AGENT-080, R15-CODE-FRONTEND-008, R15-CODE-FRONTEND-003, R15-CODE-FRONTEND-014, R15-UI-001, R15-UI-002, R15-AGENT-014 | 0 | 0 | 7 | 0 | 0 | 7 |
-| set-7.md | batch-3/W3-llm-adapters-and-errors (set-7) | R15-AGENT-004, R15-AGENT-005, R15-AGENT-018, R15-UI-008, R15-CODE-AGENT-003, R15-AGENT-027 | 5 | 0 | 1 | 0 | 0 | 6 |
-| set-8.md | batch-3/W4-research-depth (set-8) | R15-RESEARCH-009, R15-AGENT-012, R15-RESEARCH-006, R15-RESEARCH-007, R15-RESEARCH-008, R15-DATA-045, R15-LIFECYCLE-006 | 4 | 0 | 3 | 0 | 0 | 7 |
-| set-9.md | batch-3/W5-india-data-witnesses (set-9) | R15-RESEARCH-010, R15-DATA-005, R15-LEAD-002, R15-RESEARCH-011, R15-RESEARCH-013, R15-DATA-019, R15-DATA-021, R15-DATA-022 | 8 | 0 | 0 | 0 | 0 | 8 |
-| set-10.md | batch-4/W1-agent-runtime (set-10) | R15-AGENT-011 | 1 | 0 | 0 | 0 | 0 | 1 |
-| set-11.md | batch-4/W2-workflow-backtest-feeds (set-11) | R15-AGENT-011 | 0 | 0 | 1 | 0 | 0 | 1 |
-| set-12.md | batch-4/W3-chat-runs-mcp (set-12) | (none) | 0 | 0 | 0 | 0 | 0 | 0 |
-| set-13.md | batch-4/W4-market-data-gate (set-13) | R15-UI-090 | 1 | 0 | 0 | 0 | 0 | 1 |
-| set-14.md | batch-4/W5-panels-screener (set-14) | R15-UI-090 | 0 | 0 | 1 | 0 | 0 | 1 |
-| set-15.md | batch-5/W1-india-disclosures-agent-surface | R15-AGENT-020, R15-DATA-026 | 2 | 0 | 0 | 0 | 0 | 2 |
-| set-16.md | batch-5/W2-resolver-market-data | R15-DATA-026 | 1 | 0 | 0 | 0 | 0 | 1 |
-| set-17.md | batch-5/W3-agent-runtime-chat | R15-AGENT-020 | 1 | 0 | 0 | 0 | 0 | 1 |
-| set-18.md | batch-6/W1-india-exchange-data | R15-DATA-017, R15-DATA-027 (+014 DAL leg, +076: one class), R15-LEAD-004, R15-LEAD-015, R15-DATA-050 (+060: one class) | 5 | 0 | 0 | 0 | 0 | 5 |
-| set-19.md | batch-6/W2-delegate-runs-runtime | R15-AGENT-034, R15-AGENT-035 + R15-LIFECYCLE-013, R15-AGENT-036, R15-AGENT-037 + R15-AGENT-038, R15-AGENT-039, R15-CODE-AGENT-010, R15-CODE-AGENT-011, R15-LIFECYCLE-012, R15-UI-040, R15-AGENT-046, R15-LEAD-014, R15-RESEARCH-024 (runtime half, C4) | 6 | 0 | 0 | 0 | 0 | 6 |
-| set-20.md | batch-6/W3-unattended-platform-chart | R15-CODE-PLATFORM-018, R15-LEAD-012, R15-AGENT-052 + R15-AGENT-051 + R15-CODE-FRONTEND-015, R15-UI-020, R15-UI-021, R15-UI-022, R15-UI-023, R15-AGENT-023 | 6 | 0 | 0 | 1 | 0 | 7 |
-| set-21.md | batch-6/W4-research-funnel | R15-CODE-RESEARCH-002, R15-RESEARCH-017, R15-RESEARCH-018, R15-RESEARCH-012, R15-RESEARCH-016, R15-RESEARCH-019 + R15-DATA-075, R15-RESEARCH-020, R15-RESEARCH-021, R15-RESEARCH-022 + R15-RESEARCH-023, R15-RESEARCH-024 + R15-UI-038, R15-UI-092, R15-RESEARCH-026 | 12 | 0 | 0 | 0 | 0 | 12 |
-| set-22.md | batch-6/W5-host-actions-portfolio | R15-CODE-FRONTEND-011 + R15-CODE-FRONTEND-007, R15-CODE-FRONTEND-009 + R15-CODE-FRONTEND-010, R15-AGENT-043, R15-AGENT-042, R15-AGENT-041, R15-AGENT-032, R15-DATA-088, R15-CODE-FRONTEND-012 + R15-DATA-089 + R15-CODE-PLATFORM-021 + R15-CODE-PLATFORM-022 | 8 | 0 | 0 | 0 | 0 | 8 |
-| set-23.md | batch-7/W1-india-exchange-data | R15-DATA-014, R15-DATA-027, R15-DATA-050, R15-DATA-060, R15-DATA-076, R15-LEAD-004, R15-LEAD-015 | 7 | 0 | 0 | 0 | 0 | 7 |
-| set-24.md | batch-7/W2-delegate-runs-runtime | R15-AGENT-034, R15-AGENT-037, R15-AGENT-038, R15-AGENT-074, R15-AGENT-036, R15-AGENT-035, R15-LIFECYCLE-013, R15-LIFECYCLE-012, R15-CODE-AGENT-010, R15-CODE-AGENT-011, R15-AGENT-039, R15-UI-040 | 10 | 0 | 1 | 0 | 0 | 11 |
-| set-25.md | batch-7/W3-unattended-chart-workspace | R15-AGENT-023, R15-DATA-090, R15-CODE-FRONTEND-019, R15-CODE-PLATFORM-018, R15-UI-020, R15-UI-023, R15-UI-026, R15-UI-031, R15-CODE-FRONTEND-017, R15-UI-046 | 3 | 0 | 7 | 0 | 0 | 10 |
-| set-26.md | batch-7/W4-research-funnel | R15-RESEARCH-019, R15-DATA-075, R15-RESEARCH-033, R15-RESEARCH-022, R15-RESEARCH-023, R15-RESEARCH-038, R15-RESEARCH-020, R15-RESEARCH-021, R15-RESEARCH-024, R15-UI-038, R15-UI-092, R15-RESEARCH-026 | 10 | 0 | 2 | 0 | 0 | 12 |
-| set-27.md | batch-7/W5-agent-writes-portfolio | R15-AGENT-044, R15-AGENT-041, R15-AGENT-043, R15-AGENT-032, R15-UI-017, R15-UI-034, R15-UI-035, R15-UI-036, R15-UI-037 | 1 | 0 | 8 | 0 | 0 | 9 |
-| set-28.md | batch-8/W1-sidecar-lifecycle-transport | R15-LIFECYCLE-001, R15-LIFECYCLE-010, R15-UI-014, R15-LIFECYCLE-011, R15-UI-012, R15-CODE-PLATFORM-011, R15-RESEARCH-032 | 3 | 0 | 3 | 1 | 0 | 7 |
-| set-29.md | batch-8/W2-provider-readiness-host-actions | R15-UI-013, R15-AGENT-028, R15-UI-057, R15-UI-049, R15-UI-019, R15-CODE-AGENT-006, R15-AGENT-055, R15-AGENT-056, R15-AGENT-081 | 3 | 0 | 6 | 0 | 0 | 9 |
-| set-30.md | batch-8/W3-data-error-honesty | R15-DATA-061, R15-AGENT-061, R15-AGENT-030, R15-LEAD-005, R15-UI-053, R15-DATA-081, R15-UI-030, R15-UI-029, R15-UI-015 | 7 | 0 | 2 | 0 | 0 | 9 |
-| set-31.md | batch-8/W4-resolver-exchange-lanes | R15-DATA-058, R15-LIFECYCLE-019, R15-LIFECYCLE-022, R15-UI-039, R15-CODE-DATA-002, R15-CODE-DATA-003, R15-DATA-051, R15-AGENT-045, R15-DATA-084, R15-DATA-085, R15-DATA-086 | 8 | 0 | 3 | 0 | 0 | 11 |
-| set-32.md | batch-8/W5-agent-runtime-research | R15-CODE-AGENT-004, R15-LEAD-019, R15-CODE-AGENT-007, R15-CODE-AGENT-016, R15-LIFECYCLE-014, R15-CODE-RESEARCH-003, R15-RESEARCH-027, R15-AGENT-046, R15-CODE-AGENT-008, R15-CODE-PLATFORM-021 | 9 | 0 | 1 | 0 | 0 | 10 |
-| set-33.md | batch-9/W1-agent-runtime (rc1-battery-7) | R15-AGENT-046, R15-CODE-AGENT-008, R15-RESEARCH-027, R15-CODE-AGENT-005, R15-LIFECYCLE-025 | 5 | 0 | 0 | 0 | 0 | 5 |
-| set-34.md | batch-9/W2-research-search-news (rc1-battery-7) | R15-LIFECYCLE-018, R15-DATA-094, R15-UI-033, R15-CROSS-PLATFORM-002, R15-UI-083, R15-UI-050 | 3 | 0 | 1 | 2 | 0 | 6 |
-| set-35.md | batch-9/W3-fundamentals-identity-earnings (rc1-battery-7) | R15-DATA-052, R15-LEAD-022, R15-LEAD-023, R15-LEAD-016, R15-DATA-069, R15-UI-015 | 6 | 0 | 0 | 0 | 0 | 6 |
-| set-36.md | batch-9/W4-market-lanes-errors-quant (rc1-battery-7) | R15-DATA-066, R15-DATA-062, R15-LIFECYCLE-021, R15-DATA-065, R15-DATA-073, R15-UI-053, R15-UI-051 | 7 | 0 | 0 | 0 | 0 | 7 |
-| set-37.md | batch-9/W5-frontend-shell (rc1-battery-7) | R15-UI-016, R15-CODE-FRONTEND-016, R15-UI-086, R15-CROSS-PLATFORM-004, R15-UI-058, R15-DATA-092, R15-UI-052 | 0 | 0 | 7 | 0 | 0 | 7 |
-| set-38.md | batch-10/W1-runtime-backtest (rc1-battery-7) | R15-AGENT-050, R15-LEAD-018, R15-CODE-PLATFORM-029, R15-CODE-PLATFORM-030, R15-LIFECYCLE-015, R15-UI-010, R15-UI-011 | 4 | 0 | 3 | 0 | 0 | 7 |
-| set-39.md | batch-10/W2-catalog-hostactions (rc1-battery-7) | R15-CODE-AGENT-013, R15-RESEARCH-030, R15-AGENT-084, R15-CODE-PLATFORM-021 | 4 | 0 | 0 | 0 | 0 | 4 |
-| set-40.md | batch-10/W3-fundamentals-bse-cache (rc1-battery-7) | R15-DATA-048, R15-DATA-054, R15-DATA-055, R15-DATA-053, R15-DATA-096, R15-DATA-068, R15-LEAD-024 | 7 | 0 | 0 | 0 | 0 | 7 |
-| set-41.md | batch-10/W4-screener-routes-statedocs (rc1-battery-7) | R15-DATA-061, R15-DATA-087, R15-CROSS-PLATFORM-003, R15-RESEARCH-025, R15-DATA-095, R15-DOCS-016, R15-DOCS-017, R15-DOCS-018 | 8 | 0 | 0 | 0 | 0 | 8 |
-| set-42.md | batch-10/W5-chat-search-workflow (rc1-battery-7) | R15-AGENT-082, R15-AGENT-088, R15-UI-027, R15-RESEARCH-028, R15-AGENT-063, R15-CODE-PLATFORM-017, R15-CODE-RESEARCH-004 | 5 | 0 | 2 | 0 | 0 | 7 |
-| set-43.md | batch-10/W6-chart-notes-blueprint (rc1-battery-7) | R15-UI-048, R15-LEAD-026, R15-UI-024, R15-DOCS-004, R15-DOCS-005, R15-DATA-078, R15-CODE-PLATFORM-024 | 5 | 0 | 2 | 0 | 0 | 7 |
-| set-44.md | batch-10/W7-panels-marketplace (rc1-battery-7) | R15-AGENT-053, R15-UI-032, R15-UI-028, R15-UI-018, R15-CODE-PLATFORM-072, R15-DATA-077, R15-DATA-068 | 3 | 0 | 4 | 0 | 0 | 7 |
-| set-45.md | batch-10/W8-plugins-dock (rc1-battery-7) | R15-CODE-PLATFORM-012, R15-CODE-PLATFORM-013, R15-CODE-PLATFORM-014, R15-AGENT-057, R15-UI-084 | 0 | 0 | 4 | 1 | 0 | 5 |
-| set-46.md | unplanned-1 | R15-AGENT-007, R15-CODE-AGENT-009 | 2 | 0 | 0 | 0 | 0 | 2 |
-| set-47.md | unplanned-2 | R15-CODE-PLATFORM-030 | 1 | 0 | 0 | 0 | 0 | 1 |
-| set-48.md | unplanned-3 | R15-UI-091 | 1 | 0 | 0 | 0 | 0 | 1 |
-| set-49.md | unplanned-4 | R15-DOCS-005, R15-UI-085, R15-UI-087 | 3 | 0 | 0 | 0 | 0 | 3 |
-| set-50.md | unplanned-5 | R15-RESEARCH-010 | 1 | 0 | 0 | 0 | 0 | 1 |
-| set-51.md | unplanned-6 | R15-DATA-071, R15-DATA-078, R15-DATA-079, R15-DOCS-018, R15-LEAD-010, R15-LEAD-013, R15-LIFECYCLE-026 | 7 | 0 | 0 | 0 | 0 | 7 |
-| set-52.md | unplanned-7 | R15-CODE-PLATFORM-013, R15-CODE-PLATFORM-014 | 2 | 0 | 0 | 0 | 0 | 2 |
-| set-53.md | unplanned-8 | R15-CODE-PLATFORM-023 | 1 | 0 | 0 | 0 | 0 | 1 |
-| set-54.md | unplanned-9 | R15-DATA-059 | 1 | 0 | 0 | 0 | 0 | 1 |
-| set-55.md | unplanned-10 | R15-CODE-PLATFORM-024, R15-CODE-PLATFORM-025 | 2 | 0 | 0 | 0 | 0 | 2 |
-| set-56.md | unplanned-11 | R15-DOCS-017 | 1 | 0 | 0 | 0 | 0 | 1 |
-| set-57.md | unplanned-12 | R15-CODE-PLATFORM-026, R15-CODE-PLATFORM-027, R15-CODE-PLATFORM-028, R15-RELEASE-005, R15-RELEASE-006 | 4 | 0 | 0 | 0 | 0 | 4 |
-| set-58.md | unplanned-13 | R15-LIFECYCLE-024 | 1 | 0 | 0 | 0 | 0 | 1 |
-| **TOTAL** | | | **240** | **0** | **79** | **5** | **0** | **324** |
+## Per-set verdict counts
 
-Counts parsed from each set file's own verdict/result column (`holds` / `regressed` /
-`ci_pinned` / `needs_gui` / `blocked_env`); `set-12.md` (batch-4/W3-chat-runs-mcp) has an
-empty dispatch (0 entries) and is not an error.
+| Set | Title | Rows | holds | ci_pinned | needs_gui | blocked_env | regressed |
+|---|---|---|---|---|---|---|---|
+| set-0 | batch-2/W1-fundamentals-seam | 6 | 6 | 0 | 0 | 0 | 0 |
+| set-1 | batch-2/W2-instrument-identity | 6 | 6 | 0 | 0 | 0 | 0 |
+| set-2 | batch-2/W3-research-integrity | 7 | 7 | 0 | 0 | 0 | 0 |
+| set-3 | batch-2/W4-workspace-persistence | 7 | 1 | 6 | 0 | 0 | 0 |
+| set-4 | batch-2/W5-surfaces-and-math | 8 | 2 | 6 | 0 | 0 | 0 |
+| set-5 | batch-3/W1-agent-runtime (rc1-battery-1, candidate 4c6dfe8c) | 8 | 7 | 1 | 0 | 0 | 0 |
+| set-6 | batch-3/W2-agent-frontend-gate (rc1-battery-1, candidate 4c6dfe8c) | 7 | 2 | 4 | 0 | 0 | 0 |
+| set-7 | batch-3/W3-llm-adapters-and-errors (rc1-battery-1, candidate 4c6dfe8c) | 5 | 4 | 1 | 0 | 0 | 0 |
+| set-8 | batch-3/W4-research-depth (rc1-battery-1, candidate 4c6dfe8c) | 7 | 5 | 1 | 0 | 1 | 0 |
+| set-9 | batch-3/W5-india-data-witnesses (rc1-battery-1, candidate 4c6dfe8c) | 8 | 8 | 0 | 0 | 0 | 0 |
+| set-10 | batch-4/W1-agent-runtime (set-10) | 9 | 9 | 0 | 0 | 0 | 0 |
+| set-11 | batch-4/W2-workflow-backtest-feeds (set-11) | 9 | 6 | 2 | 1 | 0 | 0 |
+| set-12 | batch-4/W3-chat-runs-mcp (set-12) | 9 | 9 | 0 | 0 | 0 | 0 |
+| set-13 | batch-4/W4-market-data-gate (set-13) | 8 | 8 | 0 | 0 | 0 | 0 |
+| set-14 | batch-4/W5-panels-screener (set-14) | 9 | 7 | 2 | 0 | 0 | 0 |
+| set-15 | batch-5/W1-india-disclosures-agent-surface | 11 | 10 | 0 | 0 | 1 | 0 |
+| set-16 | batch-5/W2-resolver-market-data | 9 | 9 | 0 | 0 | 0 | 0 |
+| set-17 | batch-5/W3-agent-runtime-chat | 9 | 8 | 0 | 0 | 1 | 0 |
+| set-18 | batch-5/W4-platform-workflow-boundary | 8 | 8 | 0 | 0 | 0 | 0 |
+| set-19 | batch-5/W5-screener-earnings-sec | 11 | 11 | 0 | 0 | 0 | 0 |
+| set-20 | batch-6/W1-india-exchange-data | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-21 | batch-6/W2-delegate-runs-runtime | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-22 | batch-6/W3-unattended-platform-chart | 5 | 5 | 0 | 0 | 0 | 0 |
+| set-23 | batch-6/W4-research-funnel | 5 | 5 | 0 | 0 | 0 | 0 |
+| set-24 | batch-6/W5-host-actions-portfolio | 9 | 8 | 0 | 1 | 0 | 0 |
+| set-25 | batch-7/W1-india-exchange-data | 7 | 7 | 0 | 0 | 0 | 0 |
+| set-26 | batch-7/W2-delegate-runs-runtime | 11 | 11 | 0 | 0 | 0 | 0 |
+| set-27 | batch-7/W3-unattended-chart-workspace | 10 | 10 | 0 | 0 | 0 | 0 |
+| set-28 | batch-7/W4-research-funnel | 12 | 0 | 0 | 0 | 12 | 0 |
+| set-29 | batch-7/W5-agent-writes-portfolio | 9 | 8 | 0 | 1 | 0 | 0 |
+| set-30 | batch-8/W1-sidecar-lifecycle-transport | 7 | 6 | 0 | 1 | 0 | 0 |
+| set-31 | batch-8/W2-provider-readiness-host-actions | 9 | 9 | 0 | 0 | 0 | 0 |
+| set-32 | batch-8/W3-data-error-honesty | 6 | 6 | 0 | 0 | 0 | 0 |
+| set-33 | batch-8/W4-resolver-exchange-lanes | 11 | 11 | 0 | 0 | 0 | 0 |
+| set-34 | batch-8/W5-agent-runtime-research | 6 | 3 | 0 | 0 | 3 | 0 |
+| set-35 | batch-9/W1-agent-runtime (rc1-battery-7) | 5 | 5 | 0 | 0 | 0 | 0 |
+| set-36 | batch-9/W2-research-search-news (rc1-battery-7) | 4 | 4 | 0 | 0 | 0 | 0 |
+| set-37 | batch-9/W3-fundamentals-identity (rc1-battery-7) | 6 | 6 | 0 | 0 | 0 | 0 |
+| set-38 | batch-9/W4-market-lanes-errors-quant (rc1-battery-7) | 7 | 7 | 0 | 0 | 0 | 0 |
+| set-39 | batch-9/W5-frontend-shell (rc1-battery-7) | 7 | 0 | 7 | 0 | 0 | 0 |
+| set-40 | batch-10/W1-runtime-backtest | 7 | 7 | 0 | 0 | 0 | 0 |
+| set-41 | batch-10/W2-catalog-hostactions | 4 | 3 | 1 | 0 | 0 | 0 |
+| set-42 | batch-10/W3-fundamentals-bse-cache | 7 | 7 | 0 | 0 | 0 | 0 |
+| set-43 | batch-10/W4-screener-routes-statedocs | 6 | 6 | 0 | 0 | 0 | 0 |
+| set-44 | batch-10/W5-chat-search-workflow | 7 | 5 | 2 | 0 | 0 | 0 |
+| set-45 | batch-10/W6-chart-notes-blueprint | 7 | 6 | 1 | 0 | 0 | 0 |
+| set-46 | batch-10/W7-panels-marketplace | 6 | 6 | 0 | 0 | 0 | 0 |
+| set-47 | batch-10/W8-plugins-dock | 3 | 2 | 1 | 0 | 0 | 0 |
+| set-48 | batch-11/W1-scripts-build (rc1-battery-1, candidate 4c6dfe8c) | 5 | 4 | 1 | 0 | 0 | 0 |
+| set-49 | batch-11/W2-runtime-schema (rc1-battery-1, candidate 4c6dfe8c) | 2 | 1 | 1 | 0 | 0 | 0 |
+| set-50 | batch-11/W3-agent-eval (rc1-battery-1, candidate 4c6dfe8c) | 1 | 0 | 1 | 0 | 0 | 0 |
+| set-51 | batch-11/W4-registry-loop (rc1-battery-1, candidate 4c6dfe8c) | 2 | 2 | 0 | 0 | 0 | 0 |
+| set-52 | batch-11/W5-data-reference (rc1-battery-1, candidate 4c6dfe8c) | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-53 | batch-11/W6-options-chain (rc1-battery-1, candidate 4c6dfe8c) | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-54 | batch-11/W7-preferences (rc1-battery-1, candidate 4c6dfe8c) | 1 | 0 | 1 | 0 | 0 | 0 |
+| set-55 | batch-11/W8-frontend-visual (rc1-battery-1, candidate 4c6dfe8c) | 4 | 2 | 2 | 0 | 0 | 0 |
+| set-56 | batch-12/W1-w1 (set-56) | 3 | 3 | 0 | 0 | 0 | 0 |
+| set-57 | batch-12/W2-w2 (set-57) | 3 | 3 | 0 | 0 | 0 | 0 |
+| set-58 | batch-12/W3-w3 (set-58) | 2 | 2 | 0 | 0 | 0 | 0 |
+| set-59 | batch-12/W4-w4 (set-59) | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-60 | batch-12/W5-w5 (set-60) | 3 | 3 | 0 | 0 | 0 | 0 |
+| set-61 | batch-12/W6-w6 (set-61) | 2 | 2 | 0 | 0 | 0 | 0 |
+| set-62 | batch-12/W7-w7 (set-62) | 2 | 2 | 0 | 0 | 0 | 0 |
+| set-63 | batch-12/W8-w8 (set-63) | 3 | 2 | 1 | 0 | 0 | 0 |
+| set-64 | batch-13/W2-w2 | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-65 | batch-13/W3-w3 | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-66 | batch-14/W1-w1 | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-67 | batch-16/W1 | 2 | 2 | 0 | 0 | 0 | 0 |
+| set-68 | batch-17/W1-w1 | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-69 | batch-18/W1-agent-runtime-citation-guard (rc1-battery-7) | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-70 | batch-18/W2-nse-emerge-sm-identity (rc1-battery-7) | 1 | 1 | 0 | 0 | 0 | 0 |
+| set-71 | unplanned-1 (rc1-battery-7) | 1 | 1 | 0 | 0 | 0 | 0 |
+| **Total** | | **391** | **326** | **42** | **4** | **18** | **0** |
 
-## Data-pack section
+**0 `regressed` verdicts found anywhere in the 72-set battery.** Total rows (391) matches `INDEX.json`'s `fixed_total: 391` exactly.
 
-Full detail: `rc1/DATAPACK.md`. Summary (from that file, not re-derived here):
+## Battery coverage: fixed ids with no raw file on disk
 
-- Candidate `4097dac4`, own sidecar on a fresh `rc1-seed-data` copy, port 52313; all 24 battery slots re-collected via `scripts/r15/collect_battery.py --force`, raw output in `rc1/battery/collected/`, full re-diff in `rc1/datapack.json`.
-- 38 register-fixed entries across 21 battery symbols re-diffed for drift; the great majority of prior `match` cells still match once unit/scale normalization is applied.
-- `results_calendar` flipped 502→200 broadly across P/S slots — a positive, unattributed-to-one-id improvement, not filed as a finding.
-- 3 findings filed: `rc1-datapack:1` (new_defect, high — negative-EPS P/E fallback served as `status:ok`), `rc1-datapack:2` (environment, medium — bidirectional `/disclosures/shareholding` 200↔502 flakiness), `rc1-datapack:3` (environment, low — P6/P18 fundamentals nulled by this sidecar's own concurrent Yahoo circuit-breaker churn).
+Checked: for every fixed id listed under each set in `battery/INDEX.json`, searched `battery/raw/set-*/` globally (not just the raw dir nominally matching that set's own number, since several ids' raw output is filed under a different raw/set-N than their battery/set-N.md row — e.g. `R15-LEAD-018`/`R15-UI-010` (batch-10/W1, set-40) actually sit in `raw/set-41/`) for a `<id>*.txt`/`<id-without-R15->*` file.
+
+**80 of 391 fixed ids have no matching raw file anywhere in `battery/raw/`.** Battery status: **incomplete** (never scored as a blanket "pass" per instruction).
+
+### Missing ids by shard
+
+
+**Shard 0** — 13 missing:
+
+| id | set | reason |
+|---|---|---|
+| R15-AGENT-050 | batch-10/W1-runtime-backtest | code-level check only in set-40.md (no raw capture produced): "Read `sidecar/services/llm/anthropic.py` (`_split_system_and_messages`) an... |
+| R15-UI-011 | batch-10/W1-runtime-backtest | code-level check only in set-41.md (no raw capture produced): "grep `src/modules/backtest/BacktestPanel.tsx`/`.test.tsx`...." |
+| R15-AGENT-088 | batch-10/W5-chat-search-workflow | code-level check only in set-44.md (no raw capture produced): "grep `src/modules/chat/slash-commands.test.ts`...." |
+| R15-UI-027 | batch-10/W5-chat-search-workflow | code-level check only in set-45.md (no raw capture produced): "grep `src/store/keybindings.ts`/`.test.ts`...." |
+| R15-UI-024 | batch-10/W6-chart-notes-blueprint | code-level check only in set-45.md (no raw capture produced): "grep `src/modules/notes/NotesToolbar.tsx`/`.test.tsx`...." |
+| R15-DATA-077 | batch-10/W7-panels-marketplace | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-028 | batch-10/W7-panels-marketplace | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-FRONTEND-001 | batch-2/W4-workspace-persistence | code-level check only in set-3.md (no raw capture produced): "grep `src/lib/workspace.test.ts` for the committed pin...." |
+| R15-CODE-FRONTEND-005 | batch-2/W4-workspace-persistence | code-level check only in set-3.md (no raw capture produced): "grep `src/lib/workspace.test.ts`...." |
+| R15-CODE-FRONTEND-018 | batch-2/W4-workspace-persistence | code-level check only in set-3.md (no raw capture produced): "grep `src/lib/workspace.test.ts`...." |
+| R15-LIFECYCLE-002 | batch-2/W4-workspace-persistence | code-level check only in set-3.md (no raw capture produced): "grep `src/lib/workspace.test.ts`...." |
+| R15-LIFECYCLE-003 | batch-2/W4-workspace-persistence | code-level check only in set-3.md (no raw capture produced): "grep `src/lib/workspace.test.ts`...." |
+| R15-LIFECYCLE-009 | batch-2/W4-workspace-persistence | code-level check only in set-3.md (no raw capture produced): "grep `src/lib/workspace.test.ts`...." |
+
+**Shard 2** — 18 missing:
+
+| id | set | reason |
+|---|---|---|
+| R15-LEAD-007 | batch-4/W1-agent-runtime | id not found in any set-*.md table row (no repro record at all) |
+| R15-LEAD-008 | batch-4/W1-agent-runtime | id not found in any set-*.md table row (no repro record at all) |
+| R15-AGENT-015 | batch-4/W2-workflow-backtest-feeds | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-FRONTEND-006 | batch-4/W2-workflow-backtest-feeds | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-PLATFORM-002 | batch-4/W2-workflow-backtest-feeds | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-PLATFORM-003 | batch-4/W2-workflow-backtest-feeds | id not found in any set-*.md table row (no repro record at all) |
+| R15-AGENT-029 | batch-4/W3-chat-runs-mcp | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-AGENT-002 | batch-4/W3-chat-runs-mcp | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-FRONTEND-002 | batch-4/W3-chat-runs-mcp | code-level check only in set-6.md (no raw capture produced): "grep `abort`/`AbortController` in `ChatSidebar.tsx`/`.test.tsx`..." |
+| R15-CODE-PLATFORM-037 | batch-4/W3-chat-runs-mcp | id not found in any set-*.md table row (no repro record at all) |
+| R15-DATA-083 | batch-4/W3-chat-runs-mcp | id not found in any set-*.md table row (no repro record at all) |
+| R15-LIFECYCLE-005 | batch-4/W3-chat-runs-mcp | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-FRONTEND-020 | batch-4/W5-panels-screener | id not found in any set-*.md table row (no repro record at all) |
+| R15-DATA-093 | batch-4/W5-panels-screener | id not found in any set-*.md table row (no repro record at all) |
+| R15-LIFECYCLE-007 | batch-4/W5-panels-screener | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-003 | batch-4/W5-panels-screener | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-005 | batch-4/W5-panels-screener | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-007 | batch-4/W5-panels-screener | id not found in any set-*.md table row (no repro record at all) |
+
+**Shard 3** — 14 missing:
+
+| id | set | reason |
+|---|---|---|
+| R15-AGENT-058 | batch-5/W1-india-disclosures-agent | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-RESEARCH-001 | batch-5/W1-india-disclosures-agent | id not found in any set-*.md table row (no repro record at all) |
+| R15-DATA-097 | batch-5/W2-resolver-market-data | id not found in any set-*.md table row (no repro record at all) |
+| R15-LEAD-009 | batch-5/W2-resolver-market-data | id not found in any set-*.md table row (no repro record at all) |
+| R15-LEAD-011 | batch-5/W2-resolver-market-data | id not found in any set-*.md table row (no repro record at all) |
+| R15-AGENT-025 | batch-5/W3-agent-runtime-chat | id not found in any set-*.md table row (no repro record at all) |
+| R15-AGENT-031 | batch-5/W3-agent-runtime-chat | id not found in any set-*.md table row (no repro record at all) |
+| R15-RESEARCH-014 | batch-5/W3-agent-runtime-chat | id not found in any set-*.md table row (no repro record at all) |
+| R15-AGENT-059 | batch-5/W4-platform-workflow-boundary | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-AGENT-012 | batch-5/W4-platform-workflow-boundary | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-PLATFORM-005 | batch-5/W4-platform-workflow-boundary | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-PLATFORM-019 | batch-5/W4-platform-workflow-boundary | id not found in any set-*.md table row (no repro record at all) |
+| R15-LEAD-001 | batch-5/W4-platform-workflow-boundary | id not found in any set-*.md table row (no repro record at all) |
+| R15-LEAD-003 | batch-5/W4-platform-workflow-boundary | id not found in any set-*.md table row (no repro record at all) |
+
+**Shard 4** — 5 missing:
+
+| id | set | reason |
+|---|---|---|
+| R15-CODE-AGENT-033 | batch-14/W1-agent-runtime-ratio-guard | id not found in any set-*.md table row (no repro record at all) |
+| R15-AGENT-051 | batch-6/W3-unattended-platform-chart | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-FRONTEND-015 | batch-6/W3-unattended-platform-chart | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-FRONTEND-007 | batch-6/W5-host-actions-portfolio | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-FRONTEND-010 | batch-6/W5-host-actions-portfolio | id not found in any set-*.md table row (no repro record at all) |
+
+**Shard 5** — 14 missing:
+
+| id | set | reason |
+|---|---|---|
+| R15-LEAD-032 | batch-16/W1-one-writer-set | id not found in any set-*.md table row (no repro record at all) |
+| R15-LIFECYCLE-013 | batch-7/W2-delegate-runs-runtime | code-level check only in set-18.md (no raw capture produced): "Source read `sidecar/services/run_manager.py:401,554`..." |
+| R15-UI-040 | batch-7/W2-delegate-runs-runtime | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-FRONTEND-017 | batch-7/W3-unattended-chart-workspace | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-FRONTEND-019 | batch-7/W3-unattended-chart-workspace | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-026 | batch-7/W3-unattended-chart-workspace | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-031 | batch-7/W3-unattended-chart-workspace | id not found in any set-*.md table row (no repro record at all) |
+| R15-RESEARCH-023 | batch-7/W4-research-funnel | id not found in any set-*.md table row (no repro record at all) |
+| R15-RESEARCH-033 | batch-7/W4-research-funnel | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-017 | batch-7/W5-agent-writes-portfolio | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-034 | batch-7/W5-agent-writes-portfolio | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-035 | batch-7/W5-agent-writes-portfolio | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-036 | batch-7/W5-agent-writes-portfolio | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-037 | batch-7/W5-agent-writes-portfolio | id not found in any set-*.md table row (no repro record at all) |
+
+**Shard 6** — 13 missing:
+
+| id | set | reason |
+|---|---|---|
+| R15-LEAD-031 | batch-17/W1-one-writer-set | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-PLATFORM-011 | batch-8/W1-sidecar-lifecycle-transport | id not found in any set-*.md table row (no repro record at all) |
+| R15-LIFECYCLE-010 | batch-8/W1-sidecar-lifecycle-transport | id not found in any set-*.md table row (no repro record at all) |
+| R15-RESEARCH-032 | batch-8/W1-sidecar-lifecycle-transport | id not found in any set-*.md table row (no repro record at all) |
+| R15-AGENT-056 | batch-8/W2-provider-readiness-host | id not found in any set-*.md table row (no repro record at all) |
+| R15-AGENT-081 | batch-8/W2-provider-readiness-host | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-013 | batch-8/W2-provider-readiness-host | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-019 | batch-8/W2-provider-readiness-host | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-049 | batch-8/W2-provider-readiness-host | id not found in any set-*.md table row (no repro record at all) |
+| R15-UI-057 | batch-8/W2-provider-readiness-host | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-DATA-002 | batch-8/W4-resolver-exchange-lanes | id not found in any set-*.md table row (no repro record at all) |
+| R15-CODE-DATA-003 | batch-8/W4-resolver-exchange-lanes | id not found in any set-*.md table row (no repro record at all) |
+| R15-LIFECYCLE-022 | batch-8/W4-resolver-exchange-lanes | id not found in any set-*.md table row (no repro record at all) |
+
+**Shard 7** — 3 missing:
+
+| id | set | reason |
+|---|---|---|
+| R15-CODE-FRONTEND-016 | batch-9/W5-frontend-shell | row exists in set-39.md but no matching raw file found: "test file presence: `src/store/command-palette.test.ts` (dispatcher coverage of ... |
+| R15-CROSS-PLATFORM-004 | batch-9/W5-frontend-shell | row exists in set-39.md but no matching raw file found: "test file presence: `src/store/command-palette.test.ts` (layout corpus, `MENU_PA... |
+| R15-UI-058 | batch-9/W5-frontend-shell | row exists in set-24.md but no matching raw file found: "Source read: `src/components/SettingsPanel.tsx` `SettingsExport`/`buildSettingsE... |
+
+Of the 80 missing, ~15 are explicitly code-level-only checks (in-process/code-read/grep/pytest, no raw HTTP/probe file was ever produced by design) — those are not a gap in verification, just in the raw-file artifact. The remaining ~65 have no repro row in any `set-*.md` table at all under their nominal id — a genuine coverage gap, consistent with `rc1-verifier:19`'s independent finding ("Fixed-name battery has no raw output for 160 of 376 fixed ids... raw set-12 and set-46 are empty, and no findings file exists for battery workers 3 and 5") in `findings/rc1-verifier.json` — same class of gap, different count (that check used a different fixed-id universe/method); both agree the raw-evidence coverage of the fixed-id battery is incomplete, not exhaustive.
+
+---
+
+# Data-pack re-collection (from DATAPACK.md)
+
+# RC1 data-pack re-collection (rc1-datapack), gate round 2
+
+Candidate sha `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`. This replaces the DATAPACK.md/
+datapack.json that were on disk before this run, which were from an **earlier** RC1
+candidate (`4097dac4`, gate round 1, 2026-09-25) — a different sha.
+
+Own sidecar booted from `rc1-cand/sidecar` on a fresh copy of `rc1-seed-data` (isolated,
+keyless), port 52313. Ran `scripts/r15/collect_battery.py --port 52313 --force` from a
+minimal copy tree (`scratchpad/rc1-pack`) so the census baseline in
+`docs/redesign/verification/r15/battery/collected/` was never overwritten. All 24 battery
+slots collected; raw output copied to `r15/rc1/battery/collected/`.
+
+**Environment note:** this sidecar's own background `fundamentals_warm` cache job hammered
+Yahoo concurrently with the collector (repeated 429s, one observed 56s circuit-open window
+during P15 SUMAX). Self-inflicted noise from a freshly-booted sidecar, not a product defect
+— matches the same class already on record from gate round 1.
+
+## Method
+
+Two passes, per the task brief:
+
+1. **Targeted**: 42 fixed register entries whose repro/evidence names a battery symbol
+   (word-boundary match against the register, not substring — substring matching
+   over-counts on common words like SAFE/ICON/CSL). 10 symbols implicated: AMAL, DAL, SIFY,
+   DHANBANK, SMR, JNPR, ELCIDIN, SUMAX, VIYASH, CREST. Re-ran each entry's own stated repro
+   live against the rc1 candidate and read `field_meta` (status/reason), not just the raw
+   value, since several of these entries were fixed by adding a cross-check gate rather than
+   changing the number.
+2. **Broad**: `scratchpad/rc1-pack/redo_diff.py` (scratch, not committed) flattens the fresh
+   rc1 collected JSON and looks up every census-time `match` field (from
+   `docs/redesign/verification/r15/battery/diffs/*.json`) against the same outside/pack
+   value the census diff already recorded, across all 24 slots. Output:
+   `r15/rc1/rediff_out.json`.
+
+## Targeted re-diff: 20 of 42 fixed entries re-probed directly
+
+18 hold as fixed (DATA-002, 004, 005, 006, 013, 014, 017, 018, 052, 057, 059, 060,
+LEAD-011, LEAD-015, LEAD-028 for its certified routes; DATA-003/022 inconclusive — BSE's
+own shareholding index returned 403 Forbidden for every BSE-only symbol this run, not just
+the entries' symbols, so this is an upstream block, not a symbol-specific regression). The
+remaining 22 fixed entries (portfolio-agent flows, statement-depth/pledge/corporate-action
+gaps, field-meta cosmetics) were not individually re-probed this pass — see
+`docs/redesign/verification/r15/rc1/datapack.json` `not_individually_re-verified_this_pass`.
+
+**2 regressions found** (both previously "fixed", both fail on their own original repro):
+
+### R15-DATA-008 (SIFY currency mislabel) — still broken
+
+`GET /fundamentals/SIFY` on the rc1 candidate returns the exact same numbers the original
+defect cited: `revenue_ttm: 46506049536.0`, `net_income_ttm: -912369984.0`, top-level
+`currency: "USD"`. The fix added a separate `financial_currency: "INR"` field and correctly
+withholds `price_to_sales` ("mixes bases... withheld"), but `revenue_ttm`/`net_income_ttm`
+still carry `status: "ok"`, no `reason`, and are not gated the same way — so a consumer that
+reads `currency` next to `revenue_ttm` (exactly what `EquityOverviewPanel.tsx` and
+`brief-blocks.tsx` do, per the entry's own root-cause note) still sees "$46.5B revenue" for
+a ~$492M company. The register's own batch-23 note already flagged this exact suspicion
+("may have resurfaced or is incompletely fixed... not independently re-verified") — this
+drive confirms it live on the current candidate.
+
+### R15-DATA-058 (SIFY (ADR) name-search ranking) — still broken
+
+`GET /resolve?q=Sify+Technologies+Ltd+(ADR)` now includes SIFY in the candidate list
+(previously it was excluded entirely by the 6-candidate cap) — a partial improvement — but
+SIFY (confidence 0.913, the highest score in the list) still sorts **last**, behind five
+weaker Indian-locale matches (ASMTEC 0.80, IKOMA/EMIAC/RELICTEC/7TEC ~0.766). The fix_shape
+called for score to dominate locale "beyond a margin" in the fuzzy band; an 11-point margin
+between the top and bottom scores is not a small one, and the ranking still buries the
+correct answer.
+
+## Broad scan: 13 slots flagged, all explained as mapper artifacts, zero real regressions
+
+`redo_diff.py`'s heuristic field-path mapper flagged 13 slots. Every flag inspected by hand
+is one of: pack figures in INR crore vs rc1's raw-rupee scale (`revenue_ttm` on
+VIYASH/JNPR/CHTR/ICON/JUMBO/AMAL/SMR/VERTEX), pack percent-scale vs rc1 decimal-scale
+(`roe`/`debt_to_equity` on the same slots), a sector-label variant ("Financials" vs
+"Financial Services" on CSL), or fields the app now correctly serves null/withheld
+(JONJUA `debt_to_equity`, ONC's US-only fields). None is a genuine value change once
+rescaled — consistent with the mapper's documented limitation (field paths in
+`BATTERY_DIFFS.md` are prose, not JSON pointers).
+
+## Not filed (price-like / as-of skew)
+
+Per task instruction, no price-derived drift (P/E, P/B, market cap, 52-week range) was
+filed regardless of direction — none of the 10 implicated symbols showed anything beyond
+ordinary 1-week movement on those fields.
+
+
+---
+
+See `docs/redesign/verification/r15/rc1/findings/rc1-datapack.json` for the 3 findings this pass filed (2 regressions — R15-DATA-008 critical, R15-DATA-058 medium — 1 environment note).

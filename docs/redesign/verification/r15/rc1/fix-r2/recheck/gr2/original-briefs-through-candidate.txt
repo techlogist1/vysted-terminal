@@ -1,0 +1,46 @@
+=== 1-deep-bdl-4omini.stdout.txt publish_brief sources=32 removed=7 bib/literal=0
+ non-[n] bracket tokens IN : ['[= (52w high - price) / 52w high]', '[New findings]', '[basis: fraction of price]', '[basis: trailing 52 weeks]']
+ non-[n] bracket tokens OUT: ['[= (52w high - price) / 52w high]', '[basis: fraction of price]', '[basis: trailing 52 weeks]']
+ BACKEND: - **Profit Margin**: 18.83%, with a gross margin of 47.92% and an operating margin of 10.98%.
+ BACKEND: - **Earnings per Share (EPS) Growth**: Expected to increase by approximately 5.47% year-over-year as of June 30, 2026.
+ BACKEND: ## Order Book and Future Projections
+ BACKEND: - **Current Order Book**: Stands at ₹24,000 crore (approximately $3.1 billion) as of September 2023.
+ BACKEND: - **Dividend per Share**: ₹4.90.
+ BACKEND: - **Dividend Yield**: 0.43% [basis: fraction of price].
+ BACKEND: - **52-Week Price Change**: -22.89% [basis: trailing 52 weeks].
+=== 1-deep-bdl-4omini.stdout.txt publish_brief sources=5 removed=0 bib/literal=0
+ non-[n] bracket tokens IN : []
+ non-[n] bracket tokens OUT: []
+ BACKEND: - **Profit Margin**: 18.83%, with a gross margin of 47.92% and an operating margin of 10.98%.
+ BACKEND: - **Earnings per Share (EPS) Growth**: Expected to increase by approximately 5.47% year-over-year as of June 30, 2026.
+ BACKEND: ## Order Book and Future Projections
+ BACKEND: - **Current Order Book**: Stands at ₹24,000 crore (approximately $3.1 billion) as of September 2023.
+ BACKEND: - **Dividend per Share**: ₹4.90.
+=== 3-ultra-kaynes-4omini.stdout.txt publish_brief sources=8 removed=0 bib/literal=0
+ non-[n] bracket tokens IN : ['[2, 3]', '[2, 4]']
+ non-[n] bracket tokens OUT: []
+ BACKEND: - **Net Profit**: ₹564.26 million, a decline from ₹746.12 million in Q2 2025, reflecting profitability challenges with a profit margin of **5.87%** [2][3].
+ BACKEND: - **Price-to-Earnings (P/E) Ratio**: Approximately **71.23** [2][3].
+ BACKEND: - Analyst projections and peer performance metrics remain unavailable, warranting additional research into competitive positioning [2][4].
+=== 1-deep-bdl-4omini.stdout.txt publish_brief sources=32 broken=7
+ non-[n] tokens OUT: ["[= (52w high - price) / 52w high]","[?]","[basis: fraction of price]","[basis: trailing 52 weeks]"]
+ FRONTEND: - **Profit Margin**: 18.83%, with a gross margin of 47.92% and an operating margin of 10.98% [?].
+ FRONTEND: - **Forward P/E Ratio**: Projected at 37.49 for the fiscal year ending March 31, 2027 [?].
+ FRONTEND: - **Earnings per Share (EPS) Growth**: Expected to increase by approximately 5.47% year-over-year as of June 30, 2026 [?].
+ FRONTEND: ## Order Book and Future Projections
+ FRONTEND: - **Current Order Book**: Stands at ₹24,000 crore (approximately $3.1 billion) as of September 2023 [?].
+ FRONTEND: - **Projected Revenue**: For the fiscal year ending March 31, 2027, BDL is projected to generate revenue of ₹27.66 billion [?].
+ FRONTEND: - **Total Operating Expenses**: Reported at ₹51,004.84 million as of March 31, 2026, which includes ₹18,789.82 million for materials and ₹13,637.47 million for employee benefits [6][?].
+ FRONTEND: - **Dividend per Share**: ₹4.90 [?].
+ FRONTEND: - **Dividend Yield**: 0.43% [basis: fraction of price].
+ FRONTEND: - **52-Week Price Change**: -22.89% [basis: trailing 52 weeks].
+=== 1-deep-bdl-4omini.stdout.txt publish_brief sources=5 broken=0
+ non-[n] tokens OUT: []
+ FRONTEND: - **Profit Margin**: 18.83%, with a gross margin of 47.92% and an operating margin of 10.98%.
+ FRONTEND: - **Earnings per Share (EPS) Growth**: Expected to increase by approximately 5.47% year-over-year as of June 30, 2026.
+ FRONTEND: ## Order Book and Future Projections
+ FRONTEND: - **Current Order Book**: Stands at ₹24,000 crore (approximately $3.1 billion) as of September 2023.
+ FRONTEND: - **Dividend per Share**: ₹4.90.
+=== 3-ultra-kaynes-4omini.stdout.txt publish_brief sources=8 broken=0
+ non-[n] tokens OUT: []
+ FRONTEND: - **Price-to-Earnings (P/E) Ratio**: Approximately **71.23** [2][3].

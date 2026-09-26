@@ -1,26 +1,32 @@
-# RC1 fix round 2: recheck
+# RC1 gate round 2, fix round 2: recheck
 
-Rechecker: rc1-fix-r2-recheck (Opus 5.5). Candidate `1d6511c89bb27f1785f7af4d2290983b2852d70a`.
-Everything was run from the running app on my own sidecar: source in `scratchpad/rc1-4097dac-fix-int`
-(clean), port `:52337`, on a fresh keyless seed copy (`rc1-data-rc1-fix-r2-recheck`). The sidecar
-was stopped when I finished (sleep pid 89074). I did not use the shared stack for writes. In-process
-checks used the candidate venv with `PYTHONDONTWRITEBYTECODE=1` and wrote nothing to the worktree.
-Evidence is in `fix-r2/recheck/`. Working log: `logs/rc1-fix-r2-recheck.md`. Findings:
-`findings/rc1-fix-r2-recheck.json`.
+Rechecker: rc1-fix-r2-recheck (Opus 5.5, fresh). Candidate `81fbfe910d472ecd154fa62e42d86bce213a697e`.
+I ran everything from the running app on my own sidecar. The source was
+`scratchpad/rc1-4c6dfe8-fix-int` (clean, read-only), on port `:52337`, with a fresh keyless seed copy
+(`rc1-data-rc1-fix-r2-recheck`). I stopped the sidecar at the end (sleep pid 84426), and `:52337` is
+free. For the in-process checks I used the candidate venv (`PYTHONDONTWRITEBYTECODE=1`) and node
+v24 type-strip of the candidate `brief-ingest.ts`. Nothing was written to the worktree. Evidence is
+in `fix-r2/recheck/gr2/`. Log: `logs/rc1-fix-r2-recheck.md`. Findings:
+`findings/rc1-fix-r2-recheck.json`. (The previous round-2 recheck of `1d6511c8` is in git at
+`b2cfbb68`, with its findings under `findings/round-1/`.)
 
-**Result: 0 fixed and 2 still failing.** In both, the mechanism the writers fixed is closed, but a
-model-capability half that the triage scoped out still reproduces the harm. The recheck also found
-1 low new defect (a residue of the W2 fix) and 1 environment item.
+**Result: 0 fixed, 1 still failing.**
 
 | key | repro | observed | verdict |
 |---|---|---|---|
-| rc1-scenarios:5 | Exact prompt "How many ordinary shares does one SIFY ADR represent, and what is SIFY's TTM revenue in USD?". (a) OR `nvidia/nemotron-3-super-120b-a12b:free` ×3 (the finding's model). (b) llama3.1:8b ×2 (the finding's cross-model confirmation). (c) In-process `_model_facing_content('financial_statements', …)` for SIFY, plus fresh class variants WIT, INFY, INFY.NS and AAPL. (d) Live fresh variant: WIT income on llama. | (a) Runs 1 and 2 hit an upstream Nvidia 5xx (environment). Run 3: "One SIFY ADR represents **6 ordinary shares**" (web-sourced), revenue "₹4,651 cr", and no USD guess. The exact repro no longer reproduces. (b) Run 1: the ADR question was declined honestly, and revenue was given in INR, but a ₹13,444 cr cash-flow reading was called revenue. Run 2: "**SIFY ADR represents 1 ordinary share.** SIFY's TTM revenue is ₹4,651 cr." The ADR fabrication reproduces. (c) SIFY income comes back with `currency: INR`, and `total_revenue` 44877000000.0 becomes `₹4,488 cr`. WIT is INR, INFY is USD (its `financial_currency`) and AAPL is USD. EPS and share-count lines stay raw. (d) "₹92,624 crore … net income ₹13,197 crore … INR", which matches the served lines. A sweep of the `agent_tools` siblings found only the earnings estimate, already filed as rc1-fix-r2-triage:1. | **still failing.** The currency or USD mislabel is fixed, and the class fix holds on the WIT and INFY variants. The ADR-ratio fabrication still reproduces on llama3.1:8b (1 of 2 runs). That half was scoped out as model capability, so the operator decides (rc1-fix-r2-recheck:1). |
-| rc1-drive-onboarding-stranger:1 | Keyless, llama3.1:8b, exact prompt "hi, I just installed this. what can you do, and how is Zomato stock doing today?" ×6. In-process `OllamaProvider` fed the original assistant text at chunk sizes 1, 3 and 7. Fresh variants: in-process JSON `news` leak and inline `fundamentals(...)` leak, each with fake results; live "hey, new here. how is Paytm stock doing today?" ×3. | In-process, the original text becomes one `price_data {symbol: ZOMATO.NS}`. None of `164.4`, the fake JSON or "As per the live data" is ever shown. The fresh leaks are rescued with their fake values dropped, and prose streams whole. Live, every leaked call in all 6 runs was held and rescued, and no hand-typed tool result streamed. Runs 2-5 were honest, and runs 3-4 quote ₹335.5, which is the served ETERNAL.NS price. Run 1 said "the last successful fetch showed a price of **₹149.30** … on 2023-12-01", but no such fetch happened. Run 6 said "Zomato (ETERNAL.NS) is currently trading at **₹128.05** … last price I have is ₹131.10"; it called ZEEL.NS, which was served at 78.17, and ETERNAL.NS is ₹335.5. Paytm ×3 gave no invented price. A dangling `{"name": "price_data` fragment shows in runs 1-4. | **still failing.** The leaked-call mechanism is fixed. In 2 of 6 exact runs an invented price is still presented as fetched, in prose with no call syntax. PLAN.md scoped that half out as model capability (rc1-fix-r2-recheck:2). New low defect: dangling marker fragment (rc1-fix-r2-recheck:3). |
+| rc1-drive-research-briefs:2 | Literal: the finding's tokens `[New findings]` (BDL) and `[2, 3]`/`[2, 4]` (Kaynes) through both candidate nets. The finding's own published BDL (32 sources) and Kaynes ULTRA (8 sources) markdown went through both nets. Live on :52337 via harness/turn.py: BDL DEEP gpt-4o-mini (`gr2/1-deep-bdl-4omini`), Kaynes ULTRA gpt-4o-mini (`gr2/2-ultra-kaynes-4omini`), and a fresh-symbol, fresh-provider Cochin Shipyard DEEP llama3.1:8b (`gr2/3-deep-cochin-llama`). Every bracket token in each live `publish_brief.markdown` was scanned (`gr2/live-published-scan.txt`), and the live escapes plus variants were run in-process through both nets (`gr2/fresh-backend-probe.txt`, `gr2/fresh-frontend-probe.txt`). | **Literal repro fixed.** `[New findings]` is stripped by the backend or becomes `[?]` in the frontend, and `[2, 3]`/`[2, 4]` becomes `[2][3]`/`[2][4]` (`gr2/backend-probe.txt`, `gr2/frontend-probe.txt`, `gr2/original-briefs-through-candidate.txt`). Ranges, mixed numeric groups and the enumerated labels resolve, and the must-survive brackets (`[basis: …]`, `[NSE: BDL]`, `[sic]`, `[the Company]`, links and definitions) stay byte-identical. The live BDL publish (8 sources) and Kaynes publish #2 (8 sources) are clean. **The claim does not hold on fresh cases from the same live run:** (1) Kaynes ULTRA publish #1 (13 sources) ships `[NSE filing, August 2026]` twice and `[NSE filing, August 2026; 2][3]`, and the real `[2]` inside that group never chips. (2) Cochin DEEP (llama, 7 sources) ships `[Structured: {'ok': True, 'count': 0, 'news': []}]`. That is the leaked `deep.py:987-994` "Structured (tool): …" prompt-block label, exactly the mechanism PLAN.md names ("the model cites the label of a prompt block it was shown"), but it is not in the enumerated family. Both nets leave all of them byte-identical (removed=0, broken=0). The variants `[Structured]`, `[Web evidence; 2]`, `[Source 2]`, `[Sources 2, 3]` and `[exchange disclosures]` behave the same way. | **still failing (not certified).** The title claim is that a bracketed group or prose pseudo-citation ships as literal, unresolved text in the published brief. That still holds on this candidate's live output. The fix enumerates one label spelling family and digit-only groups. It does not cover the class of bracketed citation-position tokens that don't resolve to the rail: a group that mixes a label and a marker, other prompt-block labels (`Structured`), and model-paraphrased source labels. Fresh repro: rc1-fix-r2-recheck:1. |
 
-Chain: `fix-r2/ci-local.log` ends `EXIT=0 2026-09-25T02:59:52Z`, and `fix-r2/smoke.log` has
-`SMOKE_EXIT=0 2026-09-25T02:55:29Z`, both at `1d6511c8` according to INTEGRATION.md. Nothing
-adjacent broke: prose without a call, and calls to tools that were not offered, stream unchanged.
-The INFY/AAPL USD statements still render in USD.
+**Chain.** `fix-r2/INTEGRATION.md` records everything at `81fbfe91`. The ci-local final run shows
+`EXIT=0 2026-09-26T03:42:36Z` (3603 passed, 1 skipped), smoke shows `SMOKE_EXIT=0
+2026-09-26T03:38:16Z`, and targeted vitest shows `VITEST_EXIT=0`.
 
-Environment: the OR nemotron free lane returned an upstream "Service temporarily overloaded" 5xx on
-2 of 3 runs (rc1-fix-r2-recheck:4).
+**Adjacent.** Nothing I can see broke. The in-range `[n]` chips are intact in every live publish,
+and the qualifier, ticker and editorial brackets survive.
+
+**Note.** This is the second fix round on this finding. The fix-r2 PLAN already applies the
+operator's three-failure rule to it, so the lead should decide whether this failure sends it to
+DECISIONS.
+
+**Environment note, not filed.** In Kaynes ULTRA, the post-publish chat turn ended with "Could
+not reach OpenAI: Request timed out" at 572 s. Both briefs had already published. I did not run a
+direct probe, so I have not classified it.

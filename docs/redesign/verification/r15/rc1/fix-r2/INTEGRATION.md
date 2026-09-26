@@ -1,49 +1,52 @@
-# RC1 fix round 2 — integration
+# RC1 fix round 2 (gate round 2): integration
 
-Integrator: rc1-fix-r2-int (Opus). Branch `worktree-agent-rc1-4097dac-fix-int`, base
-`b0f2b256` (round 1 head), head `1d6511c89bb27f1785f7af4d2290983b2852d70a` (pushed to origin).
-Worktree `scratchpad/rc1-4097dac-fix-int` (left in place).
+Integrator: rc1-fix-r2-int (Opus). Branch `worktree-agent-rc1-4c6dfe8-fix-int`, base `ca6ec990`
+(the round-1 head), head `81fbfe910d472ecd154fa62e42d86bce213a697e`, pushed to origin. The worktree
+`scratchpad/rc1-4c6dfe8-fix-int` is left in place. This file replaces the 25 Sep round-2 integration
+note for `1d6511c8`, which is in git at `b2cfbb68`.
 
-## Merges (PLAN.md order, `--no-ff`, no conflicts)
+## Merge (PLAN.md order, `--no-ff`, no conflicts)
 
 | Merge | Writer branch head | Items |
 |---|---|---|
-| `fcbc38d9` | W1-statements-currency `d4741bc6` | rc1-scenarios:5 (`d4741bc6`) |
-| `3fac7312` | W2-leaked-call-tail `54f28231` | rc1-drive-onboarding-stranger:1 (`54f28231`) |
-| `1d6511c8` | W3-overlay-cache `d004d6fd` | rc1-battery-4:1, repeat-run half (`d004d6fd`) |
+| `81fbfe91` | W1-citation-grammar-r2 `39585dc3` | rc1-drive-research-briefs:2 (`39585dc3`) |
 
-All three writer branches were based on `b0f2b256` and touched file-disjoint sets that match
-PLAN.md. Each diff was read before merge. W2 changed `test_leaked_text_tool_call_is_rescued` to
-the fixed behaviour (the rescued call text is now held, so the kinds are `tool_use, done`); its
-commit logs why, and `test_leaked_json_for_a_tool_not_offered_stays_text` is unchanged.
-Nothing was reverted, dropped or changed by the integrator. There were no integration fixes,
-because the first ci-local run was green. Before the full run, the targeted writer suites
-(`test_fundamentals_tool`, `test_agent_runtime`, `test_tool_call_rescue`, `test_llm_ollama`,
-`test_llm_openai`, `test_b7_exchange_financials`) passed with 180 tests (`targeted.log`).
+The writer branch was based on `ca6ec990` and touched exactly the five files PLAN.md names. I read
+the diff before merging it. The two regexes are byte-identical to PLAN.md in both `citecheck.py` and
+`brief-ingest.ts`, and range expansion is inclusive from the lower endpoint to the higher one. The
+round-1 tests are unchanged. The new pins are 2 pytest cases in `test_research_citecheck.py`, 1 in
+`test_research_iter.py` and 2 vitest cases in `brief-ingest.test.ts`. They include `[3—5]` with 4
+sources, which is the case the fix was not written against. Nothing was reverted or dropped, and
+there were no integration fixes. Before the full run, the targeted suites
+(`test_research_citecheck`, `test_research_iter`, `brief-ingest.test.ts`) passed: 46 pytest and 53
+vitest tests (`targeted.log`).
 
-## Verification (all at `1d6511c8`)
+## Verification (all at `81fbfe91`)
 
 | Gate | Result |
 |---|---|
-| `pnpm ci-local` run 1 (main sidecar rebuilt as STALE; the two MCP sidecars were current) | **EXIT=0** |
-| `node scripts/smoke-test-sidecars.mjs` | **SMOKE_EXIT=0** (02:55:29Z). 3 sidecars booted, 13 agents, MCP ready with 40 tools, openbb + sec-edgar bound, all children torn down |
-| `pnpm ci-local` run 2 (final) | **EXIT=0** (02:59:52Z) |
+| `pnpm install --frozen-lockfile` | EXIT=0 (`install.log`) |
+| `pnpm ci-local` run 1 (the main sidecar was rebuilt as STALE; both MCP sidecars were fresh) | **EXIT=0** (03:35:42Z) |
+| `node scripts/smoke-test-sidecars.mjs` | **SMOKE_EXIT=0** (03:38:16Z). 3 sidecars booted, the `/agents` roster had 13 agents, MCP was ready with 40 tools, openbb and sec-edgar bound, and all children were torn down |
+| `pnpm ci-local` run 2 (final; all three sidecars fresh) | **EXIT=0** (03:42:36Z) |
 
-Counts from the final run: vitest has 152 files and 1825 tests passed. cargo test has 19 passed
-across 3 suites. pytest has 3150 passed and 1 skipped (the pre-existing skip); round 1 had 3141,
-and the 9 new tests are the writers' pins. lint, prettier, tsc, cargo fmt, clippy `-D warnings`
-and ruff check/format all passed.
+Counts from the final run:
 
-Logs: `ci-local.log` (both runs appended, each ending in an `EXIT=` line), `smoke.log`,
-`install.log`, `targeted.log`.
+- vitest: 152 files, 1836 tests passed. Round 1 had 1834; the 2 new tests are W1's.
+- cargo test: 19 passed, plus 2 empty suites.
+- pytest: 3603 passed and 1 skipped (the pre-existing skip). Round 1 had 3600; the 3 new tests are
+  W1's.
+- lint, prettier (444 files), tsc, cargo fmt, clippy `-D warnings` and ruff check/format all passed.
 
-## Carried issues (from PLAN.md, not in any diff)
+Logs: `ci-local.log` has both runs appended, and each ends in an `EXIT=` line. Also `smoke.log`,
+`install.log` and `targeted.log`.
 
-- rc1-fix-r2-triage:1: the earnings estimate labels WIT's INR-sized revenue estimate as USD.
-- The `nse_provider` `_lock` is held across `session.get` and the pacing waits.
-- Model-capability limits: llama3.1:8b makes up a price in prose with no call written, and the
-  SIFY ADR ratio is fabricated.
-- The first-brief half of rc1-battery-4:1 is deferred (DECISIONS_FOR_OPERATOR §4.1).
-- W1's commit does not record the sweep PLAN.md asked for, a check that no other `agent_tools`
-  tool hands the model statement-size money without its currency. The next round should
-  confirm it.
+## Carried issues (not in the diff)
+
+- The integrator did not re-run PLAN.md's scratch acceptance check, the BDL brief through
+  `../fix-r1/recheck/gr2-original-bdl-brief-through-candidate`. That belongs to the recheck. The
+  committed pins already cover `[basis: trailing 52 weeks]` byte-identical with 0 counted broken, in
+  both nets.
+- `expand_marker_groups`/`expandMarkerGroups` has no upper bound on range width. A model-written
+  `[1-999]` expands to 999 markers before the range check strips all but the valid ones. The output
+  is correct but wasteful. This is outside the entry's scope and not observed in any run.

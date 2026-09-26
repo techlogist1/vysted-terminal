@@ -74,3 +74,59 @@ No canary/secret value was echoed by any response or logged.
 
 No regressions found (no census-`ok` row now scores worse). No new defects found in this drive beyond
 the register's existing open items for this group.
+
+## Gate-round-2 re-drive at candidate 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2 (26 Sep, this session)
+
+The 25-Sep pass above evidenced candidate `4097dac4`. Between that sha and the gate-round-2
+candidate `4c6dfe8c`, `git diff --stat 4097dac4 4c6dfe8c` shows exactly one file in this
+group's scope changed: `src/components/SettingsPanel.tsx` (+12/-0), commit `5109567e
+fix(platform): route Settings plugin-module toggles through the marketplace lifecycle
+(R15-CODE-PLATFORM-013)`. No other file this group depends on (`sidecar/routers/llm.py`,
+`sidecar/routers/news.py`, `sidecar/services/workspace_store.py`,
+`src/lib/plugin-bootstrap.ts`, `src/store/marketplace.ts`, `src/store/workspace.ts`,
+`src/components/PluginManagerPanel.tsx`, `src/modules/marketplace/*`) changed in that range.
+
+**R15-CODE-PLATFORM-013 was `fixed` in the register but carried a `note`**: an rc1
+refutation audit at `6741387b` found the fix `partial` — `SettingsPanel.tsx:1938-1941` called
+`useModulesStore.setModuleEnabled` directly for a bridged `plugin:<id>` module instead of
+routing through `useMarketplaceStore.enable/disable` (the lifecycle owner that also writes
+`plugins.db`), so a Settings "off" for a plugin-backed module was silently undone on the next
+plugin-bootstrap read of `plugins.db`. Commit `5109567e` (in the 4097dac4..4c6dfe8c range)
+fixes exactly this: `SettingsPanel.tsx` now special-cases `module.id.startsWith("plugin:")`
+and calls `useMarketplaceStore.getState().enable/disable(pluginId)` instead of
+`setModuleEnabled`.
+
+**Verified live**: ran `vitest run src/components/SettingsPanel.test.tsx` against the
+candidate worktree (`rc1-cand`, sha `4c6dfe8c`) — 52/52 tests pass, including the pinned
+regression test added for this fix ("toggling a bridged plugin module routes through the
+marketplace lifecycle, not setModuleEnabled directly", `SettingsPanel.test.tsx:145-169`),
+which spies on `useMarketplaceStore.disable` and asserts it (not `setModuleEnabled`) fires for
+the `vysted-example` module and that `enabled['plugin:vysted-example']` is never flipped
+directly by the Settings panel.
+
+**Re-confirmed unchanged (own sidecar `:52325`, fresh boot from `rc1-cand/sidecar`, same
+data dir as the 25-Sep pass, keyless)**:
+```
+$ curl -sX POST :52325/llm/keys/validate -d '{"provider":"openrouter","api_key":"sk-or-v1-R15CANARY-rc1recheck"}'
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+$ curl -s :52325/news/sources/status
+{"newsapi":"absent"}
+$ curl -sX POST :52325/plugins/vysted-example/config -d '{"installed":true,"enabled":false}'
+{"plugin_id":"vysted-example","enabled":false,"installed":true,...}
+$ curl -sX POST :52325/plugins/vysted-example/config -d '{"installed":true,"enabled":true}'   # restored
+{"plugin_id":"vysted-example","enabled":true,...}
+```
+All 6 previously-`ok` rows from the 25-Sep pass hold; no regression.
+
+**R15-UI-081 re-confirmed still open, not touched by this range**: `src/store/workspace.ts`
+`openPanel` (now at `:109-`) still only calls `useModulesStore.getState().findPanel(panelId)`,
+no read of the `enabled` map anywhere in the function — code unchanged between the two
+candidates for this file. This is a *different* defect from PLATFORM-013: PLATFORM-013 is
+about which store the Settings toggle itself writes to; UI-081 is about `openPanel`/host
+actions never consulting the `enabled` map at all, for ANY module (plugin-backed or not).
+Fixing PLATFORM-013 does not fix UI-081 — a disabled module's panel (plugin-backed or
+first-party) still opens via `ws.openPanel(...)`. Matches register status `open`, no
+regression.
+
+No new defects found. Own sidecar `:52325` stopped (sleep-pipe pid 70950) after this re-drive;
+shared `:52152` stack untouched.

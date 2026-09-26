@@ -1,0 +1,2 @@
+== validate ollama qwen3:8b (recommended local model) ==
+{"ok":true,"reason":null,"detail":null}

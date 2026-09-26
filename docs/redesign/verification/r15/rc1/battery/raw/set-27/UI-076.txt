@@ -1,0 +1,23 @@
+=== UI-076: first-launch default symbols vs region ===
+export function assetClassOf(symbol: string): SymbolEntry["assetClass"] {
+  return symbol.includes("/") ? "crypto" : "equity";
+}
+
+/** The pre-loaded first-launch symbol list (BLUEPRINT §5.1). */
+export const DEFAULT_SYMBOLS: SymbolEntry[] = [
+  { symbol: "SPY", assetClass: "equity" },
+  { symbol: "QQQ", assetClass: "equity" },
+  { symbol: "BTC/USDT", assetClass: "crypto" },
+  { symbol: "ETH/USDT", assetClass: "crypto" },
+  { symbol: "NVDA", assetClass: "equity" },
+  { symbol: "AAPL", assetClass: "equity" },
+];
+
+interface SymbolsState {
+  /** Tracked entries, in display order. */
+  entries: SymbolEntry[];
+  /** Add a symbol if not already tracked (case-insensitive de-dup). */
+  addSymbol: (symbol: string, assetClass: "equity" | "crypto") => void;
+  /** Remove a tracked symbol. */
+  removeSymbol: (symbol: string) => void;
+--- region default ---

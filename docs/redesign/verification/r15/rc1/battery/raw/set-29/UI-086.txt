@@ -1,0 +1,4 @@
+=== UI-086: command palette keyboard shortcut display ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/CommandPalette.tsx:14: * shortcuts) instead of the full corpus dump.
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/CommandPalette.tsx:475:      <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control border px-1 py-0.5">
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/components/CommandPalette.tsx:514:        <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control shrink-0 border px-1 py-0.5">

@@ -1,0 +1,4 @@
+=== AGENT-068: earnings_upcoming int('seven') error envelope ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_tools/earnings_tools.py:28:async def _earnings_upcoming(args: dict[str, Any]) -> dict[str, Any]:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_tools/earnings_tools.py:30:    days = int(args.get("days", 7) or 7)
+RAISED (uncaught, escapes to generic dispatch catch): ValueError invalid literal for int() with base 10: 'seven'

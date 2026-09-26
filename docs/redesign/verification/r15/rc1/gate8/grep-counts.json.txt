@@ -6,10 +6,10 @@
   "false_positive": 90
  },
  "sidecar": {
-  "total": 244,
+  "total": 255,
   "product": 0,
   "historical": 71,
-  "false_positive": 173
+  "false_positive": 184
  },
  "src-tauri": {
   "total": 3,
@@ -24,9 +24,9 @@
   "false_positive": 0
  },
  "docs": {
-  "total": 5414,
-  "product": 11,
-  "historical": 5401,
+  "total": 17765,
+  "product": 0,
+  "historical": 17763,
   "false_positive": 2
  }
 }

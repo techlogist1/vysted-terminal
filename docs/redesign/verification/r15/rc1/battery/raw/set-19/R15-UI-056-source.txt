@@ -1,0 +1,4 @@
+531:      if (frame.event === "progress") {
+544:      if (frame.event === "result") {
+551:      if (frame.event === "error") {
+611:      finish({ status: "error", error: "Stream ended without a result frame" });

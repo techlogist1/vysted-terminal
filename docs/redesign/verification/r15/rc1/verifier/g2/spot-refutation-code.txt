@@ -1,0 +1,75 @@
+# code reads at 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2 (git show / git grep; no worktree touched); 2026-09-26T12:33:04Z
+== AGENT-053 src/modules/news/NewsFeedPanel.tsx 118-150
+   118	      <a
+   119	        href={item.url}
+   120	        target="_blank"
+   121	        rel="noreferrer"
+   122	        onMouseEnter={() => onFocus(item.id)}
+   123	        onFocus={() => onFocus(item.id)}
+   124	        className="hover:bg-charcoal-850 flex flex-col gap-2 px-4 py-3 transition-colors"
+   125	      >
+   126	        <p className="text-charcoal-100 text-body leading-snug">{item.title}</p>
+   127	        {/* Meta row (R8 §3.4): the source truncates honestly, the sentiment
+   128	            chip never shrinks, and at widths where both can't share the line
+   129	            the row WRAPS to a second line — it never clips vertically. */}
+   130	        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+   131	          <span className="text-charcoal-500 text-caption min-w-0 flex-1 basis-32 truncate">
+   132	            {item.source}
+   133	            <span className="text-charcoal-500 mx-2">·</span>
+   134	            {relativeTime(item.published_at)}
+   135	          </span>
+   136	          <SentimentBadge item={item} />
+   137	        </div>
+   138	        {item.symbols.length > 0 ? (
+   139	          <div className="flex flex-wrap gap-1">
+   140	            {item.symbols.map((symbol) => (
+   141	              <span
+   142	                key={symbol}
+   143	                className="bg-charcoal-800 rounded-control text-micro text-charcoal-300 px-1 py-0.5"
+   144	              >
+   145	                {symbol}
+   146	              </span>
+   147	            ))}
+   148	          </div>
+   149	        ) : null}
+   150	      </a>
+== DATA-002 src/modules/watchlist/WatchlistPanel.tsx 286-291 and 434; src/store/symbols.ts 15-18
+  const pickCandidate = (symbol: string) => {
+    addSymbol(symbol, "equity");
+    setDraft("");
+    setAcOpen(false);
+    setAcActive(0);
+  };
+                      pickCandidate(c.symbol);
+export interface SymbolEntry {
+  symbol: string;
+  assetClass: "equity" | "crypto";
+}
+== CODE-PLATFORM-013 src/store/workspace.ts resetToDefaultLayout / setEnabledMap
+91:  resetToDefaultLayout: () => void;
+176:  resetToDefaultLayout: () => {
+184:    useModulesStore.getState().setEnabledMap({});
+== RESEARCH-015 sidecar/services/research/verify.py _row_domains + finance.domain_of
+4c6dfe8c:sidecar/services/research/verify.py:170:def _row_domains(rows: list[dict[str, Any]]) -> set[str]:
+4c6dfe8c:sidecar/services/research/verify.py-171-    """The distinct registrable hosts among the evidence rows."""
+4c6dfe8c:sidecar/services/research/verify.py-172-    domains: set[str] = set()
+4c6dfe8c:sidecar/services/research/verify.py-173-    for row in rows:
+4c6dfe8c:sidecar/services/research/verify.py-174-        host = finance.domain_of(str(row.get("url") or ""))
+4c6dfe8c:sidecar/services/research/verify.py-175-        if host:
+4c6dfe8c:sidecar/services/research/verify.py-176-            domains.add(host)
+4c6dfe8c:sidecar/services/research/verify.py-177-    return domains
+4c6dfe8c:sidecar/services/research/finance.py:139:def domain_of(url_or_domain: str) -> str:
+4c6dfe8c:sidecar/services/research/finance.py-140-    """The bare registrable-ish host of a URL or domain string, lowercased.
+4c6dfe8c:sidecar/services/research/finance.py-141-
+4c6dfe8c:sidecar/services/research/finance.py-142-    Strips the scheme, port, and a leading ``www.`` — enough normalization for
+4c6dfe8c:sidecar/services/research/finance.py-143-    the tier table without pulling in a public-suffix dependency.
+4c6dfe8c:sidecar/services/research/finance.py-144-    """
+4c6dfe8c:sidecar/services/research/finance.py-145-    text = (url_or_domain or "").strip().lower()
+4c6dfe8c:sidecar/services/research/finance.py-146-    if not text:
+4c6dfe8c:sidecar/services/research/finance.py-147-        return ""
+4c6dfe8c:sidecar/services/research/finance.py-148-    host = urlparse(text).netloc if "//" in text else text.split("/", 1)[0]
+4c6dfe8c:sidecar/services/research/finance.py-149-    host = host.split("@")[-1].split(":")[0]
+4c6dfe8c:sidecar/services/research/finance.py-150-    return host.removeprefix("www.")
+4c6dfe8c:sidecar/services/research/finance.py-151-
+== AGENT-010 sidecar/services/symbol_resolver.py yf.Search
+4c6dfe8c:sidecar/services/symbol_resolver.py:1574:        search = yf.Search(query, max_results=5, news_count=0)

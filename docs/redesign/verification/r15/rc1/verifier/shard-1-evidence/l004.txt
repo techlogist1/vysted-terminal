@@ -1,0 +1,22 @@
+provider nse_direct failed for ohlcv, falling through: nse_direct: historical row for 2026-09-25 lacks CH_OPENING_PRICE (payload shape changed)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-4c6dfe8-fix-int/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for ohlcv, falling through: nse_direct: historical row for 2026-09-25 lacks CH_TRADE_HIGH_PRICE (payload shape changed)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-4c6dfe8-fix-int/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for ohlcv, falling through: nse_direct: historical row for 2026-09-25 lacks CH_TRADE_LOW_PRICE (payload shape changed)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-4c6dfe8-fix-int/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+provider nse_direct failed for ohlcv, falling through: nse_direct: historical row for 2026-09-25 lacks CH_TOT_TRADED_QTY (payload shape changed)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-4c6dfe8-fix-int/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no explicit representation of timezones available for np.datetime64
+  return np.datetime64(dt)
+real rows 14
+CH_OPENING_PRICE nse_direct ProviderError: nse_direct: historical row for 2026-09-25 lacks CH_OPENING_PRICE (payload shape changed)
+   registry -> nse 27 bars flat 0 zerovol 0
+CH_TRADE_HIGH_PRICE nse_direct ProviderError: nse_direct: historical row for 2026-09-25 lacks CH_TRADE_HIGH_PRICE (payload shape changed
+   registry -> nse 27 bars flat 0 zerovol 0
+CH_TRADE_LOW_PRICE nse_direct ProviderError: nse_direct: historical row for 2026-09-25 lacks CH_TRADE_LOW_PRICE (payload shape changed)
+   registry -> nse 27 bars flat 0 zerovol 0
+CH_TOT_TRADED_QTY nse_direct ProviderError: nse_direct: historical row for 2026-09-25 lacks CH_TOT_TRADED_QTY (payload shape changed)
+   registry -> nse 27 bars flat 0 zerovol 0
+bse renamed vol -> ProviderError bse: bhavcopy header lacks the volume column(s) (file shape changed)

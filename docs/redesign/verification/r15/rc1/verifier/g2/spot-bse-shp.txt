@@ -1,0 +1,5 @@
+# BSE SHP index: plain httpx vs the provider's curl_cffi _api_json, run in-process at the 4c6dfe8c export; 2026-09-26T12:23:20Z
+plain httpx: 403 <HTML><HEAD> <TITLE>Access Denied</TITLE> </HEAD><BODY> <H1>Access Denied</H1>   You don't have permission to access "ht
+_api_json present: True
+sig: (path: 'str', params: 'dict[str, str]') -> 'object'
+_api_json (curl_cffi lane): dict {'Table': [{'yr': '2026 - 2027', 'qtrid': 130.0, 'qtr': 'June 2026', 'status': 'New', 'filing_date_time': '2026-07-17T15:39:06.967', 'revised_date_time': None, 'XbrlFile': '503681_177202615395_SHP.xml

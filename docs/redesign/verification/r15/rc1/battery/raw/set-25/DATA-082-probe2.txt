@@ -1,0 +1,4 @@
+provider ccxt failed for quote, falling through: ccxt ticker for binance:ZZZNOPRICE/USDT carries no last or close price
+provider ccxt failed for quote, falling through: correctness gate: non-positive price 0.0 for 'ZZZZERO/USDT' from 'ccxt:binance'
+PASS case1 (missing last/close -> no provider yields a valid quote): ProviderError ccxt ticker for binance:ZZZNOPRICE/USDT carries no last or close price
+PASS case2 (last=0,close=0 -> correctness gate rejects): correctness gate: non-positive price 0.0 for 'ZZZZERO/USDT' from 'ccxt:binance'

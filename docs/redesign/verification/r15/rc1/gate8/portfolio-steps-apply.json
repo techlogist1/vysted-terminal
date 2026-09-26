@@ -6,16 +6,14 @@
       "staged": "staged",
       "change": {
         "id": "change-1",
-        "toolCallId": "call_4cb2791d27a6482da818b64f6ccb18e2",
+        "toolCallId": "call_787ca3b3b41c45728c18c3eb504fb1af",
         "action": {
           "name": "portfolio_add_position",
           "input": {
-            "asset_class": "equity",
-            "cost_basis": 3500,
-            "note": "",
-            "purchased_at": "2026-09-24",
+            "purchased_at": "2023-12-01",
+            "symbol": "TCS",
             "quantity": 5,
-            "symbol": "TCS"
+            "cost_basis": 3500
           }
         },
         "intent": {
@@ -35,7 +33,7 @@
         "after": "Portfolio: +TCS ×5 @ ₹3,500 (3 total)",
         "status": "pending",
         "batchId": "gate8",
-        "createdAt": 1790293677597
+        "createdAt": 1790383800731
       }
     }
   },
@@ -46,7 +44,7 @@
       "res": "applied",
       "added": [
         {
-          "id": "h-da1ebaee-72bd-4478-bbc7-2b5ce09a1651",
+          "id": "h-233ea3ea-7d38-4eb3-a1b0-939b51266dd4",
           "symbol": "TCS",
           "quantity": 5,
           "costBasis": 3500,
@@ -55,7 +53,7 @@
       ],
       "after": [
         {
-          "id": "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
+          "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
           "symbol": "AAPL",
           "quantity": 8,
           "costBasis": 190,
@@ -63,7 +61,7 @@
           "note": "added on dip"
         },
         {
-          "id": "h-3d80897a-0672-40a2-a78e-253b6b5f693b",
+          "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
           "symbol": "INFY",
           "quantity": 20,
           "costBasis": 1500,
@@ -71,7 +69,7 @@
           "note": "Core IT holding, review after Q2 results"
         },
         {
-          "id": "h-da1ebaee-72bd-4478-bbc7-2b5ce09a1651",
+          "id": "h-233ea3ea-7d38-4eb3-a1b0-939b51266dd4",
           "symbol": "TCS",
           "quantity": 5,
           "costBasis": 3500,

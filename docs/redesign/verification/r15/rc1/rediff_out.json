@@ -1,0 +1,560 @@
+[
+  {
+    "slot": "P10",
+    "symbol": "VIYASH",
+    "n_match_fields_checked": 20,
+    "flips_non_price": [
+      {
+        "field": "debt_to_equity",
+        "census_status": "match",
+        "outside_value": 0.17,
+        "rc1_candidate_values": [
+          0.15724
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      },
+      {
+        "field": "revenue_ttm",
+        "census_status": "match",
+        "outside_value": 3575,
+        "rc1_candidate_values": [
+          31487200000.0
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "price.last_close",
+      "price.change_pct",
+      "pb",
+      "book_value_per_share",
+      "dividend.last_declared_per_share",
+      "shareholding.quarter (as-of)",
+      "shareholding.promoter_pct",
+      "shareholding.fii_pct",
+      "shareholding.dii_pct",
+      "shareholding.public_pct",
+      "corporate_actions_2026"
+    ]
+  },
+  {
+    "slot": "P12",
+    "symbol": "DHANBANK",
+    "n_match_fields_checked": 22,
+    "flips_non_price": [],
+    "no_value_found": [
+      "identity.legal_name",
+      "identity.nse_symbol",
+      "price.last_close",
+      "price.previous_close (derived: price - change)",
+      "price.change_pct",
+      "pe_ttm",
+      "pb",
+      "net_profit_ttm",
+      "eps_ttm",
+      "book_value_per_share",
+      "shareholding.quarter (as-of)",
+      "shareholding.promoter_pct (disclosures endpoint)",
+      "shareholding.fii_pct",
+      "shareholding.dii_pct",
+      "shareholding.public_pct",
+      "corporate_actions_2026"
+    ]
+  },
+  {
+    "slot": "P14",
+    "symbol": "JONJUA",
+    "n_match_fields_checked": 18,
+    "flips_non_price": [
+      {
+        "field": "debt_to_equity (+ as-of date)",
+        "census_status": "match",
+        "outside_value": 0.54,
+        "rc1_candidate_values": [
+          null
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "identity.nse_symbol",
+      "price.last_close (+ as-of date)",
+      "price.change_pct",
+      "pe_ttm (+ as-of date)",
+      "pb (+ as-of date)",
+      "eps_ttm (+ as-of date)",
+      "book_value_per_share (+ as-of date)",
+      "dividend.yield",
+      "shareholding.quarter (as-of)",
+      "shareholding.promoter_pct (disclosures endpoint)",
+      "last_3_announcements"
+    ]
+  },
+  {
+    "slot": "P15",
+    "symbol": "SUMAX",
+    "n_match_fields_checked": 2,
+    "flips_non_price": [],
+    "no_value_found": [
+      "identity.nse_symbol"
+    ]
+  },
+  {
+    "slot": "P17",
+    "symbol": "SIFY",
+    "n_match_fields_checked": 15,
+    "flips_non_price": [
+      {
+        "field": "roe",
+        "census_status": "match",
+        "outside_value": "n/a",
+        "rc1_candidate_values": [
+          -0.04818940389795595
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "identity.nse_symbol",
+      "pe_ttm",
+      "net_profit_ttm (raw value vs INR-native source)",
+      "revenue_growth_yoy (quarterly basis)",
+      "eps_ttm",
+      "consolidated_vs_standalone"
+    ]
+  },
+  {
+    "slot": "P18",
+    "symbol": "ONC",
+    "n_match_fields_checked": 18,
+    "flips_non_price": [
+      {
+        "field": "identity.bse_code",
+        "census_status": "match",
+        "outside_value": "null (not an Indian security)",
+        "rc1_candidate_values": [
+          null,
+          null,
+          null,
+          "524414",
+          null
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      },
+      {
+        "field": "roe",
+        "census_status": "match",
+        "outside_value": "14.66% (TTM net income / average equity basis)",
+        "rc1_candidate_values": [
+          null
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      },
+      {
+        "field": "revenue_ttm",
+        "census_status": "match",
+        "outside_value": "6,128,963,000 USD (summed filed quarters)",
+        "rc1_candidate_values": [
+          null
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.nse_symbol",
+      "price.last_close",
+      "pe_ttm",
+      "pb",
+      "net_profit_ttm",
+      "revenue_growth_yoy",
+      "eps_ttm",
+      "book_value_per_share",
+      "dividend.last_declared_per_share (+ record/ex date)",
+      "dividend.yield",
+      "week52.high",
+      "week52.low",
+      "shareholding.quarter"
+    ]
+  },
+  {
+    "slot": "P19",
+    "symbol": "AMAL",
+    "n_match_fields_checked": 1,
+    "flips_non_price": [],
+    "no_value_found": [
+      "identity.former_names"
+    ]
+  },
+  {
+    "slot": "P1",
+    "symbol": "JNPR",
+    "n_match_fields_checked": 14,
+    "flips_non_price": [
+      {
+        "field": "revenue_ttm",
+        "census_status": "match",
+        "outside_value": 849.3,
+        "rc1_candidate_values": [
+          8494620160.0
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "identity.nse_symbol",
+      "price.last_close",
+      "net_profit_ttm",
+      "revenue_growth_yoy",
+      "dividend.last_declared_per_share",
+      "dividend.paid_trailing_12m_per_share",
+      "dividend.yield",
+      "consolidated_vs_standalone"
+    ]
+  },
+  {
+    "slot": "P20",
+    "symbol": "SMR",
+    "n_match_fields_checked": 5,
+    "flips_non_price": [],
+    "no_value_found": [
+      "identity.nse_symbol",
+      "dividend.last_declared_per_share",
+      "dividend.record_or_ex_date",
+      "income_statement.fy2022_to_fy2025_annual_revenue_and_net_income",
+      "resolve.query_by_full_company_name (supplementary, not a pack field)"
+    ]
+  },
+  {
+    "slot": "P2",
+    "symbol": "DAL",
+    "n_match_fields_checked": 16,
+    "flips_non_price": [],
+    "no_value_found": [
+      "identity.legal_name",
+      "price.last_close (value)",
+      "pb",
+      "net_profit_ttm (fundamentals endpoint)",
+      "book_value_per_share",
+      "dividend.last_declared_per_share",
+      "dividend.record_or_ex_date",
+      "shareholding.quarter",
+      "shareholding.promoter_pct",
+      "shareholding.public_pct",
+      "last_3_announcements"
+    ]
+  },
+  {
+    "slot": "P3",
+    "symbol": "CHTR",
+    "n_match_fields_checked": 16,
+    "flips_non_price": [
+      {
+        "field": "roe",
+        "census_status": "match",
+        "outside_value": 19.2,
+        "rc1_candidate_values": [
+          0.19035
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      },
+      {
+        "field": "revenue_ttm",
+        "census_status": "match",
+        "outside_value": 84.22,
+        "rc1_candidate_values": [
+          842217984.0
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "identity.former_names",
+      "identity.nse_symbol",
+      "net_profit_ttm",
+      "book_value_per_share",
+      "shareholding.promoter_pct",
+      "shareholding.fii_pct",
+      "shareholding.dii_pct",
+      "corporate_actions_2026",
+      "last_3_announcements"
+    ]
+  },
+  {
+    "slot": "P5",
+    "symbol": "CSL",
+    "n_match_fields_checked": 16,
+    "flips_non_price": [
+      {
+        "field": "identity.sector",
+        "census_status": "match",
+        "outside_value": "Financials",
+        "rc1_candidate_values": [
+          "Financial Services"
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "identity.nse_symbol",
+      "price.last_close",
+      "pe_ttm",
+      "eps_ttm",
+      "dividend.yield",
+      "shareholding.quarter / as-of date",
+      "shareholding.promoter_pct",
+      "shareholding.public_pct",
+      "last_3_announcements"
+    ]
+  },
+  {
+    "slot": "P6",
+    "symbol": "ICON",
+    "n_match_fields_checked": 23,
+    "flips_non_price": [
+      {
+        "field": "revenue_ttm",
+        "census_status": "match",
+        "outside_value": 64.22,
+        "rc1_candidate_values": [
+          642427008.0
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.former_names",
+      "identity.nse_symbol",
+      "price.last_close",
+      "price.previous_close (derived from change)",
+      "price.change_pct",
+      "pb",
+      "net_profit_ttm",
+      "book_value_per_share",
+      "dividend.last_declared_per_share",
+      "shareholding.quarter (as-of)",
+      "shareholding.promoter_pct (Mar 2026)",
+      "shareholding.promoter_pct (Sep 2025, prior)",
+      "shareholding.fii_pct",
+      "shareholding.dii_pct (both periods)",
+      "shareholding.public_pct",
+      "corporate_actions_2026.postal_ballot",
+      "last_3_announcements[1].headline+date"
+    ]
+  },
+  {
+    "slot": "P7",
+    "symbol": "JUMBO",
+    "n_match_fields_checked": 14,
+    "flips_non_price": [
+      {
+        "field": "identity.industry",
+        "census_status": "match",
+        "outside_value": "Packaging (BSE IndustryNew: Capital Goods > Industrial Products > Packaging)",
+        "rc1_candidate_values": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      },
+      {
+        "field": "debt_to_equity",
+        "census_status": "match",
+        "outside_value": 0.85,
+        "rc1_candidate_values": [
+          0.86495
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      },
+      {
+        "field": "revenue_ttm",
+        "census_status": "match",
+        "outside_value": 130.02,
+        "rc1_candidate_values": [
+          1300210000.0
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "identity.nse_symbol",
+      "net_profit_ttm",
+      "shareholding.quarter",
+      "shareholding.promoter_pct",
+      "shareholding.dii_pct",
+      "shareholding.public_pct"
+    ]
+  },
+  {
+    "slot": "P9",
+    "symbol": "AMAL",
+    "n_match_fields_checked": 15,
+    "flips_non_price": [
+      {
+        "field": "revenue_ttm",
+        "census_status": "match",
+        "outside_value": 289,
+        "rc1_candidate_values": [
+          2888717056.0
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "price.last_close",
+      "net_profit_ttm",
+      "eps_ttm",
+      "book_value_per_share",
+      "dividend.last_declared_per_share",
+      "dividend.yield",
+      "shareholding.promoter_pct (disclosures/shareholding, BSE-sourced)",
+      "shareholding.dii_pct (disclosures/shareholding, BSE-sourced)"
+    ]
+  },
+  {
+    "slot": "S1",
+    "symbol": "DHOOTTRANS",
+    "n_match_fields_checked": 8,
+    "flips_non_price": [
+      {
+        "field": "debt_to_equity",
+        "census_status": "match",
+        "outside_value": 0.38,
+        "rc1_candidate_values": [
+          0.37713
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      },
+      {
+        "field": "revenue_ttm (consolidated)",
+        "census_status": "match",
+        "outside_value": "INR 5005.04 crore = 50050400000",
+        "rc1_candidate_values": [
+          50050420736.0
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "price.last_close (NSE)",
+      "net_profit_ttm (consolidated, attributable to owners)",
+      "revenue_growth_yoy"
+    ]
+  },
+  {
+    "slot": "S2",
+    "symbol": "SMR",
+    "n_match_fields_checked": 18,
+    "flips_non_price": [
+      {
+        "field": "roe",
+        "census_status": "match",
+        "outside_value": 67,
+        "rc1_candidate_values": [
+          0.66652
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      },
+      {
+        "field": "debt_to_equity",
+        "census_status": "match",
+        "outside_value": 0.34,
+        "rc1_candidate_values": [
+          0.34527
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      },
+      {
+        "field": "revenue_ttm",
+        "census_status": "match",
+        "outside_value": 432,
+        "rc1_candidate_values": [
+          4323665920.0
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "identity.former_names",
+      "identity.nse_symbol",
+      "price.last_close",
+      "price.change_pct",
+      "net_profit_ttm",
+      "dividend.last_declared_per_share",
+      "dividend.record_or_ex_date",
+      "corporate_actions_2026",
+      "last_3_announcements"
+    ]
+  },
+  {
+    "slot": "S3",
+    "symbol": "VERTEX",
+    "n_match_fields_checked": 17,
+    "flips_non_price": [
+      {
+        "field": "roe",
+        "census_status": "match",
+        "outside_value": -22.0,
+        "rc1_candidate_values": [
+          -0.2157
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      },
+      {
+        "field": "revenue_ttm",
+        "census_status": "match",
+        "outside_value": 7.136,
+        "rc1_candidate_values": [
+          67850000.0
+        ],
+        "rc1_status": "flip",
+        "price_like": false
+      }
+    ],
+    "no_value_found": [
+      "identity.legal_name",
+      "identity.nse_symbol",
+      "price.last_close",
+      "pe_ttm",
+      "net_profit_ttm",
+      "shareholding.promoter_pct (BSE XBRL, shareholding endpoint)",
+      "shareholding.public_pct",
+      "shareholding.as_of_quarter",
+      "last_3_announcements"
+    ]
+  }
+]

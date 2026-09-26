@@ -1,0 +1,5 @@
+=== DATA-078: grep for alpha_vantage across sidecar/ ===
+exit=1
+=== BLUEPRINT.md claim line ===
+266:18. yfinance fallback (no API key needed for basic use; R15-DATA-078 — alpha_vantage was
+442:- yfinance fallback

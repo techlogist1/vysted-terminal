@@ -1,21 +1,16 @@
-# batch-9/W5-frontend-shell (rc1-battery-7)
+# batch-9/W3-fundamentals-identity (rc1-battery-7)
 
-Candidate `4097dac4`. All 7 certified entries in this writer set were certified in batch-9
-VERDICTS.md purely through a scratch vitest driving the real `resolveKeyboardAction`,
-`buildPaletteCorpus`, `CommandPalette` and `parseSlashCommand` against a macOS navigator —
-no live sidecar route or outside-world check backs any of them. Per role instructions this
-shard never runs the full vitest suite; each entry's pinning test file is confirmed present
-on the candidate source and cited as `ci_pinned` (the heavy lane owns re-running it).
+Candidate `4c6dfe8c`. Own sidecar on `:52347`. 6 certified entries re-run (authoritative
+entry list per `battery/INDEX.json` / batch-9 `PLAN.md` — see notes on the task's copied
+entry list for this set, which did not match any real batch-9 entries).
 
 | id | repro run | observed | verdict |
 |---|---|---|---|
-| R15-UI-016 | test file presence check: `src/store/keybindings.test.ts`, `src/store/command-palette.test.ts` | both files present on candidate `4097dac4`; batch-9 cert basis was Cmd+K→palette.open / remap to mod+p / typing-context skip, all asserted in these files | ci_pinned |
-| R15-CODE-FRONTEND-016 | test file presence: `src/store/command-palette.test.ts` (dispatcher coverage of the 13 default action ids) | file present | ci_pinned |
-| R15-UI-086 | test file presence: `src/store/command-palette.test.ts` (palette row labels incl. remap + Option+1 mac case) | file present | ci_pinned |
-| R15-CROSS-PLATFORM-004 | test file presence: `src/store/command-palette.test.ts` (layout corpus, `MENU_PAYLOAD_TO_MODE` keys) | file present | ci_pinned |
-| R15-UI-058 | test file presence: `src/components/SettingsPanel.test.tsx` (export/import round-trip, unknown-id drop) | file present | ci_pinned |
-| R15-DATA-092 | test file presence: `src/lib/region.test.ts` (region hint derivation, `DEFAULT_REGION` fallback) | file present | ci_pinned |
-| R15-UI-052 | test file presence: `src/components/OnboardingBanner.test.tsx`, `src/components/OnboardingFlow.test.tsx`, `src/store/onboarding.test.ts` (keyless/privacy copy) | files present | ci_pinned |
+| R15-DATA-052 | `GET /fundamentals/NAPEROL.BO`, `/ELCIDIN.NS` | NAPEROL.BO: `sector="Financial Services", sector_source="resolver"`; ELCIDIN.NS: same — exact match to cert (the BSE truth overrides Yahoo) | holds |
+| R15-LEAD-022 | `GET /quotes?symbols={BHP.AX,0700.HK,7203.T,VOD.L,SAP.DE,BRK.B}` | all six price and return `symbol` matching the requested spelling (BRK.B not mangled to BRK-B in the response), currencies AUD/HKD/JPY/GBp/EUR/USD all correct | holds |
+| R15-LEAD-023 | in-process `yfinance_provider._quote_time(FakeTicker())` with empty `get_history_metadata()` + empty `history()` DataFrame | raises `ProviderError("Yahoo returned a price with no trade time")`, not an `IndexError` — clean fallthrough, matches cert exactly | holds |
+| R15-LEAD-016 | `GET /earnings/AAPL/history`, `/earnings/RELIANCE.NS/history` | AAPL: `reported_date` 2026-07-30/2026-04-30/2026-01-29/2025-10-30 all fiscal-quarter-end `period_end`; RELIANCE.NS same shape — matches cert's "reported_date is the fiscal quarter end" | holds |
+| R15-DATA-069 | `GET /fundamentals/AAPL/ratings/price-target-history` | Evercore ISI Group 365→380 on 2026-09-18; B of A Securities 370→370 on 2026-09-23 — exact match to cert | holds |
+| R15-UI-015 | `grep` `src/modules/earnings/EarningsCalendarPanel.tsx` + `src/modules/screener/ScreenerPanel.tsx` (cert evidence was a scratch, never-committed vitest against a deterministic Node http engine — no permanent test or sidecar route to re-run) | both files carry the R15-UI-015 fix verbatim: `throw state.upcomingCause ?? new Error(...)` re-throws the original `SidecarError` instead of flattening it, with the "reads as transient to `isTransientSidecarFailure`" comment intact | holds |
 
-Excluded from this set (not certified in batch-9, so out of scope for a regression check):
-R15-UI-027, R15-UI-018, R15-AGENT-088, R15-AGENT-082 (W1+W5 shared leg).
+Raw output: `battery/raw/set-37/*`.

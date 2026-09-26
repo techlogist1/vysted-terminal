@@ -1,0 +1,11 @@
+markdowns 28
+24 'PDF' '' | informed the Exchange regarding Allotment of 18250  Shares. [PDF] - 2026-09 | surface/research-briefs/r2-deep-cgpower.jsonl
+19 'n' ' ' | : -0.4% (quarterly YoY, computed from quarterly statements, [n] 1) 	+ Note:  | surface/research-briefs/r3-ultra-kaynes.jsonl
+15 '9, 9' '.' | vidend per Share**: ₹20.00; Trailing 12-Month Total: ₹45.00 [2, 3]. - **Divid | surface/research-briefs/13-ultra-hal-4omini.jsonl
+6 'New findings' '.' |  a gross margin of 47.92% and an operating margin of 10.98% [New findings]. - **P/E R | surface/research-briefs/rc1/r2/1-deep-bdl-4omini.jsonl
+2 'NSE filing, August 9999' '.' |  profit of ₹564.26 million, a decrease from ₹746.12 million [NSE filing, August 2026]. - **Opera | rc1/fix-r2/recheck/gr2/2-ultra-kaynes-4omini.jsonl
+1 'CONFLICT' ' ' | 's earnings growth scalar and statement-derived figure; see [CONFLICT] note below * | surface/research-briefs/r3-ultra-kaynes.jsonl
+1 'basis: fraction of price' '.' |  Share**: ₹4.90 [New findings]. - **Dividend Yield**: 0.43% [basis: fraction of price].  ## Marke | surface/research-briefs/rc1/r2/1-deep-bdl-4omini.jsonl
+1 'basis: trailing 99 weeks' '.' | ].  ## Market Sentiment - **52-Week Price Change**: -22.89% [basis: trailing 52 weeks]. - **Curre | surface/research-briefs/rc1/r2/1-deep-bdl-4omini.jsonl
+1 '= (99w high - price) / 99w high' '.' | rent Price vs 52-Week High**: 30.21% below its 52-week high [= (52w high - price) / 52w high].  ## Key O | surface/research-briefs/rc1/r2/1-deep-bdl-4omini.jsonl
+1 'NSE filing, August 9999; 9' '[' | d at ₹6,689.91 million and finance costs at ₹371.36 million [NSE filing, August 2026; 2][3].  ## Stra | rc1/fix-r2/recheck/gr2/2-ultra-kaynes-4omini.jsonl

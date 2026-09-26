@@ -41,11 +41,11 @@
   "surface": "Screener results table",
   "entry": "src/modules/screener/ScreenerResultsTable.tsx:318",
   "driven": "ok",
-  "evidence": "rc1/logs/screener.md#L1-L4: genuine zero-evaluated (throttled) -> distinct 'Nothing could be screened'/Retry empty state; genuine zero-MATCH (45 evaluated, 0 rows) -> 'No rows matched'/Reset empty state, correctly differentiated now (was one undifferentiated branch in census); matched_count/result_count distinct on a 2,707-match india-all run",
+  "evidence": "rc1/logs/screener.md#L1-L4: genuine zero-evaluated (throttled) -> distinct 'Nothing could be screened'/Retry empty state; genuine zero-MATCH (45 evaluated, 0 rows) -> 'No rows matched'/Reset empty state, correctly differentiated now (was one undifferentiated branch in census); matched_count/result_count distinct on a 2,707-match india-all run. Continuation at 4c6dfe8c (post-4097dac4 fixes, not in the row above): R15-DATA-043 round-robin top-K cut across currency groups verified LIVE (2 USD + 6 INR custom universe, limit=4 -> served 2 INR + 2 USD, not the 4-INR-only page a naive slice would give) at rc1/07b-req/out-roundrobin-6to2.json; R15-DATA-112 (empty currency sorts last regardless of sort_dir) code-confirmed at sidecar/services/screener.py:420-433, not independently forced live this pass.",
   "census_verdict": "partial",
   "rc1_verdict": "ok",
   "regression": false,
-  "fixing_register_ids": ["R15-UI-055", "R15-UI-006"],
+  "fixing_register_ids": ["R15-UI-055", "R15-UI-006", "R15-DATA-043", "R15-DATA-112"],
   "notes": "row-click / CSV / narrow overflow still NEEDS-GUI (R15-UI-009 register status is needs_gui, unchanged)"
  },
  {

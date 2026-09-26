@@ -1,0 +1,48 @@
+    carry every Q4 figure. Tests rebuild a structurally equivalent PDF from
+    this text so the regression runs offline.
+    """
+    import json
+    from pathlib import Path
+
+    fixture = Path(__file__).parent / "fixtures" / "saksoft_outcome_pages.json"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/tests/test_tests_encoding.py
+"""R15-CROSS-PLATFORM-002: every text-mode file read/write in the test suite
+must name its encoding explicitly.
+
+``open()``/``Path.read_text()``/``Path.write_text()`` with no ``encoding``
+kwarg fall back to ``locale.getpreferredencoding()`` — UTF-8 on macOS/Linux CI,
+but ``cp1252`` on a plain Windows shell, so a fixture with a smart quote or a
+non-ASCII company name silently mis-decodes (or fails outright) ONLY on
+Windows. This is an AST scan, not a grep: it is the class pin (CLAUDE.md
+"Fix it once, where all callers route through") — it fails on ANY future test
+file that reintroduces the pattern, including ones written by other batches
+after this fix landed, not just the files this batch happened to touch.
+"""
+
+from __future__ import annotations
+
+import ast
+from pathlib import Path
+
+_TESTS_DIR = Path(__file__).parent
+
+#: Method/function names whose text-mode call must carry ``encoding=``.
+_WATCHED_NAMES = frozenset({"open", "read_text", "write_text"})
+
+
+def _mode_literal(call: ast.Call) -> str | None:
+    """The ``mode``/``2nd positional`` argument of an ``open()`` call, if literal."""
+    if len(call.args) >= 2 and isinstance(call.args[1], ast.Constant):
+        return call.args[1].value
+    for kw in call.keywords:
+        if kw.arg == "mode" and isinstance(kw.value, ast.Constant):
+            return kw.value.value
+    return None
+
+
+def _call_name(call: ast.Call) -> str | None:
+    func = call.func
+    if isinstance(func, ast.Name):
+        return func.id
+    if isinstance(func, ast.Attribute):
+        return func.attr

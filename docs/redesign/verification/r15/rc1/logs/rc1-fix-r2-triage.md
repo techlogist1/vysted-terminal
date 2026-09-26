@@ -7,3 +7,9 @@
 - New finding rc1-fix-r2-triage:1: earnings estimate revenue for WIT is INR-sized but labelled USD.
 - DECISIONS_FOR_OPERATOR 4.1 added (FAST first-brief budget), prettier-formatted.
 08:09 PLAN.md written (3 writer sets W1 opus, W2 opus, W3 sonnet; battery-4:1 first-brief half deferred). Own sidecar stopped by killing sleep pid 72433.
+
+## Gate round 2, fix round 2 (base ca6ec990)
+2026-09-26 08:42 IST read rc1-drive-research-briefs:2, fix-r1 PLAN/RECHECK and rc1-fix-r1-recheck:1-2; read citecheck.py, iter.py (_remap_markers, merge prompt), brief-ingest.ts at ca6ec990 in the rc1-cand worktree (read-only).
+- Record conclusive; re-proved in-process with the candidate venv (no own sidecar started — none needed for a regex grammar; nothing to stop). Evidence fix-r2/triage/r2-citecheck-repro.txt. Extra over-match case: '[the Company]' editorial insertion deleted.
+- Real. Root cause: range separators missing from MARKER_GROUP_RE; pseudo rule is a shape rule (over- and under-matches) instead of the prompt-block-label family. Proposed regexes validated in python3 and node.
+- PLAN.md written: 1 writer set W1 (opus), 0 rejected, 0 deferred. No new findings.

@@ -1,0 +1,42 @@
+[   2.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_c1050b36aa75421d92bb64961f46bdd0", "name": "resolve_symbol", "input": {"query": "Bharat Dynamics"}}
+[   3.4s] tool_result: {"kind": "tool_result", "tool_call_id": "call_c1050b36aa75421d92bb64961f46bdd0", "name": "resolve_symbol", "ok": true, "error": null}
+[   5.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_b3f618408c294454b463118fe1a2eaea", "name": "financial_statements", "input": {"symbol": "BDL", "statement": "income", "period": "annual"}}
+[   5.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_0b03bb2eae534c35bcc496fd0949ce8d", "name": "fundamentals", "input": {"symbol": "BDL"}}
+[   5.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_14a424d688c745209fc1a978b8a121b7", "name": "sec_filings_list", "input": {"symbol": "BDL"}}
+[   5.3s] tool_use: {"kind": "tool_use", "tool_call_id": "call_616b8215fb3c4885beef01d580e65d3f", "name": "corporate_announcements", "input": {"symbol": "BDL"}}
+[   8.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_b3f618408c294454b463118fe1a2eaea", "name": "financial_statements", "ok": true, "error": null}
+[  18.0s] heartbeat: {"kind": "heartbeat"}
+[  21.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_0b03bb2eae534c35bcc496fd0949ce8d", "name": "fundamentals", "ok": true, "error": null}
+[  25.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_14a424d688c745209fc1a978b8a121b7", "name": "sec_filings_list", "ok": true, "error": null}
+[  26.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_616b8215fb3c4885beef01d580e65d3f", "name": "corporate_announcements", "ok": true, "error": null}
+[  30.2s] done: {"kind": "done", "usage": {"input_tokens": 23406, "output_tokens": 347, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.027121}
+
+=== ASSISTANT TEXT ===
+Here’s the analysis for Bharat Dynamics Limited (BDL) covering order book, margins, and valuation:
+
+### Order Book
+- Recently, Bharat Dynamics was awarded orders/contracts for SAT SAAW (Smart Anti-Airfield Weapon) as of September 23, 2026. You can view the detailed announcement [here](https://nsearchives.nseindia.com/corporate/BDL_23092026181115_Covorder23092026SE.pdf).
+
+### Margins
+- **Gross Margin**: 47.92%
+- **Operating Margin**: 10.98%
+- **Profit Margin**: 18.83%
+
+### Valuation Metrics
+- **Current Price**: ₹1,140.00
+- **Market Capitalization**: ₹41,788 crore
+- **P/E Ratio**: 81.31
+- **Forward P/E**: 37.49
+- **Price-to-Book Ratio**: 9.85
+- **EPS**: ₹14.21
+- **Dividend Yield**: 0.42% (with a dividend of ₹4.90 per share)
+
+**Recent Financial Performance** (FY ending March 31):
+- **Total Revenue**: ₹2,415 crore in 2026, decreased from ₹3,323 crore in 2025.
+- **Net Income**: ₹420.34 crore in 2026, compared to ₹549.65 crore in 2025.
+
+Bharat Dynamics has seen fluctuations in both revenue and profit margins. The increase in orders and contracts may signify potential growth to come. 
+
+For further details on their latest earnings and corporate announcements, feel free to ask!
+
+=== ok · 30.2s · events {'tool_use': 5, 'tool_result': 5, 'heartbeat': 1, 'delta': 347, 'done': 1} · usage in=23406 out=347 · est $0.00372 · gpt-4o-mini

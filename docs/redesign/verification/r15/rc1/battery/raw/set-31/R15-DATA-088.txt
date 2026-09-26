@@ -1,0 +1,37 @@
+=== DATA-088 source ===
+  }
+  return `${prefix}-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
+}
+
+function makeEmptyPortfolio(name: string = DEFAULT_PORTFOLIO_NAME, id?: string): Portfolio {
+  return { id: id ?? genId("pf"), name: name.trim() || DEFAULT_PORTFOLIO_NAME, holdings: [] };
+}
+
+/** Coerce an arbitrary (possibly corrupt-blob) holding to a valid one, or drop
+ *  it. The same rules as the panel form hold for every caller (restore, the
+ *  agent, the form): a positive finite quantity and a non-negative finite cost
+ *  basis — garbage is dropped, never coerced to a plausible 0. */
+function normalizeHolding(raw: unknown): Holding | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const h = raw as Record<string, unknown>;
+  const symbol = typeof h.symbol === "string" ? h.symbol.trim().toUpperCase() : "";
+  if (symbol === "") {
+    return null;
+  }
+  const quantity = Number(h.quantity);
+  const costBasis = Number(h.costBasis);
+  if (
+    !(Number.isFinite(quantity) && quantity > 0 && Number.isFinite(costBasis) && costBasis >= 0)
+  ) {
+    return null;
+  }
+  const note = typeof h.note === "string" && h.note.trim() !== "" ? h.note.trim() : undefined;
+  return {
+    id: typeof h.id === "string" && h.id !== "" ? h.id : genId("h"),
+    symbol,
+    quantity,
+    costBasis,
+    assetClass: h.assetClass === "crypto" ? "crypto" : "equity",
+    note,

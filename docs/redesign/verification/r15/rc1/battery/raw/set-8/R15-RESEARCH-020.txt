@@ -1,0 +1,15 @@
+$ python3 -c _web_search({'query':'BAJFINANCE 200 DMA breakout', 'num_results':3}) live keyless
+ok: True n_results: 0
+$ python3 -c _web_search full dump
+{
+ "ok": true,
+ "backend": "keyless-fallback",
+ "query": "Reliance Industries share price news",
+ "results": [],
+ "citations": [],
+ "reason": "searxng_degraded"
+}
+$ GET /search/searxng/status
+{"state":"degraded","detail":"SearXNG is running but its search engines are blocked","reason":"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA","port":8888,"url":null,"container":"running","container_name":"vysted-searxng","image":"searxng/searxng","docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}}$ python3 -c _web_search retry x2 with num_results variation
+n_results req 3 -> got 0 backend keyless-fallback reason searxng_degraded
+n_results req 6 -> got 0 backend keyless-fallback reason searxng_degraded

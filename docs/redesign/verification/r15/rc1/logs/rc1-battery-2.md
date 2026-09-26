@@ -78,3 +78,15 @@ None. All four half-entries hold in the candidate (two by direct live repro,
 two by an intact, unweakened, register-id-named pinned test after the
 original scratch evidence was legitimately removed with its worktree). No
 regression, no chain failure, no gate-8 concern.
+
+## 2026-09-26 07:07 IST — shard complete
+
+All 13 assigned sets (set-10..14, set-56..63) written, covering all 62 unique
+register ids across batch-4 (W1-W5) and batch-12 (W1-W8). Own sidecar :52342 on
+data dir rc1-data-battery-2 used throughout. No regressions found: 55 holds,
+5 ci_pinned (CODE-PLATFORM-012/014, UI-018/020, CODE-PLATFORM-013 — vitest-only
+certs, pinned tests confirmed present+unweakened by code read), 1 needs_gui
+(LIFECYCLE-008), 1 blocked_env-adjacent-but-not (DATA-022 hit a live BSE 403 on
+this IP but the certified honest-502 mechanism itself was directly observed,
+so verdict holds not blocked_env). findings/rc1-battery-2.json is [] (no
+regressions). Stopping own sidecar (sleep pid 63022) now.

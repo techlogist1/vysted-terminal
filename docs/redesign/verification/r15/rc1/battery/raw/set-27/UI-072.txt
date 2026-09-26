@@ -1,0 +1,38 @@
+=== UI-072: composer model selector chevron ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/chat/ComposerPlusMenu.tsx:223:        aria-haspopup="menu"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/chat/ModelControl.tsx:4:import { Cpu, RefreshCw } from "lucide-react";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/chat/ModelControl.tsx:159:        aria-haspopup="listbox"
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/chat/ModelControl.tsx:169:          <Cpu
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/chat/ResearchActivity.tsx:23:  Cpu,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/src/modules/chat/ResearchActivity.tsx:41:  engine: { icon: Cpu, label: "Engine" },
+  const fullLabel = formatModelLabel(model);
+  const text = density === "short" ? fullLabel.split(" ").slice(0, 2).join(" ") : fullLabel;
+  const title = catalogNote ?? `${providerLabel} · ${model}`;
+
+  return (
+    <div ref={rootRef} className="relative shrink-0">
+      <button
+        type="button"
+        aria-label={`Model — ${providerLabel} · ${model}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        title={title}
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "text-caption flex h-7 cursor-pointer items-center gap-1 px-1 font-mono transition-colors",
+          open ? "text-lume" : "text-charcoal-400 hover:text-lume",
+        )}
+      >
+        {density === "icon" ? (
+          <Cpu
+            aria-hidden
+            className="size-3.5 shrink-0" /* tokens-ok: law §3 — 14px icon inside an h-7 control */
+          />
+        ) : (
+          <span className="whitespace-nowrap">{text}</span>
+        )}
+        {selectedIsNoTools && (
+          <span
+            className="text-warning shrink-0"
+            title="This model has no tool-calling — agent host-actions will fail. Pick a tool-capable model."
+          >

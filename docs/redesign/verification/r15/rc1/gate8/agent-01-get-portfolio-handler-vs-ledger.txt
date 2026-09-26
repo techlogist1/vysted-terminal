@@ -1,0 +1,4 @@
+get_portfolio handler result: {"ok": true, "portfolio": {"positionCount": 2, "totalValue": null, "activePortfolioId": "default", "activePortfolioName": "Portfolio", "holdings": [{"id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0", "symbol": "AAPL", "quantity": 8, "costBasis": 190, "assetClass": "equity", "marketValue": null, "pnl": null}, {"id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231", "symbol": "INFY", "quantity": 20, "costBasis": 1500, "assetClass": "equity", "marketValue": null, "pnl": null}]}}
+blob ledger: [{"id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0", "symbol": "AAPL", "quantity": 8, "costBasis": 190, "assetClass": "equity", "note": "added on dip"}, {"id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231", "symbol": "INFY", "quantity": 20, "costBasis": 1500, "assetClass": "equity", "note": "Core IT holding, review after Q2 results"}]
+len 2 2 field match [(True, True, True, True), (True, True, True, True)]
+MATCH

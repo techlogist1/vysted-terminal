@@ -1,0 +1,1 @@
+{"spec": {"id": "wf-v", "name": "v", "version": 1, "nodes": [{"id": "crit", "type": "ai.agent_invoke", "position": {"x": 0, "y": 0}, "config": {"agent_id": "strategy_critic", "prompt": "Critique a 50/200 SMA crossover on RELIANCE."}}], "edges": [], "updatedAt": 0}}

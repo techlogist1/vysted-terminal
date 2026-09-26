@@ -1,0 +1,87 @@
+=== DATA-102 live ===
+=== DATA-102 source ===
+    market_cap: float | None = None
+    pe_ratio: float | None = None
+    forward_pe: float | None = None
+    peg_ratio: float | None = None
+    price_to_book: float | None = None
+    price_to_sales: float | None = None
+    ev_to_ebitda: float | None = None
+    book_value: float | None = None
+    dividend_yield: float | None = None
+    dividend_per_share: float | None = None
+    eps: float | None = None
+--- fundamentals_store.py:525-545 ---
+    ``TTL_INFO_RETRY_SECONDS`` instead of wedging the crawler. A later
+    successful :func:`upsert_info` clears the stamp."""
+    await _upsert(symbol, {"info_failed_at": time.time()})
+
+
+def _upsert_sql(key: str, cols: dict[str, Any]) -> tuple[str, list[Any]]:
+    names = list(cols)
+    assignments = ", ".join(f"{c} = excluded.{c}" for c in names)
+    sql = (
+        f"INSERT INTO fundamentals (symbol, {', '.join(names)}) "
+        f"VALUES (?, {', '.join('?' for _ in names)}) "
+        f"ON CONFLICT(symbol) DO UPDATE SET {assignments}"
+    )
+    return sql, [key, *[cols[c] for c in names]]
+
+
+async def _upsert(symbol: str, cols: dict[str, Any]) -> None:
+    key = symbol.strip().upper()
+    if not key or not cols:
+        return
+    sql, values = _upsert_sql(key, cols)
+--- fundamentals_store.py:255-305 (growth_basis) ---
+            touched = 0
+            for row in rows:
+                symbol = str(row.get("symbol") or "").strip().upper()
+                if not symbol:
+                    continue
+                cur = conn.execute(
+                    """
+                    INSERT INTO fundamentals (
+                        symbol, name, exchange, isin, scrip_code, bse_group,
+                        sector, industry, sector_source, shares_outstanding
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(symbol) DO UPDATE SET
+                        name = COALESCE(fundamentals.name, excluded.name),
+                        exchange = COALESCE(fundamentals.exchange, excluded.exchange),
+                        isin = COALESCE(fundamentals.isin, excluded.isin),
+                        scrip_code = COALESCE(fundamentals.scrip_code, excluded.scrip_code),
+                        bse_group = COALESCE(fundamentals.bse_group, excluded.bse_group),
+                        sector = COALESCE(fundamentals.sector, excluded.sector),
+                        industry = COALESCE(fundamentals.industry, excluded.industry),
+                        sector_source = COALESCE(
+                            fundamentals.sector_source, excluded.sector_source
+                        ),
+                        shares_outstanding = COALESCE(
+                            fundamentals.shares_outstanding, excluded.shares_outstanding
+                        )
+                    """,
+                    (
+                        symbol,
+                        row.get("name"),
+                        row.get("exchange"),
+                        row.get("isin"),
+                        row.get("scrip_code"),
+                        row.get("group"),
+                        row.get("sector"),
+                        row.get("industry"),
+                        row.get("sector_source"),
+                        row.get("shares_outstanding"),
+                    ),
+                )
+                touched += cur.rowcount
+            conn.commit()
+            return touched
+
+    async with _lock:
+        return await asyncio.to_thread(_work)
+
+
+async def seed_fundamentals(rows: list[dict[str, Any]]) -> int:
+    """Seed NUMERIC fundamentals (+ sector/name/currency) from the bundled
+    snapshot pack (R11 / D52).
+

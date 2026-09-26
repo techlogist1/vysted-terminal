@@ -1,498 +1,498 @@
 [
- {
-  "id": "panel-chart",
-  "area": "panels",
-  "surface": "Chart panel (PanelSpec + ChartPanel component)",
-  "entry": "src/modules/chart/index.ts:20; src/modules/chart/ChartPanel.tsx",
-  "states": [
-   "loading",
-   "error",
-   "offline",
-   "populated",
-   "overflow(many indicators/drawings)"
-  ],
-  "drive": "browser",
-  "notes": "registers panel id 'chart' -> component 'chart-panel'. Vitest: src/modules/chart/ChartPanel.test.tsx. Data via sidecar GET /quotes/{symbol}, /history/{symbol}, /indicators. Canvas rendering (lightweight-charts) is a real <canvas> -> gestures/drag/draw need Playwright/native events, not chrome-devtools (CLAUDE.md gotcha).",
-  "driven": "ok",
-  "evidence": "surface/panels-layouts/rc1/rc1-http-log.txt (30m SPY/RELIANCE.NS now 286 bars each; SURF-PANELS-LAYOUTS-3 fixed, R15-DATA-064); 1mo/1wk freshness now 'eod' not 'stale' for current-period bars (SURF-PANELS-LAYOUTS-4 fixed, R15-DATA-065). Crypto 404 (COD-frontend-panels-data-surfaces-9) and the all-50-indicators/unknown-key behaviour not re-driven this pass (census evidence P-http-log.jsonl stands, unaffected by the fixed rows)."
- },
- {
-  "id": "panel-watchlist",
-  "area": "panels",
-  "surface": "Watchlist panel",
-  "entry": "src/modules/watchlist/index.ts:14; src/modules/watchlist/WatchlistPanel.tsx:139",
-  "states": [
-   "empty(no symbols)",
-   "loading(rows===null)",
-   "error",
-   "populated",
-   "overflow(collapse ladder narrow width)",
-   "tenth-item(row virtualization at scale)"
-  ],
-  "drive": "browser",
-  "notes": "rows null until first refresh (loading). addSymbol/removeSymbol at WatchlistPanel.tsx:228,243,311. EmptyState used at :464. Sidecar GET /quotes?symbols=.... Vitest: WatchlistPanel.test.tsx.",
-  "driven": "ok",
-  "evidence": "surface/panels-layouts/rc1/watchlist-20-own-cold.json + watchlist-20-own-warm.json (own sidecar :52323): cold 20-name IN batch 87.7s (throttle unchanged, expected), warm repeat 0.01s (EOD-cached) vs census's un-cached 23s warm / re-polled every 5s (SURF-PANELS-LAYOUTS-7 fixed, R15-DATA-066 \u2014 the 5s-poll starvation this finding was about is resolved by the session EOD cache)."
- },
- {
-  "id": "panel-news",
-  "area": "panels",
-  "surface": "News panel",
-  "entry": "src/modules/news/index.ts:18",
-  "states": [
-   "empty",
-   "loading",
-   "error(self-heals)",
-   "populated"
-  ],
-  "drive": "api",
-  "notes": "GET /news. Self-healing backoff per CLAUDE.md ('News/Portfolio already self-heal').",
-  "driven": "ok",
-  "evidence": "surface/panels-layouts/rc1/news-IN-watchlist.json: BDL now returns 'Bharat Dynamics shares rise 2%...' (Economic Times), not Flanigan's Enterprises (SURF-PANELS-LAYOUTS-2 fixed, R15-DATA-029). TCS.NS feed carries some tangential AI-industry items (Yahoo per-symbol RSS editorial mix, not a resolution bug \u2014 URLs resolve to the TCS.NS feed correctly) \u2014 observed, not filed."
- },
- {
-  "id": "panel-equity-overview",
-  "area": "panels",
-  "surface": "Equity Overview panel",
-  "entry": "src/modules/equity-overview/index.ts:11,15,18",
-  "states": [
-   "loading",
-   "error",
-   "populated"
-  ],
-  "drive": "api",
-  "notes": "GET /fundamentals/{symbol} + /narrative,/income,/balance,/cashflow,/ratings (routers/fundamentals.py).",
-  "driven": "partial",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels eo-*; P-eo-fund-RELIANCE.json, P-eo-fund-KAYNES.json, P-eo-fund-AAPL.json"
- },
- {
-  "id": "panel-agent-builder",
-  "area": "panels",
-  "surface": "Agent Builder panel (custom agent authoring)",
-  "entry": "src/modules/agent-builder/index.ts:28; src/modules/agent-builder/AgentBuilderPanel.tsx:117",
-  "states": [
-   "idle",
-   "saving",
-   "saved",
-   "error(save/delete :185-187, field errors :119,198)"
-  ],
-  "drive": "api",
-  "notes": "CRUD via sidecar /agents/custom (routers/custom_agents.py: GET/POST/PUT/DELETE). Validation pure fn: form.tsx:109 validate() \u2014 cheap unit-test target, no DOM needed.",
-  "driven": "partial",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels ab-*"
- },
- {
-  "id": "panel-backtest",
-  "area": "panels",
-  "surface": "Backtest panel (strategy backtest + critic)",
-  "entry": "src/modules/backtest/index.ts:25; src/modules/backtest/BacktestPanel.tsx:38",
-  "states": [
-   "loading(catalogueStatus, :161)",
-   "error(:163)",
-   "populated(BacktestResultView.tsx:409)"
-  ],
-  "drive": "api",
-  "notes": "GET /backtest/strategies, POST /backtest/run, GET /backtest/runs/{id} (routers/backtest.py). strategy-picker.tsx:24, custom-strategy-editor.tsx:96 (POST /backtest/strategies/custom/validate).",
-  "driven": "partial",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels bt-*; P-bt-default-SPY.jsonl, P-bt-RELIANCE.jsonl, P-bt-mixed.jsonl, P-bt-param-oor.jsonl, P-bt-junk.jsonl, P-bt-inverted.jsonl, P-bt-strategies.json"
- },
- {
-  "id": "panel-broker-connect",
-  "area": "panels",
-  "surface": "Broker Connect (connections) panel",
-  "entry": "src/modules/broker-connect/index.ts:17; src/modules/broker-connect/BrokerConnectPanel.tsx:116",
-  "states": [
-   "loading(:160-169)",
-   "empty(no brokers)",
-   "connected/connecting/disconnected/error(status badge, :266 err text)"
-  ],
-  "drive": "api",
-  "notes": "GET /brokers, POST /brokers/{id}/connect,/disconnect,/mode,/read-only. kite-static-ip-banner.tsx surfaces GET /brokers/kite/static-ip. BrokerReadsSection.tsx projects granular reads (positions/holdings/margins) per CLAUDE.md provenance labeling.",
-  "driven": "removed_with_feature",
-  "reason": "removed_with_feature: trading is out of the product (operator decision 23 Sep, PROMPT_surface_s2.md scope fact 1)",
-  "evidence": "N/A (trading removed, D81 merged on 004) \u2014 src/modules has no broker/audit-log module; scope fact 1."
- },
- {
-  "id": "panel-broker-order-entry",
-  "area": "panels",
-  "surface": "Broker Order Entry panel",
-  "entry": "src/modules/broker-connect/index.ts:25; src/modules/broker-connect/BrokerOrderEntry.tsx:47",
-  "states": [
-   "error(:241)",
-   "populated"
-  ],
-  "drive": "api",
-  "notes": "POST /brokers/{id}/orders then /orders/{proposal_id}/confirm \u2014 the \u00a76.5 confirm-before-place gate (OrderConfirmationDialog) sits between propose and confirm. NEVER exercise the confirm/cancel POSTs against the operator's live session (state-changing, out of scope for read-only probing).",
-  "driven": "removed_with_feature",
-  "reason": "removed_with_feature: trading is out of the product (operator decision 23 Sep)",
-  "evidence": "N/A (trading removed, D81 merged on 004) \u2014 src/modules has no broker/audit-log module; scope fact 1."
- },
- {
-  "id": "panel-macro",
-  "area": "panels",
-  "surface": "Macro panel",
-  "entry": "src/modules/macro/index.ts:16-32; src/modules/macro/MacroPanel.tsx:26",
-  "states": [
-   "loading(:61)",
-   "error(self-heals, :36-44,:69)",
-   "populated"
-  ],
-  "drive": "api",
-  "notes": "GET /macro/search,/macro/catalog,/macro/{series_id}. Uses useRetryOnSidecarReady (lib/use-sidecar-retry.ts:48) \u2014 cold-boot backoff pattern shared with SEC/Earnings/Screener.",
-  "driven": "ok",
-  "evidence": "surface/panels-layouts/rc1/macro-catalog-imf.json (10 entries now, incl. 2 India series) + macro-imf-IND-gdp.json (200, real observations back to 1980) (SURF-PANELS-LAYOUTS-5 fixed, R15-UI-053: /macro/{series_id:path} now accepts the '/' in IMF ids)."
- },
- {
-  "id": "panel-sec-filings",
-  "area": "panels",
-  "surface": "SEC Filings panel",
-  "entry": "src/modules/sec/index.ts:22-38; src/modules/sec/SecFilingsPanel.tsx:38",
-  "states": [
-   "loading(:193)",
-   "error(self-heals, :60-68, data-testid=sec-filings-error at :174)",
-   "populated",
-   "tenth-item(filings list)"
-  ],
-  "drive": "api",
-  "notes": "GET /sec/status,/sec/filings,/sec/filings/search,/sec/filings/{accession},/sec/filings/{accession}/sections,/sec/insider/{identifier}. Sub-views: FilingViewer.tsx, FilingsListTable.tsx, InsiderTradingTable.tsx.",
-  "driven": "ok",
-  "evidence": "surface/panels-layouts/rc1/sec-detail-AAPL.json + sec-insider-AAPL.json: the same accession 0000320193-25-000079 census used now returns 2 sections (business/risk_factors, 20,000 total_chars) and 9 insider Form-4 rows for Apple (SURF-PANELS-LAYOUTS-1 fixed, R15-DATA-038). Company-search / fabricated-detail-metadata (COD-mdp-2-1) not re-driven this pass."
- },
- {
-  "id": "panel-earnings-calendar",
-  "area": "panels",
-  "surface": "Earnings Calendar panel",
-  "entry": "src/modules/earnings/index.ts:16-32; src/modules/earnings/EarningsCalendarPanel.tsx:77",
-  "states": [
-   "idle/loading(:215)",
-   "error(self-heals, :107-115,:257)",
-   "populated"
-  ],
-  "drive": "api",
-  "notes": "GET /earnings/upcoming,/{symbol}/history,/{symbol}/surprises,/{symbol}/estimates. Sub-views EarningsSurpriseChart.tsx, EpsEstimateGrid.tsx.",
-  "driven": "ok",
-  "evidence": "surface/panels-layouts/rc1/earn-upcoming-US-own.json (JPM/TSLA: fiscal_period now null instead of the wrong 'Q4 2026' label \u2014 SURF-PANELS-LAYOUTS-8 fixed, R15-DATA-067) + earn-estimates-INFY-own.json (INFY now resolves to INFY.NS: eps_estimate_mean 19.58 INR alongside revenue_estimate_mean 491.5B INR, one consistent currency \u2014 SURF-PANELS-LAYOUTS-2/R15-DATA-029 fixed for earnings too). First INFY estimates probe hit a transient upstream 502 'Too Many Requests' from Yahoo (sidecar log, shared-run rate limiting) \u2014 retried 200 15s later; logged as environment, not a product defect. Default earnings/upcoming (no watchlist) now returns 0 events on both the shared and own sidecar where census reported a 10-US-name default (WLD-T-7) \u2014 not re-verified further under this budget, flagged for the lead as a possible open question, not scored as a new defect (could be a calendar-window/provider gap at time of test, not proven a regression)."
- },
- {
-  "id": "panel-analyst-ratings",
-  "area": "panels",
-  "surface": "Analyst Ratings panel",
-  "entry": "src/modules/analyst-ratings/index.ts:14-30; src/modules/analyst-ratings/AnalystRatingsPanel.tsx:49",
-  "states": [
-   "loading(per-slice, :91-92)",
-   "empty(composed error EmptyState with Retry CTA, :124)",
-   "populated"
-  ],
-  "drive": "api",
-  "notes": "GET /fundamentals/{symbol}/ratings,/ratings/history,/ratings/price-target-history,/ratings/individual. Deliberately never disguises an error as empty (comment :27-28). Sub-views RatingsHistoryTable.tsx, PriceTargetTimeline.tsx, IndividualAnalystTable.tsx.",
-  "driven": "ok",
-  "evidence": "surface/panels-layouts/rc1/ratings-RELIANCE.NS.json (200, consensus buy, target_mean 1676.85 INR) + pth-RELIANCE.NS.json: RELIANCE.NS ratings/price-targets now populated (previously dead for every IN symbol, COD-mdp-1-3) \u2014 same _yahoo_symbol fix as earnings/news fixed this as a side effect. ratings/individual returns an empty analysts list for RELIANCE.NS (yfinance does not expose per-analyst breakdown for NSE names) \u2014 not a defect, not re-verified against AAPL's individual breakdown under this budget."
- },
- {
-  "id": "panel-option-pricer",
-  "area": "panels",
-  "surface": "Option Pricer panel (Quant)",
-  "entry": "src/modules/quant/index.ts:18-34; src/modules/quant/OptionPricerPanel.tsx:221",
-  "states": [
-   "idle(composed EmptyState with prefilled CTA)",
-   "loading(isRunning, :241)",
-   "error(data-testid=option-pricing-error, :491-497)",
-   "populated"
-  ],
-  "drive": "api",
-  "notes": "POST /quant/option/price. Pure Black-Scholes math is unit-testable without the panel.",
-  "driven": "ok",
-  "evidence": "surface/panels-layouts/rc1/quant-binomial-panel-defaults.json vs quant-bs-panel-defaults.json: panel-default inputs (S=K=220, vol 0.28, 45d, 200 steps) now gamma 0.018399 vs BS 0.018330 (1.004x, was 1.39x) and theta -40.43 (correctly negative for a long call, was positive). quant-binomial-201.json: 201 steps (previously exactly 0) now gamma 0.018797, consistent with 200/BS (SURF-PANELS-LAYOUTS-6 + theta-sign fixed, R15-DATA-011 \u2014 delta/gamma/theta now read off the CRR lattice per options.py:12-13 docstring)."
- },
- {
-  "id": "panel-greeks-dashboard",
-  "area": "panels",
-  "surface": "Greeks Dashboard panel (Quant)",
-  "entry": "src/modules/quant/index.ts:30; src/modules/quant/GreeksDashboard.tsx:162",
-  "states": [
-   "idle",
-   "loading",
-   "error(data-testid=greeks-error, :339-345)",
-   "populated"
-  ],
-  "drive": "api",
-  "notes": "POST /quant/option/greeks.",
-  "driven": "ok",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels quant-greeks-*"
- },
- {
-  "id": "panel-bond-pricer",
-  "area": "panels",
-  "surface": "Bond Pricer panel (Quant)",
-  "entry": "src/modules/quant/index.ts:38; src/modules/quant/BondPricerPanel.tsx:98",
-  "states": [
-   "idle",
-   "loading",
-   "error(data-testid=bond-pricing-error, :270-276)",
-   "populated"
-  ],
-  "drive": "api",
-  "notes": "POST /quant/bond/price.",
-  "driven": "ok",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels quant-bond-*"
- },
- {
-  "id": "panel-yield-curve",
-  "area": "panels",
-  "surface": "Yield Curve panel (Quant)",
-  "entry": "src/modules/quant/index.ts:46; src/modules/quant/YieldCurvePanel.tsx:135",
-  "states": [
-   "idle(chart never mounts empty)",
-   "loading",
-   "error(data-testid=yield-curve-error, :349-355)",
-   "populated"
-  ],
-  "drive": "api",
-  "notes": "POST /quant/yield-curve.",
-  "driven": "broken",
-  "evidence": "surface/panels-layouts/rc1/quant-yc-dup-tenor.headers.txt + .json: a duplicate 10y pillar still returns a bare 500 'Internal Server Error' with no access-control-allow-origin header \u2014 unchanged from census (SURF-PANELS-LAYOUTS-9, R15-UI-077 register status is 'open', confirmed still open, not a regression)."
- },
- {
-  "id": "panel-context-publishers",
-  "area": "panels",
-  "surface": "Per-module panel-context publishers (what each panel tells the agent)",
-  "entry": "src/modules/panel-context-publishers.test.tsx; src/store/panel-context.ts",
-  "states": [
-   "published(per active panel)",
-   "stale/unpublished"
-  ],
-  "drive": "browser",
-  "notes": "panel-context.test.ts + panel-context-publishers.test.tsx already assert this headlessly across modules \u2014 good template for any new panel's context contract.",
-  "driven": "ok",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): pnpm exec vitest run src/modules/panel-context-publishers.test.tsx -> 13/13 passed (scratchpad s2b-panels/pcp.log)"
- },
- {
-  "id": "panel-audit-log",
-  "area": "safety",
-  "surface": "Audit Log viewer panel",
-  "entry": "src/modules/safety/index.ts:14-40; src/modules/safety/AuditLogViewer.tsx",
-  "states": [
-   "empty",
-   "populated",
-   "filtered(defaultAuditFilter, store/safety.ts:117)"
-  ],
-  "drive": "api",
-  "notes": "GET /safety/audit-log, /safety/audit-log/export.csv (append-only, DB-enforced per CLAUDE.md \u00a76.5). Reader uses PRAGMA query_only=ON \u2014 safe to GET repeatedly.",
-  "driven": "removed_with_feature",
-  "evidence": "N/A (trading removed, D81 merged on 004) \u2014 src/modules has no broker/audit-log module; scope fact 1."
- },
- {
-  "id": "panel-node-editor",
-  "area": "node-editor",
-  "surface": "Node Editor canvas (workflow builder)",
-  "entry": "src/modules/node-editor/index.ts:24; src/modules/node-editor/NodeEditorPanel.tsx:106",
-  "states": [
-   "empty(no nodes, Run disabled :537)",
-   "saving/save-error(:135-137)",
-   "loading-list/load-error(:140-143)",
-   "running(:146, RunOverlayState)"
-  ],
-  "drive": "gui",
-  "notes": "react-flow canvas; HTML5 native drag-drop from node-palette.tsx requires trusted browser events \u2014 chrome-devtools MCP can't synthesize isTrusted drag (CLAUDE.md gotcha), needs Playwright or real GUI. Workflow save/load hits sidecar POST/GET /workflow/save,/workflow/saved (routers/workflow.py).",
-  "driven": "NEEDS-GUI",
-  "notes_r15": "react-flow canvas + native drag-drop (skeleton finding 5). Headless: workflow save/list/get/delete/re-delete driven ok (labels wf-save*, wf-saved-*, wf-delete*).",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
- },
- {
-  "id": "node-editor-palette",
-  "area": "node-editor",
-  "surface": "Node palette (draggable node catalog)",
-  "entry": "src/modules/node-editor/node-palette.tsx:62",
-  "states": [
-   "populated(builtin+plugin node kinds)"
-  ],
-  "drive": "gui",
-  "notes": "draggable cards, native HTML5 drag API (:148). node-registry.ts holds the catalog (unit-testable headlessly: node-registry.test.ts) but the drop itself is GUI-only.",
-  "driven": "NEEDS-GUI",
-  "notes_r15": "native HTML5 drag onto canvas (skeleton finding 5); node catalog vs handler drift is COD-workflow-engine-1",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
- },
- {
-  "id": "node-editor-run-overlay",
-  "area": "node-editor",
-  "surface": "Workflow run overlay (SSE run states)",
-  "entry": "src/modules/node-editor/workflow-run-overlay.tsx:48,58,141",
-  "states": [
-   "idle(:150)",
-   "running",
-   "ok",
-   "error(:183, per-node status badges :237-244)"
-  ],
-  "drive": "browser",
-  "notes": "applyEvent() (:58) is a pure reducer over run-start/node-start/node-output/node-error/run-complete/run-error SSE events \u2014 fully unit-testable without a browser. workflow-run-overlay.test.tsx exists. Live SSE stream: POST /workflow/run.",
-  "driven": "partial",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels wf-run-*; P-wf-run1.jsonl, P-wf-run2.jsonl, P-wf-run-invalid.jsonl, P-wf-run-cycle.jsonl, P-wf-run-unknown.jsonl"
- },
- {
-  "id": "node-editor-code-node",
-  "area": "node-editor",
-  "surface": "Code node inspector (in-canvas code editor)",
-  "entry": "src/modules/node-editor/code-node-inspector.tsx:36",
-  "states": [
-   "compile-error(:111-113, data-testid=code-node-error)",
-   "preview-ok/preview-error(:141)",
-   "run-error(:158,204)"
-  ],
-  "drive": "browser",
-  "notes": "mathjs expression compile+preview, pure logic in code-node.ts/code-node-run.ts (both have .test.ts) \u2014 headlessly testable without mounting the panel.",
-  "driven": "partial",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl label wf-code-node; P-wf-code.jsonl"
- },
- {
-  "id": "node-editor-save-dialog",
-  "area": "node-editor",
-  "surface": "Workflow save dialog",
-  "entry": "src/modules/node-editor/workflow-save-dialog.tsx",
-  "states": [
-   "idle",
-   "saving",
-   "error"
-  ],
-  "drive": "browser",
-  "notes": "Paired with NodeEditorPanel saveDialogOpen/saving/saveError state (NodeEditorPanel.tsx:135-137).",
-  "driven": "ok",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels wf-save, wf-saved-list, wf-saved-get, wf-saved-get-missing, wf-delete, wf-delete-again"
- },
- {
-  "id": "layouts-arrange-templates",
-  "area": "layouts",
-  "surface": "Agent 'arrange' layout templates (4 modes)",
-  "entry": "src/lib/layout-templates.ts:182 (planLayout), :648 (MODE_PLANS), :402 (fitLayoutTemplate)",
-  "states": [
-   "single-focus",
-   "research-cockpit",
-   "macro-scan",
-   "compare",
-   "viewport-downgrade(width<1180 research-cockpit->chart+brief; width<1080 macro-scan->single focus, :409,:419)"
-  ],
-  "drive": "browser",
-  "notes": "planLayout/fitLayoutTemplate/applyLayoutMode are pure functions over a mocked DockviewApi \u2014 layout-templates.test.ts already covers this headlessly without a real dockview mount. Reachable via /layout slash command (slash-commands.ts:203-209) or the agent's arrange tool.",
-  "driven": "partial",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-arrange-probe.json (scratch vitest scratchpad/s2b-panels/vt/arrange-probe.test.ts); P-agent-open-panels-llama.jsonl/.stdout.txt; composer-chat/16-multiturn-t6-arrange.*"
- },
- {
-  "id": "layouts-macos-menu-bridge",
-  "area": "layouts",
-  "surface": "Native macOS Layout menu (Fundamental/Technical/Macro/Compare/Reset)",
-  "entry": "src/lib/menu-bridge.ts:14; src-tauri/src/lib.rs (menu build, macOS-only)",
-  "states": [
-   "applied(deterministic clear+tile)",
-   "unknown-payload(:36 warn)",
-   "no-dockview-api-yet(:28 warn)"
-  ],
-  "drive": "gui",
-  "notes": "Emits vysted://menu-layout via a REAL native menu click \u2014 GUI-only end-to-end, but the handler logic (applyLayoutMode) is unit-testable in isolation per layouts-arrange-templates above. Outside Tauri this is a silent no-op (dynamic import fails, :45-47).",
-  "driven": "NEEDS-GUI",
-  "notes_r15": "native macOS menu click (skeleton finding 5); handler applyLayoutMode driven headlessly in P-arrange-probe.json modeVsTemplate",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
- },
- {
-  "id": "layouts-workspace-save-load",
-  "area": "layouts",
-  "surface": "Save/Load workspace + New Research Space commands",
-  "entry": "src/modules/platform/index.ts:47,55,63",
-  "states": [
-   "saved",
-   "loaded(older-blob-guarded, deserializeWorkspace)",
-   "new-research-space"
-  ],
-  "drive": "api",
-  "notes": "GET/POST/DELETE /workspace,/workspace/{name} (routers/workspace.py). lib/workspace.ts serializeWorkspace/deserializeWorkspace (workspace.test.ts) is pure JSON-shape logic, fully headless.",
-  "driven": "ok",
-  "evidence": "surface/panels-layouts/rc1/ws-save-colon.json (name 'Research: X' now 200/saved, was 400 \u2014 COD-wl-2 fixed) + ws-save-300.json (300-char name now an honest 400 'too long to save', was 500 \u2014 COD-wl-7 fixed) + ws-get-basic2.json (clean round-trip: POST {workspace:{...}} -> GET returns the same body). COD-wl-8 (a corrupt file is listed but GET 404s with no distinguishing error) still reproduces (ws-list-after-corrupt.json / GET corrupt status: 404) \u2014 a pre-existing code-critique item, not re-filed per EVIDENCE.md's own convention."
- },
- {
-  "id": "charts-toolbar-draw-menu",
-  "area": "charts",
-  "surface": "Chart toolbar > Draw menu (drawing tools)",
-  "entry": "src/modules/chart/toolbar.tsx:207",
-  "states": [
-   "no-tool-armed",
-   "tool-armed(activeTool set, DrawingKind)"
-  ],
-  "drive": "gui",
-  "notes": "DRAWING_CHIP_LABELS (:58-60) maps every DrawingKind to a label \u2014 pure/headless-enumerable. Actual draw-on-canvas gesture needs trusted pointer events (Playwright/native), not chrome-devtools MCP (CLAUDE.md gotcha). Renderer logic: drawings/renderers.ts, drawings/factory.ts, drawings/base.ts (drawings.test.ts) is headless-testable geometry math.",
-  "driven": "NEEDS-GUI",
-  "notes_r15": "pointer-drag draw gesture (skeleton finding 5)",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
- },
- {
-  "id": "charts-toolbar-indicators-menu",
-  "area": "charts",
-  "surface": "Chart toolbar > Indicators menu",
-  "entry": "src/modules/chart/toolbar.tsx:255,246 (matchesQuery)",
-  "states": [
-   "search-empty",
-   "search-filtered",
-   "toggled-on/off per indicator"
-  ],
-  "drive": "browser",
-  "notes": "50-entry catalog in indicators.ts (indicatorsByCategory) + indicator-presets.ts (indicator-presets.test.ts) \u2014 both pure/headless. matchesQuery is a pure filter fn.",
-  "driven": "ok",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels indicators-*"
- },
- {
-  "id": "charts-toolbar-sync-menu",
-  "area": "charts",
-  "surface": "Chart toolbar > Sync menu (cross-panel symbol sync subscriptions)",
-  "entry": "src/modules/chart/toolbar.tsx:387",
-  "states": [
-   "no-subscriptions",
-   "populated(toggle per subscription)"
-  ],
-  "drive": "browser",
-  "notes": "Backed by store/chart-sync.ts (chart-sync.test.ts).",
-  "driven": "NOT TESTED",
-  "reason": "browser-only store surface (chart-sync.ts) with no sidecar call; singleton chart means no peer exists (COD-frontend-panels-data-surfaces-4); not re-driven headlessly",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
- },
- {
-  "id": "charts-timeframe",
-  "area": "charts",
-  "surface": "Chart timeframe/interval selector",
-  "entry": "src/modules/chart/ChartPanel.tsx",
-  "states": [
-   "populated(interval options)"
-  ],
-  "drive": "api",
-  "notes": "GET /history/{symbol}?interval=... (routers/history.py:55). Not yet opened line-by-line for the exact selector component in this pass \u2014 flagged for Stage 1 to pin down file:line before testing.",
-  "driven": "ok",
-  "evidence": "surface/panels-layouts/rc1/rc1-http-log.txt: all 8 timeframe options now return bars (30m: 286 bars for SPY and RELIANCE.NS, was 0 for every symbol \u2014 SURF-PANELS-LAYOUTS-3 fixed, R15-DATA-064) and 1wk/1mo freshness now labels the current period 'eod' not 'stale' (SURF-PANELS-LAYOUTS-4 fixed, R15-DATA-065)."
- },
- {
-  "id": "market-session-indicator",
-  "area": "charts",
-  "surface": "Market-session state (open/closed/pre/post)",
-  "entry": "src/lib/market-session.ts (market-session.test.ts)",
-  "states": [
-   "pre-market",
-   "open",
-   "after-hours",
-   "closed"
-  ],
-  "drive": "browser",
-  "notes": "Pure time-window logic, headless-testable across timezones/regions without a live clock dependency if the test injects a fixed Date.",
-  "driven": "NOT TESTED",
-  "reason": "pure time-window fn (src/lib/market-session.ts) with its own test; no sidecar surface in this group - the sidecar-side calendar freshness is exercised under charts-timeframe",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
- },
- {
-  "id": "comparison-surface",
-  "area": "comparison",
-  "surface": "Symbol comparison (chart overlay + compare layout + slash command)",
-  "entry": "src/modules/chart/toolbar.tsx:335 (CompareMenu); src/lib/layout-templates.ts:681 ('compare' MODE_PLAN); src/modules/chat/slash-commands.ts:169",
-  "states": [
-   "single-symbol",
-   "dual-symbol-overlay(pushed via chart-command channel)"
-  ],
-  "drive": "browser",
-  "notes": "Three independent entry points converge on the same chart-sync/chart-command bus: the toolbar CompareMenu, the /compare slash command, and the 'compare' arrange template (chart + equity-overview side by side, no watchlist/news).",
-  "driven": "partial",
-  "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels chart-compare-INFY, chart-compare-TCS"
- }
+  {
+    "id": "panel-chart",
+    "area": "panels",
+    "surface": "Chart panel (PanelSpec + ChartPanel component)",
+    "entry": "src/modules/chart/index.ts:20; src/modules/chart/ChartPanel.tsx",
+    "states": [
+      "loading",
+      "error",
+      "offline",
+      "populated",
+      "overflow(many indicators/drawings)"
+    ],
+    "drive": "browser",
+    "notes": "registers panel id 'chart' -> component 'chart-panel'. Vitest: src/modules/chart/ChartPanel.test.tsx. Data via sidecar GET /quotes/{symbol}, /history/{symbol}, /indicators. Canvas rendering (lightweight-charts) is a real <canvas> -> gestures/drag/draw need Playwright/native events, not chrome-devtools (CLAUDE.md gotcha).",
+    "driven": "ok",
+    "evidence": "surface/panels-layouts/rc1/rc1-http-log.txt (30m SPY/RELIANCE.NS now 286 bars each; SURF-PANELS-LAYOUTS-3 fixed, R15-DATA-064); 1mo/1wk freshness now 'eod' not 'stale' for current-period bars (SURF-PANELS-LAYOUTS-4 fixed, R15-DATA-065). Crypto 404 (COD-frontend-panels-data-surfaces-9) and the all-50-indicators/unknown-key behaviour not re-driven this pass (census evidence P-http-log.jsonl stands, unaffected by the fixed rows). | RC1-round-2 re-drive (candidate advanced 4097dac4->4c6dfe8c, 297 commits, chart region-binding landed): GET /quotes/SMR (own sidecar :52323) with no region header returns SMR Jewels Ltd (INR/BSE, price 94) per session default region IN; with X-Vysted-Region: US returns NuScale (USD/yfinance, price 8.42) -- R15-DATA-002 confirmed fixed at the current candidate (rc1-region-002-SMR-no-header.json, rc1-region-002-SMR-us-header.json). 30m SPY re-probe hit a 429 'rate_limited' from Yahoo on both own :52323 and shared :52152 (concurrent shared-run load) -- environment, not a regression; the 30m-lookback backend code (routers/history.py) is byte-unchanged since the round-1 baseline so no regression risk, only re-confirmed unreachable this pass."
+  },
+  {
+    "id": "panel-watchlist",
+    "area": "panels",
+    "surface": "Watchlist panel",
+    "entry": "src/modules/watchlist/index.ts:14; src/modules/watchlist/WatchlistPanel.tsx:139",
+    "states": [
+      "empty(no symbols)",
+      "loading(rows===null)",
+      "error",
+      "populated",
+      "overflow(collapse ladder narrow width)",
+      "tenth-item(row virtualization at scale)"
+    ],
+    "drive": "browser",
+    "notes": "rows null until first refresh (loading). addSymbol/removeSymbol at WatchlistPanel.tsx:228,243,311. EmptyState used at :464. Sidecar GET /quotes?symbols=.... Vitest: WatchlistPanel.test.tsx.",
+    "driven": "ok",
+    "evidence": "surface/panels-layouts/rc1/watchlist-20-own-cold.json + watchlist-20-own-warm.json (own sidecar :52323): cold 20-name IN batch 87.7s (throttle unchanged, expected), warm repeat 0.01s (EOD-cached) vs census's un-cached 23s warm / re-polled every 5s (SURF-PANELS-LAYOUTS-7 fixed, R15-DATA-066 \u2014 the 5s-poll starvation this finding was about is resolved by the session EOD cache)."
+  },
+  {
+    "id": "panel-news",
+    "area": "panels",
+    "surface": "News panel",
+    "entry": "src/modules/news/index.ts:18",
+    "states": [
+      "empty",
+      "loading",
+      "error(self-heals)",
+      "populated"
+    ],
+    "drive": "api",
+    "notes": "GET /news. Self-healing backoff per CLAUDE.md ('News/Portfolio already self-heal').",
+    "driven": "ok",
+    "evidence": "surface/panels-layouts/rc1/news-IN-watchlist.json: BDL now returns 'Bharat Dynamics shares rise 2%...' (Economic Times), not Flanigan's Enterprises (SURF-PANELS-LAYOUTS-2 fixed, R15-DATA-029). TCS.NS feed carries some tangential AI-industry items (Yahoo per-symbol RSS editorial mix, not a resolution bug \u2014 URLs resolve to the TCS.NS feed correctly) \u2014 observed, not filed."
+  },
+  {
+    "id": "panel-equity-overview",
+    "area": "panels",
+    "surface": "Equity Overview panel",
+    "entry": "src/modules/equity-overview/index.ts:11,15,18",
+    "states": [
+      "loading",
+      "error",
+      "populated"
+    ],
+    "drive": "api",
+    "notes": "GET /fundamentals/{symbol} + /narrative,/income,/balance,/cashflow,/ratings (routers/fundamentals.py).",
+    "driven": "partial",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels eo-*; P-eo-fund-RELIANCE.json, P-eo-fund-KAYNES.json, P-eo-fund-AAPL.json"
+  },
+  {
+    "id": "panel-agent-builder",
+    "area": "panels",
+    "surface": "Agent Builder panel (custom agent authoring)",
+    "entry": "src/modules/agent-builder/index.ts:28; src/modules/agent-builder/AgentBuilderPanel.tsx:117",
+    "states": [
+      "idle",
+      "saving",
+      "saved",
+      "error(save/delete :185-187, field errors :119,198)"
+    ],
+    "drive": "api",
+    "notes": "CRUD via sidecar /agents/custom (routers/custom_agents.py: GET/POST/PUT/DELETE). Validation pure fn: form.tsx:109 validate() \u2014 cheap unit-test target, no DOM needed.",
+    "driven": "partial",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels ab-*"
+  },
+  {
+    "id": "panel-backtest",
+    "area": "panels",
+    "surface": "Backtest panel (strategy backtest + critic)",
+    "entry": "src/modules/backtest/index.ts:25; src/modules/backtest/BacktestPanel.tsx:38",
+    "states": [
+      "loading(catalogueStatus, :161)",
+      "error(:163)",
+      "populated(BacktestResultView.tsx:409)"
+    ],
+    "drive": "api",
+    "notes": "GET /backtest/strategies, POST /backtest/run, GET /backtest/runs/{id} (routers/backtest.py). strategy-picker.tsx:24, custom-strategy-editor.tsx:96 (POST /backtest/strategies/custom/validate).",
+    "driven": "partial",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels bt-*; P-bt-default-SPY.jsonl, P-bt-RELIANCE.jsonl, P-bt-mixed.jsonl, P-bt-param-oor.jsonl, P-bt-junk.jsonl, P-bt-inverted.jsonl, P-bt-strategies.json"
+  },
+  {
+    "id": "panel-broker-connect",
+    "area": "panels",
+    "surface": "Broker Connect (connections) panel",
+    "entry": "src/modules/broker-connect/index.ts:17; src/modules/broker-connect/BrokerConnectPanel.tsx:116",
+    "states": [
+      "loading(:160-169)",
+      "empty(no brokers)",
+      "connected/connecting/disconnected/error(status badge, :266 err text)"
+    ],
+    "drive": "api",
+    "notes": "GET /brokers, POST /brokers/{id}/connect,/disconnect,/mode,/read-only. kite-static-ip-banner.tsx surfaces GET /brokers/kite/static-ip. BrokerReadsSection.tsx projects granular reads (positions/holdings/margins) per CLAUDE.md provenance labeling.",
+    "driven": "removed_with_feature",
+    "reason": "removed_with_feature: trading is out of the product (operator decision 23 Sep, PROMPT_surface_s2.md scope fact 1)",
+    "evidence": "N/A (trading removed, D81 merged on 004) \u2014 src/modules has no broker/audit-log module; scope fact 1."
+  },
+  {
+    "id": "panel-broker-order-entry",
+    "area": "panels",
+    "surface": "Broker Order Entry panel",
+    "entry": "src/modules/broker-connect/index.ts:25; src/modules/broker-connect/BrokerOrderEntry.tsx:47",
+    "states": [
+      "error(:241)",
+      "populated"
+    ],
+    "drive": "api",
+    "notes": "POST /brokers/{id}/orders then /orders/{proposal_id}/confirm \u2014 the \u00a76.5 confirm-before-place gate (OrderConfirmationDialog) sits between propose and confirm. NEVER exercise the confirm/cancel POSTs against the operator's live session (state-changing, out of scope for read-only probing).",
+    "driven": "removed_with_feature",
+    "reason": "removed_with_feature: trading is out of the product (operator decision 23 Sep)",
+    "evidence": "N/A (trading removed, D81 merged on 004) \u2014 src/modules has no broker/audit-log module; scope fact 1."
+  },
+  {
+    "id": "panel-macro",
+    "area": "panels",
+    "surface": "Macro panel",
+    "entry": "src/modules/macro/index.ts:16-32; src/modules/macro/MacroPanel.tsx:26",
+    "states": [
+      "loading(:61)",
+      "error(self-heals, :36-44,:69)",
+      "populated"
+    ],
+    "drive": "api",
+    "notes": "GET /macro/search,/macro/catalog,/macro/{series_id}. Uses useRetryOnSidecarReady (lib/use-sidecar-retry.ts:48) \u2014 cold-boot backoff pattern shared with SEC/Earnings/Screener.",
+    "driven": "ok",
+    "evidence": "surface/panels-layouts/rc1/macro-catalog-imf.json (10 entries now, incl. 2 India series) + macro-imf-IND-gdp.json (200, real observations back to 1980) (SURF-PANELS-LAYOUTS-5 fixed, R15-UI-053: /macro/{series_id:path} now accepts the '/' in IMF ids). | RC1-round-2 spot-recheck: same IMF India GDP series still 200, 52 real observations, no regression (rc1-macro-imf-india-gdp.json)."
+  },
+  {
+    "id": "panel-sec-filings",
+    "area": "panels",
+    "surface": "SEC Filings panel",
+    "entry": "src/modules/sec/index.ts:22-38; src/modules/sec/SecFilingsPanel.tsx:38",
+    "states": [
+      "loading(:193)",
+      "error(self-heals, :60-68, data-testid=sec-filings-error at :174)",
+      "populated",
+      "tenth-item(filings list)"
+    ],
+    "drive": "api",
+    "notes": "GET /sec/status,/sec/filings,/sec/filings/search,/sec/filings/{accession},/sec/filings/{accession}/sections,/sec/insider/{identifier}. Sub-views: FilingViewer.tsx, FilingsListTable.tsx, InsiderTradingTable.tsx.",
+    "driven": "ok",
+    "evidence": "surface/panels-layouts/rc1/sec-detail-AAPL.json + sec-insider-AAPL.json: the same accession 0000320193-25-000079 census used now returns 2 sections (business/risk_factors, 20,000 total_chars) and 9 insider Form-4 rows for Apple (SURF-PANELS-LAYOUTS-1 fixed, R15-DATA-038). Company-search / fabricated-detail-metadata (COD-mdp-2-1) not re-driven this pass. | RC1-round-2: GET /sec/filings/0000320193-25-000079?identifier=AAPL&form_type=10-K (new R15-LEAD-010 form_type hint param) returns 200, same filing metadata as without the param; /sections with form_type=10-K still returns 2 sections -- no regression, hint param is additive and backward compatible (rc1-sec-filing-form-type-hint-AAPL.json, rc1-sec-filing-sections-form-type-AAPL.json)."
+  },
+  {
+    "id": "panel-earnings-calendar",
+    "area": "panels",
+    "surface": "Earnings Calendar panel",
+    "entry": "src/modules/earnings/index.ts:16-32; src/modules/earnings/EarningsCalendarPanel.tsx:77",
+    "states": [
+      "idle/loading(:215)",
+      "error(self-heals, :107-115,:257)",
+      "populated"
+    ],
+    "drive": "api",
+    "notes": "GET /earnings/upcoming,/{symbol}/history,/{symbol}/surprises,/{symbol}/estimates. Sub-views EarningsSurpriseChart.tsx, EpsEstimateGrid.tsx.",
+    "driven": "ok",
+    "evidence": "surface/panels-layouts/rc1/earn-upcoming-US-own.json (JPM/TSLA: fiscal_period now null instead of the wrong 'Q4 2026' label \u2014 SURF-PANELS-LAYOUTS-8 fixed, R15-DATA-067) + earn-estimates-INFY-own.json (INFY now resolves to INFY.NS: eps_estimate_mean 19.58 INR alongside revenue_estimate_mean 491.5B INR, one consistent currency \u2014 SURF-PANELS-LAYOUTS-2/R15-DATA-029 fixed for earnings too). First INFY estimates probe hit a transient upstream 502 'Too Many Requests' from Yahoo (sidecar log, shared-run rate limiting) \u2014 retried 200 15s later; logged as environment, not a product defect. Default earnings/upcoming (no watchlist) now returns 0 events on both the shared and own sidecar where census reported a 10-US-name default (WLD-T-7) \u2014 not re-verified further under this budget, flagged for the lead as a possible open question, not scored as a new defect (could be a calendar-window/provider gap at time of test, not proven a regression). | RC1-round-2: GET /earnings/WIT/estimates -- currency:'USD' (EPS/trading currency) vs revenue_currency:'INR' (Wipro's statement currency) now split into two fields; previously both were folded into one 'currency' field -- R15-DATA-113 confirmed fixed (rc1-earnings-113-WIT-revenue-currency.json)."
+  },
+  {
+    "id": "panel-analyst-ratings",
+    "area": "panels",
+    "surface": "Analyst Ratings panel",
+    "entry": "src/modules/analyst-ratings/index.ts:14-30; src/modules/analyst-ratings/AnalystRatingsPanel.tsx:49",
+    "states": [
+      "loading(per-slice, :91-92)",
+      "empty(composed error EmptyState with Retry CTA, :124)",
+      "populated"
+    ],
+    "drive": "api",
+    "notes": "GET /fundamentals/{symbol}/ratings,/ratings/history,/ratings/price-target-history,/ratings/individual. Deliberately never disguises an error as empty (comment :27-28). Sub-views RatingsHistoryTable.tsx, PriceTargetTimeline.tsx, IndividualAnalystTable.tsx.",
+    "driven": "ok",
+    "evidence": "surface/panels-layouts/rc1/ratings-RELIANCE.NS.json (200, consensus buy, target_mean 1676.85 INR) + pth-RELIANCE.NS.json: RELIANCE.NS ratings/price-targets now populated (previously dead for every IN symbol, COD-mdp-1-3) \u2014 same _yahoo_symbol fix as earnings/news fixed this as a side effect. ratings/individual returns an empty analysts list for RELIANCE.NS (yfinance does not expose per-analyst breakdown for NSE names) \u2014 not a defect, not re-verified against AAPL's individual breakdown under this budget."
+  },
+  {
+    "id": "panel-option-pricer",
+    "area": "panels",
+    "surface": "Option Pricer panel (Quant)",
+    "entry": "src/modules/quant/index.ts:18-34; src/modules/quant/OptionPricerPanel.tsx:221",
+    "states": [
+      "idle(composed EmptyState with prefilled CTA)",
+      "loading(isRunning, :241)",
+      "error(data-testid=option-pricing-error, :491-497)",
+      "populated"
+    ],
+    "drive": "api",
+    "notes": "POST /quant/option/price. Pure Black-Scholes math is unit-testable without the panel.",
+    "driven": "ok",
+    "evidence": "surface/panels-layouts/rc1/quant-binomial-panel-defaults.json vs quant-bs-panel-defaults.json: panel-default inputs (S=K=220, vol 0.28, 45d, 200 steps) now gamma 0.018399 vs BS 0.018330 (1.004x, was 1.39x) and theta -40.43 (correctly negative for a long call, was positive). quant-binomial-201.json: 201 steps (previously exactly 0) now gamma 0.018797, consistent with 200/BS (SURF-PANELS-LAYOUTS-6 + theta-sign fixed, R15-DATA-011 \u2014 delta/gamma/theta now read off the CRR lattice per options.py:12-13 docstring)."
+  },
+  {
+    "id": "panel-greeks-dashboard",
+    "area": "panels",
+    "surface": "Greeks Dashboard panel (Quant)",
+    "entry": "src/modules/quant/index.ts:30; src/modules/quant/GreeksDashboard.tsx:162",
+    "states": [
+      "idle",
+      "loading",
+      "error(data-testid=greeks-error, :339-345)",
+      "populated"
+    ],
+    "drive": "api",
+    "notes": "POST /quant/option/greeks.",
+    "driven": "ok",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels quant-greeks-*"
+  },
+  {
+    "id": "panel-bond-pricer",
+    "area": "panels",
+    "surface": "Bond Pricer panel (Quant)",
+    "entry": "src/modules/quant/index.ts:38; src/modules/quant/BondPricerPanel.tsx:98",
+    "states": [
+      "idle",
+      "loading",
+      "error(data-testid=bond-pricing-error, :270-276)",
+      "populated"
+    ],
+    "drive": "api",
+    "notes": "POST /quant/bond/price.",
+    "driven": "ok",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels quant-bond-*"
+  },
+  {
+    "id": "panel-yield-curve",
+    "area": "panels",
+    "surface": "Yield Curve panel (Quant)",
+    "entry": "src/modules/quant/index.ts:46; src/modules/quant/YieldCurvePanel.tsx:135",
+    "states": [
+      "idle(chart never mounts empty)",
+      "loading",
+      "error(data-testid=yield-curve-error, :349-355)",
+      "populated"
+    ],
+    "drive": "api",
+    "notes": "POST /quant/yield-curve.",
+    "driven": "broken",
+    "evidence": "surface/panels-layouts/rc1/quant-yc-dup-tenor.headers.txt + .json: a duplicate 10y pillar still returns a bare 500 'Internal Server Error' with no access-control-allow-origin header \u2014 unchanged from census (SURF-PANELS-LAYOUTS-9, R15-UI-077 register status is 'open', confirmed still open, not a regression)."
+  },
+  {
+    "id": "panel-context-publishers",
+    "area": "panels",
+    "surface": "Per-module panel-context publishers (what each panel tells the agent)",
+    "entry": "src/modules/panel-context-publishers.test.tsx; src/store/panel-context.ts",
+    "states": [
+      "published(per active panel)",
+      "stale/unpublished"
+    ],
+    "drive": "browser",
+    "notes": "panel-context.test.ts + panel-context-publishers.test.tsx already assert this headlessly across modules \u2014 good template for any new panel's context contract.",
+    "driven": "ok",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): pnpm exec vitest run src/modules/panel-context-publishers.test.tsx -> 13/13 passed (scratchpad s2b-panels/pcp.log)"
+  },
+  {
+    "id": "panel-audit-log",
+    "area": "safety",
+    "surface": "Audit Log viewer panel",
+    "entry": "src/modules/safety/index.ts:14-40; src/modules/safety/AuditLogViewer.tsx",
+    "states": [
+      "empty",
+      "populated",
+      "filtered(defaultAuditFilter, store/safety.ts:117)"
+    ],
+    "drive": "api",
+    "notes": "GET /safety/audit-log, /safety/audit-log/export.csv (append-only, DB-enforced per CLAUDE.md \u00a76.5). Reader uses PRAGMA query_only=ON \u2014 safe to GET repeatedly.",
+    "driven": "removed_with_feature",
+    "evidence": "N/A (trading removed, D81 merged on 004) \u2014 src/modules has no broker/audit-log module; scope fact 1."
+  },
+  {
+    "id": "panel-node-editor",
+    "area": "node-editor",
+    "surface": "Node Editor canvas (workflow builder)",
+    "entry": "src/modules/node-editor/index.ts:24; src/modules/node-editor/NodeEditorPanel.tsx:106",
+    "states": [
+      "empty(no nodes, Run disabled :537)",
+      "saving/save-error(:135-137)",
+      "loading-list/load-error(:140-143)",
+      "running(:146, RunOverlayState)"
+    ],
+    "drive": "gui",
+    "notes": "react-flow canvas; HTML5 native drag-drop from node-palette.tsx requires trusted browser events \u2014 chrome-devtools MCP can't synthesize isTrusted drag (CLAUDE.md gotcha), needs Playwright or real GUI. Workflow save/load hits sidecar POST/GET /workflow/save,/workflow/saved (routers/workflow.py).",
+    "driven": "NEEDS-GUI",
+    "notes_r15": "react-flow canvas + native drag-drop (skeleton finding 5). Headless: workflow save/list/get/delete/re-delete driven ok (labels wf-save*, wf-saved-*, wf-delete*).",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
+  },
+  {
+    "id": "node-editor-palette",
+    "area": "node-editor",
+    "surface": "Node palette (draggable node catalog)",
+    "entry": "src/modules/node-editor/node-palette.tsx:62",
+    "states": [
+      "populated(builtin+plugin node kinds)"
+    ],
+    "drive": "gui",
+    "notes": "draggable cards, native HTML5 drag API (:148). node-registry.ts holds the catalog (unit-testable headlessly: node-registry.test.ts) but the drop itself is GUI-only.",
+    "driven": "NEEDS-GUI",
+    "notes_r15": "native HTML5 drag onto canvas (skeleton finding 5); node catalog vs handler drift is COD-workflow-engine-1",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
+  },
+  {
+    "id": "node-editor-run-overlay",
+    "area": "node-editor",
+    "surface": "Workflow run overlay (SSE run states)",
+    "entry": "src/modules/node-editor/workflow-run-overlay.tsx:48,58,141",
+    "states": [
+      "idle(:150)",
+      "running",
+      "ok",
+      "error(:183, per-node status badges :237-244)"
+    ],
+    "drive": "browser",
+    "notes": "applyEvent() (:58) is a pure reducer over run-start/node-start/node-output/node-error/run-complete/run-error SSE events \u2014 fully unit-testable without a browser. workflow-run-overlay.test.tsx exists. Live SSE stream: POST /workflow/run.",
+    "driven": "partial",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels wf-run-*; P-wf-run1.jsonl, P-wf-run2.jsonl, P-wf-run-invalid.jsonl, P-wf-run-cycle.jsonl, P-wf-run-unknown.jsonl"
+  },
+  {
+    "id": "node-editor-code-node",
+    "area": "node-editor",
+    "surface": "Code node inspector (in-canvas code editor)",
+    "entry": "src/modules/node-editor/code-node-inspector.tsx:36",
+    "states": [
+      "compile-error(:111-113, data-testid=code-node-error)",
+      "preview-ok/preview-error(:141)",
+      "run-error(:158,204)"
+    ],
+    "drive": "browser",
+    "notes": "mathjs expression compile+preview, pure logic in code-node.ts/code-node-run.ts (both have .test.ts) \u2014 headlessly testable without mounting the panel.",
+    "driven": "partial",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl label wf-code-node; P-wf-code.jsonl"
+  },
+  {
+    "id": "node-editor-save-dialog",
+    "area": "node-editor",
+    "surface": "Workflow save dialog",
+    "entry": "src/modules/node-editor/workflow-save-dialog.tsx",
+    "states": [
+      "idle",
+      "saving",
+      "error"
+    ],
+    "drive": "browser",
+    "notes": "Paired with NodeEditorPanel saveDialogOpen/saving/saveError state (NodeEditorPanel.tsx:135-137).",
+    "driven": "ok",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels wf-save, wf-saved-list, wf-saved-get, wf-saved-get-missing, wf-delete, wf-delete-again"
+  },
+  {
+    "id": "layouts-arrange-templates",
+    "area": "layouts",
+    "surface": "Agent 'arrange' layout templates (4 modes)",
+    "entry": "src/lib/layout-templates.ts:182 (planLayout), :648 (MODE_PLANS), :402 (fitLayoutTemplate)",
+    "states": [
+      "single-focus",
+      "research-cockpit",
+      "macro-scan",
+      "compare",
+      "viewport-downgrade(width<1180 research-cockpit->chart+brief; width<1080 macro-scan->single focus, :409,:419)"
+    ],
+    "drive": "browser",
+    "notes": "planLayout/fitLayoutTemplate/applyLayoutMode are pure functions over a mocked DockviewApi \u2014 layout-templates.test.ts already covers this headlessly without a real dockview mount. Reachable via /layout slash command (slash-commands.ts:203-209) or the agent's arrange tool.",
+    "driven": "partial",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-arrange-probe.json (scratch vitest scratchpad/s2b-panels/vt/arrange-probe.test.ts); P-agent-open-panels-llama.jsonl/.stdout.txt; composer-chat/16-multiturn-t6-arrange.*"
+  },
+  {
+    "id": "layouts-macos-menu-bridge",
+    "area": "layouts",
+    "surface": "Native macOS Layout menu (Fundamental/Technical/Macro/Compare/Reset)",
+    "entry": "src/lib/menu-bridge.ts:14; src-tauri/src/lib.rs (menu build, macOS-only)",
+    "states": [
+      "applied(deterministic clear+tile)",
+      "unknown-payload(:36 warn)",
+      "no-dockview-api-yet(:28 warn)"
+    ],
+    "drive": "gui",
+    "notes": "Emits vysted://menu-layout via a REAL native menu click \u2014 GUI-only end-to-end, but the handler logic (applyLayoutMode) is unit-testable in isolation per layouts-arrange-templates above. Outside Tauri this is a silent no-op (dynamic import fails, :45-47).",
+    "driven": "NEEDS-GUI",
+    "notes_r15": "native macOS menu click (skeleton finding 5); handler applyLayoutMode driven headlessly in P-arrange-probe.json modeVsTemplate",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
+  },
+  {
+    "id": "layouts-workspace-save-load",
+    "area": "layouts",
+    "surface": "Save/Load workspace + New Research Space commands",
+    "entry": "src/modules/platform/index.ts:47,55,63",
+    "states": [
+      "saved",
+      "loaded(older-blob-guarded, deserializeWorkspace)",
+      "new-research-space"
+    ],
+    "drive": "api",
+    "notes": "GET/POST/DELETE /workspace,/workspace/{name} (routers/workspace.py). lib/workspace.ts serializeWorkspace/deserializeWorkspace (workspace.test.ts) is pure JSON-shape logic, fully headless.",
+    "driven": "ok",
+    "evidence": "surface/panels-layouts/rc1/ws-save-colon.json (name 'Research: X' now 200/saved, was 400 \u2014 COD-wl-2 fixed) + ws-save-300.json (300-char name now an honest 400 'too long to save', was 500 \u2014 COD-wl-7 fixed) + ws-get-basic2.json (clean round-trip: POST {workspace:{...}} -> GET returns the same body). COD-wl-8 (a corrupt file is listed but GET 404s with no distinguishing error) still reproduces (ws-list-after-corrupt.json / GET corrupt status: 404) \u2014 a pre-existing code-critique item, not re-filed per EVIDENCE.md's own convention. | RC1-round-2 spot-recheck on the current candidate: colon-name save still 200, 300-char name still honest 400, round-trip still clean -- no regression (rc1-ws-colon-name.json, rc1-ws-300char-name.json)."
+  },
+  {
+    "id": "charts-toolbar-draw-menu",
+    "area": "charts",
+    "surface": "Chart toolbar > Draw menu (drawing tools)",
+    "entry": "src/modules/chart/toolbar.tsx:207",
+    "states": [
+      "no-tool-armed",
+      "tool-armed(activeTool set, DrawingKind)"
+    ],
+    "drive": "gui",
+    "notes": "DRAWING_CHIP_LABELS (:58-60) maps every DrawingKind to a label \u2014 pure/headless-enumerable. Actual draw-on-canvas gesture needs trusted pointer events (Playwright/native), not chrome-devtools MCP (CLAUDE.md gotcha). Renderer logic: drawings/renderers.ts, drawings/factory.ts, drawings/base.ts (drawings.test.ts) is headless-testable geometry math.",
+    "driven": "NEEDS-GUI",
+    "notes_r15": "pointer-drag draw gesture (skeleton finding 5)",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
+  },
+  {
+    "id": "charts-toolbar-indicators-menu",
+    "area": "charts",
+    "surface": "Chart toolbar > Indicators menu",
+    "entry": "src/modules/chart/toolbar.tsx:255,246 (matchesQuery)",
+    "states": [
+      "search-empty",
+      "search-filtered",
+      "toggled-on/off per indicator"
+    ],
+    "drive": "browser",
+    "notes": "50-entry catalog in indicators.ts (indicatorsByCategory) + indicator-presets.ts (indicator-presets.test.ts) \u2014 both pure/headless. matchesQuery is a pure filter fn.",
+    "driven": "ok",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels indicators-*"
+  },
+  {
+    "id": "charts-toolbar-sync-menu",
+    "area": "charts",
+    "surface": "Chart toolbar > Sync menu (cross-panel symbol sync subscriptions)",
+    "entry": "src/modules/chart/toolbar.tsx:387",
+    "states": [
+      "no-subscriptions",
+      "populated(toggle per subscription)"
+    ],
+    "drive": "browser",
+    "notes": "Backed by store/chart-sync.ts (chart-sync.test.ts).",
+    "driven": "NOT TESTED",
+    "reason": "browser-only store surface (chart-sync.ts) with no sidecar call; singleton chart means no peer exists (COD-frontend-panels-data-surfaces-4); not re-driven headlessly",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
+  },
+  {
+    "id": "charts-timeframe",
+    "area": "charts",
+    "surface": "Chart timeframe/interval selector",
+    "entry": "src/modules/chart/ChartPanel.tsx",
+    "states": [
+      "populated(interval options)"
+    ],
+    "drive": "api",
+    "notes": "GET /history/{symbol}?interval=... (routers/history.py:55). Not yet opened line-by-line for the exact selector component in this pass \u2014 flagged for Stage 1 to pin down file:line before testing.",
+    "driven": "ok",
+    "evidence": "surface/panels-layouts/rc1/rc1-http-log.txt: all 8 timeframe options now return bars (30m: 286 bars for SPY and RELIANCE.NS, was 0 for every symbol \u2014 SURF-PANELS-LAYOUTS-3 fixed, R15-DATA-064) and 1wk/1mo freshness now labels the current period 'eod' not 'stale' (SURF-PANELS-LAYOUTS-4 fixed, R15-DATA-065)."
+  },
+  {
+    "id": "market-session-indicator",
+    "area": "charts",
+    "surface": "Market-session state (open/closed/pre/post)",
+    "entry": "src/lib/market-session.ts (market-session.test.ts)",
+    "states": [
+      "pre-market",
+      "open",
+      "after-hours",
+      "closed"
+    ],
+    "drive": "browser",
+    "notes": "Pure time-window logic, headless-testable across timezones/regions without a live clock dependency if the test injects a fixed Date.",
+    "driven": "NOT TESTED",
+    "reason": "pure time-window fn (src/lib/market-session.ts) with its own test; no sidecar surface in this group - the sidecar-side calendar freshness is exercised under charts-timeframe",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): "
+  },
+  {
+    "id": "comparison-surface",
+    "area": "comparison",
+    "surface": "Symbol comparison (chart overlay + compare layout + slash command)",
+    "entry": "src/modules/chart/toolbar.tsx:335 (CompareMenu); src/lib/layout-templates.ts:681 ('compare' MODE_PLAN); src/modules/chat/slash-commands.ts:169",
+    "states": [
+      "single-symbol",
+      "dual-symbol-overlay(pushed via chart-command channel)"
+    ],
+    "drive": "browser",
+    "notes": "Three independent entry points converge on the same chart-sync/chart-command bus: the toolbar CompareMenu, the /compare slash command, and the 'compare' arrange template (chart + equity-overview side by side, no watchlist/news).",
+    "driven": "partial",
+    "evidence": "CARRIED FORWARD from census (not re-driven this pass, no register-fix or trading-scope-change reason to re-check): surface/panels-layouts/P-http-log.jsonl labels chart-compare-INFY, chart-compare-TCS"
+  }
 ]

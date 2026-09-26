@@ -6,31 +6,31 @@
   "activePortfolioName": "Portfolio",
   "holdings": [
     {
-      "id": "h-23969a3e-649b-4229-9e61-4aa3e708e234",
+      "id": "h-ffb6f3b9-48eb-45d6-9805-b4fff7a37e6a",
       "symbol": "RELIANCE",
       "quantity": 10,
       "costBasis": 1100,
       "assetClass": "equity",
-      "marketValue": 12192,
-      "pnl": 1192
+      "marketValue": 12260,
+      "pnl": 1260
     },
     {
-      "id": "h-93716ccb-e244-46c1-b8e2-9fb62188a991",
+      "id": "h-5d20ea5b-b752-4d45-9a5b-011103e402a0",
       "symbol": "AAPL",
       "quantity": 5,
       "costBasis": 180,
       "assetClass": "equity",
-      "marketValue": 1679.6000671386719,
-      "pnl": 779.6000671386719
+      "marketValue": 1705.35,
+      "pnl": 805.3499999999999
     },
     {
-      "id": "h-3d80897a-0672-40a2-a78e-253b6b5f693b",
+      "id": "h-6dd4aa40-6b91-44a2-959e-2c4f459fd231",
       "symbol": "INFY",
       "quantity": 20,
       "costBasis": 1500,
       "assetClass": "equity",
-      "marketValue": 20290,
-      "pnl": -9710
+      "marketValue": 20004,
+      "pnl": -9996
     }
   ]
 }

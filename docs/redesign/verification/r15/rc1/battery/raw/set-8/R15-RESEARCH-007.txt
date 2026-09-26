@@ -1,11 +1,15 @@
-medium.com/@someauthor/tcs-analysis: tier=3 expected=3 [OK]
-wordpress-blog.wordpress.com/2026/tcs: tier=3 expected=3 [OK]
-reuters.com/business/tcs-earnings: tier=2 expected=2 [OK]
-ir.substack.com/p/tcs-note: tier=3 expected=3 [OK]
-investor.medium.com/tcs: tier=3 expected=3 [OK]
-investors.infosys.com/quarterly-results: tier=1 expected=1 [OK]
-ir.tatamotors.com/financials: tier=1 expected=1 [OK]
---- issue 4 check ---
-tcs.com/investor-relations/ tier= 3
-reliance.com/investors tier= 3
-infosys.com/investors/ tier= 3
+$ python3 -c domain_tier(...) over the original+fresh URLs
+medium.com/investor-diary/x -> 3
+someblog.wordpress.com/ir/x -> 3
+www.investors.com/news/x -> 3
+reuters.com/markets/x -> 2
+ir.tata.co.in -> 1
+investors.xero.co.nz -> 1
+ir.sony.co.jp -> 1
+investor.vale.com.br -> 1
+ir.nvidia.com -> 1
+investors.infosys.com -> 1
+ir.tesla.com -> 1
+ir.repl.co -> 3
+investors.co.nz -> 3
+ir.vercel.app -> 3

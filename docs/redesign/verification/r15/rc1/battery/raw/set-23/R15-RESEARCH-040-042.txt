@@ -1,0 +1,19 @@
+=== R15-RESEARCH-040 (open): pre-dispatch cost estimate ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/research/sonar.py:112:def estimate_cost_usd(query: str, model: str = SONAR_DEEP_MODEL) -> float:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/research/sonar.py:236:        "spend_usd": estimate_cost_usd(query, model),
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/research/sonar.py:346:    "estimate_cost_usd",
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_tools/deep_research.py:164:    out.setdefault("cost_estimate_usd", perplexity.estimate_cost_usd(query))
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-cand/sidecar/services/agent_tools/deep_research.py:197:    out.setdefault("cost_estimate_usd", sonar.estimate_cost_usd(query, resolved_model))
+
+=== R15-RESEARCH-042 (open): brief >=3 source floor ===
+10:  3. verdict — a claim backed by evidence from at least ``min_domains``
+370:def _render_section(checks: list[dict[str, Any]], min_domains: int, *, dual: bool = False) -> str:
+374:        f"(at least {min_domains} independent domains required per claim):"
+380:            f"{min_domains} independent sources required per claim):"
+412:    min_domains: int = 2,
+489:                if evidence["independence"] < max(1, min_domains):
+525:        + _render_section(checks, min_domains, dual=native_search is not None)
+530:        "min_domains": min_domains,
+70:_NO_WEB_NOTE = "No web-search backend configured — structured data only"
+73:#: it just rate-limited this run. Distinct from ``_NO_WEB_NOTE`` so the brief never
+526:        web["note"] = _RATE_LIMITED_NOTE if reason == "rate_limited" else _NO_WEB_NOTE

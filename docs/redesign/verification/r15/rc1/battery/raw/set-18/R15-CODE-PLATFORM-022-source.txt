@@ -1,0 +1,16 @@
+      const cleaned: Portfolio[] = (Array.isArray(portfolios) ? portfolios : [])
+        .filter((p) => p && typeof p === "object")
+        .map((p) => ({
+          id: typeof p.id === "string" && p.id !== "" ? p.id : genId("pf"),
+          name:
+            typeof p.name === "string" && p.name.trim() !== ""
+              ? p.name.trim()
+              : DEFAULT_PORTFOLIO_NAME,
+          holdings: (Array.isArray(p.holdings) ? p.holdings : [])
+            .map(normalizeHolding)
+            .filter((h): h is Holding => h !== null),
+        }));
+      if (cleaned.length === 0) {
+        const fresh = makeEmptyPortfolio(DEFAULT_PORTFOLIO_NAME, DEFAULT_PORTFOLIO_ID);
+        return { portfolios: [fresh], activeId: fresh.id };
+      }

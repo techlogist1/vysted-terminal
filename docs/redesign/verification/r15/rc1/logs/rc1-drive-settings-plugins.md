@@ -26,3 +26,30 @@
 - Wrote `surface/settings-plugins/rc1/rc1-redrive.md` (never overwrote census files),
   `rc1/drives/settings-plugins.md`, `rc1/findings/rc1-drive-settings-plugins.json` (empty array).
 - Stopped own sidecar (sleep pid 87924). Left shared `:52152` stack untouched.
+
+## Gate-round-2 re-drive (26 Sep, same session — continued from the 25-Sep pass above)
+
+- Found `rc1-cand` at scratch is now sha `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2` (the
+  gate-round-2 candidate per this run's LEAD NOTE), NOT `4097dac4` that the 25-Sep pass
+  evidenced — candidate moved between attempts of this same run. Confirmed via
+  `git log --oneline 4097dac4..4c6dfe8c` (297 commits, mostly R15 verification docs) and
+  `git diff --stat` scoped to this group's files: only `SettingsPanel.tsx` changed (+12/-0,
+  commit `5109567e`, R15-CODE-PLATFORM-013 fix).
+- Register check: R15-CODE-PLATFORM-013 status is `fixed` but carries a `note` recording an
+  rc1-refutation-audit finding it `partial` (Settings toggle bypassed the marketplace
+  lifecycle owner for bridged plugin modules). Commit `5109567e` in the new range fixes
+  exactly that gap.
+- Verified via `vitest run src/components/SettingsPanel.test.tsx` against `rc1-cand`
+  (detached run, polled via Monitor — 10.69s wall, well under the 120s single-call cap): 52/52
+  pass, including the pinned regression test for this exact fix.
+- Re-booted own sidecar on `:52325` from `rc1-cand/sidecar` (source, read-only) against the
+  existing `rc1-data-rc1-drive-settings-plugins` data dir (reused — no sidecar/server file in
+  this group's scope changed between candidates, so the existing keyless data dir is still
+  valid); re-ran the 3 live round-trips from the 25-Sep pass (key validate, NewsAPI probe,
+  plugin enable/disable) — all still `ok`, no regression.
+- Re-confirmed by code read that R15-UI-081 (`workspace.ts` `openPanel` never reads the
+  `enabled` map) is untouched by this range and still genuinely open — a distinct defect from
+  PLATFORM-013, not fixed by it.
+- No new defects. Updated `surface/settings-plugins/rc1/rc1-redrive.md` and
+  `rc1/drives/settings-plugins.md` with the gate-round-2 delta; findings file stays `[]`.
+- Stopped own sidecar (sleep-pipe pid 70950). Shared `:52152` untouched throughout.

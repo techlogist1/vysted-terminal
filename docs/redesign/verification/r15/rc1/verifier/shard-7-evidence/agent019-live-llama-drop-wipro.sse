@@ -1,0 +1,6 @@
+data: {"kind": "heartbeat"}
+
+data: {"kind": "delta", "text": "{\"name\": \"portfolio_delete_position\", \"parameters\": {\"symbol\": \"WIPRO\"}}"}
+
+data: {"kind": "done", "usage": {"input_tokens": 6023, "output_tokens": 20, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

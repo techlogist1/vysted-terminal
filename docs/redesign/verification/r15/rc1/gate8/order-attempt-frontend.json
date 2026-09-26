@@ -1,0 +1,42 @@
+[
+  {
+    "mode": "auto",
+    "name": "propose_order",
+    "outcome": "failed",
+    "kind": "panel",
+    "title": "propose order",
+    "accept": "failed",
+    "detail": "unknown action \"propose_order\"",
+    "ledgerUnchanged": true
+  },
+  {
+    "mode": "auto",
+    "name": "place_order",
+    "outcome": "failed",
+    "kind": "panel",
+    "title": "place order",
+    "accept": "failed",
+    "detail": "unknown action \"place_order\"",
+    "ledgerUnchanged": true
+  },
+  {
+    "mode": "ask",
+    "name": "propose_order",
+    "outcome": "staged",
+    "kind": "panel",
+    "title": "propose order",
+    "accept": "failed",
+    "detail": "unknown action \"propose_order\"",
+    "ledgerUnchanged": true
+  },
+  {
+    "mode": "ask",
+    "name": "place_order",
+    "outcome": "staged",
+    "kind": "panel",
+    "title": "place order",
+    "accept": "failed",
+    "detail": "unknown action \"place_order\"",
+    "ledgerUnchanged": true
+  }
+]

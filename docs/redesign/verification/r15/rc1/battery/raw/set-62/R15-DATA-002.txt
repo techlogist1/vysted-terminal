@@ -1,0 +1,16 @@
+=== /history/AMAL region US vs IN ===
+provider yfinance
+last close {'timestamp': '2026-09-25T00:00:00-04:00', 'open': 47.33000183105469, 'high': 47.650001525878906, 'low': 47.040000915527344, 'close': 47.58000183105469, 'volume': 170300.0}
+provider nse_direct
+last close {'timestamp': '2026-09-25T00:00:00Z', 'open': 688.85, 'high': 695.9, 'low': 658.05, 'close': 674.4, 'volume': 13368.0}
+=== code check: chart-command carries region ===
+21:   *  `region` is the region of the listing the issuer picked (a `/resolve`
+24:   *  region applies. */
+25:  command: { symbol: string; timeframe?: string; region?: string; seq: number } | null;
+42:  /** Host → chart: load a symbol (and optional timeframe/region). */
+43:  loadSymbol: (symbol: string, timeframe?: string, region?: string) => void;
+63:  loadSymbol: (symbol, timeframe, region) =>
+65:      command: { symbol, timeframe, region, seq: (state.command?.seq ?? 0) + 1 },
+=== sidecarRequest drops unset per-call region ===
+235:      if (value !== undefined) {
+254:    if (value !== undefined) {

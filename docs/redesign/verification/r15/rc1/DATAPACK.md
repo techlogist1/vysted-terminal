@@ -1,77 +1,85 @@
-# RC1 data-pack re-collection (rc1-datapack)
+# RC1 data-pack re-collection (rc1-datapack), gate round 2
 
-Candidate sha `4097dac4`. Own sidecar booted from `rc1-cand/sidecar` on a fresh copy of
-`rc1-seed-data` (isolated, keyless), port 52313. Ran
-`scripts/r15/collect_battery.py --port 52313 --force` from a minimal copy tree
-(`scratchpad/rc1-pack`) so the census baseline in
+Candidate sha `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`. This replaces the DATAPACK.md/
+datapack.json that were on disk before this run, which were from an **earlier** RC1
+candidate (`4097dac4`, gate round 1, 2026-09-25) — a different sha.
+
+Own sidecar booted from `rc1-cand/sidecar` on a fresh copy of `rc1-seed-data` (isolated,
+keyless), port 52313. Ran `scripts/r15/collect_battery.py --port 52313 --force` from a
+minimal copy tree (`scratchpad/rc1-pack`) so the census baseline in
 `docs/redesign/verification/r15/battery/collected/` was never overwritten. All 24 battery
-slots collected; raw output copied to `r15/rc1/battery/collected/`. Full field-by-field
-re-diff: `r15/rc1/datapack.json` (script: `scratchpad/rc1-pack/redo_diff.py`, not committed —
-scratch tool).
+slots collected; raw output copied to `r15/rc1/battery/collected/`.
 
-**Environment note (read first):** this sidecar's own background `fundamentals_warm` cache
-job hammered Yahoo concurrently with the collector, opening the Yahoo circuit breaker
-repeatedly (`opens_total` 26→28, `throttles_total` up to 287, "backing off 543s" in
-`sidecar.log`). P6 ICON and P18 ONC's `/fundamentals` calls landed while `yahoo_open:false`,
-fell through to `openbb-mcp`, and got an all-null payload — self-inflicted noise, not
-evidence of a code regression. Those two slots' blank numeric fields are excluded from
-findings below.
+**Environment note:** this sidecar's own background `fundamentals_warm` cache job hammered
+Yahoo concurrently with the collector (repeated 429s, one observed 56s circuit-open window
+during P15 SUMAX). Self-inflicted noise from a freshly-booted sidecar, not a product defect
+— matches the same class already on record from gate round 1.
 
-## 38 fixed register entries touching battery symbols (re-diff target)
+## Method
 
-21 symbols implicated: AMAL(8) DAL(11) SMR(8) DHANBANK(5) ELCIDIN(8) CREST(4) JNPR(5)
-ICON(5) CHTR(3) JONJUA(5) NAPEROL(4) DHOOTTRANS(4) SIFY(4) TTC(4) VERTEX(3) JUMBO(3)
-SUMAX(3) ONC(2) CSL(2) FUSION(2) SAFE(1) VIYASH(2) — see mapping in
-`scratchpad/rc1-pack` session log; full id list was cross-checked against
-`vysted-r15-register.json`.
+Two passes, per the task brief:
 
-## What re-diffed clean (no regression)
+1. **Targeted**: 42 fixed register entries whose repro/evidence names a battery symbol
+   (word-boundary match against the register, not substring — substring matching
+   over-counts on common words like SAFE/ICON/CSL). 10 symbols implicated: AMAL, DAL, SIFY,
+   DHANBANK, SMR, JNPR, ELCIDIN, SUMAX, VIYASH, CREST. Re-ran each entry's own stated repro
+   live against the rc1 candidate and read `field_meta` (status/reason), not just the raw
+   value, since several of these entries were fixed by adding a cross-check gate rather than
+   changing the number.
+2. **Broad**: `scratchpad/rc1-pack/redo_diff.py` (scratch, not committed) flattens the fresh
+   rc1 collected JSON and looks up every census-time `match` field (from
+   `docs/redesign/verification/r15/battery/diffs/*.json`) against the same outside/pack
+   value the census diff already recorded, across all 24 slots. Output:
+   `r15/rc1/rediff_out.json`.
 
-- All "app blank" / "no source truth" / "definitional difference" / "mismatch" statuses
-  from the census are unaffected by this drive (out of scope — we only re-diffed prior
-  `match` cells for drift, plus the shareholding/announcements/results_calendar call
-  status).
-- The great majority (~340 of ~367) prior `match` cells still match once unit
-  ambiguity (bare pack numbers that are implicitly INR crore), percentage-vs-decimal
-  scale, and multi-source pack dicts are normalized. Several apparent mismatches were
-  tool artifacts of the automated re-diff (compound outside_value strings, custom field
-  names not in the generic mapper) and are not filed as findings.
-- `results_calendar` flipped 502→200 for **every** slot that had it 502 at census time
-  (P14, P15, P17, P18, P19, P1, P20, P2–P9, S1–S4) — a broad, consistent improvement,
-  not attributable to a single register id in this drive's scope; noted, not filed as
-  a finding (no register regression to pin it against).
+## Targeted re-diff: 20 of 42 fixed entries re-probed directly
 
-## Findings filed
+18 hold as fixed (DATA-002, 004, 005, 006, 013, 014, 017, 018, 052, 057, 059, 060,
+LEAD-011, LEAD-015, LEAD-028 for its certified routes; DATA-003/022 inconclusive — BSE's
+own shareholding index returned 403 Forbidden for every BSE-only symbol this run, not just
+the entries' symbols, so this is an upstream block, not a symbol-specific regression). The
+remaining 22 fixed entries (portfolio-agent flows, statement-depth/pledge/corporate-action
+gaps, field-meta cosmetics) were not individually re-probed this pass — see
+`docs/redesign/verification/r15/rc1/datapack.json` `not_individually_re-verified_this_pass`.
 
-1. **rc1-datapack:1 (new_defect, high)** — the derived P/E fallback (`basis_note:
-   "price / EPS"`, `provider: "derived"`) does not guard negative EPS: SIFY (P17,
-   eps -0.13) and VERTEX (S3, eps -0.25) both got a negative P/E served as `status: ok`
-   with no reason/flag (-103.15 and -12.2 respectively), while the census pack recorded
-   both as correctly "loss-making, PE n/a" at fetch time. Same defect class in 2 of 2
-   loss-making names checked → a computation-path bug (missing `eps <= 0` guard before
-   `price / eps`), not a one-off. `sidecar/services/fundamentals*` derived-ratio path is
-   the suspected location (not opened this drive — re-diff only, no code read/fix per
-   role scope).
-2. **rc1-datapack:2 (environment, medium)** — `/disclosures/shareholding` status flipped
-   between census and rc1 for the same BSE-only symbols in **both** directions (200→502
-   for 15 slots: P13 P14 P19 P20 P2 P3 P4 P5 P6 P7 P8 P9 S2 S3 S4; 502→200 for 6 slots:
-   P15 P17 P18 P1 S1). This bidirectional flip, concurrent with this sidecar's own
-   Yahoo-driven circuit-breaker churn, reads as endpoint/rate-limit flakiness rather than
-   a deterministic code regression — flagged as environment, but the register's
-   shareholding-derived entries (R15-DATA-004, R15-DATA-056, R15-DATA-057) may be
-   reproducibility-sensitive and worth a dedicated flake-rate check outside this drive.
-3. **rc1-datapack:3 (environment, low)** — P6 ICON and P18 ONC fundamentals came back
-   fully null because this sidecar's own concurrent warm-cache job had the Yahoo circuit
-   open at collection time (`yahoo_open:false`, `openbb-mcp` fallback returned all-null
-   for both). Not usable as regression evidence; would need a re-collect with the warm
-   job paused to test cleanly. Secondary observation: `openbb-mcp`'s fallback for a US
-   ADR (ONC) when Yahoo is unavailable is a wall of nulls rather than a clear
-   degraded-provider signal — worth a look if this reproduces cleanly outside this
-   drive's noisy environment.
+**2 regressions found** (both previously "fixed", both fail on their own original repro):
 
-## Low-confidence, not filed
+### R15-DATA-008 (SIFY currency mislabel) — still broken
 
-Small (5–12%) numeric drift on VIYASH debt_to_equity/revenue_ttm, JONJUA pe_ttm/pb, and
-CSL pe_ttm plausibly reflects ordinary 2–6 day as-of movement on price-derived ratios
-(P/E, P/B move with daily price) or a TTM-window quarter rollover; per task instruction
-("price-like drift is as-of skew, not a regression") these are not filed.
+`GET /fundamentals/SIFY` on the rc1 candidate returns the exact same numbers the original
+defect cited: `revenue_ttm: 46506049536.0`, `net_income_ttm: -912369984.0`, top-level
+`currency: "USD"`. The fix added a separate `financial_currency: "INR"` field and correctly
+withholds `price_to_sales` ("mixes bases... withheld"), but `revenue_ttm`/`net_income_ttm`
+still carry `status: "ok"`, no `reason`, and are not gated the same way — so a consumer that
+reads `currency` next to `revenue_ttm` (exactly what `EquityOverviewPanel.tsx` and
+`brief-blocks.tsx` do, per the entry's own root-cause note) still sees "$46.5B revenue" for
+a ~$492M company. The register's own batch-23 note already flagged this exact suspicion
+("may have resurfaced or is incompletely fixed... not independently re-verified") — this
+drive confirms it live on the current candidate.
+
+### R15-DATA-058 (SIFY (ADR) name-search ranking) — still broken
+
+`GET /resolve?q=Sify+Technologies+Ltd+(ADR)` now includes SIFY in the candidate list
+(previously it was excluded entirely by the 6-candidate cap) — a partial improvement — but
+SIFY (confidence 0.913, the highest score in the list) still sorts **last**, behind five
+weaker Indian-locale matches (ASMTEC 0.80, IKOMA/EMIAC/RELICTEC/7TEC ~0.766). The fix_shape
+called for score to dominate locale "beyond a margin" in the fuzzy band; an 11-point margin
+between the top and bottom scores is not a small one, and the ranking still buries the
+correct answer.
+
+## Broad scan: 13 slots flagged, all explained as mapper artifacts, zero real regressions
+
+`redo_diff.py`'s heuristic field-path mapper flagged 13 slots. Every flag inspected by hand
+is one of: pack figures in INR crore vs rc1's raw-rupee scale (`revenue_ttm` on
+VIYASH/JNPR/CHTR/ICON/JUMBO/AMAL/SMR/VERTEX), pack percent-scale vs rc1 decimal-scale
+(`roe`/`debt_to_equity` on the same slots), a sector-label variant ("Financials" vs
+"Financial Services" on CSL), or fields the app now correctly serves null/withheld
+(JONJUA `debt_to_equity`, ONC's US-only fields). None is a genuine value change once
+rescaled — consistent with the mapper's documented limitation (field paths in
+`BATTERY_DIFFS.md` are prose, not JSON pointers).
+
+## Not filed (price-like / as-of skew)
+
+Per task instruction, no price-derived drift (P/E, P/B, market cap, 52-week range) was
+filed regardless of direction — none of the 10 implicated symbols showed anything beyond
+ordinary 1-week movement on those fields.
