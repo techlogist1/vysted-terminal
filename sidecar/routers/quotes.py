@@ -43,7 +43,7 @@ def _label_freshness(quote: Quote, asset_class: str) -> Quote:
         region = instrument_region(quote.symbol, quote.provider)
         quote.freshness = freshness_for(region, quote.timestamp.date(), intraday=True).state
     except Exception:  # noqa: BLE001 — a label failure must never drop the quote
-        quote.freshness = None
+        quote.freshness = "unknown"  # badged, never an unlabelled (live-looking) quote
     return quote
 
 

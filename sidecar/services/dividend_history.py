@@ -78,24 +78,6 @@ class DividendTTM:
         return self.status == "affirmed_zero"
 
 
-def _is_rate_limited(exc: BaseException) -> bool:
-    """True when ``exc`` (or a chained cause) is a yfinance rate-limit.
-
-    Matched by type NAME (``YFRateLimitError``) so the module never imports
-    ``yfinance.exceptions`` — that submodule drifts across yfinance releases and
-    a hard import would make this module un-importable on an older/newer pin.
-    """
-    seen: set[int] = set()
-    cur: BaseException | None = exc
-    while cur is not None and id(cur) not in seen:
-        seen.add(id(cur))
-        name = type(cur).__name__
-        if name == "YFRateLimitError" or "ratelimit" in name.lower():
-            return True
-        cur = cur.__cause__ or cur.__context__
-    return False
-
-
 def _utc(raw_ts: Any) -> pd.Timestamp:
     """yfinance indexes in the exchange timezone (tz-aware for most listings,
     occasionally tz-naive) — normalise to UTC either way so a window comparison
@@ -161,7 +143,7 @@ async def get_dividend_ttm(symbol: str) -> DividendTTM:
     try:
         result = await asyncio.to_thread(_sum_trailing_dividends, symbol)
     except Exception as exc:  # noqa: BLE001 — a cross-check must never break research
-        if _is_rate_limited(exc):
+        if provider_health.is_rate_limit(exc):
             provider_health.record_rate_limited()
         else:
             logger.debug("dividend history unavailable for %s: %s", symbol, exc)

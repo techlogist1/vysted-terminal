@@ -94,6 +94,24 @@ def _cooldown_seconds(consecutive_opens: int) -> float:
     return max(1.0, target + random.uniform(-jitter, jitter))
 
 
+def is_rate_limit(exc: BaseException) -> bool:
+    """The ONE "is this a Yahoo throttle" predicate every breaker feeder uses.
+
+    True when ``exc`` or any exception in its cause/context chain is a
+    ``YFRateLimitError`` / any ``*RateLimit*`` class, or carries an HTTP
+    "Too Many Requests" message. Matched by type NAME so callers never import
+    the drifting ``yfinance.exceptions`` submodule (test mocks replace ``yf``).
+    """
+    seen: set[int] = set()
+    node: BaseException | None = exc
+    while node is not None and id(node) not in seen:
+        seen.add(id(node))
+        if "ratelimit" in type(node).__name__.lower() or "Too Many Requests" in str(node):
+            return True
+        node = node.__cause__ or node.__context__
+    return False
+
+
 def record_rate_limited(family: str = YAHOO, *, weight: float = 1.0) -> None:
     """Record ``weight`` throttle observations for ``family``.
 
@@ -243,6 +261,7 @@ __all__ = [
     "fallthroughs",
     "is_failing",
     "is_open",
+    "is_rate_limit",
     "record_fallthrough",
     "record_rate_limited",
     "record_served",

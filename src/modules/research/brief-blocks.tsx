@@ -33,7 +33,7 @@ import { Fragment, useMemo, type ReactNode } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-import { ProvenanceBadge, StalenessBadge, type Freshness } from "@/components/DataBadges";
+import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import {
   BROKEN_CITE_MARKER,
   dedupeSources,
@@ -60,7 +60,7 @@ import type {
   BriefStructured,
   ResearchBriefData,
 } from "../../../types/brief";
-import type { Fundamentals, Quote } from "../../../types/data";
+import type { Freshness, Fundamentals, Quote } from "../../../types/data";
 
 // --- formatting: every figure routes through lib/format (R15-RESEARCH-026) ---
 
@@ -95,6 +95,8 @@ interface MetricsModel {
   symbol?: string;
   provider?: string;
   freshness?: Freshness;
+  /** Epoch ms of the quote, so an `eod` badge states its date. */
+  asOf?: number;
   price?: number;
   change?: number;
   changePercent?: number;
@@ -455,7 +457,10 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
   const items = [...semantic, ...rawItems.filter((item) => !shadowed.has(item.label))];
 
   const freshness: Freshness | undefined =
-    quote?.freshness === "live" || quote?.freshness === "stale" || quote?.freshness === "eod"
+    quote?.freshness === "live" ||
+    quote?.freshness === "stale" ||
+    quote?.freshness === "eod" ||
+    quote?.freshness === "unknown"
       ? quote.freshness
       : undefined;
 
@@ -463,6 +468,7 @@ export function deriveMetrics(structured: BriefStructured | undefined): MetricsM
     symbol: quote?.symbol ?? fund?.symbol,
     provider: priceLeg?.provider ?? fundLeg?.provider ?? quote?.provider ?? fund?.provider,
     freshness,
+    asOf: typeof quote?.timestamp === "string" ? Date.parse(quote.timestamp) : undefined,
     price: typeof quote?.price === "number" ? quote.price : undefined,
     change: typeof quote?.change === "number" ? quote.change : undefined,
     changePercent: typeof quote?.change_percent === "number" ? quote.change_percent : undefined,
@@ -779,7 +785,9 @@ function MetricsBlock({ model }: { model: MetricsModel }) {
           ) : null}
           <span className="ml-auto flex items-center gap-2">
             {model.provider ? <ProvenanceBadge provider={model.provider} /> : null}
-            {model.freshness ? <StalenessBadge freshness={model.freshness} /> : null}
+            {model.freshness ? (
+              <StalenessBadge freshness={model.freshness} asOf={model.asOf} />
+            ) : null}
           </span>
         </div>
       )}
@@ -991,7 +999,13 @@ export function MarkdownBody({
   return (
     <>
       {blocks.map((block, i) => (
-        <motion.div key={i} {...childProps}>
+        // Reading blocks cap their line length (R9 §7 max-w-prose); tables and
+        // code keep the panel width they need.
+        <motion.div
+          key={i}
+          {...childProps}
+          className={block.kind === "table" || block.kind === "code" ? undefined : "max-w-prose"}
+        >
           {block.kind === "heading" ? (
             <HeadingBlock level={block.level} text={block.text} ctx={ctx} />
           ) : block.kind === "paragraph" ? (

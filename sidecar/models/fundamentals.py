@@ -41,7 +41,7 @@ class FieldMeta(BaseModel):
     map is ADDITIVE — an absent map must never break an existing consumer.
     """
 
-    status: str
+    status: Literal["ok", "flagged", "withheld", "unavailable"]
     provider: str | None = None
     as_of: str | None = None
     reason: str | None = None
@@ -279,11 +279,22 @@ class CompanyNarrative(BaseModel):
 
     symbol: str
     summary: str | None = None
-    """The 2–4 sentence narrative, with any unverified number redacted. ``None``
+    """FR-124 "The Take": the 2–4 sentence headline, with any unverified number redacted. ``None``
     when no narrative was produced (no key, empty model output, or all prose
     redacted)."""
     insights: list[str] = Field(default_factory=list)
-    """2–4 short key-insight bullets, each verified the same way as ``summary``."""
+    """Legacy key-insight bullets (an older ``INSIGHTS:`` completion), each
+    verified the same way as ``summary``."""
+    business: str | None = None
+    """FR-124 "business": what the company does and how it earns, verified."""
+    storyline: str | None = None
+    """FR-124 "storyline": what the served numbers say about its trajectory."""
+    bull_case: list[str] = Field(default_factory=list)
+    """FR-124 balanced bull points, each verified the same way as ``summary``."""
+    bear_case: list[str] = Field(default_factory=list)
+    """FR-124 balanced bear points, each verified the same way as ``summary``."""
+    risks: list[str] = Field(default_factory=list)
+    """FR-124 key risks, each verified the same way as ``summary``."""
     verified: bool = False
     """``True`` when a narrative was produced AND every numeric claim in it
     matched a source value. ``False`` when nothing was produced or at least one

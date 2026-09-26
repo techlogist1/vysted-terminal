@@ -94,3 +94,43 @@ def test_system_provider_health_routes(client) -> None:
 
     closed = client.post("/system/provider-health/reset").json()
     assert closed["yahoo"]["open"] is False
+
+
+def test_is_rate_limit_union() -> None:
+    """R15-CODE-DATA-009: ONE throttle predicate is the union of the five that
+    used to diverge (YFRateLimitError, any *RateLimit* class, an HTTP "Too Many
+    Requests" message, anywhere in the cause chain), and every Yahoo feeder of
+    the shared breaker calls it instead of keeping its own."""
+    from pathlib import Path
+
+    from yfinance.exceptions import YFRateLimitError
+
+    class FooRateLimit(Exception):
+        pass
+
+    class HTTPError(Exception):
+        pass
+
+    assert provider_health.is_rate_limit(YFRateLimitError())
+    assert provider_health.is_rate_limit(HTTPError("429 Too Many Requests"))
+    assert provider_health.is_rate_limit(FooRateLimit())
+    try:
+        try:
+            raise FooRateLimit()
+        except FooRateLimit as inner:
+            raise RuntimeError("wrapped") from inner
+    except RuntimeError as outer:
+        assert provider_health.is_rate_limit(outer)
+    assert not provider_health.is_rate_limit(HTTPError("404 Not Found"))
+
+    services = Path(provider_health.__file__).parent
+    for module in (
+        "yfinance_provider",
+        "growth_check",
+        "dividend_history",
+        "earnings_quality",
+        "symbol_resolver",
+    ):
+        source = (services / f"{module}.py").read_text("utf-8")
+        assert "provider_health.is_rate_limit(" in source, module
+        assert "def _is_rate_limited" not in source, module

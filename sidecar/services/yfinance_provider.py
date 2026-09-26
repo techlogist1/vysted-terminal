@@ -35,21 +35,6 @@ from services.errors import ProviderError
 PROVIDER = "yfinance"
 
 
-def _is_rate_limited(exc: BaseException) -> bool:
-    """True when ``exc`` (or any exception in its cause/context chain) is a
-    yfinance rate-limit — matched by type NAME so this module never imports
-    ``yfinance.exceptions`` at call time (test mocks replace ``yf`` wholesale).
-    """
-    seen: set[int] = set()
-    node: BaseException | None = exc
-    while node is not None and id(node) not in seen:
-        seen.add(id(node))
-        if type(node).__name__ == "YFRateLimitError" or "Too Many Requests" in str(node):
-            return True
-        node = node.__cause__ or node.__context__
-    return False
-
-
 #: yfinance's "Yahoo answered, no such ticker / no bars" family (YFTzMissingError
 #: and YFPricesMissingError subclass it), matched by type name like the rate limit.
 _MISSING_TICKER_ERRORS = frozenset({"YFTickerMissingError"})
@@ -90,7 +75,7 @@ def _provider_error(action: str, symbol: str, exc: BaseException) -> ProviderErr
     ``kind="rate_limited"`` so callers stop mislabelling throttles as
     ``no_data``/``correctness_gate``; a missing ticker is ``not_found`` and a
     transport failure ``network`` (D-B8-10)."""
-    if _is_rate_limited(exc):
+    if provider_health.is_rate_limit(exc):
         provider_health.record_rate_limited(provider_health.YAHOO)
         return ProviderError(
             f"yfinance {action} rate-limited for {symbol!r}: {exc}",
@@ -911,6 +896,10 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         held_percent_institutions=_num(info.get("heldPercentInstitutions")),
         provider=PROVIDER,
     )
+    # D55: Yahoo's revenueGrowth/earningsGrowth are MRQ vs the year-ago quarter —
+    # stated here where they are produced (the annual fallback below states its own).
+    if fund.revenue_growth is not None or fund.earnings_growth is not None:
+        fund.growth_basis = "mrq_yoy"
     # R13: stamp per-field provenance for every value actually served (the gate
     # then merges its withheld/flag entries on top).
     fund.field_meta = _served_field_meta(fund, fetched_at)

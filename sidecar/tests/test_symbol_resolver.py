@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from services import provider_health, symbol_resolver
+from services.resolution_policy import BAND_EXACT_TICKER, decide
 
 
 @pytest.fixture(autouse=True)
@@ -93,7 +94,7 @@ def test_iconikspev_resolves_deterministically_to_bse(monkeypatch) -> None:  # n
     assert r.best.region == "IN"
     assert r.best.yahoo_symbol == "ICONIKSPEV.BO"
     assert r.confidence >= 0.99
-    assert not r.needs_disambiguation
+    assert decide(r).outcome != "disambiguate"
     # The same identity carries its real scrip code for bhavcopy routing.
     assert symbol_resolver.bse_scrip_code("ICONIKSPEV") == "511260"
     assert symbol_resolver.is_bse_symbol("ICONIKSPEV")
@@ -112,7 +113,7 @@ def test_bare_bse_scrip_code_resolves(monkeypatch) -> None:  # noqa: ANN001
     assert r.best.symbol == "BOMOXY-B1"  # Bombay Oxygen Investments (BSE-only)
     assert r.best.yahoo_symbol == "BOMOXY-B1.BO"
     assert r.confidence >= 0.99
-    assert not r.needs_disambiguation
+    assert decide(r).outcome != "disambiguate"
     # Round-trips to the same scrip code regardless of the exact symbol spelling.
     assert symbol_resolver.bse_scrip_code(r.best.symbol) == "509470"
     # The explicit ``.BO`` form of the numeric code resolves the same way.
@@ -222,8 +223,6 @@ def test_live_lookup_collects_all_quotes_india_first_and_never_binds(monkeypatch
 
     import yfinance as yf
 
-    from services.resolution_policy import decide
-
     monkeypatch.setattr(yf, "Search", _FakeSearch)
     rows = symbol_resolver._live_lookup("Something", "IN")
     assert [r.yahoo_symbol for r in rows] == ["SOMETHING.BO", "SOMETHING.NS", "SOMETHING"]
@@ -242,16 +241,16 @@ def test_exchange_agrees_with_yahoo_suffix_across_full_masters() -> None:
     symbol with the fields the routing layer depends on."""
     suffix_by_exchange = {"NSE": ".NS", "BSE": ".BO", "US": ""}
     for sym, (_name, typ) in symbol_resolver._nse_master().items():
-        inst = symbol_resolver._instrument_nse(sym, 1.0)
+        inst = symbol_resolver._instrument_nse(sym, 1.0, BAND_EXACT_TICKER)
         # An NSE Emerge (SM) listing is Yahoo's -SM.NS form (R15-DATA-017).
         listing = f"{sym}-SM.NS" if typ == "SM" else f"{sym}.NS"
         assert inst.exchange == "NSE" and inst.yahoo_symbol == listing
     for sym, (_name, _group, code, _isin) in symbol_resolver._bse_master().items():
-        inst = symbol_resolver._instrument_bse(sym, 1.0)
+        inst = symbol_resolver._instrument_bse(sym, 1.0, BAND_EXACT_TICKER)
         assert inst.exchange == "BSE" and inst.yahoo_symbol == f"{sym}.BO"
         assert code.isdigit(), f"BSE master row {sym} lacks a numeric scrip code"
     for sym in symbol_resolver._us_master():
-        inst = symbol_resolver._instrument_us(sym, 1.0)
+        inst = symbol_resolver._instrument_us(sym, 1.0, BAND_EXACT_TICKER)
         assert inst.exchange == "US" and inst.yahoo_symbol == sym
         assert suffix_by_exchange[inst.exchange] == ""
 
@@ -432,7 +431,7 @@ def test_marquee_alias_two_word_generic_key(monkeypatch) -> None:  # noqa: ANN00
     r = symbol_resolver.resolve("tata stock", "IN")
     assert r.best is not None
     assert r.best.band == 5  # marquee
-    assert r.needs_disambiguation
+    assert decide(r).outcome == "disambiguate"
     assert [c.symbol for c in r.candidates][:2] == ["TCS", "TMCV"]
 
 
@@ -727,7 +726,7 @@ def test_same_ticker_different_companies_keep_their_own_identity(
     assert bse.isin == bse_isin and bse.bse_code is not None
     assert nse.isin != bse.isin
     assert nse.bse_code is None and nse.industry is None
-    assert res.needs_disambiguation
+    assert decide(res).outcome == "disambiguate"
 
 
 # ---------------------------------------------------------------------------
@@ -750,7 +749,7 @@ def test_former_name_resolves_a_us_rename(monkeypatch) -> None:  # noqa: ANN001
     assert r.best is not None
     assert r.best.symbol == "ONC"
     assert r.best.former_name == "BeiGene, Ltd."
-    assert r.needs_disambiguation
+    assert decide(r).outcome == "disambiguate"
     assert r.candidates[0].symbol == "ONC"
 
 
@@ -885,3 +884,45 @@ def test_nse_listing_date_is_the_exchange_date_of_listing() -> None:
     assert parsed == ["2026-08-17", "2026-09-02", None]
     assert symbol_resolver.nse_listing_date("DHOOTTRANS.NS") == "2026-08-17"
     assert symbol_resolver.nse_listing_date("NAPEROL") is None
+
+
+def test_garbled_master_degrades_to_no_match_not_500(monkeypatch) -> None:  # noqa: ANN001
+    """R15-LIFECYCLE-036: a garbled bundled master (json.load raises
+    JSONDecodeError) degrades to an empty master as the loader documents — the
+    resolve is an honest no-match and ``GET /resolve`` answers 200, never 500."""
+    import json
+
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+
+    from routers import resolve as resolve_router
+
+    def _garbled(*_a: object, **_k: object) -> None:
+        raise json.JSONDecodeError("Expecting value", "", 0)
+
+    monkeypatch.setattr(symbol_resolver.json, "load", _garbled)
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda *_a, **_k: [])
+    symbol_resolver.reset_caches_for_tests()
+    try:
+        r = symbol_resolver.resolve("TATASTEEL", "IN")
+        assert r.best is None and r.candidates == []
+        app = FastAPI()
+        app.include_router(resolve_router.router)
+        resp = TestClient(app).get("/resolve", params={"q": "TATASTEEL", "region": "IN"})
+        assert resp.status_code == 200
+        assert resp.json()["ok"] is False
+    finally:
+        monkeypatch.undo()
+        symbol_resolver.reset_caches_for_tests()
+
+
+def test_autocomplete_exact_ticker_carries_exact_band_and_binds() -> None:
+    """R15-CODE-DATA-017: an autocomplete exact-ticker row states its band (the
+    builders no longer default to BAND_FUZZY), so the ONE policy binds it rather
+    than refusing a score-1.0 row as fuzzy."""
+    from services import resolution_policy
+
+    rows = symbol_resolver.autocomplete("TATASTEEL", "IN")
+    assert rows[0].symbol == "TATASTEEL" and rows[0].band == BAND_EXACT_TICKER
+    r = symbol_resolver.Resolution(query="TATASTEEL", best=rows[0], candidates=rows)
+    assert resolution_policy.decide(r).outcome == "bound"

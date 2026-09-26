@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Building2, FileSpreadsheet, Loader2, Search, Sparkles, Star } from "lucide-react";
 
+import { ProvenanceBadge, StalenessBadge } from "@/components/DataBadges";
 import { cn, DataTable, type DataColumn, type DataSection } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -228,19 +229,12 @@ function listedUnderAYear(fundamentals: Fundamentals | null): boolean {
   return listed != null && Date.now() - Date.parse(listed) < 364 * 24 * 60 * 60 * 1000;
 }
 
-/** ISO timestamp → the bare date ("2026-07-10") — dense, unambiguous, and
- *  consistent with how the rest of the app states raw ISO dates (e.g. the
- *  brief's declared-dividend record dates) rather than a locale-formatted one. */
-function shortDate(iso: string): string {
-  return iso.slice(0, 10);
-}
-
-/** Provenance + freshness chip — which source served the data, and how fresh.
- *  A live quote's `freshness` (live/stale/eod) leads; when there is none (a
- *  fundamentals-only load, or a quote leg that failed) the fundamentals
- *  snapshot's own as-of date (R13) fills in — the badge never goes silent on
- *  staleness just because there was no quote to ask. */
-function ProvenanceBadge({
+/** Provenance + freshness chips via the shared data-trust badges — which source
+ *  served the data, and how fresh. A quote's `freshness` leads; when there is
+ *  none (a fundamentals-only load, or a quote leg that failed) the fundamentals
+ *  snapshot's own as-of date (R13) fills in as an end-of-day read, so the chip
+ *  never goes silent on staleness just because there was no quote to ask. */
+function SourceBadges({
   quote,
   fundamentals,
 }: {
@@ -252,20 +246,15 @@ function ProvenanceBadge({
     return null;
   }
   const freshness = quote?.freshness ?? null;
-  const stale = freshness === "stale";
-  const asOf = freshness === null ? fundamentalsAsOf(fundamentals) : null;
-  const asOfLabel = asOf !== null ? `as of ${shortDate(asOf)}` : null;
+  const snapshotAsOf = freshness === null ? fundamentalsAsOf(fundamentals) : null;
   return (
-    <span
-      className={cn(
-        "border-charcoal-700 text-charcoal-400 text-micro rounded-control inline-flex items-center gap-1 border px-2 py-1",
-        stale && "border-warning/40 text-warning",
-      )}
-      title={`Source: ${provider}${freshness ? ` · ${freshness}` : asOfLabel ? ` · ${asOfLabel}` : ""}`}
-    >
-      <span>{provider}</span>
-      {freshness && <span className="text-charcoal-500">· {freshness}</span>}
-      {!freshness && asOfLabel && <span className="text-charcoal-500">· {asOfLabel}</span>}
+    <span className="inline-flex items-center gap-1">
+      <ProvenanceBadge provider={provider} />
+      {freshness !== null && quote !== null ? (
+        <StalenessBadge freshness={freshness} asOf={Date.parse(quote.timestamp)} />
+      ) : snapshotAsOf !== null ? (
+        <StalenessBadge freshness="eod" asOf={Date.parse(snapshotAsOf)} />
+      ) : null}
     </span>
   );
 }
@@ -324,6 +313,44 @@ function VerifiedProse({ text }: { text: string }) {
   );
 }
 
+/** One FR-124 narrative block — a micro heading over verified prose or bullets;
+ *  renders nothing when the model left the section empty. */
+function NarrativeBlock({
+  label,
+  text = null,
+  items = [],
+}: {
+  label: string;
+  text?: string | null;
+  items?: string[];
+}) {
+  if (!text && items.length === 0) {
+    return null;
+  }
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      <h4 className="text-charcoal-500 text-micro">{label}</h4>
+      {text ? (
+        <p className="text-charcoal-200 text-caption leading-relaxed">
+          <VerifiedProse text={text} />
+        </p>
+      ) : null}
+      {items.length > 0 ? (
+        <ul className="flex flex-col gap-1">
+          {items.map((item, i) => (
+            <li key={i} className="text-charcoal-300 text-caption flex gap-2 leading-relaxed">
+              <span className="text-charcoal-500 mt-px select-none">—</span>
+              <span className="min-w-0">
+                <VerifiedProse text={item} />
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * AI narrative section — an LLM-written, numerically-verified company overview
  * rendered above the field groups. Every number in it was checked against the
@@ -371,11 +398,23 @@ function NarrativeSection({
           </div>
         </div>
       ) : narrative?.summary != null ? (
-        <div className="flex flex-col gap-3 px-3 py-3">
+        // Reading surface: capped line length (R9 §7 max-w-prose), never ~150ch.
+        <div data-testid="narrative-body" className="flex max-w-prose flex-col gap-3 px-3 py-3">
           {/* Primary tier — the narrative prose. */}
           <p className="text-charcoal-100 text-prose leading-relaxed">
             <VerifiedProse text={narrative.summary} />
           </p>
+
+          {/* Secondary tier — FR-124's typed sections, each verified like the take. */}
+          <NarrativeBlock label="Business" text={narrative.business} />
+          <NarrativeBlock label="Storyline" text={narrative.storyline} />
+          {narrative.bull_case.length + narrative.bear_case.length > 0 && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <NarrativeBlock label="Bull case" items={narrative.bull_case} />
+              <NarrativeBlock label="Bear case" items={narrative.bear_case} />
+            </div>
+          )}
+          <NarrativeBlock label="Risks" items={narrative.risks} />
 
           {/* Tertiary tier — key insights. */}
           {narrative.insights.length > 0 && (
@@ -688,6 +727,11 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
           symbol,
           summary: null,
           insights: [],
+          business: null,
+          storyline: null,
+          bull_case: [],
+          bear_case: [],
+          risks: [],
           verified: false,
           unverified_claims: [],
           source_provider: null,
@@ -1038,16 +1082,18 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
                     <span className="text-charcoal-100 text-overview tabular-nums">
                       {formatPrice(quote.price)} {quote.currency}
                     </span>
-                    <span
-                      className={cn(
-                        "text-body whitespace-nowrap tabular-nums",
-                        quote.change_percent >= 0 ? "text-positive" : "text-negative",
-                      )}
-                    >
-                      {quote.change >= 0 ? "+" : ""}
-                      {formatPrice(quote.change)} ({quote.change_percent >= 0 ? "+" : ""}
-                      {quote.change_percent.toFixed(2)}%)
-                    </span>
+                    {quote.change !== null && quote.change_percent !== null && (
+                      <span
+                        className={cn(
+                          "text-body whitespace-nowrap tabular-nums",
+                          quote.change_percent >= 0 ? "text-positive" : "text-negative",
+                        )}
+                      >
+                        {quote.change >= 0 ? "+" : ""}
+                        {formatPrice(quote.change)} ({quote.change_percent >= 0 ? "+" : ""}
+                        {quote.change_percent.toFixed(2)}%)
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -1076,7 +1122,7 @@ export function EquityOverviewPanel(props: { api?: { id?: string } } = {}) {
                       {fmtPriceField(fundamentals.fifty_two_week_high) ?? "—"}
                     </span>
                   )}
-                <ProvenanceBadge quote={quote} fundamentals={fundamentals} />
+                <SourceBadges quote={quote} fundamentals={fundamentals} />
               </div>
             </header>
 
