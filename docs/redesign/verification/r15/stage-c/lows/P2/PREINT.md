@@ -220,3 +220,27 @@ pnpm install --frozen-lockfile   # @tiptap/extension-list missing from node_modu
 <run claimed_tests.pytest_all + pytest_collateral, then vitest_all + vitest_collateral, then the chain>
 git push origin lows-P2-int-rc1   # then one fresh verifier, then merge --no-ff into 004-r4-experience-rebuild
 ```
+
+## Fix pass (07:05-07:06 IST, Opus, one bounded pass)
+
+Candidate `worktree-agent-lows-P2-int-4c6dfe8` moved 18e5bcb0 -> d7d0d325 (pushed, no force; ls-remote = d7d0d3254dfebf89b882c51ea22d9de464048c5e). Tests edited as source only, never run: untested pending integration. Checks run: py_compile + ruff format/check on the .py file, prettier --check and node --check on the touched JS/JSON files.
+
+Applied (blocking):
+- 1ebaf89b R15-LIFECYCLE-033: `sidecar/tests/test_provider_health.py::test_system_provider_health_routes` takes `monkeypatch` and sets `VYSTED_RIG_HOOKS=1` before the trip call. Assertions unchanged.
+- 09821a53 R15-CODE-PLATFORM-062: in `scripts/smoke-test-sidecars.mjs` the main guard is now `process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href`, so it is portable to Windows and to percent-encoded paths.
+- 42b3c679 R15-RELEASE-011: the coverage-threshold pin test in `scripts/smoke-test-sidecars.test.mjs` now runs `process.execPath node_modules/vitest/vitest.mjs ...`, with no .bin shim, and has an explicit 90_000 ms it() timeout. Assertions unchanged.
+
+Applied (advisory, trivial):
+- bb945754 R15-RELEASE-011: `coverage/` added to .gitignore and .prettierignore, and `coverage/**` added to the eslint ignores.
+- d7d0d325 R15-AGENT-072: the `sidecar/agents/_schema.json` tools description now names `tools` + `effective_tools` in place of `declaredTools`.
+
+Left (advisory):
+- thresholds.autoUpdate ratchet rewriting vitest.config.ts on every run: this is an operator decision (commit the ratchet, or have ci-local pass autoUpdate=false).
+- ci-local vs test.yml drift (`--coverage`, python3 Store stub on Windows): check this on the ROG box, not here.
+- Rig impact of R15-LIFECYCLE-033: the rig sidecar and scripts/r15/route_fuzz.py need `VYSTED_RIG_HOOKS=1`. Notify the rig owner. No code change here.
+- W3 x W6 isError CHANGELOG line: CHANGELOG is written at integration, so it is left for the integrator.
+- R15-AGENT-068, R15-LIFECYCLE-030, R15-CODE-DATA-008, R15-CODE-DATA-010: these are intended behavior changes. Nothing to fix.
+- W7 SIDECAR_API.md stale sections route: at d7d0d325 no `accession` or `sections` route appears in docs/SIDECAR_API.md, so there is nothing to remove.
+- types/*.ts effective_tools mirror: this is a contract addition, left for the integrator or operator.
+- source-guards / open-panel-literals cross-partition risk: integrate P2 last or re-check on the combined tree.
+- Collateral: add tests/test_provider_health.py to pytest_collateral, and run pnpm install --frozen-lockfile before vitest.
