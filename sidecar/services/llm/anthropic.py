@@ -158,7 +158,6 @@ class AnthropicProvider(LLMProvider):
         web_search = bool(kwargs.pop("web_search", False))
         web_search_max_uses = int(kwargs.pop("web_search_max_uses", DEFAULT_WEB_SEARCH_MAX_USES))
         system, rest = _split_system_and_messages(messages)
-        client = self._client(api_key)
         stream_kwargs: dict[str, Any] = {
             "model": model,
             "max_tokens": max_tokens,
@@ -180,6 +179,7 @@ class AnthropicProvider(LLMProvider):
             stream_kwargs["tools"] = tools
         stream_kwargs.update(kwargs)
         try:
+            client = self._client(api_key)
             async with client.messages.stream(**stream_kwargs) as stream:
                 async for event in stream:
                     translated = _translate_event(event)
