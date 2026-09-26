@@ -4282,3 +4282,117 @@ async def test_a_subjectless_figure_in_a_turn_with_no_error_streams(
     deltas = ["The Nifty fell 0.8% today."]
     calls = [("price_data", {"symbol": "TCS.NS"}, _TCS_PX)]
     assert await _scripted_calls(monkeypatch, calls, deltas) == deltas[0]
+
+
+# --- R15-LEAD-036 batch-23: a fence left open across a tool call -------------
+
+
+async def _cross_round(
+    monkeypatch: pytest.MonkeyPatch,
+    first: str,
+    call: tuple[str, dict[str, Any], dict[str, Any]],
+    deltas: list[str],
+) -> str:
+    """Round 1 streams ``first`` then makes ``call``; round 2 streams ``deltas``."""
+    agent_runtime.reload()
+    done = LLMDoneEvent(usage=LLMUsage(input_tokens=1, output_tokens=1))
+    name, inp, result = call
+    provider = _RecordingRoundsProvider(
+        [
+            [
+                LLMDeltaEvent(text=first),
+                LLMToolUseEvent(tool_call_id="c", name=name, input=inp),
+                done,
+            ],
+            [*(LLMDeltaEvent(text=d) for d in deltas), done],
+        ]
+    )
+    monkeypatch.setattr(agent_runtime, "get_provider", lambda *_a, **_k: provider)
+
+    async def _tool(*_a: Any, **_k: Any) -> str:
+        return json.dumps(result)
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _tool)
+    return "".join(
+        [
+            e.text
+            async for e in agent_runtime.invoke_agent(
+                agent_id="copilot", prompt="q?", api_key="sk-test", autonomy="ask"
+            )
+            if isinstance(e, LLMDeltaEvent)
+        ]
+    )
+
+
+def _fenced_lines(text: str) -> list[str]:
+    """The lines of ``text`` a CommonMark renderer puts inside a code block."""
+    run: str | None = None
+    inside: list[str] = []
+    for line in text.split("\n"):
+        mark = line.lstrip()[:3]
+        if mark in ("```", "~~~"):
+            run = None if run == mark else run or mark
+            continue
+        if run:
+            inside.append(line)
+    return inside
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("fence", ["```", "~~~"])
+async def test_a_fence_opened_before_a_tool_call_leaves_no_marker_when_replaced(
+    monkeypatch: pytest.MonkeyPatch, fence: str
+) -> None:
+    """R15-LEAD-036 batch-22 b22v_crossround: round 1 streamed an empty fence
+    opener and made a price_data call that errored; round 2's fabricated
+    bullets were replaced, but the note rendered inside that still-open block.
+    An opener with a blank body is held across the call and judged with the
+    block it opens, so the replacement leaves no fence at all."""
+    got = await _cross_round(
+        monkeypatch,
+        f"Let me fetch that.\n\n{fence}\n",
+        ("price_data", {"symbol": "WIPRO.NS"}, _ERR),
+        ["* WIPRO.NS closed at ₹248.15.\n", "* WIPRO.NS opened at ₹246.90.\n"],
+    )
+    assert got.startswith("Let me fetch that.\n\n")
+    assert _NO_DATA in got
+    assert fence not in got
+    assert "248.15" not in got and "246.90" not in got
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("fence", ["```", "~~~"])
+async def test_a_streamed_fence_is_closed_before_the_next_rounds_note(
+    monkeypatch: pytest.MonkeyPatch, fence: str
+) -> None:
+    """R15-LEAD-036: a fence whose body already streamed in round 1 cannot be
+    taken back, so when round 2's continuation of it is replaced the guard
+    closes it first: the note renders as prose, and the model's own closer,
+    part of the replaced block, leaves no orphan behind."""
+    got = await _cross_round(
+        monkeypatch,
+        f"Here you go:\n\n{fence}text\nFetching WIPRO.NS\n",
+        ("price_data", {"symbol": "WIPRO.NS"}, _ERR),
+        ["WIPRO.NS 248.15\n", f"{fence}\n\nHope that helps."],
+    )
+    assert "248.15" not in got
+    assert _NO_DATA in got
+    assert got.count(fence) % 2 == 0
+    assert not any(_NO_DATA in line for line in _fenced_lines(got))
+    assert got.endswith("Hope that helps.")
+    assert "Hope that helps." not in "\n".join(_fenced_lines(got))
+
+
+@pytest.mark.asyncio
+async def test_a_fence_continued_on_an_ok_result_streams_as_written(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-036 control: a fence opened before an ok call and filled with
+    that result's figure in round 2 streams exactly as the model wrote it,
+    the held-back empty opener included."""
+    first = "Let me fetch that.\n\n```\n"
+    deltas = ["TCS.NS 3235.5\n", "```\n\nDone."]
+    got = await _cross_round(
+        monkeypatch, first, ("price_data", {"symbol": "TCS.NS"}, _TCS_PX), deltas
+    )
+    assert got == first + "".join(deltas)
