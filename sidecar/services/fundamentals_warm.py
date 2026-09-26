@@ -22,7 +22,8 @@ Region-aware: the loops only do WORK while ``config.get_region() == "IN"``
      Yahoo doesn't cover) rotate out of the priority head for
      ``TTL_INFO_RETRY_SECONDS`` instead of wedging every cycle.
 
-``stop_warm_fundamentals()`` cancels + awaits both loops (lifespan finally).
+``stop_warm_fundamentals()`` cancels + awaits the loops and the boot seed
+(lifespan finally).
 """
 
 from __future__ import annotations
@@ -194,22 +195,16 @@ async def _sweep_once() -> bool:
 
 async def _sweep_loop() -> None:
     """India v7 sweep every 15 min, region-gated, with the screener's shared
-    exponential 429 backoff. The boot seed runs on the first IN cycle."""
+    exponential 429 backoff. The boot seed is :func:`start_warm_fundamentals`'s
+    (R15-LIFECYCLE-030)."""
     from services import screener
 
     consecutive_throttles = 0
-    seeded = False
     try:
         while True:
             if get_region() != "IN":
                 await asyncio.sleep(_REGION_RECHECK_SECONDS)
                 continue
-            if not seeded:
-                try:
-                    await seed_india_store()
-                    seeded = True
-                except Exception as exc:  # noqa: BLE001 — seed is best-effort
-                    logger.warning("fundamentals warm: seed failed: %s", exc)
             # R11 (D53): never sweep beside a foreground screen (the user's
             # run owns the upstream) and never sweep into an open circuit.
             await _idle_event.wait()
@@ -380,7 +375,17 @@ async def _crawl_once() -> int:
             fetched += 1
             await asyncio.sleep(random.uniform(*_CRAWL_JITTER_RANGE))
 
-    await asyncio.gather(*(_one(s) for s in batch))
+    # R15-LIFECYCLE-032: one symbol's failure outside the fetch guard (a
+    # store write) must not abort the cycle and drop its siblings' count.
+    results = await asyncio.gather(*(_one(s) for s in batch), return_exceptions=True)
+    failures = [r for r in results if isinstance(r, BaseException)]
+    if failures:
+        logger.warning(
+            "fundamentals warm: crawl cycle: %d of %d symbols failed (first: %r)",
+            len(failures),
+            len(batch),
+            failures[0],
+        )
     return fetched
 
 
@@ -397,7 +402,7 @@ async def _crawl_loop() -> None:
             except asyncio.CancelledError:
                 raise
             except Exception as exc:  # noqa: BLE001 — a crawl cycle is best-effort
-                logger.debug("fundamentals warm: crawl cycle failed: %s", exc)
+                logger.warning("fundamentals warm: crawl cycle failed: %s", exc)
                 fetched = 0
             # An empty cycle (everything fresh) idles longer than a busy one.
             await asyncio.sleep(
@@ -415,6 +420,7 @@ async def _crawl_loop() -> None:
 _sweep_task: asyncio.Task[None] | None = None
 _crawl_task: asyncio.Task[None] | None = None
 _bhavcopy_task: asyncio.Task[None] | None = None
+_seed_task: asyncio.Task[None] | None = None
 
 
 def start_warm_fundamentals() -> None:
@@ -424,13 +430,13 @@ def start_warm_fundamentals() -> None:
     seed pack, zero network) is scheduled IMMEDIATELY for an IN region — a
     user opening the screener seconds after a fresh install must hit a seeded
     store, not wait for the sweep loop's first cycle to get around to it."""
-    global _sweep_task, _crawl_task, _bhavcopy_task
+    global _sweep_task, _crawl_task, _bhavcopy_task, _seed_task
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         logger.debug("fundamentals warm: no running loop; workers not started")
         return
-    if get_region() == "IN":
+    if get_region() == "IN" and _seed_task is None:
 
         async def _boot_seed() -> None:
             try:
@@ -438,7 +444,7 @@ def start_warm_fundamentals() -> None:
             except Exception as exc:  # noqa: BLE001 — seed is best-effort
                 logger.warning("fundamentals warm: boot seed failed: %s", exc)
 
-        loop.create_task(_boot_seed())
+        _seed_task = loop.create_task(_boot_seed())
     if _sweep_task is None or _sweep_task.done():
         _sweep_task = loop.create_task(_sweep_loop())
     if _crawl_task is None or _crawl_task.done():
@@ -449,11 +455,12 @@ def start_warm_fundamentals() -> None:
 
 async def stop_warm_fundamentals() -> None:
     """Cancel + await the warm workers (lifespan finally — no leaked tasks)."""
-    global _sweep_task, _crawl_task, _bhavcopy_task
-    tasks = [t for t in (_sweep_task, _crawl_task, _bhavcopy_task) if t is not None]
+    global _sweep_task, _crawl_task, _bhavcopy_task, _seed_task
+    tasks = [t for t in (_sweep_task, _crawl_task, _bhavcopy_task, _seed_task) if t is not None]
     _sweep_task = None
     _crawl_task = None
     _bhavcopy_task = None
+    _seed_task = None
     for task in tasks:
         task.cancel()
     for task in tasks:

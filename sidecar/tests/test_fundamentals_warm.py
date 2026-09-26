@@ -11,6 +11,8 @@ seam and the registry is monkeypatched.
 from __future__ import annotations
 
 import asyncio
+import logging
+import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -279,27 +281,163 @@ async def test_crawl_rate_limit_does_not_mark_failure_but_generic_error_does(
     assert rows["BROKEN.NS"]["info_failed_at"] is not None
 
 
+@pytest.mark.asyncio
+async def test_one_upsert_failure_counts_the_others(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """R15-LIFECYCLE-032: a store write failing for one symbol must not abort
+    the cycle — the other symbols are still counted, and the failure is
+    logged at WARNING, not swallowed at DEBUG."""
+    from services import screener_universe_india
+
+    monkeypatch.setattr(
+        screener_universe_india,
+        "load_india_universe",
+        _tiny_universe(["A.NS", "B.NS", "C.NS"]),
+    )
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    await fundamentals_store.seed_universe([{"symbol": s} for s in ("A.NS", "B.NS", "C.NS")])
+
+    async def fake_fund(symbol: str) -> Fundamentals:
+        return Fundamentals(symbol=symbol, roe=0.2, provider="yf")
+
+    real_upsert = fundamentals_store.upsert_info
+
+    async def flaky_upsert(symbol: str, fundamentals: Fundamentals) -> None:
+        if symbol == "B.NS":
+            raise sqlite3.OperationalError("database is locked")
+        await real_upsert(symbol, fundamentals)
+
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_fund)
+    monkeypatch.setattr(fundamentals_store, "upsert_info", flaky_upsert)
+
+    with caplog.at_level(logging.WARNING, logger=fundamentals_warm.__name__):
+        assert await fundamentals_warm._crawl_once() == 2
+    assert any("1 of 3 symbols failed" in r.getMessage() for r in caplog.records)
+
+
 # ---------------------------------------------------------------------------
 # Lifespan start/stop
 # ---------------------------------------------------------------------------
 
 
+def _quiet_in_boot(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """An IN-region boot with every network lane stubbed; returns the log of
+    ``seed_india_store`` calls (by task name)."""
+    seeds: list[str] = []
+
+    async def _seed() -> int:
+        seeds.append(asyncio.current_task().get_name())
+        await asyncio.sleep(0)
+        return 0
+
+    async def _cycle() -> int:
+        return 0
+
+    monkeypatch.setattr(fundamentals_warm, "get_region", lambda: "IN")
+    monkeypatch.setattr(fundamentals_warm, "seed_india_store", _seed)
+    monkeypatch.setattr(fundamentals_warm, "_sweep_once", _cycle)
+    monkeypatch.setattr(fundamentals_warm, "_crawl_once", _cycle)
+    monkeypatch.setattr(fundamentals_warm, "bhavcopy_refresh_once", _cycle)
+    return seeds
+
+
 @pytest.mark.asyncio
-async def test_start_stop_clean_no_leaked_tasks() -> None:
-    # Region defaults to US in tests — the loops idle without network or
-    # store writes, and stop cancels + awaits both tasks.
+async def test_start_stop_clean_no_leaked_tasks(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LIFECYCLE-031: on an IN boot (the only region that schedules the
+    boot seed) stop cancels + awaits every task start spawned, the seed too."""
+    _quiet_in_boot(monkeypatch)
+
+    async def _slow_seed() -> int:
+        await asyncio.sleep(60)
+        return 0
+
+    monkeypatch.setattr(fundamentals_warm, "seed_india_store", _slow_seed)
+    before = asyncio.all_tasks()
     fundamentals_warm.start_warm_fundamentals()
-    assert fundamentals_warm._sweep_task is not None
-    assert fundamentals_warm._crawl_task is not None
-    sweep_task = fundamentals_warm._sweep_task
-    crawl_task = fundamentals_warm._crawl_task
+    spawned = asyncio.all_tasks() - before
+    assert fundamentals_warm._seed_task in spawned
     await asyncio.sleep(0.02)
-    assert not sweep_task.done()
+    assert not fundamentals_warm._seed_task.done()
     await fundamentals_warm.stop_warm_fundamentals()
-    assert sweep_task.done()
-    assert crawl_task.done()
+    assert all(t.done() for t in spawned), [t for t in spawned if not t.done()]
     assert fundamentals_warm._sweep_task is None
     assert fundamentals_warm._crawl_task is None
+    assert fundamentals_warm._seed_task is None
+
+
+@pytest.mark.asyncio
+async def test_in_boot_seeds_exactly_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LIFECYCLE-030: start_warm_fundamentals owns the boot seed; the
+    sweep loop's first IN cycle must not run it a second time."""
+    seeds = _quiet_in_boot(monkeypatch)
+    fundamentals_warm.start_warm_fundamentals()
+    await asyncio.sleep(0.05)
+    await fundamentals_warm.stop_warm_fundamentals()
+    assert len(seeds) == 1, seeds
+
+
+@pytest.mark.asyncio
+async def test_boot_window_openbb_call_budget(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LEAD-025 (measured, not reproduced at the sha): the boot warm paths'
+    openbb-mcp budget. US: start_warm_precompute + start_warm_fundamentals make
+    ZERO openbb tool calls. IN: the only openbb caller is the deep crawler
+    (registry fundamentals, openbb-mcp rank 10), never more than
+    ``_CRAWL_CONCURRENCY`` calls in flight."""
+    from services import (
+        openbb_mcp_provider,
+        screener,
+        screener_universe_india,
+        yfinance_provider,
+    )
+
+    calls: list[str] = []
+    in_flight = peak = 0
+
+    async def spy_call_tool(name: str, arguments: dict[str, object]) -> object:
+        nonlocal in_flight, peak
+        calls.append(f"{name}:{arguments.get('symbol')}")
+        in_flight += 1
+        peak = max(peak, in_flight)
+        try:
+            await asyncio.sleep(0.01)
+        finally:
+            in_flight -= 1
+        raise ProviderError("stub openbb: no rows")
+
+    def yf_fund(symbol: str) -> Fundamentals:
+        return Fundamentals(symbol=symbol, sector="Technology", roe=0.2, provider="yf")
+
+    monkeypatch.setattr(openbb_mcp_provider, "is_available", lambda: True)
+    monkeypatch.setattr(openbb_mcp_provider, "_call_tool", spy_call_tool)
+    monkeypatch.setattr(yfinance_provider, "get_fundamentals", yf_fund)
+
+    # US boot: the arm-only screener warm + the region-idle India workers.
+    monkeypatch.setattr(fundamentals_warm, "get_region", lambda: "US")
+    screener.start_warm_precompute()
+    fundamentals_warm.start_warm_fundamentals()
+    await asyncio.sleep(0.1)
+    await fundamentals_warm.stop_warm_fundamentals()
+    await screener.stop_warm_precompute()
+    assert calls == []
+
+    # IN boot: the real deep crawler over a small universe.
+    symbols = ["A.NS", "B.NS", "C.NS", "D.NS"]
+    real_crawl_once = fundamentals_warm._crawl_once
+    _quiet_in_boot(monkeypatch)
+    monkeypatch.setattr(fundamentals_warm, "_crawl_once", real_crawl_once)
+    monkeypatch.setattr(fundamentals_warm, "_CRAWL_JITTER_RANGE", (0.0, 0.001))
+    monkeypatch.setattr(screener_universe_india, "load_india_universe", _tiny_universe(symbols))
+    await fundamentals_store.seed_universe([{"symbol": s} for s in symbols])
+    fundamentals_warm.start_warm_fundamentals()
+    for _ in range(200):
+        if len({c.split(":", 1)[1] for c in calls}) == len(symbols) and in_flight == 0:
+            break
+        await asyncio.sleep(0.01)
+    await fundamentals_warm.stop_warm_fundamentals()
+    assert {c.split(":", 1)[1] for c in calls} == set(symbols)
+    assert len(calls) <= 2 * len(symbols)  # equity_profile + fundamental_metrics
+    assert peak <= fundamentals_warm._CRAWL_CONCURRENCY == 1
 
 
 @pytest.mark.asyncio
