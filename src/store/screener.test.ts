@@ -39,7 +39,6 @@ const RESULT_SAMPLE: ScreenerResult = {
       price: 192.5,
       change_percent_1d: 1.5,
       volume: 51_000_000,
-      matched_criteria: [0, 1, 2],
     },
     {
       symbol: "MSFT",
@@ -51,7 +50,6 @@ const RESULT_SAMPLE: ScreenerResult = {
       price: 420.0,
       change_percent_1d: -0.5,
       volume: 22_000_000,
-      matched_criteria: [0, 1, 2],
     },
   ],
   duration_ms: 280.0,

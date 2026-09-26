@@ -45,7 +45,6 @@ const RESULT_SAMPLE: ScreenerResult = {
       price: 192.5,
       change_percent_1d: 1.5,
       volume: 51_000_000,
-      matched_criteria: [0, 1, 2],
     },
     {
       symbol: "GOOGL",
@@ -57,7 +56,6 @@ const RESULT_SAMPLE: ScreenerResult = {
       price: 175.0,
       change_percent_1d: -0.3,
       volume: 18_000_000,
-      matched_criteria: [0, 1, 2],
     },
   ],
   duration_ms: 320.0,

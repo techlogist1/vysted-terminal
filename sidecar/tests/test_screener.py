@@ -29,6 +29,7 @@ from models.screener import (
     NumericRange,
     NumericThresholdCriterion,
     ScreenerRequest,
+    ScreenerResultRow,
     SetInCriterion,
     StringEqCriterion,
 )
@@ -273,8 +274,6 @@ def test_apply_criteria_and_combines_multiple_criteria() -> None:
     ]
     result = screener.apply_criteria(rows, criteria)
     assert [r.symbol for r in result] == ["A"]
-    # matched_criteria records every index since AND-all passes.
-    assert result[0].matched_criteria == [0, 1, 2]
 
 
 def test_apply_criteria_missing_value_fails_numeric_threshold() -> None:
@@ -425,6 +424,28 @@ def test_apply_criteria_nested_group_and_within_or() -> None:
     )
     result = screener.apply_criteria(rows, [], group=group)
     assert {r.symbol for r in result} == {"A", "C"}
+
+
+def test_result_row_has_no_matched_criteria() -> None:
+    """R15-CODE-DATA-019: ``matched_criteria`` was a dead wire field — empty on
+    every group run, ``[0..n-1]`` on every flat run, read by nothing. It is gone
+    from the row model and from both engine paths' serialised rows."""
+    assert "matched_criteria" not in ScreenerResultRow.model_fields
+    rows = [(_make_fundamentals("A", pe_ratio=10.0), _make_quote("A"))]
+    flat = screener.apply_criteria(
+        rows, [NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0)]
+    )
+    grouped = screener.apply_criteria(
+        rows,
+        [],
+        group=CriterionGroup(
+            combinator="or",
+            criteria=[NumericThresholdCriterion(field="pe_ratio", operator="lt", value=15.0)],
+        ),
+    )
+    for result in (flat, grouped):
+        assert [r.symbol for r in result] == ["A"]
+        assert "matched_criteria" not in result[0].model_dump()
 
 
 def test_apply_criteria_empty_group_matches_all() -> None:

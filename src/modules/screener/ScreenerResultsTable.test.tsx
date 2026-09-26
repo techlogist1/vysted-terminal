@@ -77,7 +77,6 @@ const RESULT: ScreenerResult = {
       price: 192.5,
       change_percent_1d: 1.5,
       volume: 51_000_000,
-      matched_criteria: [0, 1, 2],
       currency: "USD",
     },
     {
@@ -90,7 +89,6 @@ const RESULT: ScreenerResult = {
       price: 420.0,
       change_percent_1d: -0.5,
       volume: 22_000_000,
-      matched_criteria: [0, 1, 2],
       currency: "USD",
     },
     {
@@ -103,7 +101,6 @@ const RESULT: ScreenerResult = {
       price: 175.0,
       change_percent_1d: 0.3,
       volume: 18_000_000,
-      matched_criteria: [0, 1, 2],
       currency: "USD",
     },
   ],
@@ -122,7 +119,6 @@ const INR_SNAPSHOT_ROW = {
   price: 1293.0,
   change_percent_1d: 0.6,
   volume: 5_400_000,
-  matched_criteria: [0],
   currency: "INR",
   data_basis: "snapshot",
   data_as_of: 1_781_611_200, // 2026-06-16T12:00Z (mid-day: "Jun 16" in any test TZ)
@@ -274,7 +270,6 @@ describe("ScreenerResultsTable", () => {
       price: 1293.0,
       change_percent_1d: 0.6,
       volume: 5_400_000,
-      matched_criteria: [0],
       currency: "INR",
     };
     const TCS_NS = {
@@ -287,7 +282,6 @@ describe("ScreenerResultsTable", () => {
       price: 3800.0,
       change_percent_1d: 0.2,
       volume: 1_200_000,
-      matched_criteria: [0],
       currency: "INR",
     };
     const combined = [...RESULT.rows, RELIANCE_NS, TCS_NS];
