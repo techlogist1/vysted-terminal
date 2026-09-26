@@ -134,9 +134,9 @@ function ToggleSwitch({
 
 const STATE_TONE: Record<LoadedPluginState, string> = {
   discovered: "bg-charcoal-700 text-charcoal-200",
-  initializing: "bg-charcoal-850 text-warning",
+  initializing: "bg-charcoal-850 text-caution",
   active: "bg-charcoal-850 text-positive",
-  stopping: "bg-charcoal-850 text-warning",
+  stopping: "bg-charcoal-850 text-caution",
   stopped: "bg-charcoal-700 text-charcoal-300",
   error: "bg-charcoal-850 text-negative",
 };
@@ -251,7 +251,7 @@ interface HealthHistoryProps {
 
 const HEALTH_TONE: Record<string, string> = {
   healthy: "bg-positive",
-  degraded: "bg-warning",
+  degraded: "bg-caution",
   unavailable: "bg-negative",
 };
 

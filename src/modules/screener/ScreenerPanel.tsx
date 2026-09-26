@@ -286,7 +286,7 @@ export function ScreenerPanel() {
           </div>
         )}
         {universe === "custom" && customSymbols.trim() === "" && (
-          <span className="text-warning text-micro">Enter at least one ticker to screen.</span>
+          <span className="text-caution text-micro">Enter at least one ticker to screen.</span>
         )}
         {/* Run / Cancel morph button */}
         <div className="ml-auto">

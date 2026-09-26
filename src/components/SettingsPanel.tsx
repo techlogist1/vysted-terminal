@@ -839,7 +839,7 @@ function useLiveSidecarRead<T>(read: () => Promise<T>) {
 export function searxngChipMeta(state: string): { label: string; className: string } {
   switch (state) {
     case "not_installed_docker":
-      return { label: "Docker not found", className: "text-warning border-warning/40" };
+      return { label: "Docker not found", className: "text-caution border-caution/40" };
     case "docker_present_not_setup":
       return { label: "Not set up", className: "text-charcoal-400 border-charcoal-700" };
     case "pulling":
@@ -852,7 +852,7 @@ export function searxngChipMeta(state: string): { label: string; className: stri
       // R15-RESEARCH-028: the container answers but its engines are blocked
       // (or empty across enough probes/real queries) — distinct from "error"
       // (the container itself is down) and from "ready" (it just answers).
-      return { label: "Degraded — engines blocked", className: "text-warning border-warning/40" };
+      return { label: "Degraded — engines blocked", className: "text-caution border-caution/40" };
     case "error":
       return { label: "Error", className: "text-negative border-negative/40" };
     default:
@@ -1015,7 +1015,7 @@ function SearxngManagedFlow() {
       break;
     case "degraded":
       healthLine = (
-        <span className="text-warning" role="alert">
+        <span className="text-caution" role="alert">
           Degraded — engines blocked ({status.reason ?? "no results from any engine"}). Research is
           using limited keyless search meanwhile.
         </span>
@@ -1157,7 +1157,7 @@ function ResearchModelRow({
             : "Custom model — pricing on its OpenRouter page"}
         </span>
         {unavailable ? (
-          <span className="text-warning text-micro mt-1">
+          <span className="text-caution text-micro mt-1">
             Not in OpenRouter&rsquo;s live catalog — {label.toLowerCase()} research will fail until
             you pick another model.
           </span>
@@ -1547,13 +1547,13 @@ function KeybindingsSection() {
       {conflictList.length > 0 && (
         <div
           role="alert"
-          className="border-warning/40 bg-warning/10 text-warning text-caption mb-4 flex items-start gap-2 rounded-none border px-3 py-2"
+          className="border-caution/40 bg-caution/10 text-caution text-caption mb-4 flex items-start gap-2 rounded-none border px-3 py-2"
         >
           <AlertTriangle className={cn(ICON_14, "mt-1 shrink-0")} aria-hidden="true" />
           <div>
             <p className="font-medium">Conflicting bindings detected</p>
             {conflictList.map((c) => (
-              <p key={c.keys} className="text-warning/90 mt-1">
+              <p key={c.keys} className="text-caution/90 mt-1">
                 <span>{formatBinding(c.keys)}</span> is bound to{" "}
                 {c.actionIds.map((id) => DEFAULT_KEYBINDINGS[id]?.label ?? id).join(" and ")}.
               </p>
@@ -1592,7 +1592,7 @@ function KeybindingsSection() {
                         // it right-aligned). The description's truncate is the
                         // genuine last resort at sub-stack starvation.
                         "flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3",
-                        conflicted && "border-warning/50 border-l-2",
+                        conflicted && "border-caution/50 border-l-2",
                       )}
                     >
                       <div className="flex min-w-0 flex-1 flex-col @max-[576px]:basis-full">
@@ -1608,7 +1608,7 @@ function KeybindingsSection() {
                             // §3.5: the combo (or the recording prompt) never
                             // wraps inside the fixed-height chip.
                             "border-charcoal-700 bg-charcoal-850 rounded-control text-caption flex h-6 items-center border px-2 whitespace-nowrap",
-                            conflicted ? "text-warning" : "text-charcoal-100",
+                            conflicted ? "text-caution" : "text-charcoal-100",
                           )}
                         >
                           {isRecording ? "Press keys… (Esc to cancel)" : formatBinding(combo)}

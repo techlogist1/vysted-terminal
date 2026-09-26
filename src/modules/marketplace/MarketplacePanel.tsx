@@ -317,13 +317,13 @@ function StateBadge({
     // Installed but the BYOK key is still missing — flag it so the user knows
     // the extension won't return data until they Configure it.
     label = "Needs key";
-    tone = "text-warning border-warning/40";
+    tone = "text-caution border-caution/40";
   } else if (state.installed && state.enabled) {
     label = preinstalled ? "Pre-installed" : "Enabled";
     tone = "text-positive border-positive/40";
   } else if (state.installed) {
     label = "Disabled";
-    tone = "text-warning border-warning/40";
+    tone = "text-caution border-caution/40";
   }
   return <span className={cn("rounded-control text-micro border px-1 py-0.5", tone)}>{label}</span>;
 }

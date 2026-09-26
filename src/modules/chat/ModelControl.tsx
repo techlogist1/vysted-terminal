@@ -175,14 +175,14 @@ export function ModelControl({
         )}
         {selectedIsNoTools && (
           <span
-            className="text-warning shrink-0"
+            className="text-caution shrink-0"
             title="This model has no tool-calling — agent host-actions will fail. Pick a tool-capable model."
           >
             ⚠
           </span>
         )}
         {!providerConfigured && density !== "icon" && (
-          <span className="text-warning shrink-0" title="No BYOK key configured">
+          <span className="text-caution shrink-0" title="No BYOK key configured">
             no key
           </span>
         )}
@@ -218,7 +218,7 @@ export function ModelControl({
                 onKeyRequired?.(provider);
                 setOpen(false);
               }}
-              className="text-warning text-caption hover:text-charcoal-100 w-full cursor-pointer px-3 py-1 text-left font-mono transition-colors"
+              className="text-caution text-caption hover:text-charcoal-100 w-full cursor-pointer px-3 py-1 text-left font-mono transition-colors"
               title="No BYOK key configured for this provider — click to add"
             >
               no key for {providerLabel} — add one
@@ -242,7 +242,7 @@ export function ModelControl({
             </Fragment>
           ))}
           {selectedIsNoTools && (
-            <div className="text-warning text-micro px-3 py-1">
+            <div className="text-caution text-micro px-3 py-1">
               ⚠ no tools — agent host-actions will fail on this model
             </div>
           )}
