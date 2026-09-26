@@ -14,7 +14,6 @@ routes ride the same cache, keyed on the resolved listing (R15-DATA-096).
 
 from __future__ import annotations
 
-import asyncio
 import logging
 from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
@@ -100,7 +99,7 @@ async def _identity_note(symbol: str, fundamentals: Fundamentals) -> str | None:
     if not fundamentals.name:
         return None
     try:
-        resolution = await asyncio.to_thread(symbol_resolver.resolve, symbol, get_region())
+        resolution = await symbol_resolver.resolve_async(symbol, get_region())
     except Exception:  # noqa: BLE001 — a resolver failure must not break /fundamentals
         return None
     decision = resolution_policy.decide(resolution)

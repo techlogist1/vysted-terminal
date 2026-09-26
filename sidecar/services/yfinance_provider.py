@@ -410,16 +410,27 @@ def _num(value: Any) -> float | None:
         return None
 
 
-#: Yahoo ratios whose numerator is in the TRADING currency while the denominator
-#: is a statement figure in ``financialCurrency``. When the two currencies differ
-#: (an ADR reporting in INR/TWD) the ratio is off by the exchange rate: SIFY's
-#: ``priceToSalesTrailing12Months`` is USD market cap / INR revenue (~88x low) and
-#: its ``enterpriseToEbitda`` (4.8) matches neither a USD nor an INR basis.
-#: ``priceToBook`` is NOT here: Yahoo states ``bookValue`` per share in the trading
-#: currency (SIFY 13.66 / 2.754 = 4.96 on a USD book value), so it stays served.
+#: Yahoo fields whose figure is stated or computed against a listing-currency
+#: price/value while the other side is a statement figure in
+#: ``financialCurrency``. When the two currencies differ (an ADR reporting in
+#: INR/TWD) the figure is off by the exchange rate. Confirmed live (27 Sep,
+#: ``.info`` probe): ``priceToBook`` is NOT reliably per-share in the trading
+#: currency — TSM (USD/TWD) serves P/B 92.17 against a home-listing truth of
+#: ~10, HDB (USD/INR) serves 9.32 against ~1.87 — and nothing in the payload
+#: distinguishes a correct trading-currency ``bookValue`` from a raw
+#: statement-currency one, so both are withheld alongside the ratios already
+#: known to mix bases (``priceToSalesTrailing12Months``, ``enterpriseToEbitda``).
+#: ``trailingPE``/``forwardPE``/``pegRatio`` are NOT here: Yahoo's EPS is per
+#: ADR in the trading currency on every probed name, so P/E stays served.
+#: ponytail: withholding is a blanket withdrawal — it also drops the P/B values
+#: that were actually correct on this basis (WIT, INFY.NS). Upgrade path: an
+#: FX-witness reconcile (market_cap vs statement equity x FX) that re-serves the
+#: ones that agree, instead of withholding the whole mixed-currency class.
 _MIXED_BASIS_RATIOS: dict[str, str] = {
     "price_to_sales": "price/sales (market cap over trailing revenue)",
     "ev_to_ebitda": "EV/EBITDA (enterprise value over EBITDA)",
+    "price_to_book": "price/book (listing price over book value per share)",
+    "book_value": "book value per share",
 }
 
 
@@ -470,9 +481,11 @@ def _financial_currency(info: dict[str, Any]) -> str | None:
 
 
 def _withhold_mixed_basis_ratios(fund: Fundamentals) -> None:
-    """Null every Yahoo ratio that divides a trading-currency figure by a
-    statement-currency one and stamp its ``field_meta`` withheld with the reason
-    (D-B2-3: no FX conversion, so a ratio on two bases is never served)."""
+    """Null every Yahoo figure that divides or states a trading-currency value
+    against a statement-currency one and stamp its ``field_meta`` withheld with
+    the reason (D-B2-3: no FX conversion, so a figure on two unverifiable bases
+    is never served). ``provider`` is stamped from ``fund.provider`` (not the
+    module ``PROVIDER``) so a v7-batch-sourced record is labelled correctly."""
     meta = fund.field_meta if fund.field_meta is not None else {}
     for field_name, label in _MIXED_BASIS_RATIOS.items():
         if getattr(fund, field_name) is None:
@@ -481,12 +494,12 @@ def _withhold_mixed_basis_ratios(fund: Fundamentals) -> None:
         prev = meta.get(field_name)
         meta[field_name] = FieldMeta(
             status="withheld",
-            provider=PROVIDER,
+            provider=fund.provider,
             as_of=prev.as_of if prev else None,
             reason=(
-                f"Yahoo's {label} mixes bases: the listing trades in {fund.currency} "
-                f"but reports its statements in {fund.financial_currency}, so the "
-                "ratio is off by the exchange rate; withheld"
+                f"Yahoo's {label} divides or states a {fund.currency} listing "
+                f"value against {fund.financial_currency} statements; its basis "
+                "cannot be verified without FX, so it is withheld"
             ),
         )
     fund.field_meta = meta
@@ -759,7 +772,15 @@ def _derive_fundamentals(fund: Fundamentals, ticker: Any, fetched_at: str) -> No
         elif equity is not None and equity[1] != 0:
             _derive("debt_to_equity", total_debt[1] / equity[1], "total debt / stockholders equity")
 
-    if fund.eps is None and fund.net_income_ttm is not None and fund.shares_outstanding:
+    # net_income_ttm is in financial_currency when the two currencies differ, so
+    # a derived eps (and the pe_ratio it would feed below) would mix bases the
+    # same way the withheld ratios do (R15-DATA-117) — skipped for those names.
+    if (
+        fund.eps is None
+        and fund.financial_currency is None
+        and fund.net_income_ttm is not None
+        and fund.shares_outstanding
+    ):
         _derive(
             "eps",
             fund.net_income_ttm / fund.shares_outstanding,

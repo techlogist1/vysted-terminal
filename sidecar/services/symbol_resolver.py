@@ -66,6 +66,7 @@ reason fire for thin BSE listings.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import re
@@ -149,6 +150,14 @@ _LIVE_SEARCH_TIMEOUT_SECONDS = 5.0
 # workers can be stuck at once, upgrade to a smaller pool + queue rejection
 # if concurrent misses ever exceed that.
 _LIVE_SEARCH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="yf-search")
+# R15-LEAD-040: resolve()'s fuzzy _scan_names is CPU-bound (0.25-0.9s) and a US
+# best also makes a blocking network call (~0.8s); every call site ran it on
+# the shared default to_thread executor (min(32, cpu+4) workers), so N
+# concurrent resolves filled every worker and queued out unrelated to_thread
+# work behind them. A dedicated pool isolates that starvation.
+# ponytail: max_workers=4 is a guess, not a measured ceiling — raise it if
+# resolve/autocomplete fan-out routinely queues under real concurrency.
+_RESOLVE_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="resolver")
 # A successful EMPTY search expires (R15-DATA-097): the live rung is the path to
 # a post-snapshot listing, so a stale negative would hide it until restart.
 _LIVE_EMPTY_TTL_SECONDS = 300.0
@@ -1024,6 +1033,15 @@ def resolve(query: str, region: str) -> Resolution:
     )
 
 
+async def resolve_async(query: str, region: str) -> Resolution:
+    """``resolve`` off the dedicated ``_RESOLVE_POOL`` (R15-LEAD-040), not the
+    shared default to_thread executor. Looks ``resolve`` up as a module global
+    at call time (not a bound reference) so ``monkeypatch.setattr(symbol_resolver,
+    "resolve", ...)`` in tests still intercepts it."""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(_RESOLVE_POOL, resolve, query, region)
+
+
 def _apply_us_isin(resolution: Resolution) -> Resolution:
     """Fill a US best's missing ISIN via the lazy runtime lookup (R15-DATA-059).
 
@@ -1661,6 +1679,15 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
         if len(listed) == limit:
             break
     return listed
+
+
+async def autocomplete_async(
+    query: str, region: str | None = None, limit: int = 8
+) -> list[Instrument]:
+    """``autocomplete`` off the dedicated ``_RESOLVE_POOL`` (R15-LEAD-040), not
+    the shared default to_thread executor. See :func:`resolve_async`."""
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(_RESOLVE_POOL, autocomplete, query, region, limit)
 
 
 def _live_lookup(query: str, region: str) -> list[Instrument]:
