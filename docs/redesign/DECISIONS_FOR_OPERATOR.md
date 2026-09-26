@@ -727,7 +727,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
 - **What:** the only `LICENCE_CHECK.md` mismatch is `CLAUDE.md:57-58` ("AGPL-3.0 +
   commercial dual license"), which was stale after the relicense
   (`r15/stage-d/LICENCE_CHECK.md:21`). This is the `CLAUDE.md` half of §3.4 and §2.19. The
-  fix is already committed as `c1e9164c` on `origin/worktree-agent-r15-version-0.9.0`, and
+  fix is already committed as `1dfda1f3` (`c1e9164c` superseded) on `origin/worktree-agent-r15-version-0.9.0-rc1`, and
   there `CLAUDE.md:59` reads "PolyForm Strict". The branch holds two commits (`517da226` for
   the version bump and `c1e9164c` for `CLAUDE.md`). It is pushed but not merged. It is
   scheduled to merge right after the `r15-rc1` tag, so the tag's tree still carries the
