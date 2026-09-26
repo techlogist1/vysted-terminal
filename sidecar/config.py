@@ -564,7 +564,7 @@ def get_cache_dir() -> Path:
     roaming profiles sync at logon/logoff and which folder redirection can
     put on a network share — unsafe for a SQLite WAL file. The Tauri core
     passes ``--cache-dir`` (``app_local_data_dir()``, non-roaming on Windows,
-    XDG cache on Linux) for regenerable data (price/fundamentals caches,
+    the XDG data dir on Linux) for regenerable data (price/fundamentals caches,
     the local SearXNG instance). Falls back to ``get_data_dir()`` when no
     ``--cache-dir`` was given (dev runs, older callers) so behavior is
     unchanged unless the Tauri core opts in.
