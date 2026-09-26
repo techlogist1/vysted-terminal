@@ -80,7 +80,7 @@ None of this is cargo-verified on the candidate: cargo fmt, clippy and test were
 **W6 R15-CODE-AGENT-032.**
 - `list_runs` is newest-first with `LIMIT 100`, and terminal rows older than 30 days are pruned at first connect.
 - A paused or planned run with more than 100 newer runs drops out of `GET /runs`.
-- W6 restamped two migration fixtures in `test_runs_store` / `test_runs_router` from epoch-1 to now.
+- W6 restamped migration fixtures from epoch-1 to now in `test_runs_store` / `test_schema_version` (`test_runs_router` is untouched; corrected in the fix pass).
 
 **W6 R15-CODE-AGENT-029.** Four `_ensure_schema` functions are deleted. The idempotency tests were converted to call `_connect()` twice, not deleted.
 
@@ -238,3 +238,35 @@ pnpm ci-local   # full chain: lint, format:check, typecheck, clippy, ruff, vites
 #  then one fresh verifier over the diff r15-rc1..HEAD
 git checkout 004-r4-experience-rebuild && git merge --no-ff lows-P1-int-on-tag
 ```
+
+## Fix pass (07:10 IST)
+
+Candidate `worktree-agent-lows-P1-int-4c6dfe8` is now at `a642caacc313dbafb281472e3388fef6a73183da` (pushed, no force; ls-remote matches). Tests were edited as source only and never run. Status: untested pending integration.
+
+Applied (blocking):
+- R15-UI-076 ripple, commit `a642caac`. W8 moved `DEFAULT_SYMBOLS` and `DEFAULT_CHART_SYMBOL` to the IN defaults. The fixture suites written against the US list now seed it explicitly:
+  - `WatchlistPanel.test.tsx`, `NewsFeedPanel.test.tsx`, `NotesPanel.test.tsx` and `panel-context-publishers.test.tsx` use a local `US_SYMBOLS = defaultSymbolsForRegion("US")` in place of `DEFAULT_SYMBOLS`. NotesPanel needed it too: under the IN list, the R15-UI-024 "added after mount" case would add `TCS.NS`, which is already present, so the case would be a no-op.
+  - `ChartPanel.test.tsx` was not in the review list, but it is the same root cause. Its whole suite expects `SPY` from the settings chart default. Its `beforeEach` now seeds `setChartDefaults({ symbol: defaultChartSymbolForRegion("US"), timeframe: "1d", indicators: [] })` after the reset. Empty indicators keep the "untouched fresh panel" path intact.
+  - `settings.test.ts` ("seeds chartDefaults") and `workspace.test.ts` (legacy drawing with no view) both assert the app default itself. They now expect `^NSEI`.
+  - No assertion was deleted, skipped or loosened. Prettier is clean on all 7 files.
+  - Other suites that touch the symbol and chart stores were checked by grep and seed their own entries: host-actions, CommandPalette, command-palette, hand-action-inventory, ProposedChangesReview and store/workspace.
+
+Applied (advisory):
+- PREINT doc slip. The W6 restamp line now names `test_runs_store` / `test_schema_version`. The diff since base confirms that `test_runs_router` is untouched.
+
+Left (advisories):
+- None of the following are trivial fixes, and none can be verified off-lane. They are carried to the lead or the integration run:
+  - `_resolve_model` raises ValueError.
+  - The copilot.json routing drop.
+  - The MCP exposed set pinned at 31 ids.
+  - The `web_available`/`is_web_search_source` semantics and its TS mirror.
+  - The FAST `source_floor` leg.
+  - The CSV `-` prefix.
+  - `MAX_HOLDING_QUANTITY` silently dropping holdings.
+  - The runs_store LIST_LIMIT/retention.
+  - The W7 Rust changes, which need cargo and clippy at integration.
+  - The `sidecar_healthy` body match.
+  - The mentions 140 ms debounce under fake timers.
+  - The proposed-changes.ts ack plumbing, which sits next to the order-safety gate and was not touched.
+  - The carried could-not and lead items.
+
