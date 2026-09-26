@@ -70,10 +70,10 @@
 @utility group-heading-style {
   font-size: var(--text-micro, 0.6875rem); /* 11px */
   line-height: var(--leading-heading, 1.3);
-  font-weight: var(--font-weight-label, 510);
+  font-weight: var(--font-weight-label, 500);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--color-charcoal-500, #847b6d);
+  color: var(--color-charcoal-500, #8a8a8a);
   padding: 8px 12px 4px; /* 8 12 4 */
 }
 
@@ -113,6 +113,7 @@
     font-variant-numeric: tabular-nums;
     font-feature-settings:
       "tnum" 1,
+      "zero" 1,
       "calt" 0;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -186,7 +187,7 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     font-size: var(--text-micro, 0.6875rem);
-    color: var(--color-brass-300, #a8a095);
+    color: var(--color-brass-300, #a0a0a0);
   }
 
   /* A single flat warm hairline (e.g. under the header). */
@@ -198,15 +199,15 @@
   /* Agent-active / primary control: 1px accent border + one luminance step.
      No blurred glow (VYSTED_DESIGN.md -- "no drop shadows and no glow anywhere"). */
   .hud-active {
-    box-shadow: 0 0 0 1px var(--color-amber-400, #d89a4e);
-    background-color: var(--color-charcoal-875, #211e19);
+    box-shadow: 0 0 0 1px var(--color-amber-400, #fab283);
+    background-color: var(--color-charcoal-875, #1d1d1d);
   }
 
   /* Agent-active node: 1px accent border + one luminance step (no blurred glow).
      Replaces the retired .node-glow treatment. */
   .node-active {
-    box-shadow: 0 0 0 1px var(--color-amber-400, #d89a4e);
-    background-color: var(--color-charcoal-875, #211e19);
+    box-shadow: 0 0 0 1px var(--color-amber-400, #fab283);
+    background-color: var(--color-charcoal-875, #1d1d1d);
   }
 
   /* Streaming cursor -- a 2px accent bar that blinks while tokens arrive. Apply
@@ -219,7 +220,7 @@
     height: 1.05em;
     margin-left: 2px;
     vertical-align: text-bottom;
-    background: var(--color-amber-400, #d89a4e);
+    background: var(--color-amber-400, #fab283);
     border-radius: 1px;
   }
   @media (prefers-reduced-motion: no-preference) {
@@ -234,27 +235,27 @@
      0,1,1 > 0,0,1) so headings/lists/code render on-system instead of the
      browser/Tailwind defaults. Apply INSTEAD of `prose prose-sm`. */
   .notes-prose {
-    color: var(--color-charcoal-100, #f6f3eb);
+    color: var(--color-charcoal-100, #ededed);
     font-size: var(--text-body, 0.8125rem);
     line-height: var(--leading-prose, 1.6);
   }
   .notes-prose h1 {
-    font-size: var(--text-overview, 1.375rem);
+    font-size: var(--text-overview, 1.4375rem);
     line-height: var(--leading-display, 1.25);
-    font-weight: var(--font-weight-heading, 590);
+    font-weight: var(--font-weight-heading, 700);
     letter-spacing: -0.012em;
     margin: 16px 0 8px;
   }
   .notes-prose h2 {
-    font-size: var(--text-section, 1.125rem);
+    font-size: var(--text-section, 1.1875rem);
     line-height: var(--leading-heading, 1.3);
-    font-weight: var(--font-weight-heading, 590);
+    font-weight: var(--font-weight-heading, 700);
     margin: 16px 0 8px;
   }
   .notes-prose h3 {
-    font-size: var(--text-panel-title, 0.9375rem);
+    font-size: var(--text-panel-title, 0.8125rem);
     line-height: var(--leading-heading, 1.3);
-    font-weight: var(--font-weight-label, 510);
+    font-weight: var(--font-weight-label, 500);
     margin: 12px 0 4px;
   }
   .notes-prose p {
@@ -284,24 +285,24 @@
     align-items: flex-start;
   }
   .notes-prose blockquote {
-    border-left: 2px solid var(--color-charcoal-600, #4d463b);
+    border-left: 2px solid var(--color-charcoal-600, #484848);
     padding-left: 12px;
-    color: var(--color-charcoal-400, #ada294);
+    color: var(--color-charcoal-400, #a8a8a8);
     margin: 0 0 8px;
   }
   .notes-prose code {
     font-family: var(--font-mono, ui-monospace, monospace);
     font-size: 0.9em;
-    background: var(--color-charcoal-850, #2d2820);
+    background: var(--color-charcoal-850, #242424);
     padding: 0.1em 0.35em;
     border-radius: var(--radius-control, 0.25rem);
   }
   .notes-prose pre {
     font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: var(--text-caption, 0.75rem);
-    background: var(--color-charcoal-925, #17140f);
-    border: 1px solid var(--color-charcoal-700, #3e372d);
-    border-radius: var(--radius-panel, 0.375rem);
+    font-size: var(--text-caption, 0.8125rem);
+    background: var(--color-charcoal-925, #101010);
+    border: 1px solid var(--color-charcoal-700, #353535);
+    border-radius: var(--radius-panel, 0);
     padding: 12px;
     margin: 0 0 8px;
     overflow-x: auto;
@@ -317,7 +318,7 @@
   }
   .notes-prose hr {
     border: none;
-    border-top: 1px solid var(--color-charcoal-700, #3e372d);
+    border-top: 1px solid var(--color-charcoal-700, #353535);
     margin: 16px 0;
   }
 }
@@ -343,16 +344,16 @@
    source -> wins) or the tab strip + group view render the navy default. */
 .dockview-theme-vysted,
 .dockview-theme-vysted .dv-shell {
-  --dv-group-view-background-color: var(--color-charcoal-900, #1a1814);
-  --dv-tabs-and-actions-container-background-color: var(--color-charcoal-925, #131210);
-  --dv-activegroup-visiblepanel-tab-background-color: var(--color-charcoal-875, #211e19);
-  --dv-activegroup-visiblepanel-tab-color: var(--color-lume, #f7f5f0);
-  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #131210);
-  --dv-activegroup-hiddenpanel-tab-color: var(--color-charcoal-400, #a8a095);
-  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-charcoal-900, #1a1814);
-  --dv-inactivegroup-visiblepanel-tab-color: var(--color-charcoal-300, #d3cec5);
-  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #131210);
-  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-charcoal-600, #4a443a);
+  --dv-group-view-background-color: var(--color-charcoal-900, #161616);
+  --dv-tabs-and-actions-container-background-color: var(--color-charcoal-925, #101010);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--color-charcoal-875, #1d1d1d);
+  --dv-activegroup-visiblepanel-tab-color: var(--color-lume, #f7f7f7);
+  --dv-activegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #101010);
+  --dv-activegroup-hiddenpanel-tab-color: var(--color-charcoal-400, #a8a8a8);
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--color-charcoal-900, #161616);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--color-charcoal-300, #cccccc);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: var(--color-charcoal-925, #101010);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--color-charcoal-600, #484848);
   /* Panel/tab seams: the 24% warm hairline -- barely-there. */
   --dv-separator-border: 1px solid var(--hairline-strong);
   --dv-tab-divider-color: var(--hairline-strong);
@@ -441,7 +442,7 @@
 /* Paint dockview's scroll viewport so a panel's over-scroll region never falls
    through to the WKWebView default backdrop. */
 .dockview-theme-vysted .dv-view {
-  background-color: var(--color-charcoal-900, #1a1814);
+  background-color: var(--color-charcoal-900, #161616);
 }
 
 /* Force the leaf view to never scroll -- the panel content owns the single
@@ -499,7 +500,7 @@
   --xy-controls-button-border-color: var(--color-charcoal-700, #353535);
   --xy-controls-box-shadow: none;
   --xy-edge-stroke: var(--color-charcoal-600, #484848);
-  --xy-edge-stroke-selected: var(--color-charcoal-300, #d4d4d4);
+  --xy-edge-stroke-selected: var(--color-charcoal-300, #cccccc);
   --xy-connectionline-stroke: var(--color-charcoal-500, #8a8a8a);
   --xy-handle-background-color: var(--color-charcoal-500, #8a8a8a);
   --xy-handle-border-color: var(--color-charcoal-950, #0a0a0a);
@@ -508,7 +509,7 @@
   --xy-minimap-node-background-color: var(--color-charcoal-850, #242424);
   --xy-attribution-background-color: transparent;
   --xy-edge-label-background-color: var(--color-charcoal-900, #161616);
-  --xy-edge-label-color: var(--color-charcoal-300, #d4d4d4);
+  --xy-edge-label-color: var(--color-charcoal-300, #cccccc);
   --xy-selection-border: 1px dotted var(--color-charcoal-500, #8a8a8a);
   --xy-selection-background-color: rgb(115 115 115 / 0.08);
 }

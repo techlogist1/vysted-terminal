@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { drawingsFor, newDrawingId, useChartDrawingsStore } from "./chart-drawings";
+import {
+  DEFAULT_CHART_SYMBOL,
+  defaultChartSymbolForRegion,
+  drawingsFor,
+  newDrawingId,
+  useChartDrawingsStore,
+} from "./chart-drawings";
 import type { DrawingSpec } from "../../types/drawings";
 
 function makeDrawing(panelId: string, kind: DrawingSpec["kind"], id: string): DrawingSpec {
@@ -116,5 +122,15 @@ describe("useChartDrawingsStore", () => {
   it("generates distinct drawing ids", () => {
     const ids = new Set([newDrawingId(), newDrawingId(), newDrawingId()]);
     expect(ids.size).toBe(3);
+  });
+
+  it("defaultChartSymbolForRegion opens IN on the NIFTY 50 index, US on SPY (R15-UI-076)", () => {
+    expect(defaultChartSymbolForRegion("IN")).toBe("^NSEI");
+    expect(defaultChartSymbolForRegion("US")).toBe("SPY");
+    expect(defaultChartSymbolForRegion("GLOBAL")).toBe("SPY");
+  });
+
+  it("DEFAULT_CHART_SYMBOL follows the app's default region (IN)", () => {
+    expect(DEFAULT_CHART_SYMBOL).toBe(defaultChartSymbolForRegion("IN"));
   });
 });
