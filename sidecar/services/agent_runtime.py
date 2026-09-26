@@ -905,6 +905,44 @@ def _reject_json_constant(name: str) -> float:
     raise ValueError(name)
 
 
+def _coerce(value: Any, schema: Any) -> Any:
+    """Coerce ``value`` against ``schema`` at every depth (R15-AGENT-093 round 2).
+
+    The former loop only checked top-level ``properties``, so a numeric string
+    nested inside an ``array``/``object`` param (``points[0].price``, an
+    ``instruments`` row) never coerced, and it refused an integral float
+    (``"5.0"``) for a declared ``integer``. This descends into object
+    ``properties`` and array ``items``, including after a stringified
+    array/object is itself parsed, applying the same string->type rule
+    :data:`_JSON_STRING_TYPES` used at the top level. Non-matching or
+    unparsable input is left as-is for the schema validator below to reject.
+    """
+    if not isinstance(schema, dict):
+        return value
+    expected = schema.get("type")
+    if expected in _JSON_STRING_TYPES and isinstance(value, str):
+        try:
+            parsed = json.loads(value, parse_constant=_reject_json_constant)
+        except ValueError:
+            parsed = None
+        else:
+            if expected == "integer" and isinstance(parsed, float) and parsed.is_integer():
+                parsed = int(parsed)
+            if type(parsed) in _JSON_STRING_TYPES[expected]:
+                value = parsed
+    if expected == "object" and isinstance(value, dict):
+        properties = schema.get("properties") or {}
+        for key in list(value.keys()):
+            sub_schema = properties.get(key)
+            if sub_schema is not None:
+                value[key] = _coerce(value[key], sub_schema)
+    elif expected == "array" and isinstance(value, list):
+        items_schema = schema.get("items")
+        if isinstance(items_schema, dict):
+            value[:] = [_coerce(item, items_schema) for item in value]
+    return value
+
+
 def _normalise_tool_args(event: LLMToolUseEvent) -> None:
     """The ONE runtime argument check, for every adapter (D-B3-4).
 
@@ -919,7 +957,10 @@ def _normalise_tool_args(event: LLMToolUseEvent) -> None:
       when the parsed type matches (R15-AGENT-024: local 8B models send
       ``write_screener_filters.criteria`` as a string and the host drops it),
       and so is an ``integer``/``number``/``boolean`` param sent as an exact
-      JSON literal string (R15-AGENT-093: ``max_strikes: "10"``);
+      JSON literal string (R15-AGENT-093: ``max_strikes: "10"``), at EVERY
+      depth via :func:`_coerce` — nested ``properties``/``items``, including
+      inside a just-parsed stringified array/object, and an integral float
+      (``"5.0"``) becomes ``int`` for a declared ``integer``;
     - the args are validated against the catalog ``input_schema``; on failure
       the input is replaced by :data:`INVALID_ARGS_SENTINEL` with a
       model-readable reason, which ``_dispatch_tool`` returns as
@@ -934,17 +975,7 @@ def _normalise_tool_args(event: LLMToolUseEvent) -> None:
         return
     for key in [k for k, v in args.items() if v is None]:
         del args[key]
-    properties = cap.input_schema.get("properties") or {}
-    for key, value in args.items():
-        expected = (properties.get(key) or {}).get("type")
-        if expected not in _JSON_STRING_TYPES or not isinstance(value, str):
-            continue
-        try:
-            parsed = json.loads(value, parse_constant=_reject_json_constant)
-        except ValueError:
-            continue
-        if type(parsed) in _JSON_STRING_TYPES[expected]:
-            args[key] = parsed
+    _coerce(args, cap.input_schema)
     validator_cls = jsonschema.validators.validator_for(cap.input_schema)
     error = jsonschema.exceptions.best_match(validator_cls(cap.input_schema).iter_errors(args))
     if error is None:
