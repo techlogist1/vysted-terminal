@@ -397,6 +397,30 @@ describe("PluginRuntime — health checks", () => {
     expect(snapshot?.state).toBe("error");
     expect(snapshot?.errorMessage).toContain("boom");
   });
+
+  // R15-CODE-PLATFORM-047: healthCheckOne used to write back a snapshot of
+  // `record` captured BEFORE the `healthCheck()` await, so a disable landing
+  // mid-check overwrote the record with `{...staleActiveRecord, healthHistory}`
+  // once the check resolved — reviving state:"active" on a plugin that had
+  // just been stopped.
+  it("disable during a pending healthCheck stays stopped, not reverted to active", async () => {
+    let resolveHealth: (status: HealthStatus) => void = () => {};
+    const pendingHealth = new Promise<HealthStatus>((resolve) => {
+      resolveHealth = resolve;
+    });
+    const runtime = new PluginRuntime();
+    const plugin = discovered(fakePlugin("a", { healthCheck: () => pendingHealth }));
+    await runtime.loadPlugin(plugin);
+
+    const checking = runtime.healthCheckAll(); // healthCheck() in flight, awaiting pendingHealth
+    await runtime.disablePlugin("a"); // lands mid-check: shutdown + transition to `stopped`
+    resolveHealth({ status: "healthy", checkedAt: 0 });
+    await checking;
+
+    const snapshot = runtime.getPlugin("a");
+    expect(snapshot?.state).toBe("stopped");
+    expect(snapshot?.healthHistory).toHaveLength(0);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -526,6 +550,22 @@ describe("PluginRuntime — compatibility validation (FR-054 / SC-015)", () => {
     expect(snapshot.state).toBe("active");
   });
 
+  // R15-CODE-PLATFORM-048: "<0.9.0" used to have its "<" silently stripped by
+  // the same regex that strips ">="/"^"/"~", so hostSatisfies("0.8.0",
+  // "<0.9.0") read as hostSatisfies("0.8.0", "0.9.0") applying ">=" — the
+  // OPPOSITE of what the manifest asked for — and the rejection message
+  // hardcoded "plugin requires host version >= <0.9.0 ...".
+  it("'<0.9.0' is rejected as unsupported, not parsed as '>=0.9.0'", async () => {
+    const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
+    const snapshot = await runtime.loadPlugin({
+      manifest: manifest({ id: "a", version: "1.0.0", requiredHostVersion: "<0.9.0" }),
+      instance: fakePlugin("a"),
+    });
+    expect(snapshot.state).toBe("error");
+    expect(snapshot.errorMessage).toContain("unsupported");
+    expect(snapshot.errorMessage).not.toContain(">= <0.9.0");
+  });
+
   it("an incompatible plugin contributes nothing (no silent load)", async () => {
     const runtime = new PluginRuntime({ hostVersion: "0.8.0" });
     await runtime.loadPlugin({
@@ -567,6 +607,12 @@ describe("hostSatisfies (semver host-compat check)", () => {
   it("ignores pre-release / build metadata", () => {
     expect(hostSatisfies("0.8.0-beta.1", "0.8.0")).toBe(true);
     expect(hostSatisfies("0.8.0+build5", "0.8.0")).toBe(true);
+  });
+  // R15-CODE-PLATFORM-048: "<" is an unsupported range operator, always false
+  // — never inverted into a satisfied ">=" comparison.
+  it("a '<' required version is always false, on either side of it", () => {
+    expect(hostSatisfies("0.8.0", "<0.9.0")).toBe(false);
+    expect(hostSatisfies("0.9.5", "<0.9.0")).toBe(false);
   });
 });
 
