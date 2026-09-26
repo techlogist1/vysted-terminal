@@ -690,10 +690,10 @@ def test_keyless_hanging_ddg_serves_brave_inside_the_tool_cap(
 
 def test_web_search_in_catalog_and_registered() -> None:
     import services.agent_tools as agent_tools
-    from services.agent_tools import catalog, registry_v0_6_0
+    from services.agent_tools import catalog
 
     assert "web_search" in catalog.CAPABILITY_CATALOG
     cap = catalog.CAPABILITY_CATALOG["web_search"]
     assert cap.read_only is True and cap.domain == "research"
-    registry_v0_6_0.register_v0_6_0_tools()
+    agent_tools.register_v0_6_0_tools()
     assert "web_search" in agent_tools.registered_tools()
