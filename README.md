@@ -179,6 +179,8 @@ contract and example plugin are separately licensed under
 ## Status
 
 Phases 0–10 merged to `main` (data layer, charting, AI copilot, node editor + backtest,
-agent-write safety, macro/research/QuantLib, integrations hub). The
-agent-native redesign is being specified; build follows operator review. See
-[`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) and [`docs/BLUEPRINT.md`](./docs/BLUEPRINT.md).
+agent-write safety, macro/research/QuantLib, integrations hub). Status for the
+agent-native redesign — build phase, what's shipped vs still in flight — is
+tracked live in [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md), the
+current-state baseline; the original plan is
+[`docs/BLUEPRINT.md`](./docs/BLUEPRINT.md).

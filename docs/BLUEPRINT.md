@@ -4,7 +4,7 @@
 **Generated:** 2026-05-14
 **Owner:** Lokavya (github.com/techlogist1)
 **Repo (planned):** github.com/techlogist1/vysted-terminal
-**Domain structure:** vysted.com (org) + terminal.vysted.com (product)
+**Domain structure (planned, not yet resolved):** vysted.com (org) + terminal.vysted.com (product) — README.md is the install surface until these go live
 **License:** PolyForm Strict 1.0.0 + Commercial License (relicensed 23 Sep 2026 — operator decision, see LICENSING.md)
 
 ---
@@ -27,7 +27,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 
 **Org name:** Vysted
 **Product name:** Vysted Terminal (the flagship; future products plug under the org)
-**Domain structure:**
+**Domain structure (planned, not yet resolved):**
 - vysted.com — org/lab landing page
 - terminal.vysted.com — Vysted Terminal product page + download
 
@@ -73,7 +73,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 ### 3.1 Tech Stack (multi-language by design)
 
 **Rust layer (Tauri 2.x core):**
-- Desktop shell (windowing, system tray, OS integration)
+- Desktop shell (windowing, OS integration)
 - File system access — custom atomic-write commands (`write_text_atomic`,
   `write_bytes_atomic`), not the `tauri-plugin-fs` capability (R15-CODE-PLATFORM-024:
   no `fs:*` permission is granted in `src-tauri/capabilities/default.json`, but notes
@@ -87,7 +87,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 - OpenBB ODP wrapped — gives 100+ data providers (Polygon, FMP, FRED, Intrinio, Tiingo, ECB, FINRA, SEC, etc.)
 - QuantLib via Python bindings (Black-Scholes, Binomial, Monte Carlo, VaR, Greeks, yield curves, duration/convexity, bond optimization)
 - Backtest engine (vectorbt + backtrader patterns)
-- AI agent orchestration (LangGraph)
+- AI agent orchestration (hand-rolled loop — agent_runtime/run_manager/workflow_engine)
 - ccxt for unified crypto WebSockets (Bybit, Binance, Kraken, Coinbase)
 - MCP server for external AI tool access
 
@@ -123,7 +123,7 @@ Vysted Terminal is a **source-available AI-native finance terminal** — Bloombe
 │  - OpenBB ODP (100+ providers)                  │
 │  - QuantLib (pricing/risk)                      │
 │  - Backtest engine                              │
-│  - AI agent orchestration (LangGraph)           │
+│  - AI agent orchestration (hand-rolled loop)     │
 │  - MCP server (external AI access)              │
 └───────────────┬─────────────────────────────────┘
                 │ Plugin SDK contracts
@@ -244,11 +244,11 @@ listed below; the rest remain roadmap, not scope creep.
 ### Foundation (8)
 1. Tauri 2.x desktop shell (Win/Mac/Linux)
 2. Next.js 16 frontend skeleton
-3. Tailwind + shadcn/ui design system (Vysted aesthetic: charcoal + warm amber + sage + serif-meets-monospace typography)
+3. Tailwind + shadcn/ui design system (Vysted aesthetic: neutral zinc near-black + a single cool-indigo accent + serif-meets-monospace typography; the historical warm-palette naming was retired in the 003 rebuild, see CLAUDE.md Frontend gotchas)
 4. Command bar with slash commands (cmd+K)
 5. Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)
 6. Zustand state management
-7. Theming engine (dark default + light option + future custom themes)
+7. Theming engine (dark-only ships; light theme is deferred, see spec.md FR-030)
 8. Python sidecar bootstrap (FastAPI on localhost, auto-managed by Tauri)
 
 ### Plugin Architecture (7)
@@ -366,7 +366,7 @@ Attached to GitHub Release v1.0.0
   ↓
 Tauri auto-updater on existing installs pulls update
   ↓
-terminal.vysted.com/download serves "Download for [your OS]" via GitHub Releases API
+terminal.vysted.com/download will serve "Download for [your OS]" via GitHub Releases API once the domain is live (README.md carries the download links today)
   ↓
 Homebrew cask updated separately (PR to homebrew-cask)
 ```
@@ -379,7 +379,7 @@ Homebrew cask updated separately (PR to homebrew-cask)
 
 ### 6.3 First-launch Mac instructions
 
-Until paid Apple Developer cert: `terminal.vysted.com/install/mac` shows:
+Until paid Apple Developer cert, and until the site is live: `terminal.vysted.com/install/mac` will show the same walkthrough README.md carries today:
 - Screenshot of the unsigned-app warning
 - Instructions: "Right-click Vysted Terminal in Applications → Open → Open again to confirm"
 - OR: "System Settings → Privacy & Security → Click 'Open Anyway' next to Vysted Terminal"
@@ -427,7 +427,7 @@ All phases ship as part of v1.0 — no MVP, no Phase 2 deferrals. Phases are **C
 - CI: GitHub Actions for build (Win/Mac/Linux) + lint + test
 - `LICENSE` + `COMMERCIAL_LICENSE.md` + CLA bot setup
 - `CLAUDE.md` at repo root (project context, stack, standards, constraints)
-- `terminal.vysted.com` landing page (Vercel deploy, "Coming soon" + GitHub link)
+- `terminal.vysted.com` landing page (Vercel deploy, "Coming soon" + GitHub link) — planned, not yet built
 
 **Phase 0 success criteria:**
 - `pnpm tauri dev` opens window with mock panel
@@ -599,7 +599,7 @@ populated re-captures). Plan + handoff TBD.
   `tauri.conf.json`; flip `createUpdaterArtifacts` to true)
 - Homebrew cask submission + AppImage + .deb distribution
 - `terminal.vysted.com` full landing page (download button,
-  screenshots, docs) — separate private repo
+  screenshots, docs) — separate private repo, planned
 - LICENSE flip + COMMERCIAL_LICENSE.md promotion + CLA bot setup
 - First-launch TOS dialog (§6.5 #8 + BLUEPRINT customization #1)
 - README polish + getting-started docs
@@ -610,7 +610,7 @@ populated re-captures). Plan + handoff TBD.
 
 ## 8. Success Criteria (v1.0 launch)
 
-- [ ] User downloads from terminal.vysted.com, installs on their OS, opens app in <30 seconds (Linux/Win), <90 seconds for Mac with bypass step
+- [ ] User downloads from terminal.vysted.com (once live; README.md today), installs on their OS, opens app in <30 seconds (Linux/Win), <90 seconds for Mac with bypass step
 - [ ] All 37 modules functional and accessible
 - [ ] 12 AI agents work with at least 3 LLM providers tested end-to-end
 - [ ] Backtest engine runs a 60-day strategy in <30 seconds on standard hardware
@@ -618,7 +618,7 @@ populated re-captures). Plan + handoff TBD.
 - [ ] MCP server responds to external Claude/GPT queries
 - [ ] CI green for all OS builds
 - [ ] `LICENSE` + `COMMERCIAL_LICENSE.md` + CLA in place
-- [ ] terminal.vysted.com live with download links
+- [ ] terminal.vysted.com live with download links (planned; not yet live)
 - [ ] At least one external user successfully installs without help (validate via Discord or beta program)
 
 ---
@@ -652,13 +652,13 @@ populated re-captures). Plan + handoff TBD.
 Morning open → review tracked portfolio + watchlist → AI Risk Analyst review → backtest new strategy → save workspace.
 
 ### Use Case 2: Research Workflow (the equity researcher's story)
-Cmd+K → "Research XYZ" → AI Researcher pulls everything → chart + news in adjacent panels → backtest dividend strategy → save workspace.
+Cmd+K → "Research XYZ" → AI Researcher pulls everything → chart + news in adjacent panels → backtest dividend strategy → save workspace. (If the openbb-mcp sidecar hasn't bound its port yet, data-heavy tools degrade to the yfinance fallback or a 501 rather than blocking the flow.)
 
 ### Use Case 3: Earnings Playbook
 Build node-editor workflow → AI generates thesis per earnings name → alert on entry trigger → desktop notification → review thesis → trade externally.
 
 ### Use Case 4: Academic Researcher
-Custom AI agent fine-tuned to research domain → workflow pulls SEC + sentiment → outputs to chart → workspace becomes reproducible dissertation methodology.
+Custom AI agent fine-tuned to research domain → workflow pulls SEC + sentiment → outputs to chart → workspace becomes reproducible dissertation methodology. (Same MCP-unavailable degrade as UC2 applies to the SEC pull.)
 
 ### Use Case 5: Macro Thesis Watcher (Dalio-style)
 Workspace with yield curves + central bank tracker + commodity dashboard → AI Macro Researcher monitors news → notifications on thesis-confirming events.
@@ -676,7 +676,7 @@ The Tauri + Next.js stack is proven viable for this scope — **Fincept Terminal
 
 - **github.com/Fincept-Corporation/FinceptTerminal** — AGPL-3.0 + Commercial License; reference for feature breadth, agent design, node editor
 - **github.com/OpenBB-finance/OpenBB** — AGPL-3.0; reference for data layer architecture, provider abstraction patterns, MCP server design
-- **github.com/TauricResearch/TradingAgents** — open source; reference for multi-agent orchestration patterns, LangGraph usage
+- **github.com/TauricResearch/TradingAgents** — open source; reference for multi-agent orchestration patterns
 
 **Critical reminder:** Fincept's dual-license explicitly prohibits commercial use without paid license, AND prohibits forks that strip their APIs. We do NOT copy their code. We READ their code as research material and WRITE our own implementations. Features aren't copyrightable; specific code is. We're safe pattern-matching what they ship.
 

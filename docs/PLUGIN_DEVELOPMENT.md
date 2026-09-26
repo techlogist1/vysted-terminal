@@ -360,19 +360,24 @@ is contract-stable; new wrappers add zero pressure to `types/plugin.ts`.
 
 ## Roadmap
 
-These are out of scope for v0.3.0 but on the BLUEPRINT:
+**Shipped since v0.3.0:**
+
+- The Tauri-spawned subprocess pattern (`app.shell().sidecar(...)`) —
+  `src-tauri/src/openbb_mcp.rs` and `sec_edgar_mcp.rs` both use it.
+- The node-editor consumer for `usePluginsStore.nodes`
+  (`src/modules/node-editor/node-registry.ts`).
+- Plugin-contributed agents register at boot via `syncPluginAgents`
+  (`src/lib/plugin-bootstrap.ts`), though they aren't yet user-selectable
+  in a picker UI — tracked separately as R15-AGENT-014.
+
+**Still out of scope, on the BLUEPRINT:**
 
 - Filesystem-installed plugins (drop-in `plugins/<id>/` outside the
   repo at runtime).
 - Signed plugins.
 - An online plugin marketplace (v2.0+).
-- Phase 3 will add agent / node-editor consumers for the
-  `usePluginsStore` registries that this phase wires but does not yet
-  display.
-- A future Tauri-spawned subprocess pattern (Rust `Command::new`) to
-  resolve the OpenBB Windows hang documented in BLOCKERS.md.
 
-If you're authoring a plugin against v0.3.0 and these limits matter to
-you, file a `Tier-4` request via an issue — extending the contract is a
-high-blast-radius decision and goes through the operator (per CLAUDE.md
-"Decision authority").
+If you're authoring a plugin against the current version and these limits
+matter to you, file a `Tier-4` request via an issue — extending the
+contract is a high-blast-radius decision and goes through the operator
+(per CLAUDE.md "Decision authority").
