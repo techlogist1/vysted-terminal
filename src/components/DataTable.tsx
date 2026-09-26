@@ -124,6 +124,13 @@ interface DataTableProps<R, K extends string> {
   minWidth?: string;
   /** A caption row rendered below the last body row (e.g. a sparse note). */
   footnote?: React.ReactNode;
+  /** Render `rows` skeleton placeholder rows instead of the body (R15-UI-068).
+   *  Takes precedence over `empty` and the real `rows`/`sections`. */
+  loading?: { rows: number };
+  /** Rendered as a single full-width row when there are zero rows/sections and
+   *  `loading` is not set (R15-UI-068). Omit to render an empty `<tbody>`, as
+   *  before. */
+  empty?: React.ReactNode;
   className?: string;
   "data-testid"?: string;
 }
@@ -192,10 +199,16 @@ export function DataTable<R, K extends string = string>({
   fixed = true,
   minWidth,
   footnote,
+  loading,
+  empty,
   className,
   "data-testid": testId,
 }: DataTableProps<R, K>) {
   const hasWidths = columns.some((c) => c.width !== undefined);
+  const totalRows = sections
+    ? sections.reduce((n, section) => n + section.rows.length, 0)
+    : (rows?.length ?? 0);
+  const isEmpty = !loading && totalRows === 0;
 
   const renderRow = (row: R, index: number) => {
     const selected = isRowSelected?.(row) ?? false;
@@ -221,6 +234,7 @@ export function DataTable<R, K extends string = string>({
   return (
     <table
       data-testid={testId}
+      aria-busy={loading ? true : undefined}
       className={cn("w-full border-collapse", fixed && "table-fixed", minWidth, className)}
     >
       {fixed && hasWidths && (
@@ -235,12 +249,19 @@ export function DataTable<R, K extends string = string>({
           {columns.map((col) => {
             const active = sort?.key === col.key;
             const sortable = col.sortable && onSort;
+            const caret = col.sortable && active && (
+              <span aria-hidden className="text-charcoal-300 ml-1">
+                {sort?.direction === "asc" ? "▲" : "▼"}
+              </span>
+            );
             return (
               <th
                 key={col.key}
                 scope="col"
                 data-testid={`column-${col.key}`}
-                title={typeof col.header === "string" ? col.header : undefined}
+                title={
+                  sortable ? undefined : typeof col.header === "string" ? col.header : undefined
+                }
                 aria-sort={
                   col.sortable
                     ? active
@@ -250,18 +271,32 @@ export function DataTable<R, K extends string = string>({
                       : "none"
                     : undefined
                 }
-                onClick={sortable ? () => onSort?.(col.key) : undefined}
                 className={cn(
                   "text-micro text-charcoal-400 px-3 py-1",
                   col.numeric ? "text-right" : "text-left",
-                  sortable && "hover:text-charcoal-200 cursor-pointer select-none",
                 )}
               >
-                {col.header}
-                {col.sortable && active && (
-                  <span aria-hidden className="text-charcoal-300 ml-1">
-                    {sort?.direction === "asc" ? "▲" : "▼"}
-                  </span>
+                {sortable ? (
+                  // R15-UI-068: a `<th onClick>` is never keyboard-reachable — a
+                  // real <button> is focusable and fires onClick for both Enter
+                  // and Space natively. `aria-sort` stays on the `<th>` (the
+                  // WAI-ARIA sortable-table pattern), not the button; the button
+                  // is an inline unstyled trigger so it inherits the `<th>`'s
+                  // font/colour/alignment instead of shifting the header layout.
+                  <button
+                    type="button"
+                    onClick={() => onSort?.(col.key)}
+                    title={typeof col.header === "string" ? col.header : undefined}
+                    className="hover:text-charcoal-200 cursor-pointer bg-transparent p-0 select-none"
+                  >
+                    {col.header}
+                    {caret}
+                  </button>
+                ) : (
+                  <>
+                    {col.header}
+                    {caret}
+                  </>
                 )}
               </th>
             );
@@ -269,28 +304,51 @@ export function DataTable<R, K extends string = string>({
         </tr>
       </thead>
       <tbody>
-        {sections
-          ? sections.map((section) => (
-              <React.Fragment key={section.label}>
-                <tr className="border-charcoal-800 border-b">
-                  <th
-                    scope="colgroup"
-                    colSpan={columns.length}
-                    className="text-micro text-charcoal-500 bg-charcoal-900/40 px-3 py-1 text-left"
-                  >
-                    {section.label}
-                  </th>
-                </tr>
-                {section.rows.map((row, i) => renderRow(row, i))}
-              </React.Fragment>
-            ))
-          : (rows ?? []).map((row, i) => renderRow(row, i))}
-        {footnote && (
+        {loading ? (
+          Array.from({ length: loading.rows }, (_, i) => (
+            <tr key={`skeleton-${i}`} className="border-charcoal-800 border-b" aria-hidden>
+              {columns.map((col) => (
+                <td key={col.key} className="px-3 py-1">
+                  <div className="bg-charcoal-800 h-3 w-full animate-pulse rounded-none" />
+                </td>
+              ))}
+            </tr>
+          ))
+        ) : isEmpty && empty !== undefined ? (
           <tr>
-            <td colSpan={columns.length} className="text-caption text-charcoal-500 px-3 py-1">
-              {footnote}
+            <td
+              colSpan={columns.length}
+              className="text-caption text-charcoal-500 px-3 py-8 text-center"
+            >
+              {empty}
             </td>
           </tr>
+        ) : (
+          <>
+            {sections
+              ? sections.map((section) => (
+                  <React.Fragment key={section.label}>
+                    <tr className="border-charcoal-800 border-b">
+                      <th
+                        scope="colgroup"
+                        colSpan={columns.length}
+                        className="text-micro text-charcoal-500 bg-charcoal-900/40 px-3 py-1 text-left"
+                      >
+                        {section.label}
+                      </th>
+                    </tr>
+                    {section.rows.map((row, i) => renderRow(row, i))}
+                  </React.Fragment>
+                ))
+              : (rows ?? []).map((row, i) => renderRow(row, i))}
+            {footnote && (
+              <tr>
+                <td colSpan={columns.length} className="text-caption text-charcoal-500 px-3 py-1">
+                  {footnote}
+                </td>
+              </tr>
+            )}
+          </>
         )}
       </tbody>
     </table>
