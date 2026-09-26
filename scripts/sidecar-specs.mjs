@@ -83,8 +83,13 @@ const SPECS = [
     name: "vysted-sidecar",
     kind: "main",
     sourceDir: SIDECAR_DIR,
-    requirements: "requirements-dev.txt",
-    pipExtras: [],
+    // R15-CODE-PLATFORM-078: build from the frozen runtime pins, not
+    // requirements-dev.txt (which also pulls ruff/pytest/pytest-asyncio into
+    // the venv PyInstaller freezes the release binary from). pyinstaller is
+    // the only build-only tool actually needed, so it rides as a pip extra
+    // like the two MCP specs below.
+    requirements: "requirements.txt",
+    pipExtras: ["pyinstaller==6.20.0"],
     identifier: "com.vysted.sidecar",
     addData: MAIN_ADD_DATA,
     // The two MCP subprocess dirs build from their own rows.
