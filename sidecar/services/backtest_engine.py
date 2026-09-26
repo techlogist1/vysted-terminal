@@ -7,8 +7,8 @@ computes the aggregated :class:`BacktestResult` — total return, Sharpe,
 Sortino, Calmar, max drawdown, win rate, trade log, equity curve.
 
 The engine is intentionally strategy-agnostic; concrete strategies are
-Teammate K's deliverable, registered via :func:`register_strategy` into
-the module-level registry.
+registered via :func:`register_strategy` into the module-level registry
+(see ``backtest_strategies.py``).
 
 Walk-forward: the engine slices the requested date range into N equal
 sections, runs the strategy independently on each, and aggregates the
@@ -166,25 +166,15 @@ def reset_registry_for_tests() -> None:
 BarLoader = Callable[[list[str], str, str], Awaitable[list[Bar]]]
 
 
-async def _default_bar_loader(symbols: list[str], start: str, end: str) -> list[Bar]:
-    """Default bar loader — pulls from yfinance via the provider registry.
-
-    Teammate K may swap this for a more powerful loader (per-symbol
-    different sources, intraday bars, etc.); the engine accepts any
-    callable matching :data:`BarLoader`.
-    """
-    # Foundation kept minimal — Teammate K wires the real OHLCV plumbing
-    # into the strategy backtests. For unit-test parity an in-memory
-    # fixture loader is injected via run_backtest's `bar_loader` kwarg.
-    raise NotImplementedError(
-        "Foundation backtest_engine does not bundle a default bar loader; "
-        "pass bar_loader= to run_backtest(). Teammate K wires production."
-    )
-
-
 # ---------------------------------------------------------------------------
 # Engine
 # ---------------------------------------------------------------------------
+
+# How often the full (unsliced) run emits a "progress" SSE frame, in bars
+# processed. Walk-forward per-slice sub-runs never emit progress — only the
+# headline full run does, so the SSE stream carries one unambiguous progress
+# series instead of overlapping per-slice counts.
+PROGRESS_EVERY_BARS = 5
 
 
 async def _emit(callback: EventCallback | None, event: BacktestRunEvent) -> None:
@@ -297,6 +287,9 @@ async def _run_single_slice(
     bars: list[Bar],
     initial_capital: float,
     fees: BacktestFeeModel,
+    *,
+    on_event: EventCallback | None = None,
+    run_id: str | None = None,
 ) -> tuple[list[BacktestTrade], list[EquityCurvePoint], int, float]:
     """Run one (non-walk-forward) backtest slice.
 
@@ -315,6 +308,7 @@ async def _run_single_slice(
     last_close_per_symbol: dict[str, float] = {}
     peak_equity = initial_capital
     pending_timestamp: str | None = None
+    bars_processed = 0
 
     def _mark_to_market(timestamp: str) -> None:
         nonlocal peak_equity
@@ -341,6 +335,16 @@ async def _run_single_slice(
 
         last_close_per_symbol[bar.symbol] = bar.close
         intents = await strategy.on_bar(bar, portfolio)
+        bars_processed += 1
+        if (
+            on_event is not None
+            and run_id is not None
+            and bars_processed % PROGRESS_EVERY_BARS == 0
+        ):
+            await _emit(
+                on_event,
+                BacktestRunEvent(kind="progress", runId=run_id, barsProcessed=bars_processed),
+            )
 
         for intent in intents:
             if intent.quantity == 0:
@@ -438,23 +442,22 @@ async def _run_single_slice(
 async def run_backtest(
     request: BacktestRequest,
     *,
-    bar_loader: BarLoader | None = None,
+    bar_loader: BarLoader,
     on_event: EventCallback | None = None,
 ) -> BacktestResult:
-    """Run a backtest end-to-end."""
+    """Run a backtest end-to-end. ``bar_loader`` supplies the historical bars."""
     strategy_cls = _STRATEGIES.get(request.strategy_id)
     if strategy_cls is None:
         raise BacktestEngineError(
             f"unknown strategy {request.strategy_id!r}; registered: {registered_strategies()}"
         )
 
-    loader = bar_loader or _default_bar_loader
     fees = request.fee_model or BacktestFeeModel()
     run_id = str(uuid.uuid4())
     started_at = int(time.time() * 1000)
     started_ns = time.perf_counter_ns()
 
-    bars = await loader(request.symbols, request.start_date, request.end_date)
+    bars = await bar_loader(request.symbols, request.start_date, request.end_date)
     if request.symbols and not bars:
         # Every requested symbol returned zero bars — the bar loader swallows
         # per-symbol ProviderErrors into empty lists, so without this gate the
@@ -479,7 +482,12 @@ async def run_backtest(
     # Full unsliced run for the headline metrics + equity curve + trade log.
     strategy = strategy_cls(request.params)
     trades, equity_curve, skipped_buys, worst_shortfall = await _run_single_slice(
-        strategy, bars_sorted, request.initial_capital, fees
+        strategy,
+        bars_sorted,
+        request.initial_capital,
+        fees,
+        on_event=on_event,
+        run_id=run_id,
     )
     metrics = _compute_metrics(equity_curve, trades, request.initial_capital)
     warnings: list[str] = []
@@ -505,10 +513,19 @@ async def run_backtest(
     walk_forward_slices: list[WalkForwardSlice] | None = None
     if request.walk_forward_slices > 1:
         walk_forward_slices = []
-        for idx, (slice_start, slice_end) in enumerate(
-            _slice_dates(request.start_date, request.end_date, request.walk_forward_slices)
-        ):
-            slice_bars = [b for b in bars_sorted if slice_start <= b.timestamp <= slice_end]
+        slice_ranges = _slice_dates(
+            request.start_date, request.end_date, request.walk_forward_slices
+        )
+        for idx, (slice_start, slice_end) in enumerate(slice_ranges):
+            # Half-open on every slice but the last, so a boundary bar is
+            # traded in exactly one slice instead of both neighbours.
+            is_last = idx == len(slice_ranges) - 1
+            slice_bars = [
+                b
+                for b in bars_sorted
+                if slice_start <= b.timestamp
+                and (b.timestamp <= slice_end if is_last else b.timestamp < slice_end)
+            ]
             if not slice_bars:
                 continue
             slice_strategy = strategy_cls(request.params)
