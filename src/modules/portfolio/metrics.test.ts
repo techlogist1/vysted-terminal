@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { Position, Quote } from "../../../types/data";
+import type { Holding } from "@/store/portfolios";
+
+import type { Quote } from "../../../types/data";
 import {
   annualizedVolatility,
   beta,
@@ -17,8 +19,8 @@ import {
   type HoldingPriceHistory,
 } from "./metrics";
 
-function pos(symbol: string, quantity: number, cost: number): Position {
-  return { symbol, quantity, cost_basis: cost, asset_class: "equity" } as Position;
+function pos(symbol: string, quantity: number, cost: number): Holding {
+  return { id: `h-${symbol}`, symbol, quantity, costBasis: cost, assetClass: "equity" };
 }
 function quote(symbol: string, price: number, currency = "USD"): Quote {
   return { symbol, price, currency } as Quote;
@@ -108,6 +110,12 @@ describe("buildPortfolioSummary", () => {
     // panel that reads it.
     expect(s.concentration).toBeNull();
     expect(s.rows.every((r) => r.weight === null)).toBe(true);
+  });
+
+  it("rows carry the real holding id (R15-CODE-PLATFORM-050: no synthetic array-index id)", () => {
+    const positions = [pos("AAPL", 10, 100), pos("MSFT", 2, 300)];
+    const s = buildPortfolioSummary(positions, new Map());
+    expect(s.rows.map((r) => r.position.id)).toEqual(["h-AAPL", "h-MSFT"]);
   });
 
   it("unresolved positions join no currency bucket; a blank quote currency buckets as ''", () => {
