@@ -2228,6 +2228,43 @@ def _units(text: str) -> list[_Unit]:
     return units
 
 
+def _carry_fence(out: str, fence: tuple[str, str] | None) -> tuple[str, tuple[str, str] | None]:
+    """What streams of ``out``, the guard's output for a release judged with
+    ``fence``'s prefix in front, and the fence it leaves open (R15-LEAD-036).
+
+    ``fence`` is ``(prefix, closer)``: a fence an earlier release (often an
+    earlier round, before a tool call) left open. The prefix is its opener
+    line, so the guard sees the release inside the block; ``closer`` closes it
+    once streamed, and is empty while the opener was held back unstreamed. A
+    continuation the guard keeps streams without the prefix it already sent;
+    one it replaced gets the closer first, so its note renders as prose. An
+    opener with a still-blank body is held back instead of streamed, so a
+    note that replaces its block leaves no fence behind at all."""
+    if fence:
+        prefix, closer = fence
+        kept = out.startswith(prefix)
+        out = out[len(prefix) :] if kept and closer else out if kept else closer + out
+    seen = (fence[0] if fence and fence[1] else "") + out
+    lines = seen.split("\n")
+    run, opener = None, 0
+    for index, line in enumerate(lines):
+        match = _FENCE_OPEN.match(line)
+        if not match:
+            continue
+        mark = match.group(1)
+        if run is None:
+            run, opener = mark, index
+        elif mark[0] == run[0] and len(mark) >= len(run):
+            run = None
+    if run is None:
+        return out, None
+    tail = "\n".join(lines[opener:])
+    if not tail[len(lines[opener]) :].strip() and len(tail) <= len(out):
+        return out[: len(out) - len(tail)], (tail, "")
+    closer = ("" if seen.endswith("\n") else "\n") + run + "\n\n"
+    return out, (lines[opener] + "\n", closer)
+
+
 def _release_point(text: str) -> int:
     """Where the stream holds from: the start of the first unit still open."""
     return next((u.start for u in _units(text) if not u.closed), len(text))
@@ -2589,6 +2626,9 @@ class _TurnState:
     # The queries resolve_symbol bound this turn, by symbol base ("Airtel"
     # for BHARTIARTL): each is a name of its subject (figure_grounding.aliases).
     resolved_names: dict[str, list[str]] = field(default_factory=dict)
+    # A code fence released prose left open, as (prefix, closer): the next
+    # release, in any round, is judged inside it (:func:`_carry_fence`).
+    fence: tuple[str, str] | None = None
 
 
 @dataclass
@@ -2802,7 +2842,8 @@ async def _consume_round(
     def _release(chunks: list[str]) -> list[LLMDeltaEvent]:
         nonlocal last_note, last_subject
         text = "".join(chunks)
-        guarded = _guard_ratio_claims(text, turn.tool_results, turn.ratio_context)
+        prefix = turn.fence[0] if turn.fence else ""
+        guarded = prefix + _guard_ratio_claims(text, turn.tool_results, turn.ratio_context)
         # A tool called this round has no result yet: prose after the call
         # cannot cite it, and a bare "Returned: {...}" is fabricated.
         pending = {call.name for call in rnd.pending_tools}
@@ -2818,6 +2859,7 @@ async def _consume_round(
             subject=last_subject,
         )
         guarded, last_note = _guard_tool_citations(guarded, ctx, last_note)
+        guarded, turn.fence = _carry_fence(guarded, turn.fence)
         last_subject = ctx.subject
         turn.ratio_context = _depositary_context(text, turn.ratio_context)
         if guarded.strip():
@@ -2833,7 +2875,8 @@ async def _consume_round(
             # Prose is released a unit at a time (a sentence, a row block, a
             # colon intro with its paragraph, a fenced block or a dump): what
             # the guard judges as one thing is held until it is complete.
-            cut = _release_point(text)
+            prefix = turn.fence[0] if turn.fence else ""
+            cut = max(0, _release_point(prefix + text) - len(prefix))
             size = 0
             for index, chunk in enumerate(held if cut else []):
                 size += len(chunk)
