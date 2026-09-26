@@ -45,7 +45,7 @@ describe("delegate-runs", () => {
   });
 
   it("launches a run, sends the budget, and records the sidecar run id", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ runId: "run-1" }));
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({ run_id: "run-1" }));
     vi.stubGlobal("fetch", fetchMock);
 
     await launchDelegateRun({
@@ -293,7 +293,7 @@ describe("delegate-runs — output delivery", () => {
     return vi.fn(async (url: string, init?: RequestInit) => {
       const path = new URL(String(url)).pathname;
       if (init?.method === "POST") {
-        return jsonResponse({ runId: "run-7" });
+        return jsonResponse({ run_id: "run-7" });
       }
       if (path === "/runs") {
         return jsonResponse({
@@ -328,7 +328,7 @@ describe("delegate-runs — output delivery", () => {
     const fetchMock = routedFetch("done", {
       answer: LONG_ANSWER,
       brief: { symbol: "NVDA", markdown: "## Thesis" },
-      hostActions: [
+      host_actions: [
         { tool_call_id: "c-note", name: "write_note", input: { scope: "NVDA", text: "margin" } },
       ],
     });
