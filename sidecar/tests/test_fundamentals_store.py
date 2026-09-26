@@ -511,3 +511,26 @@ def test_unknown_field_raises_value_error_never_reaches_sql() -> None:
     interpolated into a query."""
     with pytest.raises(ValueError, match="unknown fundamentals field"):
         store._field_column("'; DROP TABLE fundamentals; --")
+
+
+def test_row_to_pair_growth_without_a_recorded_basis_states_none() -> None:
+    """R15-DATA-102: a row carrying growth but no recorded basis (an ``.info``
+    row written before the ``growth_basis`` column existed) states no basis —
+    the model no longer lends it an inherited "mrq_yoy" — while the value still
+    carries the provenance of the tier that wrote it."""
+    fundamentals, quote = store.row_to_pair(
+        {
+            "symbol": "LEGACY.NS",
+            "revenue_growth": 0.12,
+            "info_updated_at": 1_750_000_000.0,
+            "provider": "yfinance",
+        }
+    )
+    assert quote is None
+    assert fundamentals.revenue_growth == 0.12
+    assert fundamentals.growth_basis is None
+    assert fundamentals.field_meta is not None
+    assert fundamentals.field_meta["revenue_growth"].provider == "yfinance"
+    assert fundamentals.field_meta["revenue_growth"].as_of == (
+        datetime.fromtimestamp(1_750_000_000.0, tz=UTC).isoformat()
+    )

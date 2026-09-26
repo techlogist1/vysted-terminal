@@ -724,7 +724,10 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
             )
             serve(name, total, label, off)
     prior = filed.year_ago(latest)
-    if prior is not None and f.growth_basis == "mrq_yoy":
+    # The filed growth is MRQ-YoY: it serves over a provider that stated that
+    # basis or stated none (no provider growth), never over an annual one — and
+    # states the basis it serves (R15-DATA-102: no inherited default).
+    if prior is not None and f.growth_basis in (None, "mrq_yoy"):
         label = f"{filed.basis}, period to {as_of} vs the same period to {prior.end.isoformat()}"
         for name, attr in _FILED_GROWTH:
             now, then = getattr(latest, attr), getattr(prior, attr)
@@ -733,6 +736,7 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
             growth = (now - then) / abs(then)
             served = getattr(f, name)
             serve(name, growth, label, served is not None and _growth_disagrees(served, growth))
+            updates["growth_basis"] = "mrq_yoy"
     if not updates:
         return f
     updates["field_meta"] = meta

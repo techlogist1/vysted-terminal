@@ -180,12 +180,18 @@ def test_missing_symbol_is_rejected_without_a_provider_call(
 def test_tool_result_carries_growth_basis(monkeypatch: pytest.MonkeyPatch) -> None:
     """D55: the agent tool returns the raw Fundamentals dump, which now carries
     ``growth_basis`` — so a copilot consuming growth via the tool sees the MRQ
-    truth, not a bare 'yoy'."""
+    truth, not a bare 'yoy'. The fake producer STATES the basis, as yfinance
+    does (R15-DATA-102: the model no longer defaults it — this fixture used to
+    pass by inheriting that default)."""
     from models.fundamentals import Fundamentals
 
     async def real(symbol: str):  # noqa: ANN202
         return Fundamentals(
-            symbol="AAPL", provider="yfinance", revenue_growth=0.18, earnings_growth=-0.05
+            symbol="AAPL",
+            provider="yfinance",
+            revenue_growth=0.18,
+            earnings_growth=-0.05,
+            growth_basis="mrq_yoy",
         )
 
     monkeypatch.setattr(provider_registry, "get_fundamentals", real)

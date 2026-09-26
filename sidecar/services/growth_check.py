@@ -77,13 +77,12 @@ def should_cross_check(fund: dict[str, Any]) -> bool:
     """Whether the fundamentals payload warrants the quarterly cross-check.
 
     True only when the provider actually carries a numeric growth scalar to
-    reconcile AND its claimed basis is MRQ-YoY (``growth_basis`` absent means
-    the D55 default, which is ``mrq_yoy``). A provider on a different basis is
-    never compared against quarterly YoY — that would manufacture false
-    conflicts out of a basis mismatch.
+    reconcile AND states its basis as MRQ-YoY. A provider on a different basis —
+    or one that stated none (R15-DATA-102: there is no inherited default) — is
+    never compared against quarterly YoY: that would manufacture a conflict out
+    of a basis mismatch, or claim an MRQ basis nobody stated.
     """
-    basis = fund.get("growth_basis")
-    if basis is not None and basis != "mrq_yoy":
+    if fund.get("growth_basis") != "mrq_yoy":
         return False
     return any(
         isinstance(fund.get(key), (int, float)) and not isinstance(fund.get(key), bool)
