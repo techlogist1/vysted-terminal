@@ -297,6 +297,39 @@ def test_yahoo_symbol_routes_bse_only_to_bo(bare: str, expected: str) -> None:
         config.reset_request_region(token)
 
 
+# --- R15-LEAD-028: a numeric BSE scrip code maps to its canonical ticker ------
+
+
+@pytest.mark.parametrize(
+    ("code", "expected"),
+    [
+        ("506597.BO", "AMAL.BO"),
+        ("544774.BO", "SMR.BO"),
+        ("532540.BO", "TCS.BO"),  # the fresh case: a code not in the fix's own table
+    ],
+)
+def test_yahoo_symbol_maps_a_bse_scrip_code_to_its_ticker(code: str, expected: str) -> None:
+    from services import symbol_resolver
+
+    assert symbol_resolver.bse_symbol_for_code(code[: -len(".BO")]) == expected[: -len(".BO")]
+    assert yfinance_provider._yahoo_symbol(code) == expected
+
+
+def test_yahoo_symbol_passes_an_unknown_scrip_code_through() -> None:
+    """No BSE master entry for the code — pass it through unchanged so Yahoo
+    404s it honestly, rather than raising or guessing."""
+    assert yfinance_provider._yahoo_symbol("999999.BO") == "999999.BO"
+
+
+@pytest.mark.parametrize("index", ["^BSESN", "^NSEI"])
+def test_yahoo_symbol_caret_index_unaffected_by_scrip_code_mapping(index: str) -> None:
+    assert yfinance_provider._yahoo_symbol(index) == index
+
+
+def test_yahoo_symbol_alphabetic_bo_ticker_unaffected_by_scrip_code_mapping() -> None:
+    assert yfinance_provider._yahoo_symbol("RELIANCE.BO") == "RELIANCE.BO"
+
+
 def test_get_fundamentals_bse_only_ticker_fetches_bo(
     recording_ticker: type[_RecordingTicker],
 ) -> None:

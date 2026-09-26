@@ -387,3 +387,31 @@ def test_bo_history_for_a_dual_listed_name_is_never_served_by_an_nse_lane(
     monkeypatch.setattr(bse_provider, "get_history", lambda s, tf, r=None: _series("bse", s))
     series = provider_registry.get_history("RELIANCE.BO", "1d", "1y", region="IN")
     assert series.provider == "bse"
+
+
+def test_bse_scrip_code_fundamentals_reach_amal_via_yfinance(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-028: the fundamentals/statements/ratings/earnings routes never
+    reach the bse lane (only quote/history do), so a code-addressed fundamentals
+    request must resolve through yfinance's own ``_yahoo_symbol`` mapping. With
+    no fix, Yahoo is asked for the bare code (``506597.BO``, which does not
+    exist) instead of the canonical ticker (``AMAL.BO``)."""
+    import asyncio
+
+    from services import yfinance_provider
+
+    class _Ticker:
+        def __init__(self, symbol: str) -> None:
+            self.symbol = symbol
+
+        @property
+        def info(self) -> dict:
+            if self.symbol != "AMAL.BO":
+                return {}
+            return {"longName": "Amal Ltd", "currency": "INR", "marketCap": 500_000_000.0}
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+    fundamentals = asyncio.run(provider_registry.get_fundamentals("506597.BO", region="IN"))
+    assert fundamentals.name == "Amal Ltd"
+    assert fundamentals.symbol == "AMAL.BO"

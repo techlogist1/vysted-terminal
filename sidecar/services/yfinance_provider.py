@@ -212,7 +212,10 @@ def _yahoo_symbol(symbol: str) -> str:
         pass it through UNCHANGED (the old ``_normalize_symbol`` wrongly turned
         ``ROUTE.NS`` into ``ROUTE-NS`` via its dot→dash rule, which Yahoo 502s on —
         the root cause of the all-dashes Indian Equity Overview); an NSE Emerge
-        name given as ``.NS`` takes its ``-SM.NS`` form;
+        name given as ``.NS`` takes its ``-SM.NS`` form. A numeric-scrip-code
+        ``.BO`` (``506597.BO``) is canonicalised to its BSE ticker first
+        (``AMAL.BO``) — Yahoo has no such symbol as the bare code (R15-LEAD-028);
+        an unmapped code passes through unchanged so Yahoo 404s it honestly;
       * a bare ticker that is a known NSE instrument (and NOT also a US one) gets
         the ``.NS`` (or Emerge ``-SM.NS``) suffix so Yahoo returns NSE data
         instead of an empty US lookup;
@@ -223,8 +226,15 @@ def _yahoo_symbol(symbol: str) -> str:
       * everything else takes the US dot→dash quirk (``BRK.B`` → ``BRK-B``).
     """
     s = symbol.strip().upper()
-    if s.startswith("^") or s.endswith(".BO"):
+    if s.startswith("^"):
         return s  # a caret index (^NSEI, ^BSESN) is served unsuffixed (R15-LEAD-011)
+    if s.endswith(".BO"):
+        bare = s[:-3]
+        if bare.isdigit():
+            ticker = symbol_resolver.bse_symbol_for_code(bare)
+            if ticker is not None:
+                return f"{ticker}.BO"
+        return s
     if s.endswith(".NS"):
         return _nse_listing(s[:-3]) if symbol_resolver.is_nse_emerge(s) else s
     # Region-aware India resolution. The symbol's intrinsic hint wins; else the
