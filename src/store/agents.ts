@@ -31,11 +31,17 @@
 
 import { create } from "zustand";
 
-import { extractSidecarDetail, getSidecarBaseUrl, sidecarGet } from "@/lib/sidecar-client";
+import {
+  extractSidecarDetail,
+  getSidecarBaseUrl,
+  SIDECAR_REQUEST_TIMEOUT_MS,
+  sidecarFetch,
+  sidecarGet,
+  sidecarRequestInit,
+} from "@/lib/sidecar-client";
 
 import type { LLMProviderId } from "../../types/ai";
 import type { AgentSpec } from "../../types/plugin";
-import { SIDECAR_REQUEST_TIMEOUT_MS, sidecarFetch, sidecarRequestInit } from "@/lib/sidecar-client";
 
 // ---------------------------------------------------------------------------
 // Custom-agent identity
