@@ -1,83 +1,137 @@
-# P2 lows pre-integration review
+# P2 lows candidate: fresh diff review
 
-Reviewed at 07:04 IST by a fresh Opus reviewer (read-only). Nothing was run: no pytest, vitest, tsc or cargo, per the off-lane rule. Every finding below comes from reading the source.
-
-- Candidate: `worktree-agent-lows-P2-int-4c6dfe8` @ `18e5bcb077b31d7ee1464ce1e475cc3a2ddb6cfa` (fetched and matches PREINT.md)
-- Diff: `4c6dfe8c...origin/worktree-agent-lows-P2-int-4c6dfe8`, 112 files, +4129/-2069
+- Reviewer: Opus (claude-opus-5-5[1m]). Read-only, so no worktree, no edits and no push. Written 07:41 IST.
+- Candidate: `origin/worktree-agent-lows-P2-int-4c6dfe8` @ `7db0b2954bab647e646b324df1c875c9c34f1675`. Base `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2` is an ancestor.
+- Diff: `4c6dfe8c...7db0b295`, 156 files, +5517/-2441.
+- Nothing was executed except git and static reads. Everything stays untested pending integration.
 
 ## Verdict: needs_fix
 
-There are three blocking items: one pytest failure that will certainly happen, and two Windows/CI gate breaks introduced by W2. Each fix is a few lines. The merge itself is clean.
+There are five blocking items. Two were already known: the lockfile, and the Windows backup root the assembler flagged for a decision. Three are new: a vitest break in ScreenerResultsTable, a tsc error in the axe matcher, and a data-access regression in `workspace_store`. All of them are small, local fixes. The merge itself is sound: the safety surface is untouched, every claimed test exists, and no writer hunk was lost.
 
-## Checks
+## (a) Safety surface
 
-**(a) Safety surface: untouched.** `git diff --stat` is empty for all five paths: `sidecar/models/audit_log.py`, `sidecar/services/kill_switch.py`, `src-tauri/src/kill_switch.rs`, `types/proposed-change.ts` and `sidecar/services/agent_runtime.py`. There are no blocked hunks. `src/modules/chat/ProposedChangesReview.tsx` changes only the tooltip keybinding text.
+`git diff --stat 4c6dfe8c...7db0b295 -- <path>` is empty for each of these:
 
-**(b) Claimed tests: all present.**
-- pytest: 44 of 44 claimed nodes exist as a `def` on the branch. PREINT says 43 because it does not count the `test_web_search` repoint.
-- vitest: 26 of 26 claimed names exist.
-- Spot-checked assertions match their entries: test_agent_tools_lows (014/027/028/068), test_mcp_server (022/023), test_agents_router (072), test_system_router (033), test_sec_tools clamp, and test_fundamentals_warm `_seed_task`.
+- `sidecar/models/audit_log.py`
+- `sidecar/services/kill_switch.py`
+- `src-tauri/src/kill_switch.rs`
+- `types/proposed-change.ts`
+- `sidecar/services/agent_runtime.py`
 
-**(c) Conflict resolution: both writers' hunks kept.**
-- No file was touched by two writers, and no writer file changed in base drift (`ebc5ed41..4c6dfe8c`).
-- At merge `fcb10f5d`, the blob of every one of the 111 writer files equals that writer's origin-head blob. Every writer hunk is kept byte-identical.
-- Assembler commit `b97ffe66` (test_web_search): this is a pure repoint. The inlined `agent_tools.register_v0_6_0_tools` registers the same 13 domains as the deleted module. There are no other importers of `services.agent_tools.registry_v0_6_0` in sidecar/scripts/app/main. `workflow_nodes/registry_v0_6_0` is a different module.
-- Assembler commit `18e5bcb0` (W3xW6): correct.
-  - `wrap_errors` is keyword-only and defaults to True, so the agent loop (`agent_runtime` 868/880) and `research.py` `tool_call=invoke_tool` keep W3's envelope.
-  - MCP `_make_catalog_tool` passes False, so a raise still becomes ToolError and `isError`. W6's test is satisfied.
-  - W6's `except KeyError` also catches a handler-internal KeyError and labels it "not available in this build". This was already true at base.
+There are no blocked hunks.
 
-**(d) Defects and contracts:** see the blocking items and advisories. No broken imports were found:
-- Removed exports (`refreshAll`, `SUGGESTED_ITEMS`, `SuggestedItem`, `pushRecent`, `setCommands`, `drainNotifications`, old palette `query`/`setQuery`) have no remaining src/plugins references.
-- Removed provider attributes (`_AVAILABLE`, `_last_tool_call_ok`, `_resolve_endpoint`, `_get_client`) have no remaining references in sidecar or tests.
-- `settings.setAll` keeps its name, with an added `options` argument.
-- `Literal[*action_ledger.KNOWN_STATUSES]` is valid on Python 3.13 under `from __future__ import annotations`. `action_ledger` is imported, and `KNOWN_STATUSES` is a tuple at base.
-- The source-guard scans pass against branch state. The SSR-claim list equals the 11-entry allowlist exactly, and every `⌘` under src/ outside keybindings.ts is in a comment, not a string or JSX node.
+`src/modules/chat/ProposedChangesReview.tsx` (W8) is safety-adjacent. It only changes tooltip text, which is correct.
+
+## (b) Claimed tests
+
+**pytest:** all 52 claimed nodes exist on the branch as `def test_...`. This includes `test_screener.py::test_result_row_has_no_matched_criteria`, which W4 said was missing and CN-019 later added. It also includes `test_provider_health.py::test_system_provider_health_routes`, which now takes `monkeypatch`. `test_cache_dir.py` has 3 tests.
+
+**vitest:** every named case or describe exists in its claimed file. The spot-read tests assert their entry's behaviour, for example:
+
+- The rig-hooks 404 and 200 pair uses `delenv`/`setenv`.
+- The `invoke_tool` envelope tests check the exact strings `provider error: ...` and `unexpected error: ...`.
+- The Devanagari workspace tests save the name and then check the byte cap.
+
+## (c) Conflict resolutions and writer hunks
+
+All 13 origin heads match the PREINT table. The per-writer check took every line each writer added (writer base to writer head) and looked for it on the candidate.
+
+**W1, W4, W5, W6, W7, W9:** 0 lines lost.
+
+**Other writers:** every missing line is a documented assembler replacement:
+
+- **W2:** 1 line in `smoke-test-sidecars.mjs`, replaced by the `pathToFileURL` guard (09821a53). 2 lines in `smoke-test-sidecars.test.mjs`, replaced by the `process.execPath` entry (42b3c679).
+- **W3:** the `_schema.json` `declaredTools` wording, replaced in d7d0d325.
+- **W8 and CN-027:** the separate `sidecar-client` imports in `agents.ts`, folded into one import (e9da8e93). The folded import holds the union of both.
+- **CN-019, CN-035, CN-027, DEF-B:** the root `RESULT.md` files, moved to `P2/results/` (4c7b6dde, ed0837b3).
+
+No deleted file came back. The `invoke_tool(wrap_errors=)` resolution (18e5bcb0) reads correctly:
+
+- The agent loop keeps the one-spelling envelope.
+- `mcp_server._make_catalog_tool` passes `False` and re-raises as `ToolError`.
+- No existing test asserts the old `{"ok": false}` MCP body. I grepped for "not available in this build" and "raised:".
 
 ## Blocking
 
-1. **`sidecar/tests/test_provider_health.py::test_system_provider_health_routes` (line 88) will fail.** This is the W5 (R15-LIFECYCLE-033) collateral.
-   - W5 gates `POST /system/provider-health/trip` and `/reset` behind `VYSTED_RIG_HOOKS=1` (`sidecar/routers/system.py:220`). Nothing sets that variable for this pre-existing test, and conftest does not set it either.
-   - As a result, `trip` returns `404 {"detail":"Not Found"}` and `tripped["yahoo"]` raises KeyError.
-   - Fix: add `monkeypatch` to the test signature and `monkeypatch.setenv("VYSTED_RIG_HOOKS", "1")` before the trip call. The assertions stay the same, so this is not a weakening. It belongs in the P2 candidate as a third assembler commit (R15-LIFECYCLE-033 follow-through).
+1. **`pnpm-lock.yaml` (DEF-B, R15-UI-071): the lockfile was not updated.** `package.json` adds `eslint-plugin-jsx-a11y ^6.10.2` and `vitest-axe ^0.1.0`, but the lockfile has no entry for either. `pnpm install --frozen-lockfile` fails, and it is step 1 of ci-local and of CI.
+   **Fix:** run `pnpm install --lockfile-only` on the rebased branch and commit `pnpm-lock.yaml` before the chain.
 
-2. **`scripts/smoke-test-sidecars.mjs:991`: the smoke-test gate becomes a silent no-op on Windows.** This is W2 (R15-CODE-PLATFORM-062/LIFECYCLE-039 import guard).
-   - The new guard `if (import.meta.url === \`file://${process.argv[1]}\`) main()` is never true on Windows: `import.meta.url` is `file:///C:/...` with forward slashes, while argv[1] is `C:\...`. It also fails for any path that needs percent-encoding.
-   - At base, `main()` ran unconditionally.
-   - Consequence: the `windows-latest` "Smoke-test sidecar binaries" step in `test.yml:69` and `build.yml:74` exits 0 without spawning anything, so the Tier-1 binary-runtime gate is vacuous there.
-   - Fix: `import { pathToFileURL } from "node:url";` and use `if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)`.
+2. **`src/components/SettingsPanel.test.tsx:919` (DEF-B, R15-UI-071): `pnpm typecheck` fails with TS2339.** `expect(results).toHaveNoViolations()` has no type. The test only calls `expect.extend(axeMatchers)` at runtime.
+   - `vitest-axe@0.1.0`'s `extend-expect.d.ts` augments the legacy global `namespace Vi { interface Assertion }`, which Vitest 4 no longer reads. The test does not import it anyway.
+   - `tsconfig.json` includes `**/*.tsx`, so test files are typechecked.
 
-3. **`scripts/smoke-test-sidecars.test.mjs:121-142` ("a threshold raised above the measured coverage fails the run"): expected to fail in CI.** This is W2 (R15-RELEASE-011).
-   - (i) The test is synchronous: `spawnSync` of a child `vitest run --coverage` with jsdom plus setup, up to 60 s. It has no per-test timeout, and there is no `testTimeout` in `vitest.config.ts`. vitest 4.1.6 fails a sync test that takes longer than 5000 ms (`@vitest/runner` chunk-artifact.js:2291, `now - startTime >= timeout`). A cold child coverage run will very likely exceed 5 s.
-   - (ii) On `windows-latest` (`pnpm test` in `test.yml:72`), spawning `node_modules/.bin/vitest` without a shell fails. `result.status` is null and stdout/stderr are null, so `toMatch` gets a non-string and throws.
-   - Fix: pass an explicit timeout as the third `it` argument (for example `90_000`). Spawn portably with `spawnSync(process.execPath, [join(REPO_ROOT, "node_modules/vitest/vitest.mjs"), ...])`, or `shell: process.platform === "win32"`. The assertions stay the same.
+   **Fix:** add a declaration file, for example `src/types/vitest-axe.d.ts` or `vitest-axe.d.ts` at the root, containing:
+   ```ts
+   import "vitest";
+   import type { AxeMatchers } from "vitest-axe/matchers";
+   declare module "vitest" { interface Assertion<T = any> extends AxeMatchers {} interface AsymmetricMatchersContaining extends AxeMatchers {} }
+   ```
+   Check that it passes `@typescript-eslint/no-empty-object-type` and `no-explicit-any` in `pnpm lint`. If it does not, use an explicit `toHaveNoViolations(): void` member. The assertion stays unchanged.
 
-## Advisories (integrator: look here first)
+3. **`src/modules/screener/ScreenerResultsTable.test.tsx:191,198,308` (DEF-B, R15-UI-068 x the existing R15-UI-006 tests): the vitest cases break.**
+   - DEF-B moved the sort `onClick` from the `<th data-testid="column-...">` to a child `<button>`.
+   - These tests still call `fireEvent.click(screen.getByTestId("column-pe_ratio"))` and `column-price`.
+   - A click dispatched on the `<th>` never reaches the button inside it, so the sort handler does not run: `sortBy` stays `market_cap` and the row-order assertions fail.
+   - DEF-B retargeted only `DataTable.test.tsx`. Its RESULT.md says the screener files were left alone.
+   - No other test clicks a `column-*` header by test id. I grepped all `*.test.tsx`.
 
-- **ci-local is not re-runnable after one coverage pass (W2, R15-RELEASE-011).**
-  - `vitest run --coverage` writes `coverage/`, which is in neither `.gitignore` nor the eslint `ignores`. The next `pnpm lint` (`eslint .`) and `pnpm format:check` (`prettier --check .`, which honours `.gitignore`) will scan the generated lcov-report JS/CSS/HTML and fail.
-  - `thresholds.autoUpdate: true` also rewrites `vitest.config.ts` on every passing run. That leaves a dirty tree, and the rewritten file may not match prettier.
-  - Suggested fix: add `coverage/` to `.gitignore` and `coverage/**` to the eslint `ignores`. Decide whether the ratchet should be committed or run with `--coverage.thresholds.autoUpdate=false` in ci-local.
-  - This could be blocking for a tag run, but it only bites from the second run onward, so it is listed here.
-- **ci-local no longer mirrors CI byte-for-byte (W2).** ci-local runs `vitest run --coverage` and `python3`. `test.yml` (Tier-1, untouched) runs `pnpm test` and its own pip steps. On Windows, `python3` is often the Store stub or missing, so R15-CROSS-PLATFORM-010 may break ci-local on the ROG G615. Check on the Windows box.
-- **R15-LIFECYCLE-033 rig impact.** Any rc1/rc2 scenario or `scripts/r15/route_fuzz.py:40-41` that trips the Yahoo circuit now gets 404 unless the sidecar process has `VYSTED_RIG_HOOKS=1` in its environment (the Tauri spawn must pass it through). Tell the rig owner before the next battery.
-- **W3 error-surface change on MCP.** Handlers stripped of per-handler try/except now raise out of `invoke_tool(wrap_errors=False)`. External MCP clients therefore see `isError` "tool X raised: provider error text" where they used to get `{ok:false,...}` bodies. Validation errors that handlers still return as `{ok:false}` stay `isError:false`. This is intended by 023; mention it in the CHANGELOG.
-  - Direct-handler tests are unaffected by the stripping: `test_disclosure_tools`, `test_b5_india_deals`, `test_price_data` and `test_sec_filings_provider:733` assert only success paths, and `test_macro_tools` goes through `invoke_tool`.
-- **W3 R15-AGENT-068 behaviour change.** `earnings_upcoming({"days": 0})` used to coerce to 7 (`or 7`). It now returns the range error. This is intended and pinned.
-- **W3 R15-AGENT-072 contract.**
-  - `_schema.json` says the declared list is "surfaced separately as `declaredTools` in GET /agents", but the wire has `tools` (declared) plus `effective_tools`. That is a doc mismatch; fix the description.
-  - `types/*.ts` has no `effective_tools` mirror, which is fine while there is no src reader.
-  - `_declared_tools` re-reads `agents/<id>.json` per request. It relies on `agents/` riding `--add-data` (it does, per CLAUDE.md), and it returns `[]` for any non-disk agent.
-- **W4 R15-LIFECYCLE-030 behaviour change.** The India boot seed now runs only from `start_warm_fundamentals()` when the region is IN at boot. A runtime region switch from US to IN no longer seeds (the sweep loop's seed was removed). Confirm this is acceptable.
-- **W5 R15-CODE-DATA-008.** `provider_registry` now falls through on any Exception, so the last-raised exception can be a non-ProviderError. Routers that map only ProviderError to 502 would 500 in that case. At base the same exception escaped from the first provider, so this is not a regression, only a note.
-- **W5 R15-CODE-DATA-010.** A stale `data_cache` read now DELETEs the row. There is no stale-fallback reader today: every call site reads one key with one TTL. Any future "serve stale on error" reader must not use `get`.
-- **W7.**
-  - openbb-mcp now treats `VYSTED_OPENBB_MCP_PORT=0` as unavailable, like sec-edgar already did. This is correct per the graceful-degrade rule.
-  - `docs/SIDECAR_API.md` still lists the deleted `GET /sec/filings/{accession}/sections`.
-- **Repo-wide guards (fragile).** `src/lib/source-guards.test.ts` requires the SSR-claim allowlist to match exactly in both directions, and `open-panel-literals.test.ts` scans all of src. A P1/P3 commit that edits one of the 11 allowlisted files' comments, or adds an `openPanel("literal")`, will fail these after integration. Integrate P2 last, or re-check on the combined tree.
-- Frontend tests need `pnpm install --frozen-lockfile` first, because `@tiptap/extension-list` is missing locally. The run order in PREINT.md (claimed tests, then collateral, then the full chain) is correct. Add `tests/test_provider_health.py` to the pytest collateral.
-- The `frontend is a Vite SPA` claim (R15-DOCS-006, `src/main.tsx` exists, `"dev": "vite"`) is accurate. The project CLAUDE.md still says Next.js static export. That file is Tier-1 and operator-owned, so it is flagged only.
+   **Fix:** retarget the three clicks to `within(screen.getByTestId("column-pe_ratio")).getByRole("button")` (and the same for `column-price`). All assertions stay unchanged.
 
-## Suggested next step
+4. **`sidecar/services/data_cache.py` `_backup_data_dir` (DEF-B R15-CROSS-PLATFORM-012 x R15-LIFECYCLE-024 / W5 R15-CODE-PLATFORM-077): the pre-upgrade backup copies the wrong directory on Windows.**
+   - `data_dir = _db_path.parent` is now `get_cache_dir()`. On Windows that is LocalAppData, while the user data is in Roaming.
+   - So the pre-upgrade undo copy, and W5's pruning, cover the regenerable cache dir. They no longer cover `portfolio.db`, `workspaces/`, `runs.db` or the audit DB.
+   - On the first upgrade onto this build, `data_cache.db` is new in the cache dir and has no `build` row. So `ensure_build` skips the backup entirely for that upgrade.
+   - macOS and Linux are unaffected, because `app_local_data_dir == app_data_dir` there.
 
-Add three small assembler commits on the candidate: blocking items 1, 2 and 3 (optionally the coverage/ ignore advisory too). Re-run `ruff format --check`/`ruff check` and `prettier --check` on the touched files, push the candidate, then follow the PREINT integration recipe after the r15-rc1 tag.
+   **Fix:** make `_backup_data_dir` copy `config.get_data_dir()` into `get_data_dir()/backups/<old_build>`, and keep the `_BACKUP_EXCLUDES` comparison against that dir. Optionally make it also run when the cache DB is freshly created but `get_data_dir()/data_cache.db` exists, meaning a legacy build. Check that `test_data_cache.py` backup tests still point both dirs at the same `tmp_path`.
+
+5. **`sidecar/services/workspace_store.py` `_filename_stem` (DEF-B, R15-UI-082): existing workspaces become unreachable, and names containing `%XX` no longer round-trip.**
+   - The old stem was `quote(name, safe=" ")`, which percent-encoded everything except letters, digits, space and `_.-~`. The new stem keeps every character raw except `/\:*?"<>|`, control characters and `.`.
+   - A workspace saved before the upgrade with a name like `Q1 (draft)`, `R&D`, `P/E, 5y` or any non-ASCII name is stored as `Q1 %28draft%29.vysted-workspace`. `list_workspaces` still shows it, because it unquotes the name, but `load_workspace` and `delete_workspace` now look for `Q1 (draft).vysted-workspace` and return a 404. The user's saved layout disappears.
+   - `%` is no longer escaped, so a new save named `a%41` is listed back as `aA`, and loading `aA` misses.
+
+   **Fix:**
+   - Add `%` to `_UNSAFE_CHARS`.
+   - In `_path_for`, fall back to the legacy stem `quote(cleaned, safe=" ").replace(".", "%2E")` when the new path does not exist. Or rename the legacy file on first access.
+   - Add one pin test: a file written under the legacy stem loads and deletes by its plain name, and `a%41` round-trips.
+
+## Advisories
+
+- **Cross-partition conflicts (re-verified with `git merge-tree`):**
+  - vs P1 `dbe5fe4f`: `sidecar/services/workspace_store.py` (P1 adds a `_replace` retry next to DEF-B's constants; adjacent hunks, easy to resolve) and `src-tauri/src/lib.rs`.
+  - vs P3 `6e41bfc1`: `sidecar/main.py`, `fundamentals_store.py`, `StatusChrome.tsx` and `sidecar-client.ts`. In `sidecar-client.ts`, P3's R15-LIFECYCLE-027 timeout and CN-027's `timeoutMs` are two deadline mechanisms for one intent: collapse them into one.
+- **`src-tauri/src/lib.rs` `resolve_cache_dir`:** it mirrors `resolve_data_dir` line for line (the same `diag_eprintln!` shape, `app.path().app_local_data_dir()`). It looks like it compiles, but it has never been through `cargo fmt`, clippy or `cargo test`.
+- **`sidecar/config.py` `get_cache_dir` docstring:** it says "XDG cache on Linux". In Tauri 2, `app_local_data_dir` on Linux is the XDG *data* dir, and `lib.rs`'s own comment says it is a no-op there. The docstring is wrong; the code is fine.
+- **Windows upgrade orphans:** the old `data_cache.db`, `fundamentals_cache.db` and `searxng/` in Roaming are left behind (wasted disk, no migration). An existing SearXNG container keeps its old mount.
+- **`jsx-a11y/label-has-associated-control` (error, all .ts/.tsx):**
+  - 49 `<label>` elements under `src/` have no `htmlFor`.
+  - The ones I sampled pass the rule's heuristics: a nested native `<input>`, or `{expr}` children, which the rule treats as a possible control.
+  - I could not lint project-wide, because that is off-lane and the plugin is not installed. Run `pnpm lint` early in the chain.
+- **`vitest.config.ts` `thresholds.autoUpdate: true`:** it rewrites the file on every passing `vitest run --coverage` in ci-local, after `format:check` has run, which leaves the tree dirty. Committing the ratchet or passing `autoUpdate=false` is the operator's call.
+- **ci-local drift from CI:** ci-local now runs `vitest run --coverage` and `python3`, but `.github/workflows` is unchanged (Tier-1). The CLAUDE.md claim that ci-local mirrors CI byte-for-byte no longer holds.
+- **W3 x W6 behaviour change:** an MCP client now gets `isError` with "tool X raised: ..." where it used to get an `ok:false` body. `wrap_errors=False` also lets a `KeyError` raised *inside* a handler be reported as "not available in this build". Record this in CHANGELOG at integration.
+- **GET /agents (W3, R15-AGENT-072):**
+  - `tools` now means the declared list (re-read from `agents/<id>.json`), and there is a new `effective_tools` field.
+  - Neither `types/` nor `src/store/agents.ts` mirrors `effective_tools`.
+  - `status: Literal[*action_ledger.KNOWN_STATUSES]` is valid in 3.13 (with `from __future__ import annotations`, pydantic evaluates the string), and `KNOWN_STATUSES` is a tuple.
+- **Other contracts (clean):**
+  - `types/screener.ts` and `sidecar/models/screener.py` both drop `matched_criteria`. No reader of it remains in `src/`, `plugins/` or `sidecar/`.
+  - The removed route `GET /sec/filings/{accession}/sections` has no caller left in `src/` and no entry in `docs/SIDECAR_API.md`.
+  - No `refreshAll`, `drainNotifications`, `_safeText` or `agent_tools.registry_v0_6_0` reference remains, except prose in `workflow_nodes/registry_v0_6_0.py:3` and `docs/archive`.
+  - No catalog, MCP-surface or agent-roster count change.
+- **Repo-wide source-scan tests, simulated statically on the candidate:**
+  - `warning-token-scope`: 0 offenders, and all 10 allowlist files still use the token.
+  - `source-guards` SSR ratchet: the matching set equals the allowlist exactly.
+  - The `⌘` guard: every hit outside `keybindings.ts` is in a comment, which the AST walk skips.
+  - These scans are fragile against whatever lands after P2, so re-run them on the combined tree.
+- **Runtime dependencies to watch:**
+  - CN-027 uses `AbortSignal.any`/`AbortSignal.timeout`, which needs Safari 17.4+ in WKWebView. jsdom 29 has both.
+  - `quant.ts` errors now carry the server `detail` sentence without the old `POST ... failed (N):` prefix. `quant.test` was updated.
+- **Where to look first in the chain:**
+  1. The install (blocking item 1).
+  2. `pnpm lint`: the jsx-a11y rule and the new `.d.ts`.
+  3. `pnpm typecheck` (blocking item 2).
+  4. `vitest`: ScreenerResultsTable (blocking item 3), SettingsPanel axe, then the source-scan tests.
+  5. `cargo fmt/clippy/test` on `lib.rs`.
+  6. pytest: `test_mcp_server`, `test_mcp_catalog_parity`, `test_agent_tools_lows`, the handler files W3 stripped of try/except, `test_data_cache`, `test_workspace`, `test_searxng_manager` + `test_search_tiers_router`.
