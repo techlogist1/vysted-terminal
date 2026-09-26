@@ -3,7 +3,7 @@
  "base": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
  "writer_base": "ebc5ed4194f9362422c3178c27d4cdf946428968",
  "branch": "worktree-agent-lows-P3-int-4c6dfe8",
- "head": "266ed2ef75a399b8e8602fce3b1f786edd60db30",
+ "head": "6e41bfc1bdd4255b427da84bb999641f7df78998",
  "pushed": true,
  "remote_verified": true,
  "worktree": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/lows-preint/P3",
@@ -91,7 +91,56 @@
    "conflicts": 0
   }
  ],
- "extra_branches": [],
+ "extra_branches": [
+  {
+   "order": 10,
+   "branch": "worktree-agent-lows-CN-r15-agent-077-4c6dfe8",
+   "entry": "R15-AGENT-077",
+   "after_set": "W2",
+   "origin_head": "80f8d7a244f7581723d8b597a397c74a441cb973",
+   "merge_sha": "c58f04f3",
+   "conflicts": 0,
+   "outcome": "fixed_untested",
+   "note": "cherry-pick -x of W2 0e5e72e5 plus the same two **_k fakes as assembler 266ed2ef: identical hunks, merged clean; only new content is test_native_search.py::test_native_search_oneshot_keeps_the_callers_base_url and RESULT.md. Every CN file is blob-identical to its tip except openai.py (W2's other hunks), whose CN hunk reverse-applies.",
+   "head_matches_task": true
+  },
+  {
+   "order": 11,
+   "branch": "worktree-agent-lows-CN-r15-data-102-4c6dfe8",
+   "entry": "R15-DATA-102",
+   "after_set": "W3",
+   "origin_head": "09d8da83a20c145aec671a441891be2274fc9f58",
+   "merge_sha": "19835106",
+   "conflicts": 1,
+   "outcome": "fixed_untested",
+   "note": "code auto-merged; growth_basis default flipped to None, correctness_gate/growth_check follow. Every CN hunk reverse-applies on the candidate except fundamentals_store.py, whose only delta vs the CN tip is W3's R15-DATA-103 quote hunk (context overlap, both present).",
+   "head_matches_task": true
+  },
+  {
+   "order": 12,
+   "branch": "worktree-agent-lows-NEW-drafted-4c6dfe8",
+   "entry": "R15-DOCS-025, R15-CODE-PLATFORM-078, R15-CODE-PLATFORM-079, R15-CODE-FRONTEND-038, R15-CODE-PLATFORM-080 (R15-DOCS-026 tier4, no work)",
+   "after_set": null,
+   "origin_head": "abcee383b1c1aeb1dfa5ab6b13992a7daca62a89",
+   "merge_sha": "e9a0b8b9",
+   "conflicts": 1,
+   "outcome": "fixed_untested",
+   "note": "register does not carry these ids yet (drafted, NEW_LOWS_DRAFT.json).",
+   "head_matches_task": true
+  },
+  {
+   "order": 13,
+   "branch": "worktree-agent-lows-LEAD-036-4c6dfe8",
+   "entry": "R15-LEAD-036",
+   "after_set": null,
+   "origin_head": "8315c8579d1da8414233a6fe335a862b290dfe94",
+   "merge_sha": "e377d55a",
+   "conflicts": 1,
+   "outcome": "fixed_untested",
+   "note": "agent_runtime.py prose-release guard only (see blocked_hunks_review).",
+   "head_matches_task": true
+  }
+ ],
  "assembler_commits": [
   {
    "sha": "266ed2ef75a399b8e8602fce3b1f786edd60db30",
@@ -101,17 +150,69 @@
     "sidecar/tests/test_b5_runtime_synthesis.py"
    ],
    "what": "get_provider fakes widened to accept **_k (lambda _p -> lambda _p, **_k; lambda *_a -> lambda *_a, **_k). Signature only, no assertion change. W2 left 077 could_not because these two unowned fakes raise TypeError once oneshot passes base_url=."
+  },
+  {
+   "sha": "6e41bfc1bdd4255b427da84bb999641f7df78998",
+   "entry": null,
+   "files": [
+    "RESULT.md"
+   ],
+   "what": "style: ruff/prettier on the P3 candidate. prettier --write on the combined root RESULT.md; bare **_k/**kwargs and the two ``` / ~~~ mentions wrapped as inline code first so prettier is idempotent and lossless (it oscillated / dropped two backticks otherwise)."
   }
  ],
- "conflict_map": [],
+ "conflict_map": [
+  {
+   "file": "RESULT.md",
+   "merges": [
+    "CN-r15-data-102 (19835106)",
+    "NEW-drafted (e9a0b8b9)",
+    "LEAD-036 (e377d55a)"
+   ],
+   "kind": "add/add",
+   "intents": "each second-attempt writer adds its own root RESULT.md report",
+   "resolution": "concatenate: ours then '---' then theirs, per merge; all four reports kept verbatim in merge order (CN-077, CN-102, NEW-drafted, LEAD-036), then prettier-formatted in 6e41bfc1",
+   "entries": [
+    "R15-AGENT-077",
+    "R15-DATA-102",
+    "R15-DOCS-025",
+    "R15-CODE-PLATFORM-078",
+    "R15-CODE-PLATFORM-079",
+    "R15-CODE-FRONTEND-038",
+    "R15-CODE-PLATFORM-080",
+    "R15-DOCS-026",
+    "R15-LEAD-036"
+   ],
+   "integrator_note": "RESULT.md is a writer report at the repo root, not product; the integrator may move it under docs/redesign/verification/r15/stage-c/lows/P3/ or drop it with a recorded decision. Nothing else conflicted."
+  }
+ ],
  "blocked_hunks": [],
  "risk_map": {
-  "multi_writer_files": [],
-  "cross_partition_files": [],
+  "multi_writer_files": [
+   "sidecar/services/llm/openai.py, oneshot.py, native_search.py, tests/test_llm_openai.py, tests/test_research_metering.py, tests/test_b5_runtime_synthesis.py: W2 + CN-077 (+ assembler 266ed2ef) - identical hunks, R15-AGENT-077",
+   "sidecar/models/fundamentals.py, services/fundamentals_store.py, services/yfinance_provider.py, services/growth_check.py, tests/test_fundamentals_store.py, tests/test_growth_check.py, types/data.ts: W3 + CN-102 - R15-DATA-102 (+ W3's R15-DATA-103, R15-LEAD-006)",
+   "RESULT.md: all four extras (add/add, concatenated)"
+  ],
+  "cross_partition_files": {
+   "note": "merge-tree simulation at 07:29 IST against origin P1-int dbe5fe4f and P2-int 7db0b295 (both moved since the 06:53 run, which found none). P3 on top of P1+P2 conflicts in 5 files; the others auto-merge.",
+   "conflicting": [
+    "src-tauri/src/lib.rs: P3 R15-CODE-PLATFORM-080 (NEW-drafted, VYSTED_DATA_DIR in resolve_data_dir/get_app_data_dir + test import list) vs P1 R15-CODE-PLATFORM-054/055/058/059, R15-CROSS-PLATFORM-007/008/011, R15-LIFECYCLE-037/038, R15-RELEASE-009 (P2 R15-CROSS-PLATFORM-012 auto-merges)",
+    "sidecar/main.py: P3 R15-CODE-PLATFORM-068 (W5) vs P2 R15-CROSS-PLATFORM-012",
+    "sidecar/services/fundamentals_store.py: P3 R15-DATA-102/103 (W3, CN-102) vs P2 R15-CROSS-PLATFORM-012",
+    "src/components/StatusChrome.tsx: P3 R15-LEAD-021 (W8) vs P2 R15-UI-073",
+    "src/lib/sidecar-client.ts: P3 R15-CODE-PLATFORM-039, R15-DATA-109, R15-LIFECYCLE-027 (W1) vs P2 R15-CODE-FRONTEND-027"
+   ],
+   "auto_merging": [
+    "P1: docs/SIDECAR_API.md, sidecar/services/agent_runtime.py, sidecar/services/research/relevance.py, sidecar/tests/test_agent_runtime.py, sidecar/tests/test_run_manager.py, src/modules/chart/ChartPanel.test.tsx",
+    "P2: .gitignore, sidecar/tests/test_provider_health.py, src/components/DataTable.tsx, src/lib/sidecar-client.test.ts, src/modules/chat/ModelControl.tsx, src/modules/quant/{Bond,Greeks,OptionPricer,YieldCurve}*.test.tsx, src/modules/screener/ScreenerPanel.tsx"
+   ]
+  },
   "writer_files_changed_on_base_since_writer_base": [],
   "safety_surface_hunks_left_out": [],
   "rust_or_config_changes": [
-   "none: no src-tauri/, .github/, tauri.conf.json, package.json, pnpm-lock, Cargo, pyproject or PyInstaller spec change"
+   "src-tauri/src/lib.rs (R15-CODE-PLATFORM-080, NEW-drafted): VYSTED_DATA_DIR env override read before app_data_dir in resolve_data_dir AND get_app_data_dir; new pure parse_data_dir_override + unit test. cargo fmt/clippy/test never run (off-lane); the writer did not rustfmt. Not tauri.conf.json.",
+   "scripts/sidecar-specs.mjs (R15-CODE-PLATFORM-078): the main spec now builds sidecar/.venv from requirements.txt + pipExtras ['pyinstaller==6.20.0'] instead of requirements-dev.txt (= -r requirements.txt + pyinstaller, ruff, pytest, pytest-asyncio, httpx; httpx is also a runtime pin, so the runtime set is unchanged). sidecar/.venv is the SAME venv the focused pytest commands and sidecar/.venv/bin/ruff use: on a freshly created venv pytest/pytest-asyncio/ruff are now absent (install requirements-dev.txt into it before the focused commands); on an existing venv pip never uninstalls, so the change has no effect there. Editing the recipe makes sidecar-staleness force a main-sidecar rebuild. ci-local itself installs requirements-dev.txt into its own python before pytest, so the chain is unaffected.",
+   ".gitignore: coverage/ (R15-CODE-PLATFORM-079)",
+   "no .github/, tauri.conf.json, package.json, pnpm-lock, Cargo.toml, pyproject or PyInstaller spec file change"
   ],
   "boot_path": [
    "sidecar/app.py + sidecar/main.py (W5, R15-CODE-PLATFORM-068): create_app now calls workflow_nodes.register_all() for every node type; main.py no longer calls it nor the deleted services/workflow_nodes/registry_v0_6_0.register_v0_6_0_nodes. The removed main.py docstring said node handlers were kept OUT of create_app so TestClient builds would not see them because workflow-engine tests reset the registry and register their own; that premise is reversed, so the FULL pytest suite (order effects, e.g. test_screener_nodes) and the sidecar smoke-test both matter here. agent_tools.register_v0_6_0_tools is a different module and is still referenced."
@@ -136,31 +237,42 @@
    "sidecar/models/workflow.py <-> types/workflow.ts (W5)"
   ],
   "untested_risky": [
-   "R15-AGENT-077 fixup commit 266ed2ef is unrun; the two fakes previously failed per W2.",
+   "R15-AGENT-077: assembler fixup 266ed2ef and CN-077 ef9e04cd carry the same **_k fakes; unrun.",
    "W7 R15-DOCS-010 NotesToolbar test was never executed by the writer (tiptap extension-list missing from the shared node_modules top-level symlinks); first real run is at integration.",
    "test_screener_nodes.py order dependence after the workflow_nodes registry deletion (W5 issue).",
-   "R15-DATA-102 could_not: partial producer change landed (858ed56e), Fundamentals.growth_basis default still mrq_yoy.",
    "W5 PLATFORM-069: node-registry filter only; NodeEditorPanel/VystedNode do not pass the server node list yet (UI behaviour unchanged until wired).",
    "Writer-reported pre-existing tsc TS2307 for @tiptap/extension-list in src/modules/notes (node_modules state, not this diff).",
    "docs/redesign/verification/r15/stage-c/lows/P3/writers/W1.jsonl arrives via the W1 branch (not present in the main worktree); a later main-worktree write of the same path would conflict.",
-   "docs/.../P3/writers/W2.jsonl line 6 (R15-RESEARCH-031) is not valid JSON; WRITERS.json carries the entry."
+   "docs/.../P3/writers/W2.jsonl line 6 (R15-RESEARCH-031) is not valid JSON; WRITERS.json carries the entry.",
+   "R15-DATA-102 (CN): Fundamentals.growth_basis default is now None. Any fixture/consumer relying on the inherited 'mrq_yoy' now sees None; writer grep found three tests and fixed them. research/semantics.py and company_narrative.py still label growth 'quarterly YoY (MRQ)' unconditionally (writer-noted, unfiled). correctness_gate.overlay_filed_periods now serves filed growth over an unstated basis and stamps 'mrq_yoy'. growth_check.should_cross_check flips True->False for an absent basis.",
+   "R15-LEAD-036: guard behaviour change in the streaming path - a held empty fence opener makes round 2 rows a fenced block judged by _judge_clause; an empty unclosed fence at turn end is dropped. Run the full test_agent_runtime.py (and P1's agent_runtime tests after the cross-partition merge), not only the three new cases.",
+   "R15-CODE-FRONTEND-038: export-artifact.ts now imports sidecar-client statically; the claimed 'zero [INEFFECTIVE_DYNAMIC_IMPORT] in the tauri build log' check needs a real build.",
+   "R15-CODE-PLATFORM-080 Rust unit test and rustfmt layout unverified.",
+   "Root RESULT.md (4 writer reports) lands on the branch; decide keep/move/drop at integration."
   ],
   "outcomes_needing_verifier": [
    "R15-CODE-PLATFORM-045, R15-CODE-PLATFORM-046: not_a_defect_proposed",
    "R15-AGENT-077: could_not in WRITERS.json; the assembler fixup may let it be judged fixed",
    "R15-DATA-102: could_not"
+  ],
+  "safety_docs": [
+   "docs/SAFETY_ARCHITECTURE.md section 2 (R15-DOCS-025): 'every kind auto-applies under AUTO' rewritten to 'only AUTO_APPLIED_KINDS (panel, chart, watchlist); data-write and settings always wait'. Doc-only, describes existing behaviour; not on the read-only surface list; a verifier should confirm it against src/store/proposed-changes AUTO_APPLIED_KINDS."
   ]
  },
  "claimed_tests": {
   "pytest": {
+   "sidecar/tests/test_agent_runtime.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_agent_runtime.py::test_a_fence_opened_before_a_tool_call_leaves_no_marker_when_replaced tests/test_agent_runtime.py::test_a_streamed_fence_is_closed_before_the_next_rounds_note tests/test_agent_runtime.py::test_a_fence_continued_on_an_ok_result_streams_as_written",
    "sidecar/tests/test_b5_runtime_synthesis.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_b5_runtime_synthesis.py",
+   "sidecar/tests/test_b7_exchange_financials.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_b7_exchange_financials.py::test_filed_growth_states_mrq_yoy_and_never_overrides_an_annual_basis",
    "sidecar/tests/test_brave_backend.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_brave_backend.py",
    "sidecar/tests/test_budget_guard.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_budget_guard.py::test_prices_with_served_model",
    "sidecar/tests/test_company_narrative.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_company_narrative.py::test_five_section_fixture_parses_all_fields",
    "sidecar/tests/test_ddg_backend.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_ddg_backend.py::test_403_then_429_reports_rate_limited tests/test_ddg_backend.py::test_one_search_with_lite_fallback_takes_one_pacing_slot",
    "sidecar/tests/test_earnings_quality.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_earnings_quality.py",
+   "sidecar/tests/test_fundamentals.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_fundamentals.py::test_get_fundamentals tests/test_fundamentals.py::test_served_growth_states_its_mrq_yoy_basis",
    "sidecar/tests/test_fundamentals_models.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_fundamentals_models.py::test_field_meta_status_rejects_unknown",
-   "sidecar/tests/test_fundamentals_store.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_fundamentals_store.py::test_null_change_row_keeps_change_unset_and_row_currency tests/test_fundamentals_store.py::test_row_to_pair_null_growth_row_states_no_basis_and_derives_field_meta",
+   "sidecar/tests/test_fundamentals_store.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_fundamentals_store.py::test_null_change_row_keeps_change_unset_and_row_currency tests/test_fundamentals_store.py::test_row_to_pair_null_growth_row_states_no_basis_and_derives_field_meta tests/test_fundamentals_store.py::test_row_to_pair_growth_without_a_recorded_basis_states_none",
+   "sidecar/tests/test_fundamentals_tool.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_fundamentals_tool.py::test_tool_result_carries_growth_basis",
    "sidecar/tests/test_growth_check.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_growth_check.py",
    "sidecar/tests/test_history.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_history.py::test_freshness_label_failure_yields_unknown",
    "sidecar/tests/test_india_sector_map.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_india_sector_map.py::test_enrichment_writes_canonical_seven_keys",
@@ -170,6 +282,7 @@
    "sidecar/tests/test_llm_openai.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_llm_openai.py::test_repair_round_keeps_configured_base_url",
    "sidecar/tests/test_macro_providers.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_macro_providers.py::test_fred_sa_bw_map_to_other tests/test_macro_providers.py::test_provider_constants_are_macro_provider_values",
    "sidecar/tests/test_mojeek_backend.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_mojeek_backend.py",
+   "sidecar/tests/test_native_search.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_native_search.py::test_native_search_oneshot_keeps_the_callers_base_url",
    "sidecar/tests/test_provider_health.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_provider_health.py::test_is_rate_limit_union",
    "sidecar/tests/test_quant_greeks.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_quant_greeks.py::test_compute_greeks_equals_price_european_bs",
    "sidecar/tests/test_quant_options.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_quant_options.py::test_validate_domain_rejects_steps_2_and_low_paths",
@@ -186,6 +299,12 @@
    "sidecar/tests/test_workflow_router.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_workflow_router.py::test_dangling_edge_yields_one_run_error_frame tests/test_workflow_router.py::test_resume_from_is_rejected_not_silently_rerun"
   },
   "vitest": {
+   "scripts/sidecar-specs.test.mjs": {
+    "cmd": "node_modules/.bin/vitest run scripts/sidecar-specs.test.mjs",
+    "named": [
+     "R15-CODE-PLATFORM-078: %s builds from requirements.txt, not requirements-dev.txt (it.each over SIDECAR_SPECS)"
+    ]
+   },
    "src/components/DataBadges.test.tsx": {
     "cmd": "node_modules/.bin/vitest run src/components/DataBadges.test.tsx",
     "named": [
@@ -214,6 +333,12 @@
     "cmd": "node_modules/.bin/vitest run src/lib/dead-surface.test.ts",
     "named": [
      "R15-CODE-FRONTEND-024: R15-CODE-FRONTEND-024: no live source references a deleted dead-code symbol > finds zero references to fuzzyRank/fuzzyScore/exportNoteMd under src/"
+    ]
+   },
+   "src/lib/export-artifact.test.ts": {
+    "cmd": "node_modules/.bin/vitest run src/lib/export-artifact.test.ts",
+    "named": [
+     "R15-CODE-FRONTEND-038: export-artifact.ts sidecar-client import > imports sidecar-client statically"
     ]
    },
    "src/lib/plugin-bootstrap.test.ts": {
@@ -301,7 +426,7 @@
    "src/modules/notes/NotesToolbar.test.tsx": {
     "cmd": "node_modules/.bin/vitest run src/modules/notes/NotesToolbar.test.tsx",
     "named": [
-     "R15-DOCS-010: NotesToolbar \u2014 R15-DOCS-010 > the active toolbar button carries the fill class"
+     "R15-DOCS-010: NotesToolbar — R15-DOCS-010 > the active toolbar button carries the fill class"
     ]
    },
    "src/modules/quant/BondPricerPanel.test.tsx": {
@@ -369,18 +494,78 @@
    [
     "R15-CODE-PLATFORM-040",
     "n/a (deletion; confirmed no importer via repo grep)"
+   ],
+   [
+    "R15-DOCS-025",
+    "doc-only, no test"
+   ],
+   [
+    "R15-CODE-PLATFORM-079",
+    "config-only (.gitignore), no test"
+   ],
+   [
+    "R15-DOCS-026",
+    "tier4, no work (CLAUDE.md is Tier-1)"
+   ],
+   [
+    "R15-CODE-FRONTEND-038",
+    "build-log check: pnpm tauri build log has zero [INEFFECTIVE_DYNAMIC_IMPORT] lines (needs a build)"
    ]
   ],
-  "pytest_all": "cd sidecar && .venv/bin/python -m pytest -q tests/test_b5_runtime_synthesis.py tests/test_brave_backend.py tests/test_budget_guard.py tests/test_company_narrative.py tests/test_ddg_backend.py tests/test_earnings_quality.py tests/test_fundamentals_models.py tests/test_fundamentals_store.py tests/test_growth_check.py tests/test_history.py tests/test_india_sector_map.py tests/test_keyless_backend.py tests/test_llm_lows.py tests/test_llm_ollama.py tests/test_llm_openai.py tests/test_macro_providers.py tests/test_mojeek_backend.py tests/test_provider_health.py tests/test_quant_greeks.py tests/test_quant_options.py tests/test_quant_router.py tests/test_quant_yield_curve.py tests/test_range_check.py tests/test_research_metering.py tests/test_research_relevance.py tests/test_resolver_rename.py tests/test_router_cached_helper.py tests/test_run_manager.py tests/test_symbol_resolver.py tests/test_workflow_builtin_nodes.py tests/test_workflow_router.py",
-  "vitest_all": "node_modules/.bin/vitest run src/components/DataBadges.test.tsx src/components/EmptyState.test.tsx src/components/StatusChrome.test.tsx src/lib/date-defaults.test.ts src/lib/dead-surface.test.ts src/lib/plugin-bootstrap.test.ts src/lib/plugin-runtime.test.ts src/lib/safe-filename.test.ts src/lib/search-headers.test.ts src/lib/sidecar-client.test.ts src/modules/analyst-ratings/format.test.ts src/modules/backtest/BacktestPanel.test.tsx src/modules/chart/ChartPanel.test.tsx src/modules/chat/ChatSidebar.test.tsx src/modules/chat/ModelControl.test.tsx src/modules/chat/streaming.test.ts src/modules/earnings/EarningsCalendarPanel.test.tsx src/modules/node-editor/node-registry.test.ts src/modules/notes/NotesToolbar.test.tsx src/modules/quant/BondPricerPanel.test.tsx src/modules/quant/GreeksDashboard.test.tsx src/modules/quant/OptionPricerPanel.test.tsx src/modules/quant/YieldCurvePanel.test.tsx src/modules/research/BriefPanel.test.tsx src/modules/research/brief-layout.test.tsx src/modules/screener/ScreenerPanel.test.tsx src/modules/sec/SecFilingsPanel.test.tsx",
+  "pytest_all": "cd sidecar && .venv/bin/python -m pytest -q tests/test_agent_runtime.py tests/test_b5_runtime_synthesis.py tests/test_b7_exchange_financials.py tests/test_brave_backend.py tests/test_budget_guard.py tests/test_company_narrative.py tests/test_ddg_backend.py tests/test_earnings_quality.py tests/test_fundamentals.py tests/test_fundamentals_models.py tests/test_fundamentals_store.py tests/test_fundamentals_tool.py tests/test_growth_check.py tests/test_history.py tests/test_india_sector_map.py tests/test_keyless_backend.py tests/test_llm_lows.py tests/test_llm_ollama.py tests/test_llm_openai.py tests/test_macro_providers.py tests/test_mojeek_backend.py tests/test_native_search.py tests/test_provider_health.py tests/test_quant_greeks.py tests/test_quant_options.py tests/test_quant_router.py tests/test_quant_yield_curve.py tests/test_range_check.py tests/test_research_metering.py tests/test_research_relevance.py tests/test_resolver_rename.py tests/test_router_cached_helper.py tests/test_run_manager.py tests/test_symbol_resolver.py tests/test_workflow_builtin_nodes.py tests/test_workflow_router.py",
+  "vitest_all": "node_modules/.bin/vitest run scripts/sidecar-specs.test.mjs src/components/DataBadges.test.tsx src/components/EmptyState.test.tsx src/components/StatusChrome.test.tsx src/lib/date-defaults.test.ts src/lib/dead-surface.test.ts src/lib/export-artifact.test.ts src/lib/plugin-bootstrap.test.ts src/lib/plugin-runtime.test.ts src/lib/safe-filename.test.ts src/lib/search-headers.test.ts src/lib/sidecar-client.test.ts src/modules/analyst-ratings/format.test.ts src/modules/backtest/BacktestPanel.test.tsx src/modules/chart/ChartPanel.test.tsx src/modules/chat/ChatSidebar.test.tsx src/modules/chat/ModelControl.test.tsx src/modules/chat/streaming.test.ts src/modules/earnings/EarningsCalendarPanel.test.tsx src/modules/node-editor/node-registry.test.ts src/modules/notes/NotesToolbar.test.tsx src/modules/quant/BondPricerPanel.test.tsx src/modules/quant/GreeksDashboard.test.tsx src/modules/quant/OptionPricerPanel.test.tsx src/modules/quant/YieldCurvePanel.test.tsx src/modules/research/BriefPanel.test.tsx src/modules/research/brief-layout.test.tsx src/modules/screener/ScreenerPanel.test.tsx src/modules/sec/SecFilingsPanel.test.tsx",
   "watch_not_claimed": {
    "sidecar/tests/test_screener_nodes.py::test_register_adds_screener_query_to_workflow_engine": "W5 reports it is test-order dependent (import-time registration); its comment names the deleted workflow_nodes register_v0_6_0_nodes. Run: cd sidecar && .venv/bin/python -m pytest -q tests/test_screener_nodes.py, and also inside the full suite."
+  },
+  "cargo": {
+   "src-tauri/src/lib.rs": {
+    "cmd": "cargo test --manifest-path src-tauri/Cargo.toml data_dir_override_wins_when_set_to_a_non_blank_value",
+    "named": [
+     "R15-CODE-PLATFORM-080: data_dir_override_wins_when_set_to_a_non_blank_value"
+    ]
+   }
   }
  },
  "sanity": {
-  "py_compile": "84 changed .py OK",
-  "ruff_format_check": "clean (84 files; fixup file reformatted before commit)",
-  "ruff_check": "clean",
-  "prettier_check": "70 changed ts/tsx/js/mjs/json/md/css clean"
- }
+  "py_compile": "95 changed .py OK (whole candidate vs base)",
+  "ruff_format_check": "95 files already formatted",
+  "ruff_check": "All checks passed",
+  "prettier_check": "77 changed ts/tsx/js/mjs/json/md/css clean after 6e41bfc1 (RESULT.md was the only failure)",
+  "not_run": "tsc, eslint, vitest, pytest, cargo fmt/clippy/test, any build, smoke-test"
+ },
+ "previous_heads": [
+  "266ed2ef75a399b8e8602fce3b1f786edd60db30 (nine sets + assembler fixup, 06:53 IST)",
+  "aa1690eeb868fcf4f3ce04debd885f95c6f531e7 (fix pass, 07:02 IST)"
+ ],
+ "extras_pass": "07:25-07:31 IST",
+ "blocked_hunks_review": [
+  {
+   "entry": "R15-LEAD-036",
+   "file": "sidecar/services/agent_runtime.py",
+   "decision": "merged, not blocked",
+   "why": "the surface entry is agent_runtime.py's proposed-changes gate (_auto_publish_event ~:1251, the ack/staged narration ~:1320-1690, the auto_brief dispatch ~:3168 at base). The five hunks are _carry_fence (new, after _units), a _TurnState.fence field, and three lines in _consume_round._release/_release_point prefixing the open fence: the figure/citation prose-release guard, same area as the base-side LEAD-030/035/036 guard commits. No gate, dispatch, ack or ProposedChange code is touched. Same precedent as P1 PREINT (W2 agent_runtime hunks reviewed, merged)."
+  }
+ ],
+ "outcomes_for_verifier": {
+  "R15-CODE-PLATFORM-045": "not_a_defect_proposed",
+  "R15-CODE-PLATFORM-046": "not_a_defect_proposed",
+  "R15-AGENT-077": "fixed_untested (CN second attempt; W2 had could_not)",
+  "R15-DATA-102": "fixed_untested (CN second attempt; W3 had could_not)",
+  "R15-DOCS-026": "tier4, not touched"
+ },
+ "integration_recipe": [
+  "export GIT_SSH_COMMAND=\"ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes -o ConnectTimeout=20\"",
+  "git fetch --prune origin --tags",
+  "git merge-base --is-ancestor 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2 r15-rc1 || { echo 'tag lacks base: stop, ask the lead'; exit 1; }",
+  "WT=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/lows-preint/P3",
+  "git -C $WT checkout -b worktree-agent-lows-P3-int-rc1 origin/worktree-agent-lows-P3-int-4c6dfe8",
+  "git -C $WT rebase --rebase-merges --onto r15-rc1 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
+  "# replays 13 merges + 266ed2ef, the fix pass (8295dab8, 38d454be, aa1690ee) and 6e41bfc1; --rebase-merges re-resolves the RESULT.md add/add merges: take the concatenation (ours, '---', theirs) again",
+  "# if P1 and/or P2 candidates land first, resolve the five cross-partition files listed in risk_map.cross_partition_files (keep both entries' behaviour and tests)",
+  "sidecar/.venv/bin/python -m pip install -r sidecar/requirements-dev.txt   # R15-CODE-PLATFORM-078: a rebuilt sidecar/.venv no longer carries pytest/ruff",
+  "# run: pnpm ci-local; the focused commands in claimed_tests; pnpm sidecars:build --force (R15-CODE-PLATFORM-078 changes the main venv input); node scripts/smoke-test-sidecars.mjs (boot path R15-CODE-PLATFORM-068 + build input)",
+  "git -C $WT push origin worktree-agent-lows-P3-int-rc1   # new name, never force",
+  "# one fresh verifier on origin/worktree-agent-lows-P3-int-rc1, then on 004-r4-experience-rebuild:",
+  "git merge --no-ff origin/worktree-agent-lows-P3-int-rc1"
+ ]
 }
