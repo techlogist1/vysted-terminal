@@ -395,8 +395,31 @@ export function dedupeSources(sources: readonly BriefSource[]): BriefSource[] {
 /** Inline `[n]` citation marker — not a markdown link (`[1](url)` is a link). */
 const CITE_MARKER_RE = /\[(\d{1,3})\](?!\()/g;
 
+/** A citation GROUP — `[2, 3]` or `[2; 3]` — never matched by
+ *  {@link CITE_MARKER_RE} (its content is not purely digits). */
+const MARKER_GROUP_RE = /\[(\d{1,3}(?:\s*[,;]\s*\d{1,3})+)\]/g;
+
+/** A citation-position bracket token that is not a numeric marker at all —
+ *  content starting with a letter, at least two characters, e.g. a leaked
+ *  prompt label (`[New findings]`, `[Panel reports]`). `[n]`/`[x]` (one
+ *  character) and reference-style links/definitions (`[label][ref]`,
+ *  `[label]: url`) are excluded by the length floor and the lookahead. */
+const PSEUDO_CITE_RE = /\[([A-Za-z][^[\]]+)\](?![([:])/g;
+
 /** The inert marker a broken citation becomes (rendered as a flagged chip). */
 export const BROKEN_CITE_MARKER = "[?]";
+
+/** Split a citation GROUP `[2, 3]`/`[2; 3]` into individual markers
+ *  `[2][3]` — each member then range-checks and chips on its own instead of
+ *  surviving as an unrecognised group. */
+export function expandMarkerGroups(markdown: string): string {
+  return markdown.replace(MARKER_GROUP_RE, (_whole, group: string) =>
+    group
+      .split(/\s*[,;]\s*/)
+      .map((n) => `[${n}]`)
+      .join(""),
+  );
+}
 
 /**
  * Flag every inline `[n]` marker whose index exceeds the cited source count (or
@@ -404,19 +427,28 @@ export const BROKEN_CITE_MARKER = "[?]";
  * The live failure: a FAST brief whose prose cited "[1] Screener.in" while the
  * rail held 0 sources, and an ULTRA brief citing [47] against 21 sources. A dead
  * chip must never link anywhere, but a cited-but-broken claim must also never
- * read as an uncited one (FR-123), so the marker stays, flagged and inert.
+ * read as an uncited one (FR-123), so the marker stays, flagged and inert. A
+ * citation group is expanded first; a pseudo-citation (a leaked prompt label,
+ * never a real marker) always flags too.
  */
 export function sanitizeCitationMarkers(markdown: string, sourceCount: number): string {
-  return markdown.replace(CITE_MARKER_RE, (whole, digits: string) => {
+  const expanded = expandMarkerGroups(markdown);
+  const numeric = expanded.replace(CITE_MARKER_RE, (whole, digits: string) => {
     const n = Number(digits);
     return n >= 1 && n <= sourceCount ? whole : BROKEN_CITE_MARKER;
   });
+  return numeric.replace(PSEUDO_CITE_RE, BROKEN_CITE_MARKER);
 }
 
-/** How many inline `[n]` markers point past the source list. */
+/** How many inline `[n]` markers point past the source list, plus any
+ *  pseudo-citation (counted as broken). */
 export function countBrokenCitations(markdown: string, sourceCount: number): number {
+  const expanded = expandMarkerGroups(markdown);
   let broken = 0;
-  for (const m of markdown.matchAll(CITE_MARKER_RE)) {
+  for (const _m of expanded.matchAll(PSEUDO_CITE_RE)) {
+    broken += 1;
+  }
+  for (const m of expanded.matchAll(CITE_MARKER_RE)) {
     const n = Number(m[1]);
     if (n < 1 || n > sourceCount) {
       broken += 1;

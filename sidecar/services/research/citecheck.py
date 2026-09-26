@@ -38,6 +38,18 @@ from services.research.models import ResearchSource, ResearchStep
 #: Inline citation marker — ``[n]`` not followed by ``(`` (a markdown link).
 MARKER_RE = re.compile(r"\[(\d{1,3})\](?!\()")
 
+#: A citation GROUP — "[2, 3]" or "[2; 3]" — never matched by :data:`MARKER_RE`
+#: (its content is not purely digits), so a group was never range-checked or
+#: chipped. Expanded to individual markers before either pass runs.
+MARKER_GROUP_RE = re.compile(r"\[(\d{1,3}(?:\s*[,;]\s*\d{1,3})+)\]")
+
+#: A citation-position bracket token that is not a numeric marker at all —
+#: content starting with a letter, at least two characters, e.g. a leaked
+#: prompt label ("[New findings]", "[Current report]"). ``[n]``/``[x]`` (one
+#: character) and reference-style links/definitions (``[label][ref]``,
+#: ``[label]: url``) are excluded by the length floor and the lookahead.
+_PSEUDO_CITE_RE = re.compile(r"\[([A-Za-z][^\[\]]+)\](?![(\[:])")
+
 #: At most this many numeric/dated claims ride the ONE audit call.
 MAX_AUDIT_CLAIMS = 8
 
@@ -133,12 +145,27 @@ def strip_model_bibliography(markdown: str) -> tuple[str, int]:
     return cleaned, removed + literals
 
 
+def expand_marker_groups(markdown: str) -> str:
+    """Split a citation GROUP ``[2, 3]``/``[2; 3]`` into individual markers
+    ``[2][3]`` — each member then range-checks and chips on its own instead of
+    surviving as an unrecognised group (:data:`MARKER_RE` never matches a
+    group; it is not pure digits)."""
+
+    def _sub(match: re.Match[str]) -> str:
+        numbers = re.split(r"\s*[,;]\s*", match.group(1))
+        return "".join(f"[{n}]" for n in numbers)
+
+    return MARKER_GROUP_RE.sub(_sub, markdown)
+
+
 def strip_invalid_markers(markdown: str, source_count: int) -> tuple[str, int]:
-    """Remove every ``[n]`` whose n falls outside ``1..source_count``.
+    """Remove every ``[n]`` whose n falls outside ``1..source_count``, plus
+    any citation-position pseudo-marker (:data:`_PSEUDO_CITE_RE`) — a leaked
+    prompt label such as ``[New findings]`` never resolves to a source.
 
     Returns ``(cleaned_markdown, removed_count)``. With zero sources EVERY
-    marker is out of range and stripped (the FAST-brief fabricated-citation
-    case renders as plain prose).
+    numeric marker is out of range and stripped (the FAST-brief
+    fabricated-citation case renders as plain prose).
     """
     removed = 0
 
@@ -151,6 +178,13 @@ def strip_invalid_markers(markdown: str, source_count: int) -> tuple[str, int]:
         return ""
 
     cleaned = MARKER_RE.sub(_sub, markdown)
+
+    def _sub_pseudo(match: re.Match[str]) -> str:
+        nonlocal removed
+        removed += 1
+        return ""
+
+    cleaned = _PSEUDO_CITE_RE.sub(_sub_pseudo, cleaned)
     if removed:
         cleaned = "\n".join(_tidy(line) for line in cleaned.splitlines())
     return cleaned, removed
@@ -311,7 +345,7 @@ async def ensure_citation_integrity(
 
     t0 = time.monotonic()
     source_count = len(sources)
-    cleaned, bibliography = strip_model_bibliography(markdown)
+    cleaned, bibliography = strip_model_bibliography(expand_marker_groups(markdown))
     cleaned, removed = strip_invalid_markers(cleaned, source_count)
     stripped = (
         f"stripped {removed} out-of-range marker(s), "
@@ -358,10 +392,12 @@ async def ensure_citation_integrity(
 __all__ = [
     "EVIDENCE_AUDIT_CHARS",
     "MARKER_RE",
+    "MARKER_GROUP_RE",
     "MAX_AUDIT_CLAIMS",
     "MIN_AUDIT_WALL_SECS",
     "SOFTENER",
     "ensure_citation_integrity",
+    "expand_marker_groups",
     "soften_sentence",
     "strip_invalid_markers",
 ]

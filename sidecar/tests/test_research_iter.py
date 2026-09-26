@@ -798,3 +798,18 @@ def test_heavy_panel_markers_are_remapped_to_the_merged_list_by_url() -> None:
     assert [s.url for s in merged] == [a.url, b.url, c.url]
     remapped = iter_research._remap_markers("x [1] y [2] z [5].", angle_2.sources, merged)
     assert remapped == "x [3] y [1] z ."
+
+
+def test_remap_markers_expands_a_group_before_remapping() -> None:
+    """A comma-separated citation group ('[1, 2]') is never matched by the
+    plain [n] marker regex — _remap_markers expands it first, so each member
+    remaps by url instead of surviving in the angle's local numbering."""
+    from services.research.models import ResearchSource
+
+    a, b, c = (ResearchSource(url=f"https://ex.com/{k}", title=k, excerpt="") for k in "abc")
+    angle_1 = ResearchBrief(query="q", symbol="X", mode="deep", markdown="", sources=[a, b])
+    angle_2 = ResearchBrief(query="q", symbol="X", mode="deep", markdown="", sources=[c, a])
+    merged = iter_research._merge_sources([angle_1, angle_2])  # [a, b, c] -> 1, 2, 3
+    remapped = iter_research._remap_markers("x [1, 2] y.", angle_2.sources, merged)
+    # local [1] = c -> merged 3; local [2] = a -> merged 1.
+    assert remapped == "x [3][1] y."

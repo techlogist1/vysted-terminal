@@ -14,6 +14,7 @@ from services.budget_guard import BudgetGuard
 from services.research.citecheck import (
     SOFTENER,
     ensure_citation_integrity,
+    expand_marker_groups,
     soften_sentence,
     strip_invalid_markers,
 )
@@ -64,6 +65,33 @@ def test_markdown_links_are_not_markers() -> None:
     assert removed == 1
     assert "[1](https://example.com/doc)" in cleaned
     assert "[7]" not in cleaned
+
+
+def test_marker_group_expands_then_out_of_range_member_is_stripped() -> None:
+    """A citation group ('[1; 4]') is never matched by the plain [n] regex —
+    expand_marker_groups splits it first, then the out-of-range member (4,
+    against 3 sources) is stripped like any other invalid marker."""
+    md = "Both metrics moved together [1; 4]."
+    expanded = expand_marker_groups(md)
+    assert expanded == "Both metrics moved together [1][4]."
+    cleaned, removed = strip_invalid_markers(expanded, 3)
+    assert removed == 1
+    assert cleaned == "Both metrics moved together [1]."
+    # Comma-separated groups expand the same way.
+    assert expand_marker_groups("Held at [2, 3].") == "Held at [2][3]."
+
+
+def test_pseudo_citation_is_stripped_while_links_and_single_char_survive() -> None:
+    """A leaked prompt label ('[Current report]') is not a numeric marker at
+    all and is stripped outright; a markdown link and a single-character
+    token ('[x]') are not citation-shaped and survive untouched."""
+    md = "Per [Current report] revenue rose. See [1](https://ex.com/1) and [x]."
+    cleaned, removed = strip_invalid_markers(md, 1)
+    assert removed == 1
+    assert "[Current report]" not in cleaned
+    assert "[1](https://ex.com/1)" in cleaned
+    assert "[x]" in cleaned
+    assert "Per revenue rose." in cleaned
 
 
 def test_soften_sentence_is_deterministic() -> None:
