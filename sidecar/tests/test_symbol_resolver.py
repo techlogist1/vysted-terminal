@@ -1163,7 +1163,7 @@ def test_no_shared_pool_to_thread_call_sites_for_symbol_resolver() -> None:
     offenders: list[str] = []
     for base in ("routers", "services"):
         for path in (sidecar_root / base).rglob("*.py"):
-            tree = ast.parse(path.read_text(), filename=str(path))
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
             for node in ast.walk(tree):
                 if not isinstance(node, ast.Call):
                     continue
