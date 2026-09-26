@@ -643,7 +643,10 @@ def _us_isin_http_get(symbol: str) -> httpx.Response:
     seam). Tests monkeypatch THIS function so no unit test touches the live
     network."""
     with httpx.Client(timeout=_US_ISIN_LOOKUP_TIMEOUT_SECONDS) as client:
-        return client.get(_US_ISIN_SUGGEST_URL, params={"max_results": 25, "query": symbol})
+        response = client.get(_US_ISIN_SUGGEST_URL, params={"max_results": 25, "query": symbol})
+    # A 403/429/5xx body is a transport failure (cooldown), never a definite miss.
+    response.raise_for_status()
+    return response
 
 
 def _us_isin(symbol: str) -> str | None:

@@ -621,6 +621,28 @@ def test_live_lookup_passes_an_explicit_short_search_timeout(monkeypatch) -> Non
     assert recorded_kwargs["timeout"] <= 10
 
 
+#: The real network seam, captured at import — before conftest's autouse
+#: fixture swaps it for an offline stub.
+_REAL_US_ISIN_HTTP_GET = symbol_resolver._us_isin_http_get
+
+
+def test_us_isin_lookup_http_error_is_a_cooldown_not_a_cached_miss(monkeypatch) -> None:  # noqa: ANN001
+    """A 429/5xx from the suggest endpoint must not be cached for the process
+    as a definite 'no ISIN' — it opens the transport cooldown instead."""
+    real_client = httpx.Client
+    monkeypatch.setattr(symbol_resolver, "_us_isin_http_get", _REAL_US_ISIN_HTTP_GET)
+    monkeypatch.setattr(
+        symbol_resolver.httpx,
+        "Client",
+        lambda **kw: real_client(
+            transport=httpx.MockTransport(lambda r: httpx.Response(429)), **kw
+        ),
+    )
+    assert symbol_resolver._us_isin("SIFY") is None
+    assert "SIFY" not in symbol_resolver._us_isin_cache
+    assert symbol_resolver._us_isin_cooldown_until > 0
+
+
 def _fake_isin_suggest_response(text: str):  # noqa: ANN201
     return lambda symbol: httpx.Response(200, text=text)
 
