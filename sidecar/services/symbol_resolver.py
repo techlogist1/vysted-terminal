@@ -129,6 +129,10 @@ _MAX_CANDIDATES = 6
 # a throttled/blocked upstream once per unresolved query.
 _LIVE_CACHE_MAX_ENTRIES = 128
 _LIVE_FAILURE_COOLDOWN_SECONDS = 60.0
+# yfinance 1.3.0's Search defaults to timeout=30, which can hold a worker
+# thread (and its caller) for 30 s on a hung Yahoo. Live misses measure
+# 0.4-2.2 s in practice; 5 s leaves headroom without masking a real miss.
+_LIVE_SEARCH_TIMEOUT_SECONDS = 5.0
 # A successful EMPTY search expires (R15-DATA-097): the live rung is the path to
 # a post-snapshot listing, so a stale negative would hide it until restart.
 _LIVE_EMPTY_TTL_SECONDS = 300.0
@@ -1571,7 +1575,7 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     try:
         import yfinance as yf
 
-        search = yf.Search(query, max_results=5, news_count=0)
+        search = yf.Search(query, max_results=5, news_count=0, timeout=_LIVE_SEARCH_TIMEOUT_SECONDS)
         quotes = getattr(search, "quotes", None) or []
     except Exception as exc:  # noqa: BLE001 - any live-lookup failure is non-fatal
         with _live_cache_lock:

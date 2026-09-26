@@ -599,6 +599,27 @@ def test_live_lookup_non_rate_limit_failure_does_not_count_as_throttle(monkeypat
     provider_health.reset_for_tests()
 
 
+def test_live_lookup_passes_an_explicit_short_search_timeout(monkeypatch) -> None:  # noqa: ANN001
+    """R15-AGENT-010: yf.Search must not inherit yfinance's timeout=30 default —
+    a hung Yahoo would otherwise hold the resolver's worker thread (and its
+    caller) for 30 s per miss."""
+    import yfinance as yf
+
+    recorded_kwargs: dict[str, object] = {}
+
+    class _KwargsRecordingSearch:
+        quotes: list[dict] = []
+
+        def __init__(self, *_a: object, **kwargs: object) -> None:
+            recorded_kwargs.update(kwargs)
+
+    monkeypatch.setattr(yf, "Search", _KwargsRecordingSearch)
+    symbol_resolver._live_cache.clear()
+    symbol_resolver._live_cooldown_until = 0.0
+    assert symbol_resolver._live_lookup("zzqx nonexistent co", "IN") == []
+    assert recorded_kwargs["timeout"] <= 10
+
+
 def test_live_lookup_cache_is_bounded_lru(monkeypatch) -> None:  # noqa: ANN001
     import yfinance as yf
 
