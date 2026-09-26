@@ -3,11 +3,11 @@
   "base": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
   "writer_base": "ebc5ed4194f9362422c3178c27d4cdf946428968",
   "branch": "worktree-agent-lows-P2-int-4c6dfe8",
-  "head": "18e5bcb077b31d7ee1464ce1e475cc3a2ddb6cfa",
+  "head": "7db0b2954bab647e646b324df1c875c9c34f1675",
   "pushed": true,
   "remote_verified": true,
   "worktree": "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/lows-preint/P2",
-  "status": "assembled 06:57 IST; untested pending integration",
+  "status": "assembled 06:57 IST; fix pass 07:05-07:06 IST (d7d0d325); extra branches merged 07:25-07:29 IST (7db0b295); untested pending integration",
   "merge_order": [
     {
       "set": "W1",
@@ -91,7 +91,56 @@
       "conflicts": 0
     }
   ],
-  "extra_branches": [],
+  "extra_branches": [
+    {
+      "branch": "worktree-agent-lows-CN-r15-code-data-019-4c6dfe8",
+      "entries": [
+        "R15-CODE-DATA-019"
+      ],
+      "origin_head": "31aa053be2835a48fd229b9f2f9ed07da690de71",
+      "cut_from": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
+      "first_attempt_set": "W4 (merged earlier, carried no commit for this entry)",
+      "merge_sha": "260074ef129436e387ea4be48153797368b548dc",
+      "conflicts": 0
+    },
+    {
+      "branch": "worktree-agent-lows-CN-r15-lifecycle-035-4c6dfe8",
+      "entries": [
+        "R15-LIFECYCLE-035"
+      ],
+      "origin_head": "954ffa89a69535ccde23b6438bde6967c3516cd8",
+      "cut_from": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
+      "first_attempt_set": "W5 (merged earlier, first attempt reverted)",
+      "merge_sha": "d145842b39bb4b374d3ed8869745780e3734dd85",
+      "conflicts": 0
+    },
+    {
+      "branch": "worktree-agent-lows-CN-r15-code-frontend-027-4c6dfe8",
+      "entries": [
+        "R15-CODE-FRONTEND-027"
+      ],
+      "origin_head": "cba8df9fab9aac0abc86f32d39d8cf0e12413e36",
+      "cut_from": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
+      "first_attempt_set": "W8 (merged earlier; 72daa055 is a -x cherry-pick of W8 26c0cb03, merged identically)",
+      "merge_sha": "552ab6f0a51f51e57f5ef1bee53f646fffc5ae38",
+      "conflicts": 0
+    },
+    {
+      "branch": "worktree-agent-lows-DEF-B-4c6dfe8",
+      "entries": [
+        "R15-CROSS-PLATFORM-012",
+        "R15-UI-068",
+        "R15-UI-071",
+        "R15-UI-073",
+        "R15-UI-082"
+      ],
+      "origin_head": "af933bccca8d0780a57f42ee845caaf3845a1575",
+      "cut_from": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
+      "first_attempt_set": "none (deferred batch B)",
+      "merge_sha": "4e6eee82c68f95a20757fd64b48a8ad00b71d766",
+      "conflicts": 0
+    }
+  ],
   "assembler_commits": [
     {
       "sha": "b97ffe66c39153d1c342c5cd98a6c0d30c110af2",
@@ -109,6 +158,40 @@
         "sidecar/services/mcp_server.py"
       ],
       "what": "Semantic conflict (textually clean): W3 made invoke_tool convert any handler exception into {ok:false,error:\"unexpected error: ...\"}, which made W6 mcp_server._make_catalog_tool ToolError branch unreachable for a raising handler, so W6 test_failing_catalog_tool_returns_is_error would get isError false. Added keyword-only invoke_tool(..., wrap_errors=True); default keeps W3 single-spelling envelope for the agent loop (agent_runtime callers unchanged); mcp_server passes wrap_errors=False so a raise still becomes ToolError/isError. Side effect to verify: provider errors from the handlers W3 stripped of per-handler try/except now reach an MCP client as isError (\"tool X raised: ...\") instead of an ok:false body."
+    },
+    {
+      "sha": "4c7b6dde00bb3b1ddd175c1a6f0493daa3b5b3bb",
+      "entry": "R15-CODE-DATA-019",
+      "files": [
+        "RESULT.md -> docs/redesign/verification/r15/stage-c/lows/P2/results/R15-CODE-DATA-019.md"
+      ],
+      "what": "Every extra branch adds its own RESULT.md at the repo root (add/add collision between the four, and a writer report does not belong in the product root). Each is moved, content unchanged, to P2/results/<entry>.md right after its merge."
+    },
+    {
+      "sha": "ed0837b3ade9cae6861b7d15bde74341058636d0",
+      "entry": "R15-LIFECYCLE-035",
+      "files": [
+        "RESULT.md -> P2/results/R15-LIFECYCLE-035.md"
+      ],
+      "what": "Same RESULT.md relocation."
+    },
+    {
+      "sha": "e9da8e93540ff43a346e0a3c3a90f58cbf1f4c95",
+      "entry": "R15-CODE-FRONTEND-027",
+      "files": [
+        "src/store/agents.ts",
+        "RESULT.md -> P2/results/R15-CODE-FRONTEND-027.md"
+      ],
+      "what": "The CN writer put its new sidecar-client names on a second import line from the same module so the W8 merge stayed clean, and said to fold it once both landed. Folded into one import (prettier-clean). RESULT.md relocated."
+    },
+    {
+      "sha": "7db0b2954bab647e646b324df1c875c9c34f1675",
+      "entry": "R15-UI-073",
+      "files": [
+        "src/lib/warning-token-scope.test.ts",
+        "RESULT.md -> P2/results/DEF-B.md"
+      ],
+      "what": "DEF-B scan test scans every .ts/.tsx under src/ including itself; its own comments and regex contain text-warning/bg-warning/border-warning and it is not allowlisted, so the offenders assertion would always list the test itself (fails on DEF-B head alone, not a merge interaction). Added one filter skipping its own path; assertions unchanged. RESULT.md relocated."
     }
   ],
   "conflict_map": [
@@ -138,12 +221,122 @@
         "R15-CODE-AGENT-028"
       ],
       "commit": "b97ffe66c39153d1c342c5cd98a6c0d30c110af2"
+    },
+    {
+      "file": "RESULT.md (repo root)",
+      "kind": "add/add across the four extra branches (avoided)",
+      "intents": {
+        "each extra writer": "a per-branch result report"
+      },
+      "resolution": "relocated after each merge to docs/redesign/verification/r15/stage-c/lows/P2/results/<entry>.md, content byte-identical",
+      "entries": [
+        "R15-CODE-DATA-019",
+        "R15-LIFECYCLE-035",
+        "R15-CODE-FRONTEND-027",
+        "R15-CROSS-PLATFORM-012",
+        "R15-UI-068",
+        "R15-UI-071",
+        "R15-UI-073",
+        "R15-UI-082"
+      ],
+      "commit": "4c7b6dde, ed0837b3, e9da8e93, 7db0b295"
+    },
+    {
+      "file": "sidecar/services/searxng_manager.py",
+      "kind": "three writers, textually clean",
+      "intents": {
+        "W5/R15-LIFECYCLE-034": "any guided-setup exception lands in STATE_ERROR with a reason",
+        "CN/R15-LIFECYCLE-035": "last_error recorded on every error; a serving container supersedes a sticky error; throttled hot-path reprobe",
+        "DEF-B/R15-CROSS-PLATFORM-012": "settings_dir under get_cache_dir()"
+      },
+      "resolution": "no edit: W5 error path goes through _set(), which now also records last_error; setup() clears last_error before the try that W5 extended. Read and confirmed composable.",
+      "entries": [
+        "R15-LIFECYCLE-034",
+        "R15-LIFECYCLE-035",
+        "R15-CROSS-PLATFORM-012"
+      ],
+      "commit": "d145842b, 4e6eee82"
+    },
+    {
+      "file": "src/store/agents.ts + src/store/agents.test.ts",
+      "kind": "same hunk on two branches (W8 original, CN cherry-pick -x)",
+      "intents": {
+        "W8/R15-CODE-FRONTEND-027 partial": "refreshCustom non-2xx -> customStatus error with the server detail; refreshAll alias removed",
+        "CN/R15-CODE-FRONTEND-027": "refreshCustom through sidecarFetch + sidecarRequestInit under a 30 s deadline"
+      },
+      "resolution": "git merged identically; refreshAll stays removed (W8), no remaining references; imports folded in e9da8e93",
+      "entries": [
+        "R15-CODE-FRONTEND-027"
+      ],
+      "commit": "552ab6f0, e9da8e93"
+    },
+    {
+      "file": "src/store/workflow.ts + src/store/workflow.test.ts",
+      "kind": "two writers, textually clean",
+      "intents": {
+        "W8/R15-CODE-FRONTEND-026": "drainNotifications -> takeNotifications (atomic take)",
+        "CN/R15-CODE-FRONTEND-027": "schedules/webhooks/saved/run through the shared sidecar transport"
+      },
+      "resolution": "no edit; merged file keeps takeNotifications and both writers tests",
+      "entries": [
+        "R15-CODE-FRONTEND-026",
+        "R15-CODE-FRONTEND-027"
+      ],
+      "commit": "552ab6f0"
+    },
+    {
+      "file": "sidecar/services/data_cache.py",
+      "kind": "two writers, textually clean",
+      "intents": {
+        "W5/R15-CODE-DATA-010 + R15-CODE-PLATFORM-077": "stale get evicts; old upgrade backups pruned",
+        "DEF-B/R15-CROSS-PLATFORM-012": "cache DB under get_cache_dir()"
+      },
+      "resolution": "no edit; see risk_map.extra_branch_risks for the backup-root consequence",
+      "entries": [
+        "R15-CODE-DATA-010",
+        "R15-CODE-PLATFORM-077",
+        "R15-CROSS-PLATFORM-012"
+      ],
+      "commit": "4e6eee82"
+    },
+    {
+      "file": "package.json, eslint.config.mjs, src/components/SettingsPanel.tsx, src/components/PluginManagerPanel.tsx",
+      "kind": "two writers (W2/assembler bb945754/W8-W9 vs DEF-B), textually clean",
+      "intents": {
+        "W2": "ci-local scripts, coverage",
+        "bb945754": "coverage/** eslint ignore",
+        "DEF-B": "jsx-a11y + vitest-axe devDeps, one a11y rule, text-warning -> text-caution, layout-name maxLength"
+      },
+      "resolution": "no edit",
+      "entries": [
+        "R15-RELEASE-011",
+        "R15-UI-071",
+        "R15-UI-073",
+        "R15-UI-082"
+      ],
+      "commit": "4e6eee82"
     }
   ],
   "blocked_hunks": [],
   "risk_map": {
-    "multi_writer_files": [],
-    "cross_partition_files": [],
+    "multi_writer_files": [
+      "sidecar/services/searxng_manager.py (W5, CN-035, DEF-B)",
+      "sidecar/services/data_cache.py (W5, DEF-B)",
+      "sidecar/tests/test_searxng_manager.py (W5, CN-035)",
+      "src/store/agents.ts + agents.test.ts (W8, CN-027)",
+      "src/store/workflow.ts + workflow.test.ts (W8, CN-027)",
+      "package.json (W2, DEF-B)",
+      "eslint.config.mjs (assembler bb945754, DEF-B)",
+      "src/components/SettingsPanel.tsx (W8/W9 branch set, DEF-B)",
+      "src/components/PluginManagerPanel.tsx (W8/W9 branch set, DEF-B)"
+    ],
+    "cross_partition_files": [
+      "git merge-tree of the new head vs origin/worktree-agent-lows-P1-int-4c6dfe8 (dbe5fe4f) CONFLICTS in sidecar/services/workspace_store.py (P1 R15-CROSS-PLATFORM-007 rename retry vs DEF-B R15-UI-082 _filename_stem) and src-tauri/src/lib.rs (P1 R15-RELEASE-009/LIFECYCLE-037/038 vs DEF-B R15-CROSS-PLATFORM-012 resolve_cache_dir + --cache-dir)",
+      "git merge-tree vs origin/worktree-agent-lows-P3-int-4c6dfe8 (6e41bfc1) CONFLICTS in sidecar/main.py (P3 R15-CODE-PLATFORM-068 vs DEF-B --cache-dir), sidecar/services/fundamentals_store.py (P3 R15-DATA-102/103 vs DEF-B get_cache_dir), src/components/StatusChrome.tsx (P3 R15-LEAD-021 vs DEF-B text-caution), src/lib/sidecar-client.ts (P3 R15-LIFECYCLE-027 per-request timeout vs CN-027 timeoutMs/SIDECAR_REQUEST_TIMEOUT_MS: two deadline mechanisms for the same intent, reconcile to one)",
+      "git merge-tree vs origin/worktree-agent-lows-CN-r15-data-102-4c6dfe8 CONFLICTS in sidecar/services/fundamentals_store.py",
+      "textually clean but semantically shared with P3: src/components/DataTable.tsx, src/modules/chat/ModelControl.tsx, src/modules/screener/ScreenerPanel.tsx, src/lib/sidecar-client.test.ts, the 4 quant panel tests (CN-027 moved them to mock sidecarRequest), sidecar/tests/test_provider_health.py, .gitignore; with P1: src/lib/workspace.test.ts, src/store/settings.test.ts, sidecar/tests/test_workspace.py",
+      "the pre-extras candidate d7d0d325 merged clean with both P1 and P3; every cross-partition conflict above was introduced by DEF-B or CN-027"
+    ],
     "writer_files_changed_on_base_since_writer_base": [],
     "base_code_drift_since_writer_base": [
       "sidecar/services/agent_runtime.py (638 lines changed; calls agent_tools.invoke_tool at the tool-dispatch site, which W3 now wraps; its own except Exception fallback \"tool X raised:\" is now only reached by non-handler failures)",
@@ -162,7 +355,11 @@
       "package.json (W2): new probe:exchanges script; ci-local now uses python3 and \"vitest run --coverage\" instead of \"pnpm test\"",
       "vitest.config.ts (W2, R15-RELEASE-011): v8 coverage with thresholds lines 0 + autoUpdate true, which REWRITES vitest.config.ts when coverage rises; coverage/ is not in .gitignore (W2 issue)",
       "sidecar/agents/_schema.json (W3, R15-AGENT-072): description text only",
-      "No Rust, tauri.conf.json, CI workflow, or types/plugin.ts change"
+      "No Rust, tauri.conf.json, CI workflow, or types/plugin.ts change",
+      "src-tauri/src/lib.rs (DEF-B, R15-CROSS-PLATFORM-012): resolve_cache_dir() via app_local_data_dir, passes --cache-dir to the sidecar; never compiled, rustfmt/clippy not run (cargo off-lane)",
+      "package.json (DEF-B): new devDependencies eslint-plugin-jsx-a11y ^6.10.2 and vitest-axe ^0.1.0 WITHOUT a pnpm-lock.yaml update",
+      "eslint.config.mjs (DEF-B): jsx-a11y plugin, rule label-has-associated-control assert either, error level, project-wide",
+      "styles/tokens.css (DEF-B): new --color-caution (same hex as --color-warning)"
     ],
     "boot_path": [
       "sidecar/services/fundamentals_warm.py (W4: boot seeding, start/stop task lifecycle)",
@@ -170,7 +367,9 @@
       "sidecar/services/searxng_manager.py (W5)",
       "sidecar/services/mcp_client.py LocalMcpSubprocess now owns openbb/sec-edgar MCP discovery (W7)",
       "src/app/page.tsx, src/components/PanelHost.tsx (W8: layout restore, plugin-panel restore gating, panel sizing)",
-      "src/lib/workspace.ts (W9: pagehide keepalive autosave flush, import/export)"
+      "src/lib/workspace.ts (W9: pagehide keepalive autosave flush, import/export)",
+      "sidecar/main.py + src-tauri/src/lib.rs --cache-dir (DEF-B)",
+      "sidecar/config.get_cache_dir mkdirs on every call (DEF-B)"
     ],
     "deleted_files": [
       "sidecar/services/agent_tools/registry_v0_6_0.py (W3)",
@@ -181,14 +380,20 @@
     "new_modules": [
       "src/lib/panel-sizing.ts (W8)",
       "sidecar/tests/test_agent_tools_lows.py, test_exchange_financials_negcache.py (new test files)",
-      "src/lib/open-panel-literals.test.ts, src/lib/source-guards.test.ts (repo-wide source scans; any later src/ commit adding a hardcoded command-key glyph string, an SSR/static-export claim, or an openPanel literal of an unregistered id fails them)"
+      "src/lib/open-panel-literals.test.ts, src/lib/source-guards.test.ts (repo-wide source scans; any later src/ commit adding a hardcoded command-key glyph string, an SSR/static-export claim, or an openPanel literal of an unregistered id fails them)",
+      "sidecar/tests/test_cache_dir.py (DEF-B)",
+      "src/lib/warning-token-scope.test.ts (DEF-B; repo-wide src scan like source-guards: any later text-warning/bg-warning/border-warning outside the 10-file allowlist fails it)",
+      "docs/redesign/verification/r15/stage-c/lows/P2/results/*.md (relocated RESULT.md x4)"
     ],
     "wire_contract_changes": [
       "GET /agents (W3, R15-AGENT-072): \"tools\" is now the declared specialty list and a new \"effective_tools\" carries the enforced grant; frontend AgentSummary.tools maps row.tools (src/store/agents.ts rowToSummary) and no src/ reader of .tools was found, but external MCP list_agents consumers see the changed meaning",
       "types/mcp.ts McpToolCallResult gains structuredContent (W7)",
       "types/brief.ts BriefDerivedMetrics gains 4 optional keys (W1)",
       "types/research-space.ts (W9)",
-      "openPanel now returns boolean and resolves enabled modules only (W8, src/store/workspace.ts)"
+      "openPanel now returns boolean and resolves enabled modules only (W8, src/store/workspace.ts)",
+      "ScreenerResultRow.matched_criteria removed (CN-019; sidecar/models/screener.py + types/screener.ts)",
+      "SearXNG status snapshot gains last_error (CN-035; no types/ mirror found by the writer)",
+      "sidecar CLI gains --cache-dir; env VYSTED_CACHE_DIR (DEF-B)"
     ],
     "mirrors": [
       "types/brief.ts <-> sidecar research semantics (W1 pinned by test_emitted_keys_subset_of_brief_ts_mirror)",
@@ -202,17 +407,31 @@
       "W8 + W9 both steer workspace restore/persist (PanelHost/page.tsx vs lib/workspace.ts), no shared file, but a full vitest run is the only check of the combination.",
       "W2 RELEASE-011 test spawns a child vitest --coverage run; slow and writes coverage/.",
       "Frontend runs need @tiptap/extension-list in node_modules (W8/W9 issue): pnpm install --frozen-lockfile first or NotesPanel/SettingsPanel/modules tests fail to load.",
-      "W4 note: config._DEFAULT_REGION is IN, so test_fundamentals_warm::test_start_is_idempotent can start real IN network lanes before it stops."
+      "W4 note: config._DEFAULT_REGION is IN, so test_fundamentals_warm::test_start_is_idempotent can start real IN network lanes before it stops.",
+      "Everything from the four extra branches and the four new assembler commits is untested pending integration (only py_compile, ruff format --check, ruff check, prettier --check ran on the 50 files they touch)."
     ],
     "outcomes_needing_verifier": [
       "R15-LEAD-025 not_a_defect_proposed (W4; pin test only, no code)",
-      "R15-CODE-DATA-019 could_not (W4; needs three frontend test fixtures owned elsewhere; jsonl names sidecar/tests/test_screener.py::test_result_row_has_no_matched_criteria which does NOT exist)",
-      "R15-LIFECYCLE-035 could_not (W5; fix regresses test_search_tiers_router.py sticky-error assertion owned elsewhere; reverted)",
-      "R15-CODE-FRONTEND-027 could_not (W8; refreshCustom error detail landed in 26c0cb03, sidecarRequest switch blocked)",
       "R15-DOCS-012 fixed with no test by design (W2)",
       "R15-AGENT-072 changes GET /agents field semantics (W3 flags a frontend follow-up)",
       "W3 jsonl was reconstructed from git log after a resume (W3 issue): spot-check shas",
-      "W1 and W7 jsonl logs were written inside their worktrees, not the main checkout (only W2-W6, W8, W9 jsonl present here)"
+      "W1 and W7 jsonl logs were written inside their worktrees, not the main checkout (only W2-W6, W8, W9 jsonl present here)",
+      "R15-CODE-DATA-019: W4 could_not superseded by CN fixed_untested (a1539309)",
+      "R15-LIFECYCLE-035: W5 could_not superseded by CN fixed_untested (3da1e972); verify test_search_tiers_router.py::test_setup_failure_is_observable_through_the_status_poll still passes unchanged",
+      "R15-CODE-FRONTEND-027: W8 partial superseded by CN fixed_untested (72daa055 + f8d6594f)",
+      "R15-UI-068: split, primitive fixed_untested, porting 5 hand-rolled tables deferred_feature (~4 days, writer estimate)",
+      "R15-UI-071: fixed as a gate (lint rule + axe smoke), original labelling claim judged not a defect by the writer",
+      "R15-UI-082: original defect already fixed at triage sha; residual polish fixed_untested"
+    ],
+    "extra_branch_risks": [
+      "BLOCKING for the chain: pnpm-lock.yaml has no entry for eslint-plugin-jsx-a11y or vitest-axe (grep count 0), so pnpm install --frozen-lockfile (ci-local step 1 and CI) fails. Integrator: pnpm install --lockfile-only (or pnpm add -D the two) on the rebased branch and commit pnpm-lock.yaml before the chain. Not done here: package install is off-lane.",
+      "DEF-B R15-CROSS-PLATFORM-012: data_cache._backup_data_dir uses _db_path.parent as the data dir; with --cache-dir set the pre-upgrade backup (and W5 R15-CODE-PLATFORM-077 pruning) now copies the CACHE dir, not the user data dir (portfolio, notes, workspaces, audit DB). Only diverges where app_local_data_dir != app_data_dir (Windows). Needs an operator/integrator decision (back up get_data_dir() explicitly).",
+      "DEF-B: managed SearXNG settings_dir moves to the cache dir; an existing Windows install with a container mounted at <data_dir>/searxng keeps its old mount while settings are written to the new dir. No migration (entry defers it).",
+      "DEF-B R15-UI-071: the jsx-a11y rule at error level runs on every .ts/.tsx; the writer audited only SettingsPanel inputs; pnpm lint across src is unverified. vitest-axe 0.1.0 matcher registration is per-file (expect.extend in SettingsPanel.test.tsx).",
+      "DEF-B R15-UI-068: DataTable sort handler moved from <th> to a nested button; any test clicking the header cell text still resolves (button is inside th) but role queries for button change; only PortfolioPanel.test checks a columnheader (existence).",
+      "CN-027: sidecar-client gains timeoutMs + AbortSignal.any (Safari 17.4+ in WKWebView) and quant/workflow/agents transport changes; quant.test error expectation changed from \"POST <path> failed (400)\" prefix to the server sentence (writer-recorded, pinned old transport).",
+      "CN-019: ScreenerResultRow (extra=forbid) loses matched_criteria; types/screener.ts mirror updated in the same branch; test_screener dropped the [0,1,2] assertion that pinned the dead field (writer-recorded).",
+      "CN-035: while in error, status polls and every 30 s the search hot path run docker CLI probes; new last_error wire field has no frontend reader."
     ]
   },
   "claimed_tests": {
@@ -234,11 +453,14 @@
       "sidecar/tests/test_exchange_financials_negcache.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_exchange_financials_negcache.py::test_failed_then_succeeded_lookup_stays_stable_within_ttl tests/test_exchange_financials_negcache.py::test_negative_cache_expires_and_serves_the_now_available_filing",
       "sidecar/tests/test_earnings_provider.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_earnings_provider.py::test_get_upcoming_caps_concurrent_calendar_fetches tests/test_earnings_provider.py::test_get_upcoming_skips_fetch_when_yahoo_circuit_is_open",
       "sidecar/tests/test_system_router.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_system_router.py::test_provider_health_mutations_404_without_rig_hooks_flag tests/test_system_router.py::test_provider_health_mutations_work_with_rig_hooks_flag",
-      "sidecar/tests/test_searxng_manager.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_searxng_manager.py::test_setup_write_settings_oserror_reports_error_with_reason",
+      "sidecar/tests/test_searxng_manager.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_searxng_manager.py::test_setup_write_settings_oserror_reports_error_with_reason tests/test_searxng_manager.py::test_hand_fixed_container_supersedes_a_sticky_error tests/test_searxng_manager.py::test_error_stays_sticky_while_the_container_is_not_serving tests/test_searxng_manager.py::test_hot_path_reprobes_a_sticky_error_on_a_throttle",
       "sidecar/tests/test_llm_router.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_llm_router.py::test_validate_transport_failure_is_humanized tests/test_llm_router.py::test_no_llm_route_echoes_the_key",
       "sidecar/tests/test_mcp_server.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_mcp_server.py::test_status_protocol_version_matches_initialize_handshake tests/test_mcp_server.py::test_failing_catalog_tool_returns_is_error",
       "sidecar/tests/test_mcp_client.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_mcp_client.py::test_call_tool_passes_structured_content_through tests/test_mcp_client.py::test_local_mcp_subprocess_resolves_and_decodes_once",
-      "sidecar/tests/test_sec_filings_router.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_sec_filings_router.py::test_sections_route_is_gone"
+      "sidecar/tests/test_sec_filings_router.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_sec_filings_router.py::test_sections_route_is_gone",
+      "sidecar/tests/test_screener.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_screener.py::test_result_row_has_no_matched_criteria",
+      "sidecar/tests/test_cache_dir.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_cache_dir.py::test_cache_dir_uses_env_var_when_set tests/test_cache_dir.py::test_cache_dir_falls_back_to_data_dir_when_unset tests/test_cache_dir.py::test_cache_dir_and_data_dir_diverge_when_both_set",
+      "sidecar/tests/test_workspace.py": "cd sidecar && .venv/bin/python -m pytest -q tests/test_workspace.py::test_a_32_char_devanagari_name_saves tests/test_workspace.py::test_a_name_whose_encoded_bytes_exceed_the_cap_is_still_rejected"
     },
     "pytest_entries": {
       "sidecar/tests/test_research_semantics.py": [
@@ -306,7 +528,8 @@
         "R15-LIFECYCLE-033"
       ],
       "sidecar/tests/test_searxng_manager.py": [
-        "R15-LIFECYCLE-034"
+        "R15-LIFECYCLE-034",
+        "R15-LIFECYCLE-035"
       ],
       "sidecar/tests/test_llm_router.py": [
         "R15-CODE-AGENT-019",
@@ -322,6 +545,15 @@
       ],
       "sidecar/tests/test_sec_filings_router.py": [
         "R15-CODE-DATA-013"
+      ],
+      "sidecar/tests/test_screener.py": [
+        "R15-CODE-DATA-019"
+      ],
+      "sidecar/tests/test_cache_dir.py": [
+        "R15-CROSS-PLATFORM-012"
+      ],
+      "sidecar/tests/test_workspace.py": [
+        "R15-UI-082"
       ]
     },
     "vitest": {
@@ -345,7 +577,8 @@
       "src/store/workflow.test.ts": {
         "cmd": "pnpm exec vitest run src/store/workflow.test.ts",
         "named": [
-          "append a, take, append b -> b still pending [R15-CODE-FRONTEND-026]"
+          "append a, take, append b -> b still pending [R15-CODE-FRONTEND-026]",
+          "R15-CODE-FRONTEND-027: the run rides the shared transport and a JSON detail is the error [R15-CODE-FRONTEND-027]"
         ]
       },
       "src/components/CommandPalette.test.tsx": {
@@ -425,18 +658,108 @@
         "named": [
           "R15-CODE-FRONTEND-028 [R15-CODE-FRONTEND-028]"
         ]
+      },
+      "src/lib/sidecar-client.test.ts": {
+        "cmd": "pnpm exec vitest run src/lib/sidecar-client.test.ts",
+        "named": [
+          "R15-CODE-FRONTEND-027: a call past its timeoutMs is SidecarError(504), not a hang [R15-CODE-FRONTEND-027]",
+          "R15-CODE-FRONTEND-027: sidecarRequestInit carries the region, per-call headers and a JSON body [R15-CODE-FRONTEND-027]",
+          "custom-agents refresh transport > sends the session region under a deadline [R15-CODE-FRONTEND-027]",
+          "custom-agents refresh transport > a refused load names the engine, never WebKit's 'Load failed' [R15-CODE-FRONTEND-027]"
+        ]
+      },
+      "src/modules/node-editor/schedule-control.test.tsx": {
+        "cmd": "pnpm exec vitest run src/modules/node-editor/schedule-control.test.tsx",
+        "named": [
+          "R15-CODE-FRONTEND-027: toggling PATCHes through the shared verb; a failure shows its sentence [R15-CODE-FRONTEND-027]"
+        ]
+      },
+      "src/store/quant.test.ts": {
+        "cmd": "pnpm exec vitest run src/store/quant.test.ts",
+        "named": [
+          "POSTs the request through the shared verb [R15-CODE-FRONTEND-027]"
+        ]
+      },
+      "src/components/DataTable.test.tsx": {
+        "cmd": "pnpm exec vitest run src/components/DataTable.test.tsx",
+        "named": [
+          "makes a sortable header keyboard-operable (R15-UI-068) [R15-UI-068]",
+          "renders skeleton rows and marks the table busy when loading (R15-UI-068) [R15-UI-068]",
+          "renders the empty slot when there are zero rows and not loading (R15-UI-068) [R15-UI-068]"
+        ]
+      },
+      "src/components/SettingsPanel.test.tsx": {
+        "cmd": "pnpm exec vitest run src/components/SettingsPanel.test.tsx",
+        "named": [
+          "has no axe violations in its default (Preferences) state (R15-UI-071 smoke) [R15-UI-071]"
+        ]
+      },
+      "src/lib/warning-token-scope.test.ts": {
+        "cmd": "pnpm exec vitest run src/lib/warning-token-scope.test.ts",
+        "named": [
+          "no file outside the provenance allowlist uses text/bg/border-warning [R15-UI-073]",
+          "the provenance allowlist itself still exists and still uses the token [R15-UI-073]",
+          "--color-caution exists in tokens.css alongside --color-warning [R15-UI-073]"
+        ]
       }
     },
     "non_test_claims": [
       "R15-DOCS-012 (W2): doc hygiene, no pin by design",
-      "R15-CODE-DATA-019 (W4) could_not: no test; claimed node sidecar/tests/test_screener.py::test_result_row_has_no_matched_criteria does not exist",
-      "R15-LIFECYCLE-035 (W5) could_not: no test"
+      "R15-UI-071 (DEF-B): the eslint rule jsx-a11y/label-has-associated-control is itself a gate: run pnpm lint",
+      "R15-UI-068 porting half (DEF-B): deferred_feature, nothing built"
     ],
-    "pytest_all": "cd sidecar && .venv/bin/python -m pytest -q tests/test_agent_tools_lows.py tests/test_agents_router.py tests/test_compare_symbols.py tests/test_corporate_disclosures.py tests/test_data_cache.py tests/test_earnings_provider.py tests/test_exchange_financials_negcache.py tests/test_fundamentals_warm.py tests/test_llm_router.py tests/test_market_overview.py tests/test_mcp_client.py tests/test_mcp_server.py tests/test_provider_registry.py tests/test_research_hosted_lanes.py tests/test_research_semantics.py tests/test_screener_india.py tests/test_screener_router.py tests/test_searxng_manager.py tests/test_sec_filings_router.py tests/test_sec_tools.py tests/test_system_router.py tests/test_web_search.py",
-    "pytest_collateral": "cd sidecar && .venv/bin/python -m pytest -q tests/test_mcp_catalog_parity.py tests/test_main_stdio.py tests/test_no_trading_surface.py tests/test_capability_catalog.py tests/test_openbb_mcp_provider.py tests/test_sec_filings_provider.py tests/test_sec_nodes.py tests/test_fundamentals.py tests/test_search_tiers_router.py tests/test_r9_integration_seams.py tests/test_b7_exchange_financials.py tests/test_agent_runtime.py tests/test_macro_tools.py tests/test_fundamentals_tool.py tests/test_research_fast.py tests/test_screener.py",
-    "vitest_all": "pnpm exec vitest run scripts/sidecar-staleness.test.mjs scripts/smoke-test-sidecars.test.mjs src/store/workflow.test.ts src/components/CommandPalette.test.tsx src/lib/open-panel-literals.test.ts src/store/workspace.test.ts src/lib/layout-templates.test.ts src/components/PanelHost.test.tsx src/lib/source-guards.test.ts src/store/command-palette.test.ts src/store/agents.test.ts src/store/settings.test.ts src/lib/workspace.test.ts src/modules/platform/WorkspaceDialog.test.tsx src/store/research-spaces.test.ts",
-    "vitest_collateral": "pnpm exec vitest run src/store/modules.test.ts src/components/SettingsPanel.test.tsx src/lib/host-actions.test.ts src/store/agent-spaces.test.ts src/modules/chat",
-    "extra_branches_result_md_tests": []
+    "pytest_all": "cd sidecar && .venv/bin/python -m pytest -q tests/test_agent_tools_lows.py tests/test_agents_router.py tests/test_cache_dir.py tests/test_compare_symbols.py tests/test_corporate_disclosures.py tests/test_data_cache.py tests/test_earnings_provider.py tests/test_exchange_financials_negcache.py tests/test_fundamentals_warm.py tests/test_llm_router.py tests/test_market_overview.py tests/test_mcp_client.py tests/test_mcp_server.py tests/test_provider_registry.py tests/test_research_hosted_lanes.py tests/test_research_semantics.py tests/test_screener.py tests/test_screener_india.py tests/test_screener_router.py tests/test_searxng_manager.py tests/test_sec_filings_router.py tests/test_sec_tools.py tests/test_system_router.py tests/test_web_search.py tests/test_workspace.py",
+    "pytest_collateral": "cd sidecar && .venv/bin/python -m pytest -q tests/test_mcp_catalog_parity.py tests/test_main_stdio.py tests/test_no_trading_surface.py tests/test_capability_catalog.py tests/test_openbb_mcp_provider.py tests/test_sec_filings_provider.py tests/test_sec_nodes.py tests/test_fundamentals.py tests/test_search_tiers_router.py tests/test_r9_integration_seams.py tests/test_b7_exchange_financials.py tests/test_agent_runtime.py tests/test_macro_tools.py tests/test_fundamentals_tool.py tests/test_research_fast.py tests/test_screener.py tests/test_provider_health.py tests/test_web_search.py tests/test_screener_router.py tests/test_system_router.py",
+    "vitest_all": "pnpm exec vitest run scripts/sidecar-staleness.test.mjs scripts/smoke-test-sidecars.test.mjs src/store/workflow.test.ts src/components/CommandPalette.test.tsx src/lib/open-panel-literals.test.ts src/store/workspace.test.ts src/lib/layout-templates.test.ts src/components/PanelHost.test.tsx src/lib/source-guards.test.ts src/store/command-palette.test.ts src/store/agents.test.ts src/store/settings.test.ts src/lib/workspace.test.ts src/modules/platform/WorkspaceDialog.test.tsx src/store/research-spaces.test.ts src/lib/sidecar-client.test.ts src/modules/node-editor/schedule-control.test.tsx src/store/quant.test.ts src/components/DataTable.test.tsx src/components/SettingsPanel.test.tsx src/lib/warning-token-scope.test.ts",
+    "vitest_collateral": "pnpm exec vitest run src/store/modules.test.ts src/lib/host-actions.test.ts src/store/agent-spaces.test.ts src/modules/chat src/modules/quant src/modules/node-editor src/modules/screener src/store/screener.test.ts src/modules/portfolio",
+    "extra_branches_result_md_tests": [
+      {
+        "branch": "worktree-agent-lows-CN-r15-code-data-019-4c6dfe8",
+        "tests": [
+          "sidecar/tests/test_screener.py::test_result_row_has_no_matched_criteria"
+        ],
+        "also_run": [
+          "pnpm exec vitest run src/modules/screener/ScreenerPanel.test.tsx src/modules/screener/ScreenerResultsTable.test.tsx src/store/screener.test.ts (fixture edits)"
+        ]
+      },
+      {
+        "branch": "worktree-agent-lows-CN-r15-lifecycle-035-4c6dfe8",
+        "tests": [
+          "sidecar/tests/test_searxng_manager.py::test_hand_fixed_container_supersedes_a_sticky_error",
+          "sidecar/tests/test_searxng_manager.py::test_error_stays_sticky_while_the_container_is_not_serving",
+          "sidecar/tests/test_searxng_manager.py::test_hot_path_reprobes_a_sticky_error_on_a_throttle"
+        ],
+        "also_run": [
+          "tests/test_search_tiers_router.py tests/test_web_search.py tests/test_r9_integration_seams.py"
+        ]
+      },
+      {
+        "branch": "worktree-agent-lows-CN-r15-code-frontend-027-4c6dfe8",
+        "tests": [
+          "src/lib/sidecar-client.test.ts (4 new)",
+          "src/store/workflow.test.ts (1 new)",
+          "src/modules/node-editor/schedule-control.test.tsx (1 new, create case re-asserted)",
+          "src/store/agents.test.ts::refreshCustom 404 -> customStatus error"
+        ],
+        "also_run": [
+          "pnpm exec vitest run src/store/quant.test.ts src/modules/quant src/modules/node-editor"
+        ]
+      },
+      {
+        "branch": "worktree-agent-lows-DEF-B-4c6dfe8",
+        "tests": [
+          "sidecar/tests/test_cache_dir.py (3)",
+          "sidecar/tests/test_workspace.py (2 new)",
+          "src/components/DataTable.test.tsx (3 new + sort test retargeted to the button)",
+          "src/lib/warning-token-scope.test.ts (3)",
+          "src/components/SettingsPanel.test.tsx (axe smoke)"
+        ],
+        "also_run": [
+          "pnpm lint (jsx-a11y rule)",
+          "cargo fmt --check + clippy + cargo test (lib.rs)"
+        ]
+      }
+    ]
   },
   "sanity": {
     "py_compile": "OK on all 53 changed .py (before the 18e5bcb0 edit; the two files it touched re-compiled OK after)",
@@ -448,13 +771,55 @@
   "integration_recipe": [
     "export GIT_SSH_COMMAND=\"ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes -o ConnectTimeout=20\"",
     "git fetch --prune origin --tags",
-    "git worktree add <scratch>/lows-int-P2 -b lows-P2-int-rc1 origin/worktree-agent-lows-P2-int-4c6dfe8",
+    "git worktree add <scratch>/lows-int-P2 -b lows-P2-int-rc1 origin/worktree-agent-lows-P2-int-4c6dfe8   # head 7db0b295",
     "cd <scratch>/lows-int-P2",
     "git merge-base --is-ancestor 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2 r15-rc1   # must succeed",
-    "git -c core.hooksPath=/dev/null rebase --rebase-merges --onto r15-rc1 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2   # replays the 9 --no-ff merges + 2 assembler commits; conflicts only if rc1 touched a P2 file after 4c6dfe8 (re-check: git diff --name-only 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2 r15-rc1 against the risk_map file list)",
-    "# fallback if --rebase-merges is awkward: git switch -c lows-P2-int-rc1b r15-rc1 && git merge --no-ff origin/worktree-agent-lows-P2-int-4c6dfe8",
-    "pnpm install --frozen-lockfile   # @tiptap/extension-list missing from node_modules per W8/W9",
-    "<run claimed_tests.pytest_all + pytest_collateral, then vitest_all + vitest_collateral, then the chain>",
+    "git -c core.hooksPath=/dev/null rebase --rebase-merges --onto r15-rc1 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2   # replays 13 --no-ff merges + 11 assembler/fix commits; re-check git diff --name-only 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2 r15-rc1 against risk_map files",
+    "# fallback: git switch -c lows-P2-int-rc1b r15-rc1 && git merge --no-ff origin/worktree-agent-lows-P2-int-4c6dfe8",
+    "# if P1 or P3 integrated first: expect conflicts in workspace_store.py, src-tauri/src/lib.rs (P1) and sidecar/main.py, fundamentals_store.py, StatusChrome.tsx, sidecar-client.ts (P3); keep both sides, and collapse the two request-deadline mechanisms in sidecar-client.ts to one",
+    "pnpm install --lockfile-only && git add pnpm-lock.yaml && git -c core.hooksPath=/dev/null commit -m \"chore(deps): lock eslint-plugin-jsx-a11y and vitest-axe (R15-UI-071)\"   # REQUIRED: DEF-B added devDeps without a lockfile update",
+    "pnpm install --frozen-lockfile",
+    "<run claimed_tests.pytest_all + pytest_collateral, then vitest_all + vitest_collateral, then pnpm lint, cargo fmt --check/clippy/test for lib.rs, then the chain>",
     "git push origin lows-P2-int-rc1   # then one fresh verifier, then merge --no-ff into 004-r4-experience-rebuild"
-  ]
+  ],
+  "fix_pass": {
+    "from": "18e5bcb077b31d7ee1464ce1e475cc3a2ddb6cfa",
+    "to": "d7d0d3254dfebf89b882c51ea22d9de464048c5e",
+    "commits": [
+      {
+        "sha": "1ebaf89b42bab6b6d42b685c0c92527bddd8a29e",
+        "entry": "R15-LIFECYCLE-033",
+        "what": "test_provider_health trip/reset test sets VYSTED_RIG_HOOKS=1"
+      },
+      {
+        "sha": "09821a539a72081ff5a6507f9ce7d7b99230bd5e",
+        "entry": "R15-CODE-PLATFORM-062",
+        "what": "portable main-module guard in smoke-test-sidecars.mjs"
+      },
+      {
+        "sha": "42b3c679c8c5b0553f13cfe5cb3c64ea91cae527",
+        "entry": "R15-RELEASE-011",
+        "what": "portable spawn + 90 s timeout for the coverage-threshold pin"
+      },
+      {
+        "sha": "bb945754c801e68e0d409d01713faf3af1a0f1ad",
+        "entry": "R15-RELEASE-011",
+        "what": "coverage/ ignored in git, prettier, eslint"
+      },
+      {
+        "sha": "d7d0d3254dfebf89b882c51ea22d9de464048c5e",
+        "entry": "R15-AGENT-072",
+        "what": "_schema.json names tools + effective_tools"
+      }
+    ]
+  },
+  "sanity_extras": {
+    "files": 50,
+    "py_compile": "OK on 12 changed .py",
+    "ruff_format_check": "12 files already formatted",
+    "ruff_check": "All checks passed",
+    "prettier_check": "All matched files use Prettier code style (37 ts/tsx/json/md/css files)",
+    "not_checked": "src-tauri/src/lib.rs (rustfmt is cargo, off-lane)",
+    "style_commit": "none needed"
+  }
 }

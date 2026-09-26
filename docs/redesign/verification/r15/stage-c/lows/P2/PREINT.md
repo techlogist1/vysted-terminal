@@ -4,7 +4,7 @@ Assembled 06:57 IST. Untested pending integration (no pytest/vitest/tsc/cargo/bu
 
 - Base: `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2` (writers cut from `ebc5ed4194f9362422c3178c27d4cdf946428968`, an ancestor)
 - Branch: `worktree-agent-lows-P2-int-4c6dfe8` (pushed, ls-remote verified)
-- Head: `18e5bcb077b31d7ee1464ce1e475cc3a2ddb6cfa`
+- Head: `7db0b2954bab647e646b324df1c875c9c34f1675` (07:29 IST, after the extra-branch pass below; was `18e5bcb0` at assembly, `d7d0d325` after the fix pass)
 - Worktree: `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/lows-preint/P2` (kept)
 - Blocked hunks: none (no writer touched audit_log.py, kill_switch.py/.rs, types/proposed-change.ts or the agent_runtime gate)
 
@@ -22,7 +22,7 @@ Assembled 06:57 IST. Untested pending integration (no pytest/vitest/tsc/cargo/bu
 | 8 | W8 `worktree-agent-lows-P2-W8-shell-page` | `26c0cb03` | `26c0cb03` | no | `c42259f8` | 0 |
 | 9 | W9 `worktree-agent-lows-P2-W9-workspace-persist` | `a7408560` | `a7408560` | no | `fcb10f5d` | 0 |
 
-Extra branches: none.
+Extra branches: four, merged last (see "Extra-branch pass" at the end).
 
 ## Assembler commits
 
@@ -244,3 +244,83 @@ Left (advisory):
 - types/*.ts effective_tools mirror: this is a contract addition, left for the integrator or operator.
 - source-guards / open-panel-literals cross-partition risk: integrate P2 last or re-check on the combined tree.
 - Collateral: add tests/test_provider_health.py to pytest_collateral, and run pnpm install --frozen-lockfile before vitest.
+
+## Extra-branch pass (07:25-07:29 IST, Opus)
+
+Continued from the pushed candidate `d7d0d325` (worktree state reused). `git fetch --prune`: all nine set heads on origin still equal WRITERS.json `head_sha_origin` (no mismatch). Candidate moved `d7d0d325` -> `7db0b295`, pushed without force, ls-remote = `7db0b2954bab647e646b324df1c875c9c34f1675`. Nothing run beyond py_compile, ruff and prettier: untested pending integration.
+
+| # | branch | entries | origin head | merge sha | conflicts |
+|---|---|---|---|---|---|
+| 10 | `worktree-agent-lows-CN-r15-code-data-019-4c6dfe8` (after W4) | R15-CODE-DATA-019 | `31aa053b` | `260074ef` | 0 |
+| 11 | `worktree-agent-lows-CN-r15-lifecycle-035-4c6dfe8` (after W5) | R15-LIFECYCLE-035 | `954ffa89` | `d145842b` | 0 |
+| 12 | `worktree-agent-lows-CN-r15-code-frontend-027-4c6dfe8` (after W8) | R15-CODE-FRONTEND-027 | `cba8df9f` | `552ab6f0` | 0 |
+| 13 | `worktree-agent-lows-DEF-B-4c6dfe8` | R15-CROSS-PLATFORM-012, R15-UI-068, R15-UI-071, R15-UI-073, R15-UI-082 | `af933bcc` | `4e6eee82` | 0 |
+
+Blocked hunks: none (no extra branch touches audit_log.py, kill_switch.py/.rs, types/proposed-change.ts or agent_runtime.py).
+
+### Assembler commits
+
+- `4c7b6dde`, `ed0837b3`: each extra branch adds its own `RESULT.md` at the repo root (a four-way add/add, and a report does not belong in the product root). Moved byte-identical to `docs/redesign/verification/r15/stage-c/lows/P2/results/<entry>.md` right after each merge.
+- `e9da8e93` (R15-CODE-FRONTEND-027): folded the CN writer's second `@/lib/sidecar-client` import in `src/store/agents.ts` into one, as its RESULT asked once both landed; RESULT.md moved.
+- `7db0b295` (R15-UI-073): `src/lib/warning-token-scope.test.ts` scans every src .ts/.tsx including itself, and its own comments and regex contain `text-warning`/`bg-warning`/`border-warning` while it is not allowlisted, so the offenders assertion always lists the test itself (fails at the DEF-B head alone). One filter skips its own path; assertions unchanged. DEF-B RESULT.md moved.
+
+### Conflict map (all textually clean; read for semantics)
+
+- `sidecar/services/searxng_manager.py` (W5 R15-LIFECYCLE-034, CN R15-LIFECYCLE-035, DEF-B R15-CROSS-PLATFORM-012). W5's catch-all setup error goes through `_set()`, which now also records `last_error`; `setup()` clears `last_error` before W5's try. DEF-B only moves `settings_dir`. Composable, no edit.
+- `src/store/agents.ts` + `agents.test.ts` (W8 partial, CN full R15-CODE-FRONTEND-027): CN's 72daa055 is a `-x` cherry-pick of W8 26c0cb03, so git merged it identically; `refreshAll` stays removed (W8) with no remaining reference.
+- `src/store/workflow.ts` + `workflow.test.ts` (W8 R15-CODE-FRONTEND-026 `takeNotifications`, CN R15-CODE-FRONTEND-027 shared transport): both kept, both writers' tests present.
+- `sidecar/services/data_cache.py` (W5 R15-CODE-DATA-010/R15-CODE-PLATFORM-077, DEF-B cache dir): no edit; see risks.
+- `package.json` (W2 scripts, DEF-B devDeps), `eslint.config.mjs` (bb945754 ignores, DEF-B jsx-a11y), `SettingsPanel.tsx`/`PluginManagerPanel.tsx` (earlier sets, DEF-B `text-caution`): no edit.
+
+### Risks the extras add (integrator: read first)
+
+1. **Blocking for the chain: lockfile.** DEF-B adds `eslint-plugin-jsx-a11y` and `vitest-axe` to package.json devDependencies but `pnpm-lock.yaml` has no entry for either, so `pnpm install --frozen-lockfile` (ci-local step 1, CI) fails. Run `pnpm install --lockfile-only` on the rebased branch and commit the lockfile before the chain (package install is off-lane here).
+2. **Upgrade backup root (DEF-B x W5).** `data_cache._backup_data_dir` takes `_db_path.parent` as the data dir. With `--cache-dir` set, the pre-upgrade backup (and W5's pruning) copies the cache dir, not the user data dir (portfolio, notes, workspaces, audit DB). Diverges only where `app_local_data_dir != app_data_dir` (Windows). Needs a decision: back up `get_data_dir()` explicitly.
+3. **Cross-partition conflicts introduced by the extras.** `git merge-tree` of the new head: vs P1 candidate `dbe5fe4f` conflicts in `sidecar/services/workspace_store.py` and `src-tauri/src/lib.rs`; vs P3 candidate `6e41bfc1` conflicts in `sidecar/main.py`, `sidecar/services/fundamentals_store.py`, `src/components/StatusChrome.tsx`, `src/lib/sidecar-client.ts`; vs `worktree-agent-lows-CN-r15-data-102-4c6dfe8` in `fundamentals_store.py`. The pre-extras head `d7d0d325` merged clean with both P1 and P3. `sidecar-client.ts` is a semantic duplicate: P3 R15-LIFECYCLE-027 bounds every request with a timeout, and CN-027 adds `timeoutMs` + `SIDECAR_REQUEST_TIMEOUT_MS`. Collapse them into one deadline mechanism when the second one lands.
+4. **Rust untested.** `src-tauri/src/lib.rs` `resolve_cache_dir` + `--cache-dir` was never compiled, and rustfmt/clippy were not run.
+5. **Lint gate widened.** The `jsx-a11y/label-has-associated-control` rule (error level, all .ts/.tsx) was audited only on SettingsPanel inputs. `pnpm lint` over src is unverified.
+6. **SearXNG settings moved to the cache dir** with no migration. An existing Windows container keeps its old mount.
+7. **Writer-changed tests (recorded, not weakened by the assembler):**
+   - CN-019 dropped the `[0, 1, 2]` matched_criteria assertion in test_screener (the field is deleted).
+   - CN-027 moved the quant store and panel tests to mock `sidecarRequest`, and quant.test's error case now expects the server sentence.
+   - DEF-B retargeted the DataTable sort test from the `<th>` to its new button.
+8. CN-027's `AbortSignal.any` path needs Safari 17.4+ in WKWebView; no current caller hits it.
+9. CN-035: polls in error state and the throttled hot path now run docker CLI probes; `last_error` has no frontend reader.
+
+### Outcomes superseded
+
+- R15-CODE-DATA-019: W4 could_not -> CN fixed_untested (a1539309).
+- R15-LIFECYCLE-035: W5 could_not -> CN fixed_untested (3da1e972).
+- R15-CODE-FRONTEND-027: W8 partial -> CN fixed_untested (72daa055 + f8d6594f).
+- DEF-B: R15-CROSS-PLATFORM-012, R15-UI-073 and R15-UI-082 are fixed_untested. R15-UI-071 is fixed as a gate. R15-UI-068 is split: the primitive is fixed_untested and the table porting is deferred_feature.
+
+### Additional claimed tests (focused commands; the full lists are in PREINT.json claimed_tests)
+
+- `cd sidecar && .venv/bin/python -m pytest -q tests/test_screener.py::test_result_row_has_no_matched_criteria` [R15-CODE-DATA-019]
+- `cd sidecar && .venv/bin/python -m pytest -q tests/test_searxng_manager.py::test_hand_fixed_container_supersedes_a_sticky_error tests/test_searxng_manager.py::test_error_stays_sticky_while_the_container_is_not_serving tests/test_searxng_manager.py::test_hot_path_reprobes_a_sticky_error_on_a_throttle` [R15-LIFECYCLE-035] (collateral: `tests/test_search_tiers_router.py::test_setup_failure_is_observable_through_the_status_poll`)
+- `cd sidecar && .venv/bin/python -m pytest -q tests/test_cache_dir.py` [R15-CROSS-PLATFORM-012]
+- `cd sidecar && .venv/bin/python -m pytest -q tests/test_workspace.py::test_a_32_char_devanagari_name_saves tests/test_workspace.py::test_a_name_whose_encoded_bytes_exceed_the_cap_is_still_rejected` [R15-UI-082]
+- `pnpm exec vitest run src/lib/sidecar-client.test.ts src/store/workflow.test.ts src/modules/node-editor/schedule-control.test.tsx src/store/agents.test.ts src/store/quant.test.ts src/modules/quant src/modules/node-editor/NodeEditorPanel.test.tsx` [R15-CODE-FRONTEND-027]
+- `pnpm exec vitest run src/modules/screener/ScreenerPanel.test.tsx src/modules/screener/ScreenerResultsTable.test.tsx src/store/screener.test.ts` [R15-CODE-DATA-019 fixture edits]
+- `pnpm exec vitest run src/components/DataTable.test.tsx` [R15-UI-068]
+- `pnpm exec vitest run src/components/SettingsPanel.test.tsx` [R15-UI-071 axe smoke] + `pnpm lint` [R15-UI-071 rule]
+- `pnpm exec vitest run src/lib/warning-token-scope.test.ts` [R15-UI-073]
+- `cargo fmt --check`, `cargo clippy -- -D warnings`, `cargo test` (manifest src-tauri) [R15-CROSS-PLATFORM-012 lib.rs]
+
+### Sanity (the 50 files the extras and new assembler commits touch)
+
+- py_compile: OK on 12 .py
+- ruff format --check: 12 files already formatted
+- ruff check: all passed
+- prettier --check: 37 ts/tsx/json/md/css files clean
+- No style commit needed. lib.rs was not checked (cargo is off-lane).
+
+### Integration recipe delta
+
+The recipe is the same as above except for these points:
+
+- Worktree from `origin/worktree-agent-lows-P2-int-4c6dfe8` @ `7db0b295`.
+- `--rebase-merges` now replays 13 merges plus 11 assembler/fix commits.
+- Before `pnpm install --frozen-lockfile`, run `pnpm install --lockfile-only` and commit `pnpm-lock.yaml`.
+- If P1 or P3 lands first, expect the conflicts in risk 3.
+- Add `pnpm lint` and the cargo trio to the focused runs.
