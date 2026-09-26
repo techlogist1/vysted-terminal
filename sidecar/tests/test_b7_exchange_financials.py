@@ -19,13 +19,14 @@ from fastapi.testclient import TestClient
 from models.fundamentals import Fundamentals, IncomeStatement, StatementLine
 from services import (
     bse_provider,
+    correctness_gate,
     exchange_financials,
     nse_provider,
     provider_registry,
     symbol_resolver,
     yfinance_provider,
 )
-from services.exchange_financials import FiledPeriods
+from services.exchange_financials import FiledPeriod, FiledPeriods
 from services.symbol_resolver import Resolution
 
 _FIXTURES = Path(__file__).parent / "fixtures"
@@ -174,6 +175,39 @@ def test_the_registry_bulk_path_never_calls_the_lane(
     monkeypatch.setattr(exchange_financials, "get_filed_periods", spy)
     asyncio.run(provider_registry.get_fundamentals("RELIANCE.NS"))
     assert calls == []
+
+
+# --- R15-DATA-102: the filed growth states its own basis -------------------------
+
+
+def test_filed_growth_states_mrq_yoy_and_never_overrides_an_annual_basis() -> None:
+    """A provider that served no growth stated no basis (the model no longer
+    defaults one): the filed MRQ-YoY growth still serves over it and STATES
+    ``mrq_yoy``. A provider that stated ``annual_yoy`` keeps its figure and
+    basis — the overlay never mixes an MRQ figure under an annual label."""
+    filed = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 120.0, 12.0, None),
+            FiledPeriod(date(2025, 4, 1), date(2025, 6, 30), 100.0, 10.0, None),
+        ),
+    )
+    bare = Fundamentals(symbol="X.NS", provider="yfinance")
+    assert bare.growth_basis is None
+    served = correctness_gate.overlay_filed_periods(bare, filed)
+    assert served.revenue_growth == pytest.approx(0.2)
+    assert served.earnings_growth == pytest.approx(0.2)
+    assert served.growth_basis == "mrq_yoy"
+    assert served.field_meta is not None
+    assert served.field_meta["revenue_growth"].provider == "nse"
+
+    annual = Fundamentals(
+        symbol="X.NS", provider="yfinance", revenue_growth=0.05, growth_basis="annual_yoy"
+    )
+    kept = correctness_gate.overlay_filed_periods(annual, filed)
+    assert kept.revenue_growth == 0.05
+    assert kept.growth_basis == "annual_yoy"
 
 
 # --- R15-LEAD-004: the cadence label comes from the filings -----------------------

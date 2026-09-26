@@ -218,9 +218,11 @@ export interface Fundamentals {
   revenue_growth: number | null;
   earnings_growth: number | null;
   /**
-   * Basis of the growth fields above (R11 / D55). yfinance's growth figures
-   * are MOST-RECENT-QUARTER vs the same quarter a year ago ("mrq_yoy") — NOT
-   * annual/TTM growth. Every surface rendering growth must disclose this.
+   * Basis of the growth fields above (R11 / D55): "mrq_yoy" (MOST-RECENT-QUARTER
+   * vs the same quarter a year ago — yfinance's growth figures, the exchange-filed
+   * overlay) or "annual_yoy". Stated by the producer of a growth value; `null`
+   * means no basis was stated, never an inherited default (R15-DATA-102). Every
+   * surface rendering growth must disclose this.
    */
   growth_basis?: string | null;
   // Ownership (fractions)

@@ -43,12 +43,29 @@ def test_get_fundamentals(client: TestClient, mock_yfinance: object) -> None:
     # ``dividend_yield`` field carries a true fraction.
     assert body["dividend_yield"] == pytest.approx(0.0044)
     assert body["provider"] == "yfinance"
-    # D55: the growth-basis truth rides the raw REST response (the panel/agent
-    # bypass semantics.py, so the contract itself must carry it).
-    assert body["growth_basis"] == "mrq_yoy"
+    # R15-DATA-102: the fake serves no growth figure, so no growth basis is
+    # stated. (This asserted "mrq_yoy" before — the model's inherited default
+    # claiming a basis for growth nobody served; the stated case is
+    # test_served_growth_states_its_mrq_yoy_basis below.)
+    assert body["revenue_growth"] is None and body["earnings_growth"] is None
+    assert body["growth_basis"] is None
     # R13 ledger #8: AAPL's provider name ("Apple Inc.") agrees with the
     # bundled master's canonical name — no identity_note.
     assert body["identity_note"] is None
+
+
+def test_served_growth_states_its_mrq_yoy_basis(
+    client: TestClient, mock_yfinance: type, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """D55 / R15-DATA-102: when Yahoo serves its MRQ-YoY growth scalars, the
+    provider STATES ``growth_basis`` and it rides the raw REST response (the
+    panel/agent bypass semantics.py, so the contract itself must carry it)."""
+    info = dict(mock_yfinance("AAPL").info)
+    info.update({"revenueGrowth": 0.061, "earningsGrowth": -0.02})
+    monkeypatch.setattr(mock_yfinance, "info", property(lambda _self: info))
+    body = client.get("/fundamentals/AAPL").json()
+    assert body["revenue_growth"] == pytest.approx(0.061)
+    assert body["growth_basis"] == "mrq_yoy"
 
 
 def test_filed_basis_stamps_its_own_field_meta(
