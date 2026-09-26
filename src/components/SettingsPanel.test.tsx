@@ -1,5 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { axe } from "vitest-axe";
+import * as axeMatchers from "vitest-axe/matchers";
 
 import { buildSettingsExport, searxngChipMeta, SettingsPanel } from "@/components/SettingsPanel";
 import { CATALOG_BY_ID } from "@/lib/marketplace";
@@ -61,6 +63,13 @@ import { getSecret } from "@/lib/keychain";
 import { SIDECAR_UNREACHABLE } from "@/lib/sidecar-client";
 
 const getSecretMock = vi.mocked(getSecret);
+
+// R15-UI-071: no automated accessibility gate existed at all. `toHaveNoViolations`
+// runs the real axe-core ruleset against the rendered DOM — this catches
+// unlabelled controls, missing landmarks, etc. that a static lint rule
+// (jsx-a11y/label-has-associated-control) cannot, since it can only see JSX,
+// not the accessible name the browser actually computes at runtime.
+expect.extend(axeMatchers);
 
 /** A 200 JSON response for the fetch stubs. */
 function jsonResponse(value: unknown): Response {
@@ -898,5 +907,15 @@ describe("SettingsPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: "Copy to clipboard" }));
     expect(await screen.findByText("Copied")).toBeInTheDocument();
     expect(writeText).toHaveBeenCalledWith(preview.textContent);
+  });
+
+  it("has no axe violations in its default (Preferences) state (R15-UI-071 smoke)", async () => {
+    const { container } = render(<SettingsPanel />);
+    // Let the async sidecar-status probes settle before scanning — several
+    // sections render a different (still-labelled) fallback once /health
+    // resolves, and scanning mid-fetch would pin a transient DOM instead.
+    await screen.findByRole("region", { name: "Modules" });
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
   });
 });
