@@ -4,6 +4,12 @@ Things R15 did that reverse a standing rule of yours, or that are yours alone to
 (Tier-4). Newest concerns at the top of each section. Each entry: what, why, my
 recommendation, and how to undo it in one step.
 
+> **Operator ruling, 07:50 IST 26 Sep (verbatim on the lead's disk, git-ignored):** LEAD-035 accepted as
+> option (b) with concurrence (§4.10); DOCS-026 rides the single pre-authorised CLAUDE.md commit (§5.11);
+> every other Tier-4 item in this file (signing, release pipeline, CI, unfunded lanes, Docker, plugin
+> model, stale docs, licensing inbox and the rest) stays `blocked_tier4` with no work in this release,
+> and is sequenced in the operator handover as a post-launch button with its one-line action.
+
 ## 1. Reversals of a standing operator rule (already done — revert if you disagree)
 
 ### 1.1 The "sacred" `enrich_nse_sectors.py` edit is now committed (`7a1cd8f`)
@@ -574,7 +580,7 @@ are done-and-revertable like §1; these are yours to review or act on.
 - **Risk of not doing it:** a no-tool instruction phrased outside the closed list is not honoured:
   the model may call a read tool, or stage a portfolio write that then waits in the review queue
   for the user's accept. No write applies on its own.
-- **Status: blocked_tier4 under the operator's three-failure rule (pacing change 4, 26 Sep) — NOT a concurrence.** Batch-24 built the batch-23 verifier's named narrowing-only fix exactly (merged `6778f892` via `d1290f66`: 0 new strips on 97 phrasings, 0 over-strips on the 67, the 7 over-match prompts call price_data live), yet R15-LEAD-035 failed certification a FOURTH time: 4 of 18 fresh qualified-negation data requests still lose every tool (a comma before 'except'/'other than'; 'He says don't use tools, but…') and the local model then invents prices in 6/8 live runs. The fresh verifier REFUSED the blocked_tier4 concurrence (`r15/stage-c/batch-24/LEAD-035-CONCURRENCE.md`) and named a further narrowing-only guard (a qualifier negative lookahead plus `(?<!says )`) that clears 3 of the 4 offline with 0 lost strips and that it would certify. Your call at rc1: (a) accept the residual as a documented known limitation with the verifier's 'accurate for d1290f66' wording (its §4), or (b) authorise ONE bounded round for that named guard on the rc2 line (Sonnet writer, fresh verifier, same subset property) — the lead recommends (b), because the verifier has now twice named a cheap, checkable, strictly-narrowing fix and the over-match makes the local model invent prices on explicit data requests, which is the worse failure of the two. Until you decide, the release docs carry the verifier's accurate wording and the rc1 gate treats the entry as adjudicated to you, not fixed.
+- **Status: ACCEPTED 07:50 IST 26 Sep — option (b) with the operator's in-message concurrence: LEAD-035 joins LEAD-030, LEAD-037 and LEAD-038 as one documented known-limitation class of the local-model lane, `blocked_tier4`, no further rounds this release; wording verbatim in the release notes, operator briefing and CURRENT_STATE.** _(Status before the ruling: blocked_tier4 under the three-failure rule, not a concurrence.)_ Batch-24 built the batch-23 verifier's named narrowing-only fix exactly (merged `6778f892` via `d1290f66`: 0 new strips on 97 phrasings, 0 over-strips on the 67, the 7 over-match prompts call price_data live), yet R15-LEAD-035 failed certification a FOURTH time: 4 of 18 fresh qualified-negation data requests still lose every tool (a comma before 'except'/'other than'; 'He says don't use tools, but…') and the local model then invents prices in 6/8 live runs. The fresh verifier REFUSED the blocked_tier4 concurrence (`r15/stage-c/batch-24/LEAD-035-CONCURRENCE.md`) and named a further narrowing-only guard (a qualifier negative lookahead plus `(?<!says )`) that clears 3 of the 4 offline with 0 lost strips and that it would certify. Your call at rc1: (a) accept the residual as a documented known limitation with the verifier's 'accurate for d1290f66' wording (its §4), or (b) authorise ONE bounded round for that named guard on the rc2 line (Sonnet writer, fresh verifier, same subset property) — the lead recommends (b), because the verifier has now twice named a cheap, checkable, strictly-narrowing fix and the over-match makes the local model invent prices on explicit data requests, which is the worse failure of the two. Until you decide, the release docs carry the verifier's accurate wording and the rc1 gate treats the entry as adjudicated to you, not fixed.
 
 ### 4.11 R15-LEAD-037 — the figure guard grounds a price by value only, so a stale bar passes as the current price
 
@@ -827,6 +833,20 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   as `REHEARSAL.md:93-94` corrections 5 and 6 say. That runbook edit is a draft-doc change the
   lead lands at the runbook refresh, and it needs no sign-off.
 - **Status: awaiting operator** (the cache clear only)
+
+### 5.11 R15-DOCS-026: CLAUDE.md capture-path pointer, folded into the single CLAUDE.md commit
+
+- **What:** `CLAUDE.md` (Visual verification) points at `/tmp/rigcap.py` and matches
+  `kCGWindowOwnerName == "vysted-terminal"`; the bundle rehearsal
+  (`r15/stage-d/bundle-rehearsal/REHEARSAL.md:70-71`) recorded that the script does not exist and the
+  release bundle's CGWindow owner name is a different string. Drafted as R15-DOCS-026 (low, tier4)
+  in `r15/stage-c/lows/NEW_LOWS_DRAFT.json`; `CLAUDE.md` is Tier-1.
+- **Ruling (operator, 07:50 IST 26 Sep):** yes — the correction rides the single pre-authorised
+  CLAUDE.md commit on the version branch.
+- **How:** folded when the branch is rebased onto the `r15-rc1` tag (one Opus agent: rebase, then
+  the correction inside the one CLAUDE.md commit, new branch name, no force-push); §5.4's pointer
+  moves with it. Register: DOCS-026 is filed and marked fixed at the merge.
+- **Status: ACCEPTED, pending the post-tag fold**
 
 ### 5.10 Rehearsal's two medium findings: lead's disposition
 
