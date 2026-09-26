@@ -1012,8 +1012,8 @@ def resolve(query: str, region: str) -> Resolution:
     ``region`` is REQUIRED — callers pass ``config.get_region()`` (the old
     silent ``US`` default mis-ranked every IN session). Brief §2 spelled the
     signature ``resolve(query, *, region)``; ``region`` stays positional-or-
-    keyword (no bare ``*``) because the unowned ``routers/resolve.py`` calls
-    ``asyncio.to_thread(symbol_resolver.resolve, query, active_region)``
+    keyword (no bare ``*``) because :func:`resolve_async` hands it to
+    ``loop.run_in_executor(_RESOLVE_POOL, resolve, query, region)``
     positionally — required-ness is the load-bearing half of the spec, and it
     holds. Stages: exact ticker →
     marquee aliases (IN/GLOBAL) → banded name match → live keyless fallback.
