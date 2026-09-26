@@ -1,13 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
+import { sidecarRequest } from "@/lib/sidecar-client";
 import { resetQuantStoreForTests } from "@/store/quant";
 import { useSettingsStore } from "@/store/settings";
 import { BondPricerPanel } from "./BondPricerPanel";
 
-vi.mock("@/lib/sidecar-client", () => ({
-  getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
-}));
+// The quant store POSTs through the shared sidecar verb (R15-CODE-FRONTEND-027).
+vi.mock("@/lib/sidecar-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+  return { ...actual, sidecarRequest: vi.fn() };
+});
 
 beforeEach(() => {
   resetQuantStoreForTests();
@@ -15,23 +19,16 @@ beforeEach(() => {
   // pin the region explicitly so the assertions below don't ride whatever
   // the store's own default happens to be.
   useSettingsStore.setState({ region: "US" });
-  vi.stubGlobal(
-    "fetch",
-    vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: "OK",
-      json: async () => ({
-        clean_price: 1060.58,
-        dirty_price: 1060.58,
-        accrued_interest: 0.0,
-        duration: 8.05,
-        modified_duration: 7.89,
-        convexity: 75.0,
-        duration_ms: 1.5,
-      }),
-    }),
-  );
+  vi.mocked(sidecarRequest).mockReset();
+  vi.mocked(sidecarRequest).mockResolvedValue({
+    clean_price: 1060.58,
+    dirty_price: 1060.58,
+    accrued_interest: 0.0,
+    duration: 8.05,
+    modified_duration: 7.89,
+    convexity: 75.0,
+    duration_ms: 1.5,
+  });
 });
 
 afterEach(() => {
@@ -99,7 +96,7 @@ describe("BondPricerPanel", () => {
     const priceBtn = screen.getByTestId("price-bond") as HTMLButtonElement;
     expect(priceBtn.disabled).toBe(true);
     fireEvent.click(priceBtn);
-    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+    expect(sidecarRequest).not.toHaveBeenCalled();
   });
 
   it("rejects an out-of-window settlement date inline", () => {

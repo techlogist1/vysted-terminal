@@ -3,11 +3,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorkflowRunEvent, WorkflowSpec } from "../../types/workflow";
 
 // Stub the Tauri-coupled ``getSidecarBaseUrl`` so the store resolves a URL
-// without a desktop runtime.
-vi.mock("@/lib/sidecar-client", () => ({
-  getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:51763"),
-}));
+// without a desktop runtime; runWorkflow rides the real shared transport
+// (sidecarRequestInit + sidecarFetch, R15-CODE-FRONTEND-027).
+vi.mock("@/lib/sidecar-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+  return { ...actual, getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:51763") };
+});
 
+import { useSettingsStore } from "@/store/settings";
 import {
   selectActiveRunLog,
   selectPendingNotifications,
@@ -289,6 +293,23 @@ describe("useWorkflowStore.runWorkflow — SSE consumption", () => {
     await expect(useWorkflowStore.getState().runWorkflow(_spec())).rejects.toThrow(
       /Internal Error|500/,
     );
+  });
+
+  it("R15-CODE-FRONTEND-027: the run rides the shared transport and a JSON detail is the error", async () => {
+    useSettingsStore.setState({ region: "IN" });
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(
+        new Response(JSON.stringify({ detail: "unknown node type: foo.bar" }), { status: 422 }),
+      );
+
+    await expect(useWorkflowStore.getState().runWorkflow(_spec())).rejects.toThrow(
+      /^unknown node type: foo\.bar$/,
+    );
+    const headers = fetchMock.mock.calls[0]![1]?.headers as Record<string, string>;
+    expect(headers["X-Vysted-Region"]).toBe("IN");
+    expect(headers.Accept).toBe("text/event-stream");
+    expect(headers["Content-Type"]).toBe("application/json");
   });
 
   it("rejects when the stream closes without ever seeing run-start", async () => {
