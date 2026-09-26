@@ -7,35 +7,39 @@ git command run against `/Users/lokavyasingh/Documents/dev/vysted-terminal` on b
 (added in this same commit), which re-derives this exact classification straight from
 git on demand.
 
-Snapshot captured **01:19 IST, 2026-09-27**. Base: `origin/004-r4-experience-rebuild` @
-`94cca66dad74609b5a50e0685e291bfc743b3595`. The prior capture in this document was
-**07:11 IST, 2026-09-26** — roughly 40 commits/runs ago (batch-25 through batch-27,
-several changelog and rc1-gate rounds, and rc1 fix rounds 1-3 have all landed since).
+Snapshot captured **01:27 IST, 2026-09-27**. Base: `origin/004-r4-experience-rebuild` @
+`045da329895e0a31fae53630ad581429980ced3e`. The prior capture in this document was
+**07:11 IST, 2026-09-26** — many commits/runs ago (batch-25 through batch-27, several
+changelog and rc1-gate rounds, and rc1 fix rounds 1-3 have all landed since; the base
+sha itself moved twice more while this refresh was being written, which is expected
+with the gate run live).
 
-**Caveat: the rc1 gate round-4 run (`wf_f8604b35-a49`) is LIVE right now.** Its
-worktrees under `.claude/worktrees/wf_f8604b35-a49-*` and branches
-`worktree-agent-rc1-round-4-*` may appear, move, or disappear while this snapshot is
-being read — treat any SHA touching that run as indicative of the moment captured,
-not frozen fact. The main checkout and every worktree registered under this session's
-scratchpad are live burst-agent or gate infrastructure — see the `LIVE` rows below.
+**Caveat: two rc1 gate attempts are LIVE right now** — `wf_f8604b35-a49` (round-4,
+attempt 1) and `wf_a404279c-3f4` (round-4, attempt 2, launched after attempt 1 blocked
+on a sidecar-build wait). Worktrees under `.claude/worktrees/wf_f8604b35-a49-*` and
+`.claude/worktrees/wf_a404279c-3f4-*`, and branches `worktree-agent-rc1-round-4-*`, may
+appear, move, or disappear while this snapshot is being read — treat any SHA touching
+either run as indicative of the moment captured, not frozen fact. The main checkout and
+every worktree registered under this session's scratchpad are live burst-agent or gate
+infrastructure — see the `LIVE` rows below.
 
 **Re-run the script at prune time; do not act on this snapshot's shas.** For example:
 
 ```
 python3 scripts/r15/hygiene_inventory.py \
   --live-run wf_f8604b35-a49 \
+  --live-run wf_a404279c-3f4 \
   --live-path /path/to/session/scratchpad
 ```
 
 `--base` overrides the comparison ref, `--tag r15-rc1` (once that tag exists) adds an
-ancestor-of-tag cross-check, and `--json` emits the same classification as JSON. The
-script's `SAFE-LOCAL-DELETE` / `git worktree remove` / `git branch -d` proposals are
+ancestor-of-tag cross-check, `--keep <glob>` overrides which branch names are never
+proposed for deletion (default: `main`, `master`, `00[0-9]-*` — the milestone branches
+land in a `KEEP-MILESTONE` bucket, informational only, never in the exact-commands
+section), and `--json` emits the same classification as JSON. The script's
+`SAFE-LOCAL-DELETE` / `git worktree remove` / `git branch -d` proposals are otherwise
 purely mechanical (merged into base + identical to its origin counterpart, or a
-registered worktree whose tip is merged and not live) — it has no notion of
-"historically significant branch name," so the lead should still eyeball the exact
-command list before running it (e.g. the milestone branches `001-agent-native-redesign`,
-`002-jarvis-intelligence`, `003-vysted-rebuild` land in the merged/matches-origin bucket
-mechanically, the same as burst-agent scratch). The script never proposes deleting a
+registered worktree whose tip is merged and not live). It never proposes deleting a
 remote (`origin/*`) branch, by design — remote deletion stays a manual, deliberate lead
 action.
 
@@ -45,20 +49,20 @@ still prepared in advance of the rc1 tag.
 ---
 ## 1. Registered worktrees
 
-Source: `git worktree list --porcelain`, base `origin/004-r4-experience-rebuild` @ `94cca66dad74609b5a50e0685e291bfc743b3595`.
+Source: `git worktree list --porcelain`, base `origin/004-r4-experience-rebuild` @ `045da329895e0a31fae53630ad581429980ced3e`.
 
 | Path | Branch | Tip | Path exists? | Status |
 |---|---|---|---|---|
-| `/Users/lokavyasingh/Documents/dev/vysted-terminal` | `004-r4-experience-rebuild` | `94cca66d` | yes | **LIVE** |
+| `/Users/lokavyasingh/Documents/dev/vysted-terminal` | `004-r4-experience-rebuild` | `045da329` | yes | **LIVE** |
 | `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/batch-25-int` | `worktree-agent-batch-25-int` | `2e988c0d` | yes | **LIVE** |
 | `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/batch-26-int` | `worktree-agent-batch-26-int` | `2e1950fe` | yes | **LIVE** |
 | `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/batch-27-int` | `worktree-agent-batch-27-int` | `9bb60037` | yes | **LIVE** |
 | `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/changelog-2` | `worktree-agent-changelog-2` | `fecdde48` | yes | **LIVE** |
 | `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/changelog-3` | `worktree-agent-changelog-3` | `3f580b14` | yes | **LIVE** |
-| `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/changelog-4` | `worktree-agent-changelog-4` | `3db2867a` | yes | **LIVE** |
+| `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/changelog-4` | `worktree-agent-changelog-4` | `1a9257c7` | yes | **LIVE** |
 | `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/gate-r3` | `worktree-agent-rc1-gate-r3` | `6553c92d` | yes | **LIVE** |
 | `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/gate-r4` | `worktree-agent-rc1-gate-r4` | `f906f219` | yes | **LIVE** |
-| `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/hygiene-2` | `worktree-agent-hygiene-2` | `94cca66d` | yes | **LIVE** |
+| `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/hygiene-2` | `worktree-agent-hygiene-2` | `11f6e057` | yes | **LIVE** |
 | `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/lows-cn/r15-agent-077` | `worktree-agent-lows-CN-r15-agent-077-4c6dfe8` | `80f8d7a2` | yes | **LIVE** |
 | `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/lows-cn/r15-code-agent-031` | `worktree-agent-lows-CN-r15-code-agent-031-4c6dfe8` | `695e934a` | yes | **LIVE** |
 | `/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/lows-cn/r15-code-data-019` | `worktree-agent-lows-CN-r15-code-data-019-4c6dfe8` | `31aa053b` | yes | **LIVE** |
@@ -131,7 +135,7 @@ Source: `git for-each-ref refs/heads` (400 refs), cross-checked against `origin/
 
 ### CHECKED-OUT (worktree) — never proposed (44)
 
-- `004-r4-experience-rebuild` `94cca66d`
+- `004-r4-experience-rebuild` `045da329`
 - `main` `cfcf5bef`
 - `worktree-agent-batch-25-W1` `ef102fa5`
 - `worktree-agent-batch-25-W2` `ab826232`
@@ -148,8 +152,8 @@ Source: `git for-each-ref refs/heads` (400 refs), cross-checked against `origin/
 - `worktree-agent-batch-27-int` `9bb60037`
 - `worktree-agent-changelog-2` `fecdde48`
 - `worktree-agent-changelog-3` `3f580b14`
-- `worktree-agent-changelog-4` `3db2867a`
-- `worktree-agent-hygiene-2` `94cca66d`
+- `worktree-agent-changelog-4` `1a9257c7`
+- `worktree-agent-hygiene-2` `11f6e057`
 - `worktree-agent-lows-CN-r15-agent-077-4c6dfe8` `80f8d7a2`
 - `worktree-agent-lows-CN-r15-code-agent-031-4c6dfe8` `695e934a`
 - `worktree-agent-lows-CN-r15-code-data-019-4c6dfe8` `31aa053b`
@@ -175,6 +179,12 @@ Source: `git for-each-ref refs/heads` (400 refs), cross-checked against `origin/
 - `worktree-agent-rc1-gate-r4` `f906f219`
 - `worktree-agent-rc1-round-3-01d6920-fix-int` `5ff9be04`
 - `worktree-agent-rc1-round-3-01d6920-fix-r1-W1-adapter-nokey-humanize` `ac0d8617`
+
+### KEEP-MILESTONE (3)
+
+- `001-agent-native-redesign` `fcd6fcff` (merged: yes; origin: identical) — never proposed, matches a `--keep` glob
+- `002-jarvis-intelligence` `4143296c` (merged: yes; origin: identical) — never proposed, matches a `--keep` glob
+- `003-vysted-rebuild` `20fe0044` (merged: yes; origin: identical) — never proposed, matches a `--keep` glob
 
 ### MERGED (no matching origin ref — not proposed) (182)
 
@@ -361,11 +371,8 @@ Source: `git for-each-ref refs/heads` (400 refs), cross-checked against `origin/
 - `worktree-wf_fbb7a07b-9f8-8` `cfcf5bef`
 - `worktree-wf_fbb7a07b-9f8-9` `cfcf5bef`
 
-### SAFE-LOCAL-DELETE (136)
+### SAFE-LOCAL-DELETE (133)
 
-- `001-agent-native-redesign` `fcd6fcff`
-- `002-jarvis-intelligence` `4143296c`
-- `003-vysted-rebuild` `20fe0044`
 - `worktree-agent-batch-10-W1-runtime-backtest` `2ef48a4b`
 - `worktree-agent-batch-10-W2-catalog-hostactions` `cf95fb48`
 - `worktree-agent-batch-10-W3-fundamentals-bse-cache` `a9109f8c`
@@ -561,10 +568,10 @@ scratchpad directory backs it) — it shows up under §2 (Local branches), not �
 
 ## 3. Remote agent branches (`origin/worktree-agent-*`)
 
-Source: `git for-each-ref refs/remotes/origin/worktree-agent-*` (247 refs). Remote deletion is never proposed by this script — local copies only.
+Source: `git for-each-ref refs/remotes/origin/worktree-agent-*` (249 refs). Remote deletion is never proposed by this script — local copies only.
 
-- Merged into base: 189
-- Unmerged: 58
+- Merged into base: 190
+- Unmerged: 59
 
 Unmerged remote agent branches (kept, informational only):
 
@@ -575,6 +582,7 @@ Unmerged remote agent branches (kept, informational only):
 - `origin/worktree-agent-batch-25-W1-data002-wip` `b91ddef3`
 - `origin/worktree-agent-design` `876fde35`
 - `origin/worktree-agent-formula` `87a5cec7`
+- `origin/worktree-agent-hygiene-2` `11f6e057`
 - `origin/worktree-agent-lows-CN-r15-agent-077-4c6dfe8` `80f8d7a2`
 - `origin/worktree-agent-lows-CN-r15-code-agent-031-4c6dfe8` `695e934a`
 - `origin/worktree-agent-lows-CN-r15-code-data-019-4c6dfe8` `31aa053b`
@@ -654,11 +662,11 @@ Source: `git remote prune origin --dry-run` (read-only; no refs were pruned by t
 | Worktrees: UNMERGED | 4 |
 | Worktrees: PRUNABLE-REGISTRATION | 0 |
 | Local branches: total | 400 |
-| Local branches: SAFE-LOCAL-DELETE | 136 |
+| Local branches: SAFE-LOCAL-DELETE | 133 |
 | Local branches: UNMERGED-UNPUSHED (keep) | 1 |
-| Remote agent branches: total | 247 |
-| Remote agent branches: merged | 189 |
-| Remote agent branches: unmerged | 58 |
+| Remote agent branches: total | 249 |
+| Remote agent branches: merged | 190 |
+| Remote agent branches: unmerged | 59 |
 
 ## Exact deletion commands (lead runs these)
 
@@ -675,9 +683,6 @@ git worktree remove /Users/lokavyasingh/Documents/dev/vysted-terminal/.claude/wo
 git worktree remove /Users/lokavyasingh/Documents/dev/vysted-terminal/.claude/worktrees/wf_fbb7a07b-9f8-8
 git worktree remove /Users/lokavyasingh/Documents/dev/vysted-terminal/.claude/worktrees/wf_fbb7a07b-9f8-9
 git worktree prune
-git branch -d 001-agent-native-redesign
-git branch -d 002-jarvis-intelligence
-git branch -d 003-vysted-rebuild
 git branch -d worktree-agent-batch-10-W1-runtime-backtest
 git branch -d worktree-agent-batch-10-W2-catalog-hostactions
 git branch -d worktree-agent-batch-10-W3-fundamentals-bse-cache

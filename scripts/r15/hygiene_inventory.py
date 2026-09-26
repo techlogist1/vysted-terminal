@@ -22,6 +22,8 @@ import subprocess
 import sys
 from dataclasses import dataclass
 
+DEFAULT_KEEP = ["main", "master", "00[0-9]-*"]
+
 NEVER_TOUCH = [
     "The other Tauri+Python product's containers/listeners.",
     "The operator's app data / OS keychain entries.",
@@ -78,11 +80,14 @@ class LocalBranchEntry:
     merged: bool
     origin_sha: str | None
     checked_out: bool
+    kept: bool = False
 
     @property
     def status(self) -> str:
         if self.checked_out:
             return "CHECKED-OUT (worktree) — never proposed"
+        if self.kept:
+            return "KEEP-MILESTONE"
         if self.merged and self.origin_sha == self.sha:
             return "SAFE-LOCAL-DELETE"
         if self.merged:
@@ -187,6 +192,8 @@ def classify(args: argparse.Namespace) -> dict:
         if main_branch:
             protected_branches.add(main_branch)
 
+    keep_globs = args.keep if args.keep is not None else list(DEFAULT_KEEP)
+
     origin_shas = {}
     for line in git(
         "for-each-ref", "refs/remotes/origin", "--format=%(refname:short) %(objectname)"
@@ -200,6 +207,7 @@ def classify(args: argparse.Namespace) -> dict:
     ).splitlines():
         name, _, sha = line.partition(" ")
         checked_out = name in checked_out_branches or name in protected_branches
+        kept = any(fnmatch.fnmatch(name, g) for g in keep_globs)
         local_branches.append(
             LocalBranchEntry(
                 name=name,
@@ -207,6 +215,7 @@ def classify(args: argparse.Namespace) -> dict:
                 merged=is_ancestor(sha, base),
                 origin_sha=origin_shas.get(name),
                 checked_out=checked_out,
+                kept=kept,
             )
         )
 
@@ -296,7 +305,17 @@ def render_markdown(data: dict, args: argparse.Namespace) -> str:
     for status, entries in sorted(by_status.items(), key=lambda kv: kv[0]):
         lines.append(f"### {status} ({len(entries)})\n")
         for b in sorted(entries, key=lambda e: e.name):
-            lines.append(f"- `{b.name}` `{b.sha[:8]}`")
+            if status == "KEEP-MILESTONE":
+                origin_note = (
+                    "identical"
+                    if b.origin_sha == b.sha
+                    else ("mismatch" if b.origin_sha else "none")
+                )
+                lines.append(
+                    f"- `{b.name}` `{b.sha[:8]}` (merged: {'yes' if b.merged else 'no'}; origin: {origin_note}) — never proposed, matches a `--keep` glob"
+                )
+            else:
+                lines.append(f"- `{b.name}` `{b.sha[:8]}`")
         lines.append("")
 
     lines.append("## 3. Remote agent branches (`origin/worktree-agent-*`)\n")
@@ -395,6 +414,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument(
         "--live", action="append", default=[], help="extra fnmatch glob for LIVE paths"
     )
+    p.add_argument(
+        "--keep",
+        action="append",
+        default=None,
+        help=f"fnmatch glob on branch name; matches are never proposed for `git branch -d` "
+        f"(default when omitted: {DEFAULT_KEEP})",
+    )
     p.add_argument("--json", action="store_true")
     p.add_argument("--selftest", action="store_true")
     return p.parse_args(argv)
@@ -433,8 +459,20 @@ def selftest() -> None:
         origin_sha="c" * 40,
         checked_out=False,
     )
+    # Merged and origin-identical, same as dead_branch — but matches a DEFAULT_KEEP
+    # glob (00[0-9]-*), so it must never be proposed either.
+    milestone_branch = LocalBranchEntry(
+        name="001-agent-native-redesign",
+        sha="d" * 40,
+        merged=True,
+        origin_sha="d" * 40,
+        checked_out=False,
+        kept=True,
+    )
 
-    cmds = build_deletion_commands([live_wt, dead_wt], [live_branch, dead_branch])
+    cmds = build_deletion_commands(
+        [live_wt, dead_wt], [live_branch, dead_branch, milestone_branch]
+    )
 
     assert not any(live_wt.path in c for c in cmds), (
         "selftest failed: emitted a delete for a LIVE worktree"
@@ -447,6 +485,15 @@ def selftest() -> None:
     )
     assert any(f" {dead_branch.name}" in c for c in cmds), (
         "selftest failed: did not propose the dead branch"
+    )
+    assert not any(f" {milestone_branch.name}" in c for c in cmds), (
+        "selftest failed: emitted a delete for a --keep-matched (KEEP-MILESTONE) branch"
+    )
+    assert milestone_branch.status == "KEEP-MILESTONE", (
+        "selftest failed: a --keep-matched branch did not classify as KEEP-MILESTONE"
+    )
+    assert any(fnmatch.fnmatch("002-jarvis-intelligence", g) for g in DEFAULT_KEEP), (
+        "selftest failed: DEFAULT_KEEP no longer covers the 00N-* milestone pattern"
     )
     print("selftest OK", file=sys.stderr)
 
