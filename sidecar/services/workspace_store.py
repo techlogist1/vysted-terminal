@@ -28,9 +28,19 @@ logger = logging.getLogger(__name__)
 
 WORKSPACE_SUFFIX = ".vysted-workspace"
 
-# Encoded-stem ceiling: the stem plus the suffix and the per-writer temp/backup
-# tails must stay under the 255-byte filename limit of every desktop filesystem.
-_MAX_STEM_LENGTH = 200
+# Encoded-stem ceiling, in BYTES (not characters): the stem plus the suffix and
+# the per-writer temp/backup tails must stay under the 255-byte filename limit
+# of every desktop filesystem.
+_MAX_STEM_BYTES = 200
+
+# Characters that are unsafe as a filename component on at least one of
+# macOS/Windows/Linux (path separators + Windows-reserved punctuation).
+# Control characters and NUL are also encoded (checked separately below).
+# Everything else — including non-Latin scripts (Devanagari, CJK, …) — is
+# kept as its raw UTF-8 bytes: percent-encoding it would triple-to-quadruple
+# its byte footprint against the cap for no filesystem-safety benefit
+# (R15-UI-082).
+_UNSAFE_CHARS = frozenset('/\\:*?"<>|')
 
 
 class WorkspaceNameError(ValueError):
@@ -44,17 +54,27 @@ class WorkspaceNotFoundError(KeyError):
 def _filename_stem(name: str) -> str:
     """Map any workspace name to one safe filename component.
 
-    Letters, digits, spaces, ``-`` and ``_`` stay readable (so names saved
-    before the encoding keep their files); everything else, including ``/``,
-    ``\\``, ``.``, ``:`` and NUL, is percent-encoded, so the stem never holds a
-    path separator or a dot segment.
+    Path separators, Windows-reserved punctuation, control characters, NUL
+    and literal ``.`` (which would otherwise let a name spell a dot-segment
+    like ``..``) are percent-encoded; every other character — letters,
+    digits, spaces and any other Unicode script — stays as its raw UTF-8
+    bytes, so the stem never holds a path separator or a dot segment but a
+    non-ASCII name isn't penalised against the byte cap below.
     """
     cleaned = name.strip()
     if not cleaned:
         raise WorkspaceNameError("A workspace name is required.")
-    stem = quote(cleaned, safe=" ").replace(".", "%2E")
-    if len(stem) > _MAX_STEM_LENGTH:
-        raise WorkspaceNameError(f"Workspace name {cleaned!r} is too long to save.")
+    encoded = "".join(
+        quote(ch, safe="") if ch in _UNSAFE_CHARS or ord(ch) < 0x20 or ord(ch) == 0x7F else ch
+        for ch in cleaned
+    )
+    stem = encoded.replace(".", "%2E")
+    stem_bytes = len(stem.encode("utf-8"))
+    if stem_bytes > _MAX_STEM_BYTES:
+        raise WorkspaceNameError(
+            f"Workspace name {cleaned!r} is too long to save "
+            f"({stem_bytes} bytes when encoded, max {_MAX_STEM_BYTES})."
+        )
     return stem
 
 

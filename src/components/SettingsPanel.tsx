@@ -1781,6 +1781,8 @@ function LayoutsSection() {
           onChange={(e) => setNewName(e.target.value)}
           placeholder="Save current layout as…"
           aria-label="New layout name"
+          maxLength={200}
+          title="Up to 200 bytes when saved — shorter for non-Latin scripts."
           className={cn(inputClass, "flex-1")}
         />
         <Button type="submit" size="sm" variant="outline" disabled={busy || newName.trim() === ""}>
