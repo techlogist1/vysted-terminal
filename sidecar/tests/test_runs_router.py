@@ -1,10 +1,11 @@
 """runs router tests — the exact wire shapes + api_key-never-echoed.
 
 The executor (``run_manager``) is unit-tested in ``test_run_manager``; here we
-exercise the TRANSPORT: the routes the frontend consumes, the camelCase wire
-shape, the status codes, and the security invariant that the BYOK ``api_key``
-crosses for the run only and is never echoed in any response. ``run_manager`` is
-mocked at the boundary so a route test does not depend on a detached task
+exercise the TRANSPORT: the routes the frontend consumes, the snake_case wire
+shape (the one spelling, R15-CODE-AGENT-031), the status codes, and the
+security invariant that the BYOK ``api_key`` crosses for the run only and is
+never echoed in any response. ``run_manager`` is mocked at the boundary so a
+route test does not depend on a detached task
 running on the TestClient's short-lived event loop.
 """
 
@@ -58,16 +59,14 @@ def test_launch_returns_201_with_run_id(
             "prompt": "research NVDA",
             "provider": "anthropic",
             "model": "claude-opus-4-8",
-            "apiKey": "sk-secret-123",
-            "budget": {"maxTokens": 50000, "maxSpendUsd": 2.5},
+            "api_key": "sk-secret-123",
+            "budget": {"max_tokens": 50000, "max_spend_usd": 2.5},
             "options": {"temperature": 0.2},
         },
     )
     assert resp.status_code == 201
     body = resp.json()
-    # Emitted in BOTH spellings so either frontend read resolves.
-    assert body["runId"] == "run-xyz"
-    assert body["run_id"] == "run-xyz"
+    assert body == {"run_id": "run-xyz"}
     # The launch was driven with the parsed budget + key.
     assert captured["agent_id"] == "copilot"
     assert captured["prompt"] == "research NVDA"
@@ -84,7 +83,7 @@ def test_launch_response_never_echoes_api_key(
     monkeypatch.setattr(run_manager, "launch_run", lambda **_k: "run-1")
     resp = client.post(
         "/agents/copilot/runs",
-        json={"prompt": "x", "apiKey": secret},
+        json={"prompt": "x", "api_key": secret},
     )
     assert resp.status_code == 201
     assert secret not in resp.text
@@ -108,18 +107,14 @@ def test_launch_rejects_a_non_positive_ceiling(
     assert resp.status_code == 422
 
 
-def test_launch_accepts_snake_case_run_budget(
+def test_launch_rejects_a_camel_case_budget(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """populate_by_name lets the body use snake_case too (defensive)."""
-    captured: dict[str, object] = {}
-    monkeypatch.setattr(run_manager, "launch_run", lambda **k: captured.update(k) or "run-1")
-    resp = client.post(
-        "/agents/copilot/runs",
-        json={"prompt": "x", "budget": {"max_tokens": 100}},
-    )
-    assert resp.status_code == 201
-    assert captured["budget"].max_tokens == 100  # type: ignore[union-attr]
+    """R15-CODE-AGENT-031: the body has one spelling; a camelCase ceiling is a 422,
+    never a silently dropped limit."""
+    monkeypatch.setattr(run_manager, "launch_run", lambda **_k: "run-1")
+    resp = client.post("/agents/copilot/runs", json={"prompt": "x", "budget": {"maxTokens": 100}})
+    assert resp.status_code == 422
 
 
 # ---------------------------------------------------------------------------
@@ -127,8 +122,57 @@ def test_launch_accepts_snake_case_run_budget(
 # ---------------------------------------------------------------------------
 
 
-def test_list_runs_dual_case_shape(client: TestClient) -> None:
-    """GET /runs emits BOTH camelCase and snake_case so either poller read works."""
+#: The exact ``GET /runs`` row keys, and the nested cost / budget keys.
+_SUMMARY_KEYS = {
+    "id",
+    "agent_id",
+    "agent_name",
+    "mode",
+    "status",
+    "cost",
+    "budget",
+    "provider",
+    "model",
+    "plan",
+    "activity",
+    "detail",
+    "question",
+    "created_at",
+    "updated_at",
+}
+_DETAIL_KEYS = _SUMMARY_KEYS | {
+    "transcript",
+    "checkpoint_messages",
+    "answer",
+    "brief",
+    "host_actions",
+}
+_COST_KEYS = {"tokens", "spend_usd", "steps"}
+_BUDGET_KEYS = {"max_tokens", "max_spend_usd", "max_wall_seconds", "max_steps"}
+
+
+def test_runs_rows_carry_only_snake_case_keys(client: TestClient) -> None:
+    """R15-CODE-AGENT-031: the wire is snake_case only, list and detail alike.
+
+    The router used to emit every key twice (camelCase + snake_case); the rail
+    reads ``cost.spend_usd``, so a camelCase-only "cleanup" zeroed its cost.
+    The exact key sets pin the one spelling both ways.
+    """
+    _seed_run("run-1", max_tokens=5000, max_spend_usd=1.5)
+    runs_store.update_run("run-1", cost={"tokens": 1234, "spend_usd": 0.05, "steps": 3})
+    row = client.get("/runs").json()["runs"][0]
+    detail = client.get("/runs/run-1").json()
+    assert set(row) == _SUMMARY_KEYS
+    assert set(detail) == _DETAIL_KEYS
+    for body in (row, detail):
+        assert set(body["cost"]) == _COST_KEYS
+        assert set(body["budget"]) == _BUDGET_KEYS
+        assert body["cost"]["spend_usd"] == 0.05
+        assert body["budget"]["max_tokens"] == 5000
+
+
+def test_list_runs_shape(client: TestClient) -> None:
+    """GET /runs returns ``{runs: [...]}`` with the rail's snake_case fields."""
     _seed_run("run-1", max_tokens=5000, max_spend_usd=1.5)
     runs_store.update_run("run-1", cost={"tokens": 1234, "spend_usd": 0.05, "steps": 3})
     resp = client.get("/runs")
@@ -138,19 +182,14 @@ def test_list_runs_dual_case_shape(client: TestClient) -> None:
     row = body["runs"][0]
     assert row["id"] == "run-1"
     assert row["status"] == "running"
-    # camelCase (the documented contract).
-    assert row["agentId"] == "copilot"
-    assert row["agentName"] == "Copilot"
-    assert row["cost"]["spendUsd"] == 0.05
-    assert row["budget"]["maxTokens"] == 5000
-    assert "createdAt" in row and "updatedAt" in row
-    # snake_case (what the lead's run-tray poller currently reads).
     assert row["agent_id"] == "copilot"
     assert row["agent_name"] == "Copilot"
     assert row["cost"]["spend_usd"] == 0.05
     assert row["cost"]["tokens"] == 1234
     assert row["cost"]["steps"] == 3
     assert row["budget"]["max_tokens"] == 5000
+    assert row["created_at"] == 1000
+    assert isinstance(row["updated_at"], int)
 
 
 def test_get_run_returns_transcript(client: TestClient) -> None:
@@ -168,7 +207,7 @@ def test_get_run_returns_transcript(client: TestClient) -> None:
     assert resp.status_code == 200
     body = resp.json()
     assert body["status"] == "done"
-    assert body["checkpointMessages"] == 3
+    assert body["checkpoint_messages"] == 3
     roles = [m["role"] for m in body["transcript"]]
     assert roles == ["user", "assistant"]  # system elided
 

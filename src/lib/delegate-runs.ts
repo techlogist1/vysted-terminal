@@ -57,11 +57,11 @@ const origins = new Map<
   { threadId?: string; agentId: string; agentName: string; messageId: string }
 >();
 
-/** `GET /runs/{id}` output fields (either spelling for the host actions). */
+/** `GET /runs/{id}` output fields. The runs wire is snake_case only, both
+ *  ways (`sidecar/models/run.py`, R15-CODE-AGENT-031). */
 interface RunOutputWire {
   answer?: string | null;
   brief?: Record<string, unknown> | null;
-  hostActions?: HostActionWire[];
   host_actions?: HostActionWire[];
 }
 
@@ -151,7 +151,7 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
     threadId: launch.threadId,
   });
   try {
-    const body = await sidecarRequest<{ runId?: string; run_id?: string }>(
+    const body = await sidecarRequest<{ run_id?: string }>(
       "POST",
       `/agents/${encodeURIComponent(launch.agentId)}/runs`,
       {
@@ -177,7 +177,7 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
         },
       },
     );
-    const sidecarRunId = body.runId ?? body.run_id;
+    const sidecarRunId = body.run_id;
     useAgentRunsStore.getState().updateRun(localId, { sidecarRunId });
     if (sidecarRunId) {
       origins.set(sidecarRunId, {
@@ -295,7 +295,7 @@ async function deliverRunOutput(
   }
   const enqueue = useProposedChangesStore.getState().enqueue;
   const gate = { batchId: messageId, agentId: origin.agentId, agentName: origin.agentName };
-  for (const action of output.hostActions ?? output.host_actions ?? []) {
+  for (const action of output.host_actions ?? []) {
     enqueue({ toolCallId: action.tool_call_id, name: action.name, input: action.input, ...gate });
   }
   if (output.brief) {

@@ -88,6 +88,33 @@ Phase 1 panel. Macro data and deeper fundamentals coverage arrive in Phase 2.
 - `GET /macro/{series_id}` → `501` until the Phase 2 OpenBB ODP wrap. The
   `MacroSeries` contract is defined and ready.
 
+### Delegate runs — `RunSummary` / `RunDetail`
+
+Durable background agent runs (`routers/runs.py`, models in `models/run.py`).
+Every key is **snake_case, in both directions**; there are no camelCase aliases
+(the frontend reader is `src/lib/delegate-runs.ts`, pinned by
+`sidecar/tests/test_runs_router.py`).
+
+- `POST /agents/{agent_id}/runs` → `201 { run_id }` — body
+  `{ prompt, context_snapshot?, provider?, model?, api_key?, budget?, options? }`;
+  `budget` is `{ max_tokens?, max_spend_usd?, max_wall_seconds?, max_steps? }`
+  (each > 0; an omitted ceiling takes the server default). An unknown key is a
+  `422`. `api_key` crosses for the run only: never stored, logged or echoed.
+- `GET /runs` → `{ runs: RunSummary[] }`, newest first. `RunSummary` is
+  `{ id, agent_id, agent_name, mode, status, cost, budget, provider, model, plan,
+activity, detail, question, created_at, updated_at }`; `cost` is
+  `{ tokens, spend_usd, steps }` (`spend_usd` is an estimate, not a billed
+  figure); timestamps are epoch seconds.
+- `GET /runs/{run_id}` → `RunDetail` = `RunSummary` +
+  `{ transcript, checkpoint_messages, answer, brief, host_actions }`;
+  `host_actions` items are `{ tool_call_id, name, input }`. Unknown id → `404`.
+- `POST /runs/{run_id}/cancel` → `{ cancelled: true }`;
+  `POST /runs/{run_id}/start` → `{ started: true }`;
+  `POST /runs/{run_id}/answer` (body `{ answer }`) → `{ resumed: true }`;
+  `POST /runs/{run_id}/resume` → `{ resumed: true }`. Start, answer and resume
+  take the BYOK key in the `X-LLM-Api-Key` header. Unknown run → `404`; an
+  illegal state change → `409`.
+
 ## WebSocket endpoints
 
 - `WS /crypto/stream?exchange=binance&symbol=BTC/USDT` — pushes a JSON-serialised

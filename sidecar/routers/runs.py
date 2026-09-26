@@ -10,13 +10,16 @@ Routes span two path roots, so this module uses ONE prefix-less router with
 fully-qualified paths (a single ``module.router`` is what ``app.create_app``
 mounts):
 
-- ``POST /agents/{agent_id}/runs``  — launch a detached run → 201 ``{runId}``.
+- ``POST /agents/{agent_id}/runs``  — launch a detached run → 201 ``{run_id}``.
 - ``GET  /runs``                    — list runs, newest first.
 - ``GET  /runs/{run_id}``           — one run + its transcript digest.
 - ``POST /runs/{run_id}/cancel``    — cancel a run (Discard for a planned one).
 - ``POST /runs/{run_id}/start``     — start a planned run (its plan approved).
 - ``POST /runs/{run_id}/answer``    — deliver a human-in-the-loop reply (FR-028).
 - ``POST /runs/{run_id}/resume``    — re-enter an aborted run from its checkpoint.
+
+Every key on the wire is snake_case, in and out (``models.run``; pinned by
+``test_runs_router``, documented in ``docs/SIDECAR_API.md``, R15-CODE-AGENT-031).
 
 Resume and answer take the BYOK key in the ``X-LLM-Api-Key`` header and re-use
 the provider and model persisted at launch.
@@ -34,7 +37,6 @@ from contextlib import contextmanager
 from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, status
-from pydantic import BaseModel
 
 from models.run import RunAnswerRequest, RunLaunchRequest
 from services import run_manager, runs_store
@@ -48,32 +50,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["runs"])
 
 
-def _dual_case(model: BaseModel) -> dict[str, Any]:
-    """Serialise a run model with BOTH camelCase aliases and snake_case names.
-
-    The documented wire contract is camelCase (``spendUsd``, ``agentId``,
-    ``createdAt``), but the lead's run-tray poller reads snake_case
-    (``spend_usd``, ``agent_id``). Emitting BOTH spellings on every GET keeps
-    either consumer working without a contract negotiation — a JSON object with
-    duplicate-meaning keys is cheap and the frontend picks whichever it reads.
-    Nested ``cost`` / ``budget`` objects get the same dual treatment.
-    """
-    camel = model.model_dump(mode="json", by_alias=True)
-    snake = model.model_dump(mode="json", by_alias=False)
-    merged: dict[str, Any] = {**snake, **camel}
-    for key in ("cost", "budget"):
-        if isinstance(camel.get(key), dict) and isinstance(snake.get(key), dict):
-            merged[key] = {**snake[key], **camel[key]}
-    return merged
-
-
 @router.post("/agents/{agent_id}/runs", status_code=status.HTTP_201_CREATED)
 async def launch_run(agent_id: str, payload: RunLaunchRequest) -> dict[str, str]:
     """Launch a detached Delegate run; return its id (201).
 
     The run keeps executing after this request closes (FR-027). ``api_key`` is
-    used for the run only and is never persisted. The id is emitted as BOTH
-    ``runId`` and ``run_id`` so either spelling the frontend reads resolves.
+    used for the run only and is never persisted.
     """
     try:
         run_id = run_manager.launch_run(
@@ -88,26 +70,22 @@ async def launch_run(agent_id: str, payload: RunLaunchRequest) -> dict[str, str]
         )
     except RunManagerError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
-    return {"runId": run_id, "run_id": run_id}
+    return {"run_id": run_id}
 
 
 @router.get("/runs")
 def list_runs() -> dict[str, list[dict[str, Any]]]:
-    """List every run, newest first.
-
-    Each run is serialised dual-case (camelCase + snake_case) so the run-tray
-    poller reads either spelling — see :func:`_dual_case`.
-    """
-    return {"runs": [_dual_case(run) for run in runs_store.list_runs()]}
+    """List every run, newest first."""
+    return {"runs": [run.model_dump(mode="json") for run in runs_store.list_runs()]}
 
 
 @router.get("/runs/{run_id}")
 def get_run(run_id: str) -> dict[str, Any]:
-    """Return one run with its transcript / checkpoint summary (dual-case)."""
+    """Return one run with its transcript / checkpoint summary."""
     run = runs_store.get_run(run_id)
     if run is None:
         raise HTTPException(status_code=404, detail=f"unknown run: {run_id!r}")
-    return _dual_case(run)
+    return run.model_dump(mode="json")
 
 
 @router.post("/runs/{run_id}/cancel")
