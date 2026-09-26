@@ -19,7 +19,7 @@ from models.llm import LLMUsage
 from services.budget_guard import BudgetGuard
 from services.research.deep import _reflect_says_complete
 from services.research.models import ResearchBrief, ResearchSource
-from services.research.verify import _parse_verdict, cross_check
+from services.research.verify import _parse_verdict, _row_domains, cross_check
 
 
 def _run(coro):
@@ -503,6 +503,44 @@ def test_one_domain_reached_by_both_lanes_is_not_independent() -> None:
     assert check["corroborated"] is False
     assert llm.verdict_prompts == []
     assert "corroborated across channels" not in brief.markdown
+
+
+def _one_claim_dual(searx_url: str, native_url: str) -> tuple[ResearchBrief, _FakeLLM]:
+    llm = _FakeLLM(claims="EPS was $12.96", verdict="AGREE — both state $12.96")
+    native = {
+        "ok": True,
+        "text": "EPS was $12.96.",
+        "citations": [{"url": native_url, "title": "t"}],
+    }
+    brief = _run(
+        cross_check(
+            _brief(),
+            tool_call=_web_tool([searx_url]),
+            llm_call=llm,
+            budget=BudgetGuard(max_steps=10),
+            min_domains=2,
+            native_search=_native_channel(native),
+        )
+    )
+    return brief, llm
+
+
+def test_two_hosts_of_one_registrable_domain_are_not_independent() -> None:
+    """R15-RESEARCH-015: independence counts registrable domains, not hosts —
+    www.nseindia.com and nsearchives.nseindia.com are one source."""
+    urls = ["https://www.nseindia.com/q", "https://nsearchives.nseindia.com/x.pdf"]
+    assert _row_domains([{"url": u} for u in urls]) == {"nseindia.com"}
+    brief, llm = _one_claim_dual(*urls)
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "unverified"
+    assert check["corroborated"] is False
+    assert llm.verdict_prompts == []
+    assert "corroborated across channels" not in brief.markdown
+    # Control: two genuinely different registrable domains still corroborate.
+    brief, _ = _one_claim_dual("https://blog.example/a", "https://other.example/b")
+    check = brief.structured["cross_check"]["claims"][0]
+    assert check["verdict"] == "agree"
+    assert check["corroborated"] is True
 
 
 # --- R15-RESEARCH-006: the claim loop is bounded by the round's own wall -------
