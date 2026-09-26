@@ -8,13 +8,16 @@ import { useWorkflowStore } from "@/store/workflow";
 
 import { NodeEditorPanel } from "./NodeEditorPanel";
 
-// `getSidecarBaseUrl` reaches into the Tauri runtime — stub it.
+// `getSidecarBaseUrl` reaches into the Tauri runtime — stub it. The schedule
+// list rides the shared `sidecarRequest` (R15-CODE-FRONTEND-027), whose port
+// lookup is internal: answer it with no schedules.
 vi.mock("@/lib/sidecar-client", async () => {
   const actual =
     await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
   return {
     ...actual,
     getSidecarBaseUrl: vi.fn(async () => "http://127.0.0.1:9999"),
+    sidecarRequest: vi.fn(async () => []),
   };
 });
 

@@ -28,7 +28,17 @@
 
 import { create } from "zustand";
 
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import {
+  extractSidecarDetail,
+  getSidecarBaseUrl,
+  SIDECAR_REQUEST_TIMEOUT_MS,
+  SidecarError,
+  sidecarFetch,
+  sidecarRequest,
+  sidecarRequestInit,
+  type SidecarMethod,
+  type SidecarRequestOptions,
+} from "@/lib/sidecar-client";
 
 import type {
   SavedWorkflows,
@@ -272,21 +282,22 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     const { signal, onEvent, provider, model, apiKey } = options;
     const base = await getSidecarBaseUrl();
     const url = new URL("/workflow/run", base);
-    const body = JSON.stringify({ spec, inputs: inputs ?? {}, provider, model, apiKey });
-
-    const response = await fetch(url.toString(), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "text/event-stream",
-      },
-      body,
-      signal,
-    });
+    // The shared transport: the session region + search headers ride the run
+    // so its data/research nodes route like a chat turn does. No deadline —
+    // the stream lives as long as the run.
+    const response = await sidecarFetch(
+      url.toString(),
+      await sidecarRequestInit("POST", {
+        body: { spec, inputs: inputs ?? {}, provider, model, apiKey },
+        headers: { Accept: "text/event-stream" },
+        signal,
+      }),
+    );
 
     if (!response.ok || !response.body) {
-      const detail = await _safeText(response);
-      throw new Error(detail ?? `sidecar returned ${response.status}`);
+      const fallback = `sidecar returned ${response.status}`;
+      const parsed: unknown = await response.json().catch(() => null);
+      throw new SidecarError(response.status, extractSidecarDetail(parsed, fallback));
     }
 
     const reader = response.body.getReader();
@@ -370,15 +381,6 @@ function _dispatchFrame(frame: string, onEvent: (event: WorkflowRunEvent) => voi
   }
 }
 
-async function _safeText(response: Response): Promise<string | null> {
-  try {
-    const text = await response.text();
-    return text.slice(0, 500);
-  } catch {
-    return null;
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Selectors — referentially-stable per the useSyncExternalStore Gotcha
 // ---------------------------------------------------------------------------
@@ -406,39 +408,31 @@ export function selectActiveRunLog(state: WorkflowState): readonly WorkflowRunEv
 // Schedules + webhook URLs (R15-AGENT-023)
 // ---------------------------------------------------------------------------
 
-async function _sidecarJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const base = await getSidecarBaseUrl();
-  const response = await fetch(new URL(path, base).toString(), init);
-  if (!response.ok) {
-    throw new Error((await _safeText(response)) ?? `sidecar returned ${response.status}`);
-  }
-  return (await response.json()) as T;
+/** Local CRUD through the shared verb, under the list/CRUD deadline. */
+function _sidecarJson<T>(
+  method: SidecarMethod,
+  path: string,
+  opts: Pick<SidecarRequestOptions, "body" | "headers"> = {},
+): Promise<T> {
+  return sidecarRequest<T>(method, path, { ...opts, timeoutMs: SIDECAR_REQUEST_TIMEOUT_MS });
 }
 
-const JSON_HEADERS = { "Content-Type": "application/json" };
-
 export function listSchedules(): Promise<WorkflowSchedule[]> {
-  return _sidecarJson<WorkflowSchedule[]>("/workflow/schedules");
+  return _sidecarJson<WorkflowSchedule[]>("GET", "/workflow/schedules");
 }
 
 export function createSchedule(body: ScheduleCreate): Promise<WorkflowSchedule> {
-  return _sidecarJson<WorkflowSchedule>("/workflow/schedules", {
-    method: "POST",
-    headers: JSON_HEADERS,
-    body: JSON.stringify(body),
-  });
+  return _sidecarJson<WorkflowSchedule>("POST", "/workflow/schedules", { body });
 }
 
 export function setScheduleEnabled(id: string, enabled: boolean): Promise<WorkflowSchedule> {
-  return _sidecarJson<WorkflowSchedule>(`/workflow/schedules/${encodeURIComponent(id)}`, {
-    method: "PATCH",
-    headers: JSON_HEADERS,
-    body: JSON.stringify({ enabled }),
+  return _sidecarJson<WorkflowSchedule>("PATCH", `/workflow/schedules/${encodeURIComponent(id)}`, {
+    body: { enabled },
   });
 }
 
 export async function deleteSchedule(id: string): Promise<void> {
-  await _sidecarJson(`/workflow/schedules/${encodeURIComponent(id)}`, { method: "DELETE" });
+  await _sidecarJson("DELETE", `/workflow/schedules/${encodeURIComponent(id)}`);
 }
 
 /**
@@ -446,8 +440,7 @@ export async function deleteSchedule(id: string): Promise<void> {
  * header (the BYOK transport), never the body or path, and is never returned.
  */
 export async function registerWebhookUrl(ref: string, url: string): Promise<void> {
-  await _sidecarJson<WebhookRefs>(`/workflow/webhooks/${encodeURIComponent(ref)}`, {
-    method: "PUT",
+  await _sidecarJson<WebhookRefs>("PUT", `/workflow/webhooks/${encodeURIComponent(ref)}`, {
     headers: { "X-Vysted-Webhook-Url": url },
   });
 }
@@ -460,7 +453,7 @@ export async function registerWebhookUrl(ref: string, url: string): Promise<void
 export async function registerSavedWebhooks(
   readSecret: (ref: string) => Promise<string | null>,
 ): Promise<void> {
-  const saved = await _sidecarJson<SavedWorkflows>("/workflow/saved");
+  const saved = await _sidecarJson<SavedWorkflows>("GET", "/workflow/saved");
   const refs = new Set<string>();
   for (const spec of saved.workflows) {
     for (const node of spec.nodes) {

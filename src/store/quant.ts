@@ -3,13 +3,12 @@
  *
  * Lightweight Zustand store that holds the last result from each
  * QuantLib pricing endpoint plus an error / loading channel per surface.
- * The panels render directly off the slice; tests inject a mocked
- * sidecar base URL the same way Phase 5 stores do.
+ * The panels render directly off the slice; tests mock `sidecarRequest`.
  */
 
 import { create } from "zustand";
 
-import { getSidecarBaseUrl } from "@/lib/sidecar-client";
+import { sidecarRequest } from "@/lib/sidecar-client";
 
 import type {
   BondPricingRequest,
@@ -51,30 +50,13 @@ interface QuantState {
 }
 
 /**
- * Tiny ``fetch``-based POST helper. Mirrors the pattern used by
- * ``src/store/safety.ts`` — the sidecar base URL is resolved once via
- * Tauri's ``get_sidecar_port`` command (cached by ``sidecar-client``).
+ * POST through the shared sidecar verb (region/search headers, the named
+ * unreachable error, the `detail` sentence on a non-2xx). No deadline: the
+ * sidecar bounds the compute (MAX_MC_PATHS, MAX_BINOMIAL_STEPS) and a large
+ * Monte-Carlo run legitimately takes a while.
  */
-async function postJson<TReq, TRes>(path: string, body: TReq): Promise<TRes> {
-  const base = await getSidecarBaseUrl();
-  const response = await fetch(new URL(path, base).toString(), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!response.ok) {
-    let detail = response.statusText;
-    try {
-      const parsed = (await response.json()) as { detail?: string };
-      if (parsed.detail) {
-        detail = parsed.detail;
-      }
-    } catch {
-      // body was not JSON — keep the status text
-    }
-    throw new Error(`POST ${path} failed (${response.status}): ${detail}`);
-  }
-  return (await response.json()) as TRes;
+function postJson<TReq, TRes>(path: string, body: TReq): Promise<TRes> {
+  return sidecarRequest<TRes>("POST", path, { body });
 }
 
 export const useQuantStore = create<QuantState>((set) => ({

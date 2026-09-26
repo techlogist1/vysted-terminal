@@ -35,6 +35,7 @@ import { extractSidecarDetail, getSidecarBaseUrl, sidecarGet } from "@/lib/sidec
 
 import type { LLMProviderId } from "../../types/ai";
 import type { AgentSpec } from "../../types/plugin";
+import { SIDECAR_REQUEST_TIMEOUT_MS, sidecarFetch, sidecarRequestInit } from "@/lib/sidecar-client";
 
 // ---------------------------------------------------------------------------
 // Custom-agent identity
@@ -217,7 +218,10 @@ export const useAgentsStore = create<AgentsState>((set, get) => ({
     set({ customStatus: "loading", customError: null });
     try {
       const base = await getSidecarBaseUrl();
-      const response = await fetch(new URL("/custom-agents", base).toString());
+      const response = await sidecarFetch(
+        new URL("/custom-agents", base).toString(),
+        await sidecarRequestInit("GET", { timeoutMs: SIDECAR_REQUEST_TIMEOUT_MS }),
+      );
       if (!response.ok) {
         // A failed load is an error with the server's detail, never an empty
         // "ready" list that reads as "you have no custom agents".

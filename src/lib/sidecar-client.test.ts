@@ -246,4 +246,103 @@ describe("sidecarRequest error layer", () => {
 
     await expect(sidecarRequest("DELETE", "/custom-agents/custom:x")).resolves.toBeUndefined();
   });
+
+  it("R15-CODE-FRONTEND-027: a call past its timeoutMs is SidecarError(504), not a hang", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string, init?: RequestInit) =>
+        new URL(url).pathname === "/health"
+          ? Promise.resolve({ ok: true } as Response)
+          : new Promise<Response>((_, reject) => {
+              init?.signal?.addEventListener("abort", () => reject(init.signal?.reason));
+            }),
+      ),
+    );
+    const { SIDECAR_TIMED_OUT, SidecarError, sidecarRequest } =
+      await import("@/lib/sidecar-client");
+
+    const error = await sidecarRequest("GET", "/workflow/schedules", { timeoutMs: 20 }).catch(
+      (e: unknown) => e,
+    );
+
+    expect(error).toBeInstanceOf(SidecarError);
+    expect((error as InstanceType<typeof SidecarError>).status).toBe(504);
+    expect((error as Error).message).toBe(SIDECAR_TIMED_OUT);
+  });
+
+  it("R15-CODE-FRONTEND-027: sidecarRequestInit carries the region, per-call headers and a JSON body", async () => {
+    const { useSettingsStore } = await import("@/store/settings");
+    useSettingsStore.setState({ region: "IN" });
+    const { sidecarRequestInit } = await import("@/lib/sidecar-client");
+
+    const init = await sidecarRequestInit("PATCH", {
+      body: { enabled: false },
+      headers: { Accept: "text/event-stream", "X-Unset": undefined },
+    });
+
+    const headers = init.headers as Record<string, string>;
+    expect(init.method).toBe("PATCH");
+    expect(init.body).toBe(JSON.stringify({ enabled: false }));
+    expect(headers["X-Vysted-Region"]).toBe("IN");
+    expect(headers.Accept).toBe("text/event-stream");
+    expect(headers["Content-Type"]).toBe("application/json");
+    expect("X-Unset" in headers).toBe(false);
+    expect(init.signal).toBeUndefined();
+  });
+});
+
+/** R15-CODE-FRONTEND-027: the custom-agents load rides the shared transport. */
+describe("custom-agents refresh transport", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    invokeMock.mockReset();
+    invokeMock.mockResolvedValue(READY);
+    vi.unstubAllGlobals();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("sends the session region under a deadline", async () => {
+    const calls: RequestInit[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (new URL(url).pathname !== "/health") {
+          calls.push(init ?? {});
+        }
+        return new Response("[]", { status: 200 });
+      }),
+    );
+    const { useSettingsStore } = await import("@/store/settings");
+    useSettingsStore.setState({ region: "IN" });
+    const { useAgentsStore } = await import("@/store/agents");
+
+    await useAgentsStore.getState().refreshCustom();
+
+    expect(useAgentsStore.getState().customStatus).toBe("ready");
+    expect(calls).toHaveLength(1);
+    expect((calls[0]!.headers as Record<string, string>)["X-Vysted-Region"]).toBe("IN");
+    expect(calls[0]!.signal).toBeTruthy();
+  });
+
+  it("a refused load names the engine, never WebKit's 'Load failed'", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => {
+        if (new URL(url).pathname === "/health") {
+          return { ok: true } as Response;
+        }
+        throw new TypeError("Load failed");
+      }),
+    );
+    const { SIDECAR_UNREACHABLE } = await import("@/lib/sidecar-client");
+    const { useAgentsStore } = await import("@/store/agents");
+
+    await useAgentsStore.getState().refreshCustom();
+
+    expect(useAgentsStore.getState().customStatus).toBe("error");
+    expect(useAgentsStore.getState().customError).toBe(SIDECAR_UNREACHABLE);
+  });
 });
