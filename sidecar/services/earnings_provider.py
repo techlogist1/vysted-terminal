@@ -98,14 +98,55 @@ def _num(value: Any) -> float | None:
     return out
 
 
-def _revenue_currency(payload: dict[str, Any]) -> str:
-    """Yahoo reports statement-size revenue fields in the filer's reporting
+#: A quarterly revenue estimate, annualised (x4), must land within this
+#: multiple of ``totalRevenue`` for ``financialCurrency`` to be trusted as the
+#: estimate's currency (R15-DATA-113 round 2: INFY's is 97x out of band).
+_REVENUE_SCALE_BAND = (0.3, 3.0)
+
+#: Home-market currency for the app's covered markets, keyed by Yahoo's
+#: ``info.country`` — the fallback once the scale check can't confirm
+#: ``financialCurrency`` (e.g. INFY/INFY.NS: financialCurrency USD, but the
+#: revenue estimate is INR-sized). ponytail: covers the markets this app
+#: already serves; extend the map, not the scale-check logic, for a new one.
+_COUNTRY_CURRENCY: dict[str, str] = {
+    "India": "INR",
+    "Taiwan": "TWD",
+    "United States": "USD",
+}
+
+
+def _revenue_currency(payload: dict[str, Any], sample_estimate: float | None) -> str | None:
+    """The revenue-estimate fields' own currency.
+
+    Yahoo reports statement-size revenue fields in the filer's reporting
     currency (``financialCurrency``), which for a foreign reporter (WIT: ADS
     trades in USD, reports in INR) differs from the trading ``currency`` every
-    other money field on the payload carries. Falls back to ``currency`` when
-    ``financialCurrency`` is absent — never a bare 'USD' default hiding a
-    missing field (R15-DATA-113)."""
-    return str(payload.get("financial_currency") or payload.get("currency") or "USD")
+    other money field on the payload carries. But ``financialCurrency`` alone
+    is not trustworthy: INFY / INFY.NS both report ``financialCurrency`` USD
+    while their revenue estimates are INR-sized (R15-DATA-113 round 2).
+
+    Scale-check instead: annualise ``sample_estimate`` (x4, a quarterly
+    figure) and compare it with ``total_revenue`` (already on the payload, in
+    ``financialCurrency`` by construction — no extra fetch). Within
+    ``_REVENUE_SCALE_BAND``, trust ``financialCurrency``. Otherwise fall back
+    to the issuer's home-market currency from ``_COUNTRY_CURRENCY``. If
+    neither answer is determinable, ``None`` — never a guessed label.
+    """
+    financial_currency = payload.get("financial_currency")
+    total_revenue = payload.get("total_revenue")
+    if (
+        financial_currency
+        and sample_estimate is not None
+        and total_revenue
+        and _REVENUE_SCALE_BAND[0]
+        <= (sample_estimate * 4) / total_revenue
+        <= _REVENUE_SCALE_BAND[1]
+    ):
+        return str(financial_currency)
+    country = payload.get("country")
+    if country in _COUNTRY_CURRENCY:
+        return _COUNTRY_CURRENCY[country]
+    return None
 
 
 def _analyst_count(frame: Any) -> int | None:
@@ -177,6 +218,8 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
         "revenue_estimate": rev_frame,
         "currency": info.get("currency") or "USD",
         "financial_currency": info.get("financialCurrency"),
+        "total_revenue": _num(info.get("totalRevenue")),
+        "country": info.get("country"),
         "name": info.get("longName") or info.get("shortName"),
     }
 
@@ -209,6 +252,8 @@ def _fetch_history_sync(symbol: str) -> dict[str, Any]:
         "earnings_dates": earnings_dates,
         "currency": info.get("currency") or "USD",
         "financial_currency": info.get("financialCurrency"),
+        "total_revenue": _num(info.get("totalRevenue")),
+        "country": info.get("country"),
     }
 
 
@@ -415,9 +460,10 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
     normalized = payload["symbol"]
     history_frame = payload.get("history")
     currency = str(payload.get("currency") or "USD")
-    revenue_currency = _revenue_currency(payload)
     announcement_dates = _extract_announcement_dates(payload.get("earnings_dates"))
     entries: list[EarningsHistoryEntry] = []
+    newest_period_end: date | None = None
+    newest_revenue_estimate: float | None = None
     if isinstance(history_frame, pd.DataFrame) and not history_frame.empty:
         for raw_idx, row in history_frame.iterrows():
             period_end = _as_date(raw_idx)
@@ -427,6 +473,10 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
             if eps_actual is None:
                 continue
             eps_estimate = _num(row.get("epsEstimate"))
+            revenue_estimate_mean = _num(row.get("revenueEstimate"))
+            if newest_period_end is None or period_end > newest_period_end:
+                newest_period_end = period_end
+                newest_revenue_estimate = revenue_estimate_mean
             entries.append(
                 EarningsHistoryEntry(
                     period_end=period_end,
@@ -434,11 +484,14 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
                     eps_actual=eps_actual,
                     eps_estimate_mean=eps_estimate,
                     revenue_actual=_num(row.get("revenueActual")),
-                    revenue_estimate_mean=_num(row.get("revenueEstimate")),
+                    revenue_estimate_mean=revenue_estimate_mean,
                     currency=currency,
-                    revenue_currency=revenue_currency,
                 )
             )
+    # The whole response shares one revenue_currency, scale-checked against
+    # the NEWEST quarter's estimate (R15-DATA-113).
+    revenue_currency = _revenue_currency(payload, newest_revenue_estimate)
+    entries = [entry.model_copy(update={"revenue_currency": revenue_currency}) for entry in entries]
     entries.sort(key=lambda entry: entry.period_end, reverse=True)
     return EarningsHistoryResponse(symbol=normalized, history=entries)
 
@@ -518,7 +571,7 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
         revenue_estimate_low=rev_low,
         revenue_analyst_count=_analyst_count(payload.get("revenue_estimate")),
         currency=str(payload.get("currency") or "USD"),
-        revenue_currency=_revenue_currency(payload),
+        revenue_currency=_revenue_currency(payload, rev_mean),
         provider=PROVIDER,
         as_of=datetime.now(tz=UTC),
     )

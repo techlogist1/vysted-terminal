@@ -256,7 +256,10 @@ def test_invoke_agent_takes_its_key_from_the_request_header_not_an_argument() ->
     assert seen["body"] == {"prompt": "hi", "api_key": "canary-key"}
 
 
-@pytest.mark.parametrize(("tool", "path"), [("list_agents", "/agents"), ("list_runs", "/runs")])
+@pytest.mark.parametrize(
+    ("tool", "path"),
+    [("list_agents", "/agents"), ("list_runs", "/runs"), ("list_workspaces", "/workspace")],
+)
 def test_list_tool_reports_a_failing_route_as_not_ok(tool: str, path: str) -> None:
     """A 5xx from the in-process route is ``ok: false``, never an empty list."""
     broken = FastAPI()
@@ -270,3 +273,36 @@ def test_list_tool_reports_a_failing_route_as_not_ok(tool: str, path: str) -> No
     payload = result.structured_content or {}
     assert payload.get("ok") is False
     assert "500" in payload["error"]
+
+
+def test_workspace_tools_reach_the_workspace_router(
+    client: TestClient, tmp_path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-CODE-AGENT-034: the router prefix is ``/workspace``, not ``/workspaces``;
+    ``list_workspaces`` and ``get_workspace`` must hit the real routes."""
+    monkeypatch.setenv("VYSTED_DATA_DIR", str(tmp_path))
+    save = client.post("/workspace", json={"name": "t-ws", "workspace": {"version": 1}})
+    assert save.status_code == 200
+
+    server = mcp_server.get_mcp_server()
+
+    listed = asyncio.run(server.call_tool("list_workspaces", {}))
+    listed_payload = listed.structured_content or {}
+    assert isinstance(listed_payload, dict)
+    assert "t-ws" in listed_payload["workspaces"]
+
+    got = asyncio.run(server.call_tool("get_workspace", {"workspace_id": "t-ws"}))
+    assert got.structured_content == {"version": 1}
+
+    missing = asyncio.run(server.call_tool("get_workspace", {"workspace_id": "missing"}))
+    missing_payload = missing.structured_content or {}
+    assert missing_payload.get("ok") is False
+    assert "404" in missing_payload["error"]
+
+    # The fresh case: a name with a space round-trips through the quoted path.
+    save_spaced = client.post(
+        "/workspace", json={"name": "my workspace", "workspace": {"version": 2}}
+    )
+    assert save_spaced.status_code == 200
+    got_spaced = asyncio.run(server.call_tool("get_workspace", {"workspace_id": "my workspace"}))
+    assert got_spaced.structured_content == {"version": 2}
