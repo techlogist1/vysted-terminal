@@ -53,7 +53,7 @@ model llama3.1:8b via ollama. At `2e1950fe`: `pnpm typecheck && vitest run` 153 
 coverage along with its fix); full sidecar `pytest` 3645 passed + 1 skipped; focused pytest 143
 passed, focused vitest 238 passed; `ci-local-2.log` green end to end, cargo 19, clippy 0, ruff clean,
 smoke 3/3. Register adjudication (AGENT-010 + LEAD-039 → `fixed`; DATA-002 → `blocked_tier4`) lands
-in the docs commit `4c727edc`, not in this merge.
+in the lead's batch-26 DONE commit `01d6920a`, not in this merge.
 
 **Issues carried forward** (none in this batch's scope): the CommandPalette live-search dedupe
 (`liveSymbolRows` in `CommandPalette.tsx`) keys "already known" off the bare symbol, so a live-search
