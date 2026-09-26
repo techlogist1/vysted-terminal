@@ -1,57 +1,71 @@
-# P3 lows pre-integration candidate: fresh diff review
+# P3 lows pre-integration candidate: fresh diff review (extras pass)
 
-Reviewed 07:00 IST by a fresh read-only Opus reviewer. Status: **untested pending integration**. I ran no pytest, vitest, tsc, eslint, cargo or build.
+Reviewed 07:33-07:40 IST by a fresh read-only Opus reviewer. Status: **untested pending integration**. No pytest, vitest, tsc, eslint, cargo or build was run. This supersedes the 07:00 review at `266ed2ef` (its one blocker, R15-DOCS-010, is fixed at `8295dab8`).
 
-- Branch: `origin/worktree-agent-lows-P3-int-4c6dfe8` @ `266ed2ef75a399b8e8602fce3b1f786edd60db30`
-- Base: `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`. Diff: 161 files, +4065/-1944.
+- Branch: `origin/worktree-agent-lows-P3-int-4c6dfe8` @ `6e41bfc1bdd4255b427da84bb999641f7df78998` (fetched 07:33 IST, matches the assembler's return)
+- Base: `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2`. Diff: 179 files, +4646/-2001. Delta since the last review (`266ed2ef..6e41bfc1`): 23 files, +583/-59.
 
 ## Verdict: needs_fix
 
-There is one blocking item. The R15-DOCS-010 test (W7, never run by its writer) is deterministically red.
+One blocking item: an unowned existing test in `sidecar/tests/test_growth_check.py` goes deterministically red under R15-DATA-102 (CN), which the writer did not update and could not run.
 
 ## Blocking
 
 | File | Issue | Fix |
 |---|---|---|
-| `src/modules/notes/NotesToolbar.test.tsx` (describe "NotesToolbar — R15-DOCS-010") | The test checks `className` as a substring. `expect(boldButton.className).not.toContain("bg-charcoal-800")` runs against the inactive class string from `NotesToolbar.tsx:109`, which is `"text-charcoal-400 hover:bg-charcoal-800 hover:text-charcoal-100"`. That string contains the substring `bg-charcoal-800` via `hover:bg-charcoal-800`, so the first assertion always fails. The later `waitFor(... toContain("bg-charcoal-800"))` would always pass, so the test also cannot tell active from inactive. | Assert on class tokens: `expect(boldButton.classList.contains("bg-charcoal-800")).toBe(false)` before the click and `.toBe(true)` in the `waitFor`. Alternatively assert `aria-pressed` false then true together with the token check. This keeps the entry's behaviour, the fill class on the active button. Do not weaken it. This is a writer (W7) branch fix, or a recorded assembler fixup on the candidate. |
+| `sidecar/tests/test_growth_check.py:252` `test_snapshot_attaches_computed_growth_next_to_provider_values` | R15-DATA-102 makes `growth_check.should_cross_check` return False unless `growth_basis == "mrq_yoy"` is stated (`services/growth_check.py:85`). This test's fixture (`_fund_tool({...})`, lines 266-273) passes `{"symbol": "ICICIBANK.NS", "provider": "yfinance", "revenue_growth": 0.669, "earnings_growth": 0.03}` with no `growth_basis`, and `snapshot_structured` (`services/research/fast.py:369`) passes that dict straight to `should_cross_check`. So `_yoy()` returns None, `fake_yoy` is never called, and `fund["revenue_growth_computed"]` at line 281 raises KeyError. The writer fixed the two gate tests in the same file but not this one. `conftest._no_network_growth_check` skips this module, so no stub masks it. | Add `"growth_basis": "mrq_yoy"` to that fixture dict. This matches production, where `yfinance_provider.get_fundamentals` (`:901-902`) now states `mrq_yoy` whenever Yahoo serves a growth scalar. It is a fixture update that follows the entry's contract ("the producer states the basis") and weakens no assertion. Record it as an R15-DATA-102 fixup on the candidate. Advisory, same file: add the same key to the `test_snapshot_attaches_nothing_when_statements_unavailable` fixture (line 314) too. It still passes, but only vacuously now, because the gate short-circuits before the `none_yoy` path it means to exercise. |
 
 ## Checks
 
-(a) **Safety surface untouched.** `git diff --stat base...branch` is empty for `sidecar/models/audit_log.py`, `sidecar/services/kill_switch.py`, `src-tauri/src/kill_switch.rs`, `types/proposed-change.ts` and `sidecar/services/agent_runtime.py`. Nothing touches `src-tauri/`, `.github/`, `package.json`, `pnpm-lock` or Cargo either. The FE change in `ChatSidebar.tsx` (R15-CODE-FRONTEND-032) only *adds* `rejectAllChanges()` on `/clear` and on a space switch, which tightens the proposal gate. Nothing auto-applies.
+(a) **Safety surface.** `git diff --stat base...branch` is empty for `sidecar/models/audit_log.py`, `sidecar/services/kill_switch.py`, `src-tauri/src/kill_switch.rs` and `types/proposed-change.ts`. It is not empty for `sidecar/services/agent_runtime.py` (+45/-2, R15-LEAD-036 merge `e377d55a`). I read every hunk:
+- a new `_carry_fence` after `_units`;
+- `_TurnState.fence`;
+- the prefix and carry lines in `_consume_round._release`;
+- the `_release_point(prefix + text)` hold.
 
-(b) **Claimed tests exist as source.** I found every Python test id named in PREINT.md with a `def` on the branch: 32 ids, and each is present once. The whole-file claims (`test_brave_backend`, `test_mojeek_backend`, `test_earnings_quality`, `test_growth_check`, `test_range_check`) are unchanged regression files for refactors, which is legitimate. Every vitest claim has its entry marker or assertion on the branch except R15-UI-069. `ScreenerPanel.test.tsx` is unchanged and has no UI-069 case, and WRITERS says test "None", so that claim rests on existing coverage. Spot-read assertions: `test_workflow_router` (dangling edge gives run-start + one run-error; `resume-from` returns 400, `resumeFrom` returns 422), `test_quant_router::test_duplicate_pillar_is_400`, `test_quant_yield_curve::test_grid_distinct_and_within_max_tenor`, `test_symbol_resolver` (garbled master gives 200; autocomplete exact band binds), `test_ddg_backend::test_one_search_with_lite_fallback_takes_one_pacing_slot`, `brief-layout.test.tsx`. Each asserts its entry's behaviour. The exception is the DOCS-010 case under Blocking.
+All of these belong to the prose-release streaming guard. None of them touches `_auto_publish_event`, ack/staged narration, the host-action/`INVALID_ARGS_SENTINEL` path, auto_brief dispatch or ProposedChange. The proposed-changes gate itself is untouched, so the merge stands under the P1 precedent. If the lead reads the surface as the whole file, drop merge `e377d55a`; nothing else depends on it.
 
-(c) **Conflict resolution.** There were no conflicts. I verified this independently: the nine writer diffs against `ebc5ed41` cover 159 files with zero overlap between writers, and every writer tip is an ancestor of the candidate. Every one of those 159 files is blob-identical on the candidate to its writer tip (0 mismatches), so no writer hunk was dropped. The candidate's remaining 2 files are the assembler commit `266ed2ef`.
+Also clean: `.github/`, `tauri.conf.json`, `package.json`, `pnpm-lock.yaml`, `Cargo.toml`, `types/plugin.ts`, `CLAUDE.md`, `LICENSE`, `sidecar/agents/`, `services/agent_tools/`.
 
-(d) **Defects, imports, contracts.** Apart from the blocking item I found none. What I checked:
-- Deleted modules have no importer left: `services/quant/monte_carlo.py`, `services/workflow_nodes/registry_v0_6_0.py` (`agent_tools.registry_v0_6_0` is a different module and still exists), `src/lib/fuzzy.ts`, `exportNoteMd`, `openCryptoStream` and `StreamErrorFrame`. `needs_disambiguation` was removed from `Resolution`. The only remaining uses are wire dict keys, and the tests moved to `decide(r)` with equivalent assertions. Every `_instrument_nse/_bse/_us` call now passes a band.
-- Wire mirrors are changed together:
-  - `Quote.change`/`change_percent` became nullable on both sides. The TS consumers are guarded (`EquityOverviewPanel` null-checks, `WatchlistPanel ??`, `brief-blocks typeof`). The Python consumers either pass the value through or guard for None, and `company_narrative._fmt` handles None.
-  - `Freshness` gains `"unknown"` on both sides. There is no exhaustive `Record<Freshness,…>`, and `DataBadges` handles the new value.
-  - The `CompanyNarrative` FR-124 fields are added in Python (with defaults) and in TS (required). The two TS object literals (`EquityOverviewPanel.tsx:726`, `EquityOverviewPanel.test.tsx:165`) set every field.
-  - `FieldMeta.status` became a Literal. All producers use ok/flagged/withheld/unavailable.
-  - `WorkflowRunRequest` drops `resume_from` on both sides. No TS caller used `resumeFrom`.
-  - The `LLMUsage.served_model` field is normalized to `servedModel` in `streaming.ts`.
-  - The `types/ai.ts` error member gains optional fields, which is additive.
-- MCP surface and register-counted tests: no change to `agent_tools/catalog.py`, the MCP server, or the agent JSON roster.
-- Formatting: I re-ran `ruff format --check` and `ruff check` on 86 changed .py files (clean) and `prettier --check` on 70 changed FE/doc files (clean), in the assembler worktree at `266ed2ef`.
+The R15-DOCS-025 edit to `docs/SAFETY_ARCHITECTURE.md` §2 matches the code. `types/proposed-change.ts:38` declares `AUTO_APPLIED_KINDS = ["panel", "chart", "watchlist"]`, and `data-write` and `settings` are not in it. The doc now describes that correctly (the old text wrongly said every kind auto-applies). No test source-scans SAFETY_ARCHITECTURE.md.
+
+(b) **Claimed tests exist and assert the entry.**
+- Every one of the 42 Python `file::test` ids in PREINT.md has exactly one `def` on the branch, and every named whole file exists.
+- 29 vitest files are present. The one path that is absent, `src/lib/fuzzy.test.ts`, is the sanctioned deletion (R15-CODE-FRONTEND-024).
+- The cargo test `data_dir_override_wins_when_set_to_a_non_blank_value` is at `src-tauri/src/lib.rs:820`.
+
+Extras, read in full:
+- **LEAD-036:** three fence tests plus the `_cross_round` and `_fenced_lines` helpers. Every fixture they use (`_RecordingRoundsProvider`, `_ERR`, `_NO_DATA`, `_TCS_PX`) exists at base. The tests assert no fence marker, even fence parity with the note outside the block, and an exact passthrough on an ok result.
+- **CN-077:** `test_native_search_oneshot_keeps_the_callers_base_url` asserts `built == [("openai", proxy)]`.
+- **CN-102:** the store test (basis None, field_meta provider and as_of), the served-growth test (states `mrq_yoy`) and the b7 overlay test. The flipped gate assertions in `test_growth_check.py` (absent basis True -> False) and the `test_fundamentals.py::test_get_fundamentals` change (`"mrq_yoy"` -> None when no growth is served) reverse a pinned behaviour on purpose, per the entry, and each is paired with a new positive test. I record them as changed, not weakened.
+- **NEW-drafted:** the `sidecar-specs.test.mjs` `it.each` holds for all three specs (each is `requirements.txt` plus `pyinstaller==6.20.0`). `export-artifact.test.ts` is a source scan for the static import. The DOCS-010 fixup (`8295dab8`) now uses classList tokens plus `aria-pressed`, and the component sets `aria-pressed` at `NotesToolbar.tsx:100`.
+
+(c) **Conflict resolutions.**
+- All four extra tips (`80f8d7a2`, `09d8da83`, `abcee383`, `8315c857`) match origin and are ancestors of the head.
+- Every file an extra touches is blob-identical to that extra's tip, except these:
+  - `openai.py` (CN-077): its base-to-tip patch reverse-applies cleanly on the head.
+  - `models/fundamentals.py`, `growth_check.py`, `yfinance_provider.py`, `test_fundamentals_store.py` and `types/data.ts` (CN-102): the same reverse-apply check is clean.
+  - `fundamentals_store.py` (CN-102): the patch fails only because the only difference between tip and head is W3's R15-DATA-103 Quote hunk (`change`/`change_percent` no longer coerced to 0.0; currency falls back to the row currency). Both sides are present.
+  - `RESULT.md`: the add/add concatenation. Its content is four writer reports and none of it is product.
+- No writer hunk or test was dropped. The nine set merges were verified blob-identical in the 07:00 review.
+
+(d) **Defects, imports, contracts.**
+- I found no defect in the delta apart from the blocker.
+- An AST scan of all 95 changed .py files finds no duplicated top-level def or class.
+- Every `from <sidecar module> import name` in the whole sidecar tree resolves (0 missing).
+- The removed symbols have no live referrer left: `_is_rate_limited` in growth_check and yfinance (now `provider_health.is_rate_limit`, which keeps the "Too Many Requests" match), ddg `_TokenBucket`/`_get_bucket`, fuzzy*, `exportNoteMd`, `openCryptoStream`, `register_v0_6_0_nodes`, `price_asian_mc`/`price_barrier_mc` and `StreamErrorFrame`.
+- `ruff format --check` on the 95 files and `ruff check` over sidecar/ are clean. `prettier --check` on the 77 changed ts/tsx/mjs/json/md/css files is clean.
+- Wire mirrors: the `growth_basis` default change is mirrored by a doc-only change in `types/data.ts` (the type stays `string | null`), and no frontend code reads `growth_basis`.
+- Unchanged: the MCP catalog, the agent roster and the register-counted tests.
+- Rust (`lib.rs`, PLATFORM-080): `PathBuf` is already imported. `parse_data_dir_override` is pure. Every new line is 100 characters or fewer, and by hand the `use super::{...}` rewrap and the vertical `assert_eq!` layouts agree with rustfmt defaults (fn_call_width 60). I found nothing clippy would obviously flag, but none of this has been run.
 
 ## Advisories (integrator: look here first if the chain goes red)
 
-1. **Boot path (W5, PLATFORM-068).** `create_app` now registers every node type, including the 12 core built-ins, which were previously only registered in `main.py`. Tests that reset the registry do so in their own fixtures, so this is probably benign. `test_screener_nodes::test_register_adds_screener_query_to_workflow_engine` still depends on test order, but that was already true: the old `create_app` also registered the domain nodes. Its comment still names the deleted `register_v0_6_0_nodes`. Run the full pytest suite and `node scripts/smoke-test-sidecars.mjs`.
-2. **Global 30 s default timeout in `sidecarRequest` (W1, LIFECYCLE-027).** Every REST call that does not supply its own `signal` now aborts at 30 s. The long-running flows I found are safe: SearXNG setup runs as a background task with status polling, and delegate runs are detached. Any slow synchronous GET/POST, such as a cold fundamentals or financials fetch behind a throttled Yahoo, now fails at 30 s instead of waiting. `AbortSignal.any` (used when the caller passes a signal) needs WebKit 17.4+ / WebKitGTK 2.44+. `tauri.conf.json` sets no `minimumSystemVersion`, so an older macOS or Linux webview would throw on every signal-carrying request. Consider feature-detecting it. jsdom 29 has it, so vitest is fine.
-3. **Five tests deleted from `sidecar/tests/test_ddg_backend.py`** (`test_token_bucket_*` x3, `test_module_bucket_is_lazy_and_process_global`, `test_limiter_does_not_delay_a_single_search`). They go with the deleted `_TokenBucket`, which is R15-CODE-RESEARCH-009's partition-sanctioned fix ("delete ddg.py's _TokenBucket"). They are replaced by `test_no_internal_pacing_symbols_survive_on_the_module`, `test_lite_fallback_makes_exactly_two_requests_no_pacing_wait` and `test_one_search_with_lite_fallback_takes_one_pacing_slot`. PREINT.md records only the fuzzy.test.ts deletion; the verifier should record this one too.
-4. **Changed existing assertions** (not weakened, recorded for the verifier):
-   - `test_quant_options::test_mc_rejects_too_few_paths` now goes through `options.price()` and matches the `validate_domain` message. The floor moved there (PLATFORM-041), and the engine-level checks for fewer than 3 steps or fewer than 100 paths were removed.
-   - `test_llm_openai` fake signature widened.
-   - Assembler `266ed2ef` widened the fakes in `test_research_metering.py` and `test_b5_runtime_synthesis.py` with `**_k`, without running them. The other oneshot `get_provider` fakes on the branch already take `**k` or `base_url`.
-5. **Behaviour changes that may surprise a non-P3 test:**
-   - `transform.code` `round()` now rejects digits outside [0, 15] (a negative ndigits used to work). No test on the branch uses a negative value.
-   - The code node evaluates in `asyncio.to_thread` with a 5 s `wait_for`.
-   - The `/workflow/run` stream now wraps a `WorkflowEngineError` raised before run-start as run-start + run-error.
-   - LLM adapters collapse the per-SDK except clauses into one `except Exception`, and `validate_key` no longer re-raises through an explicit clause (still propagates).
-   - The quant floors are now enforced only in `validate_domain`. A direct engine call that bypasses the dispatcher is no longer floored.
-6. **`@tiptap/extension-list` is in `package.json` and `pnpm-lock.yaml`** but is missing from the main worktree's `node_modules/@tiptap`. `ci-local`'s `pnpm install --frozen-lockfile` should restore it. If tsc still reports TS2307 for it in `src/modules/notes`, the cause is the environment, not this diff.
-7. **R15-UI-077 duplicate-pillar test** asserts that `"pillar"` appears in QuantLib's RuntimeError text. That depends on the QuantLib version's message wording, so check it first if it goes red.
-8. **Stale doc reference:** `docs/SIDECAR_API.md:94` still mentions `openCryptoStream()`, which R15-DATA-109 removed. This is docs only and outside the chain.
-9. **Carried from PREINT:** R15-DATA-102 is could_not. PLATFORM-045/046 are not_a_defect_proposed. W2.jsonl line 6 is not valid JSON. W1.jsonl arrives only via the W1 branch.
+1. **pytest, R15-DATA-102 blast radius.** Beyond the blocker, an unstated basis now turns off the quarterly growth cross-check for any producer that serves growth without stating it: legacy `fundamentals_store` rows written before the `growth_basis` column, and any non-yfinance provider. `research/semantics.py` still labels growth `mrq_yoy (provider-claimed)` without reading the basis (the writer noted this and did not file it). Run the whole `test_growth_check.py`, `test_research_semantics.py`, `test_b7_exchange_financials.py`, `test_fundamentals*.py` and `test_yfinance_provider.py`.
+2. **pytest, R15-LEAD-036.** The streaming guard's behaviour changes: an empty fence opener is held across a tool call, and `guarded != text` in that case collapses the provider's chunking into one delta. Run all of `test_agent_runtime.py`, and again after P1 lands. P1 also edits agent_runtime.py (import block, `_resolve_provider_id`, `_research_guard_seconds`, `plan_delegate_run`, `_prepare_run`), which is disjoint, and `git merge-tree` auto-merges it.
+3. **cargo fmt, clippy and test, R15-CODE-PLATFORM-080 (`lib.rs`).** None of these was run. `lib.rs` is also the P1 conflict: `git merge-tree` against P1 `dbe5fe4f` reports a CONFLICT in `src-tauri/src/lib.rs`, confirmed at 07:36 IST. The other four P2 conflicts in PREINT.md (`sidecar/main.py`, `fundamentals_store.py`, `StatusChrome.tsx`, `sidecar-client.ts`) stand as recorded.
+4. **Venv for the build and tests, R15-CODE-PLATFORM-078.** The CI workflows are unaffected: `lint.yml` pip-installs ruff and `test.yml` installs `requirements-dev.txt` into its own python. A freshly created local `sidecar/.venv` will no longer have pytest or ruff, so run `sidecar/.venv/bin/python -m pip install -r sidecar/requirements-dev.txt` first, as PREINT's recipe says. On an existing venv the dev tools stay installed and PyInstaller bundles by import anyway, so the binary does not change. The copy-metadata targets (fastmcp, mcp, anyio, httpx, starlette, uvicorn) are all runtime or transitive pins, so `ensure` does not die on missing metadata. The recipe edit forces a main sidecar rebuild through the staleness check.
+5. **Boot path, R15-CODE-PLATFORM-068** (carried): run the full pytest suite, for order effects such as `test_screener_nodes`, plus `node scripts/smoke-test-sidecars.mjs`.
+6. **Vitest, R15-CODE-FRONTEND-038.** `export-artifact.ts` now imports `getSidecarBaseUrl` statically. The two tests that mock `@/lib/sidecar-client` and reach export-artifact (`ScreenerResultsTable.test.tsx`, `csv.test.ts`) also mock `@/lib/export-artifact`, so a factory missing `getSidecarBaseUrl` is not hit. `sidecar-client.ts` does not import export-artifact, so there is no cycle. Verifying the claimed "zero [INEFFECTIVE_DYNAMIC_IMPORT]" still needs a real build.
+7. **Repo-root `RESULT.md`** (160 lines, four writer reports). It is prettier-clean, so format:check passes, but it is not product. Move it under `docs/redesign/verification/r15/stage-c/lows/P3/` or drop it before the merge into 004, and record the choice. P1 and P2 carry no root `RESULT.md`, so it will not conflict.
+8. Carried from the 07:00 review, still open: the `sidecarRequest` 30 s default timeout and the `AbortSignal.any` WebKit floor (LIFECYCLE-027); the five `test_ddg_backend.py` tests deleted with `_TokenBucket` (RESEARCH-009, sanctioned); the `**_k` fakes (`266ed2ef`) are unrun; the QuantLib wording in the R15-UI-077 "pillar" assertion; `@tiptap/extension-list` missing from local node_modules.
