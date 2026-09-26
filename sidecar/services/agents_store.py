@@ -27,6 +27,7 @@ no audit log. The Custom Agent Builder UI is the only writer.
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 import time
 from collections.abc import Iterator
@@ -36,6 +37,8 @@ from typing import Any
 from config import get_data_dir
 from models.custom_agent import CustomAgentCreate, CustomAgentRead, CustomAgentUpdate
 from services import schema_version
+
+logger = logging.getLogger(__name__)
 
 DB_FILENAME = "custom_agents.db"
 
@@ -80,12 +83,6 @@ def _connect() -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
-def _ensure_schema() -> None:
-    """Create the ``custom_agents`` table if it does not yet exist (idempotent)."""
-    with _connect():
-        pass
-
-
 def _row_to_read(row: sqlite3.Row) -> CustomAgentRead:
     """Map a database row to the ``CustomAgentRead`` Pydantic model."""
     tools_raw: Any = json.loads(row["tools_json"])
@@ -105,14 +102,24 @@ def _row_to_read(row: sqlite3.Row) -> CustomAgentRead:
 
 
 def list_agents() -> list[CustomAgentRead]:
-    """Return every stored custom agent, ordered by id (stable alphabetical)."""
+    """Return every stored custom agent, ordered by id (stable alphabetical).
+
+    An unparseable row is logged and skipped, as ``agent_runtime._discover_specs``
+    does for a malformed agent file, so one bad row cannot 500 the whole list.
+    """
     with _connect() as conn:
         rows = conn.execute(
             "SELECT id, name, philosophy, system_prompt, tools_json, "
             "default_provider, default_model, icon, created_at, updated_at "
             "FROM custom_agents ORDER BY id"
         ).fetchall()
-    return [_row_to_read(row) for row in rows]
+    agents: list[CustomAgentRead] = []
+    for row in rows:
+        try:
+            agents.append(_row_to_read(row))
+        except (ValueError, TypeError) as exc:
+            logger.warning("custom agent %s: unparseable row skipped (%s)", row["id"], exc)
+    return agents
 
 
 def get_agent(agent_id: str) -> CustomAgentRead | None:

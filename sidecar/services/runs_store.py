@@ -85,6 +85,19 @@ TRANSITIONS: dict[RunStatus, frozenset[RunStatus]] = {
 #: The detail of a ``running`` row found by a new process (its task died).
 INTERRUPTED_DETAIL = "interrupted by sidecar restart"
 
+#: A finished (done/error/cancelled) row untouched this long is deleted when a
+#: new process first opens the store, so the table cannot grow without bound.
+RETENTION_SECONDS = 30 * 24 * 3600
+
+#: The most rows ``list_runs`` (the 2 s rail poll) returns, newest first.
+LIST_LIMIT = 100
+
+#: The columns ``_row_to_summary`` reads; ``list_runs`` never loads a checkpoint.
+_SUMMARY_COLUMNS = (
+    "id, agent_id, agent_name, mode, status, budget_json, cost_json, provider, model, "
+    "plan_json, activity_json, detail, question, created_at, updated_at"
+)
+
 #: Database paths this process has reconciled (tests clear it to simulate a restart).
 _RECONCILED: set[str] = set()
 
@@ -178,7 +191,8 @@ def _connect() -> Iterator[sqlite3.Connection]:
     """Yield a connection with the schema ensured; commit on clean exit.
 
     The first connection to a database in this process reconciles it: no task
-    of this process exists yet, so every ``running`` row is an orphan.
+    of this process exists yet, so every ``running`` row is an orphan. It also
+    prunes finished rows older than :data:`RETENTION_SECONDS`.
     """
     path = _db_path()
     conn = sqlite3.connect(path)
@@ -186,22 +200,22 @@ def _connect() -> Iterator[sqlite3.Connection]:
     try:
         schema_version.migrate(conn, _STEPS)
         if path not in _RECONCILED:
+            now = int(time.time())
             conn.execute(
                 "UPDATE runs SET status = 'error', detail = ?, updated_at = ? "
                 "WHERE status = 'running'",
-                (INTERRUPTED_DETAIL, int(time.time())),
+                (INTERRUPTED_DETAIL, now),
+            )
+            conn.execute(
+                "DELETE FROM runs WHERE status IN ('done', 'error', 'cancelled') "
+                "AND updated_at < ?",
+                (now - RETENTION_SECONDS,),
             )
             _RECONCILED.add(path)
         yield conn
         conn.commit()
     finally:
         conn.close()
-
-
-def _ensure_schema() -> None:
-    """Create the ``runs`` table if it does not yet exist (idempotent)."""
-    with _connect():
-        pass
 
 
 def reset_for_tests() -> None:
@@ -346,9 +360,13 @@ def get_run(run_id: str) -> RunDetail | None:
 
 
 def list_runs() -> list[RunSummary]:
-    """Return every run, newest first (by ``created_at`` then ``id``)."""
+    """Return the newest :data:`LIST_LIMIT` runs (by ``created_at`` then ``id``)."""
     with _connect() as conn:
-        rows = conn.execute("SELECT * FROM runs ORDER BY created_at DESC, id DESC").fetchall()
+        rows = conn.execute(
+            f"SELECT {_SUMMARY_COLUMNS} FROM runs "  # noqa: S608 — literals only
+            "ORDER BY created_at DESC, id DESC LIMIT ?",
+            (LIST_LIMIT,),
+        ).fetchall()
     return [_row_to_summary(row) for row in rows]
 
 
@@ -366,8 +384,8 @@ def update_run(
     activity: list[dict[str, str]] | None = None,
     clear_question: bool = False,
     now: int | None = None,
-) -> RunDetail:
-    """Patch the mutable fields on a run and return the updated row.
+) -> None:
+    """Patch the mutable fields on a run.
 
     Only the explicitly-provided fields change — a ``None`` argument leaves the
     column untouched (so a cost update does not wipe a stored ``detail``). The
@@ -430,10 +448,6 @@ def update_run(
             if row is None:
                 raise RunNotFound(f"unknown run: {run_id!r}")
             raise RunStateError(f"run {run_id!r} is {row['status']}; it cannot become {status}")
-    stored = get_run(run_id)
-    if stored is None:  # pragma: no cover - the UPDATE just matched the row
-        raise RunNotFound(f"unknown run: {run_id!r}")
-    return stored
 
 
 def get_checkpoint(run_id: str) -> dict[str, Any]:

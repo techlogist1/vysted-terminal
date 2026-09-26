@@ -31,11 +31,13 @@ def _isolated_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def _open_portfolio(_: Path) -> None:
-    portfolio_db._ensure_schema()
+    with portfolio_db._connect():
+        pass
 
 
 def _open_agents(_: Path) -> None:
-    agents_store._ensure_schema()
+    with agents_store._connect():
+        pass
 
 
 def _open_workflows(_: Path) -> None:
@@ -44,11 +46,13 @@ def _open_workflows(_: Path) -> None:
 
 
 def _open_plugins(_: Path) -> None:
-    plugins_store._ensure_schema()
+    with plugins_store._connect():
+        pass
 
 
 def _open_runs(_: Path) -> None:
-    runs_store._ensure_schema()
+    with runs_store._connect():
+        pass
 
 
 def _open_fundamentals(db: Path) -> None:
@@ -104,7 +108,7 @@ STORES: list[tuple[object, str, str, Callable[[Path], None]]] = [
         "NULL DEFAULT '{}', cost_json TEXT NOT NULL DEFAULT '{}', detail TEXT, question TEXT, "
         "checkpoint_json TEXT, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL); "
         "INSERT INTO runs (id, agent_id, agent_name, status, created_at, updated_at) "
-        "VALUES ('KEEP', 'a', 'A', 'done', 1, 1)",
+        "VALUES ('KEEP', 'a', 'A', 'done', strftime('%s', 'now'), strftime('%s', 'now'))",
         _open_runs,
     ),
     (

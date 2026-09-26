@@ -60,12 +60,6 @@ def _connect() -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
-def _ensure_schema() -> None:
-    """Create the ``positions`` table if it does not yet exist (idempotent)."""
-    with _connect():
-        pass
-
-
 def _row_to_position(row: sqlite3.Row) -> Position:
     """Map a database row to the ``Position`` Pydantic model."""
     opened_at = row["opened_at"]
