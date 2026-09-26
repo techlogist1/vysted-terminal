@@ -728,15 +728,15 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   commercial dual license"), which was stale after the relicense
   (`r15/stage-d/LICENCE_CHECK.md:21`). This is the `CLAUDE.md` half of §3.4 and §2.19. The
   fix is already committed as `1dfda1f3` (`c1e9164c` superseded) on `origin/worktree-agent-r15-version-0.9.0-rc1`, and
-  there `CLAUDE.md:60` reads "PolyForm Strict". The branch holds two commits (`517da226` for
-  the version bump and `c1e9164c` for `CLAUDE.md`). It is pushed but not merged. It is
+  there `CLAUDE.md:60` reads "PolyForm Strict". The branch holds two commits (`3e2a7092` for
+  the version bump and `1dfda1f3` for `CLAUDE.md`). It is pushed but not merged. It is
   scheduled to merge right after the `r15-rc1` tag, so the tag's tree still carries the
   stale line.
 - **Options:** (a) merge the branch right after the tag, as planned. (b) Merge before the
   tag, which puts 0.9.0 into the tagged tree too.
 - **Recommendation:** (a). `CLAUDE.md` is agent guidance and does not ship in the bundle, so
   the stale line misleads no user. Keeping the bump out of the gated sha keeps the gate's
-  verdict valid. Review the `CLAUDE.md` diff in `c1e9164c` before the merge, because it is a
+  verdict valid. Review the `CLAUDE.md` diff in `1dfda1f3` before the merge, because it is a
   Tier-1 file.
 - **Status: awaiting operator**
 
