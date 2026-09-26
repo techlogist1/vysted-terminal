@@ -707,7 +707,8 @@ describe("workspace serialization", () => {
       symbol: "RELIANCE.NS",
       timeframe: "1h",
     });
-    expect(restored.getDrawings("other")[0]).toMatchObject({ symbol: "SPY", timeframe: "1d" });
+    // No view to inherit from: the IN-default chart symbol (R15-UI-076).
+    expect(restored.getDrawings("other")[0]).toMatchObject({ symbol: "^NSEI", timeframe: "1d" });
 
     // The oldest blobs have no chartViews: the panels open on their defaults.
     deserializeWorkspace({ name: "older", layout: LAYOUT_A, enabledModules: {} });

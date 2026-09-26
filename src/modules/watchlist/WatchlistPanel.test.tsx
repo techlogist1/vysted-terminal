@@ -3,9 +3,13 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 
 import { SidecarError } from "@/lib/sidecar-client";
 import type { Quote } from "../../../types/data";
-import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
+import { defaultSymbolsForRegion, useSymbolsStore } from "@/store/symbols";
 import { WatchlistPanel } from "./WatchlistPanel";
 import type { WatchlistRow } from "./api";
+
+// The fixtures below are written against the US watchlist; the app default is
+// IN (R15-UI-076), so seed the US list explicitly.
+const US_SYMBOLS = defaultSymbolsForRegion("US");
 
 vi.mock("./api", () => ({
   WATCHLIST_CRYPTO_EXCHANGE: "binance",
@@ -51,7 +55,7 @@ function quote(
 }
 
 function rowsFor(
-  entries = DEFAULT_SYMBOLS,
+  entries = US_SYMBOLS,
   freshness: Quote["freshness"] = "eod",
   marketState: string | null = null,
 ): WatchlistRow[] {
@@ -62,7 +66,7 @@ function rowsFor(
 }
 
 beforeEach(() => {
-  useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+  useSymbolsStore.setState({ entries: [...US_SYMBOLS] });
   mockFetch.mockReset();
   mockFetch.mockResolvedValue(rowsFor());
 });
@@ -106,7 +110,7 @@ describe("WatchlistPanel", () => {
 
   it("colours gains positive and losses negative for a LIVE quote", async () => {
     // FR-118: green/red sign colour is reserved for a live tick.
-    mockFetch.mockResolvedValue(rowsFor(DEFAULT_SYMBOLS, "live", "REGULAR"));
+    mockFetch.mockResolvedValue(rowsFor(US_SYMBOLS, "live", "REGULAR"));
     render(<WatchlistPanel />);
     expect(await screen.findByText("-1.50%")).toBeInTheDocument();
     expect(screen.getByText("-1.50%").className).toContain("text-negative");
@@ -122,7 +126,7 @@ describe("WatchlistPanel", () => {
   });
 
   it("shows a humanized session label for a closed-session quote (FR-118)", async () => {
-    mockFetch.mockResolvedValue(rowsFor(DEFAULT_SYMBOLS, "eod", "CLOSED"));
+    mockFetch.mockResolvedValue(rowsFor(US_SYMBOLS, "eod", "CLOSED"));
     render(<WatchlistPanel />);
     await screen.findByText("AAPL");
     // The raw provider token (CLOSED) is never echoed; a friendly label is shown
@@ -139,8 +143,8 @@ describe("WatchlistPanel", () => {
     // never shown as a live tick.
     const provenance = screen.getAllByTestId("provenance-badge");
     const staleness = screen.getAllByTestId("staleness-badge");
-    expect(provenance.length).toBe(DEFAULT_SYMBOLS.length);
-    expect(staleness.length).toBe(DEFAULT_SYMBOLS.length);
+    expect(provenance.length).toBe(US_SYMBOLS.length);
+    expect(staleness.length).toBe(US_SYMBOLS.length);
     // The chip renders the designed short form (R8 §3.1 — "yfinance" used to
     // mid-word clip to "YFINAN"); the full provider id stays in the tooltip.
     expect(provenance[0]).toHaveTextContent("YF");
@@ -179,7 +183,7 @@ describe("WatchlistPanel", () => {
     const pollInFlight = async () => {
       vi.useFakeTimers();
       // Live rows poll every 5 s; an all-EOD list waits 60 s (R15-DATA-066).
-      mockFetch.mockResolvedValue(rowsFor(DEFAULT_SYMBOLS, "live", "REGULAR"));
+      mockFetch.mockResolvedValue(rowsFor(US_SYMBOLS, "live", "REGULAR"));
       render(<WatchlistPanel />);
       await act(async () => {
         await vi.advanceTimersByTimeAsync(0);
@@ -273,7 +277,7 @@ describe("WatchlistPanel", () => {
 
   it("polls for quote refreshes on an interval", async () => {
     vi.useFakeTimers();
-    mockFetch.mockResolvedValue(rowsFor(DEFAULT_SYMBOLS, "live", "REGULAR"));
+    mockFetch.mockResolvedValue(rowsFor(US_SYMBOLS, "live", "REGULAR"));
     render(<WatchlistPanel />);
     // Flush the initial refresh.
     await act(async () => {

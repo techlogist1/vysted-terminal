@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidecarError } from "@/lib/sidecar-client";
 import { useSettingsStore } from "@/store/settings";
-import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
+import { defaultSymbolsForRegion, useSymbolsStore } from "@/store/symbols";
 
 import type { NewsItem } from "../../../types/data";
 
@@ -16,6 +16,10 @@ vi.mock("./api", () => ({
 
 import { fetchNews, fetchNewsSourcesStatus } from "./api";
 import { NewsFeedPanel } from "./NewsFeedPanel";
+
+// The fixtures below are written against the US watchlist; the app default is
+// IN (R15-UI-076), so seed the US list explicitly.
+const US_SYMBOLS = defaultSymbolsForRegion("US");
 
 const mockFetchNews = vi.mocked(fetchNews);
 const mockFetchNewsSourcesStatus = vi.mocked(fetchNewsSourcesStatus);
@@ -40,7 +44,7 @@ describe("NewsFeedPanel", () => {
   beforeEach(() => {
     // Reset the shared symbols store between tests so per-test mutations do
     // not leak into other cases.
-    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    useSymbolsStore.setState({ entries: [...US_SYMBOLS] });
     // Reset region to the default so a prior region-switch test can't leak.
     useSettingsStore.setState({ region: "US" });
     mockFetchNews.mockReset();
