@@ -31,7 +31,6 @@ import openai
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
-    LLMErrorEvent,
     LLMMessage,
     LLMModelOption,
     LLMToolUseEvent,
@@ -544,6 +543,7 @@ class OpenAIProvider(LLMProvider):
                 api_key,
                 [{"role": "user", "content": prompt}],
                 timeout=_REPAIR_TIMEOUT_S,
+                base_url=self._base_url,
             )
             repairs.append(repair_usage)
         except Exception:  # noqa: BLE001 — a failed repair is a non-fatal miss
@@ -657,6 +657,8 @@ class OpenAIProvider(LLMProvider):
             # and the citations (R15-AGENT-049).
             raw_usage: Any = None
             cited = False
+            # The model that answered, from the chunks (R15-AGENT-075).
+            served_model: str | None = None
             # Function-call streaming sends the id/name once and the arguments
             # JSON in fragments across many chunks, keyed by the tool_call
             # index. Accumulate per index, then emit ONE tool_use event per
@@ -680,6 +682,7 @@ class OpenAIProvider(LLMProvider):
             # content all come out as thinking events.
             splitter = ReasoningSplitter()
             async for chunk in stream:
+                served_model = getattr(chunk, "model", None) or served_model
                 # Some providers (DeepSeek, occasionally OpenAI) emit a
                 # terminal chunk with no choices but populated usage. Guard
                 # both branches independently.
@@ -792,17 +795,11 @@ class OpenAIProvider(LLMProvider):
             if native_search:
                 searches = openai_shaped_search_count(self._provider_id, raw_usage, cited)
                 usage = (usage or LLMUsage()).model_copy(update={"web_search_requests": searches})
+            if usage is not None and served_model:
+                usage = usage.model_copy(update={"served_model": served_model})
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
-        except openai.OpenAIError as exc:  # pragma: no cover — network path
-            _h = humanize(self._provider_id, exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
-        except Exception as exc:  # pragma: no cover — defensive
-            _h = humanize(self._provider_id, exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
+        except Exception as exc:  # pragma: no cover — any failure ends as a humanized error
+            yield humanize(self._provider_id, exc).to_event()
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe an authenticated endpoint with ``api_key``.
@@ -828,8 +825,6 @@ class OpenAIProvider(LLMProvider):
         except openai.BadRequestError as exc:
             if says_invalid_key(str(exc)):
                 return False
-            raise
-        except openai.OpenAIError:
             raise
 
     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:

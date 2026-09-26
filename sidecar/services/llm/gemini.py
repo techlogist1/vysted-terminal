@@ -23,7 +23,6 @@ from google.genai import errors as genai_errors
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
-    LLMErrorEvent,
     LLMMessage,
     LLMModelOption,
     LLMToolUseEvent,
@@ -100,7 +99,12 @@ def _split_system_and_contents(
 class GeminiProvider(LLMProvider):
     """Google Gemini adapter via the unified ``google-genai`` SDK."""
 
+    def __init__(self, base_url: str | None = None) -> None:
+        self._base_url = base_url
+
     def _client(self, api_key: str | None) -> genai.Client:
+        if self._base_url:
+            return genai.Client(api_key=api_key, http_options={"base_url": self._base_url})
         return genai.Client(api_key=api_key)
 
     async def stream_chat(
@@ -202,16 +206,8 @@ class GeminiProvider(LLMProvider):
                     update={"web_search_requests": len(search_queries)}
                 )
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
-        except genai_errors.APIError as exc:  # pragma: no cover — network path
-            _h = humanize("gemini", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
-        except Exception as exc:  # pragma: no cover — defensive
-            _h = humanize("gemini", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
+        except Exception as exc:  # pragma: no cover — any failure ends as a humanized error
+            yield humanize("gemini", exc).to_event()
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``models.list`` — the cheapest authenticated call."""
@@ -232,8 +228,6 @@ class GeminiProvider(LLMProvider):
             # Gemini answers a bad key with 400 INVALID_ARGUMENT / API_KEY_INVALID.
             if status == 400 and says_invalid_key(str(exc)):
                 return False
-            raise
-        except genai_errors.APIError:
             raise
 
     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:

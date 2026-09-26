@@ -13,6 +13,7 @@ from services.budget_guard import (
     BudgetGuard,
     estimate_spend_usd,
     price_per_million,
+    spend_usd,
 )
 
 
@@ -183,3 +184,20 @@ def test_native_searches_are_priced_into_the_run_spend() -> None:
     searches = LLMUsage(input_tokens=0, output_tokens=0, web_search_requests=3)
     guard.record(searches, "gemini-3-pro", "gemini")
     assert guard.cost()["spend_usd"] == pytest.approx(3 / 1000 * 14.0)
+
+
+def test_prices_with_served_model() -> None:
+    """R15-AGENT-075: a router slug (``openrouter/auto``) is priced at the model
+    that actually served the call, both for the shown spend and the ceiling."""
+    served = LLMUsage(
+        input_tokens=1_000_000, output_tokens=0, served_model="anthropic/claude-3-opus"
+    )
+    opus_rate = price_per_million("openrouter", "anthropic/claude-3-opus")
+    assert opus_rate != price_per_million("openrouter", "openrouter/auto")
+    assert spend_usd("openrouter", "openrouter/auto", served) == opus_rate
+    guard = BudgetGuard()
+    guard.record(served, "openrouter/auto", "openrouter")
+    assert guard.cost()["spend_usd"] == opus_rate
+    unnamed = LLMUsage(input_tokens=1_000_000, output_tokens=0)
+    auto_rate = price_per_million("openrouter", "openrouter/auto")
+    assert spend_usd("openrouter", "openrouter/auto", unnamed) == auto_rate

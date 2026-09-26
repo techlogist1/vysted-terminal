@@ -22,7 +22,6 @@ import groq
 from models.llm import (
     LLMDeltaEvent,
     LLMDoneEvent,
-    LLMErrorEvent,
     LLMMessage,
     LLMModelOption,
     LLMToolUseEvent,
@@ -103,8 +102,11 @@ def _to_api_messages(messages: list[LLMMessage]) -> list[dict[str, Any]]:
 class GroqProvider(LLMProvider):
     """Groq chat-completions adapter."""
 
+    def __init__(self, base_url: str | None = None) -> None:
+        self._base_url = base_url
+
     def _client(self, api_key: str | None) -> groq.AsyncGroq:
-        return groq.AsyncGroq(api_key=api_key, timeout=client_timeout())
+        return groq.AsyncGroq(api_key=api_key, base_url=self._base_url, timeout=client_timeout())
 
     async def stream_chat(
         self,
@@ -194,16 +196,8 @@ class GroqProvider(LLMProvider):
             if finish_reason is None and not tool_acc:
                 return
             yield LLMDoneEvent(usage=usage, finish_reason=finish_reason)
-        except groq.GroqError as exc:  # pragma: no cover — network path
-            _h = humanize("groq", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
-        except Exception as exc:  # pragma: no cover — defensive
-            _h = humanize("groq", exc)
-            yield LLMErrorEvent(
-                message=_h.message, action=_h.action, detail=_h.detail, code=_h.code
-            )
+        except Exception as exc:  # pragma: no cover — any failure ends as a humanized error
+            yield humanize("groq", exc).to_event()
 
     async def validate_key(self, api_key: str | None = None) -> bool:
         """Probe ``/openai/v1/models`` — the cheapest authenticated call."""
@@ -217,8 +211,6 @@ class GroqProvider(LLMProvider):
             return False
         except groq.PermissionDeniedError:
             return False
-        except groq.GroqError:
-            raise
 
     async def list_models(self, api_key: str | None = None) -> list[LLMModelOption]:
         """Live catalog via ``/openai/v1/models``, filtered to chat models.

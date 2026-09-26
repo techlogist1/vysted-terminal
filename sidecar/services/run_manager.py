@@ -49,6 +49,7 @@ from models.run import DEFAULT_RUN_BUDGET, RunBudget, RunCost, RunStatus
 from services import agent_runtime, runs_store
 from services.agent_tools.schemas import HOST_ACTION_TOOLS
 from services.budget_guard import BudgetGuard
+from services.errors import humanize
 from services.runs_store import RunNotFound, RunStateError
 
 logger = logging.getLogger(__name__)
@@ -372,7 +373,7 @@ async def _drive_run(
         runs_store.update_run(
             run_id,
             status="error",
-            detail=f"run failed: {exc}",
+            detail=humanize(provider, exc).message,
             checkpoint=_checkpoint(),
             output=_output(),
         )

@@ -24,38 +24,21 @@ import type {
   LLMMessage,
   LLMProviderId,
   LLMStreamEvent,
+  LLMUsage,
 } from "../../../types/ai";
 import type { BriefStepKind, BriefStepStatus } from "../../../types/brief";
-
-/**
- * A structured error frame (R10 D43, Team ERRORS contract): `{kind:"error",
- * message, action?, detail?, code?}`. Structurally assignable to the legacy
- * `{kind:"error", message}` union member, so every existing consumer keeps
- * working; the chat surface reads the extra fields via {@link errorFrameOf}.
- */
-export interface StreamErrorFrame {
-  kind: "error";
-  message: string;
-  /** The next step in plain language ("Top up or switch provider in Settings"). */
-  action?: string;
-  /** The raw provider text — shown behind a "Details" disclosure only. */
-  detail?: string;
-  /** Machine tag ("provider_402", "network", "auth", …). */
-  code?: string;
-}
 
 /** The structured fields of an error event, or null for a legacy plain error. */
 export function errorFrameOf(
   event: LLMStreamEvent,
-): Pick<StreamErrorFrame, "action" | "detail" | "code"> | null {
+): { action?: string; detail?: string; code?: string } | null {
   if (event.kind !== "error") {
     return null;
   }
-  const frame = event as StreamErrorFrame;
-  if (frame.action === undefined && frame.detail === undefined && frame.code === undefined) {
+  if (event.action === undefined && event.detail === undefined && event.code === undefined) {
     return null;
   }
-  return { action: frame.action, detail: frame.detail, code: frame.code };
+  return { action: event.action, detail: event.detail, code: event.code };
 }
 
 /**
@@ -82,13 +65,13 @@ export function isProviderFailure(code: string | undefined): boolean {
 
 /**
  * The extra field a `done` frame carries beside the base union member (C11,
- * R15-AGENT-082): the sidecar's estimated spend for the turn. Same
- * excess-property trick as {@link StreamErrorFrame} — the chat surface reads
- * it via {@link doneFrameOf}.
+ * R15-AGENT-082): the sidecar's estimated spend for the turn. An
+ * excess property beside the union member — the chat surface reads it via
+ * {@link doneFrameOf}.
  */
 interface StreamDoneFrame {
   kind: "done";
-  usage?: { inputTokens: number; outputTokens: number };
+  usage?: LLMUsage;
   finishReason?: string;
   contextWindow?: number;
   /** Estimated USD spend of the whole turn, or `undefined` when the model has
@@ -105,8 +88,10 @@ export function doneFrameOf(event: LLMStreamEvent): number | undefined {
 }
 
 /** The runtime's `research:begin {run_id} depth={depth} query={…}` engine step
- *  (Team RUNTIME contract) — the frontend keys its in-flight brief state on it. */
-const RESEARCH_BEGIN_RE = /^research:begin\s+(\S+)\s+depth=(\S+)(?:\s+query=(.*))?$/;
+ *  (Team RUNTIME contract) — the frontend keys its in-flight brief state on it.
+ *  The query is the model's free text and may span lines, so its tail matches
+ *  any character, newlines included (R15-RESEARCH-031). */
+const RESEARCH_BEGIN_RE = /^research:begin\s+(\S+)\s+depth=(\S+)(?:\s+query=([\s\S]*))?$/;
 
 const BRIEF_STEP_KINDS = new Set<string>([
   "plan",
@@ -474,13 +459,16 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
   }
   if (kind === "done") {
     const rawUsage = payload.usage as
-      | { input_tokens?: number; output_tokens?: number }
+      | { input_tokens?: number; output_tokens?: number; served_model?: unknown }
       | null
       | undefined;
     const usage = rawUsage
       ? {
           inputTokens: Number(rawUsage.input_tokens ?? 0),
           outputTokens: Number(rawUsage.output_tokens ?? 0),
+          ...(typeof rawUsage.served_model === "string" && rawUsage.served_model
+            ? { servedModel: rawUsage.served_model }
+            : {}),
         }
       : undefined;
     // Typed as a variable (not returned as a literal) so the extra
@@ -498,9 +486,8 @@ function normalizeEvent(payload: Record<string, unknown>): LLMStreamEvent | null
   }
   if (kind === "error") {
     // Structured frames (R10 D43) carry action/detail/code; a legacy frame's
-    // bare message passes through untouched. Typed as StreamErrorFrame so the
-    // extra fields survive the union without widening the frozen contract.
-    const frame: StreamErrorFrame = {
+    // bare message passes through untouched.
+    const frame: LLMStreamEvent = {
       kind: "error",
       message: String(payload.message ?? "unknown error"),
       ...(typeof payload.action === "string" && payload.action ? { action: payload.action } : {}),

@@ -129,7 +129,7 @@ class LLMProvider(ABC):
     """
 
     @abstractmethod
-    async def stream_chat(
+    def stream_chat(
         self,
         messages: list[LLMMessage],
         model: str,
@@ -137,6 +137,10 @@ class LLMProvider(ABC):
         **kwargs: Any,
     ) -> AsyncIterator[LLMStreamEvent]:
         """Stream a chat completion as discriminated :class:`LLMStreamEvent`s.
+
+        Declared as a plain ``def`` returning an async iterator: every adapter
+        implements it as an async generator (``async def`` + ``yield``) and
+        every caller iterates it with ``async for`` and no ``await``.
 
         Adapters MUST emit a final :class:`LLMDoneEvent` on clean completion or
         an :class:`LLMErrorEvent` on failure — the router relies on the
@@ -158,8 +162,9 @@ class LLMProvider(ABC):
 
         Implementations should make the cheapest possible probe (typically a
         models-list call). They MUST NOT raise on a 401/403 — return ``False``.
-        They MAY raise on a transport error so the router can surface a
-        distinct "provider unreachable" status.
+        Any other API-level error is a real transport issue: let it propagate
+        (no catch-and-reraise clause) so the router can surface a distinct
+        "provider unreachable" status.
         """
         raise NotImplementedError
 

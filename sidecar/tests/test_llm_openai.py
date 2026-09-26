@@ -16,7 +16,7 @@ import httpx
 import openai
 import pytest
 
-from models.llm import LLMMessage
+from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMMessage
 from services.llm import (
     DEEPSEEK_BASE_URL,
     XAI_BASE_URL,
@@ -494,6 +494,7 @@ async def test_malformed_args_triggers_exactly_one_repair_then_recovers(
         messages: Any,
         *,
         timeout: float | None = None,
+        base_url: str | None = None,
     ) -> tuple[str, None]:
         calls.append((provider, model, messages))
         return '{"symbol": "AAPL"}', None
@@ -517,6 +518,40 @@ async def test_malformed_args_triggers_exactly_one_repair_then_recovers(
     assert tool_use[0].input == {"symbol": "AAPL"}
     # EXACTLY one repair round.
     assert len(calls) == 1
+
+
+@pytest.mark.asyncio
+async def test_repair_round_keeps_configured_base_url(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-077: the tool-arg repair call rebuilds its adapter against the
+    SAME configured base_url as the stream it repairs, not the vendor default."""
+    chunks = _tool_call_chunks("price_data", '{"timeframe": "1d"}')
+    _patch_client(monkeypatch, chunks=chunks)
+    built: list[tuple[str, str | None]] = []
+
+    class _RepairAdapter:
+        async def stream_chat(self, **_: Any) -> AsyncIterator[Any]:
+            yield LLMDeltaEvent(text='{"symbol": "AAPL"}')
+            yield LLMDoneEvent()
+
+    def _get_provider(provider_id: str, base_url: str | None = None) -> _RepairAdapter:
+        built.append((provider_id, base_url))
+        return _RepairAdapter()
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "get_provider", _get_provider)
+    proxy = "https://my-proxy.internal/v1"
+    out = [
+        e
+        async for e in OpenAIProvider(base_url=proxy).stream_chat(
+            messages=[LLMMessage(role="user", content="quote AAPL")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=["price_data"],
+        )
+    ]
+    assert built == [("openai", proxy)]
+    assert [e.input for e in out if e.kind == "tool_use"] == [{"symbol": "AAPL"}]
 
 
 @pytest.mark.asyncio
@@ -642,7 +677,9 @@ async def test_repairs_are_capped_timed_and_metered_per_round(
     _patch_client(monkeypatch, chunks=chunks)
     timeouts: list[float | None] = []
 
-    async def _fake_complete(*_a: Any, timeout: float | None = None) -> tuple[str, LLMUsage]:
+    async def _fake_complete(
+        *_a: Any, timeout: float | None = None, base_url: str | None = None
+    ) -> tuple[str, LLMUsage]:
         timeouts.append(timeout)
         return '{"symbol": "BDL.NS"}', LLMUsage(input_tokens=300, output_tokens=12)
 

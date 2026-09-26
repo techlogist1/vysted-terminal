@@ -52,6 +52,7 @@ import { useOnboardingStore } from "@/store/onboarding";
 import { useProviderKeysStore } from "@/store/provider-keys";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
+import { useWorkspaceStore } from "@/store/workspace";
 import { MarkdownBody } from "@/modules/research/brief-blocks";
 import type { Region } from "@/lib/region";
 import type {
@@ -598,6 +599,17 @@ export function ChatSidebar() {
     };
   }, [pendingChangeCount, acceptAllChanges, rejectAllChanges]);
 
+  // Proposals belong to the conversation that raised them: switching or opening
+  // a space rejects (and acks failed) whatever is still pending, so accept-all
+  // can never apply a change reviewed against another thread (R15-CODE-FRONTEND-032).
+  const proposalSpaceRef = useRef(activeSpaceId);
+  useEffect(() => {
+    if (proposalSpaceRef.current !== activeSpaceId) {
+      proposalSpaceRef.current = activeSpaceId;
+      rejectAllChanges();
+    }
+  }, [activeSpaceId, rejectAllChanges]);
+
   // Stage a curated-slash action through the SAME diff/accept gate the agent uses
   // (FR-100): in AUTO it auto-applies, in ASK it queues for review. Returns nothing; surfaces the proposal in
   // the status line so an ASK-mode user knows to confirm it below.
@@ -663,6 +675,7 @@ export function ChatSidebar() {
         case "clear":
           clearHistory();
           useMessageNoticesStore.getState().clear();
+          rejectAllChanges();
           return;
         case "export":
           exportConversation();
@@ -709,7 +722,7 @@ export function ChatSidebar() {
           return;
       }
     },
-    [clearHistory, enqueueSlashChange, exportConversation],
+    [clearHistory, enqueueSlashChange, exportConversation, rejectAllChanges],
   );
 
   const handleSend = useCallback(
@@ -746,6 +759,7 @@ export function ChatSidebar() {
       if (result.kind === "clear") {
         clearHistory();
         useMessageNoticesStore.getState().clear();
+        rejectAllChanges();
         setStatusLine(null);
         return;
       }
@@ -981,7 +995,7 @@ export function ChatSidebar() {
           }
           settleError(message, frame);
         },
-        onDone: (usage, finishReason, contextWindow, spendUsd) => {
+        onDone: (usage, finishReason, contextWindow, spendUsd, servedModel) => {
           if (abortRef.current === controller) {
             abortRef.current = null;
           }
@@ -989,6 +1003,12 @@ export function ChatSidebar() {
           // path's runtime emits the same notice itself (R15-AGENT-026).
           if (!agentForCall && isLengthFinish(finishReason)) {
             useMessageNoticesStore.getState().addNotice(assistantId, LENGTH_NOTICE);
+          }
+          // A router slug (openrouter/auto) answers with a model of its choosing:
+          // name it (R15-AGENT-075). A dated snapshot of the requested id is the
+          // same model, so it says nothing.
+          if (servedModel && !servedModel.startsWith(attempt.model)) {
+            useMessageNoticesStore.getState().addNotice(assistantId, `Answered by ${servedModel}`);
           }
           finalize(assistantId, usage, contextWindow, spendUsd);
           if (usage) {
@@ -1179,6 +1199,7 @@ export function ChatSidebar() {
       mode,
       providerOverride,
       providers,
+      rejectAllChanges,
       setDefaultProviderId,
       setLastPrompt,
       setLastSentDepth,
@@ -1305,9 +1326,9 @@ export function ChatSidebar() {
           finalize(id, null);
         }}
       />
-      {/* The standing "Context: none" row is dead (R9 stray-item audit) — the
-          badge renders only when there is REAL panel context to report. */}
-      {contextBadge !== "Context: none" && <ContextBadge text={contextBadge} />}
+      {/* No standing "no context" row (R9 stray-item audit) — the badge
+          renders only when there is REAL panel context to report. */}
+      {contextBadge.kind === "panels" && <ContextBadge text={contextBadge.text} />}
       <div
         ref={scrollRef}
         role="log"
@@ -1609,8 +1630,13 @@ function MessageNotices({ messageId }: { messageId: string }) {
  * message in the negative color, the NEXT STEP as its own quiet line, and the
  * raw provider text behind a "Details" disclosure (charcoal — telemetry, not
  * alarm). A legacy plain-string error (no structured frame) renders exactly
- * as before. Retry stays.
+ * as before. A bad key, an empty balance or an unknown model fails the same
+ * way on a resend, so those offer Settings instead of Retry
+ * (R15-CODE-PLATFORM-038).
  */
+/** Error codes a resend cannot clear: the fix is in Settings. */
+const SETTINGS_FIX_CODES = new Set(["auth", "provider_402", "model_not_found"]);
+
 function ErrorRow({
   messageId,
   message,
@@ -1622,20 +1648,31 @@ function ErrorRow({
 }) {
   const frame = useMessageNoticesStore((s) => s.errorFrames[messageId]);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const fixInSettings = frame?.code !== undefined && SETTINGS_FIX_CODES.has(frame.code);
   return (
     <div className="text-caption mt-1 flex flex-col gap-1">
       <div className="flex items-center gap-2">
         <span className="text-negative">
           {frame ? message : `Something went wrong — ${message}`}
         </span>
-        {onRetry && (
+        {fixInSettings ? (
           <button
             type="button"
-            onClick={onRetry}
+            onClick={() => useWorkspaceStore.getState().openPanel("settings")}
             className="text-charcoal-300 hover:text-lume shrink-0 underline transition-colors"
           >
-            Retry
+            Open Settings
           </button>
+        ) : (
+          onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="text-charcoal-300 hover:text-lume shrink-0 underline transition-colors"
+            >
+              Retry
+            </button>
+          )
         )}
       </div>
       {frame?.action && <div className="text-charcoal-300">{frame.action}</div>}
@@ -2215,6 +2252,7 @@ interface InternalHandlers {
     finishReason?: string,
     contextWindow?: number,
     spendUsd?: number,
+    servedModel?: string,
   ) => void;
   onToolUse: (name: string, input: Record<string, unknown>, toolCallId: string) => void;
   onResearchStep: (step: ResearchStepView, tool: string) => void;
@@ -2258,6 +2296,7 @@ function makeHandlers(internal: InternalHandlers): {
           event.finishReason,
           event.contextWindow,
           doneFrameOf(event),
+          event.usage?.servedModel,
         );
       }
     },
@@ -2265,23 +2304,26 @@ function makeHandlers(internal: InternalHandlers): {
   };
 }
 
-/** Render the panel-context badge text from the snapshot. */
-function describeContext(snapshot: {
+/** The panel-context badge: `none` renders nothing, `panels` its text. */
+export type ContextDescription = { kind: "none" } | { kind: "panels"; text: string };
+
+/** Describe the panel context for the badge from the snapshot. */
+export function describeContext(snapshot: {
   focusedSource: string | null;
   lastEventBySource: Record<string, { payload: unknown }>;
-}): string {
+}): ContextDescription {
   if (!snapshot.focusedSource) {
     const count = Object.keys(snapshot.lastEventBySource).length;
     return count === 0
-      ? "Context: none"
-      : `Context: ${count} panel${count === 1 ? "" : "s"} active`;
+      ? { kind: "none" }
+      : { kind: "panels", text: `Context: ${count} panel${count === 1 ? "" : "s"} active` };
   }
   const symbol = focusedSymbolFromBus(snapshot.lastEventBySource, snapshot.focusedSource);
   if (!symbol) {
-    return `Context: ${snapshot.focusedSource}`;
+    return { kind: "panels", text: `Context: ${snapshot.focusedSource}` };
   }
   const payload = snapshot.lastEventBySource[snapshot.focusedSource]?.payload;
   const timeframe = (payload as { timeframe?: unknown } | undefined)?.timeframe;
   const tf = typeof timeframe === "string" ? `, ${timeframe}` : "";
-  return `Context: ${snapshot.focusedSource} (${symbol}${tf})`;
+  return { kind: "panels", text: `Context: ${snapshot.focusedSource} (${symbol}${tf})` };
 }

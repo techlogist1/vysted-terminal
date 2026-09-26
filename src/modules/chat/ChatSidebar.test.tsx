@@ -1,15 +1,18 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ChatSidebar } from "@/modules/chat/ChatSidebar";
+import { ChatSidebar, describeContext } from "@/modules/chat/ChatSidebar";
 import {
   resetMessageNoticesForTests,
   useMessageNoticesStore,
 } from "@/modules/chat/message-notices";
 import { LENGTH_NOTICE } from "@/modules/chat/streaming";
+import { parseHostAction } from "@/lib/host-actions";
 import { resetAgentAutonomyStoreForTests, useAgentAutonomyStore } from "@/store/agent-autonomy";
 import { resetAgentCommandStoreForTests, useAgentCommandStore } from "@/store/agent-command";
 import { useAgentModeStore } from "@/store/agent-mode";
+import { useAgentSpacesStore } from "@/store/agent-spaces";
+import { useWorkspaceStore } from "@/store/workspace";
 import { useAgentsStore, type AgentSummary } from "@/store/agents";
 import { resetBriefStoreForTests } from "@/store/brief";
 import { useChartSyncBus } from "@/store/chart-sync";
@@ -21,6 +24,7 @@ import { usePanelContextBus } from "@/store/panel-context";
 import { useNotesStore } from "@/store/notes";
 import { useProposedChangesStore } from "@/store/proposed-changes";
 import { resetResearchDepthStoreForTests, useResearchDepthStore } from "@/store/research-depth";
+import type { ProposedChange } from "../../../types/proposed-change";
 
 // ---- Mocks ----
 
@@ -175,6 +179,24 @@ const FIRST_PARTY_AGENTS: AgentSummary[] = [
     origin: "first-party",
   },
 ];
+
+/** A staged (ASK-mode) write_note the user has not resolved yet. */
+function pendingNoteChange(): ProposedChange {
+  const input = { scope: "global", text: "Cochin looks stretched", mode: "replace" };
+  return {
+    id: "change-note",
+    toolCallId: "tc-note",
+    action: { name: "write_note", input },
+    intent: parseHostAction("write_note", input),
+    kind: "data-write",
+    title: "Replace the note",
+    before: "",
+    after: "Cochin looks stretched",
+    status: "pending",
+    batchId: "b-note",
+    createdAt: 0,
+  };
+}
 
 function seedStores() {
   useAgentsStore.setState({
@@ -496,6 +518,26 @@ describe("ChatSidebar", () => {
     await waitFor(() => expect(screen.getByText(LENGTH_NOTICE)).toBeInTheDocument());
   });
 
+  it("names the model a router slug actually served (R15-AGENT-075)", async () => {
+    streamChatMock.mockImplementationOnce((async (
+      _payload: unknown,
+      handlers: { onEvent: (event: unknown) => void },
+    ) => {
+      handlers.onEvent({ kind: "delta", text: "TCS trades at 28x earnings." });
+      handlers.onEvent({
+        kind: "done",
+        usage: { inputTokens: 10, outputTokens: 5, servedModel: "router-pick/model-x" },
+      });
+    }) as unknown as () => Promise<undefined>);
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "/ask value TCS" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() =>
+      expect(screen.getByText("Answered by router-pick/model-x")).toBeInTheDocument(),
+    );
+  });
+
   it("/agent buffett invokes the agent endpoint with the context snapshot", async () => {
     // Seed a chart panel context so the snapshot has content.
     usePanelContextBus.setState({
@@ -533,6 +575,26 @@ describe("ChatSidebar", () => {
     };
     expect(terminal.focusedSymbol).toBe("SPY");
     expect(terminal.charts[0].symbol).toBe("SPY");
+  });
+
+  it("ContextBadge hidden with no bus events, shown with one panel event (asserted on kind) (R15-CODE-FRONTEND-021)", () => {
+    const bus = usePanelContextBus.getState();
+    expect(describeContext(bus).kind).toBe("none");
+    const { unmount } = render(<ChatSidebar />);
+    expect(screen.queryByLabelText("Panel context")).toBeNull();
+    unmount();
+    bus.publish({
+      source: "chart",
+      kind: "snapshot",
+      payload: { symbol: "SPY", timeframe: "1d" },
+      emittedAt: 1,
+    });
+    const described = describeContext(usePanelContextBus.getState());
+    expect(described.kind).toBe("panels");
+    render(<ChatSidebar />);
+    expect(screen.getByLabelText("Panel context")).toHaveTextContent(
+      described.kind === "panels" ? described.text : "unreachable",
+    );
   });
 
   it("a focused Equity Overview's ticker drives the badge, the chips and the snapshot (R15-CODE-FRONTEND-015)", async () => {
@@ -680,6 +742,34 @@ describe("ChatSidebar", () => {
     fireEvent.change(input, { target: { value: "/clear" } });
     fireEvent.submit(input.closest("form")!);
     expect(useChatHistoryStore.getState().messages).toEqual([]);
+  });
+
+  it("/clear rejects a pending write_note and acks it failed (R15-CODE-FRONTEND-032)", async () => {
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    useProposedChangesStore.setState({ changes: [pendingNoteChange()] });
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "/clear" } });
+    fireEvent.submit(input.closest("form")!);
+    expect(useProposedChangesStore.getState().pending()).toEqual([]);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, { body: string }];
+    expect(url).toContain("/agents/actions/ack");
+    expect(JSON.parse(init.body)).toMatchObject({ tool_call_id: "tc-note", status: "failed" });
+  });
+
+  it("switching to a new chat space rejects pending proposals (R15-CODE-FRONTEND-032)", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 200 })),
+    );
+    useProposedChangesStore.setState({ changes: [pendingNoteChange()] });
+    render(<ChatSidebar />);
+    fireEvent.click(screen.getByRole("button", { name: "New chat space" }));
+    expect(useProposedChangesStore.getState().pending()).toEqual([]);
+    const spaces = useAgentSpacesStore.getState();
+    act(() => spaces.closeSpace(spaces.activeId));
   });
 
   it("the context badge reports the focused panel's symbol when populated", () => {
@@ -865,8 +955,58 @@ describe("ChatSidebar — R10 brief/error honesty", () => {
     expect(screen.queryByText(/Insufficient Balance/)).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Details" }));
     expect(screen.getByText(/Insufficient Balance/)).toBeInTheDocument();
-    // Retry survives.
+    // An empty balance fails the same way on a resend: no Retry, a Settings link
+    // (R15-CODE-PLATFORM-038 — this line used to pin "Retry survives").
+    expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Open Settings" })).toBeInTheDocument();
+  });
+
+  it.each(["auth", "provider_402", "model_not_found"])(
+    "no Retry for %s: the row links Settings instead (R15-CODE-PLATFORM-038)",
+    async (code) => {
+      useLLMProvidersStore.setState({
+        providers: [{ id: "anthropic", label: "Anthropic", requiresKey: true }],
+      });
+      streamAgentInvocationMock.mockImplementationOnce(
+        async (
+          _id: unknown,
+          _payload: unknown,
+          handlers: { onEvent: (event: unknown) => void },
+        ) => {
+          handlers.onEvent({ kind: "error", message: `failed with ${code}`, code });
+        },
+      );
+      render(<ChatSidebar />);
+      const input = screen.getByLabelText("Chat input");
+      fireEvent.change(input, { target: { value: "research reliance" } });
+      fireEvent.submit(input.closest("form")!);
+      await waitFor(() => expect(screen.getByText(`failed with ${code}`)).toBeInTheDocument());
+      expect(screen.queryByRole("button", { name: "Retry" })).toBeNull();
+      const openPanel = useWorkspaceStore.getState().openPanel;
+      const openPanelSpy = vi.fn();
+      useWorkspaceStore.setState({ openPanel: openPanelSpy });
+      fireEvent.click(screen.getByRole("button", { name: "Open Settings" }));
+      useWorkspaceStore.setState({ openPanel });
+      expect(openPanelSpy).toHaveBeenCalledWith("settings");
+    },
+  );
+
+  it("a retryable code (rate_limit) keeps Retry (R15-CODE-PLATFORM-038)", async () => {
+    useLLMProvidersStore.setState({
+      providers: [{ id: "anthropic", label: "Anthropic", requiresKey: true }],
+    });
+    streamAgentInvocationMock.mockImplementationOnce(
+      async (_id: unknown, _payload: unknown, handlers: { onEvent: (event: unknown) => void }) => {
+        handlers.onEvent({ kind: "error", message: "slow down", code: "rate_limit" });
+      },
+    );
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input");
+    fireEvent.change(input, { target: { value: "research reliance" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText("slow down")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Open Settings" })).toBeNull();
   });
 
   it("a legacy plain-string error renders exactly as before (no Details)", async () => {
