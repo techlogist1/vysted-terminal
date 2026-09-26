@@ -139,6 +139,30 @@ describe("host-actions", () => {
     expect(openPanel).toHaveBeenCalledWith("screener-panel");
   });
 
+  // R15-CODE-FRONTEND-033 (P7 pin): the focus branch of arrange_layout must
+  // resolve panel aliases through resolvePanelToken exactly like focus_panel
+  // does — "screener" (alias) vs "screener-panel" (registered id) is the case
+  // "chart" (alias === id) can never exercise.
+  it("arrange_layout pattern=focus resolves a panel ALIAS, matching focus_panel", () => {
+    const setActiveSpy = vi.fn();
+    const maximizeSpy = vi.fn();
+    const screenerPanel = {
+      api: { component: "screener-panel", setActive: setActiveSpy, maximize: maximizeSpy },
+    };
+    useWorkspaceStore.setState({
+      dockviewApi: {
+        panels: [screenerPanel],
+        getPanel: () => undefined,
+      } as never,
+      openPanel: vi.fn(),
+    } as never);
+    expect(
+      applyHostAction("arrange_layout", { pattern: "focus", panel: "screener" }),
+    ).toBe("Focused on Screener");
+    expect(setActiveSpy).toHaveBeenCalledTimes(1);
+    expect(maximizeSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("open_panel returns null when the panel did not actually open (disabled module)", () => {
     const openPanel = vi.fn(); // a no-op open — the module is disabled
     useWorkspaceStore.setState({
