@@ -335,8 +335,12 @@ export const sidecarApi = {
       regionHeader(region),
     ),
 
-  quotes: (symbols: string[], assetClass = "equity"): Promise<Quote[]> =>
-    sidecarGet<Quote[]>("/quotes", { symbols: symbols.join(","), asset_class: assetClass }),
+  quotes: (symbols: string[], assetClass = "equity", region?: string): Promise<Quote[]> =>
+    sidecarGet<Quote[]>(
+      "/quotes",
+      { symbols: symbols.join(","), asset_class: assetClass },
+      regionHeader(region),
+    ),
 
   history: (
     symbol: string,

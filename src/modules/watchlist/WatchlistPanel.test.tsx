@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 
 import { SidecarError } from "@/lib/sidecar-client";
 import type { Quote } from "../../../types/data";
+import { useSettingsStore } from "@/store/settings";
 import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
 import { WatchlistPanel } from "./WatchlistPanel";
 import type { WatchlistRow } from "./api";
@@ -82,7 +83,7 @@ describe("WatchlistPanel", () => {
     expect(hostActions.openCompanyOverview).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByText("NVDA"));
-    expect(hostActions.openCompanyOverview).toHaveBeenCalledWith("NVDA");
+    expect(hostActions.openCompanyOverview).toHaveBeenCalledWith("NVDA", undefined, undefined);
     expect(hostActions.loadSymbolIntoChart).toHaveBeenCalledTimes(1);
   });
 
@@ -317,5 +318,92 @@ describe("WatchlistPanel", () => {
     expect(await screen.findByText("unavailable")).toBeInTheDocument();
     expect(screen.getAllByText("unavailable")).toHaveLength(1);
     expect(screen.getByText("RELIANCE.NS")).toBeInTheDocument();
+  });
+
+  describe("a picked listing keeps its region (R15-DATA-002)", () => {
+    const AMAL_CANDIDATES = {
+      query: "AMAL",
+      region: "IN",
+      candidates: [
+        { symbol: "AMAL", name: "Amal Ltd", exchange: "NSE", region: "IN" },
+        { symbol: "AMAL", name: "Amalgamated Financial", exchange: "NASDAQ", region: "US" },
+      ].map((c) => ({ ...c, asset_class: "equity", yahoo_symbol: c.symbol, confidence: 1 })),
+    };
+
+    // The real per-region batching over a stubbed engine: each `/quotes` call is
+    // recorded with the region header it carried and answered for that region.
+    async function quoteThroughEngine() {
+      const actual = await vi.importActual<typeof import("./api")>("./api");
+      mockFetch.mockImplementation(actual.fetchWatchlistQuotes);
+      window.history.replaceState({}, "", "/?sidecar-port=5555");
+      const calls: { symbols: string; region: string }[] = [];
+      vi.stubGlobal(
+        "fetch",
+        vi.fn(async (input: string, init?: RequestInit) => {
+          const url = new URL(input);
+          if (url.pathname !== "/quotes") return new Response("{}", { status: 200 });
+          const region = (init?.headers as Record<string, string>)["X-Vysted-Region"];
+          calls.push({ symbols: url.searchParams.get("symbols") ?? "", region });
+          const quotes = (url.searchParams.get("symbols") ?? "")
+            .split(",")
+            .map((symbol) => quote(symbol, region === "US" ? 47.21 : 687.65, 0));
+          return new Response(JSON.stringify(quotes), { status: 200 });
+        }),
+      );
+      return calls;
+    }
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("an IN session picking AMAL · US tracks, quotes and opens the US listing", async () => {
+      useSettingsStore.getState().setRegion("IN");
+      useSymbolsStore.setState({ entries: [] });
+      autocompleteMock.mockResolvedValue(AMAL_CANDIDATES);
+      const calls = await quoteThroughEngine();
+      vi.mocked(hostActions.openCompanyOverview).mockClear();
+
+      render(<WatchlistPanel />);
+      fireEvent.change(screen.getByLabelText("Add symbol"), { target: { value: "AMAL" } });
+      fireEvent.mouseDown(await screen.findByRole("option", { name: /Amalgamated/ }));
+
+      expect(useSymbolsStore.getState().entries).toEqual([
+        { symbol: "AMAL", assetClass: "equity", region: "US" },
+      ]);
+      expect(await screen.findByText("47.21")).toBeInTheDocument();
+      expect(calls).toContainEqual({ symbols: "AMAL", region: "US" });
+      expect(calls.some((c) => c.region === "IN")).toBe(false);
+
+      fireEvent.click(screen.getByText("AMAL"));
+      expect(hostActions.openCompanyOverview).toHaveBeenCalledWith("AMAL", undefined, "US");
+    });
+
+    it("AMAL · IN and AMAL · US are two rows, each quoted under its own region", async () => {
+      useSettingsStore.getState().setRegion("IN");
+      useSymbolsStore.setState({ entries: [] });
+      autocompleteMock.mockResolvedValue(AMAL_CANDIDATES);
+      const calls = await quoteThroughEngine();
+
+      render(<WatchlistPanel />);
+      const input = screen.getByLabelText("Add symbol");
+      fireEvent.change(input, { target: { value: "AMAL" } });
+      fireEvent.mouseDown(await screen.findByRole("option", { name: /Amal Ltd/ }));
+      fireEvent.change(input, { target: { value: "AMAL" } });
+      fireEvent.mouseDown(await screen.findByRole("option", { name: /Amalgamated/ }));
+
+      expect(useSymbolsStore.getState().entries).toHaveLength(2);
+      expect(await screen.findByText("47.21")).toBeInTheDocument();
+      expect(screen.getByText("687.65")).toBeInTheDocument();
+      expect(calls).toContainEqual({ symbols: "AMAL", region: "IN" });
+      expect(calls).toContainEqual({ symbols: "AMAL", region: "US" });
+
+      act(() => {
+        fireEvent.click(screen.getByLabelText("Remove AMAL US"));
+      });
+      expect(useSymbolsStore.getState().entries).toEqual([
+        { symbol: "AMAL", assetClass: "equity", region: "IN" },
+      ]);
+    });
   });
 });
