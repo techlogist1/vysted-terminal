@@ -587,7 +587,6 @@ class OpenAIProvider(LLMProvider):
         # ``web_search_max_uses`` is Anthropic-only; pop it so it never reaches
         # the OpenAI/xAI SDK (the runtime caps these providers loop-side).
         kwargs.pop("web_search_max_uses", None)
-        client = self._client(api_key)
         api_messages = _to_api_messages(messages)
         request_kwargs: dict[str, Any] = {
             "model": model,
@@ -649,6 +648,7 @@ class OpenAIProvider(LLMProvider):
 
             known_tool_ids = {tid for tid in tool_ids if tid in TOOL_SCHEMAS}
         try:
+            client = self._client(api_key)
             stream = await self._create_with_retry(client, request_kwargs)
             usage: LLMUsage | None = None
             repairs: list[LLMUsage | None] = []

@@ -135,8 +135,8 @@ class GeminiProvider(LLMProvider):
             tools.append(gemini_google_search_tool())
         if tools:
             config["tools"] = tools
-        client = self._client(api_key)
         try:
+            client = self._client(api_key)
             stream = await client.aio.models.generate_content_stream(
                 model=model,
                 contents=contents,
