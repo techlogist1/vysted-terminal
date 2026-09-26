@@ -621,6 +621,81 @@ def test_live_lookup_passes_an_explicit_short_search_timeout(monkeypatch) -> Non
     assert recorded_kwargs["timeout"] <= 10
 
 
+def test_live_lookup_is_wall_clock_bounded_when_search_hangs(monkeypatch) -> None:  # noqa: ANN001
+    """R15-AGENT-010 (verdict-corrected): yfinance's cookie/crumb leg
+    (_get_cookie_and_crumb / _get_crumb_basic / _get_crumb_csrf) keeps the
+    hard-coded 30 s default even when Search's own timeout= kwarg is short —
+    the kwarg never reaches those legs. _live_lookup must bound the call by
+    wall clock (the pool future's timeout=) instead of trusting the kwarg
+    alone, and the cooldown must still arm on that timeout."""
+    import threading
+    import time
+
+    import yfinance as yf
+
+    release = threading.Event()
+
+    class _HangingSearch:
+        quotes: list[dict] = []
+
+        def __init__(self, *_a: object, **_k: object) -> None:
+            release.wait()  # released in the test's finally so the worker exits
+
+    monkeypatch.setattr(symbol_resolver, "_LIVE_SEARCH_TIMEOUT_SECONDS", 0.2)
+    monkeypatch.setattr(yf, "Search", _HangingSearch)
+    symbol_resolver._live_cache.clear()
+    symbol_resolver._live_cooldown_until = 0.0
+
+    try:
+        start = time.monotonic()
+        assert symbol_resolver._live_lookup("zzqx hung co", "IN") == []
+        elapsed = time.monotonic() - start
+    finally:
+        release.set()
+    assert elapsed < 1.0, f"took {elapsed:.2f}s, must be wall-clock bounded near 0.2s"
+    assert symbol_resolver._live_cooldown_until > time.monotonic(), (
+        "a search timeout must arm the cooldown"
+    )
+
+
+def test_live_lookup_hung_misses_do_not_serialize_behind_each_other(monkeypatch) -> None:  # noqa: ANN001
+    """The class case the fix was not written against: only 4 pool workers
+    back the live-lookup, but 8 concurrent hung misses must not serialise
+    behind each other — a still-queued submit is cancelled at its own
+    deadline rather than waiting for the workers ahead of it to give up."""
+    import threading
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    import yfinance as yf
+
+    release = threading.Event()
+
+    class _HangingSearch:
+        quotes: list[dict] = []
+
+        def __init__(self, *_a: object, **_k: object) -> None:
+            release.wait()  # released in the test's finally so the workers exit
+
+    monkeypatch.setattr(symbol_resolver, "_LIVE_SEARCH_TIMEOUT_SECONDS", 0.2)
+    monkeypatch.setattr(yf, "Search", _HangingSearch)
+    symbol_resolver._live_cache.clear()
+    symbol_resolver._live_cooldown_until = 0.0
+
+    queries = [f"zzqx hung co {i}" for i in range(8)]
+    try:
+        start = time.monotonic()
+        with ThreadPoolExecutor(max_workers=8) as caller_pool:
+            results = list(
+                caller_pool.map(lambda q: symbol_resolver._live_lookup(q, "IN"), queries)
+            )
+        elapsed = time.monotonic() - start
+    finally:
+        release.set()
+    assert results == [[]] * 8
+    assert elapsed < 1.2, f"took {elapsed:.2f}s, hung misses must not serialise (budget 0.2 + 1.0s)"
+
+
 #: The real network seam, captured at import — before conftest's autouse
 #: fixture swaps it for an offline stub.
 _REAL_US_ISIN_HTTP_GET = symbol_resolver._us_isin_http_get
