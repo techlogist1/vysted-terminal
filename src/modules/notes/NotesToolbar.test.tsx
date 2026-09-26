@@ -128,10 +128,16 @@ describe("NotesToolbar — R15-DOCS-010", () => {
   it("the active toolbar button carries the fill class", async () => {
     await renderPanel();
     const boldButton = screen.getByRole("button", { name: "Bold" });
-    expect(boldButton.className).not.toContain("bg-charcoal-800");
+    // classList token checks: the inactive string carries hover:bg-charcoal-800,
+    // so a className substring match cannot tell active from inactive.
+    expect(boldButton.classList.contains("bg-charcoal-800")).toBe(false);
+    expect(boldButton.getAttribute("aria-pressed")).toBe("false");
 
     fireEvent.click(boldButton);
 
-    await waitFor(() => expect(boldButton.className).toContain("bg-charcoal-800"));
+    await waitFor(() => {
+      expect(boldButton.classList.contains("bg-charcoal-800")).toBe(true);
+      expect(boldButton.getAttribute("aria-pressed")).toBe("true");
+    });
   });
 });
