@@ -188,14 +188,14 @@ describe("ScreenerResultsTable", () => {
     // this is a real `runScreener()` call (stubbed above), not a client
     // re-sort of the page already served — the stub's async body has no
     // `await`, so its state write lands synchronously within this call.
-    fireEvent.click(screen.getByTestId("column-pe_ratio"));
+    fireEvent.click(within(screen.getByTestId("column-pe_ratio")).getByRole("button"));
     expect(useScreenerStore.getState().sortBy).toBe("pe_ratio");
     expect(useScreenerStore.getState().sortDir).toBe("desc");
     firstRow = screen.getAllByRole("row")[1];
     expect(within(firstRow!).getByText("GOOGL")).toBeInTheDocument();
 
     // Click again → asc by P/E → AAPL (18.5) first.
-    fireEvent.click(screen.getByTestId("column-pe_ratio"));
+    fireEvent.click(within(screen.getByTestId("column-pe_ratio")).getByRole("button"));
     expect(useScreenerStore.getState().sortDir).toBe("asc");
     firstRow = screen.getAllByRole("row")[1];
     expect(within(firstRow!).getByText("AAPL")).toBeInTheDocument();
@@ -305,7 +305,7 @@ describe("ScreenerResultsTable", () => {
 
     // Click the Price header — the same currency grouping must hold there.
     // R15-UI-006: a real (stubbed) `runScreener()` call, not a client re-sort.
-    fireEvent.click(screen.getByTestId("column-price"));
+    fireEvent.click(within(screen.getByTestId("column-price")).getByRole("button"));
     symbolOrder = screen
       .getAllByRole("row")
       .slice(1)
