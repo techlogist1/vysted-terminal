@@ -17,7 +17,7 @@ import pytest
 from services.budget_guard import BudgetGuard
 from services.research import deep
 from services.research.iter import run_iter_research
-from services.research.models import ResearchBrief, ResearchStep
+from services.research.models import ResearchBrief, ResearchSource, ResearchStep
 from services.search.extract import VisitResult
 
 
@@ -680,3 +680,19 @@ def test_deep_snapshot_is_not_held_to_the_fast_leg_box(monkeypatch: pytest.Monke
         )
     )
     assert brief.structured["price"]["ok"] is True
+
+
+def test_web_domain_floor_counts_registrable_domains_not_hosts() -> None:
+    """R15-RESEARCH-015 class pin: two hosts of one registrable domain (incl. a
+    multi-label public suffix) are ONE source for the ULTRA independence floor."""
+    for urls, domain in (
+        (["https://ir.infosys.com/q4", "https://www.infosys.com/about"], "infosys.com"),
+        (["https://a.example.co.in/x", "https://b.example.co.in/y"], "example.co.in"),
+    ):
+        findings = deep._Findings()
+        findings.web_sources = [ResearchSource(url=u, title=u, excerpt="x") for u in urls]
+        findings.coverage["web"] = True
+        assert deep.distinct_web_domains(findings) == {domain}
+        assert not deep.coverage_floor_met(
+            findings, structured={"price": {"ok": False}}, min_web_domains=2
+        )

@@ -260,12 +260,12 @@ def structured_feeds_available(structured: dict[str, Any]) -> bool:
 
 
 def distinct_web_domains(findings: _Findings) -> set[str]:
-    """The distinct registrable hosts among the gathered web citations."""
+    """The distinct registrable domains among the gathered web citations."""
     domains: set[str] = set()
     for src in findings.web_sources:
         host = finance.domain_of(src.url) or finance.domain_of(src.domain or "")
         if host:
-            domains.add(host)
+            domains.add(finance.registrable_domain(host))
     return domains
 
 
