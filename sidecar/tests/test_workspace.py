@@ -101,7 +101,7 @@ def test_delete_missing_workspace_is_404(client: TestClient) -> None:
 
 @pytest.mark.parametrize(
     "name",
-    ["Research: M&M", "Research: RELIANCE.NS", "My Layout (2)", "मेरा लेआउट"],
+    ["Research: M&M", "Research: RELIANCE.NS", "My Layout (2)", "मेरा लेआउट", "a%41"],
 )
 def test_any_name_round_trips(client: TestClient, name: str) -> None:
     """R15-CODE-FRONTEND-004: the frontend's research-space names ("Research:
@@ -128,6 +128,31 @@ def test_a_traversal_name_stays_inside_the_workspaces_directory(client: TestClie
     ]
     assert client.get("/workspace").json() == [name]
     assert client.get(f"/workspace/{quote(name, safe='')}").json() == workspace
+
+
+def test_a_workspace_saved_under_the_legacy_stem_still_loads_and_deletes(
+    client: TestClient,
+) -> None:
+    """R15-UI-082: files saved before the stem change percent-encoded all
+    punctuation and non-ASCII ("Q1 %28draft%29"); they are still listed, loaded
+    and deleted by their plain name (renamed to the current stem on access)."""
+    import json
+
+    from config import get_workspaces_dir
+    from services.workspace_store import WORKSPACE_SUFFIX
+
+    for name in ("Q1 (draft)", "मेरा लेआउट"):
+        workspace = _sample_workspace(name)
+        legacy_stem = quote(name, safe=" ").replace(".", "%2E")
+        legacy = get_workspaces_dir() / f"{legacy_stem}{WORKSPACE_SUFFIX}"
+        legacy.write_text(json.dumps(workspace), encoding="utf-8")
+        url = f"/workspace/{quote(name, safe='')}"
+        assert client.get("/workspace").json() == [name]
+        assert client.get(url).json() == workspace
+        assert client.get("/workspace").json() == [name]
+        assert client.delete(url).status_code == 204
+        assert client.get("/workspace").json() == []
+        assert list(get_workspaces_dir().iterdir()) == []
 
 
 def test_an_empty_name_is_rejected_with_the_reason(client: TestClient) -> None:

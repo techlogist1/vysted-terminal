@@ -13,6 +13,7 @@ never escape the workspaces directory, and decoded back when listed.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import os
@@ -39,8 +40,9 @@ _MAX_STEM_BYTES = 200
 # Everything else — including non-Latin scripts (Devanagari, CJK, …) — is
 # kept as its raw UTF-8 bytes: percent-encoding it would triple-to-quadruple
 # its byte footprint against the cap for no filesystem-safety benefit
-# (R15-UI-082).
-_UNSAFE_CHARS = frozenset('/\\:*?"<>|')
+# (R15-UI-082). ``%`` is encoded too, so a name that itself spells an escape
+# (``a%41``) is listed back as typed rather than unquoted to ``aA``.
+_UNSAFE_CHARS = frozenset('/\\:*?"<>|%')
 
 
 class WorkspaceNameError(ValueError):
@@ -79,8 +81,26 @@ def _filename_stem(name: str) -> str:
 
 
 def _path_for(name: str) -> Path:
-    """Return the on-disk path for a workspace ``name``."""
-    return get_workspaces_dir() / f"{_filename_stem(name)}{WORKSPACE_SUFFIX}"
+    """Return the on-disk path for a workspace ``name``.
+
+    A file saved under the pre-R15-UI-082 stem (every character but letters,
+    digits, spaces and ``_.-~`` percent-encoded, e.g. ``Q1 %28draft%29``) is
+    renamed to the current stem on first access, with its ``.bak``, so load,
+    save and delete keep finding it by its plain name.
+    """
+    workspaces_dir = get_workspaces_dir()
+    path = workspaces_dir / f"{_filename_stem(name)}{WORKSPACE_SUFFIX}"
+    legacy_stem = quote(name.strip(), safe=" ").replace(".", "%2E")
+    legacy = workspaces_dir / f"{legacy_stem}{WORKSPACE_SUFFIX}"
+    # Legacy stems were capped at 200 characters, so a longer one never existed.
+    if len(legacy_stem) <= 200 and legacy != path and legacy.is_file() and not path.exists():
+        # A concurrent autosave may have migrated it first.
+        with contextlib.suppress(FileNotFoundError):
+            os.replace(legacy, path)
+        if _bak_path(legacy).is_file() and not _bak_path(path).exists():
+            with contextlib.suppress(FileNotFoundError):
+                os.replace(_bak_path(legacy), _bak_path(path))
+    return path
 
 
 def list_workspaces() -> list[str]:
