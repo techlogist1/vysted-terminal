@@ -85,7 +85,8 @@ def test_families_are_independent() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_system_provider_health_routes(client) -> None:
+def test_system_provider_health_routes(client, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("VYSTED_RIG_HOOKS", "1")  # R15-LIFECYCLE-033: trip/reset are rig-gated
     body = client.get("/system/provider-health").json()
     assert body["yahoo"]["open"] is False
 
