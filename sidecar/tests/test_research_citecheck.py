@@ -94,6 +94,15 @@ def test_pseudo_citation_is_stripped_while_links_and_single_char_survive() -> No
     assert "Per revenue rose." in cleaned
 
 
+def test_reference_link_survives_while_label_after_bad_marker_is_stripped() -> None:
+    """A reference link's second half ('[sec]') is not a pseudo-citation, but a
+    label riding an out-of-range marker ('[9][Web evidence]') is stripped whole."""
+    md = "See [the filing][sec]. Margins fell [9][Web evidence]."
+    cleaned, removed = strip_invalid_markers(md, 2)
+    assert removed == 2
+    assert cleaned == "See [the filing][sec]. Margins fell."
+
+
 def test_soften_sentence_is_deterministic() -> None:
     out = soften_sentence("Revenue grew 23% to Rs 1,234 crore [3].")
     assert out == "Revenue grew 23% to Rs 1,234 crore (not confirmed in this run)."

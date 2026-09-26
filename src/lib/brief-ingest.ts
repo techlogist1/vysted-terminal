@@ -403,8 +403,10 @@ const MARKER_GROUP_RE = /\[(\d{1,3}(?:\s*[,;]\s*\d{1,3})+)\]/g;
  *  content starting with a letter, at least two characters, e.g. a leaked
  *  prompt label (`[New findings]`, `[Panel reports]`). `[n]`/`[x]` (one
  *  character) and reference-style links/definitions (`[label][ref]`,
- *  `[label]: url`) are excluded by the length floor and the lookahead. */
-const PSEUDO_CITE_RE = /\[([A-Za-z][^[\]]+)\](?![([:])/g;
+ *  `[label]: url`) are excluded by the length floor and the lookahead; the
+ *  lookbehind spares a reference link's `[ref]` half (preceded by a
+ *  non-numeric `]`) while still catching `[6][New findings]`. */
+const PSEUDO_CITE_RE = /(?<!\D\])\[([A-Za-z][^[\]]+)\](?![([:])/g;
 
 /** The inert marker a broken citation becomes (rendered as a flagged chip). */
 export const BROKEN_CITE_MARKER = "[?]";
@@ -432,12 +434,13 @@ export function expandMarkerGroups(markdown: string): string {
  * never a real marker) always flags too.
  */
 export function sanitizeCitationMarkers(markdown: string, sourceCount: number): string {
-  const expanded = expandMarkerGroups(markdown);
-  const numeric = expanded.replace(CITE_MARKER_RE, (whole, digits: string) => {
+  // Pseudo-markers first: a flagged `[?]` would otherwise hide a following
+  // `[New findings]` from the lookbehind.
+  const expanded = expandMarkerGroups(markdown).replace(PSEUDO_CITE_RE, BROKEN_CITE_MARKER);
+  return expanded.replace(CITE_MARKER_RE, (whole, digits: string) => {
     const n = Number(digits);
     return n >= 1 && n <= sourceCount ? whole : BROKEN_CITE_MARKER;
   });
-  return numeric.replace(PSEUDO_CITE_RE, BROKEN_CITE_MARKER);
 }
 
 /** How many inline `[n]` markers point past the source list, plus any

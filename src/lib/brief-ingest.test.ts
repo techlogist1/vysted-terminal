@@ -297,6 +297,12 @@ describe("sanitizeCitationMarkers", () => {
     );
   });
 
+  it("keeps a reference link and flags a label riding an out-of-range marker", () => {
+    expect(sanitizeCitationMarkers("See [the filing][sec]. Fell [9][Web evidence].", 2)).toBe(
+      "See [the filing][sec]. Fell [?][?].",
+    );
+  });
+
   it("expands a citation group before range-checking each member", () => {
     expect(sanitizeCitationMarkers("Both metrics moved together [1; 4].", 3)).toBe(
       "Both metrics moved together [1][?].",

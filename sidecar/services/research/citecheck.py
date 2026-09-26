@@ -47,8 +47,10 @@ MARKER_GROUP_RE = re.compile(r"\[(\d{1,3}(?:\s*[,;]\s*\d{1,3})+)\]")
 #: content starting with a letter, at least two characters, e.g. a leaked
 #: prompt label ("[New findings]", "[Current report]"). ``[n]``/``[x]`` (one
 #: character) and reference-style links/definitions (``[label][ref]``,
-#: ``[label]: url``) are excluded by the length floor and the lookahead.
-_PSEUDO_CITE_RE = re.compile(r"\[([A-Za-z][^\[\]]+)\](?![(\[:])")
+#: ``[label]: url``) are excluded by the length floor and the lookahead; the
+#: lookbehind spares a reference link's ``[ref]`` half (preceded by a
+#: non-numeric ``]``) while still catching ``[6][New findings]``.
+_PSEUDO_CITE_RE = re.compile(r"(?<!\D\])\[([A-Za-z][^\[\]]+)\](?![(\[:])")
 
 #: At most this many numeric/dated claims ride the ONE audit call.
 MAX_AUDIT_CLAIMS = 8
@@ -177,14 +179,15 @@ def strip_invalid_markers(markdown: str, source_count: int) -> tuple[str, int]:
         removed += 1
         return ""
 
-    cleaned = MARKER_RE.sub(_sub, markdown)
-
     def _sub_pseudo(match: re.Match[str]) -> str:
         nonlocal removed
         removed += 1
         return ""
 
-    cleaned = _PSEUDO_CITE_RE.sub(_sub_pseudo, cleaned)
+    # Pseudo-markers first, while their neighbours are still the original
+    # text the lookbehind was written against.
+    cleaned = _PSEUDO_CITE_RE.sub(_sub_pseudo, markdown)
+    cleaned = MARKER_RE.sub(_sub, cleaned)
     if removed:
         cleaned = "\n".join(_tidy(line) for line in cleaned.splitlines())
     return cleaned, removed
