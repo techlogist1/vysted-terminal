@@ -19,7 +19,7 @@ import { useResearchSpacesStore } from "@/store/research-spaces";
 import { useScreenerStore } from "@/store/screener";
 import { resetSearchSettingsStoreForTests, useSearchSettingsStore } from "@/store/search-settings";
 import { DEFAULT_SETTINGS, resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
-import { useSymbolsStore } from "@/store/symbols";
+import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { DrawingSpec } from "../../types/drawings";
 
@@ -110,6 +110,11 @@ describe("workspace serialization", () => {
     useModelSelectionStore.setState({ overrides: {} });
     useResearchSpacesStore.setState({ byName: {} });
     useChatHistoryStore.getState().clear();
+    useAgentSpacesStore.setState({
+      spaces: [{ id: "chat-1", title: "Chat 1" }],
+      activeId: "chat-1",
+      archived: {},
+    });
     resetKeybindingsStoreForTests();
     resetSettingsStoreForTests();
     resetSearchSettingsStoreForTests();
@@ -160,6 +165,11 @@ describe("workspace serialization", () => {
       // A non-research workspace omits `researchSymbol` but always carries the
       // (empty) per-space memory archive (S-19).
       researchSpaces: { byName: {} },
+      agentSpaces: {
+        spaces: [{ id: "chat-1", title: "Chat 1" }],
+        activeId: "chat-1",
+        archived: {},
+      },
       savedScreens: [],
     });
   });
@@ -410,6 +420,57 @@ describe("workspace serialization", () => {
     });
     const entries = useSymbolsStore.getState().entries;
     expect(entries.map((e) => e.symbol)).toEqual(["TSLA", "BTC/USDT"]);
+  });
+
+  it("R15-CODE-FRONTEND-037: empty watchlist round-trips to []; a blob without the key keeps defaults", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useSymbolsStore.setState({ entries: [] });
+    const saved = serializeWorkspace("emptied");
+    expect(saved.watchlist).toEqual([]);
+
+    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    deserializeWorkspace(saved);
+    expect(useSymbolsStore.getState().entries).toEqual([]);
+
+    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    const { watchlist: _absent, ...older } = saved;
+    deserializeWorkspace(older);
+    expect(useSymbolsStore.getState().entries).toEqual(DEFAULT_SYMBOLS);
+  });
+
+  it("R15-CODE-FRONTEND-028: agent spaces survive serialize -> deserialize", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    const failed = {
+      id: "m2",
+      role: "assistant" as const,
+      content: "Revenue grew",
+      createdAt: 2,
+      error: "stream failed",
+    };
+    useAgentSpacesStore.setState({
+      spaces: [
+        { id: "a", title: "Macro" },
+        { id: "b", title: "Semis" },
+      ],
+      activeId: "b",
+      archived: { a: [{ id: "m1", role: "user", content: "rates?", createdAt: 1 }, failed] },
+    });
+    const saved = JSON.parse(JSON.stringify(serializeWorkspace("tabs"))) as SerializedWorkspace;
+
+    useAgentSpacesStore.setState({
+      spaces: [{ id: "z", title: "Chat 1" }],
+      activeId: "z",
+      archived: {},
+    });
+    deserializeWorkspace(saved);
+
+    const restored = useAgentSpacesStore.getState();
+    expect(restored.spaces.map((s) => s.title)).toEqual(["Macro", "Semis"]);
+    expect(restored.activeId).toBe("b");
+    expect(restored.archived.a.map((m) => m.content)).toEqual(["rates?", "Revenue grew"]);
+    expect(restored.archived.a[1].error).toBe("stream failed");
   });
 
   it("round-trips: serialize then deserialize restores the layout and enabled map", () => {
@@ -1262,6 +1323,7 @@ const DECLARED_KEYS: Record<DeclaredWorkspaceKey, true> = {
   notes: true,
   researchSymbol: true,
   researchSpaces: true,
+  agentSpaces: true,
   savedScreens: true,
 };
 
@@ -1355,6 +1417,26 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
     ok = true;
     await failOnce();
     expect(useWorkspaceStore.getState().lastAutosaveError).toBeNull();
+  });
+
+  it("R15-LIFECYCLE-028: pagehide with a pending autosave issues the POST immediately", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    stubSidecar(null);
+    await restoreLastSessionOrDefault(api as never, new Set());
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockClear();
+    unwire = wireAutosaveTriggers();
+
+    useSymbolsStore.getState().addSymbol("INFY", "equity");
+    window.dispatchEvent(new Event("pagehide"));
+    await vi.advanceTimersByTimeAsync(0); // microtasks only — the debounce has not elapsed
+
+    const posts = fetchMock.mock.calls.filter(([, init]) => init?.method === "POST");
+    expect(posts).toHaveLength(1);
+    expect(posts[0][1]?.keepalive).toBe(true);
+    await vi.advanceTimersByTimeAsync(600);
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === "POST")).toHaveLength(1);
   });
 
   it("hides the reserved __autosave__ slot and refuses reserved names (R15-UI-046)", async () => {
@@ -1522,6 +1604,10 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
           useResearchSpacesStore.getState().replaceAll({
             byName: { "Research: AMD": { symbol: "AMD", transcript: [], updatedAt: 1 } },
           }),
+      ],
+      agentSpaces: [
+        () => useAgentSpacesStore.getState().newSpace(),
+        () => useAgentSpacesStore.getState().renameActive("Macro"),
       ],
       researchSymbol: [() => useWorkspaceStore.getState().setResearchSymbol("NVDA")],
     };

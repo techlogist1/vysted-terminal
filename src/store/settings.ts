@@ -137,8 +137,14 @@ interface SettingsState extends SettingsBundle {
   setStartLayout: (name: string | null) => void;
   setPaletteShowRecents: (show: boolean) => void;
   setPaletteSymbolScope: (scope: PaletteSymbolScope) => void;
-  /** Replace the entire bundle (workspace/settings restore + import). */
-  setAll: (bundle: Partial<SettingsBundle>) => void;
+  /**
+   * Replace the entire bundle (workspace/settings restore + import). Only the
+   * launch restore passes `applyDefaultAgent`: it seeds the chat lens with the
+   * restored default persona. A mid-session layout load or settings import
+   * leaves the user's current lens alone — the imported default takes effect
+   * next session, exactly as the Settings hint states.
+   */
+  setAll: (bundle: Partial<SettingsBundle>, options?: { applyDefaultAgent?: boolean }) => void;
   /** Snapshot the current preferences as a plain bundle (for export). */
   toBundle: () => SettingsBundle;
 }
@@ -205,15 +211,6 @@ function parseDefaultAgentId(value: unknown): string | null {
   return DEFAULT_SETTINGS.defaultAgentId;
 }
 
-/**
- * Whether the boot restore already seeded the active-agent store. The default
- * persona applies on the FIRST `setAll` (the launch workspace restore) and on
- * every explicit `setDefaultAgentId`; a mid-session layout load or settings
- * import must NOT yank the user's current lens — the imported default takes
- * effect next session, exactly as the Settings hint states.
- */
-let defaultAgentApplied = false;
-
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   ...seed(),
 
@@ -222,7 +219,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     // The wiring that makes this control true (R9 D4): the default persona IS
     // the active lens — applied now, and re-applied at every boot restore.
     useActiveAgentStore.getState().setActiveAgent(agentId);
-    defaultAgentApplied = true;
   },
 
   setRegion: (region) => {
@@ -259,7 +255,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ paletteSymbolScope: scope });
   },
 
-  setAll: (bundle) => {
+  setAll: (bundle, options) => {
     // A field ABSENT from the bundle merges over the CURRENT live state, not
     // the seed — an older export or a hand-edited/partial import can't strip
     // a field the user already set (R15-UI-058: importing a bundle lacking
@@ -318,10 +314,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       paletteShowRecents,
       paletteSymbolScope,
     });
-    if (!defaultAgentApplied) {
-      // Boot restore: seed the chat lens with the persisted default persona.
+    if (options?.applyDefaultAgent) {
       useActiveAgentStore.getState().setActiveAgent(defaultAgentId);
-      defaultAgentApplied = true;
     }
   },
 
@@ -349,5 +343,4 @@ export function settingsBundle(): SettingsBundle {
 /** Test helper: reset the settings store to its seed (defaults). */
 export function resetSettingsStoreForTests(): void {
   useSettingsStore.setState(seed());
-  defaultAgentApplied = false;
 }

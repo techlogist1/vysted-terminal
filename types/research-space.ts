@@ -23,6 +23,12 @@ export interface ResearchSpaceTurn {
   content: string;
   /** Epoch milliseconds when the turn was created. */
   createdAt: number;
+  /**
+   * How an assistant turn ended when it did not finish cleanly: `error` (the
+   * stream failed) or `stopped` (the user stopped it). Absent on a finished
+   * turn and on older blobs.
+   */
+  status?: "error" | "stopped";
 }
 
 /**

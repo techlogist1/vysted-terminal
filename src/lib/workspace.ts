@@ -20,7 +20,7 @@ import { applyResearchSpaceLayout } from "@/lib/layout-templates";
 import { collectPanelComponents } from "@/lib/module-registry";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { fetchLegacyPositions } from "@/modules/portfolio/api";
-import { useAgentSpacesStore } from "@/store/agent-spaces";
+import { type AgentSpacesBundle, useAgentSpacesStore } from "@/store/agent-spaces";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useChatHistoryStore } from "@/store/chat-history";
 import { useAgentDockStore } from "@/store/agent-dock";
@@ -167,6 +167,11 @@ export interface SerializedWorkspace {
    * relaunch (`src/store/research-spaces.ts`). Optional for older blobs.
    */
   researchSpaces?: WorkspaceResearchSpaces;
+  /**
+   * The agent chat tabs and their off-screen transcripts
+   * (`src/store/agent-spaces.ts`). Optional for older blobs (absent → one tab).
+   */
+  agentSpaces?: AgentSpacesBundle;
   /** The screener's saved screens. Optional for older blobs (absent → none). */
   savedScreens?: SavedScreen[];
   /** Open to future-phase additions; the sidecar stores the body opaquely. */
@@ -356,12 +361,13 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     subscribe: onChange(useLLMProvidersStore, (s) => s.defaultProviderId),
   },
   {
-    // Older blobs lack it (or carry an empty list) — keep the default set.
+    // Older blobs lack it — keep the default set. An empty list is the user's
+    // own choice and restores as empty (R15-CODE-FRONTEND-037).
     key: "watchlist",
     scope: "global",
     read: () => ({ watchlist: useSymbolsStore.getState().entries }),
     restore: (workspace) => {
-      if (Array.isArray(workspace.watchlist) && workspace.watchlist.length > 0) {
+      if (Array.isArray(workspace.watchlist)) {
         useSymbolsStore.getState().setEntries(workspace.watchlist);
       }
     },
@@ -479,13 +485,15 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     subscribe: onChange(useKeybindingsStore, (s) => s.overrides),
   },
   {
-    // `setAll` merges over the seed so a partial blob can't strip a field.
+    // `setAll` merges over the seed so a partial blob can't strip a field. A
+    // global slice restores only at launch, so this is the one caller that
+    // seeds the chat lens with the default persona (R15-CODE-FRONTEND-030).
     key: "settings",
     scope: "global",
     read: () => ({ settings: useSettingsStore.getState().toBundle() }),
     restore: (workspace) => {
       if (workspace.settings && typeof workspace.settings === "object") {
-        useSettingsStore.getState().setAll(workspace.settings);
+        useSettingsStore.getState().setAll(workspace.settings, { applyDefaultAgent: true });
       }
     },
     subscribe: onChange(
@@ -575,6 +583,21 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
       }
     },
     subscribe: onChange(useResearchSpacesStore, (s) => s.byName),
+  },
+  {
+    // The chat tabs (R15-CODE-FRONTEND-028). Restored before the research
+    // marker, so a transcript the active tab had parked is back live when the
+    // marker re-enters the space and parks it again.
+    key: "agentSpaces",
+    scope: "global",
+    read: () => ({ agentSpaces: useAgentSpacesStore.getState().toBundle() }),
+    restore: (workspace) => useAgentSpacesStore.getState().fromBundle(workspace.agentSpaces),
+    subscribe: onChange(
+      useAgentSpacesStore,
+      (s) => s.spaces,
+      (s) => s.activeId,
+      (s) => s.archived,
+    ),
   },
   {
     // TYPED research-space marker (only on a research space). Restoring it
@@ -784,17 +807,7 @@ export async function loadWorkspace(name: string): Promise<void> {
   if (!trimmed) {
     throw new WorkspaceError("A workspace name is required.");
   }
-  const response = await fetch(await workspaceUrl(trimmed));
-  if (!response.ok) {
-    throw await sidecarFailure(`Could not load workspace "${trimmed}"`, response);
-  }
-  let workspace: SerializedWorkspace;
-  try {
-    workspace = (await response.json()) as SerializedWorkspace;
-  } catch {
-    throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
-  }
-  workspace = migrateWorkspace(workspace);
+  const workspace = migrateWorkspace(await fetchSavedWorkspace(trimmed, "load"));
   const layoutRestored = applyLayoutSlice(workspace);
   // Entering a research space scopes the Notes panel to its ticker, as creating
   // one does (the notes themselves are global and stay as they are).
@@ -817,6 +830,62 @@ export async function loadWorkspace(name: string): Promise<void> {
       );
     }
   }
+}
+
+/** GET one saved workspace body from the sidecar. */
+async function fetchSavedWorkspace(
+  name: string,
+  action: "load" | "export",
+): Promise<SerializedWorkspace> {
+  const response = await fetch(await workspaceUrl(name));
+  if (!response.ok) {
+    throw await sidecarFailure(`Could not ${action} workspace "${name}"`, response);
+  }
+  try {
+    return (await response.json()) as SerializedWorkspace;
+  } catch {
+    throw new WorkspaceError(`Could not parse workspace "${name}" (malformed JSON).`);
+  }
+}
+
+/** A saved workspace as `.vysted-workspace` file text, for export (R15-UI-070). */
+export async function exportWorkspace(name: string): Promise<string> {
+  return JSON.stringify(await fetchSavedWorkspace(userWorkspaceName(name), "export"), null, 2);
+}
+
+/**
+ * Parse an imported `.vysted-workspace` file. Only the shape a load needs is
+ * checked — every slice's restore already guards its own field.
+ */
+export function parseWorkspaceFile(text: string): SerializedWorkspace {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new WorkspaceError("The file is not valid JSON.");
+  }
+  const layout = (parsed as { layout?: unknown } | null)?.layout;
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed) || !layout) {
+    throw new WorkspaceError("The file is not a Vysted workspace (it has no panel layout).");
+  }
+  return parsed as SerializedWorkspace;
+}
+
+/** Save an imported workspace on the sidecar under `name`, replacing any with that name. */
+export async function importWorkspace(
+  name: string,
+  workspace: SerializedWorkspace,
+): Promise<string> {
+  const trimmed = userWorkspaceName(name);
+  const response = await fetch(await workspaceUrl(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: trimmed, workspace: { ...workspace, name: trimmed } }),
+  });
+  if (!response.ok) {
+    throw await sidecarFailure(`Could not import workspace "${trimmed}"`, response);
+  }
+  return trimmed;
 }
 
 /**
@@ -1056,7 +1125,20 @@ export function autosaveLayout(): void {
   }, AUTOSAVE_DEBOUNCE_MS);
 }
 
-async function flushAutosave(): Promise<void> {
+/**
+ * Send a scheduled autosave now instead of after the debounce — the page is
+ * going away (R15-LIFECYCLE-028). `keepalive` lets the POST outlive the page.
+ */
+function flushPendingAutosave(): void {
+  if (autosaveTimer === null) {
+    return;
+  }
+  clearTimeout(autosaveTimer);
+  autosaveTimer = null;
+  void flushAutosave({ keepalive: true });
+}
+
+async function flushAutosave(init: { keepalive?: boolean } = {}): Promise<void> {
   if (autosaveInFlight) {
     autosaveQueued = true;
     return;
@@ -1068,6 +1150,7 @@ async function flushAutosave(): Promise<void> {
   try {
     const payload = buildWorkspacePayload(AUTOSAVE_LAYOUT_NAME);
     const response = await fetch(await workspaceUrl(), {
+      ...init,
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: AUTOSAVE_LAYOUT_NAME, workspace: payload }),
@@ -1097,11 +1180,16 @@ async function flushAutosave(): Promise<void> {
 
 /**
  * Wire every {@link PERSISTED_SLICES} trigger to {@link autosaveLayout} (the
- * dockview layout's own trigger is wired by PanelHost). Returns the teardown.
+ * dockview layout's own trigger is wired by PanelHost), and flush a pending
+ * autosave when the page is hidden for good. Returns the teardown.
  */
 export function wireAutosaveTriggers(): () => void {
   const unsubscribes = PERSISTED_SLICES.map((slice) => slice.subscribe(autosaveLayout));
-  return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+  window.addEventListener("pagehide", flushPendingAutosave);
+  return () => {
+    unsubscribes.forEach((unsubscribe) => unsubscribe());
+    window.removeEventListener("pagehide", flushPendingAutosave);
+  };
 }
 
 /** Test helper: back to the pre-restore state (autosave gated, nothing pending). */
