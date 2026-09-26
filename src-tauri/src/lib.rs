@@ -179,19 +179,41 @@ pub(crate) fn wait_for_port_with_retries(
     false
 }
 
+/// The env var that overrides the resolved app-data directory (R15-CODE-PLATFORM-080).
+/// Without it, the only way to isolate a rehearsal or a second profile was a
+/// full `$HOME` override — which WKWebView does not honour, leaking its cache
+/// into the real `~/Library/WebKit` and `~/Library/Caches`.
+const DATA_DIR_OVERRIDE_ENV: &str = "VYSTED_DATA_DIR";
+
+/// Parse a `VYSTED_DATA_DIR` lookup into an override path: `Some` when the var
+/// is set to a non-blank value, `None` otherwise (falls back to the platform
+/// default). Takes the raw lookup result so it is unit-testable without
+/// touching the real process environment.
+fn parse_data_dir_override(raw: Result<String, std::env::VarError>) -> Option<String> {
+    match raw {
+        Ok(value) if !value.trim().is_empty() => Some(value),
+        _ => None,
+    }
+}
+
 /// Resolve the per-OS application data directory, falling back to a temp dir on
 /// failure so a resolution/creation error degrades gracefully instead of
 /// panicking the app at boot. The sidecar owns the SQLite stores + saved
-/// workspaces beneath this directory.
+/// workspaces beneath this directory. `VYSTED_DATA_DIR`, when set, overrides
+/// the platform default entirely (release rehearsals / a second profile).
 fn resolve_data_dir(app: &AppHandle) -> String {
-    let dir = match app.path().app_data_dir() {
-        Ok(dir) => dir,
-        Err(err) => {
-            diag_eprintln!(
-                "[vysted] could not resolve the app data directory ({err}); \
-                 falling back to a temp directory"
-            );
-            std::env::temp_dir().join("vysted-terminal")
+    let dir = if let Some(dir) = parse_data_dir_override(std::env::var(DATA_DIR_OVERRIDE_ENV)) {
+        PathBuf::from(dir)
+    } else {
+        match app.path().app_data_dir() {
+            Ok(dir) => dir,
+            Err(err) => {
+                diag_eprintln!(
+                    "[vysted] could not resolve the app data directory ({err}); \
+                     falling back to a temp directory"
+                );
+                std::env::temp_dir().join("vysted-terminal")
+            }
         }
     };
     if let Err(err) = std::fs::create_dir_all(&dir) {
@@ -208,9 +230,13 @@ fn resolve_data_dir(app: &AppHandle) -> String {
 /// `--data-dir`. Used by the export helpers (notes/brief MD/PNG/PDF) to resolve
 /// `{dataDir}/exports/...`; the sidecar `/health` does NOT expose this, so the
 /// renderer must ask the core directly. Mirrors `resolve_data_dir`'s resolution
-/// (app_data_dir with a temp-dir fallback).
+/// (the `VYSTED_DATA_DIR` override, else app_data_dir with a temp-dir fallback)
+/// so exports never land in a different directory than the sidecar's stores.
 #[tauri::command]
 fn get_app_data_dir(app: tauri::AppHandle) -> String {
+    if let Some(dir) = parse_data_dir_override(std::env::var(DATA_DIR_OVERRIDE_ENV)) {
+        return dir;
+    }
     match app.path().app_data_dir() {
         Ok(dir) => dir.to_string_lossy().to_string(),
         Err(_) => std::env::temp_dir()
@@ -605,9 +631,10 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::{
-        mcp_endpoint_json, mcp_endpoint_path, pick_free_port, terminated_reason,
-        wait_for_port_timeout, wait_for_port_with_retries, SidecarPhase, SidecarStatus,
-        MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
+        mcp_endpoint_json, mcp_endpoint_path, parse_data_dir_override, pick_free_port,
+        terminated_reason, wait_for_port_timeout, wait_for_port_with_retries, SidecarPhase,
+        SidecarStatus, MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS,
+        MCP_PROTOCOL_VERSION,
     };
     use std::net::TcpListener;
     use std::sync::atomic::{AtomicU32, Ordering};
@@ -787,5 +814,21 @@ mod tests {
         assert!(!ok);
         // on_retry fires (attempts - 1) times; this also proves attempts >= 1.
         assert_eq!(calls.load(Ordering::SeqCst), attempts.saturating_sub(1));
+    }
+
+    #[test]
+    fn data_dir_override_wins_when_set_to_a_non_blank_value() {
+        // R15-CODE-PLATFORM-080: VYSTED_DATA_DIR must win over the platform
+        // default when set; unset/blank must fall through to it.
+        assert_eq!(
+            parse_data_dir_override(Ok("/tmp/vysted-rehearsal".to_string())),
+            Some("/tmp/vysted-rehearsal".to_string())
+        );
+        assert_eq!(
+            parse_data_dir_override(Err(std::env::VarError::NotPresent)),
+            None
+        );
+        assert_eq!(parse_data_dir_override(Ok("   ".to_string())), None);
+        assert_eq!(parse_data_dir_override(Ok(String::new())), None);
     }
 }
