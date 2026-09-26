@@ -212,6 +212,35 @@ describe("workspace serialization", () => {
     expect(migrateWorkspace(saved)).toEqual(saved);
   });
 
+  it("the watchlist round-trip keeps a picked listing's region; older and unknown regions restore region-less (R15-DATA-002)", () => {
+    useWorkspaceStore.setState({ dockviewApi: createFakeDockviewApi(LAYOUT_A) as never });
+    useSymbolsStore.setState({
+      entries: [
+        { symbol: "AMAL", assetClass: "equity", region: "US" },
+        { symbol: "AMAL", assetClass: "equity", region: "IN" },
+      ],
+    });
+    const saved = serializeWorkspace("desk");
+    useSymbolsStore.setState({ entries: [] });
+    deserializeWorkspace(saved);
+    expect(useSymbolsStore.getState().entries).toEqual([
+      { symbol: "AMAL", assetClass: "equity", region: "US" },
+      { symbol: "AMAL", assetClass: "equity", region: "IN" },
+    ]);
+
+    deserializeWorkspace({
+      ...saved,
+      watchlist: [
+        { symbol: "INFY", assetClass: "equity" },
+        { symbol: "SMR", assetClass: "equity", region: "XX" },
+      ],
+    });
+    expect(useSymbolsStore.getState().entries).toEqual([
+      { symbol: "INFY", assetClass: "equity" },
+      { symbol: "SMR", assetClass: "equity" },
+    ]);
+  });
+
   it("a blob from a newer build restores as it is, never downgraded (R15-LIFECYCLE-024)", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const future: SerializedWorkspace = {
