@@ -308,7 +308,7 @@ def structured_source_gathered(sources: list[ResearchSource]) -> bool:
     return any(s.url.startswith(("vysted://price/", "vysted://fundamentals/")) for s in sources)
 
 
-def web_only_floor_note(markdown: str, *, structured: dict[str, Any], findings: Findings) -> str:
+def web_only_floor_note(markdown: str, *, structured: dict[str, Any], findings: _Findings) -> str:
     """Append the honest web-only-floor statement when it applies.
 
     Applies only when the loosened floor actually carried the run: no
@@ -469,6 +469,11 @@ class Findings:
                 seen.add(src.url)
                 self._numbered.append(src)
         return list(self._numbered)
+
+
+#: Module-local spelling of :class:`Findings` for :func:`web_only_floor_note`'s
+#: signature only; other modules import :class:`Findings`.
+_Findings = Findings
 
 
 def record_structured(findings: Findings, name: str, dim: str, result: dict[str, Any]) -> None:
