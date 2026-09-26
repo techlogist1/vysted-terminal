@@ -446,9 +446,16 @@ def _adr_info(**overrides: object) -> dict:
 def test_adr_statement_sizes_carry_financial_currency_and_mixed_ratios_withheld(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """SIFY: revenue is kept (never FX-converted) but labelled INR, while the Yahoo
-    ratios dividing a USD figure by an INR statement figure are withheld with a
-    reason. P/B stays: Yahoo's book value is per share in the trading currency."""
+    """SIFY: revenue is kept (never FX-converted) but labelled INR, while every
+    Yahoo figure dividing or stating a USD listing value against an INR
+    statement figure is withheld with a reason.
+
+    R15-DATA-117 correction: P/B does NOT stay served. The premise that
+    Yahoo's ``bookValue`` is always per share in the trading currency is
+    disproved by a live probe (TSM P/B 92.17 vs a ~10 home-listing truth,
+    HDB 9.32 vs ~1.87) — nothing in the payload tells a correct trading-
+    currency book value apart from a raw statement-currency one, so
+    price_to_book/book_value join price_to_sales/ev_to_ebitda as withheld."""
     monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(_adr_info()))
     f = yfinance_provider.get_fundamentals("SIFY")
     assert f.currency == "USD"
@@ -456,13 +463,13 @@ def test_adr_statement_sizes_carry_financial_currency_and_mixed_ratios_withheld(
     assert f.revenue_ttm == 46_506_049_536
     assert f.price_to_sales is None
     assert f.ev_to_ebitda is None
+    assert f.price_to_book is None
+    assert f.book_value is None
     assert f.field_meta is not None
-    for field_name in ("price_to_sales", "ev_to_ebitda"):
+    for field_name in ("price_to_sales", "ev_to_ebitda", "price_to_book", "book_value"):
         meta = f.field_meta[field_name]
         assert meta.status == "withheld"
         assert "USD" in meta.reason and "INR" in meta.reason
-    assert f.price_to_book == 4.959653
-    assert f.field_meta["price_to_book"].status == "ok"
 
 
 def test_twd_reporting_adr_behaves_the_same(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -494,6 +501,95 @@ def test_same_currency_reporter_has_no_financial_currency(
     assert f.financial_currency is None
     assert f.price_to_sales == 0.021275874
     assert f.field_meta["price_to_sales"].status == "ok"
+
+
+# --- R15-DATA-117: P/B on a mixed-currency ADR basis is withheld, not served -
+
+
+@pytest.mark.parametrize(
+    ("symbol", "financial_currency", "price_to_book", "book_value", "trailing_pe"),
+    [
+        ("TSM", "TWD", 92.1669, 4.889, 33.55),
+        ("HDB", "INR", 9.32, 2.468, 16.09),
+        # ASML: a case the fix was not written against (EUR, not INR/TWD).
+        ("ASML", "EUR", 1499.0, 12.0, 38.2),
+    ],
+)
+def test_price_to_book_withheld_on_mixed_currency_basis_pe_stays_served(
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+    financial_currency: str,
+    price_to_book: float,
+    book_value: float,
+    trailing_pe: float,
+) -> None:
+    """Live probe (27 Sep): Yahoo's P/B on a mixed-currency ADR is off by the
+    exchange rate (TSM 92.17 vs a ~10 home-listing truth, HDB 9.32 vs ~1.87)
+    with nothing in the payload distinguishing that from a correct case —
+    price_to_book/book_value are withheld like price_to_sales. pe_ratio is
+    unaffected: Yahoo's EPS is per ADR in the trading currency, so it stays
+    served 'ok' at Yahoo's own trailingPE."""
+    info = _adr_info(
+        longName=symbol,
+        financialCurrency=financial_currency,
+        priceToBook=price_to_book,
+        bookValue=book_value,
+        trailingPE=trailing_pe,
+    )
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    f = yfinance_provider.get_fundamentals(symbol)
+    assert f.price_to_book is None
+    assert f.book_value is None
+    for field_name in ("price_to_book", "book_value"):
+        meta = f.field_meta[field_name]
+        assert meta.status == "withheld"
+        assert "USD" in meta.reason and financial_currency in meta.reason
+    assert f.pe_ratio == trailing_pe
+    assert f.field_meta["pe_ratio"].status == "ok"
+
+
+def test_price_to_book_unchanged_for_a_us_domestic_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """AAPL (USD/USD): no financial_currency, so price_to_book/book_value are
+    served as-is, unchanged by the mixed-basis withholding."""
+    info = _adr_info(
+        longName="Apple Inc.",
+        financialCurrency="USD",
+        priceToBook=46.34,
+        bookValue=7.36,
+    )
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    f = yfinance_provider.get_fundamentals("AAPL")
+    assert f.financial_currency is None
+    assert f.price_to_book == 46.34
+    assert f.book_value == 7.36
+    assert f.field_meta["price_to_book"].status == "ok"
+    assert f.field_meta["book_value"].status == "ok"
+
+
+def test_derived_eps_and_pe_skipped_for_a_mixed_currency_reporter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A TWD reporter with no Yahoo trailingEps and a net income / shares that
+    WOULD derive one must not: the derived eps (net income in TWD / shares)
+    and the pe_ratio it would feed both mix bases the same way the withheld
+    ratios do, so both stay unset rather than derived (R15-DATA-117)."""
+    info = _adr_info(
+        longName="Taiwan Semiconductor Manufacturing Company Limited",
+        financialCurrency="TWD",
+        currentPrice=180.0,
+        netIncomeToCommon=900_000_000_000.0,
+        sharesOutstanding=5_186_000_000,
+    )
+    info.pop("priceToBook", None)
+    info.pop("bookValue", None)
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _info_ticker(info))
+    f = yfinance_provider.get_fundamentals("TSM")
+    assert f.financial_currency == "TWD"
+    assert f.eps is None
+    assert f.pe_ratio is None
+    assert "eps" not in (f.field_meta or {}) or f.field_meta["eps"].provider != "derived"
 
 
 # --- R15-DATA-006: price-derived fields are dated by the price's trade time ---

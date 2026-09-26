@@ -1102,3 +1102,85 @@ def test_nse_listing_date_is_the_exchange_date_of_listing() -> None:
     assert parsed == ["2026-08-17", "2026-09-02", None]
     assert symbol_resolver.nse_listing_date("DHOOTTRANS.NS") == "2026-08-17"
     assert symbol_resolver.nse_listing_date("NAPEROL") is None
+
+
+# --- R15-LEAD-040: resolve/autocomplete run off a dedicated pool ------------
+
+
+@pytest.mark.asyncio
+async def test_resolve_async_does_not_starve_the_shared_to_thread_pool(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """12-way (the default shared-pool size on most boxes) concurrent
+    ``resolve_async`` calls, all blocked, must not delay an UNRELATED
+    ``asyncio.to_thread`` call — the defect was routing resolve on that same
+    shared pool, so N blocked resolves filled every worker and queued
+    everything else behind them (R15-LEAD-040)."""
+    import asyncio
+    import os
+    import threading
+
+    event = threading.Event()
+
+    def _blocking_resolve(query: str, region: str) -> symbol_resolver.Resolution:
+        event.wait(timeout=5)
+        return symbol_resolver.Resolution(query=query, best=None)
+
+    # resolve_async looks ``resolve`` up as a module global at call time, so
+    # this monkeypatch (like the production ``monkeypatch.setattr`` pattern)
+    # is picked up by tasks already scheduled on ``_RESOLVE_POOL``.
+    monkeypatch.setattr(symbol_resolver, "resolve", _blocking_resolve)
+    try:
+        pool_size = min(32, (os.cpu_count() or 1) + 4)
+        tasks = [
+            asyncio.create_task(symbol_resolver.resolve_async(f"Q{i}", "US"))
+            for i in range(pool_size)
+        ]
+        # Let every task actually reach the blocking call before checking that
+        # an unrelated to_thread call is unaffected.
+        await asyncio.sleep(0.05)
+        unrelated = await asyncio.wait_for(asyncio.to_thread(lambda: 1), 2)
+        assert unrelated == 1
+        event.set()
+        results = await asyncio.gather(*tasks)
+        assert len(results) == pool_size
+    finally:
+        event.set()
+
+
+def test_no_shared_pool_to_thread_call_sites_for_symbol_resolver() -> None:
+    """Class pin: every call site — including ``autocomplete``, which the
+    register entry never named — must route through ``resolve_async`` /
+    ``autocomplete_async`` on the dedicated ``_RESOLVE_POOL``, never
+    ``asyncio.to_thread(symbol_resolver.*, ...)`` on the shared default pool.
+    An AST audit over every module under ``routers``/``services``, not a grep
+    of the five sites the entry named, so a sixth call site added later trips
+    it too."""
+    import ast
+    from pathlib import Path
+
+    sidecar_root = Path(__file__).resolve().parents[1]
+    offenders: list[str] = []
+    for base in ("routers", "services"):
+        for path in (sidecar_root / base).rglob("*.py"):
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                func = node.func
+                is_to_thread = (
+                    isinstance(func, ast.Attribute)
+                    and func.attr == "to_thread"
+                    and isinstance(func.value, ast.Name)
+                    and func.value.id == "asyncio"
+                )
+                if not is_to_thread or not node.args:
+                    continue
+                first_arg = node.args[0]
+                if (
+                    isinstance(first_arg, ast.Attribute)
+                    and isinstance(first_arg.value, ast.Name)
+                    and first_arg.value.id == "symbol_resolver"
+                ):
+                    offenders.append(f"{path.relative_to(sidecar_root)}:{node.lineno}")
+    assert offenders == []

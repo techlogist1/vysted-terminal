@@ -103,6 +103,29 @@ def test_fundamentals_from_v7_maps_valuation_and_units() -> None:
     assert fund.roe is None
 
 
+def test_fundamentals_from_v7_withholds_price_to_book_on_mixed_currency_basis() -> None:
+    """R15-DATA-117: fundamentals_from_v7 (the screener/warm-store path) mapped
+    priceToBook/bookValue with no mixed-basis check at all and never set
+    financial_currency — a TSM-shaped v7 row (USD listing, TWD statements) must
+    now withhold both, labelled by THIS provider (not yfinance_provider's
+    module constant)."""
+    row = _v7_row(
+        "TSM",
+        financialCurrency="TWD",
+        priceToBook=92.17,
+        bookValue=4.889,
+    )
+    fund = yb.fundamentals_from_v7(row)
+    assert fund.financial_currency == "TWD"
+    assert fund.price_to_book is None
+    assert fund.book_value is None
+    for field_name in ("price_to_book", "book_value"):
+        meta = fund.field_meta[field_name]
+        assert meta.status == "withheld"
+        assert meta.provider == "yahoo-v7-batch"
+        assert "USD" in meta.reason and "TWD" in meta.reason
+
+
 def test_dividend_yield_fallback_divides_percent_form() -> None:
     # Only the percent-form ``dividendYield`` present → divide by 100.
     row = _v7_row("VZ")

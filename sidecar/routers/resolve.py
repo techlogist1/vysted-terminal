@@ -14,8 +14,6 @@ the picker can show an honest "no match" without error-handling noise.
 
 from __future__ import annotations
 
-import asyncio
-
 from fastapi import APIRouter, Query
 
 from config import get_region, normalize_region
@@ -60,7 +58,7 @@ async def resolve_symbol(
     # the recommended lifespan hook that also covers the agent/search paths.
     await nse_symbol_change.schedule_refresh()
 
-    resolution = await asyncio.to_thread(symbol_resolver.resolve, query, active_region)
+    resolution = await symbol_resolver.resolve_async(query, active_region)
     # R15-LIFECYCLE-019: with no rename map loaded a retired ticker answers its
     # dead identity; say so instead of letting that read as current.
     rename_lane = "available" if nse_symbol_change.rename_lane_available() else "unavailable"
@@ -113,7 +111,7 @@ async def autocomplete_symbols(
     if not query:
         return {"query": q, "region": active_region, "candidates": []}
     await nse_symbol_change.schedule_refresh()
-    candidates = await asyncio.to_thread(symbol_resolver.autocomplete, query, active_region, limit)
+    candidates = await symbol_resolver.autocomplete_async(query, active_region, limit)
     return {
         "query": query,
         "region": active_region,

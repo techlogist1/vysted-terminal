@@ -53,7 +53,7 @@ import httpx
 import config
 from models.fundamentals import Fundamentals
 from models.market import Quote
-from services import correctness_gate, provider_health
+from services import correctness_gate, provider_health, yfinance_provider
 
 logger = logging.getLogger(__name__)
 
@@ -496,6 +496,7 @@ def fundamentals_from_v7(row: dict[str, Any]) -> Fundamentals:
         symbol=symbol,
         name=row.get("longName") or row.get("shortName"),
         currency=str(row["currency"]) if row.get("currency") else None,
+        financial_currency=yfinance_provider._financial_currency(row),
         # Valuation (v7-covered)
         market_cap=_num(row.get("marketCap")),
         pe_ratio=_num(row.get("trailingPE")),
@@ -510,6 +511,11 @@ def fundamentals_from_v7(row: dict[str, Any]) -> Fundamentals:
         shares_outstanding=_num(row.get("sharesOutstanding")),
         provider=PROVIDER,
     )
+    # R15-DATA-117: v7 maps price_to_book/book_value with no mixed-basis check —
+    # withhold the same class yfinance_provider withholds, on this same row's
+    # own currency/financialCurrency, before the plausibility gate runs.
+    if fundamentals.financial_currency is not None:
+        yfinance_provider._withhold_mixed_basis_ratios(fundamentals)
     return correctness_gate.validate_fundamentals(fundamentals, symbol, config.get_region())
 
 
