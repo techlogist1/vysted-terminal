@@ -4,6 +4,401 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 rc1 gate — round 2 (2026-09-26)
+
+Not a Stage C batch — the second full pre-tag release gate, run against the batch-24 candidate
+`4c6dfe8c` once open critical/high/medium hit zero. Ran in two parts on the same launch
+(`wf_4ed38558-4d0`): an initial attempt with up to two fix rounds, then a full RESUME after a
+network outage killed its verifier.
+
+- **First attempt** (candidate `81fbfe91` = `worktree-agent-rc1-4c6dfe8-fix-int`, two fix-round
+  merges over `4c6dfe8c`): Gate 8 passed (111 routes, no order/broker/kill-switch/audit route,
+  `audit_orders` absent, tracked-portfolio round-trip clean), the regression chain passed
+  (eslint/tsc/clippy 0, vitest 152 files/1824, cargo 19, pytest 3129 + 1 skipped, smoke 3/3), all
+  8 owner drives passed, and 391 fixed ids across 8 battery shards mostly held (324 hold, 42
+  ci_pinned, 18 blocked_env, 4 needs_gui) with roughly 80 ids left with no raw row. Blocker:
+  `rc1-drive-research-briefs:2` (the citation-integrity net matching only a bare `[n]`) survived
+  BOTH fix rounds and reproduced live through both candidate nets. The final verifier then DIED
+  TWICE on `ENOTFOUND` during a DNS/network outage, so this attempt produced no gate sheet.
+- **RESUME** (`Workflow resumeFromRunId`, same args, `max_fix_rounds:3`): the harness's cache
+  replay only partly held — a resume's instant cache hits shifted every later call's position in
+  the invocation chain (root cause diagnosed and fixed for round 3, below), so the five
+  lane-serial drives, all 8 battery shards, the collator, the fix loop and the verifier shards
+  re-ran live under new keys; the re-run drives/shards returned `blocked` and the blocked battery
+  shards deleted 54 round-1 raw files plus one gate8 seed file (restored from HEAD before the
+  evidence commit). Fix round 3 never ran: the triage timed out repeatedly and the writer died
+  `ENOTFOUND` six times in a second outage.
+- **The gate sheet** (`docs/redesign/verification/R15_GATE_RC1.md`, candidate `4c6dfe8c`,
+  committed `3cd62b02`): **FAIL, no tag.** PASS: Gate 8 no-trading-path, Gate 8 tracked-portfolio,
+  ci-local (pytest 3596 + 1 skipped, vitest 1831, cargo 19), smoke, owner-drives. FAIL: the
+  register criterion — 9 `fixed` entries refuted live at the candidate (R15-DATA-002 critical;
+  R15-AGENT-019, R15-AGENT-093 high; R15-DATA-113, R15-LEAD-028, R15-DATA-064, R15-DATA-059,
+  R15-AGENT-053, R15-RESEARCH-015 medium) plus 2 new highs (`rc1-verifier:1` — BSE shareholding
+  502s because `_fetch_shp_index` uses plain httpx where BSE answers 403 and every other BSE call
+  rides the impersonated `curl_cffi` lane; `rc1-verifier:2` — MCP `list_workspaces`/`get_workspace`
+  call `/workspaces` but the router is `/workspace`, 404 on both); the fixed-id battery, agent
+  scenarios and data packs all showed harness coverage gaps (pre-candidate or missing evidence,
+  not product defects); and the fix loop stayed open on `rc1-drive-research-briefs:2`. GUI
+  deferred (11 needs_gui ids; the computer-use grant does not cover the built app).
+- **Refutation audit, round 2** (`5dac683a`): all 11 register refutations verdicted `partial` —
+  each entry's own original repro still held, but so did the gate's adjacent claim, each with a
+  root-cause file:line, fix shape and acceptance test recorded. Both new highs CONFIRMED and
+  filed as **R15-DATA-116** and **R15-CODE-AGENT-034**. Certification-failure counts after the
+  audit: R15-DATA-002, R15-LEAD-028, R15-DATA-059, R15-AGENT-019, R15-CODE-PLATFORM-013 at two
+  each; nothing yet at three. The audit's verdict on the round-2 gate verifier: no claim was
+  wrong.
+- **Gate-script repair for round 3** (`docs/redesign/verification/r15/tooling/RC1_GATE_R3_CHANGES.md`,
+  merge `c5ece940`): root cause confirmed against the round-2 journal — the harness chains each
+  agent call's cache key on the PREVIOUS call's key, so a key depends on invocation position, not
+  only on prompt and options, and a resume's instant cache hits moved every later call's position.
+  Fix: a fixed static invocation order (drive/battery waves run in array order, not
+  limiter-completion order) so a resume replays byte-identically; `args.round` required, with
+  every evidence path scoped under `r15/rc1/round-<n>/`; battery shards now cover every fixed id
+  exactly once (⌈fixed/16⌉ = 25 shards) with a named reason instead of a silent gap; no agent may
+  delete evidence from a lane that cannot run; scenarios and data packs always re-collected fresh
+  per round. `FINDINGS.json/.md` regenerated from round-2 files only (29 files, 126 findings).
+  Batch-25 (below) was the fix batch that followed, closing 10 of the 14 open entries ahead of
+  round 3.
+
+## R15 Stage C — batch 25: the gate round-2 fix batch — 10 certified, RESEARCH-043's fix reverted (2026-09-26)
+
+**Scope:** base `84280221`. The 14 open c/h/m entering this batch = the 11 `partial` reopenings
+from rc1 refutation audit round 2 (fix the CLASS per the auditor's root-cause/fix-shape/
+acceptance-test, not just the repro) plus the two new highs it confirmed (DATA-116,
+CODE-AGENT-034) plus RESEARCH-043 (filed after the audit from the gate's own unresolved citation-
+net blocker). Opus planner, up to 8 writers (Sonnet by default, Opus for root-causing —
+RESEARCH-043 assigned Opus), Opus integrator/reviewer/fresh verifier. Merged `--no-ff` on
+`worktree-agent-batch-25-int` (`2e988c0d`), merge `1373c0d5`.
+
+- **10 certified**, each re-run live on the verifier's own `:52310` sidecar with a fresh case:
+  **R15-CODE-PLATFORM-013** (the plugin-enabled flag and the workspace blob's `enabledModules`
+  are kept in sync on restore); **R15-LEAD-028** (BSE scrip-code addressing, e.g. `506597.BO`,
+  now resolves on fundamentals/quotes/history/ratings/earnings); **R15-DATA-064** (the chart's
+  30m timeframe now serves real intraday bars instead of a false "exchange serves end-of-day
+  only" empty state); **R15-DATA-116** (BSE shareholding-pattern requests now ride the
+  impersonated `curl_cffi` lane instead of plain httpx, which BSE 403s); **R15-CODE-AGENT-034**
+  (the MCP `list_workspaces`/`get_workspace` tools call the correct singular `/workspace` route
+  and wrap the bare list); **R15-DATA-113** (a foreign reporter's earnings-estimate revenue now
+  carries its own `revenue_currency` instead of the trading currency); **R15-RESEARCH-015**
+  (`registrable_domain`, not raw host, is the cross-check independence unit, so
+  `www.nseindia.com` and `nsearchives.nseindia.com` count as one source, closing a double-counted
+  channel's false "AGREE"); **R15-AGENT-019** (the intent gate keeps write tools on "Delete TCS
+  from my portfolio", "I bought 10 INFY at 1500" and similar everyday phrasings); **R15-AGENT-093**
+  (the tool-argument schema gate coerces a numeric value sent as a JSON string, llama3.1:8b's
+  consistent calling style, instead of rejecting the call); **R15-AGENT-053** (panel-to-agent
+  context now covers earnings/analyst/SEC/news symbols as clickable chips instead of dead text).
+- **R15-DATA-002 (critical, NOT DELIVERED — not a certification failure).** W1 reported
+  `could_not`: the fix (region threaded onto `SymbolEntry`, the pick, the quote poll, the row
+  click and persistence) is complete with green tests on the unmerged
+  `worktree-agent-batch-25-W1-data002-wip@b91ddef3`, but the last hop needs
+  `src/store/command-palette.ts` and `CommandPalette.tsx:207`, outside this writer's owned-file
+  set. Nothing merged. Lead ruling (`DECISIONS_FOR_OPERATOR.md` §5.12): a fix that never reached
+  the integration branch was never tested, so it does not count toward the three-failure rule —
+  DATA-002 stays at two failures (from the two prior refutation audits), and batch-26 makes one
+  targeted attempt from the WIP branch with the missing file in scope.
+- **R15-AGENT-010 (high, second certification failure).** `yf.Search(timeout=5)` does not bound
+  yfinance's cookie/crumb leg: a cold hang still takes 31.07 s against a required <= 6 s bound
+  (`_get_crumb_basic` passes no timeout to the underlying request). Holds once a crumb is already
+  cached (5.00 s).
+- **R15-DATA-059 (medium, THIRD certification failure — stops, `DECISIONS_FOR_OPERATOR.md`
+  §4.13).** The ISIN half is fixed and verified live (SIFY, ONC, AAPL, plus fresh MSFT/NVDA), but
+  the entry's title also claims US instruments carry no board and no listing date, and `/resolve`
+  still returns `board: null` with no `listing_date` — a data-availability limitation (no free
+  source in use carries either field), not a code defect. Recommended disposition: narrow the
+  entry to its ISIN claim and close it, documenting the board/listing-date gap in the release
+  notes.
+- **R15-RESEARCH-043 (medium, THIRD certification failure — stops, `DECISIONS_FOR_OPERATOR.md`
+  §4.14; fix reverted).** W5 (Opus, `1288ec19`) wrote one shared bracket-citation grammar for
+  both `sidecar/services/research/citecheck.py` and `src/lib/brief-ingest.ts`, passing the
+  recorded corpus with byte-identical parity — but the fresh verifier showed it treats ANY
+  bracket token as a citation: numeric prose brackets like `[1,234 mn]` become a fabricated
+  citation `[1]` with zero broken counted, and `[Rs 1,200]`/`[₹1,20,000 cr]` are erased outright
+  on the backend, worse than the pre-existing behaviour of shipping them verbatim. The lead
+  **reverted `1288ec19` on 004 as `3a674e7c`**, so the release line carries the ORIGINAL defect
+  (grouped markers and bracketed prose ship unresolved as literal text), now `blocked_tier4`
+  pending the operator's ruling. **R15-RESEARCH-015 (`14f76664`) from the same writer set was
+  kept** — a different fix (registrable-domain counting, above), certified on its own evidence.
+
+**Verifier:** fresh-context Opus, live sidecar on its own `:52310` with a copied ISO data dir.
+`ci-local-2.log` green end to end (vitest 1862, pytest 3663); at HEAD, including the review
+commit, the verifier's own full sidecar re-run gave 3664 passed + 1 skipped, plus 157 passed on
+the six touched frontend test files; cargo 19, clippy 0, smoke pass. Register adjudication of
+these verdicts (10 → fixed; DATA-059 + RESEARCH-043 → `blocked_tier4`) happens at batch-26's
+adjudicate step, not in this merge.
+
+## R15 Stage C — batch 24: LEAD-035's named narrowing fix, not certified a fourth time — blocked_tier4 under the three-failure rule (2026-09-26)
+
+**Scope:** base `c155e5ad` (after the disposition concurrence `4fd3cbfd` applied at `1db862d0`:
+LEAD-037/038 → `blocked_tier4`, the LEAD-030 briefing clause struck). Planner = exactly the
+disposition-concurrence verifier's named fix, nothing else. One writer, W1 (Sonnet, `227c1e25`),
+built the regex byte-identical to the verifier's own spec. Merge `6778f892`.
+
+- **R15-LEAD-035 (not certified, fourth attempt — STOP RULE, three-failure disposition).** A
+  closed-tail lookahead (the no-tool cue's object must be followed by a clause end, or
+  `please`/`at all`/`whatsoever`/`here`/`now`/`this time`/`today`/`and`/`just`/`for this|that
+(one|question|turn)`) plus a reported-speech guard, a strict SUBSET of the shipping regex —
+  67/67 pinned cases plus the subset invariant plus 7 OVER-keep cases plus 5 held-out cases all
+  pass, 478 focused tests. The narrowing holds live (0 new strips on 97 cases, 0 over-strips on
+  the 67, the 7 OVER prompts call `price_data` 21/21), but 4 of 18 fresh qualified-negation
+  requests still lose every tool and llama invents prices in 6 of 8. The fresh verifier REFUSED
+  the `blocked_tier4` concurrence outright and instead named a FURTHER narrowing-only guard it
+  would certify (`batch-24/LEAD-035-CONCURRENCE.md` §3/§4) — but under the operator's
+  three-failure rule the entry stops here regardless: LEAD-035 → `blocked_tier4` with the
+  refusal on record, not adjudicated away. `DECISIONS_FOR_OPERATOR.md` §4.10 is rewritten with
+  two options for the operator — (a) accept the residual with the verifier's accurate wording, or
+  (b) one more bounded round for the named guard on the rc2 line — with the lead recommending
+  (b).
+
+**Verifier:** fresh-context Opus. Integrator chain green at `d1290f66` (pytest 3596, vitest 1831,
+cargo 19, clippy, ruff, smoke 3/3); reviewer approve. The branch merged as a strict improvement.
+This closes the LEAD-030/033-038 family: with LEAD-035 now `blocked_tier4`, open
+critical/high/medium = 0, unlocking rc1 gate round 2. Per the operator's PACING CHANGE 4 sign-off,
+LEAD-030/035/037/038 stand as ONE documented known-limitation class of the local-model lane ("a
+keyless local model fabricates figures, or a claimed write, when it has no tool result to ground
+them") for this release, with no further rounds.
+
+## R15 Stage C — batch 23: LEAD-035 third (final) round and LEAD-030 disposition concurrence — integration branch not merged (2026-09-26)
+
+**Scope:** base `c155e5ad`, R15-LEAD-030 excluded from selection (its own fix round is closed).
+One writer, W1 (Opus — two Sonnet rounds had already failed: batch-21 under-matched, batch-22
+over-matched), on `planner.py` + `test_b3_runtime_intent_gate.py`; a fresh Opus verifier both
+certifies LEAD-035's claim and rules CONCUR/REFUSE on the LEAD-030 disposition. The adjudicator
+(Sonnet) applied batch-22's VERDICTS as notes only and mined two new open mediums from its
+residuals: **R15-LEAD-037** (the guard grounds a stated figure by value only, so a stale bar
+inside an ok payload counts as grounded for a current-price sentence) and **R15-LEAD-038** (an
+honoured no-tool instruction still leaves llama narrating a completed portfolio write that never
+happened).
+
+- **R15-LEAD-035 (not certified, third attempt — REGRESSION, STOP RULE FIRED).** A per-clause
+  `_no_tool_cue` spec: negation adjacent to the verb with a closed filler list, double negatives
+  and interrogatives keep the surface, `from` takes a closed object list, a positively-named tool
+  keeps the surface. Every batch-22 phrasing now holds (24/24 keep-surface controls call
+  `price_data` live; 13/13 no-tool prompts make no call and stage nothing) — but 7 fresh explicit
+  data requests with a qualified or scoped negation ("Never call the tools twice for one symbol;
+  get the INFY.NS price.") lose every tool on the candidate while keeping 42-55 on base, and live
+  llama then fabricates prices presented as fetched in all 7. Third failure is final: the
+  integration branch is **NOT merged**; base (batch-21's closed cue list) ships instead, because
+  it under-matches — an unrecognised no-tool phrasing keeps the surface and writes stay
+  review-gated, fail-safe over a fabricated price.
+- **R15-LEAD-030 disposition: CONCUR with `blocked_tier4`, on a CORRECTED, broader wording.** The
+  residual is wider than the batch-22 note stated: rule 2c only runs when a call errored, so an
+  ungrounded figure for a never-called subject also streams in an ALL-OK turn ("price_data also
+  shows Infosys at ₹1,540.00"), and in a NO-CALL turn a figure narrated as fetched streams too
+  (live, `calls=[]`: SBIN ₹949.50, INFY ₹443.85, TCS ₹2,993.70). A bounded ninth-fix spec is
+  recorded for post-launch, not this run.
+
+**Verifier:** fresh-context Opus, live sidecar on :52310, llama3.1:8b. Integrator chain green on
+int `9aa9fb6c` (vitest 152/1831, cargo 19, pytest 3471 + 1 skipped, focused 85, smoke exited 0; a
+`format:check` regression on `DECISIONS_FOR_OPERATOR.md`'s missing trailing newline was fixed on
+the branch and re-applied to 004 in `d38a090f`). Reviewer approve. LEAD-037 and LEAD-038 stay
+proposed `blocked_tier4` pending one fresh verifier's concurrence: 141 live runs (`4fd3cbfd`) gave
+LEAD-038 CONCUR, LEAD-037 REFUSE-then-CONCUR on a corrected wording (the guard never checks an
+ok-subject's figure at all, struck from the LEAD-030 briefing clause), and LEAD-035 REFUSE with a
+named narrowing-only fix (a closed-tail lookahead plus a reported-speech guard) the verifier said
+"should not be deferred" — batch-24 (above) builds exactly that fix.
+
+## R15 Stage C — batch 22: LEAD-030 eighth (final) round, fail-safe rule 2c, LEAD-035 second attempt rejected (2026-09-26)
+
+**Scope:** base `86ae79c4`. W1 (Opus) owns `agent_runtime.py` + `figure_grounding.py`; W2
+(Sonnet) owns `planner.py`'s no-tool cue, widened. Adjudication `93ba12da` (nothing certifies
+from batch-21). Merged `--no-ff`, W1 only, as `c155e5ad`.
+
+- **R15-LEAD-030 (not certified, eighth and final attempt — STOP RULE TRIGGERED).**
+  `_fence_body`'s end-of-stream handling now treats an unclosed fence as a complete unit rather
+  than consuming its last line as a closer; the alias function gains initialisms (State Bank of
+  India -> SBI, Larsen & Toubro -> L&T, Housing Development Finance Corporation -> HDFC, Bharti
+  Airtel -> Airtel/Bharti) plus a fail-safe RULE 2c: in a turn with at least one errored call, an
+  ungrounded figure whose clause/row attaches to NO ok subject (ticker or alias, own or
+  paragraph-inherited) is replaced — the burden flips to the ok side so an unforeseen alias form
+  fails safe. b17-b21 probes stay BAD 0 and fresh cases drop to 4 BAD vs 8 on base, and the live
+  entry prompt streams grounded-only — but paragraph inheritance still lets a fabricated figure
+  for an UNRECOGNISED or NEVER-CALLED subject beside an ok subject stream ("TCS.NS closed at
+  ₹3,235.50. Tata Motors last traded at ₹702.10." with TATAMOTORS.NS errored or never called;
+  "Big Blue" beside an ok MSFT with IBM errored; uncalled "its peer Infosys ₹1,540.00"), and a
+  figure-less fabricated fenced dump with an ISIN streamed live. Eighth failure = final under the
+  run's stop rule: no ninth filter round. Recommendation to the operator is `blocked_tier4`,
+  pending a fresh verifier's concurrence sought in batch-23.
+- **R15-LEAD-035 (not certified, second attempt, REJECTED as a regression).** W2's broadened
+  `_NO_TOOL_FROM_GIVEN` regex over-matches: six explicit data requests ("Don't forget to use the
+  tools…", "Only use data from price_data…") now lose every tool, and live llama then streams
+  fabricated prices narrated as fetched with the guard inert. Reviewer BLOCK on the same grounds;
+  excluded from the merge — only W1's commit (`da25a6a9`) landed.
+- **R15-LEAD-036 (holds; one pre-existing residual noted, not a regression).** Every same-round
+  fence closes correctly; a fence opened one round earlier still fails, but base gives the
+  identical output, so this is not new.
+
+**Verifier:** fresh-context Opus, BLOCK on both open entries (findings above). Integrator chain
+green on int `e4d72417` (vitest 152/1831, cargo 19, pytest 3456 + 1 skipped, focused 388, smoke
+exited 0); because the lead merged W1 only, `ci-local` had run on the two-writer tree
+(`e4d72417`), not on the merged commit alone, so the merged tree carries the focused sidecar tests
+(377 pass) plus ruff, with the rc1 gate covering the full chain later. Open c/h/m after the merge:
+LEAD-030 + LEAD-035; LEAD-035 gets its third and final round in batch-23.
+
+## R15 Stage C — batch 21: LEAD-030 seventh round, LEAD-035 no-tool cue first attempt (2026-09-25)
+
+**Scope:** base `1abef99b`. LEAD-030's seventh round closes the two named gaps from batch-20;
+LEAD-035 gets its first fix round. W1 (Opus) owns `agent_runtime.py` + `figure_grounding.py`; W2
+(Sonnet) owns `planner.py` + `test_b3_runtime_intent_gate.py`. Adjudication `4d9a7324` (nothing
+certifies from batch-20; open c/h/m = LEAD-030 + LEAD-035). Merged `--no-ff` on
+`worktree-agent-batch-21-int` (`7d74e44e`), merge `86ae79c4`.
+
+- **R15-LEAD-030 (not certified, seventh attempt).** Three fixes: (1) figure grounding (rules
+  1/2) now runs BEFORE the `_NEGATIVE` exemption, so an error-acknowledging clause with an
+  ungrounded figure is replaced (the exemption applies to figure-free clauses only); (2) subject
+  aliases — an errored call's symbol now resolves to its company name and common short forms from
+  the resolver/universe data, plus the user's own wording that led to the call, with a
+  figure-less-subject clause inheriting the nearest preceding subject in its paragraph or
+  colon-intro; (3) `~~~` fences recognised alongside backtick fences. Every batch-20 fail shape
+  now passes (19/19 fresh), b17-b20 probes stay BAD 0, and the live entry prompt's fabricated
+  $143.67M plus an all-errored three-company table both replace correctly with true controls
+  unchanged — but (a) common short names (SBI, Airtel, L&T) never come out of the alias function
+  (offline only; live llama stayed honest across 3 mixed runs), and (b) a REGRESSION: an unclosed
+  ```json/~~~json dump at the end of a stream leaks its figure because `\_fence_body` treats the
+  last line as the closer (base replaced the tilde form correctly).
+- **R15-LEAD-035 (not certified, first attempt).** `classify_intent` gains a no-tool cue so an
+  explicit "without calling any tool" instruction is read as a positive read/no-tool signal and
+  drops write tools from the surface. `_NO_TOOL_CUE` is a closed phrase list: "Answer without any
+  tools", "Do not call a tool", and a curly-apostrophe "Don't use any tools" all keep the full
+  55-tool surface, and live, "Do not call a tool. I sold 5 TCS…" still dispatched `get_portfolio`.
+- **R15-LEAD-036 (fixed).** Every CLOSED fence (backtick or tilde, same-char closer at or past the
+  opener's length) renders as prose; only the unclosed-tilde-at-end-of-stream case above regresses
+  (the same `_fence_body` cause as LEAD-030's residual).
+
+**Verifier:** fresh-context Opus. Chain green: vitest 152 files/1831, cargo 19, pytest 3420 + 1
+skipped, focused suite 352, smoke exited 0; reviewer approve, 0 test lines removed. Merged despite
+no certifications this round — the branch is a strict improvement over base and sets up batch-22
+(STOP-RULE AMENDMENT: the seventh failure is a regression plus two closed-list gaps, not a new
+prose class, so one more round runs; an eighth LEAD-030 failure or a third LEAD-035 failure is
+final). Open c/h/m after the merge: LEAD-030 + LEAD-035.
+
+## R15 Stage C — batch 20: figure grounding by provenance, LEAD-036 fence-unit fix (2026-09-25)
+
+**Scope:** base `ec7f7cd6`. LEAD-030's sixth attempt, planned as exactly one writer on model
+`fable` (routing change 5: a root cause two Opus attempts failed to crack; five strongest-tier
+writer rounds have now run on the class). Adjudication `d685a4be` applies batch-19's VERDICTS and
+mines batch-19's residual observations into two new register entries: R15-LEAD-035 (medium —
+llama staged a portfolio write after being told "without calling any tool") and R15-LEAD-036 (low
+— tilde code fences are not recognised by the fabrication guard's fence-unit logic). Merged
+`--no-ff` on `worktree-agent-batch-20-int` (`3595bcd6`), merge `1abef99b`.
+
+- **R15-LEAD-030 (not certified, sixth attempt).** New file `sidecar/services/figure_grounding.py`:
+  shape-agnostic grounding replaces shape matching. GROUNDED = a number appearing in this turn's
+  ok tool results, the seeded history, the user's own messages or the preamble, matched at the
+  figure's own precision with scale words. Rule 1 (all-errored turn): any clause/row/block
+  carrying an ungrounded figure becomes the honest note. Rule 2 (mixed turn): a clause/row citing
+  an errored or uncalled tool, or carrying an ungrounded figure attached to an errored call's
+  subject, is replaced. Rule 3: grounded figures and the user's own restatements always stream.
+  Fenced blocks, tables, lists, multi-line JSON and a colon-intro-plus-paragraph are held as ONE
+  unit, with per-row replacement inside tables and lists. Every batch-19 probe still holds BAD 0,
+  writer cases pass 18/18, fresh offline gives 6 BAD vs 14 on base, and live true controls
+  (HDFCBANK, TCS, a ₹1,640×12 restatement) stream unchanged — but the title claim fails on two
+  NAMED implementation gaps, not new shapes: `_judge_clause` returns None whenever `_NEGATIVE`
+  matches, and that check runs BEFORE rule 1, so "Although the `price_data` tool failed, …
+  SBIN.NS's latest close was ₹742.35" streamed live (app truth 983.0); and rule 2b matches
+  subjects by ticker only, so "Infosys last traded at ₹1,233.65" leaks in a mixed turn where
+  INFY.NS errored but TCS was ok.
+- **R15-LEAD-036 (certified).** The fence-unit holder now recognises `_FENCE_OPEN`/`_FENCE_CLOSE`
+  for tilde fences as well as backtick fences and drops the fence markers on replacement.
+
+**Verifier:** fresh-context Opus. Chain green: vitest 152 files/1831, cargo 19, pytest 3385 + 1
+skipped, focused runtime suite 287, smoke exited 0; reviewer approve, pinned `t-live-rel-list-replay`
+as a permanent pytest. The lead's own "no seventh shape round" stop rule was not triggered — the
+two residuals are named implementation gaps inside a mechanism that now holds, not a new prose
+class — but the Tier-4 note is written to `DECISIONS_FOR_OPERATOR.md` §4.9 regardless, so the
+operator sees the six-batch cost. LEAD-035 deferred by the planner (its file, `planner.py`, was
+also being edited on an unmerged lows branch). Open c/h/m after the merge: LEAD-030 + LEAD-035.
+
+## R15 Stage C — batch 19: LEAD-030 result-shaped-dump rule, fifth attempt (2026-09-25)
+
+**Scope:** base `ebc5ed41`. Strategy change (per batch-18's close): no more attribution regexes;
+the two surviving shapes are treated as "a result-shaped dump with no ok source." One writer, W1
+(Opus), on `agent_runtime.py`. Adjudication `c5a6ade8` applies batch-18's VERDICTS (LEAD-033/034
+fixed at `ebc5ed41`; LEAD-030 stays open). Merged `--no-ff` on `worktree-agent-batch-19-int`
+(`705c3626`), merge `ec7f7cd6`.
+
+- **R15-LEAD-030 (not certified, fifth attempt).** Two rules: (1) a colon-terminated attribution
+  binds the following paragraph across a blank line; (2) with at least one errored call this turn
+  and `ok_tools` EMPTY, a result-shaped block (JSON, or two-or-more symbol/metric figure lines)
+  has no possible source and is replaced by the honest error note — never when any ok tool
+  exists. Both verifier transcripts from batch-18 were pinned as failing tests first, with three
+  or more true-citation controls in the live bar. The branch blocks 6 of 10 fresh fabricated
+  shapes where base blocks 0, and the batch-17/18 probes still hold BAD 0, but a code-fenced dump
+  for an errored/uncalled tool beside another ok tool, an all-errored markdown table,
+  annotated/bold/numbered bullets and an inline JSON dump still stream; a new regression
+  over-replaces a user's own figure list after an error. Shape-matching has now leaked on fresh
+  shapes five times running, which is why batch-20 changes the mechanism entirely (figure
+  grounding by provenance, above) rather than patching the shape list again.
+
+**Verifier:** fresh-context Opus. Chain green: vitest 152 files/1831, cargo 19, pytest 3329 + 1
+skipped, smoke exited 0; reviewer approve, no weakened tests. Pre-existing true-failure probes
+(`b18v_probe_b`, `t-live-rel-list-replay`) fail on base too. Open c/h/m after the merge: LEAD-030
+only.
+
+## R15 Stage C — batch 18: LEAD-030 clause-level attribution rewrite, chat-history trailer strip, India Emerge symbol-suffix gate fix (2026-09-25)
+
+**Scope:** two-step batch. Step 1 (root cause): one Fable/high strongest-tier agent, branch
+`worktree-agent-batch-18-W1@ecdd223e` (from `292ba53a`). Step 2 (batch script): adjudication
+applies batch-17's VERDICTS (LEAD-031 fixed at `292ba53a`; LEAD-030 stays open); W1 (Opus)
+continues from the step-1 branch, W2 (Sonnet) owns LEAD-034. Merged `--no-ff` on
+`worktree-agent-batch-18-int` (`72dc8f68`), merge `ebc5ed41`.
+
+- **R15-LEAD-030 (not certified, fourth attempt).** Step 1's root cause: batch-16/17 decided
+  replacement per SENTENCE on co-occurrence (a non-ok tool named plus a cue/figure anywhere), but
+  attribution is really a relation between ONE reference and ONE value — widening the reference
+  regex raised over-replacement, narrowing it let camelCase escape, and both halves of the title
+  claim can't hold under that predicate; a second gap let a dump written before a pending tool's
+  own result pass, because that tool was already in `ok_tools` via the history seed. Fix:
+  clause-level attribution in `_guard_tool_citations` — one reference regex (backtick / citation
+  lead-ins incl. sourcing verbs / `<id> tool|returned|:` / bare snake, with `[\s_-]?` joining id
+  parts so snake, spaced, hyphen, Title and camel forms all canonicalise) splits a sentence at
+  clause breaks before the first dump opener; a clause is replaced only if a non-ok reference is
+  cited in attribution form, or the clause carries a figure/dump and every reference in it is
+  non-ok; the round's pending calls are subtracted from `ok_tools` and a pre-result dump is
+  dropped. 3 new tests, 0 changed; focused 211 passed; the batch-17 probes BAD 0; live bar 8 runs
+  — 0 fabricated streamed, 0 true replaced. Step 2 keeps the design (no redesign) and still fails
+  the title claim: a colon-terminated attribution binds the following paragraph across a blank
+  line (SIFY TTM, WIPRO.NS), and a generic "Here are the results:" figure list with no tool named
+  after `price_data` errored streams invented INFY/TCS prices.
+- **R15-LEAD-033 (certified).** The sidecar now strips the `[tool steps: …]` trailer from the
+  model-visible history after seeding `cited_tools` from it (an `_EARLIER_TOOLS_NOTE` system line
+  takes its place), so llama3.1:8b no longer echoes the trailer verbatim into a later turn; 3 of
+  3 live pairs show no echo, and the turn-1 citation is kept.
+- **R15-LEAD-034 (certified).** `_SUFFIX_RE` in the correctness gate now accepts the `-SM`
+  Emerge infix before an Indian exchange suffix, so a bare screener-universe SME symbol
+  (previously failing as a symbol mismatch against yfinance's `-SM.NS` return) passes; quote and
+  fundamentals pinned live on SUMAX and INSPIRE.
+
+**Verifier:** fresh-context Opus. Chain green at `be0cd066`: `pnpm ci-local` exited 0 (pytest
+3315, vitest 1831/152 files, cargo 19), forced sidecar build + smoke exited 0, ruff clean. The
+reviewer's lead-in regression (plain-English "according to/based on" wrongly read as a citation)
+was fixed in `24bff097` and re-checked clean (240 focused tests). Open c/h/m after the merge:
+LEAD-030 only. Strategy change recorded for batch-19: no more attribution regexes.
+
+## R15 Stage E — panel completion (2026-09-25)
+
+Not a Stage C batch — a same-day repair of the Stage E judge panel's first pass, which had
+degraded to a single judge. The original run (`wf_d855d73b-b6b`, off-machine, no lane) lost all 4
+Opus case-builders and Fable judge B to API safeguard errors, leaving only judge A plus a
+synthesis over a single judge's scores (`afbc3314`: 48 survivors, 11 killed, top survivor BL-03
+"Reasons about you"). Panel completion re-runs the missing half.
+
+- Fable/high judge B ran INDEPENDENT of judge A — it never reads `r15/invent/PANEL.*` and carries
+  no case cards, verifying every claim against the repo directly, exactly as judge A did — and
+  succeeded on its first try (50 survivors, 9 kills, its own top 3: BL-03/BL-11/BL-18).
+- Fable/high synthesis then rewrote `r15/invent/PANEL.md` + `PANEL.json` from BOTH judges: judge
+  A's raw verdicts preserved from the first run's journal, scores averaged, 5 disagreements of 2
+  or more points named and resolved with rationale, single-judge kills re-decided (4 upheld after
+  re-read: BL-02, BL-12, BL-39, BL-55), and the ranked survivor list rebuilt — 59 rows total, 47
+  survivors, 12 killed (8 by both judges, 4 single-judge kills upheld).
+- **Verdict:** top survivor **BL-03 "Reasons about you" (the position half; S band, 3 days)**,
+  runners-up BL-18 then BL-11, anchors re-verified against the repo at `913235f3`. The method
+  section names both judges and their tiers, and `judges: 2` in `PANEL.json` is now true, meeting
+  the routing-change-5 requirement for two judges per verdict.
+
+**Evidence:** `52b47455` on origin/004 (only the two PANEL files touched; 2 agents, 15.9 minutes,
+349k tokens, zero errors, no fallback used). The one small build the panel names (BL-03) waits for
+the rc2 window per the run's order.
+
 ## R15 Stage C — batch 17: citation guard seeded from history, humanised tool names and cross-line dump drop; partial tool-call marker hold (2026-09-25)
 
 **Scope:** register queue after adjudication `{critical:0, high:1, medium:0, low:211}`: one open c/h/m entry, R15-LEAD-030
