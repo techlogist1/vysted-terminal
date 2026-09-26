@@ -94,8 +94,11 @@ tokens, zero errors, zero stall kills).
   `gpt-4o-mini` rather than skipping. Owner drives now require raw output per scored row, with a named
   `HARNESS drive-raw-missing` blocker when a group returns narrative only. Dry run: 32 checks, 0 failures, 55
   agents planned for round 4.
-- Round 4 launched on candidate `1006c6da` (`wf_f8604b35-a49`) with `batt_shards: 25`; its outcome is not yet
-  known.
+- Round 4 launched on candidate `1006c6da` with `batt_shards: 25`. Attempt 1 (`wf_f8604b35-a49`) stopped after 6 min on
+  a preflight harness cause: the Sonnet preflight returned blocked on a sidecar build that finished two minutes later;
+  the preflight step now states the build's 15-30 min duration, polls to the ensure script's exit and reuses binaries
+  already built at the sha (`b5a45a58`). Attempt 2 (`wf_a404279c-3f4`) runs on the same candidate; its outcome is not
+  yet known.
 
 ## R15 Stage C — batch 26: AGENT-010 and LEAD-039 certified, DATA-002 stopped at three failures (2026-09-26)
 
