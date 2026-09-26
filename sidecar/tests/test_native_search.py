@@ -703,6 +703,29 @@ async def test_native_search_oneshot_grounds_and_returns_text(
 
 
 @pytest.mark.asyncio
+async def test_native_search_oneshot_keeps_the_callers_base_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-077: the oneshot builds its adapter against the caller's base_url."""
+    import services.llm as llm_pkg
+    from services.llm.native_search import native_search_oneshot
+
+    built: list[tuple[str, str | None]] = []
+
+    def _get_provider(provider_id: str, base_url: str | None = None) -> _OneshotProvider:
+        built.append((provider_id, base_url))
+        return _OneshotProvider()
+
+    monkeypatch.setattr(llm_pkg, "get_provider", _get_provider)
+    proxy = "https://my-proxy.internal/v1"
+    out = await native_search_oneshot(
+        "openai", "gpt-4o-search-preview", "sk-test", "q", base_url=proxy
+    )
+    assert out["ok"] is True
+    assert built == [("openai", proxy)]
+
+
+@pytest.mark.asyncio
 async def test_native_search_oneshot_honest_on_unavailable_pair() -> None:
     from services.llm.native_search import native_search_oneshot
 

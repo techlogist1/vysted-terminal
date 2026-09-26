@@ -111,7 +111,7 @@ def test_complete_with_usage_returns_the_done_usage(monkeypatch: pytest.MonkeyPa
             yield LLMDeltaEvent(text="lo")
             yield LLMDoneEvent(usage=LLMUsage(input_tokens=120, output_tokens=30))
 
-    monkeypatch.setattr(oneshot, "get_provider", lambda _p: _Adapter())
+    monkeypatch.setattr(oneshot, "get_provider", lambda _p, **_k: _Adapter())
     text, usage = asyncio.run(
         oneshot.complete_with_usage("openai", "gpt-4.1", "k", [{"role": "user", "content": "q"}])
     )
