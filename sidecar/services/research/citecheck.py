@@ -38,32 +38,6 @@ from services.research.models import ResearchSource, ResearchStep
 #: Inline citation marker — ``[n]`` not followed by ``(`` (a markdown link).
 MARKER_RE = re.compile(r"\[(\d{1,3})\](?!\()")
 
-# The bracket grammar (R15-RESEARCH-043). ONE spec, mirrored verbatim by
-# src/lib/brief-ingest.ts ``normalizeCitations`` — change both together.
-#
-# A bracket GROUP is any ``[…]`` (one nested ``[…]`` allowed, e.g. a leaked
-# ``[Structured: {… 'news': []}]``) that is not a markdown link ``[t](u)`` and
-# not a reference definition ``[ref]: url``. Its content splits on ``,``/``;``
-# into tokens. A CITATION token is an index, a range (``3-5``/``3–5``) or
-# ``Source(s) n``. A group with at least one citation token IS a citation: it
-# becomes ``[a][b]…`` (in-range indexes, in order, de-duplicated; label tokens
-# dropped; each out-of-range token is broken). A group with none is a LABEL:
-# at citation position — prose before it on the line, and only clause-end
-# punctuation, end of line or another bracket after it — it is an unresolved
-# pseudo-citation (broken) unless it is an editorial/identifier bracket on the
-# allow-list. A label mid-sentence (``said [the Company] would``) is prose, and
-# a bracket with no letter or digit (``[…]``, ``[?]``) is never a label.
-_GROUP_RE = re.compile(r"\[((?:[^\[\]\n]|\[[^\[\]\n]*\])*)\](?!\()")
-_CITE_TOKEN_RE = re.compile(r"(?:sources?\s+)?([0-9]{1,3})(?:\s*[-–—]\s*([0-9]{1,3}))?", re.I)
-#: Editorial/identifier brackets, plus the annotations this pipeline emits
-#: itself (semantics.py ``[= formula]``, the filing ``[PDF]``/``[PDF attached]``).
-_ALLOWED_LABEL_RE = re.compile(
-    r"[Ss]ic|[Ee]mphasis (?:added|mine)|[Bb]asis:.*|=.*|PDF(?: attached)?"
-    r"|[A-Z]{2,10}: ?[A-Z0-9][A-Z0-9.&-]{0,19}"
-)
-_CITATION_TAIL_RE = re.compile(r"[ \t]*(?:$|[.,;:!?)|\[])")
-_ALNUM_RE = re.compile(r"[^\W_]")
-
 #: At most this many numeric/dated claims ride the ONE audit call.
 MAX_AUDIT_CLAIMS = 8
 
@@ -92,7 +66,7 @@ def _tidy(text: str) -> str:
     out = re.sub(r"[,;]\s*\)", ")", out)
     out = re.sub(r"\(\s*\)", "", out)
     out = re.sub(r"[ \t]{2,}", " ", out)
-    return out.rstrip(" \t")
+    return out
 
 
 #: A heading/label line opening a model-authored bibliography ("### Sources",
@@ -159,44 +133,8 @@ def strip_model_bibliography(markdown: str) -> tuple[str, int]:
     return cleaned, removed + literals
 
 
-def _resolve_group(match: re.Match[str], source_count: int) -> tuple[list[int], int] | None:
-    """One bracket group under the grammar above: ``None`` leaves it untouched,
-    else ``(in-range indexes to emit, broken count)``."""
-    text, content = match.string, match.group(1)
-    line_start = text.rfind("\n", 0, match.start()) + 1
-    line_end = text.find("\n", match.end())
-    prefix = text[line_start : match.start()]
-    suffix = text[match.end() : len(text) if line_end == -1 else line_end]
-    if not prefix.strip() and suffix.startswith(":"):
-        return None
-    indexes: list[int] = []
-    broken = 0
-    cited = False
-    for token in re.split(r"[,;]", content):
-        cite = _CITE_TOKEN_RE.fullmatch(token.strip())
-        if cite is None:
-            continue
-        cited = True
-        lo, hi = sorted((int(cite.group(1)), int(cite.group(2) or cite.group(1))))
-        indexes += [n for n in range(max(lo, 1), min(hi, source_count) + 1) if n not in indexes]
-        if lo < 1 or hi > source_count:
-            broken += 1
-    if cited:
-        return indexes, broken
-    if (
-        _ALNUM_RE.search(content) is None
-        or _ALLOWED_LABEL_RE.fullmatch(content.strip()) is not None
-        or _ALNUM_RE.search(prefix) is None
-        or _CITATION_TAIL_RE.match(suffix) is None
-    ):
-        return None
-    return [], 1
-
-
 def strip_invalid_markers(markdown: str, source_count: int) -> tuple[str, int]:
-    """Normalise every citation group to ``[a][b]…`` and strip what does not
-    resolve to the rail: out-of-range indexes and label pseudo-citations at
-    citation position (the bracket grammar above).
+    """Remove every ``[n]`` whose n falls outside ``1..source_count``.
 
     Returns ``(cleaned_markdown, removed_count)``. With zero sources EVERY
     marker is out of range and stripped (the FAST-brief fabricated-citation
@@ -206,14 +144,13 @@ def strip_invalid_markers(markdown: str, source_count: int) -> tuple[str, int]:
 
     def _sub(match: re.Match[str]) -> str:
         nonlocal removed
-        resolved = _resolve_group(match, source_count)
-        if resolved is None:
+        n = int(match.group(1))
+        if 1 <= n <= source_count:
             return match.group(0)
-        indexes, broken = resolved
-        removed += broken
-        return "".join(f"[{n}]" for n in indexes)
+        removed += 1
+        return ""
 
-    cleaned = _GROUP_RE.sub(_sub, markdown)
+    cleaned = MARKER_RE.sub(_sub, markdown)
     if removed:
         cleaned = "\n".join(_tidy(line) for line in cleaned.splitlines())
     return cleaned, removed

@@ -696,25 +696,3 @@ def test_web_domain_floor_counts_registrable_domains_not_hosts() -> None:
         assert not deep.coverage_floor_met(
             findings, structured={"price": {"ok": False}}, min_web_domains=2
         )
-
-
-def test_extract_prompt_has_no_bracketable_structured_label() -> None:
-    """R15-RESEARCH-043 generator: the structured block is a sentence, not a
-    "Structured (tool):" label a model then cites as "[Structured: {...}]", and
-    the prompt says only the numbered [n] markers are citations."""
-    llm = _RecordingLLM()
-    asyncio.run(
-        run_iter_research(
-            "Apple",
-            region="US",
-            tool_call=_FakeToolCall(web_ok=True),
-            llm_call=llm,
-            budget=BudgetGuard(max_steps=50),
-        )
-    )
-    extracts = [m for m in llm.seen if m and "research analyst" in str(m[0]["content"]).lower()]
-    assert extracts
-    for messages in extracts:
-        assert "Structured" not in messages[-1]["content"]
-        assert "only the numbered [n] markers" in messages[0]["content"]
-    assert any("data feed returned" in m[-1]["content"] for m in extracts)

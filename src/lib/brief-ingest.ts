@@ -392,104 +392,37 @@ export function dedupeSources(sources: readonly BriefSource[]): BriefSource[] {
 
 // ── citation-marker + banner truth (R8) ─────────────────────────────────────
 
-// The bracket grammar (R15-RESEARCH-043). ONE spec, mirrored verbatim by
-// sidecar/services/research/citecheck.py `_resolve_group` — change both together.
-//
-// A bracket GROUP is any `[…]` (one nested `[…]` allowed, e.g. a leaked
-// `[Structured: {… 'news': []}]`) that is not a markdown link `[t](u)` and not a
-// reference definition `[ref]: url`. Its content splits on `,`/`;` into tokens.
-// A CITATION token is an index, a range (`3-5`/`3–5`) or `Source(s) n`. A group
-// with at least one citation token IS a citation: it becomes `[a][b]…` (in-range
-// indexes, in order, de-duplicated; label tokens dropped; each out-of-range token
-// becomes one `[?]`). A group with none is a LABEL: at citation position — prose
-// before it on the line, and only clause-end punctuation, end of line or another
-// bracket after it — it is an unresolved pseudo-citation (`[?]`) unless it is an
-// editorial/identifier bracket on the allow-list. A label mid-sentence
-// (`said [the Company] would`) is prose, and a bracket with no letter or digit
-// (`[…]`, `[?]`) is never a label.
-const CITE_GROUP_RE = /\[((?:[^[\]\n]|\[[^[\]\n]*\])*)\](?!\()/g;
-const CITE_TOKEN_RE = /^(?:sources?\s+)?([0-9]{1,3})(?:\s*[-–—]\s*([0-9]{1,3}))?$/i;
-// Editorial/identifier brackets, plus the annotations the sidecar emits itself
-// (semantics.py `[= formula]`, the filing `[PDF]`/`[PDF attached]`).
-const ALLOWED_LABEL_RE =
-  /^(?:[Ss]ic|[Ee]mphasis (?:added|mine)|[Bb]asis:.*|=.*|PDF(?: attached)?|[A-Z]{2,10}: ?[A-Z0-9][A-Z0-9.&-]{0,19})$/;
-const CITATION_TAIL_RE = /^[ \t]*(?:$|[.,;:!?)|[])/;
-const ALNUM_RE = /[\p{L}\p{N}]/u;
+/** Inline `[n]` citation marker — not a markdown link (`[1](url)` is a link). */
+const CITE_MARKER_RE = /\[(\d{1,3})\](?!\()/g;
 
 /** The inert marker a broken citation becomes (rendered as a flagged chip). */
 export const BROKEN_CITE_MARKER = "[?]";
 
-/** Apply the bracket grammar: every citation group becomes `[a][b]…` and every
- *  bracket that does not resolve to the rail becomes {@link BROKEN_CITE_MARKER}. */
-function normalizeCitations(
-  markdown: string,
-  sourceCount: number,
-): { markdown: string; broken: number } {
-  let broken = 0;
-  const out = markdown.replace(
-    CITE_GROUP_RE,
-    (whole: string, content: string, offset: number, text: string) => {
-      const lineEnd = text.indexOf("\n", offset + whole.length);
-      const prefix = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset);
-      const suffix = text.slice(offset + whole.length, lineEnd === -1 ? text.length : lineEnd);
-      if (!prefix.trim() && suffix.startsWith(":")) {
-        return whole;
-      }
-      const markers: string[] = [];
-      let cited = false;
-      for (const token of content.split(/[,;]/)) {
-        const cite = CITE_TOKEN_RE.exec(token.trim());
-        if (!cite) {
-          continue;
-        }
-        cited = true;
-        const [lo, hi] = [Number(cite[1]), Number(cite[2] ?? cite[1])].sort((a, b) => a - b);
-        for (let n = Math.max(lo, 1); n <= Math.min(hi, sourceCount); n += 1) {
-          if (!markers.includes(`[${n}]`)) {
-            markers.push(`[${n}]`);
-          }
-        }
-        if (lo < 1 || hi > sourceCount) {
-          markers.push(BROKEN_CITE_MARKER);
-          broken += 1;
-        }
-      }
-      if (cited) {
-        return markers.join("");
-      }
-      if (
-        !ALNUM_RE.test(content) ||
-        ALLOWED_LABEL_RE.test(content.trim()) ||
-        !ALNUM_RE.test(prefix) ||
-        !CITATION_TAIL_RE.test(suffix)
-      ) {
-        return whole;
-      }
-      broken += 1;
-      return BROKEN_CITE_MARKER;
-    },
-  );
-  return { markdown: out, broken };
-}
-
 /**
- * Normalise the brief's citations under the bracket grammar above: grouped
- * markers (`[2, 3]`, `[Source 2]`, `[NSE filing; 2]`) become `[2][3]`/`[2]`, and
- * every bracket that does not resolve to the rail becomes {@link BROKEN_CITE_MARKER}:
- * an index past the source count (any index at all on a zero-source brief) and a
- * label pseudo-citation at citation position (`[New findings].`). The live
- * failures: a FAST brief citing "[1] Screener.in" against 0 sources, an ULTRA
- * brief citing [47] against 21, and prose labels shipping as literal text. A dead
- * chip must never link anywhere, but a cited-but-broken claim must also never read
- * as an uncited one (FR-123), so the marker stays, flagged and inert.
+ * Flag every inline `[n]` marker whose index exceeds the cited source count (or
+ * any marker at all when there are zero sources) as {@link BROKEN_CITE_MARKER}.
+ * The live failure: a FAST brief whose prose cited "[1] Screener.in" while the
+ * rail held 0 sources, and an ULTRA brief citing [47] against 21 sources. A dead
+ * chip must never link anywhere, but a cited-but-broken claim must also never
+ * read as an uncited one (FR-123), so the marker stays, flagged and inert.
  */
 export function sanitizeCitationMarkers(markdown: string, sourceCount: number): string {
-  return normalizeCitations(markdown, sourceCount).markdown;
+  return markdown.replace(CITE_MARKER_RE, (whole, digits: string) => {
+    const n = Number(digits);
+    return n >= 1 && n <= sourceCount ? whole : BROKEN_CITE_MARKER;
+  });
 }
 
-/** How many citations in the brief do not resolve to the source list. */
+/** How many inline `[n]` markers point past the source list. */
 export function countBrokenCitations(markdown: string, sourceCount: number): number {
-  return normalizeCitations(markdown, sourceCount).broken;
+  let broken = 0;
+  for (const m of markdown.matchAll(CITE_MARKER_RE)) {
+    const n = Number(m[1]);
+    if (n < 1 || n > sourceCount) {
+      broken += 1;
+    }
+  }
+  return broken;
 }
 
 /** Bare-domain shapes that read as a web citation inside prose. */
