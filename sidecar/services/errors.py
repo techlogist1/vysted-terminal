@@ -243,6 +243,19 @@ _BODY_RULES: tuple[
     tuple[str | None, frozenset[int] | None, tuple[str, ...], str, str, str], ...
 ] = (
     (
+        None,
+        None,
+        (
+            "missing credentials",
+            "api_key client option must be set",
+            "no api key was provided",
+            "could not resolve authentication method",
+        ),
+        "auth",
+        "No {label} API key is set — add it in Settings.",
+        "Add your {label} API key in Settings.",
+    ),
+    (
         "openrouter",
         frozenset({429}),
         ("upstream_provider_shared_pool", ":free"),

@@ -123,7 +123,6 @@ class GroqProvider(LLMProvider):
         # Either way, pop the kwargs so they never reach the SDK.
         kwargs.pop("web_search", None)
         kwargs.pop("web_search_max_uses", None)
-        client = self._client(api_key)
         api_messages = _to_api_messages(messages)
         request_kwargs: dict[str, Any] = {
             "model": model,
@@ -138,6 +137,7 @@ class GroqProvider(LLMProvider):
                 request_kwargs["tools"] = tools
         request_kwargs.update(kwargs)
         try:
+            client = self._client(api_key)
             stream = await client.chat.completions.create(**request_kwargs)
             usage: LLMUsage | None = None
             finish_reason: str | None = None

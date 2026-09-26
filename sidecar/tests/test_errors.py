@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import pytest
 
+from models.llm import LLMErrorEvent, LLMMessage
 from services.errors import (
     HumanError,
     ProviderError,
@@ -15,6 +16,10 @@ from services.errors import (
     humanize,
     provider_error_response,
 )
+from services.llm.anthropic import AnthropicProvider
+from services.llm.gemini import GeminiProvider
+from services.llm.groq import GroqProvider
+from services.llm.openai import OpenAIProvider
 
 # ---------------------------------------------------------------------------
 # ProviderError smoke test
@@ -612,3 +617,39 @@ def test_unauthored_classified_kind_also_hides_raw_text() -> None:
         body["detail"]
         == "The data provider has no data for this symbol or series — check the symbol."
     )
+
+
+# ---------------------------------------------------------------------------
+# rc1-drive-composer-chat:1 — a missing key must humanize to "auth", never
+# escape the adapter's own try/except to the router's generic internal-error
+# guard. OpenAI/Groq/Gemini raise at SDK-client construction; Anthropic defers
+# to request time — all four are covered by the same class fix and the same
+# _BODY_RULES row.
+# ---------------------------------------------------------------------------
+
+_NO_KEY_ADAPTERS = [
+    pytest.param(OpenAIProvider(), ("OPENAI_API_KEY",), id="openai"),
+    pytest.param(GroqProvider(), ("GROQ_API_KEY",), id="groq"),
+    pytest.param(GeminiProvider(), ("GOOGLE_API_KEY", "GEMINI_API_KEY"), id="gemini"),
+    pytest.param(AnthropicProvider(), ("ANTHROPIC_API_KEY",), id="anthropic"),
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("provider, env_keys", _NO_KEY_ADAPTERS)
+async def test_stream_chat_with_no_key_yields_one_auth_error(
+    provider: object, env_keys: tuple[str, ...], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    for key in env_keys:
+        monkeypatch.delenv(key, raising=False)
+    events = []
+    async for event in provider.stream_chat(  # type: ignore[attr-defined]
+        [LLMMessage(role="user", content="hi")],
+        model="does-not-matter",
+        api_key=None,
+    ):
+        events.append(event)
+    assert len(events) == 1
+    assert isinstance(events[0], LLMErrorEvent)
+    assert events[0].code == "auth"
+    assert "API key" in events[0].message
