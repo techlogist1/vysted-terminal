@@ -574,12 +574,7 @@ are done-and-revertable like §1; these are yours to review or act on.
 - **Risk of not doing it:** a no-tool instruction phrased outside the closed list is not honoured:
   the model may call a read tool, or stage a portfolio write that then waits in the review queue
   for the user's accept. No write applies on its own.
-- **Status:** open — the fresh verifier REFUSED blocked_tier4: the shipping list over-matches too
-  (7 explicit data requests lose every tool; llama then invents prices as fetched in 15/21 live
-  runs); its narrowing-only fix (a closed-tail lookahead plus a reported-speech guard, a strict
-  subset of the shipping regex; 67-phrasing check 50 correct / 0 over-strips / 17 misses vs
-  43 / 7 / 17) is built in batch-24; the under-match residual then goes to blocked_tier4 with the
-  corrected wording
+- **Status: blocked_tier4 under the operator's three-failure rule (pacing change 4, 26 Sep) — NOT a concurrence.** Batch-24 built the batch-23 verifier's named narrowing-only fix exactly (merged `6778f892` via `d1290f66`: 0 new strips on 97 phrasings, 0 over-strips on the 67, the 7 over-match prompts call price_data live), yet R15-LEAD-035 failed certification a FOURTH time: 4 of 18 fresh qualified-negation data requests still lose every tool (a comma before 'except'/'other than'; 'He says don't use tools, but…') and the local model then invents prices in 6/8 live runs. The fresh verifier REFUSED the blocked_tier4 concurrence (`r15/stage-c/batch-24/LEAD-035-CONCURRENCE.md`) and named a further narrowing-only guard (a qualifier negative lookahead plus `(?<!says )`) that clears 3 of the 4 offline with 0 lost strips and that it would certify. Your call at rc1: (a) accept the residual as a documented known limitation with the verifier's 'accurate for d1290f66' wording (its §4), or (b) authorise ONE bounded round for that named guard on the rc2 line (Sonnet writer, fresh verifier, same subset property) — the lead recommends (b), because the verifier has now twice named a cheap, checkable, strictly-narrowing fix and the over-match makes the local model invent prices on explicit data requests, which is the worse failure of the two. Until you decide, the release docs carry the verifier's accurate wording and the rc1 gate treats the entry as adjudicated to you, not fixed.
 
 ### 4.11 R15-LEAD-037 — the figure guard grounds a price by value only, so a stale bar passes as the current price
 

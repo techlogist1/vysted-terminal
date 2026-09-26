@@ -2,7 +2,7 @@
 
 887 raw findings -> 652 entries + 76 rejections. critical: 16 . high: 116 . medium: 293 . low: 227
 
-Status: blocked_tier4: 25 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open: 206 . removed_with_feature: 14
+Status: blocked_tier4: 26 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open: 205 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -222,7 +222,7 @@ Status: blocked_tier4: 25 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-LEAD-031** [low] The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator — _fixed_
 - **R15-LEAD-032** [medium] adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol — _fixed_
 - **R15-LEAD-033** [medium] The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose — _fixed_
-- **R15-LEAD-035** [medium] Told explicitly 'without calling any tool', llama3.1:8b stages a portfolio_update_position write anyway — _open_
+- **R15-LEAD-035** [medium] Told explicitly 'without calling any tool', llama3.1:8b stages a portfolio_update_position write anyway — _blocked_tier4_
 - **R15-LEAD-036** [low] The all-errored fabrication guard's replacement prose renders inside the original code fence, leaving a ```json block that contains a sentence instead of JSON — _open_
 - **R15-LEAD-037** [medium] The fabrication guard grounds a stated figure by VALUE only, so an older bar buried in the same price_data payload counts as grounded for the current-price sentence — _blocked_tier4_
 - **R15-LEAD-038** [medium] When an explicit no-tool instruction correctly empties the tool surface, llama3.1:8b still narrates a false completed portfolio write with no tool call behind it — _blocked_tier4_
@@ -1066,7 +1066,7 @@ Status: blocked_tier4: 25 . fixed: 391 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-LEAD-032 | medium | agent | agent-tools | adr_ratio.lookup does not cache an exception miss, so a hanging or unreachable EDGAR stalls every fundamentals/financial_statements call for that symbol | fixed |  |
 | R15-LEAD-033 | medium | agent | frontend-stores | The chat history's '[tool steps: …]' trailer lives inside the assistant `content` string, so llama3.1:8b echoes it back as if it were its own prose | fixed |  |
 | R15-LEAD-034 | medium | data | fundamentals-profile | Background India fundamentals warming passes bare screener-universe symbols to the correctness gate, which never strips yfinance's Emerge (SME) '-SM' infix, so every NSE Emerge symbol fails as a symbol mismatch | fixed |  |
-| R15-LEAD-035 | medium | agent | agent-tools | Told explicitly 'without calling any tool', llama3.1:8b stages a portfolio_update_position write anyway | open |  |
+| R15-LEAD-035 | medium | agent | agent-tools | Told explicitly 'without calling any tool', llama3.1:8b stages a portfolio_update_position write anyway | blocked_tier4 |  |
 | R15-LEAD-036 | low | agent | agent-tools | The all-errored fabrication guard's replacement prose renders inside the original code fence, leaving a ```json block that contains a sentence instead of JSON | open |  |
 | R15-LEAD-037 | medium | agent | agent-tools | The fabrication guard grounds a stated figure by VALUE only, so an older bar buried in the same price_data payload counts as grounded for the current-price sentence | blocked_tier4 |  |
 | R15-LEAD-038 | medium | agent | agent-tools | When an explicit no-tool instruction correctly empties the tool surface, llama3.1:8b still narrates a false completed portfolio write with no tool call behind it | blocked_tier4 |  |
