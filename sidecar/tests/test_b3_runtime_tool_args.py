@@ -152,3 +152,64 @@ def test_a_non_numeric_integer_string_stays_invalid() -> None:
     event = LLMToolUseEvent(tool_call_id="c-1", name="option_chain", input=args)
     agent_runtime._normalise_tool_args(event)
     assert "'ten' is not of type 'integer'" in event.input[agent_runtime.INVALID_ARGS_SENTINEL]
+
+
+def test_nested_numeric_string_is_coerced() -> None:
+    # R15-AGENT-093 round 2: coercion only worked at the top level and refused
+    # an integral float ("5.0") for an integer. Now it descends into
+    # properties/items, including after a stringified array is parsed.
+    event = LLMToolUseEvent(
+        tool_call_id="c-1",
+        name="add_chart_drawing",
+        input={"kind": "trendline", "points": [{"price": "185.5"}]},
+    )
+    agent_runtime._normalise_tool_args(event)
+    assert agent_runtime.INVALID_ARGS_SENTINEL not in event.input
+    assert event.input["points"][0]["price"] == 185.5
+
+    # The stringified array itself, sent whole.
+    event = LLMToolUseEvent(
+        tool_call_id="c-2",
+        name="add_chart_drawing",
+        input={"kind": "trendline", "points": '[{"price": "185.5"}]'},
+    )
+    agent_runtime._normalise_tool_args(event)
+    assert agent_runtime.INVALID_ARGS_SENTINEL not in event.input
+    assert event.input["points"] == [{"price": 185.5}]
+
+    # An integral float string ("5.0") is coerced to int, not rejected.
+    event = LLMToolUseEvent(
+        tool_call_id="c-3", name="option_chain", input={"symbol": "NIFTY", "max_strikes": "5.0"}
+    )
+    agent_runtime._normalise_tool_args(event)
+    assert agent_runtime.INVALID_ARGS_SENTINEL not in event.input
+    assert event.input["max_strikes"] == 5 and type(event.input["max_strikes"]) is int
+
+    # A non-coercible nested value still fails validation (the sentinel), not
+    # a silent pass-through.
+    event = LLMToolUseEvent(
+        tool_call_id="c-4",
+        name="add_chart_drawing",
+        input={"kind": "trendline", "points": [{"price": "ten"}]},
+    )
+    agent_runtime._normalise_tool_args(event)
+    assert agent_runtime.INVALID_ARGS_SENTINEL in event.input
+
+    # Fresh case: a tool the fix was not written against, with a nested
+    # numeric items schema (yield_curve_value.instruments[].tenor/rate).
+    event = LLMToolUseEvent(
+        tool_call_id="c-5",
+        name="yield_curve_value",
+        input={
+            "valuation_date": "2026-09-26",
+            "sample_count": 5,
+            "instruments": [
+                {"type": "deposit", "tenor": "3", "tenor_unit": "months", "rate": "0.05"}
+            ],
+        },
+    )
+    agent_runtime._normalise_tool_args(event)
+    assert agent_runtime.INVALID_ARGS_SENTINEL not in event.input
+    row = event.input["instruments"][0]
+    assert row["tenor"] == 3 and type(row["tenor"]) is int
+    assert row["rate"] == 0.05 and type(row["rate"]) is float
