@@ -28,6 +28,12 @@ logger = logging.getLogger(__name__)
 
 WORKSPACE_SUFFIX = ".vysted-workspace"
 
+# A Windows ``os.replace`` fails with WinError 5/32 (``PermissionError``) while
+# an AV scanner, the indexer or a concurrent reader holds the destination open;
+# the handle is released within milliseconds, so the rename is retried.
+_REPLACE_ATTEMPTS = 5
+_REPLACE_BACKOFF_SECS = 0.05
+
 # Encoded-stem ceiling: the stem plus the suffix and the per-writer temp/backup
 # tails must stay under the 255-byte filename limit of every desktop filesystem.
 _MAX_STEM_LENGTH = 200
@@ -104,8 +110,8 @@ def save_workspace(name: str, workspace: dict[str, Any]) -> None:
                 _quarantine(path)
             else:
                 shutil.copyfile(path, bak_tmp)
-                os.replace(bak_tmp, _bak_path(path))
-        os.replace(tmp, path)
+                _replace(bak_tmp, _bak_path(path))
+        _replace(tmp, path)
     finally:
         # If a rename failed (e.g. mid-shutdown), don't leak the temp files.
         for leftover in (tmp, bak_tmp):
@@ -113,6 +119,19 @@ def save_workspace(name: str, workspace: dict[str, Any]) -> None:
                 leftover.unlink(missing_ok=True)
             except OSError:
                 pass
+
+
+def _replace(src: Path, dst: Path) -> None:
+    """``os.replace`` retried over a transient sharing violation; the last
+    ``PermissionError`` propagates (the router maps it to a detailed 507)."""
+    for attempt in range(1, _REPLACE_ATTEMPTS + 1):
+        try:
+            os.replace(src, dst)
+            return
+        except PermissionError:
+            if attempt == _REPLACE_ATTEMPTS:
+                raise
+            time.sleep(_REPLACE_BACKOFF_SECS * attempt)
 
 
 def _bak_path(path: Path) -> Path:

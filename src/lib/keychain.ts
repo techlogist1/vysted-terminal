@@ -36,8 +36,10 @@ export const KEYCHAIN_NAMESPACES = {
   /**
    * App-level meta flag (not a credential) — e.g. `app-meta:onboarding-complete`.
    * Used for durable first-run state that must survive a workspace-layout reset
-   * or an imported older blob (the same durability reason the first-launch terms
-   * ack uses the keychain). Carries no secret; the stored value is a timestamp/choice tag.
+   * or an imported older blob. Carries no secret; the stored value is a
+   * timestamp/choice tag. The onboarding flags now live in the data-dir app-meta
+   * file ({@link getAppMeta}); this keychain id is still read once as the legacy
+   * location, and the first-launch terms ack still uses it.
    */
   appMeta: (key: string): string => `app-meta:${key}`,
 
@@ -65,6 +67,31 @@ export async function deleteSecret(account: string): Promise<void> {
   await invoke<void>("keychain_delete", { account });
 }
 
+/**
+ * True when a keychain call rejected because the OS secret store itself is
+ * unusable (Linux without a Secret Service provider, a locked or refused store)
+ * — the Rust core prefixes those errors (R15-CROSS-PLATFORM-011).
+ */
+export function isSecretStoreUnavailable(error: unknown): boolean {
+  return String(error).startsWith("secret-store-unavailable");
+}
+
+/**
+ * Read a non-secret app-meta flag from `<data-dir>/app-meta.json` via the Rust
+ * core. Kept out of the keychain so a missing secret store never loses it.
+ */
+export async function getAppMeta(key: string): Promise<string | null> {
+  return (await invoke<string | null>("app_meta_get", { key })) ?? null;
+}
+
+/** Persist a non-secret app-meta flag (see {@link getAppMeta}). */
+export async function setAppMeta(key: string, value: string): Promise<void> {
+  await invoke<void>("app_meta_set", { key, value });
+}
+
+/** Emitted by `keychain_migrate` (payload: seconds) before its idle wait. */
+export const KEYCHAIN_MIGRATE_WAITING_EVENT = "keychain-migrate:waiting";
+
 /** Report from {@link migrateDevKeystore}. */
 export interface KeychainMigrateReport {
   /** `"dev-keystore"` in dev builds, `"os-keychain"` in release. */
@@ -73,6 +100,8 @@ export interface KeychainMigrateReport {
   migrated: number;
   /** True when migration had already run (no-op) or in release (nothing to do). */
   already_done: boolean;
+  /** Accounts whose keychain read errored on this call; the next boot retries them. */
+  failed: string[];
 }
 
 /**
@@ -124,6 +153,17 @@ export async function migrateDevKeystore(): Promise<KeychainMigrateReport | null
   // once-only guard, so a later explicit call is harmless).
   if (devKeystoreMigrationInFlight) return devKeystoreMigrationInFlight;
   devKeystoreMigrationInFlight = (async () => {
+    // The Rust side announces its idle settle (~140 s on a dev first boot) so a
+    // pending migration is not mistaken for a hang. No-op outside the Tauri shell.
+    const unlisten = await import("@tauri-apps/api/event")
+      .then(({ listen }) =>
+        listen<number>(KEYCHAIN_MIGRATE_WAITING_EVENT, (event) =>
+          console.info(
+            `[keychain-migrate] waiting ${event.payload}s for the keychain access check to settle, then re-reading`,
+          ),
+        ),
+      )
+      .catch(() => null);
     try {
       return await invoke<KeychainMigrateReport>("keychain_migrate", {
         accounts: devKeystoreMigrationAccounts(),
@@ -132,6 +172,8 @@ export async function migrateDevKeystore(): Promise<KeychainMigrateReport | null
       // Migration is best-effort; a denied dialog or missing store must not
       // break boot. The Settings UI remains the fallback for (re-)entering keys.
       return null;
+    } finally {
+      unlisten?.();
     }
   })().finally(() => {
     devKeystoreMigrationInFlight = null;

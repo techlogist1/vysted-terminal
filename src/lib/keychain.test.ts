@@ -10,9 +10,13 @@ import {
 } from "@/lib/keychain";
 
 const invokeMock = vi.hoisted(() => vi.fn());
+const listenMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: invokeMock,
+}));
+vi.mock("@tauri-apps/api/event", () => ({
+  listen: listenMock,
 }));
 
 describe("KEYCHAIN_NAMESPACES", () => {
@@ -110,5 +114,26 @@ describe("migrateDevKeystore (R9 dev keystore)", () => {
     ]) {
       expect(accounts).toContain(`llm-provider:${id}`);
     }
+  });
+
+  it("surfaces the keychain-migrate:waiting countdown while the migration runs (R15-CODE-PLATFORM-057)", async () => {
+    const unlisten = vi.fn();
+    let onWaiting: ((event: { payload: number }) => void) | undefined;
+    listenMock.mockImplementationOnce(async (name: string, handler: typeof onWaiting) => {
+      expect(name).toBe("keychain-migrate:waiting");
+      onWaiting = handler;
+      return unlisten;
+    });
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    invokeMock.mockImplementationOnce(async () => {
+      onWaiting?.({ payload: 140 });
+      return { backend: "dev-keystore", migrated: 1, already_done: false, failed: [] };
+    });
+
+    await migrateDevKeystore();
+
+    expect(info).toHaveBeenCalledWith(expect.stringContaining("waiting 140s"));
+    expect(unlisten).toHaveBeenCalledOnce();
+    info.mockRestore();
   });
 });
