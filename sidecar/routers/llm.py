@@ -35,7 +35,7 @@ from models.llm import (
     LLMProviderInfo,
 )
 from services import budget_guard, model_registry
-from services.errors import error_frame
+from services.errors import error_frame, humanize
 from services.llm import get_provider, list_provider_info, scrub_adapter_options
 from services.llm.base import LLMStreamEvent
 
@@ -58,9 +58,11 @@ async def get_models(
 ) -> LLMModelCatalog:
     """Return a provider's LIVE model catalog, with a registry fallback.
 
-    The BYOK key rides the ``X-LLM-Key`` header (read-only-plugin pattern: secret
-    in a header, never the body/query/log) so the OpenRouter path can narrow to
-    the caller's account-routable models. When the live fetch fails or returns
+    This route alone carries the key in the ``X-LLM-Key`` header — a GET can't
+    carry a body — so the OpenRouter path can narrow to the caller's
+    account-routable models; ``POST /llm/chat`` and ``POST /llm/keys/validate``
+    below carry it as an ``api_key`` JSON body field instead (never the query
+    string or a log, on any of the three). When the live fetch fails or returns
     nothing, the registry ``known_models`` are served with ``source="fallback"``
     so the picker is never empty. GET-only, never echoes the key.
     """
@@ -117,11 +119,12 @@ async def validate_key(payload: LLMKeyValidationRequest) -> LLMKeyValidationResp
         ok = await adapter.validate_key(api_key)
     except Exception as exc:  # noqa: BLE001 — any transport failure means unreachable
         logger.warning("provider %s validation transport error: %s", payload.provider, exc)
-        return LLMKeyValidationResponse(
-            ok=False,
-            reason="unreachable",
-            detail=f"Could not reach {info.label} ({type(exc).__name__}: {exc}).",
-        )
+        # The raw SDK exception text (`{type(exc).__name__}: {exc}`) stays in the
+        # log only — the Key Entry Dialog gets humanize()'s sentence + action,
+        # same as every other failure surface in this subsystem (R15-CODE-AGENT-019).
+        human = humanize(payload.provider, exc)
+        detail = f"{human.message} {human.action}" if human.action else human.message
+        return LLMKeyValidationResponse(ok=False, reason="unreachable", detail=detail)
     if not ok:
         return LLMKeyValidationResponse(
             ok=False, reason="invalid", detail=f"{info.label} rejected this key."
