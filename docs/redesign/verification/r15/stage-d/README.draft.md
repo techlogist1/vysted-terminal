@@ -116,6 +116,35 @@ configured; the sidecar does not persist it beyond that request — or, for a
 background agent run, beyond that run. Nothing about
 your keys, and no request content, goes to a Vysted-run server — there isn't one.
 
+## SearXNG — optional, unlimited local search
+
+SearXNG is a self-hosted, open-source metasearch engine: pointing Vysted's research
+feature at one gives it an unmetered, private search backend instead of the public
+scrape it otherwise falls back to. The whole query flow stays local — no vendor REST
+call, no API key, no telemetry (`sidecar/services/search/searxng.py:3-6`).
+
+Run it from **Settings → Research → Unlimited (Local)**: with Docker Desktop or
+OrbStack running, one click pulls the official `searxng/searxng` image, starts it as
+a loopback-bound container named `vysted-searxng`, and health-checks it until it's
+serving JSON search (`sidecar/services/searxng_manager.py:66-67,338-351,698-790`).
+There is no manual `docker run` command to copy here — the manager owns pull,
+configure, start, and teardown end to end, and none is documented anywhere else in
+this repo. A remote or already-running instance can be used instead via the same
+panel's "Advanced: custom instance URL" field (`src/store/search-settings.ts:179-184`).
+
+Without it — or before setup finishes — research quietly falls back to the keyless
+tier (DuckDuckGo, Brave, and Mojeek in rotation, each rate-limited "by nature" and
+gated by its own circuit breaker), never to an error state. Settings shows this
+plainly: the SearXNG row's status chip reads "Docker not found," "Not set up," or
+"Degraded — engines blocked," with a quiet note under it — "Until set up, research
+uses limited keyless search." — that stays visible until the instance is actually
+`ready`.
+<!-- degraded-behaviour sourced from: src/store/search-settings.ts:5-8 (keyless-fallback,
+     never a user-facing error state); sidecar/services/search/registry.py:86-88 (None =
+     honest fallback signal, caller floors to keyless); sidecar/services/searxng_manager.py:3-4
+     (T1 keyless "rate-limited by nature"); src/components/SettingsPanel.tsx:839-862 (status
+     chip copy), 925 (fallback note), 1016-1022 (degraded copy) -->
+
 ## Plugin contract
 
 Third-party extensions implement one serializable contract,
