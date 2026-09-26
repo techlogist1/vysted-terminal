@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 DATA_DIR_ENV = "VYSTED_DATA_DIR"
+CACHE_DIR_ENV = "VYSTED_CACHE_DIR"
 
 # --- Region / locale (Pass B / Pillar A — FR-060) ---------------------------
 #
@@ -552,5 +553,23 @@ def get_data_dir() -> Path:
 def get_workspaces_dir() -> Path:
     """Return the directory holding saved ``.vysted-workspace`` files."""
     path = get_data_dir() / "workspaces"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def get_cache_dir() -> Path:
+    """Return the directory for regenerable caches (R15-CROSS-PLATFORM-012).
+
+    On Windows ``get_data_dir()`` resolves under Roaming AppData, which
+    roaming profiles sync at logon/logoff and which folder redirection can
+    put on a network share — unsafe for a SQLite WAL file. The Tauri core
+    passes ``--cache-dir`` (``app_local_data_dir()``, non-roaming on Windows,
+    XDG cache on Linux) for regenerable data (price/fundamentals caches,
+    the local SearXNG instance). Falls back to ``get_data_dir()`` when no
+    ``--cache-dir`` was given (dev runs, older callers) so behavior is
+    unchanged unless the Tauri core opts in.
+    """
+    raw = os.environ.get(CACHE_DIR_ENV)
+    path = Path(raw) if raw else get_data_dir()
     path.mkdir(parents=True, exist_ok=True)
     return path

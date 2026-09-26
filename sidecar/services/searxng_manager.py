@@ -58,7 +58,7 @@ from pathlib import Path
 
 import httpx
 
-from config import get_data_dir
+from config import get_cache_dir
 
 _log = logging.getLogger(__name__)
 
@@ -680,8 +680,8 @@ class SearxngManager:
         )
 
     def settings_dir(self) -> Path:
-        """The host directory mounted at ``/etc/searxng`` (under the app data dir)."""
-        return self._config_dir if self._config_dir is not None else get_data_dir() / "searxng"
+        """The host directory mounted at ``/etc/searxng`` (under the cache dir; regenerable)."""
+        return self._config_dir if self._config_dir is not None else get_cache_dir() / "searxng"
 
     def begin_setup(self) -> dict[str, object]:
         """Kick off the guided setup as a background task; return the immediate status.

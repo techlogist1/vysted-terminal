@@ -65,7 +65,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from config import get_data_dir
+from config import get_cache_dir
 from services import schema_version
 
 DB_FILENAME = "data_cache.db"
@@ -181,7 +181,7 @@ def _get_conn() -> sqlite3.Connection:
     """Return the live cache connection, creating it on first use."""
     global _conn, _db_path
     if _conn is None:
-        _db_path = get_data_dir() / DB_FILENAME
+        _db_path = get_cache_dir() / DB_FILENAME
         _conn = _connect(_db_path)
     return _conn
 
@@ -304,7 +304,7 @@ def reset_for_tests(path: Path | None = None) -> None:
 
     The pytest fixtures use this to point each test at a temp file via
     ``tmp_path``. Calling with ``path=None`` reverts to the production
-    location returned by :func:`config.get_data_dir`.
+    location returned by :func:`config.get_cache_dir`.
     """
     global _conn, _db_path
     if _conn is not None:

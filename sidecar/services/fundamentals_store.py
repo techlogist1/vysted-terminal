@@ -12,7 +12,8 @@ and PER-TIER freshness stamps:
   - ``info_updated_at``  — the deep per-symbol ``.info`` tier (sector, ROE,
     margins, growth, …). TTL 7 d.
 
-The DB lives at ``config.get_data_dir()/fundamentals_cache.db`` (precedent
+The DB lives at ``config.get_cache_dir()/fundamentals_cache.db`` (R15-CROSS-PLATFORM-012:
+regenerable, so it rides the cache dir, not roaming user state) (precedent
 ``portfolio_db.py``); access is synchronous ``sqlite3`` serialized under a
 module ``asyncio.Lock`` — every public function is async and lock-guarded, so
 the event loop never sees a concurrent writer and a test points the store at a
@@ -34,7 +35,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, get_args
 
-from config import get_data_dir
+from config import get_cache_dir
 from models.fundamentals import Fundamentals
 from models.market import Quote
 from models.screener import (
@@ -184,7 +185,7 @@ _db_path_override: Path | None = None
 def _db_path() -> str:
     if _db_path_override is not None:
         return str(_db_path_override)
-    return str(get_data_dir() / DB_FILENAME)
+    return str(get_cache_dir() / DB_FILENAME)
 
 
 def _connect() -> sqlite3.Connection:
