@@ -324,3 +324,29 @@ The recipe is the same as above except for these points:
 - Before `pnpm install --frozen-lockfile`, run `pnpm install --lockfile-only` and commit `pnpm-lock.yaml`.
 - If P1 or P3 lands first, expect the conflicts in risk 3.
 - Add `pnpm lint` and the cargo trio to the focused runs.
+
+## Fix pass (07:46 IST, Opus, one bounded pass)
+
+Candidate `worktree-agent-lows-P2-int-4c6dfe8`: `7db0b295` -> `78220d0c` (pushed, not forced; ls-remote matches). Worked in the assembler worktree `scratchpad/lows-preint/P2`. The safety-surface diff `7db0b295..78220d0c` is empty for all five paths. No tests were run (off-lane): every item is untested pending integration. `py_compile`, `ruff format` and `ruff check` are clean on the touched .py files. `prettier --check` is clean on the touched .ts/.tsx files, using the main worktree's binary because the assembler worktree has no node_modules.
+
+### Applied
+
+| # | Entry | Commit | Change |
+|---|---|---|---|
+| 1 | R15-UI-071 | `61ed8c7f` | Ran `pnpm install --lockfile-only --ignore-scripts` (resolution only, nothing installed). `pnpm-lock.yaml` +107/-0 adds `eslint-plugin-jsx-a11y@6.10.2` and `vitest-axe@0.1.0(vitest@4.1.6)` plus their transitive deps, and no existing entry moved. |
+| 2 | R15-UI-071 | `34e4272c` | New `src/vitest-axe.d.ts` augments `declare module "vitest"` `interface Matchers<T = any>`, which is what Vitest 4.1.6 `Assertion` extends (checked in `@vitest/expect` dist), with an explicit member `toHaveNoViolations: AxeMatchers["toHaveNoViolations"]`. It uses the explicit-member form because the empty `extends` interface would hit `no-empty-object-type`. One `eslint-disable-next-line` covers `no-explicit-any` and `no-unused-vars`, since the merge requires `T = any`. The assertion is unchanged. |
+| 3 | R15-UI-068 | `2a6faf95` | `ScreenerResultsTable.test.tsx` lines 191, 198 and 308 now click `within(getByTestId("column-*")).getByRole("button")`. Assertions are unchanged. No other test in `src` clicks a `column-*` th. |
+| 4 | R15-CROSS-PLATFORM-012 x R15-LIFECYCLE-024 | `1ccb2552` | `_backup_data_dir` now backs up `config.get_data_dir()` into `get_data_dir()/backups/<old_build>`, and `_BACKUP_EXCLUDES` is compared against that dir. New `_legacy_build()`: when the cache DB has no build row and a separate legacy `data_dir/data_cache.db` exists, the new function reads its `meta.build` read-only (`mode=ro`) and takes the backup under that name, which covers the first Windows upgrade. The `test_data_cache` autouse fixture now also sets `VYSTED_DATA_DIR=tmp_path`. Without it, the existing ensure_build tests would copy the real home data dir. The prune test's `tmp_path/backups` is still the backup dir. New pin test: `test_a_separate_cache_dir_backs_up_the_data_dir_even_on_first_boot`. `test_schema_version` already points both dirs at the same tmp_path and needed no change. |
+| 5 | R15-UI-082 | `c10c274a` | Added `%` to `_UNSAFE_CHARS`. `_path_for`, which save, load and delete all route through, renames a legacy-stem file (`quote(cleaned, safe=" ").replace(".", "%2E")`, stem <= 200 chars) and its `.bak` to the current stem on first access. The rename runs only if the current path is absent, and `FileNotFoundError` is suppressed for concurrent autosaves. Pin tests: `a%41` was added to the `test_any_name_round_trips` parametrize, and new `test_a_workspace_saved_under_the_legacy_stem_still_loads_and_deletes` covers `Q1 (draft)` and Devanagari. No existing test was changed. |
+| A | advisory (R15-CROSS-PLATFORM-012) | `78220d0c` | `config.get_cache_dir` docstring: "XDG cache on Linux" becomes "the XDG data dir on Linux". |
+
+### Left (reasons)
+
+- The `lib.rs` `resolve_cache_dir` cargo fmt/clippy/test check is off-lane. Run it in the integration chain.
+- Windows orphaned `data_cache.db`, `fundamentals_cache.db` and `searxng/` in Roaming: this pass only migrates enough to take the backup. Cleaning up or moving the old caches, and remounting SearXNG, is a behaviour change beyond a trivial fix. Record it at integration.
+- The `sidecar-client.ts` double deadline mechanism is a cross-partition (P3) conflict and belongs to the integrator.
+- The 49 unlinted `<label>` elements under `jsx-a11y/label-has-associated-control`: project-wide eslint is off-lane. Run `pnpm lint` early in the chain.
+- `vitest.config.ts` `thresholds.autoUpdate` and the ci-local vs workflow divergence: operator decisions.
+- The W3 x W6 MCP isError / KeyError message change: a CHANGELOG line at integration, not here.
+- `effective_tools` is not mirrored in `types/` or `src/store/agents.ts`: this is a contract-mirror change and was not trivially safe in a fix pass. Carried to integration.
+- Repo-wide source scans need re-running on the combined tree after P1 and P3 land.
