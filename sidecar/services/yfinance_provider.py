@@ -911,6 +911,10 @@ def get_fundamentals(symbol: str) -> Fundamentals:
         held_percent_institutions=_num(info.get("heldPercentInstitutions")),
         provider=PROVIDER,
     )
+    # D55: Yahoo's revenueGrowth/earningsGrowth are MRQ vs the year-ago quarter —
+    # stated here where they are produced (the annual fallback below states its own).
+    if fund.revenue_growth is not None or fund.earnings_growth is not None:
+        fund.growth_basis = "mrq_yoy"
     # R13: stamp per-field provenance for every value actually served (the gate
     # then merges its withheld/flag entries on top).
     fund.field_meta = _served_field_meta(fund, fetched_at)
