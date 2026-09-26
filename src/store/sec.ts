@@ -49,14 +49,14 @@ interface SearchResponse {
 // Frozen empty references — stable identities for the selectors
 // ---------------------------------------------------------------------------
 
-const EMPTY_FILINGS: Readonly<FilingsListResponse> = Object.freeze({
+export const EMPTY_FILINGS: Readonly<FilingsListResponse> = Object.freeze({
   cik: "",
   company_name: "",
   symbol: null,
   filings: [],
 });
 
-const EMPTY_INSIDER: Readonly<InsiderTransactionsResponse> = Object.freeze({
+export const EMPTY_INSIDER: Readonly<InsiderTransactionsResponse> = Object.freeze({
   cik: "",
   issuer_name: "",
   transactions: [],
@@ -112,11 +112,11 @@ interface SecState {
 // Cache key helpers
 // ---------------------------------------------------------------------------
 
-function filingsKey(identifier: string, formType: FilingFormType | undefined): string {
+export function filingsKey(identifier: string, formType: FilingFormType | undefined): string {
   return `${identifier.toUpperCase()}::${formType ?? "all"}`;
 }
 
-function insiderKey(identifier: string, form: "3" | "4" | "5" | undefined): string {
+export function insiderKey(identifier: string, form: "3" | "4" | "5" | undefined): string {
   return `${identifier.toUpperCase()}::${form ?? "all"}`;
 }
 
@@ -285,6 +285,11 @@ export const useSecStore = create<SecState>((set, get) => ({
 
 // ---------------------------------------------------------------------------
 // Stable-identity selectors
+//
+// These read via getState() and do NOT subscribe — call sites must not use
+// them inside a component render (R15-CODE-DATA-014). Prefer
+// `useSecStore((s) => s.filingsByIdentifier[filingsKey(...)] ?? EMPTY_FILINGS)`
+// directly, as SecFilingsPanel/InsiderTradingTable now do.
 // ---------------------------------------------------------------------------
 
 /** Select the filings response for an identifier+form, or the frozen empty. */

@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
-import { Cpu, RefreshCw } from "lucide-react";
+import { ChevronDown, Cpu, RefreshCw } from "lucide-react";
 
 import { formatModelLabel } from "@/components/StatusChrome";
 import { buildModelGroups, modelOptionLabel } from "@/lib/model-options";
@@ -173,6 +173,13 @@ export function ModelControl({
         ) : (
           <span className="whitespace-nowrap">{text}</span>
         )}
+        {/* R15-UI-072: a visible cue the control opens a menu — aria-haspopup
+         *  alone only reaches screen readers. */}
+        <ChevronDown
+          aria-hidden
+          data-testid="model-control-chevron"
+          className={cn("size-3 shrink-0 transition-transform", open && "rotate-180")}
+        />
         {selectedIsNoTools && (
           <span
             className="text-warning shrink-0"

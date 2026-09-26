@@ -13,21 +13,20 @@ import { usePanelContextBus } from "@/store/panel-context";
 import { useEarningsStore } from "@/store/earnings";
 
 import type { EarningsEvent } from "../../../types/earnings";
+import { fmtDate } from "../analyst-ratings/format";
 import { EarningsSurpriseChart } from "./EarningsSurpriseChart";
 import { EpsEstimateGrid } from "./EpsEstimateGrid";
 
-type SortKey =
-  | "scheduled_date"
-  | "symbol"
-  | "time_of_day"
-  | "consensus"
-  | "dispersion"
-  | "analysts";
+type SortKey = "scheduled_date" | "symbol" | "time_of_day" | "consensus" | "dispersion";
 type SortDirection = "asc" | "desc";
 
 /** Money-valued sort keys — a mixed-currency watchlist must never rank a
  *  USD row against an INR row by raw magnitude (R15-DATA-031). */
 const MONEY_SORT_KEYS: readonly SortKey[] = ["consensus", "dispersion"];
+
+/** Shared by the skeleton and loaded tables' <colgroup> so they never drift
+ *  apart (R15-CODE-DATA-015). */
+const COL_WIDTHS = ["5%", "16%", "14%", "23%", "16%", "14%", "12%"] as const;
 
 const TIME_OF_DAY_LABEL: Record<string, string> = {
   "before-open": "Pre-open",
@@ -43,12 +42,6 @@ function fmt(value: number | null, currency: string, digits = 2): string {
   if (value === null) return "—";
   const { prefix, suffix } = currencyAffix(currency);
   return `${prefix}${formatPrice(value, digits)}${suffix}`;
-}
-
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 /** R15-DATA-032: a missing value sorts last in either direction — an absent
@@ -77,8 +70,6 @@ function sortValue(event: EarningsEvent, key: SortKey): number | string | null {
       return event.eps_estimate_mean;
     case "dispersion":
       return event.eps_estimate_stddev;
-    case "analysts":
-      return event.estimate_analyst_count;
   }
 }
 
@@ -271,13 +262,9 @@ export function EarningsCalendarPanel() {
         {upcomingStatus === "loading" || upcomingStatus === "idle" ? (
           <table className="w-full table-fixed border-collapse">
             <colgroup>
-              <col style={{ width: "5%" }} />
-              <col style={{ width: "16%" }} />
-              <col style={{ width: "14%" }} />
-              <col style={{ width: "23%" }} />
-              <col style={{ width: "16%" }} />
-              <col style={{ width: "14%" }} />
-              <col style={{ width: "12%" }} />
+              {COL_WIDTHS.map((width, i) => (
+                <col key={i} style={{ width }} />
+              ))}
             </colgroup>
             <tbody>
               {Array.from({ length: 6 }).map((_, i) => (
@@ -333,13 +320,9 @@ export function EarningsCalendarPanel() {
         ) : (
           <table className="w-full table-fixed border-collapse">
             <colgroup>
-              <col style={{ width: "5%" }} />
-              <col style={{ width: "16%" }} />
-              <col style={{ width: "14%" }} />
-              <col style={{ width: "23%" }} />
-              <col style={{ width: "16%" }} />
-              <col style={{ width: "14%" }} />
-              <col style={{ width: "12%" }} />
+              {COL_WIDTHS.map((width, i) => (
+                <col key={i} style={{ width }} />
+              ))}
             </colgroup>
             <thead>
               <tr className="border-charcoal-800 border-b text-left">

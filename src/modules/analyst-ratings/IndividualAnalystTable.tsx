@@ -8,27 +8,7 @@ import { currencyAffix, formatPercent, formatPrice } from "@/lib/format";
 
 import type { IndividualAnalystForecast } from "../../../types/analyst";
 
-const RATING_LABEL: Record<string, string> = {
-  "strong-buy": "Strong Buy",
-  buy: "Buy",
-  hold: "Hold",
-  sell: "Sell",
-  "strong-sell": "Strong Sell",
-};
-
-const RATING_COLOR: Record<string, string> = {
-  "strong-buy": "text-positive",
-  buy: "text-positive",
-  hold: "text-charcoal-200",
-  sell: "text-negative",
-  "strong-sell": "text-negative",
-};
-
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
+import { fmtDate, RATING_COLOR, RATING_LABEL } from "./format";
 
 function StarRow({ rating }: { rating: number | null }) {
   if (rating === null) {
