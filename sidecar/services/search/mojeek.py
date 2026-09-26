@@ -11,49 +11,35 @@ Parsing is bs4 with layered selectors (``ul.results-standard li`` first, then
 looser fallbacks) so markup drift degrades to fewer fields, never a crash.
 Zero parsed rows → empty successful response; transport failure / block →
 typed :class:`~services.search.base.SearchError` for the rotation layer.
+
+The fetch/error-handling contract this shares with :mod:`.brave` lives in
+:mod:`.html_serp` (R15-CODE-RESEARCH-010) — this module supplies only the
+Mojeek-specific endpoint, region param and selector chain as configuration.
 """
 
 from __future__ import annotations
 
-from urllib.parse import urlparse
-
 from bs4 import BeautifulSoup
 
-from .base import (
-    SEARCH_REASON_RATE_LIMITED,
-    SearchBackend,
-    SearchError,
-    SearchResponse,
-    SearchResult,
-    normalize_results_to_citations,
-    result_limit,
+from .base import SearchResult
+from .html_serp import (
+    HtmlSerpConfig,
+    _HtmlSerpBackend,
+    clean_text,
+    is_organic_url,
+    parse_containers,
 )
-from .transport import TransportError, httpx_fetch
+from .transport import httpx_fetch
 
 #: Identifier this engine reports in :class:`SearchResponse.backend`.
 BACKEND_ID = "mojeek"
 
 _ENDPOINT = "https://www.mojeek.com/search"
 
-#: Mojeek throttle/block statuses — transient bench signals for the breaker.
-_RATE_LIMIT_STATUSES = frozenset({403, 429})
-
 #: Mojeek region bias (``arc`` param) by Vysted region.
 _REGION_ARC = {"US": "us", "IN": "in"}
 
-
 _SKIP_HOSTS = ("mojeek.com",)
-
-
-def _clean(text: str) -> str:
-    return " ".join(text.split())
-
-
-def _is_organic_url(url: str) -> bool:
-    if not url.startswith(("http://", "https://")):
-        return False
-    host = (urlparse(url).hostname or "").lower()
-    return bool(host) and not any(host == h or host.endswith("." + h) for h in _SKIP_HOSTS)
 
 
 def _node_to_result(node) -> SearchResult | None:  # noqa: ANN001 — bs4 Tag
@@ -63,70 +49,39 @@ def _node_to_result(node) -> SearchResult | None:  # noqa: ANN001 — bs4 Tag
     if anchor is None or not anchor.get("href"):
         return None
     url = anchor["href"].strip()
-    if not _is_organic_url(url):
+    if not is_organic_url(url, skip_hosts=_SKIP_HOSTS):
         return None
     snippet_node = node.select_one("p.s") or node.select_one(".s")
-    title = _clean(anchor.get_text(" ", strip=True)) or url
-    snippet = _clean(snippet_node.get_text(" ", strip=True)) if snippet_node else ""
+    title = clean_text(anchor.get_text(" ", strip=True)) or url
+    snippet = clean_text(snippet_node.get_text(" ", strip=True)) if snippet_node else ""
     return SearchResult(url=url, title=title, snippet=snippet, source="mojeek")
 
 
-def _parse(html_text: str, *, limit: int) -> list[SearchResult]:
+def _parse(html_text: str, limit: int) -> list[SearchResult]:
     """Parse the Mojeek SERP into normalized results (layered selectors)."""
     soup = BeautifulSoup(html_text, "html.parser")
     containers = soup.select("ul.results-standard li")
     if not containers:
         containers = soup.select("ul.results li") or soup.select("li.result")
-    out: list[SearchResult] = []
-    seen: set[str] = set()
-    for node in containers:
-        result = _node_to_result(node)
-        if result is None or result.url in seen:
-            continue
-        seen.add(result.url)
-        out.append(result)
-        if len(out) >= limit:
-            break
-    return out
+    return parse_containers(containers, limit=limit, node_to_result=_node_to_result)
 
 
-class MojeekSearchBackend(SearchBackend):
+_CONFIG = HtmlSerpConfig(
+    backend_id=BACKEND_ID,
+    engine_label="Mojeek",
+    endpoint=_ENDPOINT,
+    default_fetch=httpx_fetch,
+    parse=_parse,
+    region_param="arc",
+    region_map=_REGION_ARC,
+)
+
+
+class MojeekSearchBackend(_HtmlSerpBackend):
     """Keyless Mojeek HTML scrape over the friendly httpx lane."""
 
     def __init__(self, *, region: str | None = None, fetch=None) -> None:  # noqa: ANN001
-        self.region = region
-        # Injectable fetch (same signature as httpx_fetch) for tests.
-        self._fetch = fetch or httpx_fetch
-
-    async def search(self, query: str, *, options: dict | None = None) -> SearchResponse:
-        opts = options or {}
-        limit = result_limit(opts)
-        params: dict[str, str] = {"q": query}
-        arc = _REGION_ARC.get((self.region or "").strip().upper())
-        if arc:
-            params["arc"] = arc
-
-        try:
-            fetched = await self._fetch(_ENDPOINT, params=params)
-        except TransportError as exc:
-            raise SearchError(f"Mojeek search is unreachable: {exc}") from exc
-
-        if fetched.status_code in _RATE_LIMIT_STATUSES:
-            raise SearchError(
-                "Mojeek is blocking/rate-limiting right now "
-                f"(HTTP {fetched.status_code}) — rotating to the next keyless engine",
-                reason=SEARCH_REASON_RATE_LIMITED,
-            )
-        if fetched.status_code >= 400:
-            raise SearchError(f"Mojeek search failed (HTTP {fetched.status_code})")
-
-        results = _parse(fetched.text, limit=limit)
-        return SearchResponse(
-            results=results,
-            citations=normalize_results_to_citations(results, limit=limit),
-            backend=BACKEND_ID,
-            query=query,
-        )
+        super().__init__(_CONFIG, region=region, fetch=fetch)
 
 
 __all__ = ["BACKEND_ID", "MojeekSearchBackend"]

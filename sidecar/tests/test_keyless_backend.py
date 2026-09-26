@@ -365,3 +365,41 @@ def test_three_engine_deadlines_fit_inside_the_web_search_tool_cap() -> None:
     cap = catalog.timeout_for("web_search")
     assert cap is not None
     assert len(ENGINE_CHAIN) * ENGINE_DEADLINE_SECS < cap
+
+
+# --- R15-DATA-111: canary-query parser-drift detection --------------------------
+
+
+def test_nonempty_page_zero_rows_counts_parser_drift_failure() -> None:
+    """A zero-row answer to the CANARY query (guaranteed real results) is
+    unambiguous markup drift, not 'found nothing' — unlike a normal search()
+    zero-row answer, it strikes the breaker and is noted 'parser drift'."""
+    from services.search.keyless import canary_check
+
+    engine = _Engine([_response("ddg", [])])
+    result = _run(canary_check("ddg", engine))
+    assert engine.calls == 1
+    assert result == {"engine": "ddg", "ok": False, "note": "parser drift"}
+    # Exposed via the SAME breaker tier_status() and the rotation both read.
+    assert breaker_for("ddg")._failures == 1
+    assert breaker_for("ddg").state == "closed"
+
+
+def test_canary_real_results_record_success() -> None:
+    from services.search.keyless import canary_check
+
+    breaker_for("ddg").record_failure()  # one strike, still closed
+    engine = _Engine([_response("ddg", [_result("https://apple.com")])])
+    result = _run(canary_check("ddg", engine))
+    assert result["ok"] is True
+    assert breaker_for("ddg").state == "closed"
+    assert breaker_for("ddg")._failures == 0  # success clears the prior strike
+
+
+def test_canary_engine_error_counts_a_failure_with_its_own_note() -> None:
+    from services.search.keyless import canary_check
+
+    engine = _Engine([SearchError("down")])
+    result = _run(canary_check("ddg", engine))
+    assert result == {"engine": "ddg", "ok": False, "note": "down"}
+    assert breaker_for("ddg")._failures == 1

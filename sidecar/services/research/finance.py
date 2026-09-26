@@ -150,8 +150,13 @@ def domain_of(url_or_domain: str) -> str:
     return host.removeprefix("www.")
 
 
-def _matches(host: str, table: frozenset[str]) -> bool:
-    """Suffix-aware domain match: ``efts.sec.gov`` matches ``sec.gov``."""
+def host_matches(host: str, table: frozenset[str]) -> bool:
+    """Suffix-aware domain match: ``efts.sec.gov`` matches ``sec.gov``.
+
+    The ONE implementation of this rule (R15-CODE-RESEARCH-012) — the domain
+    tier table below and :mod:`services.research.relevance`'s junk-host filter
+    both key off it, so a suffix-matching fix lands once, not twice.
+    """
     return any(host == entry or host.endswith("." + entry) for entry in table)
 
 
@@ -224,7 +229,7 @@ def _looks_like_ir(host: str) -> bool:
         return False
     if not any(host.startswith(prefix) for prefix in _IR_HOST_PREFIXES):
         return False
-    if _matches(host, _IR_PLATFORM_DENYLIST):
+    if host_matches(host, _IR_PLATFORM_DENYLIST):
         return False
     return host != _registrable_domain(host)
 
@@ -234,9 +239,9 @@ def domain_tier(url_or_domain: str) -> int:
     host = domain_of(url_or_domain)
     if not host:
         return TIER_GENERAL
-    if _matches(host, PRIMARY_DOMAINS) or _looks_like_ir(host):
+    if host_matches(host, PRIMARY_DOMAINS) or _looks_like_ir(host):
         return TIER_PRIMARY
-    if _matches(host, PRESS_DOMAINS):
+    if host_matches(host, PRESS_DOMAINS):
         return TIER_PRESS
     return TIER_GENERAL
 
@@ -428,6 +433,7 @@ __all__ = [
     "date_directive",
     "domain_of",
     "domain_tier",
+    "host_matches",
     "is_fundamentals_shaped",
     "priority_note",
     "rank_sources",

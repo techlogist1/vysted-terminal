@@ -399,3 +399,20 @@ def test_ticker_headline_with_a_52_week_high_is_kept() -> None:
 def test_hyphenated_foreign_index_is_still_dropped() -> None:
     row = _row("https://tribune.com.pk/kse", "KSE-100 index falls 2% amid selloff")
     assert not relevance.row_relevant(row, target=_kse())
+
+
+def test_junk_filter_host_match_delegates_to_finance() -> None:
+    """R15-CODE-RESEARCH-012: the junk-host filter's suffix match is
+    ``finance.host_matches`` itself, not a second copy of the same rule — a
+    host the domain-tier table matches (suffix-aware) is matched identically
+    by the junk filter, because it's the SAME function."""
+    from services.research import finance
+
+    # efts.sec.gov is a subdomain of a PRIMARY_DOMAINS entry (sec.gov):
+    # finance.host_matches says yes via the suffix rule.
+    assert finance.host_matches("efts.sec.gov", finance.PRIMARY_DOMAINS) is True
+    # The junk filter runs the exact same suffix rule against JUNK_HOSTS: a
+    # subdomain of a junk host is dropped too.
+    row = _row("https://www.youtube.com/watch?v=x", "Route Mobile Q4 results discussion")
+    assert not relevance.row_relevant(row, target=ROUTE)
+    assert finance.host_matches("www.youtube.com".removeprefix("www."), relevance.JUNK_HOSTS)
