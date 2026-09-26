@@ -91,9 +91,9 @@ Phase 1 panel. Macro data and deeper fundamentals coverage arrive in Phase 2.
 ## WebSocket endpoints
 
 - `WS /crypto/stream?exchange=binance&symbol=BTC/USDT` — pushes a JSON-serialised
-  `Quote` on every ticker update. `openCryptoStream()` in `sidecar-client.ts`
-  opens it; the caller owns the socket. The ccxt.pro exchange is always closed on
-  disconnect.
+  `Quote` on every ticker update. No frontend client opens it (R15-DATA-109 removed
+  the unused `openCryptoStream()` helper; the watchlist polls REST). The ccxt.pro
+  exchange is always closed on disconnect.
 
 ## Stub routers — owned by Phase 1.B teammates
 
