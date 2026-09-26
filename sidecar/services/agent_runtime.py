@@ -3199,6 +3199,17 @@ async def _dispatch_round(
             auto_brief = _auto_publish_event(tool_call, result_str)
             if auto_brief is not None:
                 turn.publish_brief_calls.append(auto_brief.tool_call_id)
+                # Outside AUTO the frontend stages it for review (rc1-scenarios:1):
+                # name it in the staged notice and tell the model, which never
+                # made this call, so it says proposed, not published.
+                if autonomy != "auto":
+                    turn.staged_actions.append(auto_brief)
+                    tool_result_msg.content += (
+                        "\n[runtime] The brief from this research was sent to publish_brief "
+                        "with status awaiting_user_review: it is STAGED in the user's review "
+                        "queue and shows only after they accept it. Say you proposed the "
+                        "brief for review; do not claim it is published."
+                    )
                 yield auto_brief
         # Only where this turn may drive panels (a strict read turn may not).
         if tool_call.name == "run_custom_backtest" and "open_panel" in run.tool_ids:
