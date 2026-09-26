@@ -730,6 +730,80 @@ async def test_teardown_clears_a_sticky_error(tmp_path) -> None:
     assert status["reason"] is None
 
 
+async def _failed_pull_manager(tmp_path) -> tuple[FakeDocker, SearxngManager]:
+    fake = _fresh_setup_fake()
+    fake.set("pull", 1, "", "Error response from daemon: pull access denied")
+    mgr = _manager(fake, tmp_path)
+    mgr.begin_setup()
+    assert mgr._task is not None
+    await mgr._task
+    assert (await mgr.refresh())["state"] == STATE_ERROR
+    return fake, mgr
+
+
+@pytest.mark.asyncio
+async def test_hand_fixed_container_supersedes_a_sticky_error(tmp_path) -> None:
+    """R15-LIFECYCLE-035: refresh() used to return a settled error before any
+    docker probe, so a container the user started by hand (``docker start
+    vysted-searxng``) stayed bypassed — state error, ready_base_url() None,
+    search on the keyless floor — until a Retry or a restart. A container that
+    is serving again supersedes the error; last_error still reports it."""
+    fake, mgr = await _failed_pull_manager(tmp_path)
+
+    fake.set("inspect", 0, "running\n")
+    fake.set("port", 0, f"127.0.0.1:{DEFAULT_HOST_PORT}\n")
+    polled = await mgr.refresh()
+
+    assert polled["state"] == STATE_READY
+    assert polled["reason"] is None
+    assert "pull access denied" in str(polled["last_error"])
+    assert mgr.ready_base_url() == f"http://127.0.0.1:{DEFAULT_HOST_PORT}"
+
+    # A retry or a teardown is what clears the reported failure.
+    await mgr.teardown()
+    assert mgr.last_error is None
+
+
+@pytest.mark.asyncio
+async def test_error_stays_sticky_while_the_container_is_not_serving(tmp_path) -> None:
+    """R15-LIFECYCLE-035 boundary: only a SERVING container supersedes the
+    error. A running-but-unhealthy one re-derives to ``starting``, which would
+    hide the failure behind an endless "Starting" poll — the error stays."""
+    fake = _fresh_setup_fake()
+    mgr = _manager(fake, tmp_path, health_probe=_health_down)
+    status = await mgr.setup()
+    assert status["state"] == STATE_ERROR
+
+    fake.set("inspect", 0, "running\n")
+    fake.set("port", 0, f"127.0.0.1:{DEFAULT_HOST_PORT}\n")
+    polled = await mgr.refresh()
+
+    assert polled["state"] == STATE_ERROR
+    assert "never became healthy" in str(polled["reason"])
+    assert polled["last_error"] == polled["reason"]
+    assert mgr.ready_base_url() is None
+
+
+@pytest.mark.asyncio
+async def test_hot_path_reprobes_a_sticky_error_on_a_throttle(tmp_path) -> None:
+    """R15-LIFECYCLE-035: web_search reads ready_base_url_detected(), whose
+    one-shot derivation had already run — so even a healed refresh() needed a
+    Settings visit before search used the fixed container. While in error the
+    hot path re-derives, at most once per ERROR_REPROBE_INTERVAL_SECS."""
+    fake, mgr = await _failed_pull_manager(tmp_path)
+    assert await mgr.ready_base_url_detected() is None  # the one-shot derive
+
+    fake.set("inspect", 0, "running\n")
+    fake.set("port", 0, f"127.0.0.1:{DEFAULT_HOST_PORT}\n")
+    inspects = fake.subcommands().count("inspect")
+    assert await mgr.ready_base_url_detected() is None  # inside the throttle window
+    assert fake.subcommands().count("inspect") == inspects
+
+    mgr._error_reprobe_at = 0.0  # the throttle window has elapsed
+    assert await mgr.ready_base_url_detected() == f"http://127.0.0.1:{DEFAULT_HOST_PORT}"
+    assert mgr.state == STATE_READY
+
+
 @pytest.mark.asyncio
 async def test_shutdown_cancels_an_in_flight_setup(tmp_path) -> None:
     fake = _fresh_setup_fake()
