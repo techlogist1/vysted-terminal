@@ -18,7 +18,6 @@ import {
   describeIntent,
   hostActionAckDetail,
   parseHostAction,
-  publishAckStatus,
   undoPreImage,
 } from "@/lib/host-actions";
 import { useAgentAutonomyStore } from "@/store/agent-autonomy";
@@ -143,8 +142,8 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
         c.id === id ? { ...c, status: "accepted", detail: undefined } : c,
       ),
     }));
-    const { label, reason, preImage } = await applyIntentAsync(change.intent);
-    const ok = label !== null;
+    const { status, reason, preImage } = await applyIntentAsync(change.intent);
+    const ok = status !== "failed";
     const detail = ok
       ? undefined
       : reason || "Could not apply this change — its arguments were incomplete.";
@@ -155,7 +154,7 @@ export const useProposedChangesStore = create<ProposedChangesState>((set, get) =
     // optimistic "dispatched". Fire-and-forget — never blocks the gate.
     ackHostAction(
       change.toolCallId,
-      publishAckStatus(label),
+      status,
       hostActionAckDetail(change.action.name, change.action.input),
     );
     if (!ok) {

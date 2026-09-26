@@ -18,7 +18,6 @@ import {
   isHostActionMutation,
   openCompanyOverview,
   parseHostAction,
-  publishAckStatus,
 } from "@/lib/host-actions";
 import { composeBriefMarkdown } from "@/lib/brief-ingest";
 import { useBacktestStore } from "@/store/backtest";
@@ -217,6 +216,7 @@ describe("host-actions", () => {
       parseHostAction("add_to_watchlist", { symbol: "MAZAGONDOCK" }),
     );
     expect(invented).toEqual({
+      status: "failed",
       label: null,
       reason: '"MAZAGONDOCK" did not resolve to a listing',
     });
@@ -495,6 +495,36 @@ describe("host-actions", () => {
     const brief = useBriefStore.getState().brief;
     expect(brief?.sourceCount).toBe(1);
     expect(brief?.webAvailable).toBe(true); // reconciled — never contradictory
+  });
+
+  it("briefFromInput with only vysted:// + nsearchives rows -> webAvailable false", () => {
+    // R15-RESEARCH-041: structured pulls and exchange-filing rows are cited
+    // sources but not the web, so the structured-only banner can fire.
+    useBriefStore.getState().clearBrief();
+    const input = {
+      query: "BDL outlook",
+      symbol: "BDL",
+      mode: "deep",
+      markdown: "## Brief\nPrice [1], filing [2].",
+      sources: [
+        { url: "vysted://price/BDL", title: "Price for BDL", domain: "yfinance" },
+        {
+          url: "https://nsearchives.nseindia.com/corporate/BDL_18092026111355_BDL_SE_JS_DIP_Cov-1.pdf",
+          title: "Appointment of a Non-Executive Director",
+          domain: "NSE",
+          source_type: "filing",
+        },
+      ],
+      web_available: false,
+    };
+    applyHostAction("publish_brief", input);
+    const brief = useBriefStore.getState().brief;
+    expect(brief?.sourceCount).toBe(2);
+    expect(brief?.webAvailable).toBe(false);
+    // The diff copy agrees: two cited sources, structured-data-only.
+    expect(describeHostAction("publish_brief", input).after).toMatch(
+      /2 cited sources · structured-data-only/,
+    );
   });
 
   it("publish_brief keeps a source's date and provenance from the wire (R15-RESEARCH-024)", () => {
@@ -1004,15 +1034,44 @@ describe("briefFromInput execution truth (R10 D38/E2)", () => {
     expect(useBriefStore.getState().panel.phase).toBe("in_flight");
   });
 
-  it("publishAckStatus maps the apply label onto the ack vocabulary (D39 §4)", () => {
-    expect(publishAckStatus(null)).toBe("failed");
-    expect(publishAckStatus("Kept the richer research brief already on screen")).toBe(
-      "kept_previous",
+  it("the apply result carries its ack status (D39 §4) — kept_previous, applied, failed", async () => {
+    // The status is set where the outcome is decided, never parsed back out of
+    // the label (R15-CODE-FRONTEND-034; publishAckStatus is gone).
+    useBriefStore.setState({
+      brief: {
+        query: "saksoft",
+        mode: "DEEP",
+        markdown: "## Engine\nshort but cited [1].",
+        sources: [{ url: "https://e.com/1", title: "s", excerpt: "" }],
+        sourceCount: 1,
+        webAvailable: true,
+        execution: { runId: "run-y", requestedDepth: "deep", loop: "iter" },
+        createdAt: Date.now() - 5_000,
+      } as never,
+    });
+    const shrink = await applyIntentAsync(
+      parseHostAction("publish_brief", {
+        query: "saksoft",
+        markdown: "## Uncited prose",
+        sources: [],
+        execution: { run_id: "run-y", requested_depth: "deep", loop: "iter" },
+      }),
     );
-    expect(
-      publishAckStatus("Kept the run in flight — this publish belonged to a different run"),
-    ).toBe("kept_previous");
-    expect(publishAckStatus("Published the DEEP research brief")).toBe("applied");
+    expect(shrink.status).toBe("kept_previous");
+    useBriefStore.getState().beginRun({ runId: "run-live", query: "q", depth: "deep" });
+    const stale = await applyIntentAsync(
+      parseHostAction("publish_brief", {
+        query: "stale",
+        markdown: "## Stale artifact",
+        sources: [],
+        execution: { run_id: "run-old", requested_depth: "normal", loop: "fast" },
+      }),
+    );
+    expect(stale.status).toBe("kept_previous");
+    const note = await applyIntentAsync(parseHostAction("write_note", { scope: "", text: "x" }));
+    expect(note.status).toBe("applied");
+    const empty = await applyIntentAsync(parseHostAction("write_note", { scope: "", text: " " }));
+    expect(empty).toMatchObject({ status: "failed", label: null });
   });
 });
 
@@ -1204,6 +1263,25 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(applyHostAction("write_note", replace)).toBe("Wrote the NVDA note");
     expect(useNotesStore.getState().bySymbol).toEqual({ NVDA: "new", AAPL: "keep" });
     expect(useNotesStore.getState().general).toBe("My thesis.\n\nAgent takeaway.");
+  });
+
+  it("write_note append with a trailing-whitespace addendum equals appendSymbolNote", () => {
+    // host-actions appends through the notes store seam, so the agent's append
+    // and the store's own append can never disagree on trimming (R15-CODE-FRONTEND-035).
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    const seed = { general: "Macro view.\n", bySymbol: { NVDA: "Thesis.  " }, focusSymbol: "" };
+    const addendum = "  Q4 beat.\n\n";
+    useNotesStore.setState(seed);
+    useNotesStore.getState().appendSymbolNote("NVDA", addendum);
+    useNotesStore.getState().appendGeneral(addendum);
+    const viaSeams = { ...useNotesStore.getState().bySymbol };
+    const generalViaSeam = useNotesStore.getState().general;
+    useNotesStore.setState(seed);
+    applyHostAction("write_note", { scope: "nvda", text: addendum, mode: "append" });
+    applyHostAction("write_note", { scope: "general", text: addendum, mode: "append" });
+    expect(useNotesStore.getState().bySymbol).toEqual(viaSeams);
+    expect(useNotesStore.getState().general).toBe(generalViaSeam);
+    expect(viaSeams.NVDA).toBe("Thesis.  \n\nQ4 beat.");
   });
 
   it("save_layout without a name updates the active saved layout", async () => {

@@ -70,6 +70,27 @@ def test_profiles_scale_monotonically_with_depth() -> None:
     assert (normal.site_bias, deep.site_bias, ultra.site_bias) == (False, True, True)
 
 
+def test_panel_threshold_single_source() -> None:
+    """R15-CODE-RESEARCH-006: the panel threshold lives once, in depth.py — the
+    tool routes on ``DepthProfile.is_panel`` and the heavy loop clamps to
+    ``PANEL_MIN_ANGLES``; neither keeps its own lockstep copy of the 2."""
+    import dataclasses
+    import inspect
+
+    from services.agent_tools import deep_research
+    from services.research import iter as iter_mod
+
+    p = depth_mod.PROFILES
+    assert [p[d].is_panel for d in depth_mod.DEPTHS] == [False, False, True]
+    at = dataclasses.replace(p["deep"], angles=depth_mod.PANEL_MIN_ANGLES)
+    below = dataclasses.replace(p["ultra"], angles=depth_mod.PANEL_MIN_ANGLES - 1)
+    assert at.is_panel and not below.is_panel
+    for module in (deep_research, iter_mod):
+        assert not [n for n in vars(module) if n in ("_MIN_HEAVY_ANGLES", "_MIN_ANGLES")]
+    assert "profile.angles >=" not in inspect.getsource(deep_research)
+    assert iter_mod.PANEL_MIN_ANGLES is depth_mod.PANEL_MIN_ANGLES
+
+
 def test_profile_for_tolerates_any_spelling() -> None:
     assert depth_mod.profile_for("HEAVY ").depth == "ultra"
     assert depth_mod.profile_for(42).depth == "normal"

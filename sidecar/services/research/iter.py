@@ -64,6 +64,7 @@ from services.research.deep import (
     build_structured_floor,
     coverage_floor_met,
     finalize_markdown,
+    is_web_search_source,
     join_notes,
     record_snapshot_sources,
     remaining_wall,
@@ -72,6 +73,7 @@ from services.research.deep import (
     structured_source_gathered,
     visit_failure_step,
 )
+from services.research.depth import PANEL_MIN_ANGLES
 from services.research.fast import DEEP_SNAPSHOT_LEG_TIMEOUT_S, snapshot_structured
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
 from services.research.semantics import prompt_block
@@ -90,10 +92,9 @@ from services.research.target import (
 #: (``services.research.depth.PROFILES``) via the ``report_char_cap`` knob.
 _REPORT_CHAR_CAP = 6000
 
-#: Heavy mode angle bounds. The paper-grade panel uses a small N (~3 independent
-#: Research Agents + one Synthesis Agent); 2 is the floor for "heavy" to mean a
-#: panel at all, 3 the ceiling so the budget fan-out stays sane.
-_MIN_ANGLES = 2
+#: Heavy mode angle ceiling. The paper-grade panel uses a small N (~3 independent
+#: Research Agents + one Synthesis Agent); the floor for "heavy" to mean a panel
+#: at all is ``depth.PANEL_MIN_ANGLES``, 3 the ceiling so the fan-out stays sane.
 _MAX_ANGLES = 3
 
 _log = logging.getLogger(__name__)
@@ -119,8 +120,7 @@ class _Report:
         cap = self.char_cap if self.char_cap > 0 else _REPORT_CHAR_CAP
         text = self.body.strip()
         if len(text) > cap:
-            # Keep the newest distilled content (the tail) on overflow.
-            text = "…\n" + text[-cap:]
+            text = _fit_report(text, cap)
         return text or "(no findings distilled yet)"
 
 
@@ -149,6 +149,45 @@ REPORT_SECTIONS = (
     "Dead ends",
     "Planned next",
 )
+
+
+_SECTION_HEADING_RX = re.compile(r"^#+\s*(" + "|".join(REPORT_SECTIONS) + r")\b", re.IGNORECASE)
+
+#: Over-cap trim order: the working notes lose their tail lines first, the
+#: cited facts last (R15-RESEARCH-035).
+_TRIM_ORDER = ("dead ends", "planned next", "open questions", "facts established")
+
+
+def _fit_report(text: str, cap: int) -> str:
+    """Bound an over-cap working report without losing the cited evidence first.
+
+    With the section contract (a ``Facts established`` heading present), Dead
+    ends, Planned next and Open questions drop their last lines before any fact
+    does; headings always stay. A report without that heading keeps the newest
+    distilled content (the tail), as before.
+    """
+    lines = text.split("\n")
+    owner: list[str] = []  # the section each body line belongs to; "" = keep
+    headings: set[str] = set()
+    section = ""
+    for line in lines:
+        match = _SECTION_HEADING_RX.match(line)
+        if match:
+            section = match.group(1).lower()
+            headings.add(section)
+        owner.append("" if match else section)
+    if "facts established" not in headings:
+        return "…\n" + text[-cap:]
+    dropped: set[int] = set()
+    size = len(text)
+    for name in _TRIM_ORDER:
+        for i in reversed(range(len(lines))):
+            if size <= cap:
+                break
+            if owner[i] == name:
+                size -= len(lines[i]) + 1
+                dropped.add(i)
+    return "\n".join(line for i, line in enumerate(lines) if i not in dropped)[:cap]
 
 
 async def _distill(
@@ -959,7 +998,7 @@ async def run_heavy_research(
     The R7 depth knobs (``report_char_cap`` / ``min_web_domains`` / ``site_bias``)
     are forwarded to every explorer — ULTRA's stricter coverage (>=2 distinct web
     domains) is enforced inside each angle's floor."""
-    angles = max(_MIN_ANGLES, min(int(angles), _MAX_ANGLES))
+    angles = max(PANEL_MIN_ANGLES, min(int(angles), _MAX_ANGLES))
     steps: list[ResearchStep] = []
     # ONE raw-evidence store for the whole panel (R9 B3): every explorer's
     # visited pages land here so the merged citation audit and the
@@ -1231,12 +1270,9 @@ async def run_heavy_research(
         steps=steps + [s for b in good for s in b.steps],
         source_count=len(merged_sources),
         cost=budget.cost(),
-        # web_available RECONCILED with the merged source count: a panel brief that
-        # cites N merged sources must not also fire the "web unavailable" banner
-        # (symptom #2). True when any angle saw the web, OR when the merged panel
-        # produced any cited source at all. The honest structured-only banner
-        # survives only when the panel gathered ZERO sources.
-        web_available=any(b.web_available for b in good) or bool(merged_sources),
+        # True only when a web search surfaced one of the merged cited sources —
+        # structured pulls and exchange filings never count (R15-RESEARCH-041).
+        web_available=any(is_web_search_source(s) for s in merged_sources),
         # The "heavy:N angles" implementation note is GONE (R8): structured.panel
         # already carries the angle data, and brief.note renders to the USER —
         # human sentences only (a failed-angle count is a dev detail). A lead

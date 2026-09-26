@@ -26,8 +26,12 @@ Every knob the loops expose scales with depth through ONE
 :class:`DepthProfile` table — rounds, researcher fan-out, panel width, the
 iter working-report char cap, the default wall budget, coverage strictness,
 the finance ``site:`` query bias, and whether the cross-check round runs.
-Callers resolve a profile via :func:`profile_for` and thread its fields; no
-second copy of these numbers exists anywhere.
+Callers resolve a profile via :func:`profile_for` and thread its fields; the
+panel threshold is :data:`PANEL_MIN_ANGLES` here too (read via
+:attr:`DepthProfile.is_panel` and by the heavy loop's angle clamp). The hosted
+research-model lane's wall/cost tables in
+:mod:`services.agent_tools.deep_research` are that separate engine's own
+knobs, not copies of these.
 
 Legacy spellings stay accepted forever (``quick`` → normal, ``heavy`` →
 ultra, plus the loose aliases the old tool tolerated) so an older agent
@@ -36,6 +40,7 @@ prompt or the current catalog enum never dead-ends.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
@@ -81,6 +86,30 @@ def normalize_depth(value: Any) -> str:
     return _ALIASES.get(text, DEPTH_NORMAL)
 
 
+#: The panel threshold: a profile with at least this many angles runs the heavy
+#: expert panel, and the panel never runs narrower than this.
+PANEL_MIN_ANGLES = 2
+
+
+#: SC-016: a research brief cites at least this many distinct sources.
+MIN_CITED_SOURCES = 3
+
+
+def source_floor_leg(urls: Iterable[Any]) -> dict[str, Any]:
+    """The brief's distinct cited sources measured against the SC-016 floor, as a
+    ``structured`` leg (R15-RESEARCH-042). Below the floor its ``note`` is the
+    honest "N sources (below 3)" marker instead of the brief asserting nothing."""
+    cited = len({u for u in urls if isinstance(u, str) and u})
+    leg: dict[str, Any] = {
+        "ok": True,
+        "provider": "derived",
+        "data": {"cited": cited, "floor": MIN_CITED_SOURCES},
+    }
+    if cited < MIN_CITED_SOURCES:
+        leg["note"] = f"{cited} source{'' if cited == 1 else 's'} (below {MIN_CITED_SOURCES})"
+    return leg
+
+
 @dataclass(frozen=True, slots=True)
 class DepthProfile:
     """The scaled knob set one depth runs with — read-only, table-driven."""
@@ -113,6 +142,11 @@ class DepthProfile:
     #: Estimated-spend ceiling in USD (0 = n/a), priced by
     #: :func:`services.budget_guard.estimate_spend_usd` per metered call.
     max_spend_usd: float
+
+    @property
+    def is_panel(self) -> bool:
+        """Whether this depth runs the heavy expert panel."""
+        return self.angles >= PANEL_MIN_ANGLES
 
 
 #: THE depth table. Change a knob here and every surface (tool, router,
@@ -188,8 +222,11 @@ __all__ = [
     "DEPTH_NORMAL",
     "DEPTH_ULTRA",
     "DEPTHS",
+    "MIN_CITED_SOURCES",
     "PROFILES",
+    "PANEL_MIN_ANGLES",
     "DepthProfile",
     "normalize_depth",
     "profile_for",
+    "source_floor_leg",
 ]

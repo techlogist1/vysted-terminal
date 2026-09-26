@@ -184,14 +184,28 @@ function baseSymbol(value: string | undefined | null): string {
     .replace(/\.(NS|BO|NSE|BSE)$/, "");
 }
 
+/** Did a web search surface this wire source row? A `vysted://` structured
+ *  pull, an exchange-filing row or a news-feed item is cited evidence but not
+ *  the web (R15-RESEARCH-041). Mirrors the sidecar's `is_web_search_source`. */
+function isWebSearchSource(row: unknown): boolean {
+  if (typeof row !== "object" || row === null) {
+    return false;
+  }
+  const { url, source_type, sourceType } = row as Record<string, unknown>;
+  const type = source_type ?? sourceType;
+  return (
+    typeof url === "string" && /^https?:\/\//i.test(url) && type !== "filing" && type !== "news"
+  );
+}
+
 /** Build a frontend ResearchBriefData from a publish_brief tool input.
  *
  * Normalises the mode to the frontend's uppercase FAST|DEEP (the sidecar
  * research models emit lowercase) and reconciles the honest web flag with the
- * ACTUAL source count (WS3): a brief that cited sources is never marked
- * web-unavailable, an explicit `web_available: false` with zero sources still
- * shows the honest "structured data only" banner, and a model that omits the
- * flag does not default-true a sourceless run into implying web ran.
+ * web-search sources (WS3, R15-RESEARCH-041): a brief that cited a web source is
+ * never marked web-unavailable, one built only from structured pulls / exchange
+ * filings shows the honest "structured data only" banner, and a model that
+ * omits the flag does not default-true a run into implying web ran.
  */
 function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
   const rawSources = Array.isArray(input.sources) ? input.sources : [];
@@ -273,18 +287,12 @@ function briefFromInput(input: Record<string, unknown>): ResearchBriefData {
     backend = prevBrief.backend;
   }
   // webAvailable, reconciled with the ACTUAL evidence (WS3 — kills symptom #2,
-  // the "N sources" + "web unavailable" banner firing together):
-  //  - any cited source (web OR native-search / publish_brief url_citation that
-  //    folded into `sources`) ⇒ TRUE. A sourced brief is NEVER false-flagged,
-  //    and when WS5 lands a successful native search clears the banner for free.
-  //  - explicit `web_available: false` with ZERO sources ⇒ FALSE (a real outage
-  //    is honoured — the honest "structured data only" affordance survives).
-  //  - the model OMITTING the flag does NOT default-true: with no sources it
-  //    derives FALSE from the (lack of) evidence rather than implying web ran.
-  // TRUE iff a source was cited (web OR structured/native) OR the pipeline
-  // explicitly affirmed web; an omitted flag with zero sources stays FALSE (no
-  // default-true), an explicit false with zero sources stays FALSE (real outage).
-  const webAvailable = sources.length > 0 || input.web_available === true;
+  // the "N sources" + "web unavailable" banner firing together): TRUE iff a
+  // web-search source was cited (web OR native-search / url_citation rows) or
+  // the pipeline explicitly affirmed web. `vysted://` structured pulls and
+  // exchange filings never count (R15-RESEARCH-041), and an omitted flag never
+  // defaults a run to "web ran".
+  const webAvailable = rawSources.some(isWebSearchSource) || input.web_available === true;
   return {
     query: str(input, "query"),
     symbol,
@@ -885,8 +893,10 @@ export type PreImage =
   | { kind: "watchlist-removed"; entry: SymbolEntry; index: number }
   | { kind: "region"; region: Region };
 
-/** How an apply resolved: a truthful label, or null with why it did not land. */
+/** How an apply resolved: its ack outcome (D39 §4) and a truthful label, or
+ *  null with why it did not land. */
 export interface ApplyResult {
+  status: Exclude<PublishAckStatus, "staged">;
   label: string | null;
   reason?: string;
   /** The state the write replaced, when it is a data write that can be undone. */
@@ -894,8 +904,10 @@ export interface ApplyResult {
 }
 
 const done = (label: string, preImage?: PreImage): ApplyResult =>
-  preImage ? { label, preImage } : { label };
-const fail = (reason?: string): ApplyResult => ({ label: null, reason });
+  preImage ? { status: "applied", label, preImage } : { status: "applied", label };
+/** The panel deliberately kept what it already shows (shrink guard / stale run). */
+const kept = (label: string): ApplyResult => ({ status: "kept_previous", label });
+const fail = (reason?: string): ApplyResult => ({ status: "failed", label: null, reason });
 
 /** Parse a screener recipe (flat criteria + optional nested group) from args. */
 function parseScreenRecipe(input: Record<string, unknown>): {
@@ -996,10 +1008,11 @@ export function parseHostAction(name: string, input: Record<string, unknown>): H
         input,
         mode: normalizeBriefMode(depth === "quick" ? "fast" : "deep"),
         sourceCount: sources.length,
-        // structured-data-only is honest ONLY with zero cited sources: a sourced
-        // brief is never tagged structured-only even if the model omitted/zeroed
-        // the web flag (WS3 — no contradictory "N sources · structured-data-only").
-        webOff: input.web_available === false && sources.length === 0,
+        // structured-data-only is honest ONLY with zero web-search sources: a
+        // brief citing the web is never tagged structured-only even if the model
+        // omitted/zeroed the web flag (WS3); structured pulls and exchange filings
+        // alone do not count as web (R15-RESEARCH-041).
+        webOff: input.web_available === false && !sources.some(isWebSearchSource),
       };
     }
     case "add_to_watchlist":
@@ -1692,7 +1705,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       // reads in chat; the panel keeps the richer artifact. Whole-brief
       // decision only (never merge two markdowns — the [n] markers must stay
       // coherent with their sources). The apply path reports kept_previous
-      // through the ack (D39 §4) via the "Kept …" label.
+      // through the ack (D39 §4).
       const prev = useBriefStore.getState().brief;
       const sameRun =
         !!prev?.execution?.runId &&
@@ -1707,7 +1720,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
           (brief.sourceCount === 0 && prev.sourceCount > 0));
       if (sameRun && shrinks && !brief.disambiguation) {
         useWorkspaceStore.getState().openPanel("brief");
-        return done("Kept the richer research brief already on screen");
+        return kept("Kept the richer research brief already on screen");
       }
       // Open the brief panel so the output is on screen, then publish through
       // the lifecycle machine — a publish whose run_id mismatches the run in
@@ -1715,7 +1728,7 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       useWorkspaceStore.getState().openPanel("brief");
       const result = useBriefStore.getState().publish(brief);
       if (result === "stale_run") {
-        return done("Kept the run in flight — this publish belonged to a different run");
+        return kept("Kept the run in flight — this publish belonged to a different run");
       }
       // Record the brief's stated figures into the research-space claims ledger
       // (R13 JARVIS 3a) — deterministic, no-op outside a research space — so a
@@ -1794,11 +1807,10 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       }
       const notes = useNotesStore.getState();
       const current = notes.noteFor(scope);
-      const next = append && current.trim() ? `${current.replace(/\s+$/, "")}\n\n${text}` : text;
-      if (scope === "") {
-        notes.setGeneral(next);
+      if (append) {
+        notes.appendSymbolNote(scope, text);
       } else {
-        notes.setSymbolNote(scope, next);
+        notes.setSymbolNote(scope, text);
       }
       useWorkspaceStore.getState().openPanel("notes");
       return done(`${append ? "Appended to" : "Wrote"} the ${noteScopeLabel(scope)} note`, {
@@ -2092,17 +2104,6 @@ export async function applyHostActionAsync(
  *  non-terminal: an AUTO-session change that is not auto-applicable is waiting
  *  for the user's review; a later applied/failed ack replaces it. */
 export type PublishAckStatus = "applied" | "kept_previous" | "failed" | "staged";
-
-/** Map a host-action apply label onto the ack status: null → failed, a "Kept …"
- *  arbitration (shrink guard / stale run) → kept_previous, else applied. Generic
- *  across every host action (R13 JARVIS): only publish_brief ever labels "Kept",
- *  so this reduces to null→failed / else→applied for the rest. */
-export function publishAckStatus(label: string | null): PublishAckStatus {
-  if (label === null) {
-    return "failed";
-  }
-  return label.startsWith("Kept") ? "kept_previous" : "applied";
-}
 
 /** The generic host-action descriptor threaded on the ack (R13 JARVIS 1a) so
  *  the runtime's grounded tool-result can NAME what resolved (action +

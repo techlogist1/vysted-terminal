@@ -308,6 +308,27 @@ def structured_source_gathered(sources: list[ResearchSource]) -> bool:
     return any(s.url.startswith(("vysted://price/", "vysted://fundamentals/")) for s in sources)
 
 
+#: ``source_type`` values a structured feed stamps on its rows — the exchange
+#: announcements floor (``filing``) and the news tool (``news``). Cited
+#: evidence, but not something a web search surfaced.
+_FEED_SOURCE_TYPES = frozenset({"filing", "news"})
+
+
+def is_web_search_source(source: ResearchSource | dict[str, Any]) -> bool:
+    """Did a web search surface this source (R15-RESEARCH-041)?
+
+    ``web_available`` is derived from this alone: a ``vysted://`` structured
+    pull, an exchange-filing row or a news-feed item is cited evidence but not
+    the web, so a brief built only from them keeps the honest structured-only
+    banner. Mirrored by ``isWebSearchSource`` in ``src/lib/host-actions.ts``.
+    """
+    if isinstance(source, ResearchSource):
+        url, source_type = source.url, source.source_type
+    else:
+        url, source_type = str(source.get("url") or ""), source.get("source_type")
+    return url.startswith(("http://", "https://")) and source_type not in _FEED_SOURCE_TYPES
+
+
 def web_only_floor_note(markdown: str, *, structured: dict[str, Any], findings: _Findings) -> str:
     """Append the honest web-only-floor statement when it applies.
 
@@ -1081,13 +1102,9 @@ def _synthesize_brief(
         steps=steps,
         source_count=source_count,
         cost=budget.cost(),
-        # web_available reflects ALL gathered web evidence, RECONCILED with the
-        # source count: a brief that cites N sources must NOT also claim the web
-        # was unavailable (symptom #2 — "N sources" + a "web unavailable" banner
-        # firing together). True when real web citations were folded in, OR when
-        # the run produced any cited source at all (structured provenance counts).
-        # The honest structured-only banner survives only when source_count == 0.
-        web_available=bool(findings.web_sources) or source_count > 0,
+        # True only when a web search surfaced a cited source — structured
+        # pulls and exchange filings never count (R15-RESEARCH-041).
+        web_available=any(is_web_search_source(s) for s in sources),
         note=note,
     )
 
@@ -1196,6 +1213,7 @@ __all__ = [
     "coverage_floor_met",
     "distinct_web_domains",
     "finalize_markdown",
+    "is_web_search_source",
     "record_snapshot_sources",
     "remaining_wall",
     "snapshot_context",
