@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 656 entries + 76 rejections. critical: 16 . high: 118 . medium: 295 . low: 227
+887 raw findings -> 657 entries + 76 rejections. critical: 16 . high: 119 . medium: 295 . low: 227
 
-Status: blocked_tier4: 29 . fixed: 392 . needs_gui: 11 . not_a_defect: 5 . open: 205 . removed_with_feature: 14
+Status: blocked_tier4: 29 . fixed: 392 . needs_gui: 11 . not_a_defect: 5 . open: 206 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -1074,6 +1074,7 @@ Status: blocked_tier4: 29 . fixed: 392 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-LEAD-037 | medium | agent | agent-tools | The fabrication guard grounds a stated figure by VALUE only, so an older bar buried in the same price_data payload counts as grounded for the current-price sentence | blocked_tier4 |  |
 | R15-LEAD-038 | medium | agent | agent-tools | When an explicit no-tool instruction correctly empties the tool surface, llama3.1:8b still narrates a false completed portfolio write with no tool call behind it | blocked_tier4 |  |
 | R15-DATA-116 | high | data | market-data-providers-3 | BSE shareholding-pattern (SHP) quarter index 403s over plain httpx while the impersonated curl_cffi lane used by every other api.bseindia.com call gets 200, so /disclosures/shareholding 502s for every BSE-listed symbol | fixed | rc1-verifier:1 |
+| R15-DATA-117 | high | data-smallcaps | fundamentals | ADR price-to-book is served ok on a mixed currency basis (USD listing price over local-currency book value): TSM P/B 92.17 vs ~10, HDB 9.32 vs ~1.87, while price-to-sales is withheld for the same mixed basis | open | rc1-verifier:1 |
 | R15-CODE-AGENT-034 | high | code | mcp-servers | MCP list_workspaces/get_workspace tools GET '/workspaces' but the router is prefix '/workspace' (404 on both), and list_workspaces also skips the bare-list-to-dict wrap so it errors even once the path is fixed — both v1.0 external MCP workspace tools are dead for every client | fixed | rc1-verifier:2 |
 | R15-RESEARCH-043 | medium | research | research-extraction-synthesis | Research brief citation-integrity net matches only a bare [n]; grouped markers [2, 3] and prose pseudo-citations [New findings] ship unresolved as literal text | blocked_tier4 | rc1-drive-research-briefs:2, rc1-verifier:3 |
 | R15-LEAD-039 | medium | data | fundamentals-profile | Earnings estimate detail 502s for any symbol Yahoo serves with incomplete Earnings High/Low/Average fields (RDY, TM, SONY), pre-existing and untouched by the batch-25 diff | fixed |  |

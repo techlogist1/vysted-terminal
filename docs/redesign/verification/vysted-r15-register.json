@@ -17074,6 +17074,31 @@
       "note": "batch-26 adjudication: stage-c batch-25 fresh verifier certified (merge 1373c0d5)."
     },
     {
+      "id": "R15-DATA-117",
+      "title": "ADR price-to-book is served ok on a mixed currency basis (USD listing price over local-currency book value): TSM P/B 92.17 vs ~10, HDB 9.32 vs ~1.87, while price-to-sales is withheld for the same mixed basis",
+      "severity": "high",
+      "area": "data-smallcaps",
+      "subsystem": "fundamentals",
+      "files": [
+        "sidecar/services/yfinance_provider.py",
+        "sidecar/services/correctness_gate.py"
+      ],
+      "repro": "GET /fundamentals/TSM at 01d6920a: price_to_book 92.1669 and book_value 4.889 with field_meta ok, while price_to_sales is withheld 'mixes bases: the listing trades in USD but reports its statements in TWD'. HDB: P/B 9.32 ok (INR statements). Evidence: docs/redesign/verification/r15/rc1/round-3/verifier/sample/DATA-005-adjacent-pb-vs-ps.txt (rc1-verifier:1).",
+      "evidence": "rc1 gate round 3 fresh verifier, rc1-verifier:1 (rated high: a 5-9x wrong valuation ratio on two mega-caps carries a verified badge); the vshard filed it medium.",
+      "root_cause": "sidecar/services/yfinance_provider.py:420 _MIXED_BASIS_RATIOS lists only price_to_sales and ev_to_ebitda, so price_to_book (price in the listing currency over book value per share in the statement currency) escapes the mixed-basis withholding; sidecar/services/correctness_gate.py:770 reconcile_book_value returns early for any financial_currency and never reconciles the basis.",
+      "fix_shape": "Audit every ratio that divides a listing-currency price by a statement-currency per-share figure (price_to_book at least; check P/E, price_to_cash_flow, EV ratios and book_value itself) and put each in the same mixed-basis class as price_to_sales: withhold with the stated reason, or convert through the ADR ratio and the FX rate when both are ok-sourced, never serve the raw quotient with a verified badge. Pin TSM (TWD) and HDB (INR) plus a fresh ADR; a US-domestic name must be unchanged.",
+      "defect_class": "unreconciled-yfinance-scalar",
+      "raw_ids": [
+        "rc1-verifier:1"
+      ],
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "tier4": false,
+      "status": "open",
+      "note": "Filed by the lead from the gate round-3 verifier sheet (23:38 IST 26 Sep); same class as R15-DATA-005 / R15-DATA-008, both of which hold on their own repros. Certification failures so far: 0."
+    },
+    {
       "id": "R15-CODE-AGENT-034",
       "title": "MCP list_workspaces/get_workspace tools GET '/workspaces' but the router is prefix '/workspace' (404 on both), and list_workspaces also skips the bare-list-to-dict wrap so it errors even once the path is fixed — both v1.0 external MCP workspace tools are dead for every client",
       "severity": "high",
@@ -17455,10 +17480,10 @@
   ],
   "counts": {
     "raw": 887,
-    "entries": 656,
+    "entries": 657,
     "rejections": 76,
     "critical": 16,
-    "high": 118,
+    "high": 119,
     "medium": 295,
     "low": 227
   }
