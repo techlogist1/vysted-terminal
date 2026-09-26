@@ -1101,3 +1101,147 @@ def test_statement_sizes_display_in_the_financial_currency() -> None:
     )
     assert data["market_cap"]["display"] == "USD 320.00M"
     assert data["reported_net_income"]["display"].startswith("₹")
+
+
+# --- wire-type mirror + prompt-block coverage (R15-CODE-RESEARCH-007, R15-RESEARCH-036) --
+#
+# BriefDerivedMetrics (types/brief.ts) and _PROMPT_KEYS are both hand-maintained
+# mirrors of the keys derive_semantics can emit, with no drift guard of their
+# own. A rich fund that fires every leg's fact at once pins both: an emitted
+# key missing from either mirror is the defect these two entries name.
+
+# Mirrors types/brief.ts BriefDerivedMetrics field names (excl. `conflicts`,
+# which is not a metric). Owned together — change both in the same commit.
+_BRIEF_TS_DERIVED_METRIC_KEYS = frozenset(
+    {
+        "drawdown_from_high",
+        "fifty_two_week_change",
+        "dividend_yield",
+        "dividend_per_share",
+        "dividend_per_share_ttm",
+        "dividend_declared",
+        "revenue_growth",
+        "earnings_growth",
+        "revenue_growth_computed",
+        "earnings_growth_computed",
+        "reported_net_income",
+        "normalized_net_income",
+        "fifty_two_week_high_exchange",
+        "fifty_two_week_low_exchange",
+        "market_cap_witness",
+        "market_cap",
+        "promoter_percent_exchange",
+        "institutions_percent_exchange",
+    }
+)
+
+
+def _rich_fund() -> dict[str, Any]:
+    """A fund leg that fires every derived-metric fact at once: dividend
+    ttm+declared, growth divergence (both legs), ownership exchange (both
+    legs), earnings quality, 52-week range exchange (both bounds) and the
+    market-cap witness.
+    """
+    fund: dict[str, Any] = {
+        "currency": "INR",
+        "dividend_per_share": 15.8,
+        "dividend_per_share_ttm": 14.6,
+        "dividend_declared": {
+            "amount": 3.95,
+            "record_date": "2026-07-31",
+            "subject": "Dividend - Rs 3.95 Per Share",
+        },
+        "revenue_growth": 0.669,
+        "revenue_growth_computed": 0.02,
+        "growth_computed_quarters": {"mrq": "2026-03-31", "prior": "2025-03-31"},
+        "earnings_growth": -0.031,
+        "earnings_growth_computed": 0.056,
+        "pe_ratio": 460.0,
+        "roe": 0.0108,
+        "earnings_quality": dict(_TI_EARNINGS),
+        "fifty_two_week_high": 75.0,
+        "fifty_two_week_low": 50.0,
+        "range_52w_exchange": {
+            "high": 116.0,
+            "low": 50.0,
+            "coverage_days": 359,
+            "bars": 360,
+            "source": "nse_direct",
+        },
+        "market_cap": 5.233e10,
+        "market_cap_witness": dict(_RBA_WITNESS),
+    }
+    fund.update(
+        _ownership_fund(
+            insiders=0.75806,
+            institutions=0.08455,
+            exchange={
+                "promoter_percent": 73.29,
+                "institutions_percent": 0.06,
+                "public_percent": 26.71,
+                "as_of_quarter": "2026-06-30",
+                "source": "BSE",
+            },
+        )
+    )
+    return fund
+
+
+def test_emitted_keys_subset_of_brief_ts_mirror() -> None:
+    # R15-CODE-RESEARCH-007: BriefDerivedMetrics omitted four keys the sidecar
+    # emits (dividend_per_share_ttm, dividend_declared, promoter_percent_exchange,
+    # institutions_percent_exchange) — they rendered only via untyped
+    # Object.entries iteration. Pin every emitted key against the TS mirror.
+    data = _derived(_structured(price=400.0, fund=_rich_fund()))
+    emitted = set(data) - {"conflicts"}
+    missing = emitted - _BRIEF_TS_DERIVED_METRIC_KEYS
+    assert not missing, (
+        f"emitted but not declared on BriefDerivedMetrics (types/brief.ts): {missing}"
+    )
+
+
+def test_prompt_keys_cover_every_derived_metric() -> None:
+    # R15-RESEARCH-036: _PROMPT_KEYS hand-re-lists every derived metric with no
+    # drift guard — a leg added without a matching entry renders a metric card
+    # but never reaches the synthesis prompt.
+    from services.research import semantics
+
+    data = _derived(_structured(price=400.0, fund=_rich_fund()))
+    emitted = set(data) - {"conflicts"}
+    missing = emitted - set(semantics._PROMPT_KEYS)
+    assert not missing, f"emitted but missing from _PROMPT_KEYS: {missing}"
+
+
+# --- every leg returns (facts, conflicts) (R15-CODE-RESEARCH-011) ----------------
+
+
+def test_every_leg_returns_facts_and_conflicts() -> None:
+    # R15-CODE-RESEARCH-011: _dividend_leg used to return a positional
+    # (yield, dps, facts, conflicts) 4-tuple unlike every sibling leg's
+    # (facts, conflicts) — pin every ``_*_leg`` function's return annotation to
+    # the same 2-tuple shape so a future leg can't quietly diverge again.
+    import inspect
+    from typing import get_args, get_origin, get_type_hints
+
+    from services.research import semantics
+
+    leg_names = [
+        name
+        for name in dir(semantics)
+        if name.startswith("_")
+        and name.endswith("_leg")
+        and inspect.isfunction(getattr(semantics, name))
+    ]
+    assert len(leg_names) >= 6, f"expected several leg functions, found {leg_names}"
+    for name in leg_names:
+        fn = getattr(semantics, name)
+        hints = get_type_hints(fn)
+        ret = hints.get("return")
+        assert ret is not None, f"{name} has no return type annotation"
+        assert get_origin(ret) is tuple, f"{name} does not return a tuple: {ret}"
+        args = get_args(ret)
+        assert len(args) == 2, (
+            f"{name} returns a {len(args)}-tuple, expected (facts, conflicts): {ret}"
+        )
+        assert get_origin(args[0]) is dict, f"{name}'s first return element is not a dict: {ret}"
+        assert get_origin(args[1]) is list, f"{name}'s second return element is not a list: {ret}"
