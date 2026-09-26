@@ -141,9 +141,9 @@ DOMAIN_CUES: dict[Domain, tuple[str, ...]] = {
 #   read_handler  — a handler registered in the agent_tools registry.
 #   per_invocation — resolved inside ``invoke_agent`` from request scope.
 #   host_action    — executed by the frontend (drives the cockpit).
-#   mcp_endpoint   — projected only to the external MCP surface (F5), bound to a
-#                    sidecar HTTP route or runtime call rather than a registry id.
-ToolKind = Literal["read_handler", "per_invocation", "host_action", "mcp_endpoint"]
+# The MCP-only runtime tools (agents, workspaces, workflows) are hand-written in
+# ``services.mcp_server``, not catalog entries (R15-CODE-AGENT-026).
+ToolKind = Literal["read_handler", "per_invocation", "host_action"]
 
 _TF_ENUM = ["1d", "1h", "1wk", "1mo"]
 _ASSET_ENUM = ["equity", "crypto"]
@@ -190,19 +190,29 @@ class Capability:
     default_grant: bool = True
     #: Per-dispatch wall budget (R10, E7) enforced at the runtime's tool
     #: boundary via ``asyncio.wait_for``. ``None`` = no timeout (host actions /
-    #: per-invocation locals are exempt; ``research`` carries its own outer
-    #: guard computed from its args).
+    #: per-invocation locals are exempt).
     timeout_seconds: float | None = None
+    #: The wall budget comes from the call's own args (``research``: its
+    #: ``wall_seconds``/depth), computed by the runtime, so a fixed
+    #: ``timeout_seconds`` cannot also be set (R15-AGENT-070).
+    timeout_from_args: bool = False
     #: The result carries third-party text (web pages, news, exchange
     #: disclosures, research built from them). The runtime fences it with
     #: ``scrub.wrap_untrusted`` in the model-facing tool message, so injected
     #: instructions read as data, never as the user's request (R15-AGENT-021).
     untrusted_text: bool = False
 
+    def __post_init__(self) -> None:
+        if self.timeout_from_args and self.timeout_seconds is not None:
+            raise ValueError(
+                f"{self.id}: timeout_from_args derives the budget from the call's "
+                "args; a fixed timeout_seconds would be ignored"
+            )
+
     @property
     def internal(self) -> bool:
-        """Projected to the internal copilot/persona adapters (every kind but ``mcp_endpoint``)."""
-        return self.kind != "mcp_endpoint"
+        """Projected to the internal copilot/persona adapters (every catalog kind is)."""
+        return True
 
     @property
     def mcp(self) -> bool:
@@ -212,11 +222,16 @@ class Capability:
 
 # MCP projection rule (FR-020/022, R15-AGENT-083): the external MCP surface is
 # READ-ONLY in 0.9. Every handler-backed read capability is exposed — EXCEPT
-# those that need local-only context (a backtest run_id lives only in this
-# session). Per-invocation reads are request-scoped and host actions mutate the
-# cockpit behind the in-app proposed-changes gate, so neither is projected.
-# Exposing writes through a host-side queue is a future operator decision.
-_MCP_INTERNAL_ONLY: frozenset[str] = frozenset({"backtest_summary"})
+# those bound to local-only context: a backtest run_id lives only in this
+# session, so neither its reader (backtest_summary) nor its writer
+# (run_custom_backtest, which caches the run and would otherwise advertise
+# readOnlyHint=true, R15-AGENT-066) is projected. Per-invocation reads are
+# request-scoped and host actions mutate the cockpit behind the in-app
+# proposed-changes gate, so neither is projected. Exposing writes through a
+# host-side queue is a future operator decision. The exposed set is pinned by
+# name in test_mcp_catalog_parity, so each new read_handler is an explicit
+# expose-or-exclude decision (R15-AGENT-067).
+_MCP_INTERNAL_ONLY: frozenset[str] = frozenset({"backtest_summary", "run_custom_backtest"})
 
 
 def _cap(id: str, **fields: Any) -> tuple[str, Capability]:
@@ -511,6 +526,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
             domain="research",
             read_only=True,
             kind="read_handler",
+            timeout_from_args=True,
             untrusted_text=True,
         ),
         # --- screener --------------------------------------------------------
@@ -1853,9 +1869,9 @@ def timeout_for(tool_id: str) -> float | None:
 
     Enforced by the runtime's ``_dispatch_tool`` via ``asyncio.wait_for`` for
     registry-backed tools only — host-action locals are frontend round-trips
-    and per-invocation reads are in-memory, both exempt. ``research`` declares
-    no budget here: the runtime computes its outer guard from the call's own
-    ``wall_seconds``/depth args.
+    and per-invocation reads are in-memory, both exempt. A capability with
+    ``timeout_from_args`` (``research``) declares no budget here: the runtime
+    computes its outer guard from the call's own ``wall_seconds``/depth args.
     """
     cap = CAPABILITY_CATALOG.get(tool_id)
     return cap.timeout_seconds if cap else None
