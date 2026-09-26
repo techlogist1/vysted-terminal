@@ -21,7 +21,36 @@
  
  ## Gotchas (active rules)
  
-@@ -232,6 +235,10 @@
+@@ -188,6 +191,14 @@
+   `FunctionTool(parameters=<schema>, fn=<handler>)` dispatching to the same `agent_tools`
+   handler; the agent/workspace/workflow tools stay hand-written + MCP-only. Wrap any bare-list
+   REST response at the MCP boundary (e.g. `{"agents": [...]}`); don't change the REST contract.
++- **`transform.code`** (`sidecar/services/workflow_nodes/code_node.py`) is a built-in
++  workflow node — a restricted `ast` evaluator (no eval/exec) kept grammar-compatible with
++  the node editor's client-side mathjs lane (arithmetic/comparison/ternary/
++  abs|min|max|round|sum|sqrt|floor|ceil); `register_all()` now registers 12 built-in node
++  types, not 11.
++- **`save_workflow`** is a hand-written, MCP-only workflow-authoring tool (`mcp_server.py`),
++  listed in `test_mcp_catalog_parity.py`'s `_RUNTIME_ONLY` set alongside its run/list
++  siblings — never a catalog `read_handler`.
+ - **OpenAI chat-completions has two tool-time 400 traps** (both were masking a working
+   key): (a) native web search is NOT a `{"type":"web_search"}` tools entry — that's
+   Responses-only and 400s ("Supported values are: 'function' and 'custom'"); chat takes a
+@@ -201,6 +212,13 @@
+   `scrub_adapter_options`, used by `routers/llm.py` and `agent_runtime`) — a control key in
+   invocation `options` (`research_depth`, …) would TypeError the stream; a new adapter kwarg
+   goes in that allowlist.
++- **Control keys riding invocation `options`** (`research_depth`, `deepResearchBackend`,
++  `modelWebSearch`, `history`) are popped by `agent_runtime` before `scrub_adapter_options`
++  runs, never left to reach the SDK — a new control key needs a pop in `agent_runtime.py`
++  too, or it dead-ends as a silently dropped, log-warned key.
++- **The composer depth slider** (`src/store/research-depth.ts`, default `normal`) publishes
++  `research_depth` into `config.set_request_research_depth` (task-local); the research
++  tool's depth default reads it, and an explicit model-passed depth still wins.
+ - **Keyless local-model lane: a figure or a claimed write with no ok tool call behind it is a
+   documented known limitation** (operator-signed, `docs/redesign/DECISIONS_FOR_OPERATOR.md`
+   4.9–4.12) — file new instances against it, don't add filter rounds. Fail-safe: in a turn
+@@ -232,6 +250,18 @@
    `VystedModule.panelComponents`. dockview base CSS is imported in `globals.css` before the
    `.dockview-theme-vysted` override; `PanelHost` mounts `DockviewReact` only after modules
    register.
@@ -29,10 +58,28 @@
 +  `src-tauri/**`, `graphify-out/**`** (`vite.config.ts` `server.watch.ignored`) — those
 +  trees live inside the repo root, so without the ignores a teammate worktree commit or a
 +  sidecar rebuild triggers a full app reload mid-session.
++- **The tauri-plugin-mcp dev-rig bridge wedges (hangs, not refuses) after Vite HMR re-runs
++  `initDevMcpBridge()`** (`src/app/page.tsx`, `src/lib/dev-mcp-bridge.ts`) — the mount effect
++  carries no reinit guard, so any frontend edit during a rig-driven session needs a full dev-
++  stack restart before the next probe.
++- **WKWebView serves stale JS through `location.reload()`** — live-verifying a frontend change
++  needs a full stack restart with `rm -rf ~/Library/Caches/com.vysted.terminal
++  ~/Library/WebKit/com.vysted.terminal` (bundle identifier, not the `vysted-terminal` product
++  name — confirmed by the bundle-rehearsal run).
  - **`dragDropEnabled: false`** (`tauri.conf.json` `app.windows[0]`) is REQUIRED for
    in-webview HTML5 drag-drop (dockview tab reorder + node-editor palette→canvas) — the
    default `true` installs an OS handler that swallows HTML5 drag (macOS WKWebView too).
-@@ -327,8 +334,12 @@
+@@ -268,6 +298,9 @@
+   below a width threshold downgrades to the essentials (research-cockpit → chart + brief,
+   macro-scan → single-focus); existing templates stay the fallback, and the `__terminal__` snapshot
+   carries `viewport` so the agent self-selects on a small display too.
++- **The arrangeable-panel map in `src/lib/layout-templates.ts` must use REGISTERED module
++  ids** (`screener` registers as `screener-panel`, not `screener`) — a drifted id mints a
++  duplicate panel instead of `applyPlan` moving the existing one into its planned position.
+ 
+ ### Credentials
+ 
+@@ -327,8 +360,12 @@
  portfolio ≥1 position with P&L. _(003 rebuild: the cockpit is now the minimal **zinc
  near-black + cool-indigo** shell with a mark-only brand (no text wordmark). The rig's
  in-webview `screenshot` wedges on an occluded WKWebView — capture via the bridge-independent
