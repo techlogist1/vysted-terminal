@@ -69,6 +69,12 @@ _NETWORK_ERROR_NAMES = frozenset(
     }
 )
 
+#: Yahoo's ticker alphabet (R15-DATA-061). A symbol outside it (a script tag,
+#: ``$$%^``) makes Yahoo answer with a non-JSON/empty body instead of its usual
+#: "no data found" JSON error, so the failure carries no missing-ticker class to
+#: match on — this is the fallback classification for that case.
+_YAHOO_SYMBOL_ALPHABET_RE = re.compile(r"[A-Z0-9.\-^=&]+")
+
 
 def _chain(exc: BaseException) -> list[BaseException]:
     """``exc`` and its cause/context chain, cycle-safe."""
@@ -102,6 +108,8 @@ def _provider_error(action: str, symbol: str, exc: BaseException) -> ProviderErr
         return ProviderError(message, kind="not_found")
     if _has_class_named(exc, _NETWORK_ERROR_NAMES):
         return ProviderError(message, kind="network")
+    if not _YAHOO_SYMBOL_ALPHABET_RE.fullmatch(_yahoo_symbol(symbol)):
+        return ProviderError(message, kind="not_found")
     return ProviderError(message)
 
 
@@ -1039,6 +1047,10 @@ def get_income_statement(symbol: str, period: str = "annual") -> IncomeStatement
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("income statement", symbol, exc) from exc
     provider_health.record_success(provider_health.YAHOO)
+    if frame.empty:
+        hidden = _surface_fetch_error(ticker)
+        if hidden is not None and _has_class_named(hidden, _MISSING_TICKER_ERRORS):
+            raise _provider_error("income statement", symbol, hidden) from hidden
     periods, lines = _statement_lines(frame)
     return IncomeStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
@@ -1070,6 +1082,10 @@ def get_balance_sheet(symbol: str, period: str = "annual") -> BalanceSheet:
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("balance sheet", symbol, exc) from exc
     provider_health.record_success(provider_health.YAHOO)
+    if frame.empty:
+        hidden = _surface_fetch_error(ticker)
+        if hidden is not None and _has_class_named(hidden, _MISSING_TICKER_ERRORS):
+            raise _provider_error("balance sheet", symbol, hidden) from hidden
     periods, lines = _statement_lines(frame)
     return BalanceSheet(symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER)
 
@@ -1115,6 +1131,10 @@ def get_cash_flow(symbol: str, period: str = "annual") -> CashFlowStatement:
     except Exception as exc:  # noqa: BLE001
         raise _provider_error("cash flow", symbol, exc) from exc
     provider_health.record_success(provider_health.YAHOO)
+    if frame.empty:
+        hidden = _surface_fetch_error(ticker)
+        if hidden is not None and _has_class_named(hidden, _MISSING_TICKER_ERRORS):
+            raise _provider_error("cash flow", symbol, hidden) from hidden
     periods, lines = _statement_lines(frame)
     return CashFlowStatement(
         symbol=normalized.upper(), periods=periods, lines=lines, provider=PROVIDER
@@ -1132,8 +1152,14 @@ def get_analyst_rating(symbol: str) -> AnalystRating:
         raise _provider_error("analyst rating", symbol, exc) from exc
     provider_health.record_success(provider_health.YAHOO)
 
+    no_recommendations = recommendations is None or recommendations.empty
+    if no_recommendations and not targets:
+        hidden = _surface_fetch_error(ticker)
+        if hidden is not None and _has_class_named(hidden, _MISSING_TICKER_ERRORS):
+            raise _provider_error("analyst rating", symbol, hidden) from hidden
+
     counts = {"strongBuy": 0, "buy": 0, "hold": 0, "sell": 0, "strongSell": 0}
-    if recommendations is not None and not recommendations.empty:
+    if not no_recommendations:
         latest = recommendations.iloc[0]
         for key in counts:
             value = _num(latest.get(key))

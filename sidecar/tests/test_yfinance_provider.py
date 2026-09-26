@@ -888,6 +888,106 @@ def test_quote_on_a_dead_network_is_network_not_not_found(
     assert info.value.kind == "network"
 
 
+@pytest.mark.parametrize("symbol", ["$$%^", "<SCRIPT>alert(1)</SCRIPT>", "XYZ/ABC"])
+def test_quote_of_a_symbol_outside_yahoos_alphabet_is_not_found(
+    monkeypatch: pytest.MonkeyPatch, symbol: str
+) -> None:
+    """A symbol outside Yahoo's ticker alphabet (a script tag, punctuation, a
+    slash) makes Yahoo answer with a non-JSON body — no missing-ticker/network
+    class to match on, so this is the fallback classification for that shape of
+    failure, rather than an unclassified 502 with a wrong "Retry" action."""
+    from services.errors import ProviderError
+
+    _failing_ticker(monkeypatch, ValueError("Expecting value: line 1 column 1 (char 0)"))
+    with pytest.raises(ProviderError) as info:
+        yfinance_provider.get_quote(symbol)
+    assert info.value.kind == "not_found"
+
+
+def test_quote_of_a_valid_symbol_with_the_same_error_stays_unclassified(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Control: AAPL is within Yahoo's ticker alphabet, so the same otherwise
+    unclassifiable failure must not be reclassified as not_found."""
+    from services.errors import ProviderError
+
+    _failing_ticker(monkeypatch, ValueError("Expecting value: line 1 column 1 (char 0)"))
+    with pytest.raises(ProviderError) as info:
+        yfinance_provider.get_quote("AAPL")
+    assert info.value.kind is None
+
+
+def _empty_statement_ticker(monkeypatch: pytest.MonkeyPatch, probe_error: Exception | None) -> None:
+    """A ticker whose income/balance/cashflow/ratings frames are all empty —
+    as yfinance answers both an unknown ticker and a real one with no filed
+    lines. ``probe_error`` is what the ``raise_errors`` re-ask surfaces:
+    a missing-ticker error for the unknown case, ``None`` for the clean case."""
+    import pandas as pd
+
+    class _Ticker:
+        def __init__(self, symbol: str) -> None:  # noqa: ARG002
+            pass
+
+        @property
+        def income_stmt(self) -> object:
+            return pd.DataFrame()
+
+        quarterly_income_stmt = income_stmt
+        balance_sheet = income_stmt
+        quarterly_balance_sheet = income_stmt
+        cashflow = income_stmt
+        quarterly_cashflow = income_stmt
+        recommendations = None
+        analyst_price_targets = {}
+
+        def history(
+            self, period: str = "5d", interval: str = "1d", raise_errors: bool = False
+        ) -> object:
+            if raise_errors and probe_error is not None:
+                raise probe_error
+            return pd.DataFrame()
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda: yfinance_provider.get_income_statement("ZZZZNOTREAL"),
+        lambda: yfinance_provider.get_balance_sheet("ZZZZNOTREAL"),
+        lambda: yfinance_provider.get_cash_flow("ZZZZNOTREAL"),
+        lambda: yfinance_provider.get_analyst_rating("ZZZZNOTREAL"),
+    ],
+    ids=["income_statement", "balance_sheet", "cash_flow", "analyst_rating"],
+)
+def test_empty_statement_with_a_missing_ticker_probe_is_not_found(
+    monkeypatch: pytest.MonkeyPatch, call
+) -> None:  # noqa: ANN001
+    """R15-DATA-061: an unknown ticker's statement/ratings frame is empty just
+    like ``get_history``'s, but these four had no empty-frame probe — an empty
+    model came back 200 instead of 404. The probe re-asks and this time Yahoo
+    says the ticker itself is missing, so the route now 404s."""
+    from yfinance.exceptions import YFPricesMissingError
+
+    from services.errors import ProviderError
+
+    _empty_statement_ticker(monkeypatch, YFPricesMissingError("ZZZZNOTREAL.NS", ""))
+    with pytest.raises(ProviderError) as info:
+        call()
+    assert info.value.kind == "not_found"
+
+
+def test_empty_income_statement_with_a_clean_probe_returns_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A real ticker with a legitimately empty statement (the probe succeeds —
+    Yahoo has the ticker, it just filed no lines) still returns 200, empty."""
+    _empty_statement_ticker(monkeypatch, None)
+    statement = yfinance_provider.get_income_statement("TCS")
+    assert statement.periods == []
+    assert statement.lines == []
+
+
 # ---------------------------------------------------------------------------
 # R15-LEAD-005: a quote is dated by its trade time, never the fetch time
 # ---------------------------------------------------------------------------
