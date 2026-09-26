@@ -38,19 +38,29 @@ from services.research.models import ResearchSource, ResearchStep
 #: Inline citation marker — ``[n]`` not followed by ``(`` (a markdown link).
 MARKER_RE = re.compile(r"\[(\d{1,3})\](?!\()")
 
-#: A citation GROUP — "[2, 3]" or "[2; 3]" — never matched by :data:`MARKER_RE`
-#: (its content is not purely digits), so a group was never range-checked or
-#: chipped. Expanded to individual markers before either pass runs.
-MARKER_GROUP_RE = re.compile(r"\[(\d{1,3}(?:\s*[,;]\s*\d{1,3})+)\]")
+#: A citation GROUP — "[2, 3]", "[2; 3]", a range "[2-4]"/"[2–4]"/"[2—4]", or
+#: a mix "[1, 3-5]" — never matched by :data:`MARKER_RE` (its content is not
+#: purely digits), so a group was never range-checked, remapped or chipped.
+#: Expanded to individual markers before either pass runs; a range expands to
+#: every number from its lower endpoint to its higher one, inclusive.
+MARKER_GROUP_RE = re.compile(
+    r"\[(?=[^\]]*[-–—,;])"
+    r"(\d{1,3}(?:\s*[-–—]\s*\d{1,3})?(?:\s*[,;]\s*\d{1,3}(?:\s*[-–—]\s*\d{1,3})?)*)"
+    r"\](?!\()"
+)
 
-#: A citation-position bracket token that is not a numeric marker at all —
-#: content starting with a letter, at least two characters, e.g. a leaked
-#: prompt label ("[New findings]", "[Current report]"). ``[n]``/``[x]`` (one
-#: character) and reference-style links/definitions (``[label][ref]``,
-#: ``[label]: url``) are excluded by the length floor and the lookahead; the
-#: lookbehind spares a reference link's ``[ref]`` half (preceded by a
-#: non-numeric ``]``) while still catching ``[6][New findings]``.
-_PSEUDO_CITE_RE = re.compile(r"(?<!\D\])\[([A-Za-z][^\[\]]+)\](?![(\[:])")
+#: A leaked prompt label in citation position — the label family the research
+#: prompts use for their evidence blocks ("[New findings]", "[Latest
+#: evidence]", "[Panel reports]", "[the sources this round]"), matched
+#: case-insensitively. Nothing else is touched: a basis qualifier
+#: ("[basis: trailing 52 weeks]"), a ticker ("[NSE: BDL]"), an editorial
+#: bracket ("[the Company]", "[sic]") and a reference link/definition
+#: ("[the filing][sec]", "[sec]: url", excluded by the lookahead) all survive.
+_PSEUDO_CITE_RE = re.compile(
+    r"\[((?:the\s+)?(?:(?:new|latest|web|current|working|panel|known)\s+)?"
+    r"(?:findings?|evidence|reports?|sources?)(?:\s+this\s+round)?)\](?![(:])",
+    re.I,
+)
 
 #: At most this many numeric/dated claims ride the ONE audit call.
 MAX_AUDIT_CLAIMS = 8
@@ -148,13 +158,16 @@ def strip_model_bibliography(markdown: str) -> tuple[str, int]:
 
 
 def expand_marker_groups(markdown: str) -> str:
-    """Split a citation GROUP ``[2, 3]``/``[2; 3]`` into individual markers
-    ``[2][3]`` — each member then range-checks and chips on its own instead of
-    surviving as an unrecognised group (:data:`MARKER_RE` never matches a
-    group; it is not pure digits)."""
+    """Split a citation GROUP (:data:`MARKER_GROUP_RE`) into individual
+    markers — ``[2, 3]`` → ``[2][3]``, ``[2-4]`` → ``[2][3][4]`` — so each
+    member then range-checks, remaps and chips on its own instead of
+    surviving as an unrecognised group."""
 
     def _sub(match: re.Match[str]) -> str:
-        numbers = re.split(r"\s*[,;]\s*", match.group(1))
+        numbers: list[int] = []
+        for member in re.split(r"\s*[,;]\s*", match.group(1)):
+            ends = [int(n) for n in re.split(r"\s*[-–—]\s*", member)]
+            numbers.extend(range(min(ends), max(ends) + 1))
         return "".join(f"[{n}]" for n in numbers)
 
     return MARKER_GROUP_RE.sub(_sub, markdown)
@@ -184,8 +197,6 @@ def strip_invalid_markers(markdown: str, source_count: int) -> tuple[str, int]:
         removed += 1
         return ""
 
-    # Pseudo-markers first, while their neighbours are still the original
-    # text the lookbehind was written against.
     cleaned = _PSEUDO_CITE_RE.sub(_sub_pseudo, markdown)
     cleaned = MARKER_RE.sub(_sub, cleaned)
     if removed:
