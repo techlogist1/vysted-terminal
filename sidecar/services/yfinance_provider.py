@@ -12,7 +12,8 @@ upstream API drifts over time, so each function is defensive and tests mock the
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+import re
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import pandas as pd
@@ -137,6 +138,53 @@ _TIMEFRAME_MAP: dict[str, tuple[str, str]] = {
 
 def _utcnow() -> datetime:
     return datetime.now(tz=UTC)
+
+
+#: Yahoo's intraday lookback ceiling in days, by yfinance interval — a sub-hour
+#: bar (2m-30m) serves at most 60 days, 1m at most 7, 1h at most 730 (R15-DATA-064).
+#: Daily-and-up intervals are uncapped. The str is a period Yahoo itself accepts.
+_INTRADAY_CAP_DAYS: dict[str, tuple[int, str]] = {
+    "1m": (7, "7d"),
+    "2m": (60, "60d"),
+    "5m": (60, "60d"),
+    "15m": (60, "60d"),
+    "30m": (60, "60d"),
+    "1h": (730, "730d"),
+}
+
+_PERIOD_RE = re.compile(r"(\d+)(d|mo|y)")
+
+
+def _period_days(period: str) -> float:
+    """Approximate calendar-day length of a Yahoo period string (``5d``, ``3mo``,
+    ``1y``, ``ytd``, ``max``), to compare against :data:`_INTRADAY_CAP_DAYS`.
+
+    An unrecognised string is treated as unbounded so the clamp still fires
+    rather than silently trusting a string it cannot parse.
+    """
+    if period == "max":
+        return float("inf")
+    if period == "ytd":
+        today = _utcnow().date()
+        return max((today - date(today.year, 1, 1)).days, 1)
+    match = _PERIOD_RE.fullmatch(period)
+    if not match:
+        return float("inf")
+    count, unit = int(match.group(1)), match.group(2)
+    return count * {"d": 1, "mo": 30, "y": 365}[unit]
+
+
+def _clamp_period(interval: str, period: str) -> tuple[str, int | None]:
+    """Shorten ``period`` to Yahoo's intraday lookback cap for ``interval``.
+
+    Returns the (possibly shortened) period string, and the cap in days when
+    the period was actually shortened (``None`` when it was left alone) so the
+    caller can mark the series ``partial``.
+    """
+    cap = _INTRADAY_CAP_DAYS.get(interval)
+    if cap is None or _period_days(period) <= cap[0]:
+        return period, None
+    return cap[1], cap[0]
 
 
 def _normalize_symbol(symbol: str) -> str:
@@ -526,10 +574,16 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     ``network`` error, never an empty series; Yahoo answering with no bars
     (``YFTickerMissingError``) stays the empty series the history route
     downgrades to "no price data".
+
+    An explicit ``range_`` past Yahoo's intraday lookback cap (R15-DATA-064) is
+    clamped to the cap before the fetch — the caller asked for more than Yahoo
+    serves at this timeframe, not for an empty series — and the returned
+    series is marked ``partial`` with ``coverage_start`` set to what was
+    actually served.
     """
     normalized = _yahoo_symbol(symbol)
     interval, default_period = _TIMEFRAME_MAP.get(timeframe, ("1d", "1y"))
-    period = range_ or default_period
+    period, clamped_cap_days = _clamp_period(interval, range_ or default_period)
     ticker = yf.Ticker(normalized)
     try:
         frame = ticker.history(period=period, interval=interval)
@@ -568,7 +622,17 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
                 volume=volume,
             )
         )
-    return OHLCVSeries(symbol=normalized.upper(), timeframe=timeframe, bars=bars, provider=PROVIDER)
+    series = OHLCVSeries(
+        symbol=normalized.upper(), timeframe=timeframe, bars=bars, provider=PROVIDER
+    )
+    if clamped_cap_days is not None:
+        series.partial = True
+        series.coverage_start = (
+            bars[0].timestamp.date()
+            if bars
+            else _utcnow().date() - timedelta(days=clamped_cap_days)
+        )
+    return series
 
 
 #: Balance-sheet / income-statement rows read for the derived-ratio leg

@@ -110,6 +110,18 @@ def test_in_eod_only_is_only_for_intraday_on_a_known_in_listing() -> None:
         config.reset_request_region(token)
 
 
+def test_30m_history_with_a_3mo_range_serves_bars_not_in_eod_only(
+    client: TestClient, mock_yfinance: object
+) -> None:
+    """R15-DATA-064 acceptance: a 30m request with an explicit range beyond
+    Yahoo's 60-day intraday window still serves bars (the provider clamps the
+    range internally), so the route never blames the exchange for a self-made
+    empty series."""
+    body = client.get("/history/RELIANCE.NS", params={"timeframe": "30m", "range": "3mo"}).json()
+    assert len(body["bars"]) > 0
+    assert body["reason"] is None
+
+
 def test_unknown_symbol_reason_via_route(client: TestClient, monkeypatch) -> None:
     """R15-LEAD-026 acceptance: /history/ZZQXNOPE carries reason unknown_symbol,
     distinct from a resolvable symbol's genuinely empty range."""
