@@ -1,0 +1,36 @@
+{
+  "certified": [
+    "R15-CODE-PLATFORM-013",
+    "R15-LEAD-028",
+    "R15-DATA-064",
+    "R15-DATA-116",
+    "R15-CODE-AGENT-034",
+    "R15-DATA-113",
+    "R15-RESEARCH-015",
+    "R15-AGENT-019",
+    "R15-AGENT-093",
+    "R15-AGENT-053"
+  ],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-DATA-002",
+      "reason": "No fix is in the integration branch. W1's watchlist-region work is on worktree-agent-batch-25-W1-data002-wip@b91ddef3, and that commit is not an ancestor of 2e988c0d. SymbolEntry still has no region (src/store/symbols.ts:15-18), and pickCandidate(c.symbol) still drops c.region (WatchlistPanel.tsx:286/298/434). Sidecar control on :52310: /quotes?symbols=AMAL returns INR 674.4 under X-Vysted-Region IN and USD 47.58 under US, so only the frontend propagation is missing."
+    },
+    {
+      "id": "R15-AGENT-010",
+      "reason": "The explicit yf.Search timeout (5 s) does not bound yfinance's cookie/crumb leg. data.py _make_request calls _get_cookie_and_crumb() with no timeout, so it keeps the hard-coded 30 s default. The register's live bar (refaudit2-newhigh/a010.py hang race with a never-answering HTTPS_PROXY, run against this worktree) still measures 31.07 s ('zzqx vericheck unfound co', max_gap_ms=21), where it must be <= timeout+1 s. A direct yf.Search(timeout=5.0) from a cold process also takes 30.01 s ('curl: (28) Connection timed out after 30002 ms' in _get_crumb_basic). Only once a crumb is already cached does the 5 s bound hold (5.00 s). So the 'up to 30 s on a yf.Search miss' claim still holds for any process that has no cached crumb. The event loop itself is no longer stalled (to_thread, from an earlier batch)."
+    },
+    {
+      "id": "R15-DATA-059",
+      "reason": "The ISIN half holds live: SIFY US82655M2061, ONC US07725L1026, AAPL US0378331005, fresh MSFT US5949181045 and NVDA US67066G1040, and TCI(US) takes US8936172092 with no Indian ISIN. The former-name half also holds (ONC 'BeiGene, Ltd.'). But the title's 'US instruments have no ... board or listing date' is unfixed. /resolve?q=ONC returns board null and has no listing_date field, and /fundamentals/ONC returns listing_date null and isin null. Outside truth: Nasdaq Global Select, listed 2016-02-02. The fresh case is /resolve?q=AAPL: board null, no listing_date."
+    },
+    {
+      "id": "R15-RESEARCH-043",
+      "reason": "The corpus and the planned fresh cases pass with byte-identical parity. But the implemented grammar ('a citation if ANY comma/semicolon token is an integer') departs from the register fix_shape ('a citation iff EVERY token is an integer'), and it manufactures citations out of numeric prose brackets. The case is a mid-sentence bracket holding a comma-grouped number. 'Shares outstanding [1,234 mn] at year end.' becomes '...[1] at year end.' on BOTH sides, with 0 broken counted, which is a silent fabricated citation to source 1. 'Net debt of [2,450] crore' becomes '[2]' (backend) or '[2][?]' (frontend). 'A price target of [Rs 1,200] was set.' becomes 'A price target of was set.' (backend), and 'Market cap [₹1,20,000 cr] per exchange data.' becomes 'Market cap per exchange data.' (backend), so the figure is erased. At base these rendered verbatim. The plan's own rule 5 (a mid-sentence bracket is prose, left untouched) does not hold for them."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "merge_target": "worktree-agent-batch-25-int@2e988c0d0ec1415b59a597b290c5c52e1fb190ba"
+}
