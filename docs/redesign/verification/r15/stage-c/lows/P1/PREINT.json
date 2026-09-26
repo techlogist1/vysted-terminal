@@ -1,0 +1,363 @@
+{
+  "partition": "P1",
+  "base": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
+  "writers_base": "ebc5ed4194f9362422c3178c27d4cdf946428968",
+  "branch": "worktree-agent-lows-P1-int-4c6dfe8",
+  "head": "70fe85c9af801387dc503e4a4bc97552f7a532d8",
+  "pushed": true,
+  "ls_remote": "70fe85c9af801387dc503e4a4bc97552f7a532d8",
+  "assembled": "06:50-06:54 IST",
+  "status": "untested pending integration",
+  "merge_order": [
+    {
+      "order": 1,
+      "set": "W1",
+      "branch": "worktree-agent-lows-P1-W1-backtest",
+      "origin_head": "6cb980bf5fc8ab1a57e9d33563fbb2b679a17837",
+      "writers_json_head": "6cb980bf5fc8ab1a57e9d33563fbb2b679a17837",
+      "mismatch": false,
+      "merge_sha": "fec16399b4fa14fc59216711fe10f192f3bf054b",
+      "conflicts": 0
+    },
+    {
+      "order": 2,
+      "set": "W2",
+      "branch": "worktree-agent-lows-P1-W2-runtime-catalog",
+      "origin_head": "31e61ce5d5eeb4e722c635f2c06977aeffd8aac3",
+      "writers_json_head": "31e61ce5d5eeb4e722c635f2c06977aeffd8aac3",
+      "mismatch": false,
+      "merge_sha": "1aacf748008fa18bcea3ac339403665ed5ffab24",
+      "conflicts": 0
+    },
+    {
+      "order": 3,
+      "set": "W3",
+      "branch": "worktree-agent-lows-P1-W3-actions-research",
+      "origin_head": "dd1ceed263534c3b56988b132cc3f6b465c5cc75",
+      "writers_json_head": "dd1ceed263534c3b56988b132cc3f6b465c5cc75",
+      "mismatch": false,
+      "merge_sha": "886acf46444524491b51774614eed558cd4cc4c9",
+      "conflicts": 0
+    },
+    {
+      "order": 4,
+      "set": "W4",
+      "branch": "worktree-agent-lows-P1-W4-chat-composer",
+      "origin_head": "57d0e546097a04f4777b3e99d3cad35f9f23a3ea",
+      "writers_json_head": "57d0e546097a04f4777b3e99d3cad35f9f23a3ea",
+      "mismatch": false,
+      "merge_sha": "5b41e737a18e0c94c4a63a777782afe7d6026972",
+      "conflicts": 0
+    },
+    {
+      "order": 5,
+      "set": "W5",
+      "branch": "worktree-agent-lows-P1-W5-portfolio",
+      "origin_head": "95a94e16ad55e3dd24f5f0f4e8bf4f5ecd46c9c0",
+      "writers_json_head": "95a94e16ad55e3dd24f5f0f4e8bf4f5ecd46c9c0",
+      "mismatch": false,
+      "merge_sha": "2ab2b0f13ce6fcff75bd96c48ecbb2ef360797fa",
+      "conflicts": 0
+    },
+    {
+      "order": 6,
+      "set": "W6",
+      "branch": "worktree-agent-lows-P1-W6-runs-stores",
+      "origin_head": "104d96a500d66cb907f6de56856e6b710fe0c234",
+      "writers_json_head": "104d96a500d66cb907f6de56856e6b710fe0c234",
+      "mismatch": false,
+      "merge_sha": "f24f73be79917f7c199144e940b705afb886f790",
+      "conflicts": 0
+    },
+    {
+      "order": 7,
+      "set": "W7",
+      "branch": "worktree-agent-lows-P1-W7-rust-core",
+      "origin_head": "8d07e2f692fbdbe50d1d3d9a6e24e706e5e324ee",
+      "writers_json_head": "8d07e2f692fbdbe50d1d3d9a6e24e706e5e324ee",
+      "mismatch": false,
+      "merge_sha": "f592a3d3bdd75310f628ac9888118adaf80b320d",
+      "conflicts": 0
+    },
+    {
+      "order": 8,
+      "set": "W8",
+      "branch": "worktree-agent-lows-P1-W8-tokens-market",
+      "origin_head": "2a2f0564cdd123d2bbcc1a34ca6779535437ddad",
+      "writers_json_head": "2a2f0564cdd123d2bbcc1a34ca6779535437ddad",
+      "mismatch": false,
+      "merge_sha": "bae0c204c0ce2b30c1eb306e6d96309d6fa5cfaa",
+      "conflicts": 0
+    },
+    {
+      "order": 9,
+      "set": "W9",
+      "branch": "worktree-agent-lows-P1-W9-docs-truth",
+      "origin_head": "dd10d2e03783a8de2e15577c729f0c7ddaa88aed",
+      "writers_json_head": "dd10d2e03783a8de2e15577c729f0c7ddaa88aed",
+      "mismatch": false,
+      "merge_sha": "21175c2eeec4b98b223bc5a81193ae4ab3ea22d6",
+      "conflicts": 0
+    }
+  ],
+  "extra_branches": [],
+  "style_commit": {
+    "sha": "70fe85c9af801387dc503e4a4bc97552f7a532d8",
+    "files": [
+      "sidecar/routers/backtest.py",
+      "sidecar/tests/test_backtest_engine.py",
+      "sidecar/tests/test_backtest_lows.py",
+      "docs/CURRENT_STATE.md",
+      "docs/redesign/R4_STALE_CODE_REGISTER.md"
+    ],
+    "why": "ruff I001 (W1, fails 'ruff check sidecar'); prettier table alignment (W9, fails prettier --check; both clean at base)"
+  },
+  "conflict_map": [],
+  "base_moved_writer_files": {
+    "files": [
+      "sidecar/services/agent_runtime.py",
+      "sidecar/services/planner.py",
+      "sidecar/tests/test_agent_runtime.py"
+    ],
+    "writer": "W2",
+    "base_entries": [
+      "R15-LEAD-030",
+      "R15-LEAD-035",
+      "R15-LEAD-036"
+    ],
+    "result": "auto-merged; call sites of _resolve_model use the 3-arg form, PLAN_ACTIONS import present"
+  },
+  "blocked_hunks": [],
+  "risk_map": {
+    "files_touched_by_multiple_writers": [],
+    "cross_partition_overlap": [],
+    "safety_adjacent_reviewed": [
+      {
+        "file": "sidecar/services/agent_runtime.py",
+        "entries": [
+          "R15-AGENT-089",
+          "R15-CODE-AGENT-018",
+          "R15-AGENT-071",
+          "R15-AGENT-073",
+          "R15-AGENT-070"
+        ],
+        "judgement": "merged: _STAGEABLE_PLAN_ACTIONS derivation (advisory plan-step staged flag), generated preamble tool list, _resolve_model, _tool_timeout_seconds; no hunk in _build_local_tools, _auto_publish_event or the read-intent strip. Verifier to confirm."
+      },
+      {
+        "file": "src/store/proposed-changes.ts",
+        "entries": [
+          "R15-CODE-FRONTEND-034"
+        ],
+        "judgement": "not on the read-only list; accept() acks with ApplyResult.status instead of publishAckStatus(label)"
+      }
+    ],
+    "rust": [
+      "src-tauri/src/lib.rs (+380/-83)",
+      "src-tauri/src/keychain.rs",
+      "src-tauri/src/openbb_mcp.rs",
+      "src-tauri/src/sec_edgar_mcp.rs"
+    ],
+    "config": "no Tier-1 config touched; new Tauri commands app_meta_get/app_meta_set registered in invoke_handler (lib.rs:627-628)",
+    "untested_risky": [
+      "W8 R15-UI-076 DEFAULT_SYMBOLS/DEFAULT_CHART_SYMBOL now IN-region; out-of-partition tests expected to break: WatchlistPanel.test.tsx, NewsFeedPanel.test.tsx, panel-context-publishers.test.tsx, NotesPanel.test.tsx; also check workspace/settings tests",
+      "W7 main-sidecar readiness now requires /health 200 with service=vysted-sidecar (15 s); Rust not cargo-verified",
+      "W6 list_runs LIMIT 100 + 30-day terminal-row pruning at first connect",
+      "W2 agent prompt byte cap 4608 (test_agent_system_prompts_within_byte_budget); MCP set pinned by name (31 ids)",
+      "W3 structured.source_floor leg not rendered by the frontend"
+    ],
+    "could_not": [
+      {
+        "id": "R15-CODE-RESEARCH-005",
+        "set": "W3"
+      },
+      {
+        "id": "R15-CODE-AGENT-031",
+        "set": "W6"
+      }
+    ],
+    "handed_to_lead": [
+      "R15-DOCS-009 DECISIONS.md line",
+      "R15-CODE-PLATFORM-049 exa orphan-secret migration skipped",
+      "spec.md stale four-mode mentions outside FR-003/US3/SC-029"
+    ]
+  },
+  "claimed_tests": {
+    "pytest": {
+      "sidecar/tests/test_backtest_lows.py": [
+        "test_uppercase_and_or_parse_like_lowercase",
+        "test_each_rule_compiled_once",
+        "test_each_bar_in_exactly_one_slice",
+        "test_no_dead_backtest_scaffolding"
+      ],
+      "sidecar/tests/test_backtest_engine.py": [
+        "test_event_sequence_has_progress_between_start_and_complete"
+      ],
+      "sidecar/tests/test_agent_runtime.py": [
+        "test_timeout_from_args_flag_not_name_selects_guard",
+        "test_every_tool_named_in_prompts_resolves_in_catalog",
+        "test_provider_override_without_model_uses_provider_default",
+        "test_agent_system_prompts_within_byte_budget"
+      ],
+      "sidecar/tests/test_planner.py": [
+        "test_coerce_steps_keeps_close_and_focus_panel_and_plan_marks_staged"
+      ],
+      "sidecar/tests/test_toolbelt_integrity.py": [
+        "test_stageable_and_read_safe_relation_is_pinned"
+      ],
+      "sidecar/tests/test_mcp_catalog_parity.py": [
+        "test_run_custom_backtest_not_read_only_on_mcp",
+        "test_mcp_projection_is_explicit_per_entry",
+        "test_toolkind_has_no_unprojected_mcp_endpoint"
+      ],
+      "sidecar/tests/test_research_iter.py": [
+        "test_structured_only_sources_are_not_web_available",
+        "test_over_cap_report_keeps_facts_established"
+      ],
+      "sidecar/tests/test_research_depth.py": [
+        "test_panel_threshold_single_source"
+      ],
+      "sidecar/tests/test_research_fast.py": [
+        "test_below_floor_marker"
+      ],
+      "sidecar/tests/test_agents_store.py": [
+        "test_unparseable_row_is_skipped_and_logged",
+        "test_connect_is_idempotent"
+      ],
+      "sidecar/tests/test_plugins.py": [
+        "test_connect_is_idempotent"
+      ],
+      "sidecar/tests/test_portfolio.py": [
+        "test_connect_is_idempotent"
+      ],
+      "sidecar/tests/test_schema_version.py": [
+        "(openers converted, whole file)"
+      ],
+      "sidecar/tests/test_runs_store.py": [
+        "test_list_runs_is_bounded_and_prunes_old_terminal_rows"
+      ],
+      "sidecar/tests/test_workspace.py": [
+        "test_replace_retries_permission_error_then_succeeds"
+      ]
+    },
+    "vitest": {
+      "src/modules/backtest/BacktestResultView.test.tsx": [
+        "(whole file) R15-UI-061"
+      ],
+      "src/store/proposed-changes.test.ts": [
+        "a reworded Kept label still acks kept_previous"
+      ],
+      "src/lib/host-actions.test.ts": [
+        "write_note append with a trailing-whitespace addendum equals appendSymbolNote",
+        "briefFromInput with only vysted:// + nsearchives rows -> webAvailable false"
+      ],
+      "src/modules/chat/DepthControl.test.tsx": [
+        "Tier B + ULTRA renders an estimate before dispatch"
+      ],
+      "src/modules/chat/mentions.test.ts": [
+        "R15-UI-093: a quoted candidate renders description '[NMS: 227.1 +0.8%]'"
+      ],
+      "src/store/portfolios.test.ts": [
+        "validateHolding rejects blank cost, qty>1e12, names the field for 1,000 (R15-UI-078)",
+        "(existing replace-semantics test) R15-CODE-PLATFORM-052"
+      ],
+      "src/modules/portfolio/metrics.test.ts": [
+        "rows carry the real holding id (R15-CODE-PLATFORM-050)"
+      ],
+      "src/modules/portfolio/PortfolioPanel.test.tsx": [
+        "(existing suite) R15-CODE-PLATFORM-051"
+      ],
+      "src/lib/csv.test.ts": [
+        "R15-UI-079 (actual title: 'prefixes a formula-trigger leading char so no text cell opens a live formula')"
+      ],
+      "src/modules/chat/context-provider.test.ts": [
+        "get_portfolio holdings carry a currency field on both paths (R15-AGENT-091)"
+      ],
+      "src/lib/delegate-runs.test.ts": [
+        "skips a poll while one is in flight, and bounds the /runs read with a timeout"
+      ],
+      "src/lib/keychain.test.ts": [
+        "surfaces the keychain-migrate:waiting countdown while the migration runs"
+      ],
+      "src/store/onboarding.test.ts": [
+        "rejecting keychain keeps seen:true once markSeen ran (R15-CROSS-PLATFORM-011)"
+      ],
+      "scripts/audit-design-tokens.test.mjs": [
+        "body font-feature-settings enables zero (matches tokens.css's slashed-zero claim)",
+        "a mismatched fallback fails the audit"
+      ],
+      "src/store/symbols.test.ts": [
+        "(per-region default tests) R15-UI-076"
+      ],
+      "src/store/chart-drawings.test.ts": [
+        "(per-region default tests) R15-UI-076"
+      ],
+      "src/store/marketplace.test.ts": [
+        "remove(vysted-news) deletes each granted secret; disable does not"
+      ],
+      "src/modules/marketplace/MarketplacePanel.test.tsx": [
+        "(invalid/valid NewsAPI key tests) R15-UI-089"
+      ],
+      "src/store/agent-mode.test.ts": [
+        "(whole file) R15-AGENT-087"
+      ]
+    },
+    "cargo": {
+      "src-tauri/src/lib.rs": [
+        "tests::write_atomic_text_and_bytes",
+        "tests::write_atomic_round_trip_leaves_no_tmp",
+        "tests::rename_failure_removes_tmp",
+        "tests::no_env_mutation_in_src",
+        "tests::sidecar_command_env_carries_mcp_ports",
+        "tests::clear_mcp_endpoint_file_removes_existing",
+        "tests::plain_tcp_listener_is_not_healthy",
+        "tests::smoke_bind_budget_matches_supervisor"
+      ],
+      "src-tauri/src/keychain.rs": [
+        "tests::dev::migrate_with_erroring_reader_leaves_unmigrated_and_retries",
+        "tests::dev::on_wait_called_before_sleep"
+      ],
+      "whole-lib": [
+        "R15-CODE-PLATFORM-058 cargo test --lib",
+        "R15-CODE-PLATFORM-059 cargo clippy --all-targets -- -D warnings -W clippy::significant_drop_in_scrutinee"
+      ]
+    },
+    "docs_only": [
+      "R15-DOCS-007",
+      "R15-DOCS-009",
+      "R15-DOCS-014",
+      "R15-DOCS-019",
+      "R15-DOCS-020",
+      "R15-DOCS-021",
+      "R15-DOCS-022",
+      "R15-DOCS-023",
+      "R15-CODE-PLATFORM-060",
+      "R15-RELEASE-010"
+    ],
+    "not_written": [
+      "R15-CODE-AGENT-031 test_runs_router.py::test_runs_rows_carry_only_snake_case_keys (could_not)"
+    ]
+  },
+  "commands": {
+    "pytest": "cd sidecar && .venv/bin/python -m pytest -q tests/test_backtest_lows.py tests/test_backtest_engine.py tests/test_backtest_custom.py tests/test_bar_loader.py tests/test_backtest_agent_parity.py tests/test_backtest_store.py tests/test_backtest_strategies.py tests/test_strategy_critic_e2e.py tests/test_agent_runtime.py tests/test_planner.py tests/test_toolbelt_integrity.py tests/test_mcp_catalog_parity.py tests/test_capability_completeness.py tests/test_capability_catalog.py tests/test_b3_runtime_intent_gate.py tests/test_research_fast.py tests/test_research_iter.py tests/test_research_deep.py tests/test_research_depth.py tests/test_research_model_lane.py tests/test_research_tools.py tests/test_sonar_lane.py tests/test_perplexity_backend.py tests/test_agents_store.py tests/test_plugins.py tests/test_portfolio.py tests/test_schema_version.py tests/test_runs_store.py tests/test_runs_router.py tests/test_run_manager.py tests/test_workspace.py tests/test_mcp_server.py tests/test_agents_router.py",
+    "vitest": "pnpm exec vitest run src/modules/backtest/ src/store/backtest.test.ts src/store/proposed-changes.test.ts src/lib/host-actions.test.ts src/modules/chat/DepthControl.test.tsx src/store/search-settings.test.ts src/modules/chat/mentions.test.ts src/store/portfolios.test.ts src/modules/portfolio/metrics.test.ts src/modules/portfolio/PortfolioPanel.test.tsx src/lib/csv.test.ts src/modules/chat/context-provider.test.ts src/lib/delegate-runs.test.ts src/lib/keychain.test.ts src/store/onboarding.test.ts src/components/KeyEntryDialog.test.tsx scripts/audit-design-tokens.test.mjs src/store/symbols.test.ts src/store/chart-drawings.test.ts src/store/marketplace.test.ts src/modules/marketplace/MarketplacePanel.test.tsx src/store/agent-mode.test.ts",
+    "vitest_ripple": "pnpm exec vitest run src/modules/watchlist/WatchlistPanel.test.tsx src/modules/news/NewsFeedPanel.test.tsx src/modules/panel-context-publishers.test.tsx src/modules/notes/NotesPanel.test.tsx src/lib/workspace.test.ts src/store/settings.test.ts",
+    "cargo": [
+      "cargo test --manifest-path src-tauri/Cargo.toml --lib",
+      "cargo fmt --manifest-path src-tauri/Cargo.toml --check",
+      "cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings -W clippy::significant_drop_in_scrutinee"
+    ],
+    "docs_grep": [
+      "grep -i langgraph docs/BLUEPRINT.md  # empty (checked)",
+      "grep -ic 'system tray' docs/BLUEPRINT.md  # 0 (checked)"
+    ]
+  },
+  "integration_recipe": [
+    "git fetch origin",
+    "git worktree add <scratch>/P1-int origin/worktree-agent-lows-P1-int-4c6dfe8 -b lows-P1-int-on-tag",
+    "git rebase --rebase-merges --onto r15-rc1 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
+    "fallback: git reset --hard r15-rc1; replay the nine merges in order with git merge --no-ff --no-edit origin/worktree-agent-lows-P1-<set>; git cherry-pick 70fe85c9",
+    "pnpm ci-local + the focused commands; fix W8 ripple fixtures in their owning files",
+    "one fresh verifier over r15-rc1..HEAD",
+    "merge --no-ff into 004-r4-experience-rebuild"
+  ]
+}
