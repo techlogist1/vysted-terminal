@@ -121,12 +121,18 @@ def bootstrap_curve(req: YieldCurveRequest) -> YieldCurveResult:
 
     # Sample the curve. We use a date-based sample grid spanning
     # valuation_date → valuation_date + max_tenor_years to keep the
-    # interpolation honest at the long end.
+    # interpolation honest at the long end. The step is a float — an
+    # integer-floored step (min 1 day) either duplicated the first two
+    # points or ran the grid past the last instrument's tenor once
+    # sample_count exceeded the span in days (R15-DATA-098); rounding a
+    # float offset and clamping it to total_days keeps every point inside
+    # [valuation_date, valuation_date + max_tenor_years].
     total_days = max(1, int(round(max_tenor_years * 365.0)))
-    step_days = max(1, total_days // (req.sample_count - 1))
+    step_days = total_days / (req.sample_count - 1)
     sample_dates: list[date] = []
     for i in range(req.sample_count):
-        d = req.valuation_date + timedelta(days=i * step_days)
+        day_offset = min(total_days, round(i * step_days))
+        d = req.valuation_date + timedelta(days=day_offset)
         sample_dates.append(d)
 
     points: list[YieldCurvePoint] = []

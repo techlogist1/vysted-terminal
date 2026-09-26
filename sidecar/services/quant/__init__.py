@@ -17,7 +17,6 @@ Submodules
 ``greeks``         — Standalone analytic Greeks dashboard helper.
 ``bonds``          — Fixed-rate bond clean/dirty/accrued/duration/convexity.
 ``yield_curve``    — Depo + swap bootstrap of a piecewise-linear zero curve.
-``monte_carlo``    — Path-dependent MC: Asian arithmetic-average + barrier.
 """
 
 from __future__ import annotations

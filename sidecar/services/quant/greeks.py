@@ -9,53 +9,46 @@ price comes along for free so the panel can display both.
 
 from __future__ import annotations
 
-import time
+from models.quant import GreeksRequest, GreeksResult, OptionPricingRequest
 
-import QuantLib as ql
-
-from models.quant import Greeks, GreeksRequest, GreeksResult
-
-from ._common import build_bsm_process, holds_ql_lock, ql_option_type, to_ql_date
+from ._common import holds_ql_lock
+from .options import price_european_bs
 
 
 @holds_ql_lock
 def compute_greeks(req: GreeksRequest) -> GreeksResult:
     """Compute analytic Greeks for a European vanilla option.
 
-    Uses :class:`ql.AnalyticEuropeanEngine` over the same flat-BSM
-    process the option pricer uses (:func:`._common.build_bsm_process`).
-    Returns Greeks per the QuantLib internal convention (vega per
-    unit-vol, theta per year); the panels convert to vega per 1 vol point
-    and theta per calendar day (src/modules/quant/units.ts).
+    Delegates to :func:`.options.price_european_bs` — the Greeks Dashboard
+    panel hits this surface independently of the generic option pricer so
+    the user can sweep inputs without picking "black-scholes" each time
+    (:class:`GreeksRequest` is the option-pricer's request shape minus
+    ``exercise``/``method``), but the engine call itself must stay one
+    definition (R15-CODE-PLATFORM-042). Returns Greeks per the QuantLib
+    internal convention (vega per unit-vol, theta per year); the panels
+    convert to vega per 1 vol point and theta per calendar day
+    (src/modules/quant/units.ts).
     """
     req.validate_domain()
-    started = time.perf_counter()
-
-    process = build_bsm_process(
-        req.spot,
-        req.risk_free_rate,
-        req.dividend_yield,
-        req.volatility,
-        req.valuation_date,
+    option_req = OptionPricingRequest(
+        exercise="european",
+        payoff=req.payoff,
+        spot=req.spot,
+        strike=req.strike,
+        risk_free_rate=req.risk_free_rate,
+        dividend_yield=req.dividend_yield,
+        volatility=req.volatility,
+        valuation_date=req.valuation_date,
+        expiry_date=req.expiry_date,
+        method="black-scholes",
     )
-    payoff = ql.PlainVanillaPayoff(ql_option_type(req.payoff), req.strike)
-    exercise = ql.EuropeanExercise(to_ql_date(req.expiry_date))
-    option = ql.VanillaOption(payoff, exercise)
-    option.setPricingEngine(ql.AnalyticEuropeanEngine(process))
-
-    greeks = Greeks(
-        delta=option.delta(),
-        gamma=option.gamma(),
-        vega=option.vega(),
-        theta=option.theta(),
-        rho=option.rho(),
-    )
-    price = option.NPV()
+    result = price_european_bs(option_req)
+    assert result.greeks is not None  # black-scholes always populates greeks
 
     return GreeksResult(
-        greeks=greeks,
-        price=price,
-        duration_ms=(time.perf_counter() - started) * 1000.0,
+        greeks=result.greeks,
+        price=result.price,
+        duration_ms=result.duration_ms,
     )
 
 

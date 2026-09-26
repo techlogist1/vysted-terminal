@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Play, Square } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { backtestDateDefaults } from "@/lib/date-defaults";
 import { cn } from "@/lib/utils";
 import { selectActiveRun, useBacktestStore } from "@/store/backtest";
 import { useChatHistoryStore } from "@/store/chat-history";
@@ -14,8 +15,6 @@ import { CustomStrategyEditor } from "./custom-strategy-editor";
 import { ParamsForm, StrategyPicker } from "./strategy-picker";
 
 const DEFAULT_SYMBOL = "SPY";
-const DEFAULT_START = "2024-01-01";
-const DEFAULT_END = "2025-12-31";
 const DEFAULT_CAPITAL = 100_000;
 
 /**
@@ -48,8 +47,8 @@ export function BacktestPanel() {
   // `false` only when the custom-DSL editor's inline validation failed.
   const [customValid, setCustomValid] = useState(true);
   const [symbols, setSymbols] = useState(DEFAULT_SYMBOL);
-  const [startDate, setStartDate] = useState(DEFAULT_START);
-  const [endDate, setEndDate] = useState(DEFAULT_END);
+  const [startDate, setStartDate] = useState(() => backtestDateDefaults().startDate);
+  const [endDate, setEndDate] = useState(() => backtestDateDefaults().endDate);
   const [capital, setCapital] = useState(DEFAULT_CAPITAL);
   const [walkForwardSlices, setWalkForwardSlices] = useState(1);
 

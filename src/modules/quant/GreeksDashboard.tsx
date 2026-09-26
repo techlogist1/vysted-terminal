@@ -30,6 +30,7 @@ import { Gauge } from "lucide-react";
 import { DataTable, type DataColumn } from "@/components/DataTable";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { optionDateDefaults } from "@/lib/date-defaults";
 import { regionConfig } from "@/lib/region";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
@@ -179,8 +180,8 @@ export function GreeksDashboard() {
   const [r, setR] = useState("0.05");
   const [q, setQ] = useState("0.005");
   const [vol, setVol] = useState("0.28");
-  const [valuationDate, setValuationDate] = useState("2026-05-16");
-  const [expiryDate, setExpiryDate] = useState("2026-06-30");
+  const [valuationDate, setValuationDate] = useState(() => optionDateDefaults().valuationDate);
+  const [expiryDate, setExpiryDate] = useState(() => optionDateDefaults().expiryDate);
 
   // Display currency, defaulting to the session region's (the Bond pricer's
   // R15-DATA-100 select). Display only; the request stays currency-free.
@@ -339,6 +340,7 @@ export function GreeksDashboard() {
           onChange={setValuationDate}
           type="date"
           disabled={isRunning}
+          testId="greeks-valuation-date"
         />
         <Field
           label="Expiry"
@@ -346,6 +348,7 @@ export function GreeksDashboard() {
           onChange={setExpiryDate}
           type="date"
           disabled={isRunning}
+          testId="greeks-expiry-date"
         />
 
         <label className="flex flex-col gap-1">

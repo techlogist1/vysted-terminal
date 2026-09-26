@@ -29,13 +29,14 @@ from typing import Any
 from models.macro_extended import (
     MacroCatalog,
     MacroCatalogEntry,
+    MacroProvider,
     MacroSearchResult,
     MacroSeriesExtended,
 )
 from models.market import MacroObservation
 from services.errors import ProviderError
 
-PROVIDER = "world-bank"
+PROVIDER: MacroProvider = "world-bank"
 
 _log = logging.getLogger(__name__)
 

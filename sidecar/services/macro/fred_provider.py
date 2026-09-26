@@ -39,13 +39,14 @@ from typing import Any
 from models.macro_extended import (
     MacroCatalog,
     MacroCatalogEntry,
+    MacroProvider,
     MacroSearchResult,
     MacroSeriesExtended,
 )
 from models.market import MacroObservation
 from services.errors import ProviderError
 
-PROVIDER = "fred"
+PROVIDER: MacroProvider = "fred"
 
 _log = logging.getLogger(__name__)
 
@@ -159,10 +160,10 @@ _FEATURED: list[MacroCatalogEntry] = [
 _FREQ_MAP: dict[str, str] = {
     "d": "daily",
     "w": "weekly",
-    "bw": "weekly",
+    "bw": "other",  # biweekly — the contract has no dedicated value
     "m": "monthly",
     "q": "quarterly",
-    "sa": "quarterly",
+    "sa": "other",  # semiannual — distinct from quarterly, not just a coarser "q"
     "a": "annual",
 }
 
