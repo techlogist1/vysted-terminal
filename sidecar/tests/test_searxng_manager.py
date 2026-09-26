@@ -543,6 +543,28 @@ async def test_setup_run_failure_reports_error(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_setup_write_settings_oserror_reports_error_with_reason(
+    tmp_path, monkeypatch
+) -> None:
+    """R15-LIFECYCLE-034: _setup_locked had no exception boundary around the
+    write_settings step — an OSError (unwritable/full data dir) used to
+    propagate out of the background task uncaught, leaving the manager stuck
+    mid-step with no reason and nothing logged."""
+    fake = _fresh_setup_fake()
+    mgr = _manager(fake, tmp_path)
+
+    def _boom(_directory):
+        raise OSError("[Errno 28] No space left on device")
+
+    monkeypatch.setattr(searxng_manager, "write_settings", _boom)
+
+    status = await mgr.setup()
+
+    assert status["state"] == STATE_ERROR
+    assert "No space left on device" in str(status["reason"])
+
+
+@pytest.mark.asyncio
 async def test_setup_without_docker_lands_in_not_installed(tmp_path) -> None:
     fake = FakeDocker()
     fake.set("version", 127, "", "docker CLI not found")

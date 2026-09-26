@@ -41,6 +41,22 @@ async def test_get_stale_returns_none() -> None:
 
 
 @pytest.mark.asyncio
+async def test_stale_get_evicts_row() -> None:
+    """R15-CODE-DATA-010: a stale row is DELETED on the read that finds it
+    stale, not left sitting past its TTL forever."""
+    await data_cache.set("k", "v")
+    # Backdate updated_at so the row is stale under a real (>0) ttl, without
+    # racing the clock.
+    data_cache._get_conn().execute(  # type: ignore[attr-defined]
+        "UPDATE cache SET updated_at = updated_at - 3600 WHERE key = ?", ("k",)
+    )
+    assert await data_cache.size() == 1
+    got = await data_cache.get("k", ttl_seconds=60)
+    assert got is None
+    assert await data_cache.size() == 0
+
+
+@pytest.mark.asyncio
 async def test_set_upsert_overwrites_value_and_bumps_timestamp() -> None:
     await data_cache.set("k", "old")
     before = time.time()
@@ -152,6 +168,29 @@ async def test_ensure_build_keeps_rows_written_after_the_switch() -> None:
     await data_cache.set("macro:fred:GDP", {"v": 1})
     assert await data_cache.ensure_build("0.8.1") is False
     assert await data_cache.get("macro:fred:GDP", 60) == {"v": 1}
+
+
+@pytest.mark.asyncio
+async def test_old_upgrade_backups_are_pruned_after_a_successful_backup(tmp_path: Path) -> None:
+    """R15-CODE-PLATFORM-077: once a new upgrade backup completes, the oldest
+    backups beyond MAX_BACKUPS are pruned so retention stays capped."""
+    import os
+
+    backups_dir = tmp_path / "backups"
+    backups_dir.mkdir()
+    for i in range(data_cache.MAX_BACKUPS):
+        old = backups_dir / f"0.{i}.0"
+        old.mkdir()
+        os.utime(old, (1000 + i, 1000 + i))
+    oldest = backups_dir / "0.0.0"
+
+    await data_cache.ensure_build("build-A")  # no prior build -> just records it
+    assert await data_cache.ensure_build("build-B") is True  # backs up build-A
+
+    remaining = {p.name for p in backups_dir.iterdir() if p.is_dir()}
+    assert len(remaining) == data_cache.MAX_BACKUPS
+    assert oldest.name not in remaining  # the oldest pre-seeded backup was pruned
+    assert "build-A" in remaining  # the just-completed backup survives
 
 
 # ---------------------------------------------------------------------------

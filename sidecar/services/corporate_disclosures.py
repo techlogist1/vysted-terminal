@@ -556,7 +556,7 @@ def get_announcements(
             items, windows[name] = fetch(bare, limit)
             merged.extend(items)
             sources.append(name)
-        except ProviderError as exc:
+        except Exception as exc:  # noqa: BLE001 - a lane failure degrades to a partial merge
             logger.debug("disclosures: %s announcements failed for %s: %s", name, bare, exc)
             errors[name] = str(exc)
     if not sources:
@@ -1106,7 +1106,7 @@ def get_shareholding(symbol: str) -> ShareholdingResponse:
     for name, fetch in applicable:  # NSE first — it wins for a dual-listed name
         try:
             patterns = fetch(bare)
-        except ProviderError as exc:
+        except Exception as exc:  # noqa: BLE001 - a lane failure falls through to the next
             logger.debug("disclosures: %s shareholding failed for %s: %s", name, bare, exc)
             errors[name] = str(exc)
             continue

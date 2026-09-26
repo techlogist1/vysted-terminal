@@ -804,17 +804,24 @@ def get_shareholding(symbol: str) -> list[dict]:
         raise ProviderError(f"bse shareholding: no scrip code for {bare!r} in the master")
     quarters = _fetch_shp_index(code)
     rows: list[dict] = []
+    seen_quarters: set[date] = set()
     budget = _MAX_SHP_XBRL_PARSES
     for quarter in quarters:
         if not isinstance(quarter, dict):
             continue
+        quarter_end = _shp_quarter_end(quarter.get("qtr"))
+        if quarter_end is not None:
+            if quarter_end in seen_quarters:
+                # Duplicate quarter row (R15-LEAD-017) — keep the first (newest) copy.
+                continue
+            seen_quarters.add(quarter_end)
         xbrl_file = _clean_str(quarter.get("XbrlFile"))
         summary = _shp_cached_summary(xbrl_file) if xbrl_file else None
         if summary is None and xbrl_file and budget > 0:
             budget -= 1  # one network attempt spent (success or miss)
             summary = _fetch_and_parse_shp_xbrl(xbrl_file)
         row: dict = {
-            "quarter_end": _shp_quarter_end(quarter.get("qtr")),
+            "quarter_end": quarter_end,
             "period": _clean_str(quarter.get("qtr")),
             "submission_date": _shp_filing_date(quarter.get("filing_date_time")),
             "xbrl_url": _shp_site_url(quarter.get("xbrlurl")),

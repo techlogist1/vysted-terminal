@@ -433,6 +433,19 @@ def test_malformed_bse_payload_is_a_lane_error(monkeypatch: pytest.MonkeyPatch) 
     assert "malformed" in response.errors["BSE"]
 
 
+def test_lane_keyerror_degrades_to_partial_merge(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-CODE-DATA-007: a lane raising a NON-ProviderError (e.g. a KeyError
+    from a malformed row) must degrade to a partial merge like a ProviderError
+    does — never propagate and 500 the whole route."""
+    _patch_nse_announcements(monkeypatch, KeyError("attchmntFile"))
+    _patch_bse_payload(monkeypatch, _BSE_ANNOUNCEMENTS)
+
+    response = corporate_disclosures.get_announcements("RELIANCE")
+    assert response.sources == ["BSE"]
+    assert "NSE" in response.errors and "attchmntFile" in response.errors["NSE"]
+    assert all(item.exchange == "BSE" for item in response.announcements)
+
+
 def _bse_row(newsid: str, subject: str, day: date) -> dict:
     stamp = f"{day.isoformat()}T17:43:00.00"
     return {
@@ -583,6 +596,41 @@ def test_shareholding_parses_quarters_newest_first(monkeypatch: pytest.MonkeyPat
     assert latest.submission_date == date(2026, 4, 21)
     assert prior.quarter_end == date(2025, 12, 31)
     assert prior.promoter_percent == 50.01
+
+
+def test_duplicate_quarter_rows_collapse_to_one(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-LEAD-017: CSL's SHP index carried a duplicate 2026-08-20 quarter row
+    (observed live) — the BSE lane must return one pattern per quarter_end."""
+    from services import bse_provider
+
+    monkeypatch.setattr(
+        bse_provider,
+        "_fetch_shp_index",
+        lambda code: [  # noqa: ARG005 - stub matches the real signature
+            {
+                "qtr": "August 2026",
+                "XbrlFile": None,
+                "filing_date_time": "2026-08-20T10:00:00",
+                "xbrlurl": None,
+            },
+            {
+                "qtr": "August 2026",
+                "XbrlFile": None,
+                "filing_date_time": "2026-08-21T10:00:00",
+                "xbrlurl": None,
+            },
+            {
+                "qtr": "May 2026",
+                "XbrlFile": None,
+                "filing_date_time": "2026-05-15T10:00:00",
+                "xbrlurl": None,
+            },
+        ],
+    )
+    rows = bse_provider.get_shareholding("BOMOXY-B1")
+    assert [row["quarter_end"] for row in rows] == [date(2026, 8, 31), date(2026, 5, 31)]
+    # The first (newest) copy of the duplicate quarter is kept.
+    assert rows[0]["submission_date"] == date(2026, 8, 20)
 
 
 def test_shareholding_bse_split_enrich_unexpected_error_never_breaks_nse(
@@ -898,6 +946,32 @@ def test_shareholding_nse_first_falls_back_to_bse_on_nse_failure(
         nse_provider,
         "get_shareholding_master",
         lambda symbol: (_ for _ in ()).throw(ProviderError("nse_direct: blocked")),
+    )
+    monkeypatch.setattr(symbol_resolver, "is_nse_symbol", lambda symbol: True)
+    monkeypatch.setattr(symbol_resolver, "is_bse_symbol", lambda symbol: True)
+    monkeypatch.setattr(
+        bse_provider,
+        "get_shareholding",
+        lambda symbol: [
+            {"quarter_end": date(2026, 6, 30), "source": "BSE", "promoter_percent": 50.0}
+        ],
+    )
+    response = corporate_disclosures.get_shareholding("RELIANCE")
+    assert response.count == 1 and response.patterns[0].source == "BSE"
+
+
+def test_shareholding_lane_keyerror_falls_through_to_next_lane(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-DATA-007: a NON-ProviderError from a shareholding lane (e.g. a
+    KeyError from a malformed row) must fall through to the next lane too, not
+    just a clean ProviderError."""
+    from services import bse_provider
+
+    monkeypatch.setattr(
+        nse_provider,
+        "get_shareholding_master",
+        lambda symbol: (_ for _ in ()).throw(KeyError("pr_and_prgrp")),
     )
     monkeypatch.setattr(symbol_resolver, "is_nse_symbol", lambda symbol: True)
     monkeypatch.setattr(symbol_resolver, "is_bse_symbol", lambda symbol: True)

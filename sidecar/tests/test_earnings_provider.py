@@ -7,13 +7,14 @@ the provider's mapping code rather than the upstream network.
 
 from __future__ import annotations
 
+import time
 from datetime import date, datetime, timedelta
 from typing import Any
 
 import pandas as pd
 import pytest
 
-from services import earnings_provider
+from services import earnings_provider, provider_health
 from services.errors import ProviderError
 
 
@@ -131,6 +132,55 @@ async def test_get_upcoming_rejects_inverted_window(
 ) -> None:
     with pytest.raises(ProviderError):
         await earnings_provider.get_upcoming(date(2026, 5, 21), date(2026, 5, 20), ["AAPL"])
+
+
+@pytest.mark.asyncio
+async def test_get_upcoming_caps_concurrent_calendar_fetches(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-104: a large watchlist fans out through a bounded semaphore,
+    not an unbounded gather — pinned by tracking concurrent entries into the
+    (mocked) blocking fetch over a 50-symbol watchlist."""
+    concurrency = {"current": 0, "max": 0}
+
+    def fake_fetch(symbol: str) -> dict[str, Any]:
+        concurrency["current"] += 1
+        concurrency["max"] = max(concurrency["max"], concurrency["current"])
+        try:
+            time.sleep(0.02)
+            return {"symbol": symbol, "calendar": {}, "earnings_estimate": None, "currency": "USD"}
+        finally:
+            concurrency["current"] -= 1
+
+    monkeypatch.setattr(earnings_provider, "_fetch_calendar_sync", fake_fetch)
+    watchlist = [f"SYM{i}" for i in range(50)]
+    response = await earnings_provider.get_upcoming(
+        date.today(), date.today() + timedelta(days=7), watchlist
+    )
+    assert response.events == []  # empty calendars -> no events, fetch still ran
+    assert concurrency["max"] <= earnings_provider._UPCOMING_CONCURRENCY
+
+
+@pytest.mark.asyncio
+async def test_get_upcoming_skips_fetch_when_yahoo_circuit_is_open(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-DATA-104: an open Yahoo breaker short-circuits every symbol before
+    a thread is ever spent on a fetch that will only fail."""
+    calls = {"n": 0}
+
+    def counting_fetch(symbol: str) -> dict[str, Any]:  # pragma: no cover - must not run
+        calls["n"] += 1
+        return {"symbol": symbol, "calendar": {}, "earnings_estimate": None, "currency": "USD"}
+
+    monkeypatch.setattr(earnings_provider, "_fetch_calendar_sync", counting_fetch)
+    monkeypatch.setattr(provider_health, "is_open", lambda family=provider_health.YAHOO: True)
+    watchlist = [f"SYM{i}" for i in range(50)]
+    response = await earnings_provider.get_upcoming(
+        date.today(), date.today() + timedelta(days=7), watchlist
+    )
+    assert response.events == []
+    assert calls["n"] == 0
 
 
 @pytest.mark.asyncio

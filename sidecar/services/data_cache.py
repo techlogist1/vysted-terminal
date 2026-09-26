@@ -175,6 +175,28 @@ def _backup_data_dir(old_build: str) -> None:
         shutil.rmtree(partial, ignore_errors=True)
         return
     logger.info("data_cache: data dir backed up to %s before the upgrade", target)
+    _prune_old_backups(target.parent)
+
+
+#: The most upgrade backups kept under backups/<old-build>/ (R15-CODE-PLATFORM-077):
+#: the pre-upgrade copy is a short-lived undo window, not permanent history, and an
+#: unpruned one grows disk usage by one full data-dir copy per upgrade a user runs.
+MAX_BACKUPS = 5
+
+
+def _prune_old_backups(backups_dir: Path) -> None:
+    """Delete the oldest backup dirs under ``backups_dir`` past :data:`MAX_BACKUPS`,
+    newest-mtime-first. Called only once a new backup has completed successfully."""
+    if not backups_dir.exists():
+        return
+    entries = sorted(
+        (p for p in backups_dir.iterdir() if p.is_dir() and not p.name.endswith(".partial")),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    for stale in entries[MAX_BACKUPS:]:
+        shutil.rmtree(stale, ignore_errors=True)
+        logger.info("data_cache: pruned old upgrade backup %s", stale)
 
 
 def _get_conn() -> sqlite3.Connection:
@@ -200,9 +222,9 @@ async def get(key: str, ttl_seconds: float) -> Any | None:
         key: opaque string key; callers are responsible for namespacing.
         ttl_seconds: maximum allowed staleness in seconds. The row's
             ``updated_at`` must satisfy ``now - updated_at <= ttl_seconds``
-            for a hit; otherwise the row is treated as stale and ``None``
-            is returned (the row is NOT auto-evicted — a subsequent
-            :func:`set` overwrites it).
+            for a hit; otherwise the row is treated as stale, DELETED
+            (R15-CODE-DATA-010: a stale row is never left to sit past its
+            TTL), and ``None`` is returned.
 
     Returns the decoded JSON value (any shape ``json.loads`` returns) on
     hit, or ``None`` on miss / stale.
@@ -235,6 +257,7 @@ async def get_with_meta(key: str, ttl_seconds: float) -> tuple[Any, float] | Non
     value_text, updated_at = row
     updated_at = float(updated_at)
     if time.time() - updated_at > ttl_seconds:
+        await _run(lambda conn: conn.execute("DELETE FROM cache WHERE key = ?", (key,)))
         return None
     try:
         return json.loads(value_text), updated_at

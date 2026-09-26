@@ -703,6 +703,13 @@ class SearxngManager:
         except asyncio.CancelledError:
             self._set(STATE_ERROR, reason="setup cancelled before it completed")
             raise
+        except Exception as exc:  # noqa: BLE001 - R15-LIFECYCLE-034: any step
+            # in the guided sequence (e.g. write_settings raising OSError on an
+            # unwritable data dir) must land in error with a reason, not crash
+            # the background task silently with the manager stuck mid-step.
+            _log.exception("searxng guided setup failed")
+            self._set(STATE_ERROR, reason=f"setup failed: {exc}")
+            return self.snapshot()
 
     async def _setup_locked(self) -> dict[str, object]:
         probe = await self.detect()
@@ -729,6 +736,7 @@ class SearxngManager:
                 "start", CONTAINER_NAME, timeout=_RUN_TIMEOUT_SECS
             )
             if code != 0:
+                _log.warning("searxng: docker start exited %d: %s", code, stderr.strip())
                 self._set(STATE_ERROR, reason=f"docker start failed: {stderr.strip()}")
                 return self.snapshot()
             self.port = await self._container_port() or self.port or self.preferred_port
@@ -736,6 +744,7 @@ class SearxngManager:
             self._set(STATE_PULLING, detail=f"pulling {IMAGE} (first run can take a few minutes)")
             code, _stdout, stderr = await self._docker("pull", IMAGE, timeout=_PULL_TIMEOUT_SECS)
             if code != 0:
+                _log.warning("searxng: docker pull exited %d: %s", code, stderr.strip())
                 self._set(STATE_ERROR, reason=f"docker pull failed: {stderr.strip()}")
                 return self.snapshot()
 
@@ -769,6 +778,7 @@ class SearxngManager:
                 timeout=_RUN_TIMEOUT_SECS,
             )
             if code != 0:
+                _log.warning("searxng: docker run exited %d: %s", code, stderr.strip())
                 self._set(STATE_ERROR, reason=f"docker run failed: {stderr.strip()}")
                 return self.snapshot()
             self._container = "running"
