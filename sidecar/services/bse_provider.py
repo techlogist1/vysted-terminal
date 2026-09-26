@@ -741,7 +741,6 @@ def _quote_from_bhavcopy(bare: str, code: str | None) -> Quote:
 # bhavcopy cold-download discipline). Offline — or a parse miss — degrades to
 # null percentages with the quarter-end + XBRL link still served; never guessed.
 
-_SHP_INDEX_URL = "https://api.bseindia.com/BseIndiaAPI/api/SHPQNewFormat/w"
 _SHP_XBRL_BASE = "https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/"
 _SHP_SITE_BASE = "https://www.bseindia.com"
 #: Live XBRL parses ATTEMPTED per call; cached quarters cost nothing (so a warm
@@ -859,22 +858,12 @@ def _derive_missing_leg(summary: dict) -> dict:
 
 
 def _fetch_shp_index(code: str) -> list[dict]:
-    """The SHPQNewFormat quarter index for ``code`` — the raw row dicts."""
-    url = f"{_SHP_INDEX_URL}?scripcode={code}"
-    try:
-        resp = _http_get(url)
-    except Exception as exc:  # noqa: BLE001 - surfaced as a lane error
-        raise ProviderError(f"bse shareholding: transport failure: {exc}") from exc
-    if resp.status_code != 200:
-        raise ProviderError(f"bse shareholding: index HTTP {resp.status_code}")
-    try:
-        payload = resp.json()
-    except Exception as exc:  # noqa: BLE001 - a non-JSON body is a lane error
-        raise ProviderError(f"bse shareholding: non-JSON index: {exc}") from exc
-    table = payload.get("Table") if isinstance(payload, dict) else None
-    if not isinstance(table, list):
-        raise ProviderError(f"bse shareholding: malformed index for scrip {code}")
-    return [row for row in table if isinstance(row, dict)]
+    """The SHPQNewFormat quarter index for ``code`` — the raw row dicts.
+
+    Rides the impersonated ``_api_json`` lane (R15-DATA-116): plain httpx gets a
+    403 from this endpoint, the same as every other api.bseindia.com call.
+    """
+    return _table(_api_json("SHPQNewFormat/w", {"scripcode": code}), "Table", "SHPQNewFormat/w")
 
 
 def _fetch_and_parse_shp_xbrl(xbrl_file: str) -> dict | None:
