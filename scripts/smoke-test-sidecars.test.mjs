@@ -119,12 +119,15 @@ describe("coverage gate (R15-RELEASE-011)", () => {
   });
 
   it("a threshold raised above the measured coverage fails the run (no more silent 0%-coverage regressions)", () => {
-    const vitestBin = join(REPO_ROOT, "node_modules", ".bin", "vitest");
+    // Spawn vitest's JS entry through node itself: .bin/vitest is a shell
+    // shim that spawnSync cannot exec on Windows without a shell.
+    const vitestEntry = join(REPO_ROOT, "node_modules", "vitest", "vitest.mjs");
     const coverageDir = join(REPO_ROOT, "coverage-release-011-pin-test");
     try {
       const result = spawnSync(
-        vitestBin,
+        process.execPath,
         [
+          vitestEntry,
           "run",
           "scripts/sidecar-staleness.test.mjs",
           "--coverage",
@@ -139,7 +142,7 @@ describe("coverage gate (R15-RELEASE-011)", () => {
     } finally {
       rmSync(coverageDir, { recursive: true, force: true });
     }
-  });
+  }, 90_000);
 });
 
 describe("dead Phase-6 screenshot generators stay deleted (R15-CODE-PLATFORM-064)", () => {
