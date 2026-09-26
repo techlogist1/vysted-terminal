@@ -32,7 +32,7 @@ import time
 from typing import Any
 
 from services.budget_guard import BudgetGuard
-from services.research.deep import LLMCall, OnStep, _emit, _safe_llm
+from services.research.deep import LLMCall, OnStep, emit_step, safe_llm
 from services.research.models import ResearchSource, ResearchStep
 
 #: Inline citation marker — ``[n]`` not followed by ``(`` (a markdown link).
@@ -307,7 +307,7 @@ async def ensure_citation_integrity(
     async def _record(step: ResearchStep) -> None:
         if steps is not None:
             steps.append(step)
-        await _emit(on_step, step)
+        await emit_step(on_step, step)
 
     t0 = time.monotonic()
     source_count = len(sources)
@@ -336,7 +336,7 @@ async def ensure_citation_integrity(
     if claims and source_count:
         if budget is not None:
             budget.record(None, _CHECK_MODEL, _CHECK_PROVIDER)
-        reply = await _safe_llm(llm_call, _audit_prompt(claims, sources, evidence))
+        reply = await safe_llm(llm_call, _audit_prompt(claims, sources, evidence))
         verdicts = _parse_verdicts(reply)
         for i, (sentence, _markers) in enumerate(claims, start=1):
             if verdicts.get(i, True):

@@ -5,7 +5,7 @@ The in-house disclosure tools exist and work — ``corporate_announcements``
 ``attachment_url``) and the NSE results calendar — but research never consulted
 them: a ROUTE earnings question searched the open web while the 2026-05-07
 "Financial Results/Dividend" board meeting sat in the calendar feed. This
-module gives :func:`~services.research.deep._run_researcher` a disclosures
+module gives :func:`~services.research.deep.run_researcher` a disclosures
 dimension:
 
   - :func:`wants_disclosures` — fires when the bound target trades in India

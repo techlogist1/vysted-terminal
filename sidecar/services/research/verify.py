@@ -63,11 +63,11 @@ from services.research.deep import (
     LLMCall,
     OnStep,
     ToolCall,
-    _emit,
-    _safe_llm,
-    _safe_tool,
+    emit_step,
     leading_token,
     remaining_wall,
+    safe_llm,
+    safe_tool,
 )
 from services.research.models import ResearchBrief, ResearchStep
 
@@ -179,7 +179,7 @@ def _row_domains(rows: list[dict[str, Any]]) -> set[str]:
 
 async def _extract_claims(llm_call: LLMCall, brief: ResearchBrief) -> list[str]:
     """One LLM call listing the brief's top numeric claims, verbatim."""
-    text = await _safe_llm(
+    text = await safe_llm(
         llm_call,
         [
             {
@@ -262,7 +262,7 @@ async def _verdict_for(
         if native_text and rows
         else ""
     )
-    out = await _safe_llm(
+    out = await safe_llm(
         llm_call,
         [
             {
@@ -430,7 +430,7 @@ async def cross_check(
     if reason is not None:
         step = ResearchStep("reflect", f"cross-check skipped: {reason}", status="skipped")
         brief.steps.append(step)
-        await _emit(on_step, step)
+        await emit_step(on_step, step)
         # The raw breach reason is engine telemetry (it reads like "wall-clock
         # ceiling 240s reached") — the step above carries it for dev eyes; the
         # PUBLISHED structured payload gets the human sentence (R8: no internal
@@ -452,7 +452,7 @@ async def cross_check(
             latency_ms=int((time.monotonic() - t0) * 1000),
         )
         brief.steps.append(step)
-        await _emit(on_step, step)
+        await emit_step(on_step, step)
         brief.structured["cross_check"] = {"claims": [], "disagreements": 0}
         return brief
 
@@ -465,7 +465,7 @@ async def cross_check(
         return args
 
     rechecks = await asyncio.gather(
-        *(_safe_tool(tool_call, "web_search", _search_args(claim)) for claim in claims)
+        *(safe_tool(tool_call, "web_search", _search_args(claim)) for claim in claims)
     )
     native_rechecks: list[dict[str, Any]] = [{} for _ in claims]
     if native_search is not None:
@@ -545,7 +545,7 @@ async def cross_check(
         latency_ms=int((time.monotonic() - t0) * 1000),
     )
     brief.steps.append(step)
-    await _emit(on_step, step)
+    await emit_step(on_step, step)
     return brief
 
 
