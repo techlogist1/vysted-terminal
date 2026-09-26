@@ -24,7 +24,10 @@ interface ModulesState {
   appendModules: (modules: VystedModule[]) => void;
   /** Toggle a single module on or off. */
   setModuleEnabled: (id: string, enabled: boolean) => void;
-  /** Replace the whole enabled map (used when loading a workspace). */
+  /**
+   * Replace the enabled map (workspace load, reset, settings import). `plugin:*`
+   * keys are owned by the plugin lifecycle: the live ones are kept, incoming ones ignored.
+   */
   setEnabledMap: (enabled: Record<string, boolean>) => void;
   /** Modules that are currently enabled. */
   enabledModules: () => VystedModule[];
@@ -73,7 +76,15 @@ export const useModulesStore = create<ModulesState>((set, get) => ({
     }),
   setModuleEnabled: (id, enabled) =>
     set((state) => ({ enabled: { ...state.enabled, [id]: enabled } })),
-  setEnabledMap: (enabled) => set({ enabled }),
+  setEnabledMap: (enabled) =>
+    set((state) => ({
+      enabled: {
+        ...Object.fromEntries(Object.entries(enabled).filter(([id]) => !id.startsWith("plugin:"))),
+        ...Object.fromEntries(
+          Object.entries(state.enabled).filter(([id]) => id.startsWith("plugin:")),
+        ),
+      },
+    })),
   enabledModules: () => {
     const { modules, enabled } = get();
     return modules.filter((module) => enabled[module.id] !== false);

@@ -94,4 +94,12 @@ describe("the two resets stay distinct (R15-AGENT-056)", () => {
     expect(useChartDrawingsStore.getState().byPanel.chart).toHaveLength(1);
     expect(useWorkspaceStore.getState().name).toBe("My desk");
   });
+
+  it("resetToDefaultLayout keeps lifecycle-owned plugin:* flags (R15-CODE-PLATFORM-013)", () => {
+    seed();
+    useModulesStore.getState().setModuleEnabled("plugin:vysted-example", false);
+    useWorkspaceStore.getState().resetToDefaultLayout();
+    expect(useModulesStore.getState().enabled).toEqual({ "plugin:vysted-example": false });
+    useModulesStore.setState({ enabled: {} });
+  });
 });

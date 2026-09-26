@@ -55,6 +55,12 @@ describe("modules store", () => {
     expect(state.enabledModules().map((module) => module.id)).not.toContain("watchlist");
   });
 
+  it("setEnabledMap keeps the live plugin:* flags and ignores incoming ones (R15-CODE-PLATFORM-013)", () => {
+    useModulesStore.getState().setModuleEnabled("plugin:x", false);
+    useModulesStore.getState().setEnabledMap({ "plugin:x": true, chart: false });
+    expect(useModulesStore.getState().enabled).toEqual({ "plugin:x": false, chart: false });
+  });
+
   it("appendModules adds new modules and preserves the existing enabled map", () => {
     useModulesStore.getState().registerModules(vystedModules);
     useModulesStore.getState().setModuleEnabled("chart", false);
