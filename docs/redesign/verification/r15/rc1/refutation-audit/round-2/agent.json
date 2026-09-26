@@ -1,0 +1,31 @@
+{
+ "group": "agent",
+ "verdicts": [
+  {
+   "id": "R15-AGENT-019",
+   "key": "rc1-verifier:4",
+   "verdict": "partial",
+   "severity": "high",
+   "root_cause": "sidecar/services/planner.py:127 r'\\?\\s*$' counts any trailing '?' as a positive read cue, including a request to the agent ('Can/Could/Would you ...?'). With no listed edit verb the turn classifies as read with signals, so sidecar/services/agent_runtime.py:1772 (read_only = inferred_intent == 'read' and bool(intent.signals)) strips every data write at :1788-1794.",
+   "fix_shape": "In classify_intent, do not count the bare trailing-'?' cue when the text is a request addressed to the agent (r'\\b(can|could|would|will) you\\b' or r'\\bplease\\b'). The turn then has no read signal and keeps the full tool set (D-B3-3: data writes still stage for review). Real read words still strip ('Can you explain...' keeps 'explain'; 'How is my portfolio doing?', 'Is RELIANCE up today?', 'what is P/E?' unchanged). This replaces a third round of verb-adding; a simulation keeps 11/11 failing phrasings and still strips all 5 controls.",
+   "acceptance_test": "sidecar/tests/test_b3_runtime_intent_gate.py: parametrized _agent_tool_ids test over 'Could you drop WIPRO from my portfolio?', 'Can you bump my INFY quantity to 30?', 'Would you scrap my ITC position?', 'Can you trim INFY to 5 shares?', 'Could you get rid of my HDFC Bank holding?' asserting the needed portfolio_delete_position/portfolio_update_position is in tool_ids; a strip test asserting 'Can you explain what a P/E ratio is?', 'Is RELIANCE up today?', 'How is my portfolio doing?' stay disjoint from _DATA_WRITES. Live: vy.py invoke copilot 'Would you scrap my ITC position?' --provider ollama --model llama3.1:8b --mode agent --autonomy auto --out x.jsonl must contain a tool_use named portfolio_delete_position.",
+   "failure_count": 2,
+   "failure_sources": "rc1 refutation-audit round 1 (partial); rc1 gate round 2 rc1-verifier:4 (partial, this audit)",
+   "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/refutation-audit/round-2/agent-R15-AGENT-019.md",
+   "note": "The entry's own repro holds at the candidate: every literal phrasing and the round-1 acceptance cases keep their write tools (55 tools); 192 tests pass. The verifier's 3 phrasings reproduce in-process (read, signal '?' only, 42 tools, no writes), and so do 8/8 auditor-fresh question-shaped delete/update asks. Live llama3.1:8b AUTO, 4/4 (2 verifier, 2 fresh): no tool_use, and the call is typed as JSON chat text (the entry's A1 symptom). The '?'-less twin 'Please drop WIPRO from my portfolio' emits a real portfolio_delete_position tool_use, which isolates the gate. This is the same partial as round 1: batch-12 only added log/record/qty-at-price cues, and its fresh cases were all add-shaped."
+  },
+  {
+   "id": "R15-AGENT-093",
+   "key": "rc1-verifier:5",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "sidecar/services/agent_runtime.py:937-947 (_normalise_tool_args) coerces only top-level properties (for key, value in args.items()) and never descends into items/nested properties. :946 type(parsed) in _JSON_STRING_TYPES[expected] also refuses an integral float ('5.0') for an integer param.",
+   "fix_shape": "Replace the top-level loop with a small recursive _coerce(value, schema) that applies the existing rule (exact JSON literal, parse_constant guard, type check) at every depth by descending into properties for objects and items for arrays, including after a stringified array/object is parsed. For integer, accept a parsed float with .is_integer() and store int(parsed). Validation afterwards is unchanged, and 'ten'/'NaN' stay invalid.",
+   "acceptance_test": "sidecar/tests/test_b3_runtime_tool_args.py: new test_nested_numeric_string_is_coerced. add_chart_drawing points [{'price':'185.5'}] -> points[0]['price']==185.5, no sentinel. yield_curve_value instruments[0] tenor '3', rate '0.05' -> 3 (int) and 0.05, no sentinel. Stringified points '[{\"price\": \"185.5\"}]' -> a list with 185.5. option_chain max_strikes '5.0' -> 5 with type int. Nested 'ten' -> sentinel, and test_a_non_numeric_integer_string_stays_invalid stays green. Live: cd sidecar && ./.venv/bin/python $SCRATCH/refaudit2-agent/agent093.py shows no __vysted_invalid_args__ on the VERIFIER REFUTATION rows.",
+   "failure_count": 1,
+   "failure_sources": "rc1 gate round 2 rc1-verifier:5 (partial, this audit); no batch not_certified; not in round 1",
+   "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/refutation-audit/round-2/agent-R15-AGENT-093.md",
+   "note": "The entry's repro holds: top-level '10'/'100'/'5' coerce to int and 'ten' stays invalid. The verifier's 3 cases reproduce exactly, and so does nested rate '0.05'. The catalog has 3 nested numeric params (add_chart_drawing.points[].price, yield_curve_value.instruments[].tenor/.rate), all inside the fix_shape's class, so this is partial. Severity is medium, not high: live llama3.1:8b sent nested numbers as numbers 0/4 times, and '5.0' was never observed. ADJACENT, register separately: in 3 of 4 live nested-tool calls, llama3.1:8b sent the array param as a Python-repr string (\"[{'price': 185.5}]\", once with 'tenor': 5*12). json.loads fails at agent_runtime.py:942-944, the gate rejects it as 'not of type array', and the turn ends with no data. Fix direction: an ast.literal_eval fallback for array/object params (literals only)."
+  }
+ ]
+}

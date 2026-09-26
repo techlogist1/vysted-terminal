@@ -1,0 +1,70 @@
+{
+ "group": "data",
+ "verdicts": [
+  {
+   "id": "R15-DATA-002",
+   "key": "rc1-verifier:6",
+   "verdict": "partial",
+   "severity": "critical",
+   "root_cause": "src/store/symbols.ts:15-18 (SymbolEntry has no region) + src/modules/watchlist/WatchlistPanel.tsx:286-287,:298,:434 (pickCandidate(c.symbol) drops c.region) + src/modules/watchlist/api.ts fetchWatchlistQuotes (sidecarApi.quotes with no per-call region) + WatchlistPanel.tsx:560,:562 and src/components/CommandPalette.tsx:207 (row click and palette watchlist item pass no region)",
+   "fix_shape": "Add an optional `region?: string` to SymbolEntry and have pickCandidate take the candidate and store {symbol, assetClass:'equity', region:c.region}, with addSymbol de-duplicating on symbol+region. Keep the draft (typed) add region-less so it follows the session. In fetchWatchlistQuotes, group equity entries by region and send each group's /quotes call with the per-call regionHeader(region); sidecarApi.quotes gains an optional region argument like history already has. Pass row.entry.region to loadSymbolIntoChart and openCompanyOverview at WatchlistPanel.tsx:560/562 and item.symbolEntry.region at CommandPalette.tsx:207. Carry region through serializeWorkspace/deserializeWorkspace (older blobs lack it and stay session-region).",
+   "acceptance_test": "src/modules/watchlist/WatchlistPanel.test.tsx: with settings region IN and autocomplete returning [AMAL/NSE/IN, AMAL/US/US], picking the US option leaves useSymbolsStore entries containing {symbol:'AMAL', region:'US'}; the next poll's /quotes request for AMAL carries header X-Vysted-Region: US; a row click calls openCompanyOverview('AMAL', undefined, 'US') and loadSymbolIntoChart('AMAL', undefined, 'US'). A workspace round-trip test keeps the region. Live: in an IN session pick 'AMAL - US' in the watchlist and confirm the row shows Amalgamated in USD (~47.58, yfinance); the HTTP control is `curl -H 'X-Vysted-Region: US' :<port>/quotes?symbols=AMAL` -> USD 47.58 vs IN -> INR 674.4.",
+   "failure_count": 2,
+   "failure_sources": "rc1-refutation-audit-round-1 (partial); rc1-gate-round-2 refutation (partial)",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-2/data-R15-DATA-002.md",
+   "note": "The verifier's code-level claim holds live. An HTTP replay of the watchlist add path under IN: autocomplete offers 'AMAL US Amalgamated Financial Corp.', the pick stores the bare 'AMAL', and the poll returns Amal Ltd 674.4 INR (nse_direct). The SMR pick returns SMR Jewels 94.0 INR. The chart and palette-pick fix from batch 12 holds. The class stays open on the watchlist and on the palette's watchlist items. No GUI drive: tauri-mcp was not connected."
+  },
+  {
+   "id": "R15-DATA-113",
+   "key": "rc1-verifier:7",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "sidecar/services/earnings_provider.py:101-108 (_revenue_currency trusts financialCurrency), used at :418 and :521; for INFY/INFY.NS Yahoo's financialCurrency is USD (statements filed in USD) while its revenue estimates are INR-sized",
+   "fix_shape": "In _revenue_currency, stop assuming that estimates are in financialCurrency. Check the scale: annualise revenue_estimate_mean (x4 for a quarter) and compare it with the latest annual Total Revenue from the income statement, which is in financialCurrency by construction. Within about 0.3x-3x, label financialCurrency. Otherwise label the issuer's home-market currency, from the home listing's currency or a country-to-currency map (India to INR, Taiwan to TWD). If neither is known, set revenue_currency null with a reason; never guess a label. Apply the same helper to the estimates (:418) and the history and surprises rows (:521).",
+   "acceptance_test": "sidecar/tests/test_earnings_provider.py: a fake INFY.NS payload (currency INR, financial_currency USD, country India, statement Total Revenue 19.3e9, revenue_estimate_mean 4.9165e11) gives revenue_currency == 'INR'; the INFY ADR (currency USD, same payload) also gives 'INR'; the WIT, TSM, HDB and AAPL fakes keep INR, TWD, INR and USD. Live: curl :<port>/earnings/INFY/estimates and /earnings/INFY.NS/estimates -> revenue_currency 'INR'; /earnings/WIT/estimates stays INR.",
+   "failure_count": 1,
+   "failure_sources": "rc1-gate-round-2 refutation (partial)",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-2/data-R15-DATA-113.md",
+   "note": "The entry's WIT repro holds: revenue_currency is INR, and TSM (TWD), HDB (INR) and AAPL (USD) are right. INFY.NS and the INFY ADR both serve revenue_estimate_mean 491,654,926,200 labelled USD, about 95x Infosys's quarterly USD revenue. The fix turned a correct INR label on INFY.NS into a wrong one."
+  },
+  {
+   "id": "R15-LEAD-028",
+   "key": "rc1-verifier:8",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "sidecar/services/yfinance_provider.py:226 (`if s.startswith('^') or s.endswith('.BO'): return s` passes a numeric scrip code such as 506597.BO to Yahoo unchanged); scrip-code canonicalisation exists only in the BSE lane (sidecar/services/bse_provider.py:454-470 _require_bse), which the fundamentals, statements, ratings and earnings routes never reach",
+   "fix_shape": "In yfinance_provider._yahoo_symbol, when the symbol ends in .BO and its bare part is all digits, map it through symbol_resolver.bse_symbol_for_code and return f'{ticker}.BO'. If there is no mapping, pass it through. Every yfinance-served route (fundamentals, statements, ratings, earnings) routes through this one function, and correctness_gate.py:136-142 already accepts the code's canonical ticker as a label match. If openbb-mcp should also answer by code, canonicalise once in provider_registry before the walk instead.",
+   "acceptance_test": "sidecar/tests/test_yfinance_provider*.py: _yahoo_symbol('506597.BO') == 'AMAL.BO' and _yahoo_symbol('532540.BO') == 'TCS.BO', and an unknown code passes through. sidecar/tests/test_provider_registry_region.py: with a fake yfinance, get_fundamentals('506597.BO', region='IN') returns Amal's fundamentals. Live: curl :<port>/fundamentals/506597.BO -> 200 name 'Amal Ltd'; /fundamentals/544774.BO -> SMR Jewels; /fundamentals/532540.BO -> TCS; /fundamentals/506597.BO/income has periods.",
+   "failure_count": 2,
+   "failure_sources": "stage-c batch-11 (not_certified); rc1-gate-round-2 refutation (partial)",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-2/data-R15-LEAD-028.md",
+   "note": "By scrip code, /quotes and /history now answer from bse (506597.BO AMAL 673.05; 544774.BO SMR 94.0). /fundamentals still 404s for 506597.BO, 544774.BO and 532540.BO, the entry's own examples included. Code-addressed income and ratings come back empty (200), and earnings estimates return 502."
+  },
+  {
+   "id": "R15-DATA-064",
+   "key": "rc1-verifier:9",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "sidecar/services/yfinance_provider.py:521-522 (`period = range_ or default_period` passes an explicit range to Yahoo unclamped, past its 60-day sub-hour window) + sidecar/routers/history.py:72-75 (_empty_series_reason emits in_eod_only for any empty intraday series on an IN listing, even when yfinance serves that listing intraday)",
+   "fix_shape": "In yfinance_provider.get_history, clamp the period to Yahoo's intraday caps: at most 60 days for 1m-30m (7 days for 1m) and 730 days for 1h. When the clamp shortens the requested range, set partial=true and coverage_start on the series so the shortfall is visible. This fixes every caller at the shared function: /history with a range, and the agent's price_data default of 6mo. With the clamp in place, in_eod_only only fires where no intraday data exists.",
+   "acceptance_test": "sidecar/tests/test_yfinance_provider*.py: get_history('AAPL','30m','1y') calls ticker.history with a period within 60 days and returns partial=True. sidecar/tests/test_history_router*.py: with a fake, /history/RELIANCE.NS?timeframe=30m&range=3mo returns bars with reason None. sidecar/tests/test_agent_tools*.py: _price_data({'symbol':'AAPL','timeframe':'30m'}) returns ok True. Live: curl ':<port>/history/RELIANCE.NS?timeframe=30m&range=1y' -> bars > 0 and reason null; in-process _price_data 30m for AAPL and RELIANCE.NS -> ok True.",
+   "failure_count": 1,
+   "failure_sources": "rc1-gate-round-2 refutation (partial)",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-2/data-R15-DATA-064.md",
+   "note": "The entry's repro holds: with no range, 30m returns 286 bars for all five symbols, and the chart sends no range. The same mechanism is still open on the shared function. A range of 3mo or 1y at 30m or 15m returns [] for every symbol, with the false in_eod_only reason for IN listings. The agent's price_data tool (default range 6mo) returns an empty-series error at 30m and 15m for AAPL and RELIANCE.NS. The batch-5 check only exercised the default range."
+  },
+  {
+   "id": "R15-DATA-059",
+   "key": "rc1-verifier:10",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "sidecar/services/resolver_masters/us_instruments.json (rows are [ticker, name] only, no ISIN or CUSIP) + sidecar/services/symbol_resolver.py:1378 (`if inst.exchange not in ('NSE','BSE'): return inst` skips identity enrichment for US instruments)",
+   "fix_shape": "Fill isin for US instruments from the ISIN lookup already in the installed yfinance (Ticker(yahoo_symbol).isin, keyless). Do it either in the master regenerate script as a third column, or lazily in _enrich_instrument for US rows with a cached result. Accept a value only if it is 12 characters, starts with 'US' or the instrument's own country code, and passes the ISIN check digit, so no Indian ISIN can leak onto a US namesake. Where the lookup returns '-', keep isin null (ONC). CUSIP is ISIN characters 3-11 for US issues.",
+   "acceptance_test": "sidecar/tests/test_symbol_resolver*.py: with the ISIN lookup monkeypatched, resolve('SIFY') gives resolved.isin == 'US82655M2061'; a lookup returning '-' leaves isin None; a lookup returning an INE... value for a US row is rejected; TCI (US) keeps bse_code None. Live: curl ':<port>/resolve?q=SIFY' -> isin 'US82655M2061'; ':<port>/resolve?q=AAPL' -> 'US0378331005'.",
+   "failure_count": 2,
+   "failure_sources": "rc1-refutation-audit-round-1 (regression_confirmed); rc1-gate-round-2 refutation (partial)",
+   "evidence_file": "docs/redesign/verification/r15/rc1/refutation-audit/round-2/data-R15-DATA-059.md",
+   "note": "The former-name half holds: ONC gives former_name 'BeiGene, Ltd.' and SIFY gives 'SIFY LTD'. BeiGene brings back ONC and BEIGF as candidates, and 'Toss the Coin Private Limited' binds TTC. isin is still null for ONC and SIFY. Batch 12 accepted a could-not ('no free ticker-keyed ISIN source'). The installed yfinance returns SIFY US82655M2061 (it matches the entry's outside truth) and AAPL US0378331005 keylessly; ONC returns '-'."
+  }
+ ]
+}

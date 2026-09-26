@@ -1,0 +1,44 @@
+{
+ "group": "surface",
+ "verdicts": [
+  {
+   "id": "R15-AGENT-053",
+   "key": "rc1-verifier:11",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "src/modules/news/NewsFeedPanel.tsx:138-148 renders the news symbol chips as inert <span>s inside the article anchor at :118-125. Fix commit 2eec39a9 never touched NewsFeedPanel.",
+   "fix_shape": "Close the article <a> after the title/meta block so it wraps only the headline and the meta row. Render the symbol row as a sibling inside the <motion.li>, not inside the anchor, where a button would be invalid interactive nesting. Make each symbol a <button type=\"button\" aria-label={`Load ${symbol} in chart`} onClick={() => loadSymbolIntoChart(symbol)}> with the chip styling, using the same host-actions import that earnings and analyst-ratings already use.",
+   "acceptance_test": "src/modules/news/NewsFeedPanel.test.tsx: vi.mock('@/lib/host-actions') with a loadSymbolIntoChart spy and render newsItem({symbols:['NVDA']}). Assert that getByRole('button',{name:/NVDA/}) exists, that its closest('a') is null, and that fireEvent.click calls loadSymbolIntoChart with 'NVDA'. Live re-proof: node_modules/.bin/vitest run --config /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/refaudit2-surface/vt/vitest.config.mts (news053.test.tsx) must print 'buttons named AMD: 1' and 'loadSymbolIntoChart calls: [[\"AMD\"]]'.",
+   "failure_count": 1,
+   "failure_sources": "rc1 gate round 2 (this audit: partial). No batch not_certified appearances (certified in batch-10). Absent from round-1 audit.",
+   "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/refutation-audit/round-2/surface-R15-AGENT-053.md",
+   "note": "Verifier is right. I rendered the real NewsFeedPanel at the candidate and clicked the AMD chip. The chip is a SPAN inside <a href=item.url target=_blank>, no button carries the symbol name, loadSymbolIntoChart gets 0 calls, and neither the chart-command nor the equity-command store changes. The news chip is named in the entry's own repro and in its fix_shape. The rest of the entry holds fixed: the certified context-provider otherPanels tests and the earnings/analyst/SEC click-to-chart tests pass at the candidate (5 files, 15 tests). So this is partial, not a regression: that half was never fixed. No llama run was made, because the refuted half is a renderer click with no agent tool path."
+  },
+  {
+   "id": "R15-RESEARCH-015",
+   "key": "rc1-verifier:12",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "sidecar/services/research/finance.py:150 (domain_of strips only a leading 'www.'), used by sidecar/services/research/verify.py:170-177 _row_domains. As a result, independence (verify.py:341) and the corroborated gate distinct_lanes (verify.py:344) count hosts, not registrable domains.",
+   "fix_shape": "In verify.py _row_domains, count a registrable domain instead of the host. Add a small _registrable(host) that keeps the last two labels, or the last three when the second-to-last label pair is a known second-level suffix (co.in, co.uk, com.au, net.in, org.in, gov.in, ac.in, nic.in). Add a ponytail note that PSL/tldextract is the upgrade. Leave finance.domain_of unchanged, because its tier table keys on hosts. Independence and distinct_lanes both derive from _row_domains, so this one change covers both the dual-lane corroboration and the SearXNG-only floor.",
+   "acceptance_test": "sidecar/tests/test_research_verify.py::test_two_hosts_of_one_registrable_domain_are_not_independent. SearXNG _web_tool(['https://www.nseindia.com/q']) and native citations [{'url':'https://nsearchives.nseindia.com/x.pdf'}] with min_domains=2 must give verdict=='unverified', corroborated is False, llm.verdict_prompts==[] and no 'corroborated across channels' in the markdown. Also assert _row_domains over the two URLs == {'nseindia.com'}, and keep the blog.example/other.example control at agree/corroborated True. Live re-proof: cd sidecar && ./.venv/bin/python /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/refaudit2-surface/r015.py must print case C and case D as verdict=unverified.",
+   "failure_count": 1,
+   "failure_sources": "rc1 gate round 2 (this audit: partial). No batch not_certified appearances (certified in batch-2). Absent from round-1 audit.",
+   "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/refutation-audit/round-2/surface-R15-RESEARCH-015.md",
+   "note": "The entry's literal repro is fixed at the candidate. When one identical host is reached by both lanes, the result is unverified with no verdict call (pin test passes, and my in-process cross_check case A agrees). I also drove the verifier's host pair through the full cross_check: SearXNG www.nseindia.com plus native nsearchives.nseindia.com gives agree, corroborated=True, and renders 'AGREE (corroborated across channels)' under the 2-independent-sources header. That is the entry's title symptom exactly, for one publisher. The verifier recorded only the _row_domains helper output, but the conclusion holds end to end. The code's own comments promise 'registrable' domains. Real briefs (r3-ultra-kaynes, r2-deep-cgpower, 11-deep-bdl-llama) cite nsearchives.nseindia.com. A SearXNG-only variant (two NSE subdomains pass the floor) is outside the native-lane scope and shares the same root cause; the collator may register it separately. My scratch sidecar on :52375 was booted, answered /health, and was killed. The claim is in-process logic and needs no live native-search key."
+  },
+  {
+   "id": "R15-CODE-PLATFORM-013",
+   "key": "rc1-verifier:16",
+   "verdict": "partial",
+   "severity": "medium",
+   "root_cause": "src/store/workspace.ts:184 resetToDefaultLayout calls setEnabledMap({}), and src/components/SettingsPanel.tsx:2079 settings import writes plugin:* keys through setEnabledMap. Both reach src/store/modules.ts:76 (set({ enabled })), which lets any caller overwrite the plugin:* flags that only the lifecycle owner (plugin-bootstrap.ts:180-194 bridge/unbridge) should write.",
+   "fix_shape": "Enforce the single owner once, in the shared setter. src/store/modules.ts:76 becomes setEnabledMap: (enabled) => set((s) => ({ enabled: { ...nonPluginFlags(enabled), ...pluginFlags(s.enabled) } })), so plugin:* flags change only through setModuleEnabled, which the lifecycle owner calls. This covers reset, settings import and workspace restore in one place. The explicit merge in src/lib/workspace.ts:311-314 then becomes redundant. Optionally drop plugin:* keys from buildSettingsExport.",
+   "acceptance_test": "src/store/workspace.test.ts 'resetToDefaultLayout keeps lifecycle-owned plugin:* flags (R15-CODE-PLATFORM-013)': seed setEnabledMap({news:false}) plus setModuleEnabled('plugin:vysted-example', false), call resetToDefaultLayout, and expect enabled toEqual({'plugin:vysted-example': false}). Also add a modules/SettingsPanel test: importing enabledModules {'plugin:vysted-example': true} while the live flag is false leaves it false. Live re-proof: node_modules/.bin/vitest run --config /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/refaudit2-surface/vt/vitest.config.mts /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/refaudit2-surface/vt/plat013.test.tsx must print 'after resetToDefaultLayout flag: false ... plugin commands live: 0'.",
+   "failure_count": 2,
+   "failure_sources": "rc1 refutation audit round 1 (partial: Settings toggle writer); rc1 gate round 2 (this audit: partial). Certified in batch-10 and batch-12; no batch not_certified appearances.",
+   "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/refutation-audit/round-2/surface-R15-CODE-PLATFORM-013.md",
+   "note": "The entry's own restore repro and the round-1 Settings-toggle writer hold fixed at the candidate (workspace.test, plugin-runtime.test and SettingsPanel lifecycle tests pass; SettingsPanel needs the @tiptap/extension-list stub alias because of the known stale-install issue). The verifier's code-level PLAUSIBLE holds when driven live. I ran the real pluginHost.attach and then detach on vysted-example, which is how the runtime disables it. Its command example.hello dropped out of enabledCommands (flag false). resetToDefaultLayout then set the flag to undefined, which counts as enabled, and example.hello became live again, while the runtime and plugins.db still say the plugin is disabled. Settings import is a second non-owner writer of the same class. Same class (plugin-lifecycle-split, no single owner) and never covered, hence partial, not regression."
+  }
+ ]
+}
