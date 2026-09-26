@@ -227,12 +227,6 @@ def test_filing_detail_not_found_maps_to_404(
     response = client.get("/sec/filings/0000000000-99-999999", params={"identifier": "AAPL"})
     assert response.status_code == 404
 
-    monkeypatch.setattr(sec_filings_provider, "get_filing_sections", _fake)
-    response = client.get(
-        "/sec/filings/0000000000-99-999999/sections", params={"identifier": "AAPL"}
-    )
-    assert response.status_code == 404
-
 
 def test_filing_detail_other_provider_error_stays_502(
     client: TestClient,
@@ -254,49 +248,17 @@ def test_filing_detail_other_provider_error_stays_502(
     assert response.status_code == 502
 
 
-def test_filing_sections_route(
+def test_sections_route_is_gone(
     client: TestClient,
     available_provider: None,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    sections = [_sample_section(i) for i in range(1, 4)]
-
-    async def _fake(
-        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
-    ) -> list[FilingSection]:
-        return sections
-
-    monkeypatch.setattr(sec_filings_provider, "get_filing_sections", _fake)
+    """R15-CODE-DATA-013: the caller-less ``/sections`` pass-through route was
+    deleted (the docstring's claimed "cheaper path" it took was never real);
+    ``get_filing`` already returns the full sections list."""
     response = client.get(
         "/sec/filings/0000320193-24-000123/sections", params={"identifier": "AAPL"}
     )
-    assert response.status_code == 200
-    body = response.json()
-    assert "sections" in body
-    assert len(body["sections"]) == 3
-
-
-def test_filing_sections_route_forwards_form_type(
-    client: TestClient,
-    available_provider: None,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """R15-LEAD-010: /sections is a lookup hint too, same as /filings/{accession}."""
-    captured: dict[str, Any] = {}
-
-    async def _fake(
-        accession: str, *, cik_or_symbol: str | None = None, form_type: str | None = None
-    ) -> list[FilingSection]:
-        captured["form_type"] = form_type
-        return []
-
-    monkeypatch.setattr(sec_filings_provider, "get_filing_sections", _fake)
-    response = client.get(
-        "/sec/filings/0000320193-24-000123/sections",
-        params={"identifier": "AAPL", "form_type": "10-K"},
-    )
-    assert response.status_code == 200
-    assert captured["form_type"] == "10-K"
+    assert response.status_code == 404
 
 
 # ---------------------------------------------------------------------------

@@ -7,9 +7,9 @@ and exposes a small, typed surface the ``/sec`` REST router consumes:
   - :func:`list_filings(cik_or_symbol, form_type, limit)` →
     :class:`FilingsListResponse` — the filings index for a company.
   - :func:`get_filing(accession)` → :class:`FilingDetail` (with sections).
-  - :func:`get_filing_sections(accession)` → ``list[FilingSection]`` —
-    the same parser output without the wrapping metadata; the panel
-    uses this for the section-navigation rail.
+    ``get_filing_sections(accession)`` returns just the ``sections`` list off
+    the same call — no separate REST route (R15-CODE-DATA-013 deleted the
+    caller-less pass-through ``/sections`` route).
   - :func:`list_insider_transactions(cik_or_symbol, form, limit)` →
     :class:`InsiderTransactionsResponse`.
   - :func:`search_companies(query, limit)` → lookup helper for the
@@ -35,7 +35,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import re
 from datetime import date
 from typing import Any
@@ -65,12 +64,9 @@ _log = logging.getLogger(__name__)
 _PORT_ENV = "VYSTED_SEC_EDGAR_MCP_PORT"
 _HOST_ENV = "VYSTED_SEC_EDGAR_MCP_HOST"
 
-# Cached availability flag. ``None`` = not yet probed.
-_AVAILABLE: bool | None = None
-
-# In-memory state mirrors openbb_mcp_provider for plugin-manager observability.
-_last_tool_call_ok: bool | None = None
-_last_error: str | None = None
+# Shared discovery/status/health-tracked-call shape (R15-CODE-AGENT-024);
+# mirrors openbb_mcp_provider's own ``_subprocess`` for plugin-manager parity.
+_subprocess = mcp_client.LocalMcpSubprocess("sec-edgar-mcp", port_env=_PORT_ENV, host_env=_HOST_ENV)
 
 # Cache TTLs.
 _FILINGS_INDEX_TTL = 3600.0  # 1h
@@ -93,55 +89,19 @@ _SEC_USER_AGENT = "Vysted Terminal (contact: support@vysted.com)"
 # ---------------------------------------------------------------------------
 
 
-def _resolve_endpoint() -> str | None:
-    """Return the Streamable-HTTP endpoint, or ``None`` if not bundled.
-
-    Mirrors :func:`openbb_mcp_provider._resolve_endpoint`. ``None`` means
-    sec-edgar-mcp is not bundled in this build; the router 501s.
-    """
-    port = os.environ.get(_PORT_ENV)
-    if not port or port == "0":
-        return None
-    host = os.environ.get(_HOST_ENV, "127.0.0.1")
-    return f"http://{host}:{port}/mcp"
-
-
 def is_available() -> bool:
     """Return whether the sec-edgar-mcp subprocess is reachable."""
-    global _AVAILABLE
-    if _AVAILABLE is None:
-        _AVAILABLE = _resolve_endpoint() is not None
-    return bool(_AVAILABLE)
+    return _subprocess.is_available()
 
 
 async def status() -> dict[str, Any]:
     """Status payload for ``GET /sec/status`` (consumed by plugin manager)."""
-    endpoint = _resolve_endpoint()
-    # Configured is not enough: after a failed call the provider is down until
-    # the next call succeeds (R15-LIFECYCLE-005).
-    available = endpoint is not None and _last_tool_call_ok is not False
-    return {
-        "available": available,
-        "provider": PROVIDER,
-        "endpoint": endpoint,
-        "lastToolCallOk": _last_tool_call_ok,
-        "lastError": _last_error,
-    }
+    return await _subprocess.status(PROVIDER)
 
 
 # ---------------------------------------------------------------------------
 # Client + tool dispatch
 # ---------------------------------------------------------------------------
-
-
-async def _get_client() -> mcp_client.McpClient:
-    """Return the cached :class:`McpClient` for the sec-edgar-mcp subprocess."""
-    endpoint = _resolve_endpoint()
-    if endpoint is None:
-        raise ProviderError(
-            "sec-edgar-mcp subprocess is not running — VYSTED_SEC_EDGAR_MCP_PORT not set."
-        )
-    return await mcp_client.get_client("sec-edgar-mcp", transport="http", endpoint=endpoint)
 
 
 def _decode_tool_result(result: dict[str, Any], tool_name: str) -> Any:
@@ -182,21 +142,7 @@ def _decode_tool_result(result: dict[str, Any], tool_name: str) -> Any:
 
 async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
     """Invoke a sec-edgar-mcp tool and return the decoded body."""
-    global _last_tool_call_ok, _last_error
-    client = await _get_client()
-    try:
-        # One try over the call AND the decode: an ``isError`` / undecodable
-        # payload is a failed call too, so the health flags record it (R15-DATA-083).
-        decoded = _decode_tool_result(await client.call_tool(name, arguments), name)
-    except Exception as exc:
-        _last_tool_call_ok = False
-        _last_error = f"{type(exc).__name__}: {exc}"
-        if isinstance(exc, ProviderError):
-            raise
-        raise ProviderError(f"sec-edgar-mcp call {name!r} failed: {exc}") from exc
-    _last_tool_call_ok = True
-    _last_error = None
-    return decoded
+    return await _subprocess.call_tool_json(name, arguments, decode=_decode_tool_result)
 
 
 # ---------------------------------------------------------------------------
@@ -670,9 +616,11 @@ async def get_filing_sections(
 ) -> list[FilingSection]:
     """Return just the sections list for an accession.
 
-    Thin wrapper over :func:`get_filing` so the panel's section-only
-    navigation rail can hit a cheaper route without re-fetching the
-    metadata row. ``form_type`` (R15-LEAD-010) is the same lookup hint
+    Thin wrapper over :func:`get_filing` — it does not skip the metadata
+    lookup or the cache (R15-CODE-DATA-013: the earlier "cheaper route" claim
+    was false; ``get_filing``'s own ``data_cache`` TTL is what makes a repeat
+    call cheap). No REST route exposes this; it exists for callers that only
+    want the sections. ``form_type`` (R15-LEAD-010) is the same lookup hint
     ``get_filing`` takes — forward it when the caller has it.
     """
     detail = await get_filing(accession, cik_or_symbol=cik_or_symbol, form_type=form_type)
@@ -786,10 +734,7 @@ async def search_companies(query: str, limit: int = 10) -> list[dict[str, Any]]:
 
 def _reset_for_tests() -> None:
     """Clear cached availability + last-call state — used only from tests."""
-    global _AVAILABLE, _last_tool_call_ok, _last_error
-    _AVAILABLE = None
-    _last_tool_call_ok = None
-    _last_error = None
+    _subprocess.reset_for_tests()
 
 
 __all__ = [
