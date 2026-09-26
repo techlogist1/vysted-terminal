@@ -126,7 +126,7 @@
       "tier4": false,
       "status": "blocked_tier4",
       "closure_evidence": "ef33c7f6 merge(r15): Stage C batch 12 — 19 certified fixes (rc1 refutation audit reopenings + gate findings)",
-      "note": "rc1 refutation audit @6741387b: partial — root cause: The per-listing pick reaches the Equity Overview but not the chart. src/components/CommandPalette.tsx:391 (and :207) call loadSymbolIntoChart(c.symbol) and drop c.exchange/region. src/lib/host-actions.ts:318 loadSymbolIntoChart and src/store/chart-command.ts:39 loadSymbol take no region. src/lib/sidecar-client.ts:341 history() sends no regionHeader(). In an IN session, picking 'AMAL US' charts /history/AMAL from nse_direct (687.65 INR) instead of Amalgamated (47.21 USD).; acceptance: src/components/CommandPalette.test.tsx: with settings region IN and autocomplete candidates [AMAL/NSE, AMAL/US], selecting the 'AMAL US' Tickers row results in the chart's /history/AMAL request carrying header X-Vysted-Region: US (assert on the mocked sidecarGet/fetch headers). Selecting 'AMAL NSE' carries X-Vysted-Region: IN. Plus src/store/chart-command.test.ts: loadSymbol('AMAL', undefined, 'US') stores region 'US'.; rc1 gate round 2 refutation audit @4c6dfe8c: partial — root cause: src/store/symbols.ts:15-18 (SymbolEntry has no region) + src/modules/watchlist/WatchlistPanel.tsx:286-287,:298,:434 (pickCandidate(c.symbol) drops c.region) + src/modules/watchlist/api.ts fetchWatchlistQuotes (sidecarApi.quotes with no per-call region) + WatchlistPanel.tsx:560,:562 and src/components/CommandPalette.tsx:207 (row click and palette watchlist item pass no region); fix shape: Add an optional `region?: string` to SymbolEntry and have pickCandidate take the candidate and store {symbol, assetClass:'equity', region:c.region}, with addSymbol de-duplicating on symbol+region. Keep the draft (typed) add region-less so it follows the session. In fetchWatchlistQuotes, group equity entries by region and send each group's /quotes call with the per-call regionHeader(region); sidecarApi.quotes gains an optional region argument like history already has. Pass row.entry.region to loadSymbolIntoChart and openCompanyOverview at WatchlistPanel.tsx:560/562 and item.symbolEntry.region at CommandPalette.tsx:207. Carry region through serializeWorkspace/deserializeWorkspace (older blobs lack it and stay session-region).; acceptance: src/modules/watchlist/WatchlistPanel.test.tsx: with settings region IN and autocomplete returning [AMAL/NSE/IN, AMAL/US/US], picking the US option leaves useSymbolsStore entries containing {symbol:'AMAL', region:'US'}; the next poll's /quotes request for AMAL carries header X-Vysted-Region: US; a row click calls openCompanyOverview('AMAL', undefined, 'US') and loadSymbolIntoChart('AMAL', undefined, 'US'). A workspace round-trip test keeps the region. Live: in an IN session pick 'AMAL - US' in the watchlist and confirm the row shows Amalgamated in USD (~47.58, yfinance); the HTTP control is `curl -H 'X-Vysted-Region: US' :<port>/quotes?symbols=AMAL` -> USD 47.58 vs IN -> INR 674.4.; certification failures so far: 2 (rc1-refutation-audit-round-1 (partial); rc1-gate-round-2 refutation (partial)); batch-26 adjudication: stage-c batch-25 VERDICTS not_certified — No fix is in the integration branch. W1's watchlist-region work is on worktree-agent-batch-25-W1-data002-wip@b91ddef3, and that commit is not an ancestor of 2e988c0d. SymbolEntry still has no region (src/store/symbols.ts:15-18), and pickCandidate(c.symbol) still drops c.region (WatchlistPanel.tsx:286/298/434). Sidecar control on :52310: /quotes?symbols=AMAL returns INR 674.4 under X-Vysted-Region IN and USD 47.58 under US, so only the frontend propagation is missing. Batch-26 lead adjudication (21:03 IST 26 Sep): THIRD certification failure — the batch-26 Opus fix (4d7bc887, merged 76a3b4dc) holds live on every user-pick leg (per-region quotes, row click, palette items, persistence; fresh SMR case) but the agent-add class site does not: the add_to_watchlist tool carries no region (catalog.py:1368-1377, host-actions.ts:1005-1011), so an agent that resolved AMAL/US and adds the bare ticker gets Amal Ltd (IN) re-resolved under the session region. Stops here for the operator under the three-failure rule; status blocked_tier4, DECISIONS_FOR_OPERATOR.md section 4.15."
+      "note": "rc1 refutation audit @6741387b: partial — root cause: The per-listing pick reaches the Equity Overview but not the chart. src/components/CommandPalette.tsx:391 (and :207) call loadSymbolIntoChart(c.symbol) and drop c.exchange/region. src/lib/host-actions.ts:318 loadSymbolIntoChart and src/store/chart-command.ts:39 loadSymbol take no region. src/lib/sidecar-client.ts:341 history() sends no regionHeader(). In an IN session, picking 'AMAL US' charts /history/AMAL from nse_direct (687.65 INR) instead of Amalgamated (47.21 USD).; acceptance: src/components/CommandPalette.test.tsx: with settings region IN and autocomplete candidates [AMAL/NSE, AMAL/US], selecting the 'AMAL US' Tickers row results in the chart's /history/AMAL request carrying header X-Vysted-Region: US (assert on the mocked sidecarGet/fetch headers). Selecting 'AMAL NSE' carries X-Vysted-Region: IN. Plus src/store/chart-command.test.ts: loadSymbol('AMAL', undefined, 'US') stores region 'US'.; rc1 gate round 2 refutation audit @4c6dfe8c: partial — root cause: src/store/symbols.ts:15-18 (SymbolEntry has no region) + src/modules/watchlist/WatchlistPanel.tsx:286-287,:298,:434 (pickCandidate(c.symbol) drops c.region) + src/modules/watchlist/api.ts fetchWatchlistQuotes (sidecarApi.quotes with no per-call region) + WatchlistPanel.tsx:560,:562 and src/components/CommandPalette.tsx:207 (row click and palette watchlist item pass no region); fix shape: Add an optional `region?: string` to SymbolEntry and have pickCandidate take the candidate and store {symbol, assetClass:'equity', region:c.region}, with addSymbol de-duplicating on symbol+region. Keep the draft (typed) add region-less so it follows the session. In fetchWatchlistQuotes, group equity entries by region and send each group's /quotes call with the per-call regionHeader(region); sidecarApi.quotes gains an optional region argument like history already has. Pass row.entry.region to loadSymbolIntoChart and openCompanyOverview at WatchlistPanel.tsx:560/562 and item.symbolEntry.region at CommandPalette.tsx:207. Carry region through serializeWorkspace/deserializeWorkspace (older blobs lack it and stay session-region).; acceptance: src/modules/watchlist/WatchlistPanel.test.tsx: with settings region IN and autocomplete returning [AMAL/NSE/IN, AMAL/US/US], picking the US option leaves useSymbolsStore entries containing {symbol:'AMAL', region:'US'}; the next poll's /quotes request for AMAL carries header X-Vysted-Region: US; a row click calls openCompanyOverview('AMAL', undefined, 'US') and loadSymbolIntoChart('AMAL', undefined, 'US'). A workspace round-trip test keeps the region. Live: in an IN session pick 'AMAL - US' in the watchlist and confirm the row shows Amalgamated in USD (~47.58, yfinance); the HTTP control is `curl -H 'X-Vysted-Region: US' :<port>/quotes?symbols=AMAL` -> USD 47.58 vs IN -> INR 674.4.; certification failures so far: 2 (rc1-refutation-audit-round-1 (partial); rc1-gate-round-2 refutation (partial)); batch-26 adjudication: stage-c batch-25 VERDICTS not_certified — No fix is in the integration branch. W1's watchlist-region work is on worktree-agent-batch-25-W1-data002-wip@b91ddef3, and that commit is not an ancestor of 2e988c0d. SymbolEntry still has no region (src/store/symbols.ts:15-18), and pickCandidate(c.symbol) still drops c.region (WatchlistPanel.tsx:286/298/434). Sidecar control on :52310: /quotes?symbols=AMAL returns INR 674.4 under X-Vysted-Region IN and USD 47.58 under US, so only the frontend propagation is missing. Batch-26 lead adjudication (21:03 IST 26 Sep): THIRD certification failure — the batch-26 Opus fix (4d7bc887, merged 76a3b4dc) holds live on every user-pick leg (per-region quotes, row click, palette items, persistence; fresh SMR case) but the agent-add class site does not: the add_to_watchlist tool carries no region (catalog.py:1368-1377, host-actions.ts:1005-1011), so an agent that resolved AMAL/US and adds the bare ticker gets Amal Ltd (IN) re-resolved under the session region. Stops here for the operator under the three-failure rule; status blocked_tier4, DECISIONS_FOR_OPERATOR.md section 4.15. || rc1 gate round-3 verifier concurrence (rc1-verifier:8, batch-27 adjudication): SC1c (llama3.1:8b) reproduces the agent-add leg live — a bare 'DAL' binds to DAL.BO (Dynamic Archistructures) under the IN session region and the model narrates it as Delta. Concurrence only, no fix round; DECISIONS_FOR_OPERATOR.md 4.15."
     },
     {
       "id": "R15-DATA-003",
@@ -1656,7 +1656,8 @@
       ],
       "tier4": false,
       "status": "fixed",
-      "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4"
+      "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4",
+      "note": "rc1 gate round-3 verifier (rc1-verifier:3, batch-27 adjudication): adjacent to this fixed entry, not a re-open of it — DAL's 52-week high/low DATES serve ok (2025-09-25) even though the corresponding VALUES are correctly withheld with reason 'no trades in 52 weeks'. This entry's own repro (a stale forward-filled value) is fixed; whether an ok date beside a withheld value is itself misleading is not adjudicated here."
     },
     {
       "id": "R15-DATA-017",
@@ -6074,7 +6075,8 @@
       ],
       "tier4": false,
       "status": "fixed",
-      "closure_evidence": "1574ed8 fix(r15): Stage C batch 5"
+      "closure_evidence": "1574ed8 fix(r15): Stage C batch 5",
+      "note": "rc1 gate round-3 verifier (rc1-verifier:5, batch-27 adjudication): residual on this fixed entry — GET /workflow/saved/{id} for the same unreadable row still returns a bare 500, while GET /workflow/saved (the list route) correctly reports it as unreadable (concurs with rc1-vshard-0:4)."
     },
     {
       "id": "R15-CODE-PLATFORM-021",
@@ -7089,7 +7091,7 @@
       ],
       "tier4": false,
       "status": "fixed",
-      "note": "Batch-8 (68bb7aa4) not certified: Half fixed. The yfinance and app-handler legs hold live (/quotes/ZZZZNOTREAL -> 404 not_found with a sentence; network-down /history/AAPL -> 503 network). But the entry's own repro GET /macro/GDP still returns 502 provider_error with raw library text: \"World Bank upstream error for 'GDP'/'IND': APIError: JSON decoding error (https://api.worldbank.org/...)\", action 'Retry, or try again later.'. The mapper keeps str(exc) as detail for kind=None, contradicting C5 ('raw text only in the sidecar log'). A fresh case in the same class also fails: /history/XYZ%2FABC -> 502 \"yfinance history failed for 'XYZ/ABC': 'Response' object has no attribute 'get'\". IMF upstream 404s are classified provider_error/502, not not_found. Stays open. || Batch-9 (6b70230) not certified: entry repros are fixed (/macro/GDP generic sentence, /quotes/ZZZZNOTREAL 404 not_found), but a fresh case of the class fails: GET /macro/GDP?provider=worldbank returns 502 with the raw openbb-mcp 422 dict text as detail (an openbb ProviderError with no __cause__ is treated as authored, and the series route passes an unvalidated provider value upstream).",
+      "note": "Batch-8 (68bb7aa4) not certified: Half fixed. The yfinance and app-handler legs hold live (/quotes/ZZZZNOTREAL -> 404 not_found with a sentence; network-down /history/AAPL -> 503 network). But the entry's own repro GET /macro/GDP still returns 502 provider_error with raw library text: \"World Bank upstream error for 'GDP'/'IND': APIError: JSON decoding error (https://api.worldbank.org/...)\", action 'Retry, or try again later.'. The mapper keeps str(exc) as detail for kind=None, contradicting C5 ('raw text only in the sidecar log'). A fresh case in the same class also fails: /history/XYZ%2FABC -> 502 \"yfinance history failed for 'XYZ/ABC': 'Response' object has no attribute 'get'\". IMF upstream 404s are classified provider_error/502, not not_found. Stays open. || Batch-9 (6b70230) not certified: entry repros are fixed (/macro/GDP generic sentence, /quotes/ZZZZNOTREAL 404 not_found), but a fresh case of the class fails: GET /macro/GDP?provider=worldbank returns 502 with the raw openbb-mcp 422 dict text as detail (an openbb ProviderError with no __cause__ is treated as authored, and the series route passes an unvalidated provider value upstream). || rc1 gate round-3 verifier (rc1-verifier:7, batch-27 adjudication): a further fresh case of the same misclassification class — an unknown bare symbol's /fundamentals/X/income, /balance and /ratings answer 200 empty with no reason, and a malformed quote '$$%^' returns 502 provider_error 'retry'.",
       "closure_evidence": "f407107 merge: R15 Stage C batch 10"
     },
     {
@@ -7840,7 +7842,7 @@
       "tier4": false,
       "status": "fixed",
       "closure_evidence": "e81c9e7 fix(r15): Stage C batch 7",
-      "note": "Batch-7 (e81c9e7) certified: Truncating a workspace file and then GETting serves the `.bak` and moves the corrupt file aside; the next save leaves `.bak` parseable; a non-dict body returns 422."
+      "note": "Batch-7 (e81c9e7) certified: Truncating a workspace file and then GETting serves the `.bak` and moves the corrupt file aside; the next save leaves `.bak` parseable; a non-dict body returns 422. || rc1 gate round-3 verifier (rc1-verifier:6, batch-27 adjudication): residual on this fixed entry — a corrupt workspace with no .bak is correctly quarantined, but the request that found it answers a plain 404 'not found' rather than a status naming the quarantine (concurs with rc1-vshard-0:5)."
     },
     {
       "id": "R15-DATA-091",
@@ -8642,7 +8644,7 @@
       "status": "fixed",
       "source": "verifier batch-9",
       "closure_evidence": "f407107 merge: R15 Stage C batch 10",
-      "note": "Batch-10 (f407107) residual: the fix covers a plain unknown symbol, but a suffixed unknown symbol (e.g. QQZZFAKE.NS) still returns reason: null on the empty series by the documented rule; the chart states nothing for it."
+      "note": "Batch-10 (f407107) residual: the fix covers a plain unknown symbol, but a suffixed unknown symbol (e.g. QQZZFAKE.NS) still returns reason: null on the empty series by the documented rule; the chart states nothing for it. || rc1 gate round-3 verifier (rc1-verifier:2, batch-27 adjudication): reconfirmed live — suffixed unknown symbols (QQZZFAKE.NS/.BO, RELIANC.NS) still return reason: null on the empty series, and the same null reason now also covers an untraded-in-range scrip (DAL.BO: 252 bars, 0 traded). No new register action; this is the residual the note above already names."
     },
     {
       "id": "R15-LEAD-028",
@@ -16973,7 +16975,7 @@
       ],
       "status": "blocked_tier4",
       "source": "verifier batch-19",
-      "note": "batch-21: stays open, not worked this batch. Deferred at batch-20 planning (docs/redesign/verification/r15/stage-c/batch-20/PLAN.md 'Deferred': batch-20 restricted to one writer, W1, on the streaming guard; the fix file sidecar/services/planner.py is owned by the unmerged lows P1/W2 branch worktree-agent-lows-P1-W2-runtime-catalog). Reconfirmed live in batch-20/VERDICTS.md observations ('LEAD-035 behaviour: Live c-reuters: the model called web_search after \"Without calling any tool\". This is the deferred R15-LEAD-035 behaviour.'). Next-batch fix shape per the batch-20 planner: add the no-tool cue as a positive read signal in planner.classify_intent/_resolve_tool_surface so the turn is read-only (data writes stripped server-side); pin in test_b3_runtime_intent_gate.py (case t-user-sale gets no write tool in its allow-list). The staged write in the observed case awaited the existing proposed-changes review gate; nothing auto-applied. || batch-22 (not_certified, source batch-21/VERDICTS.json): The literal repro holds: live t-user-sale made no tool call, and two fresh phrasings ('Please answer without using any tools: ... will add 10 more at ₹420', 'No tools please. ...') made no call and staged nothing. The control 'Add 10 TCS at 3,200 to my portfolio' still staged portfolio_add_position behind review ('Staged for your review, not applied yet'; /portfolio/positions stayed []). The fix_shape ('detect an explicit no-tool instruction in the user's turn') is not met for plain phrasings that _NO_TOOL_CUE does not match. In agent mode, 'Answer without any tools: ...', 'Do not call a tool. ...' and 'Don’t use any tools. ...' (U+2019 apostrophe) each leave the full 55-tool surface, portfolio writes included (verifier-evidence/l035-surface.out). Live on llama3.1:8b: 'Do not call a tool. I sold 5 TCS shares at ₹3,100 each; restate my sale price and total proceeds.' dispatched get_portfolio. 'Answer without any tools: I sold 5 TCS shares ...' streamed a raw portfolio_update_position call JSON; it was not dispatched only because the JSON was malformed (Python None) (verifier-evidence/live2.out). The cue is a closed phrase list: 'without any tools' needs a verb, 'a tool' is not matched, and the apostrophe must be ASCII. || batch-23 (not certified, REGRESSION, source batch-22/VERDICTS.md): W2's NEG matcher (0-3 filler words + VERB) and `_NO_TOOL_FROM_GIVEN`'s `.*` strip the whole tool surface on explicit data requests (\"don't forget to use the tools to get TCS.NS price\"), so the model fabricates prices narrated as fetched (₹3,313.40 vs true 2082.0). W2 (planner.py) not merged. || batch-23: proposed blocked_tier4 as one known-limitation class (DECISIONS 4.10); fresh concurrence in flight; stays open until it lands || batch-24 (not certified a third time, source batch-23/VERDICTS.md): int branch worktree-agent-batch-23-int@9aa9fb6c not merged — regression persists: 7 fresh qualified-negation phrasings (e.g. 'Never call the tools twice...') strip the whole tool surface on explicit data requests, and live the model fabricated prices narrated as fetched in 7/7 runs (SBIN ₹949.50 vs 983.0). || batch-23 disposition: fresh verifier REFUSED blocked_tier4 — the shipping cue list also over-matches 7 explicit data requests (0 tools sent, invented prices as fetched 15/21 live); its narrowing-only fix (closed-tail lookahead + reported-speech guard) is built in batch-24\n\nbatch-24 (d1290f66, merged 6778f892): the named narrowing-only fix HOLDS as a strict subset (0 new strips on 97 phrasings, 0 over-strips on the 67, the 7 OVER prompts call price_data live) but LEAD-035 is NOT certified a FOURTH time — 4/18 fresh qualified-negation data requests still lose every tool (a comma tail, 'He says…') and llama invents prices 6/8; the fresh verifier REFUSED blocked_tier4 concurrence and named a further narrowing-only guard (qualifier negative lookahead + (?<!says )) it would certify. STOPPED under the operator's three-failure rule (pacing change 4) → DECISIONS 4.10, operator decides at rc1; not adjudicated away (batch-24/VERDICTS.md, LEAD-035-CONCURRENCE.md). OPERATOR RULING 07:50 IST 26 Sep: option (b) accepted with concurrence — one documented known-limitation class with LEAD-030/037/038, blocked_tier4, no further rounds this release; wording verbatim in the release notes, operator briefing and CURRENT_STATE."
+      "note": "batch-21: stays open, not worked this batch. Deferred at batch-20 planning (docs/redesign/verification/r15/stage-c/batch-20/PLAN.md 'Deferred': batch-20 restricted to one writer, W1, on the streaming guard; the fix file sidecar/services/planner.py is owned by the unmerged lows P1/W2 branch worktree-agent-lows-P1-W2-runtime-catalog). Reconfirmed live in batch-20/VERDICTS.md observations ('LEAD-035 behaviour: Live c-reuters: the model called web_search after \"Without calling any tool\". This is the deferred R15-LEAD-035 behaviour.'). Next-batch fix shape per the batch-20 planner: add the no-tool cue as a positive read signal in planner.classify_intent/_resolve_tool_surface so the turn is read-only (data writes stripped server-side); pin in test_b3_runtime_intent_gate.py (case t-user-sale gets no write tool in its allow-list). The staged write in the observed case awaited the existing proposed-changes review gate; nothing auto-applied. || batch-22 (not_certified, source batch-21/VERDICTS.json): The literal repro holds: live t-user-sale made no tool call, and two fresh phrasings ('Please answer without using any tools: ... will add 10 more at ₹420', 'No tools please. ...') made no call and staged nothing. The control 'Add 10 TCS at 3,200 to my portfolio' still staged portfolio_add_position behind review ('Staged for your review, not applied yet'; /portfolio/positions stayed []). The fix_shape ('detect an explicit no-tool instruction in the user's turn') is not met for plain phrasings that _NO_TOOL_CUE does not match. In agent mode, 'Answer without any tools: ...', 'Do not call a tool. ...' and 'Don’t use any tools. ...' (U+2019 apostrophe) each leave the full 55-tool surface, portfolio writes included (verifier-evidence/l035-surface.out). Live on llama3.1:8b: 'Do not call a tool. I sold 5 TCS shares at ₹3,100 each; restate my sale price and total proceeds.' dispatched get_portfolio. 'Answer without any tools: I sold 5 TCS shares ...' streamed a raw portfolio_update_position call JSON; it was not dispatched only because the JSON was malformed (Python None) (verifier-evidence/live2.out). The cue is a closed phrase list: 'without any tools' needs a verb, 'a tool' is not matched, and the apostrophe must be ASCII. || batch-23 (not certified, REGRESSION, source batch-22/VERDICTS.md): W2's NEG matcher (0-3 filler words + VERB) and `_NO_TOOL_FROM_GIVEN`'s `.*` strip the whole tool surface on explicit data requests (\"don't forget to use the tools to get TCS.NS price\"), so the model fabricates prices narrated as fetched (₹3,313.40 vs true 2082.0). W2 (planner.py) not merged. || batch-23: proposed blocked_tier4 as one known-limitation class (DECISIONS 4.10); fresh concurrence in flight; stays open until it lands || batch-24 (not certified a third time, source batch-23/VERDICTS.md): int branch worktree-agent-batch-23-int@9aa9fb6c not merged — regression persists: 7 fresh qualified-negation phrasings (e.g. 'Never call the tools twice...') strip the whole tool surface on explicit data requests, and live the model fabricated prices narrated as fetched in 7/7 runs (SBIN ₹949.50 vs 983.0). || batch-23 disposition: fresh verifier REFUSED blocked_tier4 — the shipping cue list also over-matches 7 explicit data requests (0 tools sent, invented prices as fetched 15/21 live); its narrowing-only fix (closed-tail lookahead + reported-speech guard) is built in batch-24\n\nbatch-24 (d1290f66, merged 6778f892): the named narrowing-only fix HOLDS as a strict subset (0 new strips on 97 phrasings, 0 over-strips on the 67, the 7 OVER prompts call price_data live) but LEAD-035 is NOT certified a FOURTH time — 4/18 fresh qualified-negation data requests still lose every tool (a comma tail, 'He says…') and llama invents prices 6/8; the fresh verifier REFUSED blocked_tier4 concurrence and named a further narrowing-only guard (qualifier negative lookahead + (?<!says )) it would certify. STOPPED under the operator's three-failure rule (pacing change 4) → DECISIONS 4.10, operator decides at rc1; not adjudicated away (batch-24/VERDICTS.md, LEAD-035-CONCURRENCE.md). OPERATOR RULING 07:50 IST 26 Sep: option (b) accepted with concurrence — one documented known-limitation class with LEAD-030/037/038, blocked_tier4, no further rounds this release; wording verbatim in the release notes, operator briefing and CURRENT_STATE. || rc1 gate-8 concurrence note (batch-27 adjudication): step 10 of the round-3 gate-8 portfolio drive is another instance of the local model staging an unrequested portfolio write — asked to place an order, llama3.1:8b said it cannot trade but called portfolio_add_position in the same turn with an invented cost_basis 0; the proposed-changes gate held it (staged even under AUTO), nothing landed. Concurrence only, no fix round; DECISIONS_FOR_OPERATOR.md 4.10."
     },
     {
       "id": "R15-LEAD-036",
@@ -17095,8 +17097,9 @@
         "data-smallcaps"
       ],
       "tier4": false,
-      "status": "open",
-      "note": "Filed by the lead from the gate round-3 verifier sheet (23:38 IST 26 Sep); same class as R15-DATA-005 / R15-DATA-008, both of which hold on their own repros. Certification failures so far: 0."
+      "status": "fixed",
+      "note": "Filed by the lead from the gate round-3 verifier sheet (23:38 IST 26 Sep); same class as R15-DATA-005 / R15-DATA-008, both of which hold on their own repros. Certification failures so far: 0. Batch-27 lead adjudication (01:09 IST 27 Sep): certified by the fresh verifier at 0338a7bf, merged d4566642.",
+      "closure_evidence": "batch-27 fresh verifier certified (VERDICTS.json) at worktree-agent-batch-27-int@0338a7bf: TSM/HDB withhold P/B + book value naming both currencies, P/E stays served (TSM 33.55 vs 28.98 home), AAPL unchanged, fresh IBN/SONY (primary), RDY/TM/UMC/SAP (v7, INFY served), UMC/RDY (derived EPS skipped); fix 9ef109e3; merged d4566642"
     },
     {
       "id": "R15-CODE-AGENT-034",
@@ -17144,7 +17147,7 @@
         "research-search"
       ],
       "status": "blocked_tier4",
-      "note": "Filed by the lead 26 Sep after gate round 2 from the gate verifier finding (fresh-verifier concurrence on the four-area rule: rc1-verifier:3). Certification failures so far: 2 (gate round 2 fix rounds r1 and r2, recheck reproduced) — a third stops it for the operator.; batch-26 adjudication: stage-c batch-25 VERDICTS not_certified — The corpus and the planned fresh cases pass with byte-identical parity. But the implemented grammar ('a citation if ANY comma/semicolon token is an integer') departs from the register fix_shape ('a citation iff EVERY token is an integer'), and it manufactures citations out of numeric prose brackets. 'Shares outstanding [1,234 mn] at year end.' becomes '...[1] at year end.' on BOTH sides, a silent fabricated citation. 'A price target of [Rs 1,200] was set.' becomes 'A price target of was set.' (backend), erasing the figure. The plan's own rule 5 (a mid-sentence bracket is prose, left untouched) does not hold for them. Reverted at 3a674e7c; stays open at three certification failures (operator decision). Batch-26 lead adjudication (20:14 IST 26 Sep): THIRD certification failure at batch-25 — stops here for the operator under the three-failure rule; status blocked_tier4, DECISIONS_FOR_OPERATOR.md section 4.14 (the attempt 1288ec19 was reverted at 3a674e7c; the release line carries the original narrow-[n] behaviour; recommendation: one operator-approved Opus attempt with the every-token-integer grammar, else documented limitation).",
+      "note": "Filed by the lead 26 Sep after gate round 2 from the gate verifier finding (fresh-verifier concurrence on the four-area rule: rc1-verifier:3). Certification failures so far: 2 (gate round 2 fix rounds r1 and r2, recheck reproduced) — a third stops it for the operator.; batch-26 adjudication: stage-c batch-25 VERDICTS not_certified — The corpus and the planned fresh cases pass with byte-identical parity. But the implemented grammar ('a citation if ANY comma/semicolon token is an integer') departs from the register fix_shape ('a citation iff EVERY token is an integer'), and it manufactures citations out of numeric prose brackets. 'Shares outstanding [1,234 mn] at year end.' becomes '...[1] at year end.' on BOTH sides, a silent fabricated citation. 'A price target of [Rs 1,200] was set.' becomes 'A price target of was set.' (backend), erasing the figure. The plan's own rule 5 (a mid-sentence bracket is prose, left untouched) does not hold for them. Reverted at 3a674e7c; stays open at three certification failures (operator decision). Batch-26 lead adjudication (20:14 IST 26 Sep): THIRD certification failure at batch-25 — stops here for the operator under the three-failure rule; status blocked_tier4, DECISIONS_FOR_OPERATOR.md section 4.14 (the attempt 1288ec19 was reverted at 3a674e7c; the release line carries the original narrow-[n] behaviour; recommendation: one operator-approved Opus attempt with the every-token-integer grammar, else documented limitation). || rc1 gate round-3 verifier concurrence (rc1-verifier:9, batch-27 adjudication): rc1-drive-research-briefs:1 is the same citation-integrity-net class (grouped/prose markers ship unresolved). Concurred as the same known limitation, not a new defect; no fix round; DECISIONS_FOR_OPERATOR.md 4.14.",
       "closure_evidence": null
     },
     {
@@ -17170,6 +17173,106 @@
       "source": "verifier batch-25",
       "note": "batch-26 adjudication: added from stage-c/batch-25/VERDICTS.md issues-noticed item 2; not previously a register entry (grepped earnings_provider.py:555 / 'incomplete estimate fields', no hit). Batch-26 lead adjudication (21:03 IST 26 Sep): certified by the fresh verifier at 2e1950fe, merged 76a3b4dc.",
       "closure_evidence": "batch-26 fresh verifier certified (VERDICTS.json), merged 76a3b4dc"
+    },
+    {
+      "id": "R15-LEAD-040",
+      "title": "Cold resolver-masters load under concurrent first resolves starves the shared to_thread pool, delaying unrelated work by ~9.4s even when yf.Search answers instantly",
+      "severity": "medium",
+      "area": "agent",
+      "subsystem": "resolver",
+      "files": [
+        "sidecar/services/symbol_resolver.py"
+      ],
+      "repro": "12 concurrent first-resolve queries against a cold resolver-masters cache, with yf.Search stubbed to answer instantly, still leave an unrelated to_thread call waiting ~9.4s (batch-26 verifier, worktree-agent-batch-26-int@2e1950fe, sat-timed.py stub)",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-26/VERDICTS.md 'Issues noticed' item 1 (R15-AGENT-010 verification): the cold resolver-masters load runs on the shared default to_thread pool and saturates it independent of the Yahoo network leg AGENT-010 fixed",
+      "root_cause": "The resolver-masters cold load is scheduled on the same shared default to_thread executor as every other blocking call, so 12-way concurrent first resolves monopolise the pool regardless of how fast the network leg itself returns.",
+      "fix_shape": "Move the resolver-masters cold load off the shared default to_thread pool (a dedicated executor, or an eager warm-on-boot load) so concurrent first resolves cannot starve unrelated to_thread work. Test: with the masters cache cold and yf.Search stubbed instant, an unrelated to_thread call under 12-way concurrency completes without the pool-wait delay.",
+      "defect_class": "shared-pool-contention",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "agent-chat",
+        "data-smallcaps"
+      ],
+      "status": "fixed",
+      "source": "verifier batch-26",
+      "note": "batch-27 adjudication: added from stage-c/batch-26/VERDICTS.md issues-noticed item 1; not previously a register entry (grepped symbol_resolver.py for a shared-pool contention entry, no hit; R15-DATA-104 covers a different mechanism, the earnings get_upcoming fan-out). Batch-27 lead adjudication (01:09 IST 27 Sep): certified by the fresh verifier at 0338a7bf, merged d4566642.",
+      "closure_evidence": "batch-27 fresh verifier certified (VERDICTS.json) at worktree-agent-batch-27-int@0338a7bf: batch-26 repro 7.06 s -> 0.00 s; 16 concurrent autocomplete/resolve calls leave /quotes/AAPL at 1.19 s (5.02 s base); no to_thread resolver call sites remain (AST audit); fix b80f082b; merged d4566642"
+    },
+    {
+      "id": "R15-LEAD-041",
+      "title": "Earnings estimate detail's analyst count and its EPS triple are read from different upstream fields and disagree: TM shows estimate_analyst_count 1 while the EPS triple is null",
+      "severity": "low",
+      "area": "data",
+      "subsystem": "fundamentals-profile",
+      "files": [
+        "sidecar/services/earnings_provider.py"
+      ],
+      "repro": "GET /earnings/TM/estimates -> estimate_analyst_count: 1 (sourced from earnings_estimate, avg 2.735) while the EPS triple (eps_estimate_mean/high/low) is null (sourced from the yfinance calendar, which is None for TM) (batch-26 verifier, worktree-agent-batch-26-int@2e1950fe)",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-26/VERDICTS.md 'Issues noticed' item 2 (R15-LEAD-039 verification)",
+      "root_cause": "get_estimate_detail's analyst-count field is filled from earnings_estimate while the EPS triple is filled from the calendar payload; the two upstream sources are independent and can disagree on whether analyst coverage exists.",
+      "fix_shape": "Fill the EPS triple from earnings_estimate when the calendar's Earnings Average/High/Low is missing but earnings_estimate has a value, or null the analyst count alongside a null EPS triple so the two fields never disagree. Test: a fixture symbol whose calendar lacks EPS but whose earnings_estimate has a value returns a consistent (non-contradictory) pair.",
+      "defect_class": "divergent-copies",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "status": "open",
+      "source": "verifier batch-26",
+      "note": "batch-27 adjudication: added from stage-c/batch-26/VERDICTS.md issues-noticed item 2; not previously a register entry (grepped earnings_provider.py for estimate_analyst_count/earnings_estimate inconsistency, no hit; R15-DATA-032 covers fabricated statistics, a different mechanism). || rc1 gate round-3 verifier (rc1-verifier:4, batch-27 adjudication): the same TM payload (EPS estimate triple null, estimate_analyst_count 1) is independently reproduced by the round-3 gate verifier (concurs with rc1-vshard-0:3); same mechanism as filed above, cross-referenced here, no new entry."
+    },
+    {
+      "id": "R15-LEAD-042",
+      "title": "The proposed-change review card and its applied label price a US lot in the session region's currency, not the listing's: {MSFT, 4, 480 USD} under an IN session reads 'Add 4 MSFT @ ₹480 to the portfolio'",
+      "severity": "low",
+      "area": "agent",
+      "subsystem": "host-actions-proposed-changes",
+      "files": [
+        "src/lib/host-actions.ts"
+      ],
+      "repro": "Under region IN, an agent-staged portfolio_add_position {MSFT, 4, 480} (user said \"480 dollars\") shows on the review card and its applied label as \"Add 4 MSFT @ ₹480 to the portfolio\"; an order-attempt write reads \"Add 10 AAPL @ ₹0\". The ledger value itself is correct (480 USD); only the text the user reads and accepts is wrong.",
+      "evidence": "docs/redesign/verification/r15/rc1/round-3/GATE8.md 'rc1-gate8:1' (new_defect, low); docs/redesign/verification/r15/rc1/round-3/gate8.json:139; src/lib/host-actions.ts:657 (formatPrice), :1366-1383 (describeIntent), :1868 (applied label) all call currencySign(region) instead of the position's own listing currency, against D57 (cost basis is in the listing currency; the panel itself renders it with the quote's currency)",
+      "root_cause": "formatPrice signs every staged/applied price with the session region's currency symbol (currencySign(region)) instead of the position's listing currency, so a USD lot staged in an IN session is labelled in rupees while the stored value stays correctly denominated in USD.",
+      "fix_shape": "Have formatPrice (and describeIntent's callers) take the position's own currency (already resolved for the ledger write) instead of the session region, so the review-card and applied-label text always matches the value's real currency. Test: staging {MSFT, 4, 480} in an IN session renders \"$480\", not \"₹480\".",
+      "defect_class": "wrong-currency-label",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "agent-chat",
+        "ui-panels"
+      ],
+      "status": "open",
+      "source": "verifier rc1-gate-round-3",
+      "note": "batch-27 adjudication: added from R15_GATE_RC1.md's rc1-gate8:1 (\"Not in the register\" per the round-3 verifier); distinct from R15-AGENT-091 (open, low), which is the agent's own get_portfolio narration guessing a currency, not the deterministic review-card/applied-label text."
+    },
+    {
+      "id": "R15-LEAD-043",
+      "title": "Missing/invalid API key on OpenAI, Groq or another eagerly-validating provider surfaced the router's generic 'internal error, restart Vysted' frame instead of a humanized 'add your API key' message, on both /agents/{id}/invoke and /llm/chat",
+      "severity": "medium",
+      "area": "agent",
+      "subsystem": "llm-adapters",
+      "files": [
+        "sidecar/services/llm/openai.py",
+        "sidecar/services/llm/groq.py",
+        "sidecar/routers/agents.py",
+        "sidecar/routers/llm.py",
+        "sidecar/services/errors.py"
+      ],
+      "repro": "vy.py invoke copilot \"hi\" --provider openai --model gpt-4o-mini --mode agent --autonomy ask --no-key -> SSE {kind:error, message:'The terminal hit an internal error.', action:'... restart Vysted.', code:'internal'}; reproduced identically for provider=groq and via a direct /llm/chat curl for provider=openai. Anthropic on the same route correctly humanizes because its SDK defers key validation to request time.",
+      "evidence": "docs/redesign/verification/r15/rc1/round-3/findings/rc1-drive-composer-chat.json:1 (register_id null at the time of filing); docs/redesign/verification/r15/surface/composer-chat/rc1/round-3/cc-20-err-nokey-openai.jsonl; fixed by ac0d8617 (fix(rc1): humanize no-key adapter errors to auth), merged 5ff9be04 and 5903f373; re-verified closed live per docs/redesign/verification/R15_GATE_RC1.md item 10 ('my re-run gives code auth, \"No … API key is set\"')",
+      "root_cause": "OpenAI's/Groq's SDK client constructor (self._client(api_key)) raises immediately on a missing key, before the adapter's own try/except in stream_chat, so the exception never reaches humanize() and instead falls through to the router's last-resort guard, which (per R15-AGENT-030's fix) unconditionally emits the generic internal-error frame rather than trying humanize(provider_id, exc) first.",
+      "fix_shape": "Already delivered: construct the SDK client inside the adapter's own try/except (or catch the constructor's exception explicitly) so a missing/invalid key still reaches humanize() before the router's last-resort guard. Test: a no-key OpenAI/Groq invoke gets code 'auth', not 'internal'.",
+      "defect_class": "hard-failure-bypasses-humanizer",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "agent-chat"
+      ],
+      "status": "fixed",
+      "source": "verifier rc1-gate-round-3",
+      "note": "batch-27 adjudication: added from stage-c/r15/rc1/round-3/drives/composer-chat.md 'New finding this round' (register_id null in rc1-drive-composer-chat.json at filing time); found and fixed inside the same gate round (ac0d8617/5ff9be04), re-verified closed by the round-3 verifier (R15_GATE_RC1.md item 10, rc1-drive-composer-chat:1) before this register entry existed.",
+      "closure_evidence": "5903f373 merge(r15): rc1 gate round 3 fix round 1 — composer-chat:1 (no-key adapter error humanised), chain green at 5ff9be04, recheck closed"
     }
   ],
   "rejections": [
@@ -17480,11 +17583,11 @@
   ],
   "counts": {
     "raw": 887,
-    "entries": 657,
+    "entries": 661,
     "rejections": 76,
     "critical": 16,
     "high": 119,
-    "medium": 295,
-    "low": 227
+    "medium": 297,
+    "low": 229
   }
 }

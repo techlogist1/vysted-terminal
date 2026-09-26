@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 657 entries + 76 rejections. critical: 16 . high: 119 . medium: 295 . low: 227
+887 raw findings -> 661 entries + 76 rejections. critical: 16 . high: 119 . medium: 297 . low: 229
 
-Status: blocked_tier4: 29 . fixed: 392 . needs_gui: 11 . not_a_defect: 5 . open: 206 . removed_with_feature: 14
+Status: blocked_tier4: 29 . fixed: 395 . needs_gui: 11 . not_a_defect: 5 . open: 207 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -123,7 +123,7 @@ Status: blocked_tier4: 29 . fixed: 392 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _open_
 - **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _open_
 
-### Agent / chat (101)
+### Agent / chat (104)
 
 - **R15-AGENT-002** [high] Stop does not stop: aborting the chat stream leaves the in-flight tool task (research, LLM and web calls) running for minutes, spending the BYOK key and holding the single Ollama slot — _fixed_
 - **R15-AGENT-003** [high] At the 6-round tool cap the capped round's tool calls are streamed to the UI (and may be auto-applied as host actions) but never dispatched, and the turn ends with no answer text — _fixed_
@@ -226,6 +226,9 @@ Status: blocked_tier4: 29 . fixed: 392 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-LEAD-036** [low] The all-errored fabrication guard's replacement prose renders inside the original code fence, leaving a ```json block that contains a sentence instead of JSON — _open_
 - **R15-LEAD-037** [medium] The fabrication guard grounds a stated figure by VALUE only, so an older bar buried in the same price_data payload counts as grounded for the current-price sentence — _blocked_tier4_
 - **R15-LEAD-038** [medium] When an explicit no-tool instruction correctly empties the tool surface, llama3.1:8b still narrates a false completed portfolio write with no tool call behind it — _blocked_tier4_
+- **R15-LEAD-040** [medium] Cold resolver-masters load under concurrent first resolves starves the shared to_thread pool, delaying unrelated work by ~9.4s even when yf.Search answers instantly — _fixed_
+- **R15-LEAD-042** [low] The proposed-change review card and its applied label price a US lot in the session region's currency, not the listing's: {MSFT, 4, 480 USD} under an IN session reads 'Add 4 MSFT @ ₹480 to the portfolio' — _open_
+- **R15-LEAD-043** [medium] Missing/invalid API key on OpenAI, Groq or another eagerly-validating provider surfaced the router's generic 'internal error, restart Vysted' frame instead of a humanized 'add your API key' message, on both /agents/{id}/invoke and /llm/chat — _fixed_
 
 ### Research / web search (54)
 
@@ -284,7 +287,7 @@ Status: blocked_tier4: 29 . fixed: 392 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-RESEARCH-042** [low] The research cockpit's brief has no floor of >=3 cited sources (SC-016): nothing enforces or measures source count per brief, and with no web backend FAST publishes structured-only with fewer — _open_
 - **R15-RESEARCH-043** [medium] Research brief citation-integrity net matches only a bare [n]; grouped markers [2, 3] and prose pseudo-citations [New findings] ship unresolved as literal text — _blocked_tier4_
 
-### Data on small or obscure stocks (130)
+### Data on small or obscure stocks (131)
 
 - **R15-DATA-001** [critical] Income / balance-sheet / cash-flow statements (and one /fundamentals identity) for Indian tickers that collide with a US ticker serve the US company's real financials under the Indian name (DAL->Delta, CHTR->Charter, SAFE->Safehold, CSL->Carlisle, ICON->Icon Energy, AMAL->Amalgamated, SMR->NuScale, TTC->Toro, SUMAX->a US muni fund) — _fixed_
 - **R15-DATA-002** [critical] A bare ticker that exists in both the US and Indian masters binds silently to the session region, and every data panel re-queries the bare symbol, so the user who picked NASDAQ:AMAL or NYSE:SMR gets Amal Ltd / SMR Jewels quote, ratios and 52w range (and, for SMR, NuScale statements under the same header) — _blocked_tier4_
@@ -416,6 +419,7 @@ Status: blocked_tier4: 29 . fixed: 392 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-LEAD-034** [medium] Background India fundamentals warming passes bare screener-universe symbols to the correctness gate, which never strips yfinance's Emerge (SME) '-SM' infix, so every NSE Emerge symbol fails as a symbol mismatch — _fixed_
 - **R15-DATA-116** [high] BSE shareholding-pattern (SHP) quarter index 403s over plain httpx while the impersonated curl_cffi lane used by every other api.bseindia.com call gets 200, so /disclosures/shareholding 502s for every BSE-listed symbol — _fixed_
 - **R15-LEAD-039** [medium] Earnings estimate detail 502s for any symbol Yahoo serves with incomplete Earnings High/Low/Average fields (RDY, TM, SONY), pre-existing and untouched by the batch-25 diff — _fixed_
+- **R15-LEAD-041** [low] Earnings estimate detail's analyst count and its EPS triple are read from different upstream fields and disagree: TM shows estimate_analyst_count 1 while the EPS triple is null — _open_
 
 ## All entries by severity
 
@@ -1074,7 +1078,11 @@ Status: blocked_tier4: 29 . fixed: 392 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-LEAD-037 | medium | agent | agent-tools | The fabrication guard grounds a stated figure by VALUE only, so an older bar buried in the same price_data payload counts as grounded for the current-price sentence | blocked_tier4 |  |
 | R15-LEAD-038 | medium | agent | agent-tools | When an explicit no-tool instruction correctly empties the tool surface, llama3.1:8b still narrates a false completed portfolio write with no tool call behind it | blocked_tier4 |  |
 | R15-DATA-116 | high | data | market-data-providers-3 | BSE shareholding-pattern (SHP) quarter index 403s over plain httpx while the impersonated curl_cffi lane used by every other api.bseindia.com call gets 200, so /disclosures/shareholding 502s for every BSE-listed symbol | fixed | rc1-verifier:1 |
-| R15-DATA-117 | high | data-smallcaps | fundamentals | ADR price-to-book is served ok on a mixed currency basis (USD listing price over local-currency book value): TSM P/B 92.17 vs ~10, HDB 9.32 vs ~1.87, while price-to-sales is withheld for the same mixed basis | open | rc1-verifier:1 |
+| R15-DATA-117 | high | data-smallcaps | fundamentals | ADR price-to-book is served ok on a mixed currency basis (USD listing price over local-currency book value): TSM P/B 92.17 vs ~10, HDB 9.32 vs ~1.87, while price-to-sales is withheld for the same mixed basis | fixed | rc1-verifier:1 |
 | R15-CODE-AGENT-034 | high | code | mcp-servers | MCP list_workspaces/get_workspace tools GET '/workspaces' but the router is prefix '/workspace' (404 on both), and list_workspaces also skips the bare-list-to-dict wrap so it errors even once the path is fixed — both v1.0 external MCP workspace tools are dead for every client | fixed | rc1-verifier:2 |
 | R15-RESEARCH-043 | medium | research | research-extraction-synthesis | Research brief citation-integrity net matches only a bare [n]; grouped markers [2, 3] and prose pseudo-citations [New findings] ship unresolved as literal text | blocked_tier4 | rc1-drive-research-briefs:2, rc1-verifier:3 |
 | R15-LEAD-039 | medium | data | fundamentals-profile | Earnings estimate detail 502s for any symbol Yahoo serves with incomplete Earnings High/Low/Average fields (RDY, TM, SONY), pre-existing and untouched by the batch-25 diff | fixed |  |
+| R15-LEAD-040 | medium | agent | resolver | Cold resolver-masters load under concurrent first resolves starves the shared to_thread pool, delaying unrelated work by ~9.4s even when yf.Search answers instantly | fixed |  |
+| R15-LEAD-041 | low | data | fundamentals-profile | Earnings estimate detail's analyst count and its EPS triple are read from different upstream fields and disagree: TM shows estimate_analyst_count 1 while the EPS triple is null | open |  |
+| R15-LEAD-042 | low | agent | host-actions-proposed-changes | The proposed-change review card and its applied label price a US lot in the session region's currency, not the listing's: {MSFT, 4, 480 USD} under an IN session reads 'Add 4 MSFT @ ₹480 to the portfolio' | open |  |
+| R15-LEAD-043 | medium | agent | llm-adapters | Missing/invalid API key on OpenAI, Groq or another eagerly-validating provider surfaced the router's generic 'internal error, restart Vysted' frame instead of a humanized 'add your API key' message, on both /agents/{id}/invoke and /llm/chat | fixed |  |
