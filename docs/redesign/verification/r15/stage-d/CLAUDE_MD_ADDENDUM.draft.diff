@@ -1,0 +1,49 @@
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -28,7 +28,8 @@
+ - **Frontend:** Vite 8 + React 19 + TypeScript (single-page shell: `index.html` +
+   `src/main.tsx`; static build to `out/`; dev server `127.0.0.1:5173`, strictPort, matching
+   `tauri.conf.json` `devUrl`), Tailwind 4 + shadcn/ui, Zustand, Framer Motion,
+-  lightweight-charts, `@xyflow/react`, dockview.
++  lightweight-charts, `@xyflow/react`, dockview. JetBrains Mono is self-hosted via
++  `@fontsource/jetbrains-mono` (`--font-jetbrains-mono` defined in `styles/tokens.css`).
+ - **Desktop core:** Tauri 2.x (Rust) — windowing, OS keychain, auto-updater, sidecar +
+   MCP-subprocess lifecycle.
+ - **Sidecar:** Python 3.13 FastAPI on `127.0.0.1` — data + AI compute; the port is
+@@ -127,7 +128,9 @@
+ - **Opus** — lead; owns risk-critical files (plugin contract, CI, Tauri config, licensing,
+   §6.5, this file) and reviews every diff before merge.
+ - **Sonnet** — mechanical work (component JSX, design tokens, boilerplate docs).
+-- **Haiku** — log parsing, high-volume mechanical scanning.
++- **Never Haiku, never the fast tier** — banned at dispatch (`r15-fanout.js`'s `BANNED`
++  regex refuses either by name); the strongest tier (Fable) is judgement-only (root-causing
++  after a failed attempt, the judge panel, one final adversarial pass), never fan-out labor.
+ 
+ ## Gotchas (active rules)
+ 
+@@ -232,6 +235,10 @@
+   `VystedModule.panelComponents`. dockview base CSS is imported in `globals.css` before the
+   `.dockview-theme-vysted` override; `PanelHost` mounts `DockviewReact` only after modules
+   register.
++- **Vite's dev-server watcher must ignore `.claude/**`, `out/**`, `sidecar/**`,
++  `src-tauri/**`, `graphify-out/**`** (`vite.config.ts` `server.watch.ignored`) — those
++  trees live inside the repo root, so without the ignores a teammate worktree commit or a
++  sidecar rebuild triggers a full app reload mid-session.
+ - **`dragDropEnabled: false`** (`tauri.conf.json` `app.windows[0]`) is REQUIRED for
+   in-webview HTML5 drag-drop (dockview tab reorder + node-editor palette→canvas) — the
+   default `true` installs an OS handler that swallows HTML5 drag (macOS WKWebView too).
+@@ -327,8 +334,12 @@
+ portfolio ≥1 position with P&L. _(003 rebuild: the cockpit is now the minimal **zinc
+ near-black + cool-indigo** shell with a mark-only brand (no text wordmark). The rig's
+ in-webview `screenshot` wedges on an occluded WKWebView — capture via the bridge-independent
+-Quartz path (`/tmp/rigcap.py`, matched on `kCGWindowOwnerName == "vysted-terminal"`) instead;
+-`evaluate_script` reads live state for verification regardless of focus.)_
++Quartz path instead, matched on `kCGWindowOwnerName == "Vysted Terminal"` (the CGWindow
++owner name is the display name, NOT the `vysted-terminal` System Events process name) or by
++owner PID via `screencapture -l <windowid>`; there is no committed `/tmp/rigcap.py` helper —
++that path was never checked into the repo (`docs/redesign/verification/r15/stage-d/
++bundle-rehearsal/REHEARSAL.md`). `evaluate_script` reads live state for verification
++regardless of focus.)_
+ 
+ ## Reference docs
+ 
