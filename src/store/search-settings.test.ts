@@ -16,6 +16,8 @@ import { getSecret, KEYCHAIN_NAMESPACES } from "@/lib/keychain";
 import {
   DEFAULT_RESEARCH_MODELS,
   DEFAULT_SEARCH_SETTINGS,
+  estimateResearchRunUsd,
+  formatResearchCostEstimate,
   migrateSearchSettings,
   reconcileMigratedTierB,
   RESEARCH_MODEL_OPTIONS,
@@ -281,5 +283,32 @@ describe("search-settings store (R9 two-tier)", () => {
     resetSearchSettingsStoreForTests();
     useSearchSettingsStore.getState().setAll(bundle);
     expect(searchSettingsBundle()).toEqual(bundle);
+  });
+
+  describe("estimateResearchRunUsd / formatResearchCostEstimate (R15-RESEARCH-040, FR-073)", () => {
+    it("estimates a positive, non-zero cost for every listed Tier B model", () => {
+      for (const option of RESEARCH_MODEL_OPTIONS) {
+        const usd = estimateResearchRunUsd(option.id);
+        expect(usd).not.toBeNull();
+        expect(usd as number).toBeGreaterThan(0);
+      }
+    });
+
+    it("prices the deep-research model above the lightest sonar model (higher per-M rates)", () => {
+      const light = estimateResearchRunUsd("perplexity/sonar") as number;
+      const deep = estimateResearchRunUsd("perplexity/sonar-deep-research") as number;
+      expect(deep).toBeGreaterThan(light);
+    });
+
+    it("returns null for a model id absent from the pricing table", () => {
+      expect(estimateResearchRunUsd("some/unlisted-model")).toBeNull();
+      expect(formatResearchCostEstimate("some/unlisted-model")).toBeNull();
+    });
+
+    it("formats as a one-line '~$x.xx est.' string", () => {
+      expect(formatResearchCostEstimate("perplexity/sonar-deep-research")).toMatch(
+        /^~\$\d+\.\d{2} est\.$/,
+      );
+    });
   });
 });

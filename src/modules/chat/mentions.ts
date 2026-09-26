@@ -12,12 +12,14 @@
  *   3. **agents** — `@analyst` `@quant`: a `promptPrefix` reroutes the turn
  *      ("[Act as a fundamental analyst] …") without switching the active agent.
  *   4. **instruments** — `@AAPL` / `@GOLDBEES`: DYNAMIC, resolved live against
- *      the read-only `/resolve` route, locale-aware (NSE for an IN session).
+ *      the read-only `/resolve` route, locale-aware (NSE for an IN session),
+ *      then enriched with a live `[exchange: price chg%]` quote (FR-101) via a
+ *      debounced batch `/quotes` fetch for the top visible candidates.
  *
  * The first three are STATIC (declared below); the instrument layer is resolved
  * at type-time. This module is pure and presentational-free — `matchMention`
- * and `resolveMention` are pure functions (one async network call), and the
- * keyboard-nav + composer wiring live in the lead-owned `ChatSidebar`.
+ * and `resolveMention` are pure functions (one or two async network calls),
+ * and the keyboard-nav + composer wiring live in the lead-owned `ChatSidebar`.
  */
 
 import { sidecarGet } from "@/lib/sidecar-client";
@@ -229,14 +231,110 @@ function looksLikeInstrument(query: string): boolean {
   return query.trim().length >= 2;
 }
 
-/** Map a resolved instrument row to a picker mention. */
-function instrumentMention(row: ResolveInstrument): MentionDef {
+/** Map a resolved instrument row to a picker mention, appending its live
+ *  quote (FR-101) once one has landed. */
+function instrumentMention(row: ResolveInstrument, quote?: QuoteRow): MentionDef {
   return {
     token: `@${row.symbol}`,
     kind: "instrument",
     label: `${row.symbol} · ${row.exchange}`,
-    description: row.name,
+    description: quote ? `${row.name} · ${formatQuoteBracket(row.exchange, quote)}` : row.name,
   };
+}
+
+/** One quote row from the batch `/quotes` route — only the fields the picker
+ *  renders (mirrors `Quote` in `types/data.ts`). */
+interface QuoteRow {
+  symbol: string;
+  price: number;
+  change_percent: number;
+}
+
+function isQuoteRow(value: unknown): value is QuoteRow {
+  const v = value as Partial<QuoteRow> | null;
+  return (
+    !!v &&
+    typeof v.symbol === "string" &&
+    typeof v.price === "number" &&
+    typeof v.change_percent === "number"
+  );
+}
+
+/** "227.10" / "-1.20" → "227.1" / "-1.2" — no trailing-zero noise in the bracket. */
+function trimTrailingZeros(n: number): string {
+  return n.toFixed(2).replace(/\.?0+$/, "");
+}
+
+/** "[NMS: 227.1 +0.8%]" (FR-101) — appended to an instrument's description
+ *  once its live quote lands. */
+function formatQuoteBracket(exchange: string, quote: QuoteRow): string {
+  const sign = quote.change_percent >= 0 ? "+" : "";
+  return `[${exchange}: ${trimTrailingZeros(quote.price)} ${sign}${trimTrailingZeros(quote.change_percent)}%]`;
+}
+
+/** Debounce window for the picker's batch quote fetch (ms) — mirrors
+ *  `symbol-autocomplete.ts`'s `DEBOUNCE_MS`. */
+const QUOTE_DEBOUNCE_MS = 140;
+/** Only the top-N visible candidates get a live quote (payload + provider cost). */
+const QUOTE_FETCH_LIMIT = 8;
+
+let quoteDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+let quoteDebouncePendingResolve: ((quotes: Map<string, QuoteRow>) => void) | undefined;
+
+/**
+ * Debounced batch quote fetch for the top {@link QUOTE_FETCH_LIMIT} visible
+ * instrument rows (FR-101). Calls land in quick succession as the user types
+ * (one `resolveMention` per keystroke); each new call cancels the previous
+ * one's pending timer AND resolves it immediately with an empty map — so a
+ * burst of keystrokes fires exactly one `/quotes` batch (for the winning,
+ * latest call) and no earlier call is left hanging. Rows spanning several
+ * asset classes fan out to one `/quotes` call per class (the route takes a
+ * single `asset_class` per request) run concurrently. A fetch failure, or a
+ * superseded call, resolves to an empty map — the picker still shows
+ * symbol/exchange/name, just without a price.
+ */
+function fetchQuotesForRows(rows: ResolveInstrument[]): Promise<Map<string, QuoteRow>> {
+  const visible = rows.slice(0, QUOTE_FETCH_LIMIT);
+  if (visible.length === 0) {
+    return Promise.resolve(new Map());
+  }
+  if (quoteDebounceTimer) {
+    clearTimeout(quoteDebounceTimer);
+    quoteDebouncePendingResolve?.(new Map());
+  }
+  return new Promise((resolve) => {
+    quoteDebouncePendingResolve = resolve;
+    quoteDebounceTimer = setTimeout(() => {
+      quoteDebounceTimer = undefined;
+      quoteDebouncePendingResolve = undefined;
+      const byAssetClass = new Map<string, string[]>();
+      for (const row of visible) {
+        const list = byAssetClass.get(row.asset_class) ?? [];
+        list.push(row.symbol);
+        byAssetClass.set(row.asset_class, list);
+      }
+      Promise.all(
+        [...byAssetClass.entries()].map(([assetClass, symbols]) =>
+          sidecarGet<unknown>("/quotes", {
+            symbols: symbols.join(","),
+            asset_class: assetClass,
+          }).catch(() => [] as unknown[]),
+        ),
+      )
+        .then((groups) => {
+          const map = new Map<string, QuoteRow>();
+          for (const group of groups) {
+            for (const item of Array.isArray(group) ? group : []) {
+              if (isQuoteRow(item)) {
+                map.set(item.symbol.toUpperCase(), item);
+              }
+            }
+          }
+          resolve(map);
+        })
+        .catch(() => resolve(new Map()));
+    }, QUOTE_DEBOUNCE_MS);
+  });
 }
 
 /**
@@ -268,14 +366,19 @@ export async function resolveMention(query: string, region: Region): Promise<Men
       for (const candidate of res.candidates) {
         rows.push(candidate);
       }
+      const deduped: ResolveInstrument[] = [];
       for (const row of rows) {
         const key = row.symbol.toUpperCase();
         if (seen.has(key)) {
           continue;
         }
         seen.add(key);
-        instruments.push(instrumentMention(row));
+        deduped.push(row);
       }
+      const quotes = await fetchQuotesForRows(deduped);
+      instruments = deduped.map((row) =>
+        instrumentMention(row, quotes.get(row.symbol.toUpperCase())),
+      );
     }
   } catch {
     // A resolve failure (network/sidecar) must never empty the picker — fall
