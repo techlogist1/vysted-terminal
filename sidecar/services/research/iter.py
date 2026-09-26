@@ -195,6 +195,9 @@ async def _distill(
                     "Integrate the new findings, keep only what matters to the "
                     "task, remove redundancy, and preserve inline [n] citation "
                     "markers (re-check them against the source list below). "
+                    "Cite ONLY source numbers from the Known sources list below "
+                    "— never invent a marker for an unnumbered item such as a "
+                    "finding or the report itself. "
                     "Output ONLY the report markdown (no preamble, no "
                     "changelog) — rewrite the whole report. Keep it tight, "
                     "under ~450 words.\n" + finance.date_directive()
@@ -892,9 +895,11 @@ def _remap_markers(markdown: str, local: list[ResearchSource], merged: list[Rese
     """Rewrite an angle brief's ``[n]`` markers from its OWN numbered list to
     the merged list's numbers, by url — deterministic, so the panel synthesis
     never renumbers citations itself. A marker outside the angle's list points
-    at nothing and is dropped."""
-    from services.research.citecheck import MARKER_RE
+    at nothing and is dropped. A citation group (``[2, 3]``) is expanded to
+    individual markers first, so each member remaps on its own."""
+    from services.research.citecheck import MARKER_RE, expand_marker_groups
 
+    markdown = expand_marker_groups(markdown)
     merged_number = {src.url: i + 1 for i, src in enumerate(merged)}
 
     def _sub(match: re.Match[str]) -> str:

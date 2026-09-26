@@ -289,6 +289,20 @@ describe("sanitizeCitationMarkers", () => {
     const md = "A [1] and B [2].";
     expect(sanitizeCitationMarkers(md, 2)).toBe(md);
   });
+
+  it("flags a leaked prompt label as broken while links and [x] survive", () => {
+    const md = "Per [Panel reports] revenue rose. See [1](https://ex.com/1) and [x].";
+    expect(sanitizeCitationMarkers(md, 1)).toBe(
+      "Per [?] revenue rose. See [1](https://ex.com/1) and [x].",
+    );
+  });
+
+  it("expands a citation group before range-checking each member", () => {
+    expect(sanitizeCitationMarkers("Both metrics moved together [1; 4].", 3)).toBe(
+      "Both metrics moved together [1][?].",
+    );
+    expect(countBrokenCitations("Held at [2, 3].", 3)).toBe(0);
+  });
 });
 
 describe("bodyCitesWeb", () => {
