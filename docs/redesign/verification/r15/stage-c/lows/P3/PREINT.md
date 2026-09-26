@@ -160,3 +160,24 @@ git merge --no-ff origin/worktree-agent-lows-P3-int-rc1
 ```
 
 `--onto r15-rc1 4c6dfe8c` replays only the nine merges plus the assembler commit onto the tag. If `git merge-base --is-ancestor 4c6dfe8c r15-rc1` is false, the tag does not contain the base; stop and ask the lead.
+
+## Fix pass (07:02 IST, Opus, one bounded pass)
+
+Candidate `worktree-agent-lows-P3-int-4c6dfe8` moved 266ed2ef -> aa1690ee (pushed, not forced; ls-remote confirms aa1690eeb868fcf4f3ce04debd885f95c6f531e7). Everything is untested pending integration; no test lane was run.
+
+Applied:
+
+- **R15-DOCS-010 (blocking), 8295dab8.** `src/modules/notes/NotesToolbar.test.tsx`: the before/after checks now use `boldButton.classList.contains("bg-charcoal-800")` (false before the click, true inside the waitFor) and also assert `aria-pressed` "false" then "true". The inactive string at `NotesToolbar.tsx:109` carries `hover:bg-charcoal-800`, so the old substring check was red before the click and could pass without one. This makes the assertion stricter, not weaker. Prettier clean.
+- **Advisory, R15-PLATFORM-068, 38d454be.** `sidecar/tests/test_screener_nodes.py:56`: the comment named the deleted `register_v0_6_0_nodes`. It now names `create_app` -> `workflow_nodes.register_all`. Comment only; py_compile and ruff are clean.
+- **Advisory, R15-DATA-109, aa1690ee.** `docs/SIDECAR_API.md:94` no longer points at the removed `openCryptoStream()`. It now says no frontend client opens `/crypto/stream` and the watchlist polls REST. Prettier clean.
+
+Left, with reasons:
+
+- Boot path (W5, PLATFORM-068) full pytest plus `smoke-test-sidecars.mjs`: this lane is barred from running them. Hand to the integration gate.
+- sidecarRequest global 30 s timeout and the `AbortSignal.any` WebKit floor (W1, LIFECYCLE-027): this is a behaviour and design choice, not a trivial fix. Record it for the integration verifier or the lead (feature-detect `AbortSignal.any`, or set a minimum OS version, which is Tier-1 `tauri.conf.json`).
+- The five deleted `test_ddg_backend.py` tests (R15-CODE-RESEARCH-009): these deletions are sanctioned by the partition and replaced by three pacing tests. The verifier should list them next to the `fuzzy.test.ts` deletion. No code change.
+- The `**_k` fakes in assembler commit 266ed2ef (`test_research_metering.py`, `test_b5_runtime_synthesis.py`) are still unrun, pending integration.
+- Behaviour changes that may break non-P3 tests (round() digits bound, code-node to_thread plus 5 s wait_for, /workflow/run pre-start error events, collapsed LLM except clauses, quant floors in validate_domain): nothing to change. Watch for them at the integration run.
+- `@tiptap/extension-list` missing from the main worktree's node_modules: environmental. A frozen-lockfile install restores it.
+- The QuantLib-version-dependent 'pillar' assertion (R15-UI-077): nothing to change. Check it first if it goes red.
+- R15-UI-069 has no new test and rests on the existing ScreenerPanel coverage. It stays recorded as is.
