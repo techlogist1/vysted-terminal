@@ -136,6 +136,32 @@ def test_an_empty_name_is_rejected_with_the_reason(client: TestClient) -> None:
     assert response.json()["detail"] == "A workspace name is required."
 
 
+def test_a_32_char_devanagari_name_saves(client: TestClient) -> None:
+    """R15-UI-082: percent-encoding every non-ASCII byte inflated a Devanagari
+    name to ~9 encoded bytes per character, so a 32-character name (86 raw
+    UTF-8 bytes) tripped the 200-byte encoded-stem cap as "too long" even
+    though it is nowhere near the filesystem's 255-byte filename limit. Only
+    unsafe/control characters are percent-encoded now, so this saves."""
+    name = " ".join(["मेरा लेआउट"] * 3)  # 32 characters, 86 UTF-8 bytes
+    workspace = _sample_workspace(name)
+    response = client.post("/workspace", json={"name": name, "workspace": workspace})
+    assert response.status_code == 200
+    assert client.get("/workspace").json() == [name]
+
+
+def test_a_name_whose_encoded_bytes_exceed_the_cap_is_still_rejected(
+    client: TestClient,
+) -> None:
+    """The byte cap still fires — now measured in encoded UTF-8 bytes, not
+    code points, so a long run of characters that DO need encoding (here,
+    literal dots — always escaped to keep dot-segments out of the stem) is
+    still caught before it would produce an unusable filename."""
+    name = "." * 90  # each '.' encodes to the 3-byte "%2E" -> 270 bytes
+    response = client.post("/workspace", json={"name": name, "workspace": _sample_workspace(name)})
+    assert response.status_code == 400
+    assert "too long" in response.json()["detail"]
+
+
 def test_corrupt_file_degrades_to_404_not_500(client: TestClient) -> None:
     """A torn/corrupt autosave (e.g. an old pre-atomic-write race) must not 500.
 

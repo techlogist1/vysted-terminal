@@ -227,7 +227,7 @@ export function StatusChrome() {
       ? "bg-positive"
       : status === "error"
         ? "bg-negative"
-        : "bg-warning animate-pulse";
+        : "bg-caution animate-pulse";
   const connLabel =
     status === "connected" ? "Connected" : status === "error" ? "Sidecar error" : "Connecting…";
 

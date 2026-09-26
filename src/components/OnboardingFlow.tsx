@@ -540,7 +540,7 @@ function LocalStep({
           </div>
 
           {!model && (
-            <div className="border-warning/30 bg-warning/5 flex flex-col gap-2 rounded-none border px-4 py-3">
+            <div className="border-caution/30 bg-caution/5 flex flex-col gap-2 rounded-none border px-4 py-3">
               <p className="text-charcoal-200 text-caption font-mono leading-relaxed">
                 Your machine is tight on memory for a capable local model. The one-key cloud path
                 will feel much better here — and the terminal already works keyless meanwhile.

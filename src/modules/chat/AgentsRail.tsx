@@ -96,6 +96,17 @@ function RunRow({
   const planned = run.status === "planned";
   const cost = run.cost;
   const budget = run.budget;
+  // R15-UI-073: the status dot below was color-only (aria-hidden, no text
+  // twin) — a colorblind or screen-reader user had no way to tell paused
+  // from running from failed. Named here once and used for both the dot's
+  // accessible name and its title tooltip.
+  const statusLabel = failed
+    ? "Failed"
+    : run.status === "paused"
+      ? "Paused"
+      : planned
+        ? "Planned"
+        : "Running";
   // Budget usage fraction (tokens-based, the most common ceiling) for the bar.
   const frac =
     budget?.maxTokens && cost
@@ -120,10 +131,12 @@ function RunRow({
               failed
                 ? "text-negative"
                 : run.status === "paused" || planned
-                  ? "text-warning"
+                  ? "text-caution"
                   : "animate-pulse text-amber-400"
             }
-            aria-hidden
+            role="img"
+            aria-label={statusLabel}
+            title={statusLabel}
           >
             ●
           </span>
@@ -236,9 +249,16 @@ function RunRow({
         </ul>
       )}
       {frac !== null && (
-        <div className="bg-charcoal-800 h-0.5 w-full overflow-hidden" aria-hidden>
+        <div
+          className="bg-charcoal-800 h-0.5 w-full overflow-hidden"
+          role="progressbar"
+          aria-label={frac >= 1 ? "Budget exhausted" : "Budget used"}
+          aria-valuenow={Math.round(frac * 100)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
           <div
-            className={cn("h-full", frac >= 1 ? "bg-warning" : "bg-amber-500")}
+            className={cn("h-full", frac >= 1 ? "bg-caution" : "bg-amber-500")}
             style={{ width: `${Math.round(frac * 100)}%` }}
           />
         </div>
@@ -264,7 +284,7 @@ function RunRow({
             }}
           >
             {/* min-w-0 ensures the question truncates before the input is pushed off */}
-            <span className="text-warning min-w-0 truncate" title={run.question}>
+            <span className="text-caution min-w-0 truncate" title={run.question}>
               {run.question}
             </span>
             <input

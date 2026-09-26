@@ -2,6 +2,7 @@
 // the R7 migration): typescript-eslint recommended + react-hooks. The react
 // plugin's JSX-runtime preset disables the legacy React-in-scope rules.
 import tseslint from "typescript-eslint";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 import reactPlugin from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 
@@ -9,10 +10,24 @@ const config = [
   ...tseslint.configs.recommended,
   {
     files: ["**/*.{ts,tsx}"],
-    plugins: { react: reactPlugin, "react-hooks": reactHooks },
+    plugins: { react: reactPlugin, "react-hooks": reactHooks, "jsx-a11y": jsxA11y },
     rules: {
       ...reactHooks.configs.recommended.rules,
       ...reactPlugin.configs.flat["jsx-runtime"].rules,
+      // R15-UI-071: no automated accessibility gate existed at all. Scoped to
+      // the one rule the entry names (control-labelling — the concrete gap:
+      // 74/76 <input>s with neither id/name nor a checked label association)
+      // rather than the full jsx-a11y `recommended` bundle, which spans
+      // unrelated concerns (alt-text, anchor validity, media captions, …)
+      // this low never audited across the ~39 affected files — pulling all
+      // of it in blind risks flooding the rc1 `pnpm lint` gate with
+      // unaudited findings. Widening the rule set is a follow-up, not this
+      // fix. `assert: "either"` accepts EITHER a wrapping/`htmlFor` label OR
+      // an `aria-label`/`aria-labelledby` on the control itself, matching
+      // the pattern already used throughout (e.g. ToggleSwitch's
+      // `<label><input aria-label .../></label>`); the default "both" would
+      // flag every one of those as a false positive.
+      "jsx-a11y/label-has-associated-control": ["error", { assert: "either" }],
       // Match the strictness the previous next config enforced.
       "@typescript-eslint/no-unused-vars": [
         "error",

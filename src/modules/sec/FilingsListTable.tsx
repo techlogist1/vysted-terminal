@@ -24,7 +24,7 @@ type SortDir = "asc" | "desc";
 const FORM_COLOR: Record<string, string> = {
   "10-K": "text-charcoal-300",
   "10-Q": "text-charcoal-300",
-  "8-K": "text-warning",
+  "8-K": "text-caution",
   "DEF 14A": "text-charcoal-300",
   "3": "text-charcoal-300",
   "4": "text-charcoal-300",
