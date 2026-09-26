@@ -4,6 +4,66 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 26: AGENT-010 and LEAD-039 certified, DATA-002 stopped at three failures (2026-09-26)
+
+**Scope:** base `fb1eb556`. Three open critical/high/medium entries entering this batch, all in the
+operator's named areas: `R15-DATA-002` (critical), `R15-AGENT-010` (high) and `R15-LEAD-039` (medium).
+Two writers — W1 (Opus): `R15-DATA-002`; W2 (Sonnet): `R15-AGENT-010` + `R15-LEAD-039`. Opus
+integrator/reviewer/fresh verifier. Merged `--no-ff` on `worktree-agent-batch-26-int` (`2e1950fe`),
+merge `76a3b4dc`; docs `4c727edc`.
+
+- **R15-AGENT-010 (high) CERTIFIED.** An earlier batch's `asyncio.to_thread` offload already stopped
+  the event loop from stalling; the residual was the caller's own wait — `_live_lookup` passed
+  `timeout=5.0` to `yf.Search`, but yfinance's cookie/crumb leg (`_get_crumb_basic`/`_get_crumb_csrf`)
+  took no timeout and kept its hard-coded 30 s default, so a cold miss with a hung upstream still took
+  ~31 s. Fix: run the Search on a small module-level `ThreadPoolExecutor` and wait on it with
+  `future.result(timeout=...)`, cancelling on expiry and falling into the existing except/cooldown
+  path, with a `ponytail:` comment naming the ceiling (an abandoned hung search still holds a pool
+  worker until yfinance's own 30 s gives up, at most 4 at once). Verifier's numbers: the hang race fell
+  from 31.07 s (base) to 6.15 s, a fresh case to 5.99 s; the cold resolver-masters load under 12-way
+  saturation (~9.4 s even with `yf.Search` stubbed instant) is noted as a separate, out-of-scope issue.
+- **R15-LEAD-039 (medium, new this batch, mined from batch-25's issues-noticed) CERTIFIED.**
+  `get_estimate_detail` raised `ProviderError` (502) whenever any of Earnings Average/High/Low was
+  missing from yfinance's calendar payload, although the revenue triple a few lines below was already
+  nullable. Fix: the EPS triple becomes `float | None` in `sidecar/models/earnings.py` and
+  `number | null` in `types/earnings.ts`, changed together in one commit (the mirror rule);
+  `EpsEstimateGrid.tsx` already renders `number | null` as the null glyph, so no frontend change was
+  needed. Verified live: `/earnings/RDY/estimates`, `/TM/estimates` and `/SONY/estimates` return 200
+  (were 502); a fresh case not written against, HMC, returns 200 too.
+- **R15-DATA-002 (critical) NOT CERTIFIED — third certification failure, stopped for the operator**
+  (`DECISIONS_FOR_OPERATOR.md` §4.15, status `blocked_tier4`). The merged fix (`4d7bc887`) is a strict
+  improvement: it holds live on every user-pick leg — the watchlist pick, the per-region quote poll,
+  the row click, the palette (two distinct items for one ticker instead of a colliding id) and
+  workspace persistence, plus an agent add BY COMPANY NAME and its undo — each verified on a fresh SMR
+  (SMR Jewels BSE vs NuScale US) case. The residual: the agent's `add_to_watchlist` tool still takes
+  only a bare symbol, no region (`catalog.py:1368-1377`, `host-actions.ts:1005-1011`). Driving
+  llama3.1:8b in an IN session, it resolved "Amalgamated Financial" to AMAL/US via `resolve_symbol`,
+  then called `add_to_watchlist` with the bare "AMAL"; the frontend re-resolved that under the session
+  region and added Amal Ltd (IN, 674.4 INR) while telling the user it had added Amalgamated Financial.
+- **Integrator commit `2e1950fe`** finished the RESEARCH-043 revert (`3a674e7c`): one
+  `test_research_iter` assertion and an `_remap_markers` docstring clause still pinned the reverted
+  grouped-marker grammar (`[Sources 1, 2]` → `[3][1]`) and were red at the base (`fb1eb556`). Removed
+  with the reason logged in the commit; the reviewer disclosed it as a weakened-tests case and judged
+  it a correctly-removed test riding its revert, not an undisclosed coverage cut.
+
+**Verifier:** fresh-context Opus, live sidecar on its own `:52310` (`worktree-agent-batch-26-int`
+source) with a copied ISO data dir (session region IN); MCP subprocesses on `:52153`/`:52154`; local
+model llama3.1:8b via ollama. At `2e1950fe`: `pnpm typecheck && vitest run` 153 files / 1849 passed
+(below batch-25's 1862 because the RESEARCH-043 revert deleted `src/lib/brief-ingest.test.ts`'s
+coverage along with its fix); full sidecar `pytest` 3645 passed + 1 skipped; focused pytest 143
+passed, focused vitest 238 passed; `ci-local-2.log` green end to end, cargo 19, clippy 0, ruff clean,
+smoke 3/3. Register adjudication (AGENT-010 + LEAD-039 → `fixed`; DATA-002 → `blocked_tier4`) lands
+in the docs commit `4c727edc`, not in this merge.
+
+**Issues carried forward** (none in this batch's scope): the CommandPalette live-search dedupe
+(`liveSymbolRows` in `CommandPalette.tsx`) keys "already known" off the bare symbol, so a live-search
+result for a second region of a tracked ticker is hidden; `describeIntent`'s watchlist preview text
+(`host-actions.ts:1300`) still compares bare symbols, not the listing, so its before/after diff can
+misreport "already tracked"; `setEntries`'s comment in `src/store/symbols.ts` still claims "normalise +
+de-dup", but its body only normalises each entry — it never checks `entryKey` for a duplicate, so a
+corrupt or duplicated persisted blob restores with repeated listings; the main-checkout `node_modules`
+drift (`@tiptap/extension-list` missing there only) carries forward unrelated to this batch.
+
 ## R15 rc1 gate — round 2 (2026-09-26)
 
 Not a Stage C batch — the second full pre-tag release gate, run against the batch-24 candidate
