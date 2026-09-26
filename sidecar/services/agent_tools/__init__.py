@@ -100,7 +100,9 @@ def clamp_int(args: dict[str, Any], key: str, default: int, *, minimum: int, max
     return max(minimum, min(maximum, value))
 
 
-async def invoke_tool(tool_id: str, args: dict[str, Any]) -> dict[str, Any]:
+async def invoke_tool(
+    tool_id: str, args: dict[str, Any], *, wrap_errors: bool = True
+) -> dict[str, Any]:
     """Invoke a registered tool. Raises ``KeyError`` on unknown id.
 
     A handler that lets a ``ProviderError`` (or any other exception) escape
@@ -110,10 +112,16 @@ async def invoke_tool(tool_id: str, args: dict[str, Any]) -> dict[str, Any]:
     returns its own envelope — including one with extra fields, like
     ``fundamentals``'s ``reason`` classification — is unaffected: this only
     fires when the handler raises.
+
+    ``wrap_errors=False`` lets the handler's exception propagate: the external
+    MCP surface uses it so a raising handler comes back as an MCP ``isError``
+    result (R15-CODE-AGENT-023) rather than a successful ``ok: false`` body.
     """
     handler = _TOOLS.get(tool_id)
     if handler is None:
         raise KeyError(f"unknown tool {tool_id!r}; registered: {registered_tools()}")
+    if not wrap_errors:
+        return await handler(args)
     try:
         return await handler(args)
     except ProviderError as exc:

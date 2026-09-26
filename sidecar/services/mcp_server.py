@@ -140,7 +140,7 @@ def _make_catalog_tool(tool_id: str) -> Any:
 
     async def _handler(**kwargs: Any) -> dict[str, Any]:
         try:
-            return await agent_tools.invoke_tool(tool_id, kwargs)
+            return await agent_tools.invoke_tool(tool_id, kwargs, wrap_errors=False)
         except KeyError:
             raise ToolError(f"tool {tool_id!r} is not available in this build") from None
         except Exception as exc:  # noqa: BLE001 — surface to the MCP client
