@@ -1032,6 +1032,45 @@ def test_private_limited_to_limited_ipo_conversion_binds_generically(monkeypatch
     assert r.confidence >= 0.99
 
 
+def test_current_name_beats_an_identical_former_name_kpit(monkeypatch) -> None:  # noqa: ANN001
+    """R15-BATTERY-14: BSOFT's bundled former legal name "KPIT Technologies
+    Limited" is exactly KPITTECH's current name. Before the fix both scored
+    1.0 in the same exact band, a residual tie forced disambiguation, and the
+    research tool's retired-ticker lane then bound the wrong company
+    (Birlasoft) off the one-word prefix "KPIT". "KPIT Technologies" must bind
+    KPITTECH outright, with no disambiguation."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    r = symbol_resolver.resolve("KPIT Technologies", "IN")
+    assert r.best is not None
+    assert r.best.symbol == "KPITTECH"
+    assert not r.needs_disambiguation
+
+
+def test_former_name_coincidence_binds_the_current_name_holder(monkeypatch) -> None:  # noqa: ANN001
+    """R15-BATTERY-14, the general defect class: a synthetic two-company master
+    where company B's former name equals company A's CURRENT name must resolve
+    to A, not tie. Isolated from the bundled masters so this does not depend on
+    them staying frozen the way the KPIT/BSOFT acceptance case above does."""
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", _raise_if_network)
+    monkeypatch.setattr(symbol_resolver, "_nse_master", lambda: {})
+    monkeypatch.setattr(symbol_resolver, "_bse_master", lambda: {})
+    monkeypatch.setattr(
+        symbol_resolver,
+        "_us_master",
+        lambda: {"SYNA": "Synth Alpha Corp", "SYNB": "Synth Beta Corp"},
+    )
+    monkeypatch.setattr(
+        symbol_resolver,
+        "_former_names",
+        lambda: {"us": {"SYNB": ("Synth Alpha Corp",)}, "in": {}},
+    )
+    symbol_resolver._scan_names.cache_clear()
+    r = symbol_resolver.resolve("Synth Alpha Corp", "US")
+    assert r.best is not None
+    assert r.best.symbol == "SYNA"
+    assert not r.needs_disambiguation
+
+
 @pytest.mark.parametrize(
     ("query", "lead", "listed"),
     [
