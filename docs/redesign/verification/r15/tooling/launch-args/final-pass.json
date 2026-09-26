@@ -2,5 +2,6 @@
   "sha": "RC3_SHA",
   "max_fix_rounds": 2,
   "adversaries": 2,
-  "run_ending": false
+  "run_ending": false,
+  "slice": ["data-smallcaps", "research-search", "agent-chat", "ui-panels", "lifecycle-safety"]
 }
