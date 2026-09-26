@@ -14,7 +14,7 @@ from typing import Any
 import pytest
 
 from services.research import disclosures
-from services.research.deep import _run_researcher
+from services.research.deep import run_researcher
 from services.research.target import target_from_payload
 from services.search.extract import VisitResult
 
@@ -244,7 +244,7 @@ def test_researcher_consults_disclosures_for_india_results_question() -> None:
         return VisitResult("Revenue Rs 1,234 crore for the quarter.")
 
     finding, web_res, pairs, visited_pages, _failures = _run(
-        _run_researcher(
+        run_researcher(
             "What did the latest quarterly results announce?",
             target=_india_target(),
             query="Route Mobile",
@@ -266,7 +266,7 @@ def test_researcher_consults_disclosures_for_india_results_question() -> None:
 def test_researcher_skips_disclosures_for_us_target() -> None:
     tool = _Tool()
     _run(
-        _run_researcher(
+        run_researcher(
             "What did the latest quarterly results announce?",
             target=_us_target(),
             query="Apple",

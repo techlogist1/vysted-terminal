@@ -2,8 +2,8 @@
 
 :mod:`services.research.iter` is the deep loop (``run_iter_research`` for
 ``deep``, ``run_heavy_research`` for ``ultra``); this module holds the pieces it
-reuses verbatim: the researcher (:func:`_run_researcher`), the findings ledger
-(:class:`_Findings`) with its source de-dup, the coverage floor, the per-round
+reuses verbatim: the researcher (:func:`run_researcher`), the findings ledger
+(:class:`Findings`) with its source de-dup, the coverage floor, the per-round
 wall slice, the structured floor, synthesis prompts and the budget-stop notes.
 The single-pass ``run_deep_research`` loop that used to live here was removed
 (R15-CODE-RESEARCH-003): it was a drifted second copy reachable only from an
@@ -51,8 +51,8 @@ _COVERAGE_DIMS = ("price", "fundamentals", "news", "web")
 #: Model/provider strings stamped on each ``budget.record`` so the step ceiling
 #: advances and the cost snapshot is attributable. The real values are wired by
 #: the lead's handler when usage is available; here they label the round.
-_ROUND_MODEL = "research-deep"
-_ROUND_PROVIDER = "research"
+ROUND_MODEL = "research-deep"
+ROUND_PROVIDER = "research"
 
 #: Hard per-round wall-clock cap (seconds). Even with run-level wall budget left,
 #: a SINGLE round (plan → parallel researchers → compress/distill → reflect) may
@@ -119,7 +119,7 @@ def remaining_wall(budget: BudgetGuard) -> float | None:
     return budget.max_wall_seconds - budget.wall_seconds()
 
 
-def _round_wall_limit(budget: BudgetGuard, *, observed_latency: float | None = None) -> float:
+def round_wall_limit(budget: BudgetGuard, *, observed_latency: float | None = None) -> float:
     """Seconds the CURRENT round may run before the per-round guard fires.
 
     The per-round cap (:data:`_PER_ROUND_WALL_SECS`), ADAPTIVELY RAISED (R13) to
@@ -139,7 +139,7 @@ def _round_wall_limit(budget: BudgetGuard, *, observed_latency: float | None = N
     return max(limit, 0.0)
 
 
-async def _emit(on_step: OnStep | None, step: ResearchStep) -> None:
+async def emit_step(on_step: OnStep | None, step: ResearchStep) -> None:
     """Send one step to the sink, awaiting it if it's a coroutine, swallowing
     a sink failure (a broken progress sink must not abort the research run)."""
     if on_step is None:
@@ -152,7 +152,7 @@ async def _emit(on_step: OnStep | None, step: ResearchStep) -> None:
         pass
 
 
-async def _safe_tool(tool_call: ToolCall, name: str, args: dict[str, Any]) -> dict[str, Any]:
+async def safe_tool(tool_call: ToolCall, name: str, args: dict[str, Any]) -> dict[str, Any]:
     """Invoke one tool, converting any failure to an ``ok: False`` dict."""
     try:
         result = await tool_call(name, args)
@@ -166,7 +166,7 @@ async def _safe_tool(tool_call: ToolCall, name: str, args: dict[str, Any]) -> di
 #: the INJECTED ``llm_call`` carries no timeout on the workflow-node and unit-test
 #: paths — so a single slow "thinking"-model call could stall a round right up to
 #: the per-round guard. This caps EVERY inner call (both this loop and ``iter.py``,
-#: which imports ``_safe_llm``), so one call can never hang the loop regardless of
+#: which imports ``safe_llm``), so one call can never hang the loop regardless of
 #: which model is swapped in. On overrun the call yields an empty completion and the
 #: loop degrades to abort→synthesize (the SC-008 invariant), exactly as on any other
 #: LLM failure. 60s matches the adapter cap so it never aborts a call the adapter
@@ -180,7 +180,7 @@ _LLM_CALL_TIMEOUT_SECS = 60.0
 LLM_CALL_TIMEOUT: ContextVar[float] = ContextVar("research_llm_call_timeout")
 
 
-async def _safe_llm(llm_call: LLMCall, messages: list[dict[str, Any]]) -> str:
+async def safe_llm(llm_call: LLMCall, messages: list[dict[str, Any]]) -> str:
     """One-shot LLM completion, converting a failure OR a per-call overrun
     (>:data:`LLM_CALL_TIMEOUT`) to an empty string so the loop degrades to
     abort→synthesize rather than raising or HANGING mid-round."""
@@ -193,15 +193,15 @@ async def _safe_llm(llm_call: LLMCall, messages: list[dict[str, Any]]) -> str:
     return out if isinstance(out, str) else ""
 
 
-async def _synthesis_llm(llm_call: LLMCall, messages: list[dict[str, Any]]) -> tuple[str, bool]:
-    """:func:`_safe_llm` for a synthesis call, plus whether the completion was
+async def synthesis_llm(llm_call: LLMCall, messages: list[dict[str, Any]]) -> tuple[str, bool]:
+    """:func:`safe_llm` for a synthesis call, plus whether the completion was
     cut at the model's output limit (R15-RESEARCH-014)."""
     with oneshot.finish_reasons() as reasons:
-        body = await _safe_llm(llm_call, messages)
+        body = await safe_llm(llm_call, messages)
     return body, any(is_length_finish(r) for r in reasons)
 
 
-def _split_subquestions(text: str, *, limit: int) -> list[str]:
+def split_subquestions(text: str, *, limit: int) -> list[str]:
     """Parse an LLM plan/reflect completion into a list of sub-questions.
 
     Accepts newline- or semicolon-separated lines, strips list-marker prefixes
@@ -259,7 +259,7 @@ def structured_feeds_available(structured: dict[str, Any]) -> bool:
     return False
 
 
-def distinct_web_domains(findings: _Findings) -> set[str]:
+def distinct_web_domains(findings: Findings) -> set[str]:
     """The distinct registrable hosts among the gathered web citations."""
     domains: set[str] = set()
     for src in findings.web_sources:
@@ -270,7 +270,7 @@ def distinct_web_domains(findings: _Findings) -> set[str]:
 
 
 def coverage_floor_met(
-    findings: _Findings, *, structured: dict[str, Any], min_web_domains: int = 1
+    findings: Findings, *, structured: dict[str, Any], min_web_domains: int = 1
 ) -> bool:
     """The R7 coverage floor: dimension coverage + web-source independence.
 
@@ -291,7 +291,7 @@ def coverage_floor_met(
 
 #: Honest statement appended to a brief whose floor was satisfied on web
 #: evidence alone because no structured provider covered the instrument.
-_WEB_ONLY_FLOOR_NOTE = (
+WEB_ONLY_FLOOR_NOTE = (
     "> **Coverage note:** no structured price or fundamentals feed covered "
     "this instrument (providers returned no data) — the coverage for this "
     "brief comes from web sources alone."
@@ -302,13 +302,13 @@ def structured_source_gathered(sources: list[ResearchSource]) -> bool:
     """Did the run cite a structured price/fundamentals source ANYWHERE?
 
     The up-front snapshot can time out while a researcher's own ``price`` /
-    ``fundamentals`` leg later succeeds (:func:`_record_structured` appends
+    ``fundamentals`` leg later succeeds (:func:`record_structured` appends
     ``vysted://<dim>/<SYM>``) — that source is as real as a snapshot leg.
     """
     return any(s.url.startswith(("vysted://price/", "vysted://fundamentals/")) for s in sources)
 
 
-def web_only_floor_note(markdown: str, *, structured: dict[str, Any], findings: _Findings) -> str:
+def web_only_floor_note(markdown: str, *, structured: dict[str, Any], findings: Findings) -> str:
     """Append the honest web-only-floor statement when it applies.
 
     Applies only when the loosened floor actually carried the run: no
@@ -323,7 +323,7 @@ def web_only_floor_note(markdown: str, *, structured: dict[str, Any], findings: 
         or not findings.web_sources
     ):
         return markdown
-    return markdown.rstrip() + "\n\n" + _WEB_ONLY_FLOOR_NOTE
+    return markdown.rstrip() + "\n\n" + WEB_ONLY_FLOOR_NOTE
 
 
 def finalize_markdown(
@@ -331,7 +331,7 @@ def finalize_markdown(
     *,
     target: ResearchTarget | None,
     structured: dict[str, Any],
-    findings: _Findings,
+    findings: Findings,
 ) -> str:
     """Stamp the honest coverage statement onto a finished brief body.
 
@@ -387,7 +387,7 @@ def leading_token(text: str) -> str:
 _REFLECT_NEGATION = re.compile(r"\b(?:not|no|never)\b|n't\b")
 
 
-def _reflect_says_complete(text: str) -> bool:
+def reflect_says_complete(text: str) -> bool:
     """Does a reflect completion declare coverage met?
 
     The prompt asks for a leading COMPLETE or GAPS word, read by
@@ -411,7 +411,7 @@ def _reflect_says_complete(text: str) -> bool:
     return re.search(r"\b(?:complete|sufficient|done)\b", low) is not None
 
 
-class _Findings:
+class Findings:
     """Mutable accumulator threaded through the loop.
 
     Holds the running findings text (for compress/synthesize), the web citations
@@ -471,7 +471,7 @@ class _Findings:
         return list(self._numbered)
 
 
-def _record_structured(findings: _Findings, name: str, dim: str, result: dict[str, Any]) -> None:
+def record_structured(findings: Findings, name: str, dim: str, result: dict[str, Any]) -> None:
     """Fold a structured tool result into findings + coverage + provenance.
 
     A ``news`` tool result (already relevance-gated by the researcher) cites
@@ -515,7 +515,7 @@ def _record_structured(findings: _Findings, name: str, dim: str, result: dict[st
     )
 
 
-def record_snapshot_sources(findings: _Findings, symbol: str, structured: dict[str, Any]) -> None:
+def record_snapshot_sources(findings: Findings, symbol: str, structured: dict[str, Any]) -> None:
     """Register the up-front price/fundamentals snapshot as citable sources.
 
     The snapshot legs (:func:`services.research.fast.snapshot_structured`) back
@@ -722,8 +722,8 @@ def build_structured_floor(
     return "\n".join(lines).rstrip()
 
 
-def _record_web(
-    findings: _Findings,
+def record_web(
+    findings: Findings,
     result: dict[str, Any],
     *,
     target: ResearchTarget | None = None,
@@ -817,7 +817,7 @@ def _needs_companion_visit(page_text: str | None) -> bool:
     return page_text is None or has_scanned_pages_note(page_text) or is_digit_sparse(page_text)
 
 
-async def _run_researcher(
+async def run_researcher(
     sub_question: str,
     *,
     target: ResearchTarget | None,
@@ -899,20 +899,20 @@ async def _run_researcher(
 
     if target is not None and use_disclosures:
         structured_res, web_res, disclosure_bundle = await asyncio.gather(
-            _safe_tool(tool_call, tool, args),
-            _safe_tool(tool_call, "web_search", web_args),
+            safe_tool(tool_call, tool, args),
+            safe_tool(tool_call, "web_search", web_args),
             disclosures_mod.gather(tool_call, target=target, sub_question=sub_question),
         )
     elif target is not None:
         structured_res, web_res = await asyncio.gather(
-            _safe_tool(tool_call, tool, args),
-            _safe_tool(tool_call, "web_search", web_args),
+            safe_tool(tool_call, tool, args),
+            safe_tool(tool_call, "web_search", web_args),
         )
     else:
         # Web-only: no bound instrument means NO structured call may fire — a
         # free-text query must never be passed where a symbol is expected.
         structured_res = {"ok": False, "error": "no listed instrument bound — web evidence only"}
-        web_res = await _safe_tool(tool_call, "web_search", web_args)
+        web_res = await safe_tool(tool_call, "web_search", web_args)
 
     # The news tool blends region-wide feeds with the per-symbol feed; the
     # shared relevance gate drops off-entity items BEFORE the extraction reads
@@ -996,7 +996,7 @@ async def _run_researcher(
             "conclude the figures are unavailable or missing."
         )
 
-    extract = await _safe_llm(
+    extract = await safe_llm(
         llm_call,
         [
             {
@@ -1057,12 +1057,12 @@ def _researcher_web_query(sub_question: str, *, target: ResearchTarget | None, q
     return " ".join(p for p in parts if p).strip()
 
 
-def _synthesize_brief(
+def synthesize_brief(
     *,
     query: str,
     symbol: str,
     markdown: str,
-    findings: _Findings,
+    findings: Findings,
     structured: dict[str, Any],
     steps: list[ResearchStep],
     budget: BudgetGuard,
@@ -1097,7 +1097,7 @@ async def _final_synthesis(
     *,
     query: str,
     symbol: str,
-    findings: _Findings,
+    findings: Findings,
     structured: dict[str, Any] | None = None,
 ) -> tuple[str, bool]:
     """Ask the LLM to write the brief markdown with inline ``[n]`` citations.
@@ -1106,7 +1106,7 @@ async def _final_synthesis(
     synthesis was cut at its output limit.
 
     The numbered source list is handed to the model so its ``[n]`` markers line
-    up with :meth:`_Findings.all_sources`. On an empty/failed completion a terse
+    up with :meth:`Findings.all_sources`. On an empty/failed completion a terse
     deterministic fallback is returned (never an empty brief).
 
     PROVENANCE GUARANTEE (WS3): the system prompt forces every numeric/dated claim
@@ -1121,7 +1121,7 @@ async def _final_synthesis(
     numbered = "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(sources))
     priority = finance.priority_note(sources)
     snapshot = snapshot_context(structured or {})
-    body, truncated = await _synthesis_llm(
+    body, truncated = await synthesis_llm(
         llm_call,
         [
             {
@@ -1189,18 +1189,33 @@ __all__ = [
     "SYNTHESIS_TRUNCATED_NOTE",
     "MIN_ROUND_WALL_SECS",
     "OnStep",
+    "ROUND_MODEL",
+    "ROUND_PROVIDER",
     "ROUND_SLICE_LATENCY_MULT",
+    "WEB_ONLY_FLOOR_NOTE",
+    "Findings",
     "ToolCall",
     "VisitCall",
     "build_structured_floor",
     "coverage_floor_met",
     "distinct_web_domains",
+    "emit_step",
     "finalize_markdown",
     "record_snapshot_sources",
+    "record_structured",
+    "record_web",
+    "reflect_says_complete",
     "remaining_wall",
+    "round_wall_limit",
+    "run_researcher",
+    "safe_llm",
+    "safe_tool",
     "snapshot_context",
+    "split_subquestions",
     "structured_feeds_available",
     "structured_source_gathered",
+    "synthesis_llm",
+    "synthesize_brief",
     "visit_failure_step",
     "web_only_floor_note",
 ]

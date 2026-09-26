@@ -274,7 +274,7 @@ def test_safe_llm_per_call_guard_returns_empty_on_overrun(monkeypatch: pytest.Mo
         await asyncio.sleep(5)  # far past the tiny cap — would hang the round without the guard
         return "should never arrive"
 
-    out = asyncio.run(deep._safe_llm(slow, [{"role": "user", "content": "x"}]))
+    out = asyncio.run(deep.safe_llm(slow, [{"role": "user", "content": "x"}]))
     assert out == ""
 
 
@@ -381,8 +381,8 @@ def test_web_source_titles_are_sanitized_inline() -> None:
     rides the numbered [n] source list into synthesis prompts."""
     from services.search.scrub import GUARD_CLOSE
 
-    findings = deep._Findings()
-    deep._record_web(
+    findings = deep.Findings()
+    deep.record_web(
         findings,
         {
             "ok": True,
@@ -590,13 +590,13 @@ def test_ultra_iter_news_leg_drops_off_entity_items() -> None:
 def test_reflect_complete_reads_the_leading_token_not_a_substring() -> None:
     """R15-RESEARCH-034: the reflect reply is read by its leading COMPLETE/GAPS
     word; a gap statement that happens to contain "covered" is not complete."""
-    from services.research.deep import _reflect_says_complete
+    from services.research.deep import reflect_says_complete
 
-    assert _reflect_says_complete("Price action is not covered yet") is False
-    assert _reflect_says_complete("GAPS\n- price action") is False
-    assert _reflect_says_complete("COMPLETE") is True
-    assert _reflect_says_complete("**COMPLETE** — all four dimensions sourced") is True
-    assert _reflect_says_complete("No gaps remain.") is True
+    assert reflect_says_complete("Price action is not covered yet") is False
+    assert reflect_says_complete("GAPS\n- price action") is False
+    assert reflect_says_complete("COMPLETE") is True
+    assert reflect_says_complete("**COMPLETE** — all four dimensions sourced") is True
+    assert reflect_says_complete("No gaps remain.") is True
 
 
 class _SnapshotTimesOutToolCall(_FakeToolCall):
@@ -639,7 +639,7 @@ def test_heavy_panel_drops_the_note_when_an_angle_cites_structured_data() -> Non
             if "expert research panel" in low:
                 return "Angle A\nAngle B"
             if "lead synthesist" in low:
-                return "# Panel brief\nMerged [1].\n\n" + deep._WEB_ONLY_FLOOR_NOTE
+                return "# Panel brief\nMerged [1].\n\n" + deep.WEB_ONLY_FLOOR_NOTE
             return await super().__call__(messages)
 
     brief = asyncio.run(

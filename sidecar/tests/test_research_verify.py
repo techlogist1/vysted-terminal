@@ -17,7 +17,7 @@ from typing import Any
 
 from models.llm import LLMUsage
 from services.budget_guard import BudgetGuard
-from services.research.deep import _reflect_says_complete
+from services.research.deep import reflect_says_complete
 from services.research.models import ResearchBrief, ResearchSource
 from services.research.verify import _parse_verdict, cross_check
 
@@ -235,15 +235,15 @@ def test_a_verdict_word_followed_by_a_colon_is_the_verdict_not_a_label() -> None
     and its reason's "agree" upgrades the claim."""
     reply = "Unverified: the sources agree on revenue but not the 23% margin"
     assert _parse_verdict(reply)[0] == "unverified"
-    assert _reflect_says_complete("Complete: all four sourced, margins not covered in depth")
+    assert reflect_says_complete("Complete: all four sourced, margins not covered in depth")
 
 
 def test_reflect_says_complete_class_pin_on_bracket_and_list_marker() -> None:
     """Class pin (R15-RESEARCH-002): the same leading_token fix that unblocks
     labelled verdict words must also unblock a bracketed or list-numbered
     reflect word, a case the fix was not written against directly."""
-    assert _reflect_says_complete("[GAPS] revenue covered but margins are not") is False
-    assert _reflect_says_complete("1. COMPLETE - all dimensions covered") is True
+    assert reflect_says_complete("[GAPS] revenue covered but margins are not") is False
+    assert reflect_says_complete("1. COMPLETE - all dimensions covered") is True
 
 
 def test_dead_llm_degrades_to_unverified_never_raises() -> None:

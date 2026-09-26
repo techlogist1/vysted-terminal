@@ -20,7 +20,7 @@ markers onto the merged list by url (deterministically, before the prompt). This
 test-time scaling: more parallel reasoning, one merged answer.
 
 Both reuse :mod:`deep`'s tested helpers verbatim (researchers, source de-dup,
-``_Findings``) and hold the SAME three invariants — top-of-round breach →
+``Findings``) and hold the SAME three invariants — top-of-round breach →
 abort→synthesize (never a bare timeout), one ``budget.record`` per round, the
 coverage floor — so a budget breach always ships a brief and never raises. Every
 step is emitted live (``on_step``) so the activity surface animates the work,
@@ -39,37 +39,37 @@ from typing import Any
 from services.budget_guard import BudgetGuard
 from services.research import finance
 from services.research.deep import (
-    _ROUND_MODEL,
-    _ROUND_PROVIDER,
-    _WEB_ONLY_FLOOR_NOTE,
     BUDGET_STOP_NOTE,
     MIN_ROUND_WALL_SECS,
+    ROUND_MODEL,
+    ROUND_PROVIDER,
     SYNTHESIS_TIMEOUT_NOTE,
     SYNTHESIS_TRUNCATED_NOTE,
+    WEB_ONLY_FLOOR_NOTE,
+    Findings,
     LLMCall,
     OnStep,
     ToolCall,
     VisitCall,
-    _emit,
-    _Findings,
-    _record_structured,
-    _record_web,
-    _reflect_says_complete,
-    _round_wall_limit,
-    _run_researcher,
-    _safe_llm,
-    _split_subquestions,
-    _synthesis_llm,
-    _synthesize_brief,
     build_structured_floor,
     coverage_floor_met,
+    emit_step,
     finalize_markdown,
     join_notes,
     record_snapshot_sources,
+    record_structured,
+    record_web,
+    reflect_says_complete,
     remaining_wall,
+    round_wall_limit,
+    run_researcher,
+    safe_llm,
     snapshot_context,
+    split_subquestions,
     structured_feeds_available,
     structured_source_gathered,
+    synthesis_llm,
+    synthesize_brief,
     visit_failure_step,
 )
 from services.research.fast import DEEP_SNAPSHOT_LEG_TIMEOUT_S, snapshot_structured
@@ -104,7 +104,7 @@ class _Report:
     """The single central evolving report — the only cross-round memory.
 
     ``body`` is rewritten (not appended) each round by the distill step. Sources +
-    coverage live in :class:`~services.research.deep._Findings` (so ``[n]`` markers
+    coverage live in :class:`~services.research.deep.Findings` (so ``[n]`` markers
     survive even if the distill model drops one); the report is the distilled
     PROSE the next round reasons from.
     """
@@ -133,7 +133,7 @@ def _default_questions(symbol: str, limit: int) -> list[str]:
     ][:limit]
 
 
-def _numbered_sources(findings: _Findings) -> str:
+def _numbered_sources(findings: Findings) -> str:
     """The ``[n]`` source list handed to the distill/synthesis prompts."""
     return "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(findings.all_sources()))
 
@@ -158,7 +158,7 @@ async def _distill(
     symbol: str,
     report: _Report,
     round_findings: list[str],
-    findings: _Findings,
+    findings: Findings,
 ) -> str:
     """Rewrite the central report integrating this round's findings (the core
     IterResearch move). Returns the new report markdown, or ``""`` on a dead LLM
@@ -171,7 +171,7 @@ async def _distill(
     components, so synthesis can state the complete picture instead of
     transcribing the primary filing's literal text.
     """
-    return await _safe_llm(
+    return await safe_llm(
         llm_call,
         [
             {
@@ -220,7 +220,7 @@ async def _synthesis_from_report(
     query: str,
     symbol: str,
     report: _Report,
-    findings: _Findings,
+    findings: Findings,
     structured: dict[str, Any] | None = None,
 ) -> tuple[str, bool, bool]:
     """Write the final brief markdown from the evolving report + numbered sources.
@@ -235,7 +235,7 @@ async def _synthesis_from_report(
     # R10 (E8): the derived metric facts ride the prompt so the prose states
     # figures under the SAME labels/bases the metric cards render.
     metric_facts = prompt_block((structured or {}).get("derived"))
-    body, truncated = await _synthesis_llm(
+    body, truncated = await synthesis_llm(
         llm_call,
         [
             {
@@ -343,7 +343,7 @@ async def run_iter_research(
     provider covers the instrument); ``site_bias`` turns on the finance
     ``site:`` query bias for filings/fundamentals researchers.
     """
-    findings = _Findings(evidence=evidence)
+    findings = Findings(evidence=evidence)
     report = _Report(task=query, char_cap=report_char_cap or _REPORT_CHAR_CAP)
     steps: list[ResearchStep] = []
     structured: dict[str, Any] = {}
@@ -385,7 +385,7 @@ async def run_iter_research(
                 }
             floor_rows = structured["disclosures"].get("rows")
             if floor_rows:
-                _record_web(
+                record_web(
                     findings,
                     {"ok": True, "citations": floor_rows, "results": []},
                     target=target,
@@ -418,7 +418,7 @@ async def run_iter_research(
             latency_ms=int((time.monotonic() - t0) * 1000),
         )
         steps.append(step)
-        await _emit(on_step, step)
+        await emit_step(on_step, step)
         if citecheck:
             markdown = await ensure_citation_integrity(
                 markdown,
@@ -429,7 +429,7 @@ async def run_iter_research(
                 steps=steps,
                 evidence=findings.evidence,
             )
-        return _synthesize_brief(
+        return synthesize_brief(
             query=query,
             symbol=symbol,
             markdown=markdown,
@@ -479,7 +479,7 @@ async def run_iter_research(
         else:
             disclosure_hint = disclosures_mod.plan_hint(target)
             t0 = time.monotonic()
-            plan_text = await _safe_llm(
+            plan_text = await safe_llm(
                 llm_call,
                 [
                     {
@@ -508,7 +508,7 @@ async def run_iter_research(
                 ],
             )
             observed_latency = max(observed_latency, time.monotonic() - t0)
-            open_questions = _split_subquestions(plan_text, limit=fan_out) or _default_questions(
+            open_questions = split_subquestions(plan_text, limit=fan_out) or _default_questions(
                 symbol or query, fan_out
             )
             plan_step = ResearchStep(
@@ -517,13 +517,13 @@ async def run_iter_research(
                 latency_ms=int((time.monotonic() - t0) * 1000),
             )
         steps.append(plan_step)
-        await _emit(on_step, plan_step)
+        await emit_step(on_step, plan_step)
 
         # --- parallel researchers --------------------------------------------
         researcher_t0 = time.monotonic()
         results = await asyncio.gather(
             *(
-                _run_researcher(
+                run_researcher(
                     q,
                     target=target,
                     query=query,
@@ -541,21 +541,21 @@ async def run_iter_research(
             open_questions[:fan_out], results, strict=False
         ):
             last_round_findings.append(finding)
-            _record_web(findings, web_res, target=target, query=query)
+            record_web(findings, web_res, target=target, query=query)
             findings.record_evidence(visited_pages)
             for failed_url, reason in visit_failures:
                 vstep = visit_failure_step(failed_url, reason)
                 steps.append(vstep)
-                await _emit(on_step, vstep)
+                await emit_step(on_step, vstep)
             for pair in structured_pairs:
-                _record_structured(findings, symbol, pair["dim"], pair["result"])
+                record_structured(findings, symbol, pair["dim"], pair["result"])
             rstep = ResearchStep(
                 "tool",
                 f"researcher: {q}",
                 latency_ms=int((time.monotonic() - researcher_t0) * 1000),
             )
             steps.append(rstep)
-            await _emit(on_step, rstep)
+            await emit_step(on_step, rstep)
 
         # --- DISTILL: rewrite the central report (replace, not append) -------
         distill_t0 = time.monotonic()
@@ -577,11 +577,11 @@ async def run_iter_research(
             latency_ms=int((time.monotonic() - distill_t0) * 1000),
         )
         steps.append(distill_step)
-        await _emit(on_step, distill_step)
+        await emit_step(on_step, distill_step)
 
         # --- reflect: coverage met? gaps? (reads the report, not the history) -
         reflect_t0 = time.monotonic()
-        reflect_text = await _safe_llm(
+        reflect_text = await safe_llm(
             llm_call,
             [
                 {
@@ -607,21 +607,21 @@ async def run_iter_research(
             "reflect", "assessed coverage", latency_ms=int((time.monotonic() - reflect_t0) * 1000)
         )
         steps.append(reflect_step)
-        await _emit(on_step, reflect_step)
+        await emit_step(on_step, reflect_step)
 
         # Coverage FLOOR (R7): every dimension >=1 source AND >= min_web_domains
         # distinct web domains — loosened to web-only when no structured feed
         # covers this instrument (micro-caps must still finish cleanly).
         return coverage_floor_met(
             findings, structured=structured, min_web_domains=min_web_domains
-        ) and _reflect_says_complete(reflect_text)
+        ) and reflect_says_complete(reflect_text)
 
     while True:
         # --- top-of-round budget gate: FIRST breach => abort→synthesize -------
         reason = budget.breach()
         if reason is not None:
             return await abort_synthesize(reason)
-        budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
+        budget.record(None, ROUND_MODEL, ROUND_PROVIDER)
 
         # --- R8 graceful guard (a): starved wall → CLEAN synthesis ------------
         # Under MIN_ROUND_WALL_SECS remaining, a fresh round would inherit a
@@ -636,7 +636,7 @@ async def run_iter_research(
                 status="skipped",
             )
             steps.append(wind_step)
-            await _emit(on_step, wind_step)
+            await emit_step(on_step, wind_step)
             break
 
         # --- per-round wall guard --------------------------------------------
@@ -647,7 +647,7 @@ async def run_iter_research(
         # abort — with findings in hand and wall to spare, ONE constrained
         # wind-down round (a single researcher, no page visits) runs, then the
         # loop closes CLEANLY.
-        limit = _round_wall_limit(budget, observed_latency=observed_latency)
+        limit = round_wall_limit(budget, observed_latency=observed_latency)
         try:
             async with asyncio.timeout(limit):
                 done = await _run_round()
@@ -658,18 +658,18 @@ async def run_iter_research(
                 status="skipped",
             )
             steps.append(timeout_step)
-            await _emit(on_step, timeout_step)
+            await emit_step(on_step, timeout_step)
             wall_left = remaining_wall(budget)
             has_findings = bool(
                 report.body.strip() or last_round_findings or findings.all_sources()
             )
             if has_findings and (wall_left is None or wall_left >= MIN_ROUND_WALL_SECS):
-                retry_limit = _round_wall_limit(budget, observed_latency=observed_latency)
+                retry_limit = round_wall_limit(budget, observed_latency=observed_latency)
                 retry_step = ResearchStep(
                     "plan", "one wind-down round (1 researcher, visits off)", status="ok"
                 )
                 steps.append(retry_step)
-                await _emit(on_step, retry_step)
+                await emit_step(on_step, retry_step)
                 try:
                     async with asyncio.timeout(retry_limit):
                         await _run_round(researchers=1, allow_visit=False)
@@ -698,7 +698,7 @@ async def run_iter_research(
         latency_ms=int((time.monotonic() - synth_t0) * 1000),
     )
     steps.append(synth_step)
-    await _emit(on_step, synth_step)
+    await emit_step(on_step, synth_step)
     if citecheck:
         markdown = await ensure_citation_integrity(
             markdown,
@@ -709,7 +709,7 @@ async def run_iter_research(
             steps=steps,
             evidence=findings.evidence,
         )
-    return _synthesize_brief(
+    return synthesize_brief(
         query=query,
         symbol=symbol,
         markdown=markdown,
@@ -783,7 +783,7 @@ async def _webweaver_synthesis(
     one LLM-call window plus the outline call.
     """
     numbered = "\n".join(f"[{i + 1}] {s.title} — {s.url}" for i, s in enumerate(sources))
-    outline_text = await _safe_llm(
+    outline_text = await safe_llm(
         llm_call,
         [
             {
@@ -825,7 +825,7 @@ async def _webweaver_synthesis(
         return "\n".join(lines)
 
     async def _write_section(title: str, indices: list[int]) -> str:
-        body = await _safe_llm(
+        body = await safe_llm(
             llm_call,
             [
                 {
@@ -913,7 +913,7 @@ def _angle_sink(on_step: OnStep | None, index: int, label: str) -> OnStep:
     short = label[:48]
 
     async def _sink(step: ResearchStep) -> None:
-        await _emit(
+        await emit_step(
             on_step,
             ResearchStep(
                 step.kind,
@@ -995,7 +995,7 @@ async def run_heavy_research(
 
     # --- panel plan: split into N distinct, non-overlapping angles -----------
     t0 = time.monotonic()
-    angle_text = await _safe_llm(
+    angle_text = await safe_llm(
         llm_call,
         [
             {
@@ -1012,7 +1012,7 @@ async def run_heavy_research(
             {"role": "user", "content": f"Task: {query}"},
         ],
     )
-    angle_list = _split_subquestions(angle_text, limit=angles)
+    angle_list = split_subquestions(angle_text, limit=angles)
     # Pad to N with sensible defaults if the planner under-delivered.
     for fallback in (
         f"Fundamentals, valuation, and financial health for {query}",
@@ -1024,14 +1024,14 @@ async def run_heavy_research(
         if fallback not in angle_list:
             angle_list.append(fallback)
     angle_list = angle_list[:angles]
-    budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
+    budget.record(None, ROUND_MODEL, ROUND_PROVIDER)
     plan_step = ResearchStep(
         "plan",
         f"expert panel: {len(angle_list)} parallel angle(s)",
         latency_ms=int((time.monotonic() - t0) * 1000),
     )
     steps.append(plan_step)
-    await _emit(on_step, plan_step)
+    await emit_step(on_step, plan_step)
 
     # --- parallel explorers, each its own evolving workspace -----------------
     # Every explorer receives (task = focus-augmented prompt text, target = the
@@ -1074,7 +1074,7 @@ async def run_heavy_research(
                 status="error",
             )
             steps.append(crash_step)
-            await _emit(on_step, crash_step)
+            await emit_step(on_step, crash_step)
 
     if not good:
         # Every explorer failed (should not happen — iter never raises). Degrade to
@@ -1098,7 +1098,7 @@ async def run_heavy_research(
     # R10 (E8): the derived metric facts ride every synthesis prompt so the
     # merged prose states figures under the cards' exact labels and bases.
     metric_facts = prompt_block((snapshot or {}).get("derived"))
-    budget.record(None, _ROUND_MODEL, _ROUND_PROVIDER)
+    budget.record(None, ROUND_MODEL, ROUND_PROVIDER)
     synth_t0 = time.monotonic()
 
     # WebWeaver-lite (R9 B3, heavy/ultra only): outline first — each section
@@ -1126,7 +1126,7 @@ async def run_heavy_research(
             synth_mode = "webweaver outline"
     truncated = False
     if not markdown.strip():
-        markdown, truncated = await _synthesis_llm(
+        markdown, truncated = await synthesis_llm(
             llm_call,
             [
                 {
@@ -1180,19 +1180,19 @@ async def run_heavy_research(
     elif any(structured_feeds_available(b.structured) for b in good) or (
         structured_source_gathered(merged_sources)
     ):
-        markdown = markdown.replace(_WEB_ONLY_FLOOR_NOTE, "")
+        markdown = markdown.replace(WEB_ONLY_FLOOR_NOTE, "")
     elif (
         any(s.url.startswith("http") for s in merged_sources)
-        and _WEB_ONLY_FLOOR_NOTE not in markdown
+        and WEB_ONLY_FLOOR_NOTE not in markdown
     ):
-        markdown = markdown.rstrip() + "\n\n" + _WEB_ONLY_FLOOR_NOTE
+        markdown = markdown.rstrip() + "\n\n" + WEB_ONLY_FLOOR_NOTE
     synth_step = ResearchStep(
         "synthesize",
         f"synthesized {len(good)} angle report(s) into one brief ({synth_mode})",
         latency_ms=int((time.monotonic() - synth_t0) * 1000),
     )
     steps.append(synth_step)
-    await _emit(on_step, synth_step)
+    await emit_step(on_step, synth_step)
 
     # Citation integrity over the MERGED brief: out-of-range [n] markers are
     # stripped and up to 8 numeric claims spot-audited against their cited

@@ -22,7 +22,7 @@ import asyncio
 from typing import Any
 
 from services.research import disclosures
-from services.research.deep import _run_researcher
+from services.research.deep import run_researcher
 from services.research.target import target_from_payload
 from services.search.extract import VisitResult, scanned_pages_note
 
@@ -145,7 +145,7 @@ def test_scanned_outcome_triggers_one_fallback_visit_to_the_digital_twin() -> No
     visited: list[str] = []
     llm = _PromptSpyLLM()
     finding, web_res, pairs, visited_pages, _failures = _run(
-        _run_researcher(
+        run_researcher(
             "What did the Q4 FY26 results announce?",
             target=_saksoft_target(),
             query="Saksoft Limited",
@@ -185,7 +185,7 @@ def test_digit_sparse_cover_letter_triggers_the_fallback() -> None:
     ) * 4
     visited: list[str] = []
     _run(
-        _run_researcher(
+        run_researcher(
             "What did the latest quarterly results announce?",
             target=_saksoft_target(),
             query="Saksoft Limited",
@@ -213,7 +213,7 @@ def test_digit_rich_primary_visit_needs_no_fallback() -> None:
     )
     visited: list[str] = []
     _run(
-        _run_researcher(
+        run_researcher(
             "What did the latest quarterly results announce?",
             target=_saksoft_target(),
             query="Saksoft Limited",
@@ -229,7 +229,7 @@ def test_digit_rich_primary_visit_needs_no_fallback() -> None:
 def test_failed_primary_visit_falls_back_to_the_next_row() -> None:
     visited: list[str] = []
     _run(
-        _run_researcher(
+        run_researcher(
             "What did the latest quarterly results announce?",
             target=_saksoft_target(),
             query="Saksoft Limited",
@@ -253,7 +253,7 @@ def test_single_disclosure_row_never_double_visits() -> None:
 
     visited: list[str] = []
     _run(
-        _run_researcher(
+        run_researcher(
             "What did the latest quarterly results announce?",
             target=_saksoft_target(),
             query="Saksoft Limited",

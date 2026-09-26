@@ -1,6 +1,6 @@
 """Entity relevance gate for gathered web evidence (R8).
 
-Root cause of the 69-junk-sources defect: ``_record_web`` folded EVERY row a
+Root cause of the 69-junk-sources defect: ``record_web`` folded EVERY row a
 web engine returned into the brief's sources and coverage — crypto "Router
 Protocol" pages on a Route Mobile run, other companies' exchange filings, and
 "what is support and resistance"-style SEO junk all became numbered ``[n]``
