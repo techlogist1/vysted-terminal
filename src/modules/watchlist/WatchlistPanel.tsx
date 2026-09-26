@@ -12,13 +12,13 @@ import { formatPercent, formatPrice } from "@/lib/format";
 import { loadSymbolIntoChart, openCompanyOverview } from "@/lib/host-actions";
 import { isLiveQuote, useMarketSession } from "@/lib/market-session";
 import { SidecarError } from "@/lib/sidecar-client";
-import { useSymbolAutocompleteResult } from "@/lib/symbol-autocomplete";
+import { type SymbolCandidate, useSymbolAutocompleteResult } from "@/lib/symbol-autocomplete";
 import { useContainerWidth } from "@/lib/use-container-width";
 import { useTickFlash } from "@/lib/use-flash-value";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
 import { fetchWatchlistQuotes, type WatchlistRow } from "./api";
-import { useSymbolsStore as useWatchlistStore } from "@/store/symbols";
+import { entryKey, type SymbolEntry, useSymbolsStore as useWatchlistStore } from "@/store/symbols";
 
 /** Poll interval for quote refreshes — a few seconds keeps it near-real-time. */
 const POLL_INTERVAL_MS = 5_000;
@@ -70,7 +70,10 @@ function SymbolCell({ row, showChips }: { row: WatchlistRow; showChips: boolean 
   const session = useMarketSession(quote?.market_state ?? null, quote?.freshness ?? null);
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
-      <span className="text-charcoal-100 text-caption truncate">{entry.symbol}</span>
+      <span className="text-charcoal-100 text-caption truncate">
+        {entry.symbol}
+        {entry.region && <span className="text-charcoal-500 text-micro ml-1">{entry.region}</span>}
+      </span>
       {/* Drop-priority 1 (law §3.2): the provenance/freshness chips drop WHOLE
           at narrow widths — never a mid-word clip ("YFINAN"). flex-wrap stacks
           whole chips if an unusually long provider outgrows the column. */}
@@ -154,7 +157,7 @@ export function WatchlistPanel() {
   const addSymbol = useWatchlistStore((state) => state.addSymbol);
   const removeSymbol = useWatchlistStore((state) => state.removeSymbol);
 
-  // Latest quote per upper-cased symbol, joined to the live entry list at
+  // Latest quote per listing ({@link entryKey}), joined to the live entry list at
   // render (R15-UI-026): an added symbol shows at once, a removed one never
   // reappears from an in-flight poll. `null` until the first refresh resolves
   // (the loading state).
@@ -165,9 +168,9 @@ export function WatchlistPanel() {
         ? null
         : entries.map((entry) => ({
             entry,
-            quote: quotes.get(entry.symbol.toUpperCase()) ?? null,
+            quote: quotes.get(entryKey(entry)) ?? null,
             // A refresh completed without it (C14) — not still loading.
-            unavailable: quotes.get(entry.symbol.toUpperCase()) === null,
+            unavailable: quotes.get(entryKey(entry)) === null,
           })),
     [entries, quotes],
   );
@@ -190,10 +193,11 @@ export function WatchlistPanel() {
   );
   const [acOpen, setAcOpen] = useState(false);
   const [acActive, setAcActive] = useState(0);
-  // Tracks the symbol the user last interacted with via the row hover; null
-  // when the user has not selected anything yet. Used as the publisher's
-  // `selectedSymbol` payload field.
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+  // Tracks the listing the user last clicked; null when the user has not
+  // selected anything yet. Its symbol is the publisher's `selectedSymbol`
+  // payload field.
+  const [selected, setSelected] = useState<SymbolEntry | null>(null);
+  const selectedSymbol = selected?.symbol ?? null;
 
   // --- panel-context bus: publish selection on change ---------------------
   const publishPanelContext = usePanelContextBus((state) => state.publish);
@@ -236,7 +240,7 @@ export function WatchlistPanel() {
       const next = await fetchWatchlistQuotes(entries);
       setQuotes((prev) => {
         const merged = new Map(prev ?? []);
-        for (const row of next) merged.set(row.entry.symbol.toUpperCase(), row.quote);
+        for (const row of next) merged.set(entryKey(row.entry), row.quote);
         return merged;
       });
       noLiveRowRef.current = next.every((row) => !isLiveQuote(row.quote?.freshness));
@@ -283,8 +287,10 @@ export function WatchlistPanel() {
     };
   }, [refresh]);
 
-  const pickCandidate = (symbol: string) => {
-    addSymbol(symbol, "equity");
+  // The picked listing's region rides the entry (R15-DATA-002): AMAL · US is
+  // Amalgamated, not the session region's Amal Ltd. A typed draft stays region-less.
+  const pickCandidate = (c: SymbolCandidate) => {
+    addSymbol(c.symbol, "equity", c.region);
     setDraft("");
     setAcOpen(false);
     setAcActive(0);
@@ -295,7 +301,7 @@ export function WatchlistPanel() {
     // Enter takes a candidate only when the list belongs to what is typed;
     // a list still showing the previous query's matches adds the draft.
     if (acOpen && candidates.length > 0 && candidatesQuery === draft.trim()) {
-      pickCandidate(candidates[Math.min(acActive, candidates.length - 1)].symbol);
+      pickCandidate(candidates[Math.min(acActive, candidates.length - 1)]);
       return;
     }
     if (draft.trim() === "") {
@@ -371,10 +377,10 @@ export function WatchlistPanel() {
           type="button"
           size="icon-xs"
           variant="ghost"
-          aria-label={`Remove ${row.entry.symbol}`}
+          aria-label={`Remove ${row.entry.symbol}${row.entry.region ? ` ${row.entry.region}` : ""}`}
           onClick={(e) => {
             e.stopPropagation();
-            removeSymbol(row.entry.symbol);
+            removeSymbol(row.entry.symbol, row.entry.region ?? null);
           }}
         >
           <X />
@@ -431,7 +437,7 @@ export function WatchlistPanel() {
                     aria-selected={i === acActive}
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      pickCandidate(c.symbol);
+                      pickCandidate(c);
                     }}
                     onMouseEnter={() => setAcActive(i)}
                     className={cn(
@@ -551,15 +557,15 @@ export function WatchlistPanel() {
           <DataTable
             columns={columns}
             rows={rows}
-            rowKey={(row) => row.entry.symbol}
-            isRowSelected={(row) => selectedSymbol === row.entry.symbol}
+            rowKey={(row) => entryKey(row.entry)}
+            isRowSelected={(row) => selected !== null && entryKey(selected) === entryKey(row.entry)}
             onRowClick={(row) => {
-              setSelectedSymbol(row.entry.symbol);
+              setSelected(row.entry);
               // The equity overview has no crypto path: a pair opens its chart.
               if (row.entry.assetClass === "crypto") {
                 loadSymbolIntoChart(row.entry.symbol);
               } else {
-                openCompanyOverview(row.entry.symbol);
+                openCompanyOverview(row.entry.symbol, undefined, row.entry.region);
               }
             }}
             className={cn(error !== null && "opacity-50")}

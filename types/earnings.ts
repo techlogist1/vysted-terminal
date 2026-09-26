@@ -98,10 +98,13 @@ export interface EarningsSurprise {
 export interface EarningsEstimateDetail {
   symbol: string;
   fiscal_period: FiscalPeriod | null;
-  eps_estimate_mean: number;
+  /** R15-LEAD-039: nullable, same shape as the revenue triple below — Yahoo's
+   * calendar payload omits these for several liquid non-US names (RDY, TM,
+   * SONY); each field is independently nullable, never a hard failure. */
+  eps_estimate_mean: number | null;
   eps_estimate_median: number | null;
-  eps_estimate_high: number;
-  eps_estimate_low: number;
+  eps_estimate_high: number | null;
+  eps_estimate_low: number | null;
   eps_estimate_stddev: number | null;
   estimate_analyst_count: number | null;
   /** Same fields for revenue (median/stddev null unless the provider supplies

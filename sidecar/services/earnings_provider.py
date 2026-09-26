@@ -548,11 +548,14 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
         except (TypeError, ValueError) as exc:
             raise ProviderError(f"could not parse earnings date {raw!r} for {symbol!r}") from exc
 
+    # R15-LEAD-039: Yahoo's calendar payload omits Earnings Average/High/Low
+    # for several liquid non-US names (RDY, TM, SONY); each field is
+    # independently nullable, the same shape as the revenue triple below —
+    # a missing "Earnings Date" is the hard failure above, a missing EPS
+    # field is a partial result, not one.
     eps_mean = _num(cal.get("Earnings Average"))
     eps_high = _num(cal.get("Earnings High"))
     eps_low = _num(cal.get("Earnings Low"))
-    if eps_mean is None or eps_high is None or eps_low is None:
-        raise ProviderError(f"incomplete estimate fields for {symbol!r}")
 
     rev_mean = _num(cal.get("Revenue Average"))
     rev_high = _num(cal.get("Revenue High"))

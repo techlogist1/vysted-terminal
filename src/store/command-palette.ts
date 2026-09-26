@@ -31,7 +31,7 @@ import { create } from "zustand";
 import { applyLayoutMode, MENU_PAYLOAD_TO_MODE } from "@/lib/layout-templates";
 import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
 import { useModulesStore } from "@/store/modules";
-import { useSymbolsStore } from "@/store/symbols";
+import { useSymbolsStore, type SymbolEntry } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 import type { AgentSummary } from "@/store/agents";
 import type { CommandSpec, PanelSpec } from "../../types/plugin";
@@ -54,7 +54,7 @@ export interface PaletteItem {
   agentSummary?: AgentSummary;
   commandSpec?: CommandSpec;
   panelSpec?: PanelSpec;
-  symbolEntry?: { symbol: string; assetClass: "equity" | "crypto" };
+  symbolEntry?: SymbolEntry;
   /**
    * A direct dispatch for an `action` item with no `CommandSpec` (e.g. a
    * layout-menu mode — it isn't a module command, so it has no plugin-contract
@@ -315,10 +315,12 @@ export function buildPaletteCorpus(): PaletteItem[] {
   const entries = symbolsState.entries.slice(0, SYMBOL_CAP);
   for (const entry of entries) {
     items.push({
-      id: `symbol:${entry.symbol}`,
+      // A picked listing keeps its own id (symbol:AMAL:US) so two listings of
+      // one ticker are two items, not one cmdk value (R15-DATA-002).
+      id: entry.region ? `symbol:${entry.symbol}:${entry.region}` : `symbol:${entry.symbol}`,
       kind: "symbol",
       label: entry.symbol,
-      description: entry.assetClass,
+      description: entry.region ? `${entry.assetClass} · ${entry.region}` : entry.assetClass,
       symbolEntry: entry,
     });
   }

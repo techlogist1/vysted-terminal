@@ -57,6 +57,26 @@ describe("EpsEstimateGrid", () => {
     expect(screen.getByText(`${prefix}${formatUnit(100_000_000)}${suffix}`)).toBeTruthy();
   });
 
+  it("a null EPS triple (R15-LEAD-039) renders the null glyph while the revenue mean stays formatted", () => {
+    const estimate: EarningsEstimateDetail = {
+      ...BASE_ESTIMATE,
+      eps_estimate_mean: null,
+      eps_estimate_median: 1.5,
+      eps_estimate_high: null,
+      eps_estimate_low: null,
+      eps_estimate_stddev: 0.05,
+      estimate_analyst_count: 20,
+      revenue_estimate_high: 105_000_000,
+      revenue_estimate_low: 95_000_000,
+    };
+    render(<EpsEstimateGrid estimate={estimate} />);
+    // Exactly the EPS mean/high/low cells render the shared null glyph — every
+    // other field on this fixture is non-null.
+    expect(screen.getAllByText("—")).toHaveLength(3);
+    const { prefix, suffix } = currencyAffix("USD");
+    expect(screen.getByText(`${prefix}${formatUnit(100_000_000)}${suffix}`)).toBeTruthy();
+  });
+
   it("a determined revenue_currency renders with its own currency, distinct from EPS currency", () => {
     render(
       <EpsEstimateGrid estimate={{ ...BASE_ESTIMATE, currency: "USD", revenue_currency: "INR" }} />,

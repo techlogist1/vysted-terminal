@@ -249,4 +249,32 @@ describe("CommandPalette (cmdk)", () => {
     fireEvent.click(within(tickersGroup).getByText("NSE"));
     expect(useChartCommandStore.getState().command).toMatchObject({ symbol: "AMAL", region: "IN" });
   });
+
+  it("a watchlist symbol pick charts that entry's listing region (R15-DATA-002)", () => {
+    useWorkspaceStore.setState({ dockviewApi: null, openPanel: vi.fn() } as never);
+    resetChartCommandStoreForTests();
+    useSymbolsStore.setState({ entries: [{ symbol: "AMAL", assetClass: "equity", region: "US" }] });
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Ask anything/i), { target: { value: "amal" } });
+    const symbolsGroup = screen.getByText("Symbols").closest("[cmdk-group]") as HTMLElement;
+    fireEvent.click(within(symbolsGroup).getByText("AMAL"));
+    expect(useChartCommandStore.getState().command).toMatchObject({ symbol: "AMAL", region: "US" });
+  });
+
+  it("two tracked listings of one ticker are two palette symbol items (R15-DATA-002)", () => {
+    useSymbolsStore.setState({
+      entries: [
+        { symbol: "AMAL", assetClass: "equity", region: "IN" },
+        { symbol: "AMAL", assetClass: "equity", region: "US" },
+      ],
+    });
+    useCommandPalette.setState({ open: true });
+    render(<CommandPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Ask anything/i), { target: { value: "amal" } });
+    const symbolsGroup = screen.getByText("Symbols").closest("[cmdk-group]") as HTMLElement;
+    expect(within(symbolsGroup).getAllByText("AMAL")).toHaveLength(2);
+    expect(within(symbolsGroup).getByText("equity · IN")).toBeInTheDocument();
+    expect(within(symbolsGroup).getByText("equity · US")).toBeInTheDocument();
+  });
 });

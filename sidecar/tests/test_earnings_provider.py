@@ -247,6 +247,64 @@ async def test_get_estimate_detail_no_event(monkeypatch: pytest.MonkeyPatch) -> 
 
 
 # ---------------------------------------------------------------------------
+# R15-LEAD-039 — a partial calendar (missing Earnings Average/High/Low) is a
+# nullable result, not a 502; same shape as the pre-existing revenue triple.
+# ---------------------------------------------------------------------------
+
+
+class _NoEpsFieldsTicker(_FakeEarningsTicker):
+    """RDY/TM/SONY-shaped: Yahoo gives an Earnings Date and a full Revenue
+    triple but no Earnings Average/High/Low at all."""
+
+    @property
+    def calendar(self) -> dict[str, Any]:  # type: ignore[override]
+        return {
+            "Earnings Date": [date(2026, 5, 20)],
+            "Revenue Average": 100_000_000.0,
+            "Revenue High": 105_000_000.0,
+            "Revenue Low": 95_000_000.0,
+        }
+
+
+@pytest.mark.asyncio
+async def test_get_estimate_detail_missing_eps_fields_is_a_null_triple_not_a_raise(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _NoEpsFieldsTicker)
+    detail = await earnings_provider.get_estimate_detail("RDY")
+    assert detail.eps_estimate_mean is None
+    assert detail.eps_estimate_high is None
+    assert detail.eps_estimate_low is None
+    assert detail.revenue_estimate_mean == 100_000_000.0
+    assert detail.revenue_estimate_high == 105_000_000.0
+    assert detail.revenue_estimate_low == 95_000_000.0
+
+
+class _MeanOnlyEpsTicker(_FakeEarningsTicker):
+    """The case not written against: Earnings Average is present but High/Low
+    are absent — the mean survives independently of its siblings."""
+
+    @property
+    def calendar(self) -> dict[str, Any]:  # type: ignore[override]
+        return {
+            "Earnings Date": [date(2026, 5, 20)],
+            "Earnings Average": 1.50,
+            "Revenue Average": 100_000_000.0,
+        }
+
+
+@pytest.mark.asyncio
+async def test_get_estimate_detail_eps_mean_alone_keeps_the_mean_nulls_high_low(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _MeanOnlyEpsTicker)
+    detail = await earnings_provider.get_estimate_detail("TM")
+    assert detail.eps_estimate_mean == 1.50
+    assert detail.eps_estimate_high is None
+    assert detail.eps_estimate_low is None
+
+
+# ---------------------------------------------------------------------------
 # India symbols resolve through _yahoo_symbol (R15-DATA-029)
 # ---------------------------------------------------------------------------
 

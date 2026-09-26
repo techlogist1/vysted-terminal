@@ -174,6 +174,43 @@ def test_estimates(client: TestClient, stub_provider: Any) -> None:
     assert body["estimate_analyst_count"] == 21
 
 
+def test_estimates_with_a_partial_eps_triple_answers_200_not_502(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-LEAD-039: RDY/TM/SONY-shaped upstream (no Earnings Average/High/Low
+    at all) is a nullable result, not a 502 — a second call served from the
+    cache validates the same way."""
+    from services import earnings_provider
+
+    def _partial_estimates() -> EarningsEstimateDetail:
+        return EarningsEstimateDetail(
+            symbol="RDY",
+            eps_estimate_mean=None,
+            eps_estimate_high=None,
+            eps_estimate_low=None,
+            revenue_estimate_mean=100_000_000.0,
+            revenue_estimate_high=105_000_000.0,
+            revenue_estimate_low=95_000_000.0,
+            currency="USD",
+            provider="yfinance",
+            as_of=datetime(2026, 5, 16, tzinfo=UTC),
+        )
+
+    async def _estimates(symbol: str):
+        return _partial_estimates()
+
+    monkeypatch.setattr(earnings_provider, "get_estimate_detail", _estimates)
+
+    first = client.get("/earnings/RDY/estimates")
+    assert first.status_code == 200
+    assert first.json()["eps_estimate_mean"] is None
+    assert first.json()["revenue_estimate_mean"] == 100_000_000.0
+
+    second = client.get("/earnings/RDY/estimates")
+    assert second.status_code == 200
+    assert second.json()["eps_estimate_mean"] is None
+
+
 def test_history_caches(
     client: TestClient,
     stub_provider: Any,

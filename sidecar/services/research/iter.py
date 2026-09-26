@@ -892,9 +892,7 @@ def _remap_markers(markdown: str, local: list[ResearchSource], merged: list[Rese
     """Rewrite an angle brief's ``[n]`` markers from its OWN numbered list to
     the merged list's numbers, by url — deterministic, so the panel synthesis
     never renumbers citations itself. A marker outside the angle's list points
-    at nothing and is dropped. Grouped markers (``[2, 3]``, ``[Source 2]``) are
-    normalised against the angle's OWN list first (R15-RESEARCH-043), so they
-    remap too instead of reaching the synthesis in local numbering."""
+    at nothing and is dropped, and the residue it leaves is tidied."""
     from services.research.citecheck import MARKER_RE, strip_invalid_markers
 
     merged_number = {src.url: i + 1 for i, src in enumerate(merged)}

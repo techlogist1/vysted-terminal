@@ -72,6 +72,7 @@ import re
 import threading
 import time
 from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field, replace
 from difflib import SequenceMatcher
 from functools import lru_cache
@@ -132,10 +133,22 @@ _MAX_CANDIDATES = 6
 # a throttled/blocked upstream once per unresolved query.
 _LIVE_CACHE_MAX_ENTRIES = 128
 _LIVE_FAILURE_COOLDOWN_SECONDS = 60.0
-# yfinance 1.3.0's Search defaults to timeout=30, which can hold a worker
-# thread (and its caller) for 30 s on a hung Yahoo. Live misses measure
-# 0.4-2.2 s in practice; 5 s leaves headroom without masking a real miss.
+# yfinance 1.3.0's Search defaults to timeout=30. Passing timeout= here bounds
+# the main request but NOT the cookie/crumb leg underneath it (yfinance's
+# _get_cookie_and_crumb / _get_crumb_basic / _get_crumb_csrf take no timeout
+# override and keep the hard-coded 30 s), so a cold process with no cached
+# crumb can still hang up to 30 s. The wall-clock deadline on
+# _LIVE_SEARCH_POOL's future.result() below is what actually bounds the call;
+# this constant remains the timeout= kwarg passed into yf.Search itself. Live
+# misses measure 0.4-2.2 s in practice; 5 s leaves headroom without masking a
+# real miss.
 _LIVE_SEARCH_TIMEOUT_SECONDS = 5.0
+# ponytail: a hung yf.Search still occupies its pool worker until yfinance's
+# own 30 s cookie/crumb timeout gives up underneath it (future.cancel() only
+# drops a submit that hasn't started yet); max_workers=4 caps how many
+# workers can be stuck at once, upgrade to a smaller pool + queue rejection
+# if concurrent misses ever exceed that.
+_LIVE_SEARCH_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="yf-search")
 # A successful EMPTY search expires (R15-DATA-097): the live rung is the path to
 # a post-snapshot listing, so a stale negative would hide it until restart.
 _LIVE_EMPTY_TTL_SECONDS = 300.0
@@ -1683,8 +1696,18 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     try:
         import yfinance as yf
 
-        search = yf.Search(query, max_results=5, news_count=0, timeout=_LIVE_SEARCH_TIMEOUT_SECONDS)
-        quotes = getattr(search, "quotes", None) or []
+        def _run_search() -> list[dict]:
+            search = yf.Search(
+                query, max_results=5, news_count=0, timeout=_LIVE_SEARCH_TIMEOUT_SECONDS
+            )
+            return getattr(search, "quotes", None) or []
+
+        future = _LIVE_SEARCH_POOL.submit(_run_search)
+        try:
+            quotes = future.result(timeout=_LIVE_SEARCH_TIMEOUT_SECONDS)
+        except TimeoutError:
+            future.cancel()
+            raise
     except Exception as exc:  # noqa: BLE001 - any live-lookup failure is non-fatal
         with _live_cache_lock:
             _live_cooldown_until = time.monotonic() + _LIVE_FAILURE_COOLDOWN_SECONDS
