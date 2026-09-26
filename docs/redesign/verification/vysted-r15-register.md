@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 654 entries + 76 rejections. critical: 16 . high: 118 . medium: 293 . low: 227
+887 raw findings -> 655 entries + 76 rejections. critical: 16 . high: 118 . medium: 294 . low: 227
 
-Status: blocked_tier4: 26 . fixed: 380 . needs_gui: 11 . not_a_defect: 5 . open: 218 . removed_with_feature: 14
+Status: blocked_tier4: 26 . fixed: 380 . needs_gui: 11 . not_a_defect: 5 . open: 219 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -227,7 +227,7 @@ Status: blocked_tier4: 26 . fixed: 380 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-LEAD-037** [medium] The fabrication guard grounds a stated figure by VALUE only, so an older bar buried in the same price_data payload counts as grounded for the current-price sentence — _blocked_tier4_
 - **R15-LEAD-038** [medium] When an explicit no-tool instruction correctly empties the tool surface, llama3.1:8b still narrates a false completed portfolio write with no tool call behind it — _blocked_tier4_
 
-### Research / web search (53)
+### Research / web search (54)
 
 - **R15-AGENT-001** [critical] Chat narrates derived money figures 10-100x wrong: fraction values labelled unit 'percent' are read as percent, and a raw-rupee market cap is mis-scaled by the model — _fixed_
 - **R15-DATA-003** [critical] Research treats a US-bound AMAL as the Indian Amal Ltd for ownership: the ownership applicability gate checks bare-ticker NSE/BSE master membership, so Amalgamated Financial's brief states 'Promoter group (exchange filing) 71.35%' from Amal Ltd's BSE shareholding and raises a false conflict — _fixed_
@@ -282,6 +282,7 @@ Status: blocked_tier4: 26 . fixed: 380 . needs_gui: 11 . not_a_defect: 5 . open:
 - **R15-RESEARCH-040** [low] Hosted Tier B research shows its cost estimate only after the run has been billed; nothing shows a per-run estimate before dispatch (FR-073) — _open_
 - **R15-RESEARCH-041** [low] The 'structured data only - no web' brief banner can never fire: briefFromInput counts vysted:// and exchange rows as web availability, so zero-web DEEP/ULTRA briefs never get the promised affordance — _open_
 - **R15-RESEARCH-042** [low] The research cockpit's brief has no floor of >=3 cited sources (SC-016): nothing enforces or measures source count per brief, and with no web backend FAST publishes structured-only with fewer — _open_
+- **R15-RESEARCH-043** [medium] Research brief citation-integrity net matches only a bare [n]; grouped markers [2, 3] and prose pseudo-citations [New findings] ship unresolved as literal text — _open_
 
 ### Data on small or obscure stocks (129)
 
@@ -1072,4 +1073,5 @@ Status: blocked_tier4: 26 . fixed: 380 . needs_gui: 11 . not_a_defect: 5 . open:
 | R15-LEAD-037 | medium | agent | agent-tools | The fabrication guard grounds a stated figure by VALUE only, so an older bar buried in the same price_data payload counts as grounded for the current-price sentence | blocked_tier4 |  |
 | R15-LEAD-038 | medium | agent | agent-tools | When an explicit no-tool instruction correctly empties the tool surface, llama3.1:8b still narrates a false completed portfolio write with no tool call behind it | blocked_tier4 |  |
 | R15-DATA-116 | high | data | market-data-providers-3 | BSE shareholding-pattern (SHP) quarter index 403s over plain httpx while the impersonated curl_cffi lane used by every other api.bseindia.com call gets 200, so /disclosures/shareholding 502s for every BSE-listed symbol | open | rc1-verifier:1 |
-| R15-CODE-AGENT-34 | high | code | mcp-servers | MCP list_workspaces/get_workspace tools GET '/workspaces' but the router is prefix '/workspace' (404 on both), and list_workspaces also skips the bare-list-to-dict wrap so it errors even once the path is fixed — both v1.0 external MCP workspace tools are dead for every client | open | rc1-verifier:2 |
+| R15-CODE-AGENT-034 | high | code | mcp-servers | MCP list_workspaces/get_workspace tools GET '/workspaces' but the router is prefix '/workspace' (404 on both), and list_workspaces also skips the bare-list-to-dict wrap so it errors even once the path is fixed — both v1.0 external MCP workspace tools are dead for every client | open | rc1-verifier:2 |
+| R15-RESEARCH-043 | medium | research | research-extraction-synthesis | Research brief citation-integrity net matches only a bare [n]; grouped markers [2, 3] and prose pseudo-citations [New findings] ship unresolved as literal text | open | rc1-drive-research-briefs:2, rc1-verifier:3 |

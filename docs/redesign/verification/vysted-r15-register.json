@@ -17060,7 +17060,7 @@
       "evidence": "docs/redesign/verification/r15/rc1/refutation-audit/round-2/newhigh-rc1-verifier-1.md",
       "root_cause": "sidecar/services/bse_provider.py:861-870 (_fetch_shp_index fetches _SHP_INDEX_URL, line 744, on api.bseindia.com through _http_get, line 175, which is plain httpx; BSE answers 403 Access Denied). The same module's _api_json (line 1189, curl_cffi impersonate=chrome) gets 200 for the same call, and every other api.bseindia.com call already goes through it.",
       "fix_shape": "Route the SHP quarter index through the impersonated lane: _fetch_shp_index(code) returns _table(_api_json('SHPQNewFormat/w', {'scripcode': code}), 'Table', 'SHPQNewFormat/w'). Keep the ProviderError semantics disclosures relies on. Leave the per-quarter XBRL download (www.bseindia.com, still 200 over httpx) on _http_get. Move the SHP test stubs so the index is served through a monkeypatched _api_json and the XBRL through _http_get. Drop _SHP_INDEX_URL if it becomes unused.",
-      "defect_class": "unreconciled-yfinance-scalar",
+      "defect_class": "provider-transport-lane",
       "raw_ids": [
         "rc1-verifier:1"
       ],
@@ -17073,7 +17073,7 @@
       "closure_evidence": null
     },
     {
-      "id": "R15-CODE-AGENT-34",
+      "id": "R15-CODE-AGENT-034",
       "title": "MCP list_workspaces/get_workspace tools GET '/workspaces' but the router is prefix '/workspace' (404 on both), and list_workspaces also skips the bare-list-to-dict wrap so it errors even once the path is fixed — both v1.0 external MCP workspace tools are dead for every client",
       "severity": "high",
       "area": "code",
@@ -17087,7 +17087,7 @@
       "evidence": "docs/redesign/verification/r15/rc1/refutation-audit/round-2/newhigh-rc1-verifier-2.md",
       "root_cause": "sidecar/services/mcp_server.py:252-265: list_workspaces GETs '/workspaces' (line 255) and get_workspace GETs '/workspaces/{id}' (line 263), but sidecar/routers/workspace.py:21 is APIRouter(prefix='/workspace'). list_workspaces also skips the module's _get_list bare-list wrap (mcp_server.py:113), and GET /workspace returns a bare list[str].",
       "fix_shape": "In mcp_server.py, list_workspaces becomes 'return await _get_list(\"/workspace\", \"workspaces\")'. get_workspace GETs f'/workspace/{quote(workspace_id, safe=\"\")}' and maps an httpx.HTTPError to {'ok': False, 'error': ...} the way _get_list does, instead of a bare raise_for_status. Correct both docstrings. No REST contract change. A prefix-only fix is NOT enough: simulated, list_workspaces then fails with 'structured_content must be a dict or None. Got list'.",
-      "defect_class": "localhost-surface-trust",
+      "defect_class": "mcp-route-path-mismatch",
       "raw_ids": [
         "rc1-verifier:2"
       ],
@@ -17095,6 +17095,30 @@
       "operator_areas": [],
       "status": "open",
       "note": "source: rc1 gate round 2 verifier rc1-verifier:2; verdict: new_defect_confirmed; acceptance: sidecar/tests/test_mcp_server.py: new test_workspace_tools_reach_the_workspace_router. With the bound-app client fixture and a scratch VYSTED_DATA_DIR, POST /workspace {'name':'t-ws','workspace':{'version':1}}. Assert call_tool('list_workspaces',{}) structured_content is a dict and 't-ws' in ['workspaces']; call_tool('get_workspace',{'workspace_id':'t-ws'}) == {'version':1}; get_workspace('missing') -> ok False with '404' in error. Add ('list_workspaces','/workspace') to test_list_tool_reports_a_failing_route_as_not_ok. Live: own sidecar, save a workspace, then a FastMCP in-memory Client over mcp_server._build_server() with VYSTED_SIDECAR_INTERNAL_BASE_URL=http://127.0.0.1:<port>: both tools is_error=False."
+    },
+    {
+      "id": "R15-RESEARCH-043",
+      "title": "Research brief citation-integrity net matches only a bare [n]; grouped markers [2, 3] and prose pseudo-citations [New findings] ship unresolved as literal text",
+      "severity": "medium",
+      "area": "research",
+      "subsystem": "research-extraction-synthesis",
+      "files": "['sidecar/services/research/citecheck.py', 'src/lib/brief-ingest.ts', 'sidecar/tests/test_citecheck.py']",
+      "repro": "Gate round 2 owner drive rc1-drive-research-briefs:2 at 4c6dfe8c, re-proved by the fresh verifier (rc1-verifier:3, r15/rc1/verifier/g2/fixloop-briefs2-citecheck.txt): MARKER_RE in citecheck.py:39 finds nothing in '[2, 3]' and brief-ingest.ts:396 renders '[New findings]' as literal text; a brief whose synthesis carries a grouped marker or a bracketed prose fragment passes the net with unresolved citations.",
+      "evidence": "docs/redesign/verification/R15_GATE_RC1.md (item 10), docs/redesign/verification/r15/rc1/findings/rc1-verifier.json (rc1-verifier:3), r15/rc1/fix-r1/PLAN.md, r15/rc1/fix-r2/RECHECK.md",
+      "root_cause": "sidecar/services/research/citecheck.py:39 MARKER_RE is a single-integer bracket grammar; src/lib/brief-ingest.ts:396 mirrors it, so any bracket the grammar rejects is neither resolved nor stripped and ships verbatim.",
+      "fix_shape": "One shared marker grammar on both sides of the wire: a bracket group is a citation iff every comma/en-dash separated token is an integer (with optional ranges); grouped markers resolve each index; a bracket whose content is not an integer list is prose and is neither resolved nor counted as a citation but IS flagged by the net as an unresolved pseudo-citation when it looks like one (capitalised words, no digits) — the brief fails the integrity check rather than shipping it. The two fix rounds of gate round 2 (Sonnet, r15/rc1/fix-r1 + fix-r2 on worktree-agent-rc1-4c6dfe8-fix-int@81fbfe91) patched the regex only and the recheck still reproduced live through both nets; the next attempt is a root-cause fix on Opus with a fresh case the fix was not written against.",
+      "defect_class": "citation-marker-grammar",
+      "raw_ids": [
+        "rc1-drive-research-briefs:2",
+        "rc1-verifier:3"
+      ],
+      "tier4": false,
+      "operator_areas": [
+        "research-search"
+      ],
+      "status": "open",
+      "note": "Filed by the lead 26 Sep after gate round 2 from the gate verifier finding (fresh-verifier concurrence on the four-area rule: rc1-verifier:3). Certification failures so far: 2 (gate round 2 fix rounds r1 and r2, recheck reproduced) — a third stops it for the operator.",
+      "closure_evidence": null
     }
   ],
   "rejections": [
@@ -17405,11 +17429,11 @@
   ],
   "counts": {
     "raw": 887,
-    "entries": 654,
+    "entries": 655,
     "rejections": 76,
     "critical": 16,
     "high": 118,
-    "medium": 293,
+    "medium": 294,
     "low": 227
   }
 }
