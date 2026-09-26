@@ -382,20 +382,11 @@ def apply_criteria(
     # table's columns, and ``sort_by`` may be any screener numeric field.
     matched: list[tuple[float | None, ScreenerResultRow]] = []
     for fundamentals, quote in rows:
-        passed_indices: list[int] = []
         if group is not None:
             if not _evaluate_group(group, fundamentals, quote):
                 continue
-        else:
-            all_passed = True
-            for idx, criterion in enumerate(criteria):
-                if _evaluate_criterion(criterion, fundamentals, quote):
-                    passed_indices.append(idx)
-                else:
-                    all_passed = False
-                    break
-            if not all_passed:
-                continue
+        elif not all(_evaluate_criterion(c, fundamentals, quote) for c in criteria):
+            continue
         matched.append(
             (
                 _numeric_field_value(fundamentals, quote, sort_by),
@@ -415,7 +406,6 @@ def apply_criteria(
                     price=quote.price if quote is not None else None,
                     change_percent_1d=quote.change_percent if quote is not None else None,
                     volume=quote.volume if quote is not None else None,
-                    matched_criteria=passed_indices,
                     currency=fundamentals.currency,
                 ),
             )

@@ -277,7 +277,6 @@ class ScreenerResultRow(BaseModel):
     price: float | None = None
     change_percent_1d: float | None = None
     volume: float | None = None
-    matched_criteria: list[int] = []
     # --- R11 (D52/D57) honest-basis block — additive, defaulted for back-compat.
     #: Listing currency of the currency-denominated fields (market_cap, price).
     currency: str | None = None
