@@ -198,16 +198,16 @@ limitation of the local-model lane, not an open defect.
   portfolio change in the same message, it makes no call and nothing is written or
   queued, but its reply can say the change was made or staged for your review and can
   describe holdings that do not exist. (Accepted limitation.)
-- **The "don't use tools" phrase detector both under- and over-matches.** An
-  unrecognised no-tool phrasing keeps the tools, so the agent may still read data and
-  propose a portfolio change (always held for your review, never applied; under AUTO a
-  watchlist or chart change does apply) and can occasionally state a price it never
-  fetched; a data request that only qualifies tool use (for example "other than price
-  data", "for the math, but do fetch", "tools you don't need", "twice", "I never said
-  don't use tools") loses every tool instead, and the agent then usually states an
-  invented price as if fetched. (Still open at this sha — a narrowing-only fix for the
-  over-match half is in its final batch, and the residual joins the known limitations
-  above on that batch's verifier concurrence; confirmed at the tag.)
+- **The "don't use tools" phrase detector is a fixed phrase list.** An unrecognised
+  no-tool phrasing keeps the tools, so the agent may still read data and propose a
+  portfolio change (always held for your review, never applied; under AUTO a watchlist
+  or chart change does apply) and can occasionally state a price it never fetched, while
+  a data request that qualifies a no-tool instruction after a comma or in reported
+  speech ("Don't use any tools, except price_data …", "No tools, other than the price
+  lookup …", "He says don't use tools, but …") still loses every tool and the agent then
+  usually states an invented price as if fetched. (Accepted limitation — the residual's
+  exact final wording awaits the operator's sign-off; a narrower fix is on the table for
+  a later release line.)
 
 **Fail-safe.** A portfolio write never auto-applies regardless of any of the above:
 `data-write` changes always stage for your review, and AUTO skips review only for
@@ -220,7 +220,8 @@ limitations describe. A false "done" reply (the third) is contained by the revie
 queue, because a portfolio write needs a real tool call and a narrated one stages
 nothing. The fourth is the phrase detector named next. The shipping "don't use tools"
 matcher is the closed `_NO_TOOL_CUE` phrase list in `sidecar/services/planner.py`
-(around line 136).
+(around line 139, as of `4c6dfe8c`/merge `6778f892`) — narrowed once already with a
+closed-tail lookahead plus `(?<!said )(?<!say )`.
 
 <!-- PART B: CHANGELOG v0.9.0 section -->
 
@@ -235,14 +236,16 @@ entries were admitted during Stage C (16 critical / 116 high / 293 medium / 227 
 plus 76 rejections) — was worked down across 22 Stage-C batches plus an rc1 gate round,
 each merged `--no-ff` from an isolated integrator worktree and each independently
 verified fresh-context before merge
-(`docs/redesign/verification/r15/stage-c/batch-N/VERDICTS.md`). By this sha: 391 entries
-`fixed`, 206 `open`, 25 `blocked_tier4` (operator-attended, §4 below), 14
-`removed_with_feature` (trading, D81), 11 `needs_gui`, 5 `not_a_defect`. Of the 206 open,
-exactly **one** is critical/high/medium severity — `R15-LEAD-035` (medium, agent-tools,
-see the Known-limitations section above) — the remaining 205 open entries are low
-severity. No `r15-rc1` tag exists yet at this sha; a first rc1 gate run (`R15_GATE_RC1.md`,
-round 1) **FAILED** against an earlier candidate and drove several of the batch-12..22
-fix rounds — the gate has not been re-run to a pass at this sha. Stage D (this wave)
+(`docs/redesign/verification/r15/stage-c/batch-N/VERDICTS.md`). As of `4c6dfe8c` (batch
+24 merged `6778f892`): 391 entries `fixed`, 205 `open`, 26 `blocked_tier4` (operator-
+attended, §4 below), 14 `removed_with_feature` (trading, D81), 11 `needs_gui`, 5
+`not_a_defect`. Open critical/high/medium is **zero** — `R15-LEAD-035` (medium,
+agent-tools, see the Known-limitations section above) moved to `blocked_tier4` at
+`4c6dfe8c`, as an escalation under the operator's three-failure rule, not a concurrence
+— the 205 open entries are all low severity. No `r15-rc1` tag exists yet at this sha; a
+first rc1 gate run (`R15_GATE_RC1.md`, round 1) **FAILED** against an earlier candidate
+and drove several of the batch-12..22 fix rounds; round 2 is running now from `4c6dfe8c`
+(`wf_4ed38558-4d0`) — the gate has not been re-run to a verdict at this sha. Stage D (this wave)
 drafts release collateral read-only, beside the fix batches, at a pinned sha.
 
 **Batches (merge commits, first-parent, newest first per `git log --first-parent
@@ -304,9 +307,13 @@ drafts release collateral read-only, beside the fix batches, at a pinned sha.
 
 **Not yet merged at this sha:** Stage C batch 23 (integrator branch left unmerged — its
 own verifier verdict was `block`, and the disposition/concurrence work for
-`R15-LEAD-030/035/037/038` ran alongside it instead of inside it); Stage C batch 24 (in
-flight, not tracked at this sha; it carries the named narrowing-only fix for
-`R15-LEAD-035`'s over-match half).
+`R15-LEAD-030/035/037/038` ran alongside it instead of inside it). **Update as of
+`4c6dfe8c`:** Stage C batch 24 merged as `6778f892` (int `d1290f66`) — it shipped
+`R15-LEAD-035`'s named narrowing-only fix (holds as a strict subset, 0 new strips), but
+the entry still failed certification a fourth time and the fresh verifier REFUSED the
+`blocked_tier4` concurrence; the lead set `R15-LEAD-035` to `blocked_tier4` under the
+operator's three-failure rule as an escalation instead (`DECISIONS_FOR_OPERATOR.md`
+§4.10).
 
 <!-- VERIFY: CHANGELOG.md itself only carries a full per-batch narrative section through
 batch-17 at this sha (plus the trading-removal and rc1-gate-round-1 headings) — batches
@@ -339,14 +346,15 @@ this wave can write on their behalf. -->
 
 No further D-numbers were added between D92 and this sha.
 
-**Register at this sha:** 16 critical (0 open), 116 high (0 open), 293 medium (1 open:
-`R15-LEAD-035`), 227 low (205 of them still open); 11 entries need hands-on GUI
-verification (listed in Known limitations above); 25 are `blocked_tier4`
-(operator-attended — release signing/pipeline/CI plus MCP-server extensibility, webview
-CSP, plugin data-contribution model, first-party-panels-bypass-plugin, a few stale doc
-claims, and three of the four `R15-LEAD-*` local-model items above (030, 037, 038; 035
-is still `open`); tracked in `docs/redesign/DECISIONS_FOR_OPERATOR.md` §2.8–§2.21 and
-§4).
+**Register at `4c6dfe8c`:** 16 critical (0 open), 116 high (0 open), 293 medium (0 open),
+227 low (205 of them still open); 11 entries need hands-on GUI verification (listed in
+Known limitations above); 26 are `blocked_tier4` (operator-attended — release
+signing/pipeline/CI plus MCP-server extensibility, webview CSP, plugin
+data-contribution model, first-party-panels-bypass-plugin, a few stale doc claims, and
+all four `R15-LEAD-*` local-model items above (030, 037, 038 by a fresh verifier's
+concurrence; 035 as an escalation under the three-failure rule, batch 24, `6778f892` —
+not a concurrence, still your call at rc1); tracked in
+`docs/redesign/DECISIONS_FOR_OPERATOR.md` §2.8–§2.21 and §4).
 
 **Carried forward / not yet done at this sha:**
 
@@ -365,14 +373,32 @@ is still `open`); tracked in `docs/redesign/DECISIONS_FOR_OPERATOR.md` §2.8–�
   order audit log, and 17 trading-only sidecar test files are deleted, not stubbed
   (D81/D89).
 - The rc1 gate has run once (round 1, FAIL, against an earlier candidate sha) and has
-  not been re-run to a verdict at this sha; round 2 launches once batch-24 merges.
-  Confirm the gate's final verdict, and any tag name/sha, at the tag.
+  not been re-run to a verdict at this sha; round 2 is running now from `4c6dfe8c`
+  (`wf_4ed38558-4d0`, launched after batch-24 merged and the register reached 0 open
+  critical/high/medium). Confirm the gate's final verdict, and any tag name/sha, at the
+  tag.
 
 **Verification snapshot:**
 
 <!-- fill at rc2: ci-local / smoke / rc gate round-2 results -->
 
 <!-- refresh f4444790 to 4d89314: register grew from 626 to 652 entries and open critical/high/medium fell from 117 (3 high + 114 medium) to 1 (R15-LEAD-035 only) as batches 10-22 merged; rewrote Known limitations' local-model section with the now-binding blocked_tier4 wording for LEAD-030 (clause struck per the batch-23 disposition verifier)/037/038 and the still-open LEAD-035 pending batch-24 concurrence, plus the fail-safe/shipping-matcher pointers; extended Part B's batch list through batch-22 (block verdict, W1-only merge) and flagged batch-23 (blocked, unmerged) and batch-24 (in flight); added three individually-certified Fixed lines (LEAD-031/033/034) and flagged the rest of batches 10-22's certifications as an open rc2 task rather than guessing; updated needs_gui from 6 to the 11 FACTS lists, with titles; corrected the version-bump note to say the prepared branch lands after the r15-rc1 tag; noted the rc1 gate round-1 FAIL and that round 2 is pending batch-24. -->
+
+<!-- refresh 4d893147 to 4c6dfe8c (Stage D LEAD-035 disposition pass): batch 24 merged
+`6778f892` — its named narrowing-only fix holds as a strict subset but LEAD-035 failed
+certification a fourth time; the verifier REFUSED `blocked_tier4` concurrence and named a
+further narrowing-only guard it would certify. The lead applied `blocked_tier4` under the
+three-failure rule as an escalation (not a concurrence) at `4c6dfe8c` —
+`DECISIONS_FOR_OPERATOR.md` §4.10 now carries the operator's (a)/(b) choice, lead
+recommends (b). Updated: Part A's "don't use tools" bullet to the batch-24 verifier's
+`d1290f66`-accurate wording, verbatim, and the fail-safe paragraph's shipping-matcher
+line/pointer; the register-count paragraph (open 206→205, blocked_tier4 25→26, open
+critical/high/medium 1→0); Part B's "Not yet merged" note (batch 24 outcome), the
+Register-at-this-sha line (all four LEAD items now blocked_tier4, LEAD-035 flagged as an
+escalation not a concurrence), and the rc1-gate carried-forward line (round 2 now running,
+`wf_4ed38558-4d0`). Register ids kept out of Part A per this file's own convention (item
+5 in Critic findings below); the verbatim wording itself carries no id, so it fits that
+rule unchanged. -->
 
 <!-- critic-footer -->
 

@@ -9,10 +9,11 @@ and `KEYCHAIN_DEV_SIGNING.md`. "Round 2" below means the rc1 gate's second run; 
 ## 1. State in one paragraph
 
 Vysted Terminal is a desktop finance terminal: a Tauri shell, a Vite + React webview and a Python sidecar. **R15 "LAUNCH"** is an autonomous run verifying it end to end: a census of every
-promised or discovered defect, then fix batches ("Stage C"), then release-candidate gates. At this sha, 22 Stage C batches have reached a first-parent merge (newest `c155e5ad`, batch 22 W1
-only); batch 23 closed without merging (its fix regressed and was dropped); batch 24 is in flight beside this refresh. The register holds 652 entries: 391 fixed, and exactly **one**
-critical/high/medium entry open — `R15-LEAD-035` (medium). Three siblings (`LEAD-030`, `LEAD-037`, `LEAD-038`) are `blocked_tier4` as operator-accepted known limitations of the keyless
-local-model lane (§3). rc1 gate round 1 failed at 09:57 IST 25 Sep, no tag was cut; round 2 hasn't run — it waits on batch 24 merging and the register reaching 0 open critical/high/medium.
+promised or discovered defect, then fix batches ("Stage C"), then release-candidate gates. At sha `4c6dfe8c`, 23 Stage C batches have reached a first-parent merge (newest `6778f892`, batch
+24); batch 23 closed without merging (its fix regressed and was dropped). The register holds 652 entries: 391 fixed, and **zero** critical/high/medium entries open. `R15-LEAD-035` (medium)
+is now `blocked_tier4` alongside its three siblings (`LEAD-030`, `LEAD-037`, `LEAD-038`) — but as an ESCALATION under the operator's three-failure rule, not a fresh-verifier concurrence like
+the other three: batch-24's verifier REFUSED certification a fourth time and named a further narrowing-only fix it would certify. This is now your call at rc1 (§3, §4.10). rc1 gate round 1
+failed at 09:57 IST 25 Sep, no tag was cut; round 2 launched from `4c6dfe8c` (run `wf_4ed38558-4d0`) now that the register reads 0 open critical/high/medium.
 Trading is out of the product for good (D81); the core licence is PolyForm Strict 1.0.0 plus a commercial licence, the plugin contract and example plugin stay Apache-2.0. Every version file
 still reads **0.8.0** (`package.json:3`, `src-tauri/Cargo.toml:3`, `src-tauri/tauri.conf.json:4`, `sidecar/app.py:329`, `src/lib/plugin-bootstrap.ts:38`); a version branch bumping to 0.9.0 +
 a single `CLAUDE.md` commit is prepared on its own branch (head confirmed at the tag), merging right after `r15-rc1`, not before. Newest tag: still `r13-bedrock`; nothing has shipped to
@@ -55,8 +56,20 @@ licence; `types/plugin.ts` and the example plugin stay Apache-2.0.
 fabricated a price); the stop rule fired a third time and the branch was dropped, so batch-21's closed-list matcher still ships. Its verifier instead **concurred** `LEAD-030` →
 `blocked_tier4` (broader wording, `535307c8`) and filed two new mediums, `LEAD-037`/`LEAD-038` (§3). Disposition concurrence `4fd3cbfd` (141 live runs): LEAD-038 CONCUR, LEAD-037 CONCUR on
 corrected wording, LEAD-035 REFUSED with a named narrowing-only fix; `1db862d0` applied it (LEAD-037/038 → `blocked_tier4`, LEAD-035 stays `open`).
-- **Batch 24 — in flight.** One entry, one change: a closed-tail lookahead on `LEAD-035`'s
-`_NO_TOOL_CUE` regex (`sidecar/services/planner.py`, narrowing-only). Not merged at this sha; no concurrence file for it exists yet.
+- **Batch 24 — merged `6778f892` (int `d1290f66`).** One entry, one change: a closed-tail
+lookahead plus `(?<!said )(?<!say )` on `LEAD-035`'s `_NO_TOOL_CUE` regex
+(`sidecar/services/planner.py`, narrowing-only, pinned in `test_b3_runtime_intent_gate.py`).
+The fresh verifier found the narrowing HOLDS as a strict subset (0 new strips on 97
+phrasings, 0 over-strips on the 67 pinned no-tool phrasings, the 7 previously over-matched
+data prompts now call `price_data` live 21/21) but did **not certify** — LEAD-035's fourth
+certification failure: 4 of 18 fresh qualified-negation data requests still lose every tool
+(a comma before "except"/"other than"; reported speech "He says don't use tools, but …") and
+the local model then states an invented price in 6/8 live runs. The verifier **REFUSED** the
+`blocked_tier4` concurrence and instead named a further narrowing-only guard (a qualifier
+negative lookahead plus `(?<!says )`) that clears 3 of the 4 offline with 0 lost strips and
+that it would certify (`stage-c/batch-24/LEAD-035-CONCURRENCE.md` §3). Under your three-
+failure stop rule (pacing change 4), the lead set `LEAD-035` to `blocked_tier4` at `4c6dfe8c`
+— an escalation to you, not a concurrence-based adjudication (§3, §4.10).
 - **Version branch** `worktree-agent-r15-version-0.9.0` (launched `c8d807a6`, run `wf_1d24a3f2-c0e`;
 branch head — `517da226` bump + `c1e9164c` the single `CLAUDE.md` commit — not yet merged at this sha, confirmed at the tag): 0.9.0 everywhere + the single `CLAUDE.md` commit, queued to merge
 right after `r15-rc1`. CHANGELOG.md covers batches 2–17 + trading removal + gate round 1; 18–24 have no section yet.
@@ -70,17 +83,23 @@ right after `r15-rc1`. CHANGELOG.md covers batches 2–17 + trading removal + ga
 |---|---|---|---|---|---|---|---|
 | critical | 16 | 0 | 0 | 0 | 0 | 0 | 16 |
 | high | 105 | 0 | 4 | 6 | 1 | 0 | 116 |
-| medium | 258 | 1 | 5 | 15 | 9 | 5 | 293 |
+| medium | 258 | 0 | 5 | 16 | 9 | 5 | 293 |
 | low | 12 | 205 | 2 | 4 | 4 | 0 | 227 |
-| total | 391 | 206 | 11 | 25 | 14 | 5 | 652 |
+| total | 391 | 205 | 11 | 26 | 14 | 5 | 652 |
 
-Open critical: none. **Open high/medium: `R15-LEAD-035` only** (subsystem `agent-tools`).
+(Table is the `4c6dfe8c` state: `R15-LEAD-035` moved medium `open`→`blocked_tier4`, so medium
+`open` 1→0/`blocked_tier4` 15→16 and the totals move 206→205 `open`/25→26 `blocked_tier4`
+versus this section's `4d893147` capture.)
+
+Open critical/high/medium: **none**, as of `4c6dfe8c`.
 
 ### Known limitations at rc1 — agent chat with a keyless local model
 
-Accepted by you Sat 26 Sep 04:15 IST (Tier-4 sign-off): `LEAD-030`, `LEAD-037`, `LEAD-038` ship `blocked_tier4` as one documented limitation class; `LEAD-035`'s residual joins them once
-batch 24's verifier concurs (not yet decided at this sha — confirm at the tag). No further filter round this release: a fresh "the local model states a figure with no successful tool call
-behind it" files against this limitation, not as a new fix. Carried verbatim into `RELEASE_NOTES.md`, `CURRENT_STATE.md` and this file, per your sign-off.
+Accepted by you Sat 26 Sep 04:15 IST (Tier-4 sign-off): `LEAD-030`, `LEAD-037`, `LEAD-038` ship `blocked_tier4` as one documented limitation class. `LEAD-035` now carries the SAME status
+(`blocked_tier4` as of `4c6dfe8c`, batch-24 merged `6778f892`) but for a different reason: it is an ESCALATION under your three-failure stop rule, not a fresh-verifier concurrence — batch-24's
+verifier REFUSED certification a fourth time and named a further narrowing-only fix it would certify (§4.10 below has the detail and your two options). No further filter round this release
+for the other three: a fresh "the local model states a figure with no successful tool call behind it" files against this limitation, not as a new fix. Carried verbatim into
+`RELEASE_NOTES.md`, `CURRENT_STATE.md` and this file, per your sign-off (LEAD-035's wording pending your (a)/(b) choice).
 
 - **`R15-LEAD-030`** (high, `blocked_tier4`, fresh verifier concurred in batch 23,
 `r15/stage-c/batch-23/LEAD-030-CONCURRENCE.md`):
@@ -91,14 +110,22 @@ behind it" files against this limitation, not as a new fix. Carried verbatim int
   > no tool was called — and a figure-less fabricated result dump or a code fence left open from
   > an earlier round can also render, and every shape pinned in eight fix rounds is replaced by an
   > honest "returned no data" note.
-- **`R15-LEAD-035`** (medium, **open**, pending batch 24's concurrence):
-  > With a keyless local model, the "don't use tools" detector is a fixed phrase list that both
-  > under- and over-matches: an unrecognised phrasing keeps the tools, so the agent may still read
-  > data and propose a portfolio change (always held for your review, never applied; under AUTO a
-  > watchlist or chart change does apply) and can occasionally state a price it never fetched,
-  > while a data request that only qualifies tool use ("other than price data", "for the math, but
-  > do fetch", "tools you don't need", "twice", "I never said don't use tools") loses every tool
-  > and the agent then usually states an invented price as if fetched.
+- **`R15-LEAD-035`** (medium, `blocked_tier4` as of `4c6dfe8c` — an ESCALATION under your
+  three-failure rule, NOT a fresh-verifier concurrence like the other three; batch-24's verifier
+  REFUSED certification a fourth time; this is your call at rc1, §4.10):
+  > With a keyless local model, the "don't use tools" detector is a fixed phrase list: an
+  > unrecognised no-tool phrasing keeps the tools, so the agent may still read data and propose a
+  > portfolio change (always held for your review, never applied; under AUTO a watchlist or chart
+  > change does apply) and can occasionally state a price it never fetched, while a data request
+  > that qualifies a no-tool instruction after a comma or in reported speech ("Don't use any
+  > tools, except price_data …", "No tools, other than the price lookup …", "He says don't use
+  > tools, but …") still loses every tool and the agent then usually states an invented price as
+  > if fetched.
+
+  Your two options at rc1 (§4.10): (a) accept this residual as a documented known limitation
+  with the wording above, or (b) authorise one bounded round for the verifier's named guard (a
+  qualifier negative lookahead plus `(?<!says )`, which clears 3 of the 4 remaining over-matches
+  offline with 0 lost strips) on the rc2 line. **The lead recommends (b).**
 - **`R15-LEAD-037`** (medium, `blocked_tier4`, concurred on corrected wording):
   > With a keyless local model, a figure the agent states for a company whose data call succeeded
   > is not checked against that result at all, so it can give an older bar's value from the same
@@ -154,6 +181,16 @@ start OrbStack before judging research (R15 never starts Docker).
 - **§4.4 `UI-088`.** Dockview tab reorder and node-editor drag-drop have no automated coverage;
 needs your call on an e2e runner (Playwright against a real window) + a GUI-attended run.
 
+**LEAD-035 disposition (new this refresh)**
+- **§4.10 `LEAD-035`.** Now `blocked_tier4` at `4c6dfe8c` as an escalation, not a concurrence
+(batch-24's verifier REFUSED certification a fourth time). Your call: (a) accept the residual as
+documented with the verifier's wording (§3 above), or (b) authorise one bounded round for the
+verifier's named guard (`(?<!says )` plus a qualifier negative lookahead) on the rc2 line. The
+lead recommends (b) — the over-match makes the local model invent prices on explicit data
+requests, the worse of the two failure modes. Not blocking the rc1 gate either way (already 0
+open critical/high/medium); this decides only whether the wording in the release docs is final
+or whether one more narrowing round runs before rc2.
+
 **The filing-watcher model groundwork.** A candidate local-model route peaked at an 11.3 GiB footprint on this 16 GiB Mac; verdict for this release is not worth fine-tuning. Its measurement
 folder still sits inside the public `r15/` tree — the folder name is withheld here by a standing naming ban (the lead has the path); one line from you moves it under the git-ignored
 `r15/local/`.
@@ -203,8 +240,9 @@ before `r15-rc2` — not proven at this sha.
 to `52152`) against an isolated sidecar, never your own data dir or keychain. Proof + comparison: `docs/redesign/verification/r15/stage0/LOCAL_LANE_PROOF.md`. Single-owner lock: one
 workflow at a time.
 
-**Resume the run.** `docs/redesign/verification/vysted-r15-run-state.md` is rewritten at every checkpoint with a literal "Resume prompt" block. Its order from here: batch 24 merge →
-adjudicate (LEAD-035 → `blocked_tier4` on concurrence, else stays open) → 0 open critical/high/medium → rc1 gate round 2 (`skip_gui:true`, `max_fix_rounds:2`) → tag `r15-rc1`, push, hygiene
+**Resume the run.** `docs/redesign/verification/vysted-r15-run-state.md` is rewritten at every checkpoint with a literal "Resume prompt" block. Its order from here: batch 24 merge (**done**,
+`6778f892`) → adjudicate (**done**: LEAD-035 → `blocked_tier4` at `4c6dfe8c`, but as an escalation under the three-failure rule, not a concurrence — your call stays open at §3/§4.10) → 0 open
+critical/high/medium (**done**) → rc1 gate round 2 (`skip_gui:true`, `max_fix_rounds:2`) — **in flight**, run `wf_4ed38558-4d0` launched from `4c6dfe8c` → tag `r15-rc1`, push, hygiene
 prune, merge the version branch, handover → then, in parallel: lows integration P1/P2/P3 (serially among themselves, one fresh verifier each on the rc1 head, then the 5-item serial set) and
 the GUI round as its own workflow on the rig, docs promoted as results land → the production bundle from a clean profile on the integrated head → Stage D promoted → `r15-rc2` → the panel's
 one small top-survivor build → `r15-rc3` → one final adversarial pass → `r15-launch`. <!-- fill at rc2: steps already done -->
@@ -235,10 +273,14 @@ recorded in `DECISIONS_FOR_OPERATOR.md` §1, §3.5–3.6 and `DECISIONS.md`.
 
 1. **Your own three-strikes stop rule (pacing change 4, 04:15 IST Sat 26 Sep) was applied twice:**
 any entry failing certification three times stops and goes to `DECISIONS_FOR_OPERATOR.md`, whatever its severity — this fired for `LEAD-030` (eight rounds; the lead's own earlier stop
-rule had already fired once) and `LEAD-035` (three). Batch 22's and 23's `LEAD-035` fixes were both built, tested and rejected as regressions (each over-matched, stripping tools from an
-explicit data request and fabricating a price); batch 24 tries a narrower, named-only fix instead.
+rule had already fired once) and `LEAD-035` (three, at batch 23). Batch 22's and 23's `LEAD-035` fixes were both built, tested and rejected as regressions (each over-matched, stripping tools
+from an explicit data request and fabricating a price). One further bounded round (batch 24) built the batch-23 verifier's own named narrowing-only fix — it holds as a strict subset with
+0 new strips, but still failed certification a **fourth** time (4 of 18 fresh qualified-negation data requests still lose every tool); the lead set `LEAD-035` to `blocked_tier4` at `4c6dfe8c`
+per the standing three-strikes recommendation, escalating the residual and the verifier's next-named fix to you rather than running a fifth round unauthorised.
 2. **A fresh verifier's concurrence, not the adjudicator alone, disposes an agent-chat high/medium
-to `blocked_tier4`** — `LEAD-030` needed this after its eighth round; `LEAD-037`/`038` (filed in batch 23) went straight to a concurrence request, since they share the class.
+to `blocked_tier4`** — `LEAD-030` needed this after its eighth round; `LEAD-037`/`038` (filed in batch 23) went straight to a concurrence request, since they share the class. **`LEAD-035` is
+the exception:** its verifier has now REFUSED concurrence four times running, so the lead applied `blocked_tier4` on the three-strikes rule alone, without a concurrence — flagged to you as
+such rather than presented as adjudicated.
 3. **The filing-watcher groundwork's measurement folder stays in the public tree** until you say
 otherwise (§4) — no release document names it, per a standing naming ban.
 4. **The version bump + the single `CLAUDE.md` commit are one branch,** merged right after
@@ -250,6 +292,19 @@ isn't using it, ahead of the real Stage D bundle step.
 (merged), the unmerged batch-23, the disposition/concurrence docs and the in-flight batch-24; register 646/388-fixed/1-open-high → 652/391-fixed/1-open-medium (LEAD-035); LEAD-030/037/038
 now blocked_tier4 as an accepted known-limitation class (verbatim wording, LEAD-030's clause struck per sign-off); added version-branch/bundle-rehearsal notes; redacted the filing-watcher
 folder name; dropped the critic-footer; trimmed to the 300-line cap. -->
+
+<!-- refresh 4d893147 to 4c6dfe8c (Stage D LEAD-035 disposition pass): batch 24 merged
+(`6778f892`) — its named narrowing-only fix holds as a strict subset but LEAD-035 failed
+certification a fourth time; the verifier REFUSED `blocked_tier4` concurrence and named a
+further narrowing-only guard it would certify. The lead applied `blocked_tier4` under the
+three-failure rule as an escalation (not a concurrence) at `4c6dfe8c`. Updated: §1 state
+paragraph (0 open critical/high/medium, gate round 2 in flight as `wf_4ed38558-4d0`); §2's
+batch table/prose (batch 24 outcome, no longer "in flight"); §3's register-count table (medium
+open 1→0, blocked_tier4 15→16; totals 206→205 open, 25→26 blocked_tier4) and the LEAD-035
+known-limitation bullet (now the batch-24 verifier's `d1290f66`-accurate wording, verbatim);
+added a §4 operator-attended bullet for the (a)/(b) choice at DECISIONS §4.10; §5's resume-run
+chain marked each step done through gate round 2 in flight; §7 items 1-2 corrected for the
+fourth failure and the concurrence-less disposition. Every other section unchanged. -->
 
 <!-- critic-footer -->
 

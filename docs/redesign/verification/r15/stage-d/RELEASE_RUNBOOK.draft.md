@@ -44,6 +44,14 @@ export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH
 source sidecar/.venv/bin/activate
 ```
 
+**In a fresh checkout or worktree, `sidecar/.venv` does not exist yet** — it is created by
+`ensureBuildVenv` (`scripts/sidecar-specs.mjs:258-266`), which §3's own `pnpm ci-local`
+(`node scripts/ensure-all-sidecars.mjs`) and §4's sidecar build both call. Run §3 or §4
+first (either one creates `sidecar/.venv` on Python 3.13 from `requirements-dev.txt`), then
+come back and `source sidecar/.venv/bin/activate` before re-running §3 for a real gate
+(confirmed against a rehearsal on a fresh worktree at `64e9470e`,
+`stage-d/bundle-rehearsal/REHEARSAL.md` correction 1).
+
 The sidecar venv is Python 3.13.13 (`sidecar/.venv/bin/python --version`), matching CI;
 activating it puts `python`/`pip`/`pytest`/`ruff` on `PATH` for the rest of the shell. Also
 confirm before starting:
@@ -375,8 +383,12 @@ Where each lands (`sidecar-specs.mjs` `binaryPath()`; `bundle.externalBin` in
 `tauri.conf.json` `bundle.externalBin` at the sha) against these triple-suffixed files, so
 this step must run — and succeed for all three — before step 6.
 
-<!-- fill at rc2: expected output from the lead's actual sidecar build run at the
-release-candidate sha (no logged sidecar-build output exists at 4d893147) -->
+**Observed on a rehearsal run** (`stage-d/bundle-rehearsal/REHEARSAL.md`, sha `64e9470e`, not
+the release-candidate sha — re-confirm at the actual tag): `VYSTED_SKIP_DEV_SIGN=1 node
+scripts/ensure-all-sidecars.mjs --force` exited 0 in 316s with pip's wheel cache warm; the log
+showed three `[ensure-*] done.` lines and, per the `VYSTED_SKIP_DEV_SIGN=1` guard above, no
+`[dev-sign] signed …` line for any binary. Sizes: `vysted-sidecar` 87.4 MB, `vysted-openbb-mcp-
+sidecar` 54.5 MB, `vysted-sec-edgar-mcp-sidecar` 82.8 MB (all within the ≤120 MB target).
 
 ## 5. Sidecar smoke test
 
@@ -411,8 +423,13 @@ The script first refuses any binary older than its source: it imports `assertAll
 gate: all bundled sidecar binaries are newer than their source.` (`:859`) — re-run §4 after
 any later sidecar or spec edit, or this step fails on staleness before it boots anything.
 
-<!-- fill at rc2: expected output from the lead's actual smoke-test run at the
-release-candidate sha (no logged smoke-test output exists at 4d893147) -->
+**Observed on a rehearsal run** (`stage-d/bundle-rehearsal/REHEARSAL.md`, sha `64e9470e`, not
+the release-candidate sha — re-confirm at the actual tag): `node scripts/smoke-test-sidecars.mjs`
+exited 0 in 138s — `/health` OK at the built version, `/agents` roster OK with 13 agents,
+`/mcp/status` `ready=true, toolCount=40`, the screener/ICONIKSPEV and BSE-bhavcopy/NSE-direct
+probes passed, both MCP subprocesses bound their ports and survived the settle window, and the
+run ended with `[smoke] all sidecars booted cleanly.` The script tree-killed its own three
+children cleanly; a `ps` check afterwards found none of them alive.
 
 ## 6. `pnpm tauri build` (macOS)
 
@@ -432,11 +449,23 @@ run signs the sidecar binaries with the lead's local dev identity again.
 `["deb", "appimage", "nsis", "app", "dmg"]` — on macOS this resolves to the `app` and `dmg`
 targets, producing:
 
-- `src-tauri/target/release/bundle/macos/Vysted Terminal.app`
-- `src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_<arch>.dmg`
+- `src-tauri/target/release/bundle/macos/Vysted Terminal.app` (~234 MB on disk, `du`; the
+  host binary alone is 8.65 MB)
+- `src-tauri/target/release/bundle/dmg/Vysted Terminal_<version>_aarch64.dmg`
 
-<!-- VERIFY: the exact dmg filename pattern (version + arch suffix) — read from an actual
-tauri build run at the sha; not directly quoted from any file read in this wave. -->
+**Observed pattern** (`stage-d/bundle-rehearsal/REHEARSAL.md`, sha `64e9470e`, still on
+version `0.8.0` since the version-bump branch is unmerged there — re-confirm the version
+segment once `0.9.0` is live): `Vysted Terminal_0.8.0_aarch64.dmg`, 228.6 MB. `VYSTED_SKIP_
+DEV_SIGN=1 pnpm tauri build` exited 0 in 196s (cargo release 2m29s cold); the log had no
+`[dev-sign] signed` line, and `beforeBuildCommand` logged "present and fresh — skipping
+build" for all three sidecars.
+
+**Signing state without §8.** The bundle is ad-hoc only and unsealed: `codesign -dv
+--verbose=2` on the `.app` prints `Signature=adhoc`, `TeamIdentifier=not set` (the identifier
+is the linker's own ad-hoc signature, not `com.vysted.terminal`), and the same is true of all
+three sidecars under `Contents/MacOS`. `codesign --verify --deep --strict` exits 1 ("code has
+no resources but signature indicates they must be present") and `spctl -a -t exec` exits 1.
+**The dmg is not distributable until §8 runs.**
 
 `bundle.createUpdaterArtifacts` is `false` at this sha (`tauri.conf.json`), so no
 `latest.json`/`.sig` is produced by this step — see §8/§9 on the updater and release
@@ -448,6 +477,35 @@ What: launch the just-built `.app` against a fresh app-data directory and confir
 terms, keyless mode and sidecar warm-up. Who: **the lead**, performed later from a clean
 profile — **not performed by this Stage D wave** (per this wave's own brief: "The macOS
 production build is proven from a clean profile later by the lead, not by this wave.").
+
+**Isolation mechanism.** This section names no mechanism for a fresh app-data directory
+because there is no dedicated env var for one. `src-tauri/src/lib.rs:186` (`resolve_data_dir`
+→ `app.path().app_data_dir()`) resolves it to the fixed OS path
+`$HOME/Library/Application Support/com.vysted.terminal`; the core passes that path to the
+sidecar as `--data-dir` (`lib.rs:277`). So a clean-profile run means overriding `HOME` and
+launching the bundle's own binary directly:
+
+```
+HOME=<fresh dir> "<bundle>/Contents/MacOS/vysted-terminal"
+```
+
+Do not launch it with `open` — `open` does not forward the environment, and LaunchServices
+can re-activate an already-running instance instead of respecting `HOME=`. (Rehearsed on sha
+`64e9470e`, `stage-d/bundle-rehearsal/REHEARSAL.md` correction 4.)
+
+**Sidecar warm-up (observed at `64e9470e`, cold first launch, HOME= isolation).** 0–30s: no
+listener (cold `_MEI` extraction). ~40s: the main sidecar is listening. ~60s: all three are
+listening (main, openbb-mcp, sec-edgar-mcp). Copy these numbers as the expectation to set,
+not a guarantee — they were not re-measured on the release-candidate sha
+(REHEARSAL.md correction 8).
+
+**WKWebView is not isolated by `HOME=`.** Even under a `HOME=` override, WKWebView website
+data and caches still go to the real `~/Library/WebKit/com.vysted.terminal` and
+`~/Library/Caches/com.vysted.terminal` — 10 files were touched there on the rehearsal run
+(`ResourceLoadStatistics/pcm.db*`/`observations.db*`, `CacheStorage/salt`,
+`AlternativeServices/*`). No LocalStorage/IndexedDB files changed. This is a known boundary
+of the `HOME=` isolation method, not something to clean up as part of a run — **do not
+delete these files**, they belong to the operator's real profile (REHEARSAL.md correction 6).
 
 What to check, per the code at the sha:
 
@@ -481,14 +539,26 @@ What to check, per the code at the sha:
   permanently unrendered with no error shown"). A blank first run under this condition should
   be filed against R15-UI-044, not treated as a new defect.
 
-  If present, either delete it (and the onboarding-complete flag,
-  `keychain.ts:101` `app-meta:onboarding-complete`) or run the check as a separate macOS
-  user:
+  **This read-only check is not sufficient on its own, and `HOME=` isolation cannot stand in
+  for it.** Rehearsed on `64e9470e`: under a `HOME=<fresh>` launch, the terms dialog did NOT
+  appear and the app was fully usable without an ack — not because the check passed, but
+  because `HOME=` redirection leaves no default keychain at all. The unified log shows
+  `SecKeychainCopyDomainDefault` failing with `MacOS error: -25307` (`errSecNoDefaultKeychain`)
+  repeatedly from launch; every `keychain_get` then fails, `FirstLaunchTosDialog` awaits
+  `refreshFirstLaunchAck()` with no catch (`DisclaimerFlow.tsx:44-49`), `hydrated` stays
+  `false`, and the dialog returns `null` (`:68`) — this is the R15-UI-044 failure mode,
+  triggered here by the isolation method itself rather than by a Deny click. **Treat a
+  `HOME=`-isolated run's terms result as inconclusive, not a pass, and never delete the
+  operator's own keychain items to force a clean check.** The terms/onboarding check needs a
+  separate macOS user account instead — its own login keychain and its own
+  `~/Library/WebKit` — run the check there:
 
   ```
-  security delete-generic-password -s vysted-terminal -a app-meta:first-launch-terms
-  security delete-generic-password -s vysted-terminal -a app-meta:onboarding-complete
+  security find-generic-password -s vysted-terminal -a app-meta:first-launch-terms
   ```
+
+  `HOME=` isolation is still correct for proving the data directory and sidecar warm-up (above)
+  — it just does not prove the terms/keychain path (REHEARSAL.md correction 5).
 
   The same applies to every BYOK key stored under the `vysted-terminal` service: a release
   `.app` launched this way reads the operator's real keychain, so the run is not "keyless"
@@ -503,8 +573,16 @@ What to check, per the code at the sha:
   debug keystore file, not from the app-data directory alone — see the keychain note above
   before assuming the same isolation on a release `.app`.
 
-<!-- fill at rc2: the lead's actual clean-profile run — screenshots, /health output, and
-confirmation the terms dialog appeared -->
+**A rehearsal of this step ran on `64e9470e`** (not the release-candidate sha, and not a
+substitute for this checklist item): `HOME=<fresh>` launch, window rendered populated (agent
+dock, Equity Overview, a populated Watchlist, News with sentiment, Portfolio;
+`first-run-1x.png`, 1280×832), status bar read `CONNECTED · OLLAMA (LOCAL)`, `/health`
+returned `{"status":"ok","service":"vysted-sidecar","version":"0.8.0",…,"agents_degraded":[]}`
+— but the terms-dialog result was inconclusive per the keychain note above, not a pass.
+
+<!-- fill at rc2: the lead's actual clean-profile run at the release-candidate sha — a
+separate macOS user account for the terms/keychain check per the note above, screenshots,
+/health output, and confirmation the terms dialog appeared -->
 
 ## 8. Signing and notarization — NEEDS-OPERATOR
 
@@ -721,6 +799,22 @@ not run" claim corrected — `docs/redesign/verification/r15/rc1/` now exists in
 register entries vs this sha's 652) but is not usable as current-head evidence, no `r15-rc1`
 tag exists. §2, §6, §7, §8, §9's quoted DECISIONS_FOR_OPERATOR blocks and §11 verified
 unchanged byte-for-byte between the two shas and left as is. -->
+
+<!-- refresh 4d893147 (applying bundle-rehearsal corrections from `stage-d/bundle-
+rehearsal/REHEARSAL.md`, sha `64e9470e`): §0 now says §3/§4 create `sidecar/.venv` before
+`source … activate` works in a fresh worktree; §4/§5's `<!-- fill at rc2 -->` markers filled
+with the rehearsal's actual sizes/exit codes/timings (still needing re-confirmation at the
+real release-candidate sha); §6's dmg-name VERIFY replaced with the observed
+`Vysted Terminal_<version>_aarch64.dmg` pattern, and a signing-state paragraph added
+(ad-hoc/unsealed, not distributable without §8); §7 gained an explicit isolation-mechanism
+block (`HOME=<fresh>` + the bundle binary path, no `open`), the observed ~40s/~60s sidecar
+warm-up, a WKWebView-is-not-isolated boundary note (never delete those files), and a rewrite
+of the keychain-item guidance — a `HOME=` launch has no default keychain at all
+(`errSecNoDefaultKeychain -25307`), so the terms dialog never renders regardless of the ack
+item's presence; the check needs a separate macOS user account, and deleting the operator's
+keychain items is now explicitly against the runbook, not a fallback option. Every number
+above is copied from REHEARSAL.md, not invented; none of it is the release-candidate run
+itself. -->
 
 <!-- critic-footer -->
 

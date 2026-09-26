@@ -174,12 +174,20 @@ One-line unblocks read verbatim from `DECISIONS_FOR_OPERATOR.md`:
   Status: `blocked_tier4`, a fresh verifier concurred in batch-23. Documented
   as a known limitation of the keyless local-model lane — see
   `docs/CURRENT_STATE.md` §0.0 "Known limitations."
-- **4.10** — `R15-LEAD-035` — the "don't use tools" cue detector both
-  under- and over-matches. Status: **open** (not yet `blocked_tier4` at this
-  sha) — the batch-23 disposition verifier refused, on the ground that the
-  over-match harm is real (15/21 live runs invented a price); a
-  narrowing-only fix is named for batch-24, its final batch. Joins the known
-  limitations on batch-24's verifier concurrence, to be confirmed at the tag.
+- **4.10** — `R15-LEAD-035` — the "don't use tools" cue detector is a fixed
+  phrase list. Status: `blocked_tier4` as of `4c6dfe8c` (batch-24 merged
+  `6778f892`) — but as an **escalation under the operator's three-failure
+  rule, NOT a fresh-verifier concurrence** like 4.9/4.11/4.12. Batch-24
+  shipped the named narrowing-only fix (holds as a strict subset, 0 new
+  strips), but the entry failed certification a fourth time — 4 of 18 fresh
+  qualified-negation data requests still lose every tool and the local model
+  then invents a price in 6/8 live runs — and the fresh verifier REFUSED the
+  `blocked_tier4` concurrence, naming a further narrowing-only guard it would
+  certify (`stage-c/batch-24/LEAD-035-CONCURRENCE.md` §3). Unblock: your call
+  at `DECISIONS_FOR_OPERATOR.md` §4.10 — (a) accept the residual as
+  documented with the verifier's wording, or (b) authorise one bounded round
+  for the named guard on the rc2 line (lead recommends (b)). Known limitation
+  — see `docs/CURRENT_STATE.md` §0.0.
 - **4.11** — `R15-LEAD-037` — a figure the agent states for a company whose
   data call succeeded is not checked against that result at all, so a stale
   bar's value or a figure absent from the payload can pass as the current
@@ -229,18 +237,23 @@ above.)
 
 ### Open register entries, by subsystem
 
-**Register counts refreshed at this sha (register `counts` field, never
-`register.py status`, which lags):** 652 entries — fixed 391, open 206,
-needs_gui 11, blocked_tier4 25, removed_with_feature 14, not_a_defect 5.
+**Register counts, as of `4c6dfe8c`** (register `counts` field, never
+`register.py status`, which lags): 652 entries — fixed 391, open 205,
+needs_gui 11, blocked_tier4 26, removed_with_feature 14, not_a_defect 5.
+(At this section's earlier `4d893147` capture: open 206, blocked_tier4 25 —
+`R15-LEAD-035` has since moved open→blocked_tier4, see item **4.10** above.)
 This is a large jump from an earlier draft of this section (Stage C batches
 10–22 landed since): open **critical**: none. Open **high**: none — the 3
 open-high ids an earlier draft of this section carried (`R15-AGENT-007`,
 `R15-AGENT-017` (now `blocked_tier4`, item **4.2** above), `R15-LEAD-022`)
 were each fixed or reclassified by a later batch.
 
-**Open critical/high/medium is exactly one entry:** `R15-LEAD-035`
-(medium, subsystem `agent-tools`) — items **4.10** above and
-`docs/CURRENT_STATE.md` §0.0 "Known limitations."
+**Open critical/high/medium is exactly zero, as of `4c6dfe8c`.** (`R15-LEAD-035`,
+medium, subsystem `agent-tools`, was the last entry open at this section's
+`4d893147` capture; it moved to `blocked_tier4` at `4c6dfe8c` as an
+escalation under the operator's three-failure rule, not a fresh-verifier
+concurrence — items **4.10** above and `docs/CURRENT_STATE.md` §0.0 "Known
+limitations.")
 
 **Open low (205)**, grouped by subsystem, is a long tail (mostly polish/
 cosmetic low-severity findings — file paths and repro detail live in
@@ -934,6 +947,14 @@ rule for high-value teammates: agent dispatch should monitor usage-limit
 proximity and push intermediate commits more frequently to minimise loss
 surface (CLAUDE.md captures this for the next mega-sprint).
 <!-- refresh f444479 to 4d89314: R15 open items rebuilt — added Tier-4 decisions 2.12-2.21, 3.5-3.6, and the full 4.1-4.12 RC1-fix-round battery (previously only 2.1-2.11 + 3.4 were listed); open register entries refreshed (652 entries now, was 626; open critical/high/medium collapsed to just R15-LEAD-035, was 3 high + 114 medium — most of the difference is batches 10-22 fixing entries; open-low (205) now pointed at the register JSON instead of omitted); needs_gui grew from 6 to 11 ids; struck several Tradesa V2 carry-forward items as moot (the plugin was removed well before R15, "E11" 183c52fe/9aaa64f7 — an earlier draft of this file had not caught this); version-of-truth line numbers corrected (app.py:329, plugin-bootstrap.ts:38) -->
+<!-- refresh 4d893147 to 4c6dfe8c (Stage D LEAD-035 disposition pass): batch 24 merged
+`6778f892` — its named narrowing-only fix holds as a strict subset but LEAD-035 failed
+certification a fourth time; the verifier REFUSED `blocked_tier4` concurrence and named a
+further narrowing-only guard it would certify. The lead applied `blocked_tier4` under the
+three-failure rule as an escalation (not a concurrence) at `4c6dfe8c`. Updated: item **4.10**
+(status, wording, unblock now points at the operator's (a)/(b) choice), the register-counts
+paragraph (open 206→205, blocked_tier4 25→26), and the "Open critical/high/medium" line
+(now zero). -->
 <!-- critic-footer -->
 ## Critic findings applied
 

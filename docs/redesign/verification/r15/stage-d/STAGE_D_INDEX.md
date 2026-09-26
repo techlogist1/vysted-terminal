@@ -42,4 +42,27 @@ files under this directory were modified by the guard.
 4. The `CURRENT_STATE.draft.diff` and `BLOCKERS.draft.diff` state diffs apply with
    `patch -p1` from the repo root as an alternative to a full copy-over.
 
+## LEAD-035 disposition pass (post-`4d893147`, at `4c6dfe8c`)
+
+Batch-24 merged as `6778f892` after this index's capture. Its named narrowing-only fix
+holds as a strict subset, but `R15-LEAD-035` failed certification a fourth time; the fresh
+verifier REFUSED the `blocked_tier4` concurrence and named a further narrowing-only guard
+it would certify (`stage-c/batch-24/LEAD-035-CONCURRENCE.md`). The lead set `R15-LEAD-035`
+to `blocked_tier4` at `4c6dfe8c` under the operator's three-failure rule — an escalation,
+not an adjudication-away (`DECISIONS_FOR_OPERATOR.md` §4.10, which now carries the
+operator's (a)/(b) choice at rc1; lead recommends (b)). Open critical/high/medium is now
+**0** (was 1, `R15-LEAD-035`, at this index's own `4d893147` capture).
+
+This pass wrote the disposition into `FACTS.md`, `FACTS.json`, `OPERATOR_BRIEFING.draft.md`,
+`RELEASE_NOTES.draft.md`, `CURRENT_STATE.draft.md`, `BLOCKERS.draft.md` and
+`OPEN_QUESTIONS.md` (each via an appended refresh trailer or inline `RESOLVED`/`Update as
+of 4c6dfe8c` annotation, per this file's own hand-added-block convention — nothing was
+deleted). The "Open questions for the lead" cells above that still say "confirm at the
+tag" / "batch-24 in flight" / "no concurrence file existed" describe the `4d893147`
+capture only; they are superseded by this note and by each file's own trailer, not
+rewritten in place (this table's cells are the critic wave's own output, out of this
+pass's lane). The `.draft.diff` files were left untouched — regenerating them correctly
+requires replicating the promote-time strip (§"How to promote" above) before diffing,
+which this pass did not attempt.
+
 <!-- critic-footer -->

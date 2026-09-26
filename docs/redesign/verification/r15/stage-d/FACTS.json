@@ -204,7 +204,11 @@
     "status_counts": { "fixed": 391, "open": 206, "blocked_tier4": 25, "removed_with_feature": 14, "needs_gui": 11, "not_a_defect": 5 },
     "open_critical_high_medium": [{ "id": "R15-LEAD-035", "severity": "medium", "subsystem": "agent-tools" }],
     "needs_gui": ["R15-CODE-AGENT-001", "R15-LIFECYCLE-001", "R15-LIFECYCLE-008", "R15-UI-009", "R15-UI-022", "R15-UI-025", "R15-UI-050", "R15-UI-083", "R15-UI-084", "R15-DOCS-024", "R15-LIFECYCLE-040"],
-    "blocked_tier4": ["R15-AGENT-017", "R15-RELEASE-001", "R15-RELEASE-002", "R15-RELEASE-003", "R15-RELEASE-004", "R15-AGENT-049", "R15-AGENT-064", "R15-CODE-FRONTEND-013", "R15-CODE-PLATFORM-010", "R15-CODE-PLATFORM-015", "R15-CODE-PLATFORM-071", "R15-CODE-PLATFORM-073", "R15-CROSS-PLATFORM-001", "R15-DOCS-002", "R15-DOCS-003", "R15-DOCS-015", "R15-UI-044", "R15-UI-088", "R15-CODE-PLATFORM-063", "R15-DOCS-008", "R15-DOCS-011", "R15-RELEASE-012", "R15-LEAD-030", "R15-LEAD-037", "R15-LEAD-038"]
+    "blocked_tier4": ["R15-AGENT-017", "R15-RELEASE-001", "R15-RELEASE-002", "R15-RELEASE-003", "R15-RELEASE-004", "R15-AGENT-049", "R15-AGENT-064", "R15-CODE-FRONTEND-013", "R15-CODE-PLATFORM-010", "R15-CODE-PLATFORM-015", "R15-CODE-PLATFORM-071", "R15-CODE-PLATFORM-073", "R15-CROSS-PLATFORM-001", "R15-DOCS-002", "R15-DOCS-003", "R15-DOCS-015", "R15-UI-044", "R15-UI-088", "R15-CODE-PLATFORM-063", "R15-DOCS-008", "R15-DOCS-011", "R15-RELEASE-012", "R15-LEAD-030", "R15-LEAD-037", "R15-LEAD-038"],
+    "refresh_4c6dfe8c": {
+      "note": "register.status_counts/open_critical_high_medium/blocked_tier4 above are the 4d893147 capture, unchanged (append-only file). As of 4c6dfe8c (batch-24 merged 6778f892), R15-LEAD-035 moved open -> blocked_tier4 under the operator's three-failure rule (escalation, not a fresh-verifier concurrence; verifier REFUSED certification a 4th time). Current values: status_counts.open=205, status_counts.blocked_tier4=26, open_critical_high_medium=[], blocked_tier4 list gains R15-LEAD-035.",
+      "source": "docs/redesign/verification/vysted-r15-register.json (read directly), docs/redesign/verification/r15/stage-c/batch-24/{VERDICTS.md,LEAD-035-CONCURRENCE.md}, docs/redesign/DECISIONS_FOR_OPERATOR.md §4.10"
+    }
   },
   "decisions": {
     "source": "docs/redesign/DECISIONS_FOR_OPERATOR.md",
@@ -214,7 +218,7 @@
       { "id": "4.7 R15-DOCS-011", "status": "open, blocked_tier4", "line": 446 },
       { "id": "4.8 R15-RELEASE-012", "status": "open, blocked_tier4", "line": 460 },
       { "id": "4.9 R15-LEAD-030", "status": "blocked_tier4 (fresh verifier concurred, batch-23)", "line": 524 },
-      { "id": "4.10 R15-LEAD-035", "status": "open (verifier REFUSED blocked_tier4; batch-24 fix + concurrence pending)", "line": 574 },
+      { "id": "4.10 R15-LEAD-035", "status": "open (verifier REFUSED blocked_tier4; batch-24 fix + concurrence pending) as of 4d893147; UPDATE as of 4c6dfe8c: blocked_tier4 under the operator's three-failure rule (escalation, not concurrence -- verifier REFUSED a 4th time in batch-24, merge 6778f892; DECISIONS §4.10 carries the operator's (a)/(b) options at rc1, lead recommends (b))", "line": 574 },
       { "id": "4.11 R15-LEAD-037", "status": "blocked_tier4 (verifier concurred on corrected wording)", "line": 608 },
       { "id": "4.12 R15-LEAD-038", "status": "blocked_tier4 (verifier concurred)", "line": 647 }
     ],

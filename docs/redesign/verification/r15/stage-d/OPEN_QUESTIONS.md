@@ -17,6 +17,12 @@ Only items only the operator can answer. Everything the lead can answer stays in
   residual is pending batch-24's own concurrence). Smallest unblock: confirm at the tag
   whether `docs/redesign/verification/r15/stage-c/batch-24/LEAD-035-CONCURRENCE.md` landed
   and whether its wording should be adopted verbatim (it had not landed as of this sha).
+  **RESOLVED at `4c6dfe8c`:** the concurrence file landed, but the verifier REFUSED it a
+  fourth time (batch-24 merged `6778f892`; its narrowing-only fix holds as a strict subset
+  but does not close the entry). The lead set `R15-LEAD-035` to `blocked_tier4` under the
+  operator's three-failure rule as an escalation, not an adoption of a concurrence — this
+  reopens a live question for the operator (not this one, but a new one: DECISIONS §4.10's
+  (a)/(b) choice, lead recommends (b)). Filed as: `DECISIONS_FOR_OPERATOR.md` §4.10.
 - **4.11 R15-LEAD-037** — status `blocked_tier4`; fresh verifier concurred on corrected
   wording. Same acceptance basis as 4.9.
 - **4.12 R15-LEAD-038** — status `blocked_tier4`; fresh verifier concurred. Same acceptance
@@ -25,6 +31,14 @@ Only items only the operator can answer. Everything the lead can answer stays in
 Smallest unblock for all four as a set: the operator's Tier-4 sign-off already covers
 4.9-4.12 (relayed in this run's refresh rules); the only live gap is confirming
 R15-LEAD-035's batch-24 concurrence text once that file exists, at the tag.
+
+**RESOLVED (the concurrence-text gap) at `4c6dfe8c`:** the file landed
+(`stage-c/batch-24/LEAD-035-CONCURRENCE.md`) but is a REFUSAL, not a concurrence — 4.10's
+verbatim wording above is that file's §4 accurate-for-`d1290f66` text, now final for the
+release docs. What remains live is a different, narrower question: DECISIONS §4.10's
+(a)/(b) choice (accept the residual as documented, or authorise one more bounded round for
+the verifier's named guard on rc2) — not a Tier-4 sign-off gap, a fresh decision. Filed as:
+`DECISIONS_FOR_OPERATOR.md` §4.10.
 
 Filed as: already covered: §4.9–4.12 (`docs/redesign/DECISIONS_FOR_OPERATOR.md`). 4.10 is settled by
 batch-24's verifier concurrence at the close-out; no operator action unless that verifier refuses.
@@ -94,3 +108,8 @@ Filed as: §5.6 (acknowledge only; re-run at the tag sha).
   concurrence wording once it exists, before or at the tag.
   Filed as: already covered: §4.10. Decided by batch-24's verifier concurrence at the close-out;
   no operator action unless the verifier refuses.
+  **RESOLVED at `4c6dfe8c`, and the contingency fired: the verifier refused.** The wording to
+  adopt is the batch-24 verifier's §4 accurate-for-`d1290f66` text (now carried verbatim in
+  `RELEASE_NOTES.draft.md`, `OPERATOR_BRIEFING.draft.md`, `CURRENT_STATE.draft.md`). Operator
+  action IS now needed, per this item's own stated contingency: DECISIONS §4.10's (a)/(b)
+  choice. Filed as: `DECISIONS_FOR_OPERATOR.md` §4.10.

@@ -67,7 +67,8 @@ binary at this sha (`package.json` `"dev": "vite"`, `"build": "vite build"`).
 Next.js references below §0.0 are pre-migration history.
 
 **R15 Stage C remediation (batches 2–22, after the D81 batch-1 trading
-removal; batch-23 blocked/unmerged, batch-24 in flight at this sha).** A
+removal; batch-23 blocked/unmerged; batch-24 merged `6778f892` as of
+`4c6dfe8c`).** A
 census-driven register (`docs/redesign/verification/vysted-r15-register.json`)
 recorded 887 raw findings → **652** register entries (76 rejected) across
 critical/high/medium/low severity — the entry count grew from the 626 this
@@ -80,21 +81,30 @@ rejections=76, critical=16, high=116, medium=293, low=227. At this sha:
 | -------- | ------- | ----- | ---- | --------- | ------------------ | -------------- | -------------- |
 | critical | 16      | 16    | 0    | —         | —                  | —              | —              |
 | high     | 116     | 105   | 0    | 4         | 1                  | 6              | —              |
-| medium   | 293     | 258   | 1    | 5         | 9                  | 15             | 5 not_a_defect |
+| medium   | 293     | 258   | 0    | 5         | 9                  | 16             | 5 not_a_defect |
 | low      | 227     | 12    | 205  | 2         | 4                  | 4              | —              |
 
-(Sums: fixed=391, open=206, needs_gui=11, removed_with_feature=14,
-blocked_tier4=25, not_a_defect=5 — matches the register `counts` field
+(Table is the `4c6dfe8c` state: `R15-LEAD-035` moved medium Open→Blocked
+Tier-4, one row changed from this section's `4d893147` capture, 258/1/16
+→258/0/16. Sums: fixed=391, open=205, needs_gui=11, removed_with_feature=14,
+blocked_tier4=26, not_a_defect=5 — matches the register `counts` field
 exactly.) All 16 critical entries are fixed. **Open critical/high/medium is
-now exactly one entry: `R15-LEAD-035`** (medium, subsystem `agent-tools`,
-agent-write no-tool-cue detector — see "Known limitations" below); the
-205 open low entries and the 25 blocked_tier4 ids are enumerated in
+now exactly zero, as of `4c6dfe8c`** (`R15-LEAD-035`, medium, subsystem
+`agent-tools`, agent-write no-tool-cue detector, moved to `blocked_tier4`
+that sha — see "Known limitations" below for the disposition, which is an
+escalation to the operator, not a certified fix); the
+205 open low entries and the 26 blocked_tier4 ids are enumerated in
 `BLOCKERS.md` "R15 open items". Per-batch plans and certified verdicts live
 under `docs/redesign/verification/r15/stage-c/batch-2` through `batch-22`
 (each a `PLAN.md` + `VERDICTS.md` pair, all `approve` except batch-22 and
 batch-23 = `block`); batch-23's int branch went unmerged (a fresh verifier's
-LEAD-035 stop-rule refusal); batch-24 (LEAD-035's named narrowing-only fix)
-was in flight with only a `PLAN.md` on disk at this sha. Batch merge commits
+LEAD-035 stop-rule refusal). **Update as of `4c6dfe8c`:** batch-24 (LEAD-035's
+named narrowing-only fix) merged as `6778f892` (int `d1290f66`) and its dir
+is now tracked at `docs/redesign/verification/r15/stage-c/batch-24/`
+(`PLAN.md`, `VERDICTS.json`, `VERDICTS.md`, `LEAD-035-CONCURRENCE.md`,
+`verifier-evidence/`, `writer-evidence/`) — its own verdict is `approve` (the
+branch narrows only and regresses nothing), but `R15-LEAD-035` itself is
+`not_certified` a fourth time; see "Known limitations" below. Batch merge commits
 are listed in `CHANGELOG.md` under the "R15 Stage C" headings; the batch-1
 removal-plan riders are D81–D92 (D83 records the relicense), and per-batch
 decisions from batch 3 on carry `D-B<n>-<k>` ids in
@@ -127,12 +137,33 @@ result to ground the claim; no further filter round runs this release.
   result" — the guard never checks a figure for a subject whose call
   succeeded; wording above reflects the strike, per
   `docs/redesign/verification/r15/stage-c/batch-23/DISPOSITION-CONCURRENCE.md`.)
-- **R15-LEAD-035** (medium) — `open`; the batch-23 disposition verifier
-  refused `blocked_tier4` (the shipping no-tool-cue detector over-matches too,
-  not only under-matches). The named narrowing-only fix is in batch-24, its
-  final batch (only a `PLAN.md` on disk at this sha, no
-  `LEAD-035-CONCURRENCE.md` yet); the residual joins the known limitations on
-  concurrence, to be confirmed at the tag.
+- **R15-LEAD-035** (medium) — `blocked_tier4` as of `4c6dfe8c`, under the
+  operator's three-failure rule — an ESCALATION, not a fresh-verifier
+  concurrence. Batch-24 (merge `6778f892`) shipped the named narrowing-only
+  fix; it holds as a strict subset (0 new strips on 97 phrasings, 0
+  over-strips on the 67 pinned no-tool phrasings, the 7 previously
+  over-matched data prompts now call `price_data` live 21/21), but the entry
+  failed certification a fourth time — 4 of 18 fresh qualified-negation data
+  requests still lose every tool, and the local model then states an
+  invented price in 6/8 live runs. The fresh verifier REFUSED the
+  `blocked_tier4` concurrence and named a further narrowing-only guard (a
+  qualifier negative lookahead plus `(?<!says )`) it would certify
+  (`stage-c/batch-24/LEAD-035-CONCURRENCE.md` §3). Verifier's accurate wording
+  for the shipping code (`d1290f66`, §4 of that file), verbatim:
+  > With a keyless local model, the "don't use tools" detector is a fixed
+  > phrase list: an unrecognised no-tool phrasing keeps the tools, so the
+  > agent may still read data and propose a portfolio change (always held for
+  > your review, never applied; under AUTO a watchlist or chart change does
+  > apply) and can occasionally state a price it never fetched, while a data
+  > request that qualifies a no-tool instruction after a comma or in reported
+  > speech ("Don't use any tools, except price_data …", "No tools, other than
+  > the price lookup …", "He says don't use tools, but …") still loses every
+  > tool and the agent then usually states an invented price as if fetched.
+
+  `DECISIONS_FOR_OPERATOR.md` §4.10 carries the operator's two options at
+  rc1: (a) accept the residual as documented with the wording above, or (b)
+  authorise one bounded round for the named guard on the rc2 line — the lead
+  recommends (b).
 - **R15-LEAD-037** (medium) — `blocked_tier4`, the batch-23 disposition
   verifier concurred:
   > With a keyless local model, a figure the agent states for a company whose
@@ -152,8 +183,10 @@ The fail-safe is **figure grounding by provenance**
 rules 1/2a/2b/2c/3 — the 2c fail-safe is gated on an errored tool call, which
 is the structural gap LEAD-030/037 describe). The shipping no-tool-instruction
 matcher is the closed cue list `_NO_TOOL_CUE` in
-`sidecar/services/planner.py:136` (closed in batch-21), narrowed by batch-24
-if its concurrence file certifies the narrowing fix. A portfolio write never
+`sidecar/services/planner.py:139` (closed in batch-21, narrowed once more by
+batch-24's closed-tail lookahead plus `(?<!said )(?<!say )`, merge `6778f892`
+as of `4c6dfe8c`) — the narrowing shipped, but the entry it targets is still
+`blocked_tier4`, not certified, per the LEAD-035 entry above. A portfolio write never
 auto-applies regardless of this class: `data-write` changes always stage for
 review, and AUTO skips review only for `panel`, `chart` and `watchlist`
 (`types/proposed-change.ts:38-46`); there is no `audit_orders` table any more
@@ -1048,7 +1081,7 @@ below almost always means "automated gates pass against mocks," **not**
 | `auto_export`/auto-updater end-to-end                                                  | **Non-functional** — `createUpdaterArtifacts:false`, no frontend caller, no release workflow                    | §1, §14                                                                        |
 | Version strings (`0.8.0` everywhere)                                                   | **Stale, open** — 0.9.0 candidate target (§0.0); files still 0.8.0, bump lands with the prepared version branch right after the `r15-rc1` tag                          | §3.12; §0.0                                                                    |
 | mypy/lint debt, a11y gaps, Linux transitive advisories                                 | **Known debt** — see BLOCKERS S2/S3/S4                                                                          | BLOCKERS                                                                       |
-| R15 register remediation (critical/high/medium/low)                                    | **16/16 critical fixed; 105/116 high; 258/293 medium; 12/227 low** — open critical/high/medium is 1 entry (R15-LEAD-035, a documented known limitation, see §0.0); 205 open low, 25 blocked_tier4, 11 needs_gui | §0.0; `vysted-r15-register.json`; `BLOCKERS.md`                                |
+| R15 register remediation (critical/high/medium/low)                                    | **16/16 critical fixed; 105/116 high; 258/293 medium; 12/227 low** — open critical/high/medium is **0** as of `4c6dfe8c` (R15-LEAD-035 moved to `blocked_tier4`, an escalation not a concurrence, see §0.0); 205 open low, 26 blocked_tier4, 11 needs_gui | §0.0; `vysted-r15-register.json`; `BLOCKERS.md`                                |
 | Licence (PolyForm Strict 1.0.0 core + Apache-2.0 plugin contract + commercial)         | **Works** — `LICENSE`/`LICENSE-APACHE`/`COMMERCIAL_LICENSE.md` present at this sha                              | §0.0                                                                           |
 
 **Bottom line:** green on every machine-checkable gate as of the stale
@@ -1135,6 +1168,17 @@ plumbing to extension framework, and close the copilot's catalog/provider gaps
 that quietly cap what the agent can do today. Trading is not part of this
 product any more (D81) — nothing here should reopen it.
 <!-- refresh f444479 to 4d89314: register table + Stage C remediation section rebuilt for batches 2-22 (652 entries, was 626; open critical/high/medium now just R15-LEAD-035, was 3 high + 114 medium); added the operator-accepted "Known limitations at rc1 — agent chat with a keyless local model" subsection (LEAD-030/035/037/038 verbatim wording per the binding Tier-4 sign-off); corrected the plugin-system description throughout (§1, §3.2, §3.4, §5, §3.11) — tradesa-v2 no longer exists in the tree, replaced by vysted-lenses/vysted-news/vysted-yfinance (BUNDLED_PLUGINS/PLUGIN_COMPANIONS also gone, replaced by marketplace.ts CATALOG_ROWS; contributesAgents now exercised by vysted-lenses); router/route counts refreshed (24→28 routers, ~107→~111 routes); §7 status table and sha references updated -->
+<!-- refresh 4d893147 to 4c6dfe8c (Stage D LEAD-035 disposition pass): batch 24 merged
+`6778f892` — its named narrowing-only fix holds as a strict subset but LEAD-035 failed
+certification a fourth time; the verifier REFUSED `blocked_tier4` concurrence and named a
+further narrowing-only guard it would certify. The lead applied `blocked_tier4` under the
+three-failure rule as an escalation (not a concurrence) at `4c6dfe8c`. Updated: the R15
+Stage C remediation intro, the severity table (medium open 1→0, blocked_tier4 15→16;
+totals 206→205 open, 25→26 blocked_tier4), the batch-24-tracked-now note, the LEAD-035
+Known-limitations entry (now the batch-24 verifier's `d1290f66`-accurate wording, verbatim,
+plus the operator's (a)/(b) options at DECISIONS §4.10), the fail-safe/shipping-matcher
+paragraph (line number + narrowing noted, entry status unchanged), and the §7 summary
+table's register-remediation row. -->
 <!-- critic-footer -->
 ## Critic findings applied
 
