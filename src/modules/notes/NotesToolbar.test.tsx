@@ -113,3 +113,25 @@ describe("NotesToolbar — R15-UI-024", () => {
     expect(editorOf().getText()).toBe("[[");
   });
 });
+
+describe("NotesToolbar — R15-DOCS-010", () => {
+  beforeEach(() => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+  });
+
+  afterEach(() => {
+    cleanup();
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+  });
+
+  it("the active toolbar button carries the fill class", async () => {
+    await renderPanel();
+    const boldButton = screen.getByRole("button", { name: "Bold" });
+    expect(boldButton.className).not.toContain("bg-charcoal-800");
+
+    fireEvent.click(boldButton);
+
+    await waitFor(() => expect(boldButton.className).toContain("bg-charcoal-800"));
+  });
+});
