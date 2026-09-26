@@ -4,6 +4,99 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C — batch 27: DATA-117 mixed-basis ratio class and LEAD-040 resolver pool certified — open critical/high/medium back to zero (2026-09-27)
+
+**Scope:** base `e4b9554d`. Two open critical/high/medium entering this batch, both new and both planned as fixes:
+`R15-DATA-117` (high, data-smallcaps) and `R15-LEAD-040` (medium, agent-chat + data-smallcaps). One writer, W1
+(Opus): both entries, since they touch disjoint sidecar files and the pacing cap allows one set. Opus
+integrator/reviewer/fresh verifier; a Sonnet adjudicator ran first, ahead of the writer. Merged `--no-ff` on
+`worktree-agent-batch-27-int` (`0338a7bf`), merge `d4566642`; adjudication `a1827660`. Measured 82 min (6 agents,
+1.01M tokens) against a 45-60 min estimate.
+
+- **Adjudicator (Sonnet) ran first**, filing the round-3 gate's findings that were not yet register entries — the
+  lows in `R15_GATE_RC1.md` Adjacent findings rc1-verifier:2-7, the gate8 review-card ₹ low, and the drive findings
+  — as **R15-LEAD-041** (low, TM analyst count vs EPS triple) and **R15-LEAD-042** (low, review card prices a US
+  lot in the session currency), plus **R15-LEAD-043** (medium), filed already `fixed` because the round-3 fix round
+  (`ac0d8617`) had already closed it. The adjudicator then appended eight append-only concurrence/narrowing notes
+  (DATA-002, DATA-016, CODE-PLATFORM-020, DATA-061, DATA-090, LEAD-026, LEAD-035, RESEARCH-043) — no status changed.
+- **R15-DATA-117 (high) CERTIFIED, fixed as the class.** ADR price-to-book and book value were served `ok` on a
+  mixed currency basis (TSM 92.17 against 2330.TW's 9.98 at home; HDB 9.32 against HDFCBANK.NS's 1.87), while
+  price-to-sales was withheld for the identical currency mismatch. Tier-3 decision **D-B2-3** (no FX conversion)
+  holds: Yahoo's `bookValue` on a mixed-basis listing is sometimes a correct trading-currency figure and sometimes
+  nonsense, with nothing in the payload to tell the two apart, so the fix withholds rather than converts — even the
+  correct ones (WIT, INFY.NS) are withheld as honest-unverifiable, with a `ponytail:` comment naming the ceiling and
+  an FX-witness reconcile as the upgrade path. Three paths closed: `price_to_book`/`book_value` join
+  `_MIXED_BASIS_RATIOS` (`_withhold_mixed_basis_ratios` now stamps `fund.provider`, not the module constant);
+  `_derive_fundamentals`'s EPS/P-E fallback is skipped once `financial_currency` is set, so a statement-currency net
+  income can no longer produce a mixed-basis P/E; and `fundamentals_from_v7` (the screener/warm-store path) now
+  sets `financial_currency` and runs the same withhold before `validate_fundamentals`. The disproved
+  `test_adr_statement_sizes_carry_financial_currency_and_mixed_ratios_withheld` (SIFY P/B asserted `ok`) was
+  corrected to assert withheld, with the TSM/HDB truth numbers logged in the commit body. Verifier's live numbers:
+  TSM and HDB both withheld with both currency codes in the reason text; P/E still served (TSM 33.55 against 28.98
+  at home, the ADR premium); AAPL unchanged (P/B 46.34, book 7.36); fresh cases not written against — IBN, SONY,
+  RDY, TM, UMC, SAP all withheld — while INFY (reports in USD) is served unchanged.
+- **R15-LEAD-040 (medium) CERTIFIED, mechanism re-diagnosed.** The entry blamed the cold masters load; profiling
+  showed that load costs about 0.05 s. The real cost is `resolve()`'s CPU-bound fuzzy name scan (0.25-0.9 s) plus a
+  blocking US-ISIN HTTP call (0.8 s), both running on the SHARED default `to_thread` executor at five call sites,
+  including `autocomplete`, which the entry never named. Fix: a dedicated 4-worker `_RESOLVE_POOL` plus
+  `resolve_async`/`autocomplete_async`, with all five call sites switched over and an AST/grep audit confirming no
+  `to_thread(symbol_resolver.resolve|autocomplete)` remains. Verifier's numbers: the batch-26 hang-race script's
+  unrelated `to_thread` wait fell from 7.06 s to 0.00 s; a fresh HTTP case (16 concurrent cold requests split
+  across `/resolve` and `/resolve/autocomplete`) cut an unrelated `/quotes/AAPL` under the same storm from 5.02 s
+  to 1.19 s.
+- **Integrator** hit one integration artefact — a bare `read_text()` the encoding audit's own test rejected, fixed
+  by naming the encoding (`9bb60037`) — then a green `ci-local` (pytest 3657 + 1 skipped, vitest 1849, cargo 19,
+  clippy clean), smoke 3/3. **Reviewer** approved with one docstring fix (`0338a7bf`, resolve()'s docstring still
+  named the retired `to_thread` call instead of `resolve_async`'s `run_in_executor`).
+- Register after adjudication: 661 entries — fixed 395, open 207 (all low), blocked_tier4 29, needs_gui 11,
+  removed_with_feature 14, not_a_defect 5. Open critical/high/medium back to zero.
+
+## R15 rc1 gate — round 3: FAIL on three harness gaps and one new high; script repaired for round 4 (2026-09-26/27)
+
+Not a Stage C batch — the third full pre-tag release gate, run against the batch-26 candidate `01d6920a` once open
+critical/high/medium hit zero (`wf_3bab62fa-c4d`; 22 agents, measured 152 min against a 3-5 h estimate, 3.83M
+tokens, zero errors, zero stall kills).
+
+- **PASSED:** the register criterion (open c/h/m 0; all four-area adjudicated ids concurred); Gate 8 twice over (no
+  trading path — no order/broker/kill-switch/audit route, `audit_orders` absent; tracked-portfolio round-trip
+  clean, a forged accept fails closed; the safety-surface diff against r13-bedrock, 36 paths each with a row);
+  `ci-local` at the fix-round head `5ff9be04` (pytest 3649 + 1 skipped, vitest 1849, cargo 19); smoke 3/3; data
+  packs (24 names, every call 200); the fix loop, closed.
+- **FAILED, and why:**
+  - **Adversarial sample — a new high.** `rc1-verifier:1`: ADR price-to-book served `ok` on a mixed currency basis
+    (TSM 92.17, HDB 9.32) while price-to-sales is withheld for the identical reason — `_MIXED_BASIS_RATIOS` listed
+    only P/S and EV/EBITDA, and `reconcile_book_value` returned early for any `financial_currency`. Filed as
+    **R15-DATA-117**; this is the product defect batch 27 (above) fixed.
+  - **Fixed-name battery.** Only ONE of 25 planned shards ran live, carrying 27 of 392 fixed ids with raw output;
+    the other 24 issued nothing, with no log line.
+  - **Agent scenarios.** One lane, one trial, ungraded — the hosted OpenRouter lane skipped `no_key`.
+  - **Owner drives.** The onboarding-stranger group saved a narrative write-up only, no raw output, so its claims
+    are unevidenced (the other 7 groups had raw output, and verifier spot-checks agreed where it existed).
+- **One fix round.** `rc1-drive-composer-chat:1` (a no-key adapter error read as a bare exception rather than an
+  auth failure) was fixed by `ac0d8617` and merged `5903f373`, chain green at `5ff9be04`; the recheck concurred the
+  fix closed. The adjacent lows and concurrence notes this round surfaced (rc1-verifier:2-7, the gate8 review-card
+  ₹ low, the drive findings) were handed to batch 27's adjudicator rather than run as a second fix round.
+- **Root cause of the battery collapse** (`docs/redesign/verification/r15/tooling/RC1_GATE_R4_CHANGES.md`): the
+  shard plan was built from the indexer's own structured return, and nothing checked that return before use. The
+  indexer had returned `sets` as a single placeholder ("see INDEX.json, too large to inline") with
+  `fixed_total: 392`; the planner accepted it unchecked, packed the one placeholder into shard 0, and issued
+  nothing for shards 1-24. NB itself was correctly computed as `ceil(392/16) = 25` — the collapse was downstream in
+  `planShards`.
+- **Repair for round 4** (script + dry-run + plan docs, merge `a1585f12` from commits `137c44c5`/`ba3b9e4c`/
+  `f906f219`): the indexer's return must now inline every set's full id list, the script validates it (register
+  ids, no duplicates, count equal to both `fixed_total` and preflight's fixed count) and throws a named
+  `BATTERY PLAN INVALID (harness)` before any shard runs rather than degrading silently, with one static-position
+  redo if the first index is rejected; `args.batt_shards` (1..64) overrides the computed shard count; the collator
+  now always writes `battery/MISSING_RAW.json` (count 0 when clean) and a named `HARNESS battery-raw-missing`
+  blocker for any fixed id left without raw output. The hosted scenario lane now resolves its key through the
+  operator's dev keystore via `vy.py` (the round-3 miss was the isolated seed profile's deliberately keyless
+  `dev-keystore.json`, not an absent key) and runs graded pass^3 triples, falling back from OpenRouter to
+  `gpt-4o-mini` rather than skipping. Owner drives now require raw output per scored row, with a named
+  `HARNESS drive-raw-missing` blocker when a group returns narrative only. Dry run: 32 checks, 0 failures, 55
+  agents planned for round 4.
+- Round 4 launched on candidate `1006c6da` (`wf_f8604b35-a49`) with `batt_shards: 25`; its outcome is not yet
+  known.
+
 ## R15 Stage C — batch 26: AGENT-010 and LEAD-039 certified, DATA-002 stopped at three failures (2026-09-26)
 
 **Scope:** base `fb1eb556`. Three open critical/high/medium entries entering this batch, all in the
