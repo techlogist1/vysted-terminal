@@ -309,6 +309,24 @@ describe("sanitizeCitationMarkers", () => {
     );
     expect(countBrokenCitations("Held at [2, 3].", 3)).toBe(0);
   });
+
+  it("expands a range group to each member before range-checking", () => {
+    expect(sanitizeCitationMarkers("Revenue grew 18% [2–4]. Order book up [7-9].", 5)).toBe(
+      "Revenue grew 18% [2][3][4]. Order book up [?][?][?].",
+    );
+    expect(sanitizeCitationMarkers("Margin [3—5].", 4)).toBe("Margin [3][4][?].");
+    expect(countBrokenCitations("Margin [3—5].", 4)).toBe(1);
+  });
+
+  it("flags only the prompt-label family, never editorial brackets", () => {
+    expect(sanitizeCitationMarkers("Margin 10.98% [Latest evidence][3].", 5)).toBe(
+      "Margin 10.98% [?][3].",
+    );
+    const md =
+      "Return -22.89% [basis: trailing 52 weeks]. Bharat Dynamics [NSE: BDL] trades at 1155 [1]. [the Company] expects growth [sic].";
+    expect(sanitizeCitationMarkers(md, 5)).toBe(md);
+    expect(countBrokenCitations(md, 5)).toBe(0);
+  });
 });
 
 describe("bodyCitesWeb", () => {

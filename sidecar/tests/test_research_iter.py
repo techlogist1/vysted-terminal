@@ -813,3 +813,16 @@ def test_remap_markers_expands_a_group_before_remapping() -> None:
     remapped = iter_research._remap_markers("x [1, 2] y.", angle_2.sources, merged)
     # local [1] = c -> merged 3; local [2] = a -> merged 1.
     assert remapped == "x [3][1] y."
+
+
+def test_remap_markers_expands_a_range_before_remapping() -> None:
+    """A range group ('[1-2]') expands to each member before the remap, so no
+    member keeps the angle's local numbering."""
+    from services.research.models import ResearchSource
+
+    a, b, c = (ResearchSource(url=f"https://ex.com/{k}", title=k, excerpt="") for k in "abc")
+    angle_1 = ResearchBrief(query="q", symbol="X", mode="deep", markdown="", sources=[a, b])
+    angle_2 = ResearchBrief(query="q", symbol="X", mode="deep", markdown="", sources=[c, a])
+    merged = iter_research._merge_sources([angle_1, angle_2])  # [a, b, c] -> 1, 2, 3
+    remapped = iter_research._remap_markers("x [1-2] y.", angle_2.sources, merged)
+    assert remapped == "x [3][1] y."

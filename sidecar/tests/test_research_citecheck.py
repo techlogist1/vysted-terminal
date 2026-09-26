@@ -103,6 +103,32 @@ def test_reference_link_survives_while_label_after_bad_marker_is_stripped() -> N
     assert cleaned == "See [the filing][sec]. Margins fell."
 
 
+def test_range_group_expands_each_member_then_range_checks() -> None:
+    """A range group ('[2-4]', '[2–4]', '[3—5]') expands to every member,
+    inclusive, before the range check; an all-out-of-range range is removed."""
+    md = "Revenue grew 18% [2–4]. Order book up [7-9]. Margin [3—5]."
+    expanded = expand_marker_groups(md)
+    assert expanded == "Revenue grew 18% [2][3][4]. Order book up [7][8][9]. Margin [3][4][5]."
+    cleaned, removed = strip_invalid_markers(expanded, 5)
+    assert removed == 3
+    assert cleaned == "Revenue grew 18% [2][3][4]. Order book up. Margin [3][4][5]."
+    cleaned, removed = strip_invalid_markers(expand_marker_groups("Margin [3—5]."), 4)
+    assert (cleaned, removed) == ("Margin [3][4].", 1)
+
+
+def test_prompt_label_is_stripped_but_editorial_brackets_survive() -> None:
+    """Only the prompt-label family counts as a pseudo-citation: a label riding
+    a marker ('[Latest evidence][3]') is stripped, while a basis qualifier, a
+    ticker, an editorial bracket and '[sic]' stay byte-identical."""
+    cleaned, removed = strip_invalid_markers("Margin 10.98% [Latest evidence][3].", 5)
+    assert (cleaned, removed) == ("Margin 10.98% [3].", 1)
+    md = (
+        "Return -22.89% [basis: trailing 52 weeks]. Bharat Dynamics [NSE: BDL] "
+        "trades at 1155 [1]. [the Company] expects growth [sic]."
+    )
+    assert strip_invalid_markers(md, 5) == (md, 0)
+
+
 def test_soften_sentence_is_deterministic() -> None:
     out = soften_sentence("Revenue grew 23% to Rs 1,234 crore [3].")
     assert out == "Revenue grew 23% to Rs 1,234 crore (not confirmed in this run)."

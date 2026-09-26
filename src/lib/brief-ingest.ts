@@ -395,32 +395,41 @@ export function dedupeSources(sources: readonly BriefSource[]): BriefSource[] {
 /** Inline `[n]` citation marker — not a markdown link (`[1](url)` is a link). */
 const CITE_MARKER_RE = /\[(\d{1,3})\](?!\()/g;
 
-/** A citation GROUP — `[2, 3]` or `[2; 3]` — never matched by
- *  {@link CITE_MARKER_RE} (its content is not purely digits). */
-const MARKER_GROUP_RE = /\[(\d{1,3}(?:\s*[,;]\s*\d{1,3})+)\]/g;
+/** A citation GROUP — `[2, 3]`, `[2; 3]`, a range `[2-4]`/`[2–4]`/`[2—4]`, or a
+ *  mix `[1, 3-5]` — never matched by {@link CITE_MARKER_RE} (its content is not
+ *  purely digits). A range expands to every number from its lower endpoint to
+ *  its higher one, inclusive. Mirrors citecheck.py `MARKER_GROUP_RE`. */
+const MARKER_GROUP_RE =
+  /\[(?=[^\]]*[-–—,;])(\d{1,3}(?:\s*[-–—]\s*\d{1,3})?(?:\s*[,;]\s*\d{1,3}(?:\s*[-–—]\s*\d{1,3})?)*)\](?!\()/g;
 
-/** A citation-position bracket token that is not a numeric marker at all —
- *  content starting with a letter, at least two characters, e.g. a leaked
- *  prompt label (`[New findings]`, `[Panel reports]`). `[n]`/`[x]` (one
- *  character) and reference-style links/definitions (`[label][ref]`,
- *  `[label]: url`) are excluded by the length floor and the lookahead; the
- *  lookbehind spares a reference link's `[ref]` half (preceded by a
- *  non-numeric `]`) while still catching `[6][New findings]`. */
-const PSEUDO_CITE_RE = /(?<!\D\])\[([A-Za-z][^[\]]+)\](?![([:])/g;
+/** A leaked prompt label in citation position — the label family the research
+ *  prompts use for their evidence blocks (`[New findings]`, `[Latest evidence]`,
+ *  `[Panel reports]`, `[the sources this round]`), case-insensitive. Nothing
+ *  else is touched: a basis qualifier (`[basis: trailing 52 weeks]`), a ticker
+ *  (`[NSE: BDL]`), an editorial bracket (`[the Company]`, `[sic]`) and a
+ *  reference link/definition (`[the filing][sec]`, `[sec]: url`, excluded by the
+ *  lookahead) all survive. Mirrors citecheck.py `_PSEUDO_CITE_RE`. */
+const PSEUDO_CITE_RE =
+  /\[((?:the\s+)?(?:(?:new|latest|web|current|working|panel|known)\s+)?(?:findings?|evidence|reports?|sources?)(?:\s+this\s+round)?)\](?![(:])/gi;
 
 /** The inert marker a broken citation becomes (rendered as a flagged chip). */
 export const BROKEN_CITE_MARKER = "[?]";
 
-/** Split a citation GROUP `[2, 3]`/`[2; 3]` into individual markers
- *  `[2][3]` — each member then range-checks and chips on its own instead of
- *  surviving as an unrecognised group. */
+/** Split a citation GROUP ({@link MARKER_GROUP_RE}) into individual markers —
+ *  `[2, 3]` → `[2][3]`, `[2-4]` → `[2][3][4]` — so each member then
+ *  range-checks and chips on its own instead of surviving as an unrecognised
+ *  group. */
 export function expandMarkerGroups(markdown: string): string {
-  return markdown.replace(MARKER_GROUP_RE, (_whole, group: string) =>
-    group
-      .split(/\s*[,;]\s*/)
-      .map((n) => `[${n}]`)
-      .join(""),
-  );
+  return markdown.replace(MARKER_GROUP_RE, (_whole, group: string) => {
+    const numbers: number[] = [];
+    for (const member of group.split(/\s*[,;]\s*/)) {
+      const ends = member.split(/\s*[-–—]\s*/).map(Number);
+      for (let n = Math.min(...ends); n <= Math.max(...ends); n += 1) {
+        numbers.push(n);
+      }
+    }
+    return numbers.map((n) => `[${n}]`).join("");
+  });
 }
 
 /**
@@ -434,8 +443,6 @@ export function expandMarkerGroups(markdown: string): string {
  * never a real marker) always flags too.
  */
 export function sanitizeCitationMarkers(markdown: string, sourceCount: number): string {
-  // Pseudo-markers first: a flagged `[?]` would otherwise hide a following
-  // `[New findings]` from the lookbehind.
   const expanded = expandMarkerGroups(markdown).replace(PSEUDO_CITE_RE, BROKEN_CITE_MARKER);
   return expanded.replace(CITE_MARKER_RE, (whole, digits: string) => {
     const n = Number(digits);
