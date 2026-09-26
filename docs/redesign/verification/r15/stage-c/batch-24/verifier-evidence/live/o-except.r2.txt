@@ -1,0 +1,22 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  38.9s] tool_use: {"kind": "tool_use", "tool_call_id": "call_c0a155a503e74aa69395b0682721e845", "name": "price_data", "input": {"symbol": "TCS.NS", "asset_class": "equity", "range": "1y"}}
+[  43.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_c0a155a503e74aa69395b0682721e845", "name": "price_data", "ok": true, "error": null}
+[  53.6s] heartbeat: {"kind": "heartbeat"}
+[  63.6s] heartbeat: {"kind": "heartbeat"}
+[  73.6s] heartbeat: {"kind": "heartbeat"}
+[  84.4s] done: {"kind": "done", "usage": {"input_tokens": 7022, "output_tokens": 122, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Based on the price data for TCS.NS from the past year, I can tell you that:
+
+* The current price of TCS is ₹2082.
+* The highest price in the last 12 months was ₹2446.6 (on July 29, 2026).
+* The lowest price in the last 12 months was ₹2059.6 (on June 23, 2026).
+
+I can also provide you with a brief chart showing the price movement of TCS.NS over the past year.
+
+Would you like to see more details or research on TCS?
+
+=== ok · 84.4s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 121, 'done': 1} · usage in=7022 out=122 · est $0.00000 · llama3.1:8b

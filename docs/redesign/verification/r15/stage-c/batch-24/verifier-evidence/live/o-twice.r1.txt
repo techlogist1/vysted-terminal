@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  26.8s] tool_use: {"kind": "tool_use", "tool_call_id": "call_43c9716346c64b3bb107de45d3c54c9d", "name": "price_data", "input": {"asset_class": "equity", "range": "1y", "symbol": "HDFCBANK.NS", "timeframe": "1d"}}
+[  31.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_43c9716346c64b3bb107de45d3c54c9d", "name": "price_data", "ok": true, "error": null}
+[  41.6s] heartbeat: {"kind": "heartbeat"}
+[  51.6s] heartbeat: {"kind": "heartbeat"}
+[  61.6s] heartbeat: {"kind": "heartbeat"}
+[  63.6s] done: {"kind": "done", "usage": {"input_tokens": 6839, "output_tokens": 18, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of HDFCBANK.NS is ₹735.60 per share.
+
+=== ok · 63.6s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 17, 'done': 1} · usage in=6839 out=18 · est $0.00000 · llama3.1:8b

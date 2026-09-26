@@ -1,0 +1,15 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  40.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_2ebe5a03d8614d259e6bded34b4ba76b", "name": "portfolio_add_position", "input": {"symbol": "ITC", "asset_class": "equity", "cost_basis": 415, "note": "", "purchased_at": "2026-09-26", "quantity": 40}}
+[  40.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_2ebe5a03d8614d259e6bded34b4ba76b", "name": "portfolio_add_position", "ok": true, "error": null}
+[  46.2s] research_step: {"kind": "research_step", "tool_call_id": "call_2ebe5a03d8614d259e6bded34b4ba76b", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position ITC. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  46.3s] done: {"kind": "done", "usage": {"input_tokens": 2969, "output_tokens": 78, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You proposed adding 40 ITC shares at ₹415 to your holdings for review. To see the updated portfolio and confirm the spend amount, please review this proposal in the proposal bar. After you accept it, the change will take effect. 
+
+(Remember, the terminal cannot place trades or update your actual portfolio; these actions are just proposals that you can review and apply manually.)
+
+=== ok · 46.3s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 79, 'research_step': 1, 'done': 1} · usage in=2969 out=78 · est $0.00000 · llama3.1:8b

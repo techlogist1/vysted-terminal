@@ -1,0 +1,14 @@
+{
+  "certified": [],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-LEAD-035",
+      "reason": "Narrowing holds but the over-match class is not closed. SUBSET: 0 new strips vs base 014bb7f1 on 97 phrasings (67 + 18 fresh data requests + 12 fresh no-tool). The 67: 0 over-strips (base 7), 50/0/17. Live: 7 OVER x3 all called price_data (18/21 stated the /quotes price, 3 stated an older payload bar = LEAD-037); literal repro x2 made no call and staged nothing. FAILS criterion (2): 4 of 18 fresh explicit data requests still lose every tool (base strips them too): 'He says don't use tools, but please fetch the TCS.NS price.', 'Don't use any tools, except price_data for the TCS.NS price.', 'No tools, other than the price lookup: what's SBIN.NS at?', 'Don't use tools. Just kidding — get me the INFY.NS price.' Live x2 each: calls=[] 8/8, and 6/8 stated invented prices as fetched or current (TCS ₹3,449.15 and ₹1,023.35 vs 2082.0; SBIN ₹934.10 and ₹843.50 vs 983.0; INFY ₹1,241.05 and ₹1,243.80 vs 1000.2). The ',' tail lets a comma before a qualifier fire, and the reported-speech guard covers only 'said'/'say'. A further narrowing-only guard (a qualifier negative lookahead plus (?<!says )) clears 3 of the 4 offline with 0 lost strips (v-candidate.out). Side effect, which fails safe: 2 of 12 fresh no-tool phrasings the base stripped now keep tools and stage writes behind review (never applied)."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "lead_035_concurrence": "REFUSE",
+  "merge_target": "worktree-agent-batch-24-int@d1290f6678366041a1d677a5d05f621714ce4567"
+}

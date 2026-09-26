@@ -1,0 +1,13 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  40.2s] tool_use: {"kind": "tool_use", "tool_call_id": "call_7dc8a0b0669d47f2b91767909097645d", "name": "portfolio_add_position", "input": {"cost_basis": 980, "note": "null", "quantity": 9, "symbol": "SBIN", "asset_class": "equity"}}
+[  40.3s] tool_result: {"kind": "tool_result", "tool_call_id": "call_7dc8a0b0669d47f2b91767909097645d", "name": "portfolio_add_position", "ok": true, "error": null}
+[  43.8s] research_step: {"kind": "research_step", "tool_call_id": "call_7dc8a0b0669d47f2b91767909097645d", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position SBIN. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  43.8s] done: {"kind": "done", "usage": {"input_tokens": 2939, "output_tokens": 43, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I proposed adding 9 units of SBIN to your portfolio at ₹980. The proposal is now awaiting your review and acceptance in the proposal bar. You can confirm or reject this change as you see fit.
+
+=== ok · 43.8s · events {'heartbeat': 4, 'tool_use': 1, 'tool_result': 1, 'delta': 44, 'research_step': 1, 'done': 1} · usage in=2939 out=43 · est $0.00000 · llama3.1:8b

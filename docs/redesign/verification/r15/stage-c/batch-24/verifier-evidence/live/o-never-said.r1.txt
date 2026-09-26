@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  37.5s] tool_use: {"kind": "tool_use", "tool_call_id": "call_a2b6b30d6d0e42cba518dfcb232630f5", "name": "price_data", "input": {"asset_class": "equity", "range": "1d", "symbol": "RELIANCE.NS"}}
+[  42.5s] tool_result: {"kind": "tool_result", "tool_call_id": "call_a2b6b30d6d0e42cba518dfcb232630f5", "name": "price_data", "ok": true, "error": null}
+[  52.5s] heartbeat: {"kind": "heartbeat"}
+[  62.5s] heartbeat: {"kind": "heartbeat"}
+[  72.5s] heartbeat: {"kind": "heartbeat"}
+[  74.4s] done: {"kind": "done", "usage": {"input_tokens": 7002, "output_tokens": 17, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The current price of RELIANCE.NS is ₹1226.0.
+
+=== ok · 74.4s · events {'heartbeat': 6, 'tool_use': 1, 'tool_result': 1, 'delta': 16, 'done': 1} · usage in=7002 out=17 · est $0.00000 · llama3.1:8b

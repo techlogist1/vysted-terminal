@@ -1,0 +1,12 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  39.0s] tool_use: {"kind": "tool_use", "tool_call_id": "call_181b9c4413344749aae015ec958d5de1", "name": "portfolio_add_position", "input": {"symbol": "INFY", "quantity": 7, "cost_basis": 1500}}
+[  39.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_181b9c4413344749aae015ec958d5de1", "name": "portfolio_add_position", "ok": true, "error": null}
+[  42.1s] research_step: {"kind": "research_step", "tool_call_id": "call_181b9c4413344749aae015ec958d5de1", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position INFY. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  42.1s] done: {"kind": "done", "usage": {"input_tokens": 2928, "output_tokens": 33, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+You have added 7 INFY at ₹1,500 to your portfolio for a total cost of ₹10,500. This change is awaiting your review.
+
+=== ok · 42.1s · events {'heartbeat': 3, 'tool_use': 1, 'tool_result': 1, 'delta': 33, 'research_step': 1, 'done': 1} · usage in=2928 out=33 · est $0.00000 · llama3.1:8b
