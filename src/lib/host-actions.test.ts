@@ -155,9 +155,9 @@ describe("host-actions", () => {
       } as never,
       openPanel: vi.fn(),
     } as never);
-    expect(
-      applyHostAction("arrange_layout", { pattern: "focus", panel: "screener" }),
-    ).toBe("Focused on Screener");
+    expect(applyHostAction("arrange_layout", { pattern: "focus", panel: "screener" })).toBe(
+      "Focused on Screener",
+    );
     expect(setActiveSpy).toHaveBeenCalledTimes(1);
     expect(maximizeSpy).toHaveBeenCalledTimes(1);
   });
