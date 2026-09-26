@@ -56,6 +56,7 @@ Public surface
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import logging
 import shutil
@@ -65,7 +66,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from config import get_cache_dir
+from config import get_cache_dir, get_data_dir
 from services import schema_version
 
 DB_FILENAME = "data_cache.db"
@@ -130,6 +131,8 @@ async def ensure_build(version: str) -> bool:
         if row is not None:
             conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             _backup_data_dir(row[0])
+        elif (legacy := _legacy_build()) is not None and legacy != version:
+            _backup_data_dir(legacy)
         conn.execute("DELETE FROM cache")
         conn.execute(
             "INSERT INTO meta(key, value) VALUES('build', ?) "
@@ -152,12 +155,14 @@ async def ensure_build(version: str) -> bool:
 def _backup_data_dir(old_build: str) -> None:
     """Copy the data dir to ``backups/<old_build>/`` unless that backup exists.
 
+    The data dir is :func:`config.get_data_dir` (portfolio, workspaces, runs, the
+    audit DB), not this cache's own dir: on Windows :func:`config.get_cache_dir`
+    is LocalAppData and holds only regenerable caches (R15-CROSS-PLATFORM-012).
     The copy lands under a temporary name and is renamed when complete, so a
     failed copy never passes for a backup. A failure is logged, not raised: the
     upgrade proceeds without it rather than failing the boot.
     """
-    assert _db_path is not None
-    data_dir = _db_path.parent
+    data_dir = get_data_dir()
     target = data_dir / "backups" / old_build
     if target.exists():
         return
@@ -176,6 +181,26 @@ def _backup_data_dir(old_build: str) -> None:
         return
     logger.info("data_cache: data dir backed up to %s before the upgrade", target)
     _prune_old_backups(target.parent)
+
+
+def _legacy_build() -> str | None:
+    """The build recorded by a ``data_cache.db`` still in the data dir.
+
+    Before R15-CROSS-PLATFORM-012 the cache lived in the data dir; when it now
+    lives elsewhere, the first boot of this build opens a fresh cache with no
+    build row, so the build that left the data dir is read from the old file
+    to still take the pre-upgrade backup. ``None`` when there is no such file.
+    """
+    legacy = get_data_dir() / DB_FILENAME
+    if _db_path is None or not legacy.exists() or legacy.resolve() == _db_path.resolve():
+        return None
+    try:
+        uri = f"{legacy.resolve().as_uri()}?mode=ro"
+        with contextlib.closing(sqlite3.connect(uri, uri=True)) as conn:
+            found = conn.execute("SELECT value FROM meta WHERE key = 'build'").fetchone()
+    except sqlite3.Error:
+        return None
+    return found[0] if found else None
 
 
 #: The most upgrade backups kept under backups/<old-build>/ (R15-CODE-PLATFORM-077):

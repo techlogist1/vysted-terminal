@@ -3,17 +3,22 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import sqlite3
 import time
 from pathlib import Path
 
 import pytest
 
+from config import DATA_DIR_ENV
 from services import data_cache
 
 
 @pytest.fixture(autouse=True)
-def _isolated_cache(tmp_path: Path) -> None:
-    """Point the cache at a tmp file per test, and reset on teardown."""
+def _isolated_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Point the cache and the data dir (pre-upgrade backups) at tmp_path, and
+    reset on teardown."""
+    monkeypatch.setenv(DATA_DIR_ENV, str(tmp_path))
     data_cache.reset_for_tests(tmp_path / "test_cache.db")
     yield
     data_cache.reset_for_tests(None)
@@ -191,6 +196,34 @@ async def test_old_upgrade_backups_are_pruned_after_a_successful_backup(tmp_path
     assert len(remaining) == data_cache.MAX_BACKUPS
     assert oldest.name not in remaining  # the oldest pre-seeded backup was pruned
     assert "build-A" in remaining  # the just-completed backup survives
+
+
+@pytest.mark.asyncio
+async def test_a_separate_cache_dir_backs_up_the_data_dir_even_on_first_boot(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-CROSS-PLATFORM-012 x R15-LIFECYCLE-024: with the cache outside the data
+    dir (Windows LocalAppData), the backup still copies the data dir, and the
+    first boot onto this build reads the old build from the legacy cache file."""
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    monkeypatch.setenv(DATA_DIR_ENV, str(data_dir))
+    (data_dir / "portfolio.db").write_bytes(b"positions")
+    with contextlib.closing(sqlite3.connect(data_dir / data_cache.DB_FILENAME)) as legacy:
+        legacy.execute("CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+        legacy.execute("INSERT INTO meta VALUES ('build', '0.8.0')")
+        legacy.commit()
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+    data_cache.reset_for_tests(cache_dir / data_cache.DB_FILENAME)
+
+    assert await data_cache.ensure_build("0.9.0") is True
+
+    copy = data_dir / "backups" / "0.8.0"
+    assert (copy / "portfolio.db").read_bytes() == b"positions"
+    assert not (cache_dir / "backups").exists()
+    await data_cache.ensure_build("0.9.1")  # the new cache's own build row now drives it
+    assert sorted(p.name for p in (data_dir / "backups").iterdir()) == ["0.8.0", "0.9.0"]
 
 
 # ---------------------------------------------------------------------------
