@@ -269,6 +269,7 @@ def test_snapshot_attaches_computed_growth_next_to_provider_values(
                     "provider": "yfinance",
                     "revenue_growth": 0.669,
                     "earnings_growth": 0.03,
+                    "growth_basis": "mrq_yoy",
                 }
             ),
             "ICICIBANK",
@@ -311,7 +312,15 @@ def test_snapshot_attaches_nothing_when_statements_unavailable(
     monkeypatch.setattr(growth_check, "get_quarterly_yoy", none_yoy)
     snap = asyncio.run(
         snapshot_structured(
-            _fund_tool({"symbol": "X.NS", "provider": "yfinance", "revenue_growth": 0.1}), "X"
+            _fund_tool(
+                {
+                    "symbol": "X.NS",
+                    "provider": "yfinance",
+                    "revenue_growth": 0.1,
+                    "growth_basis": "mrq_yoy",
+                }
+            ),
+            "X",
         )
     )
     fund = snap["fundamentals"]["data"]
