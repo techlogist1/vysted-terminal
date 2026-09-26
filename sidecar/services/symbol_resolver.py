@@ -68,6 +68,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import threading
 import time
 from collections import OrderedDict
@@ -75,6 +76,8 @@ from dataclasses import dataclass, field, replace
 from difflib import SequenceMatcher
 from functools import lru_cache
 from importlib import resources
+
+import httpx
 
 import config
 from services import nse_symbol_change, provider_health
@@ -129,6 +132,10 @@ _MAX_CANDIDATES = 6
 # a throttled/blocked upstream once per unresolved query.
 _LIVE_CACHE_MAX_ENTRIES = 128
 _LIVE_FAILURE_COOLDOWN_SECONDS = 60.0
+# yfinance 1.3.0's Search defaults to timeout=30, which can hold a worker
+# thread (and its caller) for 30 s on a hung Yahoo. Live misses measure
+# 0.4-2.2 s in practice; 5 s leaves headroom without masking a real miss.
+_LIVE_SEARCH_TIMEOUT_SECONDS = 5.0
 # A successful EMPTY search expires (R15-DATA-097): the live rung is the path to
 # a post-snapshot listing, so a stale negative would hide it until restart.
 _LIVE_EMPTY_TTL_SECONDS = 300.0
@@ -591,10 +598,90 @@ def reset_caches_for_tests() -> None:
 
 def _reset_live_lookup_for_tests() -> None:
     """Drop the live-lookup LRU + cooldown only (cheaper than a master reload)."""
-    global _live_cooldown_until
+    global _live_cooldown_until, _us_isin_cooldown_until
     with _live_cache_lock:
         _live_cache.clear()
         _live_cooldown_until = 0.0
+        _us_isin_cache.clear()
+        _us_isin_cooldown_until = 0.0
+
+
+# --- US ISIN lookup (R15-DATA-059) ------------------------------------------
+# us_instruments.json rows are [ticker, name] only — no ISIN. Rather than a
+# bundled master (a CUSIP-derived column can't be redistributed in this AGPL
+# repo), this is a lazy per-symbol runtime fetch against the SAME keyless
+# suggest endpoint yfinance's own (uncontrolled, extra-round-tripping)
+# ``Ticker.isin`` uses, reimplemented here with a bounded timeout and a strict
+# parse: an EXACT "<SYMBOL>|<ISIN>|" token, format- and check-digit-validated,
+# with the R13 TCI guard's IN-prefix rejection so an Indian ISIN can never
+# land on a US namesake. ponytail: a scrape of a public suggest endpoint,
+# capped at one call per new US symbol per process; a licensed identifier
+# feed (e.g. OpenFIGI) is the upgrade if this ever needs to be authoritative.
+_US_ISIN_SUGGEST_URL = "https://markets.businessinsider.com/ajax/SearchController_Suggest"
+_US_ISIN_LOOKUP_TIMEOUT_SECONDS = 3.0
+_ISIN_FORMAT_RE = re.compile(r"^[A-Z]{2}[A-Z0-9]{9}\d$")
+_us_isin_cache: dict[str, str | None] = {}
+_us_isin_cooldown_until = 0.0  # monotonic deadline; 0 = no cooldown
+
+
+def _isin_check_digit_valid(isin: str) -> bool:
+    """Luhn check digit over the letter-expanded 11-char ISIN body (A=10..Z=35)."""
+    digits = "".join(str(int(ch, 36)) if ch.isalpha() else ch for ch in isin[:11])
+    total = 0
+    for i, ch in enumerate(reversed(digits)):
+        d = int(ch)
+        if i % 2 == 0:
+            d *= 2
+            if d > 9:
+                d -= 9
+        total += d
+    return (10 - total % 10) % 10 == int(isin[11])
+
+
+def _us_isin_http_get(symbol: str) -> httpx.Response:
+    """One GET against the keyless businessinsider suggest endpoint (the network
+    seam). Tests monkeypatch THIS function so no unit test touches the live
+    network."""
+    with httpx.Client(timeout=_US_ISIN_LOOKUP_TIMEOUT_SECONDS) as client:
+        return client.get(_US_ISIN_SUGGEST_URL, params={"max_results": 25, "query": symbol})
+
+
+def _us_isin(symbol: str) -> str | None:
+    """A lazy, bounded, validated ISIN lookup for a single US ticker.
+
+    Cached per symbol for the process (hit AND definite miss). A transport
+    failure is never cached and instead opens its own short cooldown, during
+    which every call returns ``None`` without touching the network.
+    """
+    global _us_isin_cooldown_until
+    symbol = symbol.upper()
+    with _live_cache_lock:
+        if symbol in _us_isin_cache:
+            return _us_isin_cache[symbol]
+        if time.monotonic() < _us_isin_cooldown_until:
+            return None
+
+    try:
+        text = _us_isin_http_get(symbol).text
+    except Exception as exc:  # noqa: BLE001 - a transport failure is non-fatal
+        with _live_cache_lock:
+            _us_isin_cooldown_until = time.monotonic() + _LIVE_FAILURE_COOLDOWN_SECONDS
+        logger.debug("symbol_resolver: US ISIN lookup failed for %r: %s", symbol, exc)
+        return None
+
+    match = re.search(rf'"{re.escape(symbol)}\|([^"|]+)\|', text)
+    isin = match.group(1) if match else None
+    if (
+        isin is None
+        or not _ISIN_FORMAT_RE.match(isin)
+        or isin.startswith("IN")
+        or not _isin_check_digit_valid(isin)
+    ):
+        isin = None
+
+    with _live_cache_lock:
+        _us_isin_cache[symbol] = isin
+    return isin
 
 
 # ---------------------------------------------------------------------------
@@ -916,7 +1003,29 @@ def resolve(query: str, region: str) -> Resolution:
     :class:`RenameAnnotation` — never a silent swap, never onto a different
     company, and an honest no-op when the rename master is unavailable.
     """
-    return _annotate_renamed_symbols(_enrich_resolution(_resolve_masters(query, region)))
+    return _annotate_renamed_symbols(
+        _apply_us_isin(_enrich_resolution(_resolve_masters(query, region)))
+    )
+
+
+def _apply_us_isin(resolution: Resolution) -> Resolution:
+    """Fill a US best's missing ISIN via the lazy runtime lookup (R15-DATA-059).
+
+    Applied ONLY to ``best`` — never to every candidate, and never to a non-US
+    row (the bundled masters already carry the Indian-identity ISIN where one
+    exists; the R13 collision guard means a candidate list's non-Indian rows
+    must stay unenriched by construction). A miss (no exact token, an invalid
+    format/check digit, or a transport failure) leaves the resolution as it was.
+    """
+    best = resolution.best
+    if best is None or best.exchange != "US" or best.isin is not None:
+        return resolution
+    isin = _us_isin(best.symbol)
+    if isin is None:
+        return resolution
+    new_best = replace(best, isin=isin)
+    candidates = [new_best if same_instrument(c, best) else c for c in resolution.candidates]
+    return Resolution(query=resolution.query, best=new_best, candidates=candidates)
 
 
 def _resolve_masters(query: str, region: str) -> Resolution:
@@ -1571,7 +1680,7 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     try:
         import yfinance as yf
 
-        search = yf.Search(query, max_results=5, news_count=0)
+        search = yf.Search(query, max_results=5, news_count=0, timeout=_LIVE_SEARCH_TIMEOUT_SECONDS)
         quotes = getattr(search, "quotes", None) or []
     except Exception as exc:  # noqa: BLE001 - any live-lookup failure is non-fatal
         with _live_cache_lock:
