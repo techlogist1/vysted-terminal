@@ -31,15 +31,8 @@ async def fetch_sec_filing(inputs: dict[str, Any], config: dict[str, Any]) -> di
     Outputs:
         ``{"filing": <FilingDetail JSON>}``.
     """
-    accession = inputs.get("accession") or config.get("accession")
-    identifier = (
-        inputs.get("identifier")
-        or inputs.get("symbol")
-        or inputs.get("cik")
-        or config.get("identifier")
-        or config.get("symbol")
-        or config.get("cik")
-    )
+    accession = workflow_engine.resolve(inputs, config, "accession")
+    identifier = workflow_engine.resolve(inputs, config, "identifier", "symbol", "cik")
     if not accession:
         raise ValueError("data.fetch_sec_filing: missing 'accession' (provide via input or config)")
     if not identifier:
@@ -61,18 +54,11 @@ async def fetch_insider_transactions(
         form — ``"3" | "4" | "5"`` filter (optional).
         limit — max rows (default 30).
     """
-    identifier = (
-        inputs.get("identifier")
-        or inputs.get("symbol")
-        or inputs.get("cik")
-        or config.get("identifier")
-        or config.get("symbol")
-        or config.get("cik")
-    )
+    identifier = workflow_engine.resolve(inputs, config, "identifier", "symbol", "cik")
     if not identifier:
         raise ValueError("data.fetch_insider_transactions: missing 'identifier' / 'symbol' / 'cik'")
-    form = inputs.get("form") or config.get("form")
-    limit_raw = inputs.get("limit") or config.get("limit") or 30
+    form = workflow_engine.resolve(inputs, config, "form")
+    limit_raw = workflow_engine.resolve(inputs, config, "limit", default=30)
     try:
         limit = int(limit_raw)
     except (TypeError, ValueError) as exc:

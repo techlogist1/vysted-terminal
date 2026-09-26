@@ -61,6 +61,7 @@ from services import (
     nse_symbol_change,
     run_manager,
     searxng_manager,
+    workflow_nodes,
     workflow_scheduler,
 )
 from services import screener as screener_service
@@ -203,17 +204,13 @@ def _register_v0_5_0_runtime_extensions() -> None:
 
 
 def _register_v0_6_0_runtime_extensions() -> None:
-    """Wire Phase 6 agent tools + workflow nodes into their registries.
+    """Wire the Phase 6 agent tools and every workflow node type into their registries.
 
-    Aggregator stubs that no-op until a Phase 6 teammate's submodule
-    uncomments its registration line. Lives next to the v0.5.0 helper
-    above and is called from :func:`create_app` so TestClient builds
-    pick the registrations up.
+    Called from :func:`create_app` so TestClient builds and the production
+    boot register the same set.
     """
-    from services.workflow_nodes import registry_v0_6_0 as _wf_v0_6_0
-
     agent_tools.register_v0_6_0_tools()
-    _wf_v0_6_0.register_v0_6_0_nodes()
+    workflow_nodes.register_all()
 
 
 class _RegionMiddleware:
@@ -367,10 +364,7 @@ def create_app() -> FastAPI:
     # Registered at app-build time so TestClient + uvicorn paths converge.
     _register_v0_5_0_runtime_extensions()
 
-    # v0.6.0 (Phase 6) runtime extensions — macro + SEC + earnings +
-    # analyst + quant + screener agent tools and workflow nodes. The
-    # aggregators currently no-op until each Phase 6 teammate's
-    # submodule uncomments its registration entry.
+    # v0.6.0 (Phase 6) agent tools + every workflow node type.
     _register_v0_6_0_runtime_extensions()
 
     # Mount the FastMCP Streamable-HTTP transport at /mcp. External MCP

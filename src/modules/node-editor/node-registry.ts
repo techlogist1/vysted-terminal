@@ -3,7 +3,8 @@
  * `sidecar/services/workflow_nodes/builtin.py`, Teammate W) with
  * plugin-contributed node types surfaced through `usePluginsStore.nodes`
  * (via the locked `VystedPlugin.contributesNodes` capability in
- * `types/plugin.ts`).
+ * `types/plugin.ts`). A plugin node is only runnable when the sidecar has a
+ * handler for its id (see `buildRegistry`).
  *
  * The registry is the single source of truth used by both the palette
  * (drag-source labels + categories) and the canvas node renderer
@@ -582,12 +583,22 @@ export function firstPartyEntries(): RegistryEntry[] {
  * first-party spec wins. The collision is silent (not an error) to keep
  * the palette robust against accidentally-misnamed plugin nodes; the
  * plugin manager UI surfaces the duplicate-id case elsewhere.
+ *
+ * `serverNodeTypes` is the sidecar's `GET /workflow/node-types` list: the
+ * engine only runs node types with a Python handler (there is no TS→Python
+ * node bridge), so when the list is known a plugin spec absent from it is
+ * dropped — the palette never offers a node a run would reject.
  */
-export function buildRegistry(pluginNodes: readonly NodeSpec[]): RegistryEntry[] {
+export function buildRegistry(
+  pluginNodes: readonly NodeSpec[],
+  serverNodeTypes?: readonly string[],
+): RegistryEntry[] {
   const firstParty = firstPartyEntries();
   const firstPartyIds = new Set<string>(FIRST_PARTY_NODE_IDS);
+  const runnable = serverNodeTypes === undefined ? null : new Set(serverNodeTypes);
   const pluginEntries: RegistryEntry[] = pluginNodes
     .filter((spec) => !firstPartyIds.has(spec.id))
+    .filter((spec) => runnable === null || runnable.has(spec.id))
     .map((spec) => ({
       spec,
       source: "plugin" as const,
