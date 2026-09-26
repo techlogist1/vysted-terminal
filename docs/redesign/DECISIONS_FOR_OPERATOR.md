@@ -651,6 +651,22 @@ are done-and-revertable like §1; these are yours to review or act on.
 - **Status:** blocked_tier4 — fresh verifier concurred (batch-23/DISPOSITION-CONCURRENCE.md);
   operator decides at rc1
 
+### 4.13 R15-DATA-059 (medium, data-smallcaps): third certification failure — stopped for you
+
+- **Status:** BLOCKED_TIER4 by the three-failure rule (19:56 IST 26 Sep, batch-25 verifier). Register status set to `blocked_tier4` with this pointer at the batch-26 adjudication.
+- **History:** certified in an early Stage C batch; `regression_confirmed` by the rc1 round-1 refutation audit (the US master had no ISIN); refuted again by the gate round-2 verifier; batch-25's W2 shipped a lazy, validated US ISIN lookup (exact-token parse of the keyless suggest endpoint yfinance itself uses, 3 s timeout, check digit validated, IN prefix rejected, cached, cooldown on failure; the reviewer added: a non-2xx response opens the cooldown, never a cached miss). The batch-25 fresh verifier confirmed the ISIN live for SIFY, ONC, AAPL and two fresh names (MSFT US5949181045, NVDA US67066G1040) but did NOT certify because the entry's TITLE also claims that US instruments carry no board and no listing date, and `/resolve` still returns `board null` with no `listing_date` while `/fundamentals/<US>` has `listing_date null`.
+- **What is true now (merged at `1373c0d5`):** the ISIN half is fixed and tested; the board/listing-date half is unchanged — no free source we use (yfinance, the SEC master) carries a US listing date or board, so that half is a data-availability limitation, not a code defect.
+- **Options:** (a) narrow the entry to its ISIN claim and close it `fixed` on the batch-25 certificate, recording the board/listing-date gap as a documented limitation in the release notes and CURRENT_STATE; (b) keep it open post-launch as a backlog item for a paid or scraped listing-date source; (c) one more attempt now (not recommended: there is nothing to fix without a source).
+- **Recommendation:** (a). It closes an honest fix and names the gap in the operator briefing; nothing in the rc changes either way. Until you rule, the entry stays `blocked_tier4` and gate round 3 lists it under 'operator decision pending'.
+
+### 4.14 R15-RESEARCH-043 (medium, research-search): third certification failure — stopped for you; the third attempt was reverted
+
+- **Status:** BLOCKED_TIER4 by the three-failure rule (19:56 IST 26 Sep). Register status set to `blocked_tier4` with this pointer at the batch-26 adjudication.
+- **The defect:** the research-brief citation-integrity net (`sidecar/services/research/citecheck.py` + `src/lib/brief-ingest.ts`) recognises only a bare `[n]`; a grouped marker `[2, 3]` or a bracketed prose fragment `[New findings]` ships as literal, unresolved text (gate round 2, owner drive research-briefs:2, re-proved by the fresh verifier as rc1-verifier:3).
+- **Three attempts:** gate round 2 fix rounds 1 and 2 (Sonnet) patched the regex and the live recheck still reproduced through both nets; batch-25's W5 (Opus, `1288ec19`) wrote a shared grammar on both sides of the wire that PASSED the recorded corpus with byte-identical parity, but the fresh verifier showed it treats ANY bracket token as a citation: `Shares outstanding [1,234 mn]` became a fabricated citation `[1]` with zero broken counted, and `[Rs 1,200]` / `[₹1,20,000 cr]` were erased on the backend. That is worse than the base, so the lead REVERTED it on 004 (`3a674e7c`, RESEARCH-015 from the same writer kept). The candidate for gate round 3 therefore carries the ORIGINAL defect, not the fabrication.
+- **Options:** (a) authorise ONE more attempt before rc2 (in the lows-integration window, its own branch, Opus writer, fresh verifier): the exact rule the register's fix shape states — a bracket group is a citation only when EVERY comma/en-dash separated token is an integer or an integer range; anything else is prose, never resolved, never erased; a look-alike pseudo-citation (capitalised words, no digits) fails the integrity check instead of shipping — with the verifier's three cases and one fresh case pinned as tests on both sides; (b) accept the original behaviour as a documented limitation for the launch line (grouped markers and bracketed prose render verbatim; nothing is fabricated) and take (a) post-launch.
+- **Recommendation:** (a). The defect is now precisely specified by two verifiers, it sits in one of your four named areas, and the revert precedent bounds the risk: a fourth failure reverts again and (b) applies. Until you rule, the entry stays `blocked_tier4` and the gate lists it under 'operator decision pending'.
+
 ## 5. New items from Stage D and the bundle rehearsal (26 Sep 2026)
 
 Filed from the refreshed Stage D open-questions list
@@ -861,3 +877,9 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   the documented signing limitation. Signing is the operator-only step in runbook §8 and
   §2.8 (R15-RELEASE-001). It is not a defect.
 - **Status: awaiting operator** (no new decision: both ride §2.21 and §2.8)
+
+### 5.12 Lead ruling on the three-failure count for R15-DATA-002 (critical): a non-delivery is not a certification failure
+
+- **Facts:** DATA-002 (the watchlist drops the picked listing's region) was `partial` in the rc1 round-1 refutation audit and `partial` again at the gate round-2 refutation — two certification failures. In batch-25 the W1 writer reported `could_not`: its fix (region on `SymbolEntry`, the pick, the quote poll, the row click and persistence) is complete with green tests on `worktree-agent-batch-25-W1-data002-wip@b91ddef3`, but the last hop needs `src/store/command-palette.ts` (the `symbolEntry` type and the `symbol:<SYM>` id that collides for two listings) plus `CommandPalette.tsx:207`, which were outside the planner's owned-file set. Nothing was merged; the batch-25 verifier recorded it as not certified for that reason.
+- **Ruling (19:56 IST 26 Sep, Tier 3):** the three-failure rule counts fixes that were certified and refuted, or delivered and not certified. A fix that never reached the integration branch because of a planning boundary was not tested and does not count. DATA-002 stays at TWO. Batch-26 makes ONE targeted attempt from the WIP branch with the missing file in scope; if its fresh verifier does not certify it, that is the third and it stops for you like 4.13 and 4.14.
+- **Why it is recorded here:** you may disagree with the reading; if so, say so and batch-26's result is treated as the third regardless.
