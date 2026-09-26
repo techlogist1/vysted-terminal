@@ -198,7 +198,7 @@ def _public_suffix(host: str) -> str:
     return labels[-1]
 
 
-def _registrable_domain(host: str) -> str:
+def registrable_domain(host: str) -> str:
     """The registrable domain of ``host``: its public suffix plus one extra
     label. Equal to ``host`` itself when the host has no label beyond its
     public suffix (e.g. ``investors.github.io`` — a whole PSL private-suffix
@@ -226,7 +226,7 @@ def _looks_like_ir(host: str) -> bool:
         return False
     if _matches(host, _IR_PLATFORM_DENYLIST):
         return False
-    return host != _registrable_domain(host)
+    return host != registrable_domain(host)
 
 
 def domain_tier(url_or_domain: str) -> int:

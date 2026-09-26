@@ -39,6 +39,7 @@ import json
 import logging
 import os
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 from fastapi import FastAPI
@@ -250,18 +251,24 @@ def _build_server() -> FastMCP:
 
     @mcp.tool
     async def list_workspaces() -> dict[str, Any]:
-        """List saved workspaces. Maps to GET /workspaces."""
-        async with _internal_client() as client:
-            response = await client.get("/workspaces")
-            response.raise_for_status()
-            return response.json()
+        """List saved workspaces. Maps to GET /workspace (a bare list, wrapped
+        as ``{"workspaces": [...]}``)."""
+        return await _get_list("/workspace", "workspaces")
 
     @mcp.tool
     async def get_workspace(workspace_id: str) -> dict[str, Any]:
-        """Return a saved workspace by id. Maps to GET /workspaces/{id}."""
+        """Return a saved workspace by id. Maps to GET /workspace/{id}.
+
+        A missing workspace or any other route failure is
+        ``{"ok": False, "error": ...}``, never a transport error.
+        """
+        path = f"/workspace/{quote(workspace_id, safe='')}"
         async with _internal_client() as client:
-            response = await client.get(f"/workspaces/{workspace_id}")
-            response.raise_for_status()
+            try:
+                response = await client.get(path)
+                response.raise_for_status()
+            except httpx.HTTPError as exc:
+                return {"ok": False, "error": f"GET {path} failed: {exc}"}
             return response.json()
 
     # ---------- Workflow tools (Teammate W's v0.5.0 surface) ----------

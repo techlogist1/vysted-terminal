@@ -49,6 +49,19 @@ def _bundled_resolver_masters_only(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(symbol_resolver, "_refreshed_master", lambda filename: None)
 
 
+@pytest.fixture(autouse=True)
+def _no_network_us_isin(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep the R15-DATA-059 US ISIN lookup off the network: every ``resolve()``
+    of a US best calls it. An empty suggest body is a definite miss (ISIN None);
+    the resolver's own tests monkeypatch the seam with canned responses."""
+    import httpx
+
+    from services import symbol_resolver
+
+    monkeypatch.setattr(symbol_resolver, "_us_isin_http_get", lambda symbol: httpx.Response(200))
+    symbol_resolver._reset_live_lookup_for_tests()
+
+
 @pytest.fixture
 def client() -> TestClient:
     """A TestClient bound to a freshly built app instance."""

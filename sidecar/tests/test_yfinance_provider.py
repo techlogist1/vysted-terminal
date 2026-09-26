@@ -8,6 +8,8 @@ point so callers can ask for the natural ``BRK.B`` and get a working response.
 
 from __future__ import annotations
 
+from datetime import date
+
 import pytest
 
 import config
@@ -295,6 +297,39 @@ def test_yahoo_symbol_routes_bse_only_to_bo(bare: str, expected: str) -> None:
         assert yfinance_provider._yahoo_symbol(bare) == expected
     finally:
         config.reset_request_region(token)
+
+
+# --- R15-LEAD-028: a numeric BSE scrip code maps to its canonical ticker ------
+
+
+@pytest.mark.parametrize(
+    ("code", "expected"),
+    [
+        ("506597.BO", "AMAL.BO"),
+        ("544774.BO", "SMR.BO"),
+        ("532540.BO", "TCS.BO"),  # the fresh case: a code not in the fix's own table
+    ],
+)
+def test_yahoo_symbol_maps_a_bse_scrip_code_to_its_ticker(code: str, expected: str) -> None:
+    from services import symbol_resolver
+
+    assert symbol_resolver.bse_symbol_for_code(code[: -len(".BO")]) == expected[: -len(".BO")]
+    assert yfinance_provider._yahoo_symbol(code) == expected
+
+
+def test_yahoo_symbol_passes_an_unknown_scrip_code_through() -> None:
+    """No BSE master entry for the code — pass it through unchanged so Yahoo
+    404s it honestly, rather than raising or guessing."""
+    assert yfinance_provider._yahoo_symbol("999999.BO") == "999999.BO"
+
+
+@pytest.mark.parametrize("index", ["^BSESN", "^NSEI"])
+def test_yahoo_symbol_caret_index_unaffected_by_scrip_code_mapping(index: str) -> None:
+    assert yfinance_provider._yahoo_symbol(index) == index
+
+
+def test_yahoo_symbol_alphabetic_bo_ticker_unaffected_by_scrip_code_mapping() -> None:
+    assert yfinance_provider._yahoo_symbol("RELIANCE.BO") == "RELIANCE.BO"
 
 
 def test_get_fundamentals_bse_only_ticker_fetches_bo(
@@ -605,6 +640,66 @@ def test_30m_history_asks_within_yahoos_60_day_intraday_window(
     monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
     yfinance_provider.get_history("SPY", "30m")
     assert asked == [("1mo", "30m"), ("1mo", "30m")]
+
+
+def _bar_ticker(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, str]]:
+    """Patch ``yf.Ticker`` with a fake serving two real bars, recording every
+    ``(period, interval)`` its ``history()`` was asked for."""
+    import pandas as pd
+
+    asked: list[tuple[str, str]] = []
+
+    class _Ticker:
+        def __init__(self, symbol: str) -> None:  # noqa: ARG002
+            pass
+
+        def history(self, period: str, interval: str) -> pd.DataFrame:
+            asked.append((period, interval))
+            index = pd.to_datetime(["2026-05-12", "2026-05-13"])
+            return pd.DataFrame(
+                {
+                    "Open": [100.0, 101.0],
+                    "High": [101.0, 102.0],
+                    "Low": [99.0, 100.0],
+                    "Close": [100.5, 101.5],
+                    "Volume": [1_000.0, 1_100.0],
+                },
+                index=index,
+            )
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+    return asked
+
+
+def test_30m_history_with_1y_range_is_clamped_and_partial(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-064: an explicit range past Yahoo's 60-day sub-hour intraday
+    window is clamped to 60 days before the fetch, and the series is marked
+    partial with coverage_start set to the first bar actually served."""
+    asked = _bar_ticker(monkeypatch)
+    series = yfinance_provider.get_history("AAPL", "30m", "1y")
+    assert asked == [("60d", "30m")]
+    assert series.partial is True
+    assert series.coverage_start == date(2026, 5, 12)
+
+
+def test_30m_history_with_1mo_range_is_not_clamped(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A range already within the 60-day cap is asked for as-is and not marked
+    partial."""
+    asked = _bar_ticker(monkeypatch)
+    series = yfinance_provider.get_history("AAPL", "30m", "1mo")
+    assert asked == [("1mo", "30m")]
+    assert series.partial is False
+    assert series.coverage_start is None
+
+
+def test_1m_history_with_1mo_range_is_clamped_to_the_7day_cap(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Fresh case: 1m's cap is 7 days, tighter than 30m's 60-day cap."""
+    asked = _bar_ticker(monkeypatch)
+    series = yfinance_provider.get_history("AAPL", "1m", "1mo")
+    assert asked == [("7d", "1m")]
+    assert series.partial is True
 
 
 @pytest.mark.parametrize(

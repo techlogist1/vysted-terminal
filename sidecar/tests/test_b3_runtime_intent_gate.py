@@ -146,6 +146,54 @@ async def test_portfolio_question_still_strips_data_writes(monkeypatch: pytest.M
     assert tool_ids.isdisjoint(_DATA_WRITES)
 
 
+# R15-AGENT-019 round 3 (rc1 gate round 2 refutation @4c6dfe8c): the bare
+# trailing-"?" read cue does not count when the text addresses the agent
+# ("can/could/would/will you", "please"), because that alone caused every
+# listed data write to strip with no edit verb needed.
+_AGENT_REQUEST_KEEP_PHRASINGS = [
+    ("Could you drop WIPRO from my portfolio?", "portfolio_delete_position"),
+    ("Can you bump my INFY quantity to 30?", "portfolio_update_position"),
+    ("Would you scrap my ITC position?", "portfolio_delete_position"),
+    ("Can you trim INFY to 5 shares?", "portfolio_update_position"),
+    ("Could you get rid of my HDFC Bank holding?", "portfolio_delete_position"),
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(("prompt", "needed"), _AGENT_REQUEST_KEEP_PHRASINGS)
+async def test_agent_request_question_keeps_its_write_tool(
+    monkeypatch: pytest.MonkeyPatch, prompt: str, needed: str
+) -> None:
+    assert needed in await _agent_tool_ids(monkeypatch, prompt)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "prompt",
+    [
+        "Can you explain what a P/E ratio is?",
+        "Is RELIANCE up today?",
+        "How is my portfolio doing?",
+    ],
+)
+async def test_agent_request_with_real_read_cue_still_strips_data_writes(
+    monkeypatch: pytest.MonkeyPatch, prompt: str
+) -> None:
+    tool_ids = await _agent_tool_ids(monkeypatch, prompt)
+    assert tool_ids.isdisjoint(_DATA_WRITES)
+
+
+@pytest.mark.asyncio
+async def test_fresh_agent_request_with_unlisted_verb_keeps_delete(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Fresh case: "ditch" is in no edit-cue table, so this keeps its write tool
+    # only through the trailing-"?" suppression, not a fourth round of verbs.
+    assert "portfolio_delete_position" in await _agent_tool_ids(
+        monkeypatch, "Could you ditch my ITC shares?"
+    )
+
+
 # R15-LEAD-035: an explicit in-turn "without calling any tool" instruction
 # empties the whole tool surface server-side, rather than relying on the model
 # to self-restrain. Tests 1-2 need agent_runtime._resolve_tool_surface's

@@ -470,55 +470,202 @@ async def test_non_in_default_keeps_the_us_universe(monkeypatch: pytest.MonkeyPa
 
 
 # ---------------------------------------------------------------------------
-# R15-DATA-113 — revenue's own currency, distinct from the trading currency
+# R15-DATA-113 — revenue's own currency, scale-checked against totalRevenue
 # ---------------------------------------------------------------------------
+#
+# Live-probed figures at planning: INFY/INFY.NS (financialCurrency USD,
+# totalRevenue 2.03e10, Revenue Average 4.9165e11 — 97x out of band, so the
+# scale check rejects financialCurrency and falls back to the home-market
+# currency); WIT, TSM and AAPL are each within the 0.3x-3x band, so their
+# financialCurrency is trusted as-is.
 
 
-class _WitShapedTicker(_FakeEarningsTicker):
-    """WIT (Wipro): the ADR trades in USD but Yahoo reports its statement-size
-    fields (revenue) in the filer's reporting currency, INR (financialCurrency).
-    EPS stays per-ADS USD — only the money-sized revenue figures are foreign."""
+def _currency_shaped_ticker(
+    *,
+    currency: str,
+    financial_currency: str | None,
+    country: str | None,
+    total_revenue: float,
+    revenue_average: float = 1.0e8,
+) -> type[_FakeEarningsTicker]:
+    """Build a fake ticker whose ``info`` carries the R15-DATA-113 fields and
+    whose calendar's quarterly ``Revenue Average`` is the scale-check sample."""
 
-    @property
-    def info(self) -> dict:  # type: ignore[override]
-        return {"longName": "Wipro Limited", "currency": "USD", "financialCurrency": "INR"}
+    class _Ticker(_FakeEarningsTicker):
+        @property
+        def info(self) -> dict:  # type: ignore[override]
+            return {
+                "longName": "Test Co",
+                "currency": currency,
+                "financialCurrency": financial_currency,
+                "country": country,
+                "totalRevenue": total_revenue,
+            }
+
+        @property
+        def calendar(self) -> dict[str, Any]:  # type: ignore[override]
+            base = dict(_FakeEarningsTicker.calendar.fget(self))
+            base["Revenue Average"] = revenue_average
+            return base
+
+    return _Ticker
 
 
 @pytest.mark.asyncio
-async def test_estimate_detail_revenue_currency_follows_financial_currency(
+async def test_estimate_detail_revenue_currency_in_band_trusts_financial_currency(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(earnings_provider, "_yf_ticker", _WitShapedTicker)
+    """WIT: the ADR trades in USD but reports revenue in INR
+    (financialCurrency), and the annualised estimate is in-band against
+    totalRevenue, so INR is trusted directly."""
+    monkeypatch.setattr(
+        earnings_provider,
+        "_yf_ticker",
+        _currency_shaped_ticker(
+            currency="USD",
+            financial_currency="INR",
+            country="India",
+            total_revenue=9.50e11,
+            revenue_average=2.45e11,  # annualised 9.8e11, ~1.03x totalRevenue: in band
+        ),
+    )
     detail = await earnings_provider.get_estimate_detail("WIT")
     assert detail.currency == "USD"
     assert detail.revenue_currency == "INR"
 
 
 @pytest.mark.asyncio
-async def test_history_row_revenue_currency_follows_financial_currency(
+async def test_estimate_detail_revenue_currency_taiwan_in_band(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Class pin (a case the fix was not written against): the same foreign-
-    reporter class shows up on the history-row shape too, not just estimates."""
-    monkeypatch.setattr(earnings_provider, "_yf_ticker", _WitShapedTicker)
-    history = await earnings_provider.get_history("WIT")
+    monkeypatch.setattr(
+        earnings_provider,
+        "_yf_ticker",
+        _currency_shaped_ticker(
+            currency="USD",
+            financial_currency="TWD",
+            country="Taiwan",
+            total_revenue=4.44e12,
+            revenue_average=1.45e12,  # annualised 5.8e12, ~1.31x totalRevenue: in band
+        ),
+    )
+    detail = await earnings_provider.get_estimate_detail("TSM")
+    assert detail.revenue_currency == "TWD"
+
+
+@pytest.mark.asyncio
+async def test_estimate_detail_revenue_currency_us_in_band(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        earnings_provider,
+        "_yf_ticker",
+        _currency_shaped_ticker(
+            currency="USD",
+            financial_currency="USD",
+            country="United States",
+            total_revenue=4.67e11,
+            revenue_average=1.14e11,  # annualised 4.56e11, ~0.98x totalRevenue: in band
+        ),
+    )
+    detail = await earnings_provider.get_estimate_detail("AAPL")
+    assert detail.revenue_currency == "USD"
+
+
+@pytest.mark.asyncio
+async def test_estimate_detail_revenue_currency_out_of_band_falls_back_to_country(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """INFY.NS: financialCurrency USD is 97x out of scale against totalRevenue
+    (the estimate is INR-sized), so the scale check rejects it and INR comes
+    from the country map instead."""
+    monkeypatch.setattr(
+        earnings_provider,
+        "_yf_ticker",
+        _currency_shaped_ticker(
+            currency="INR",
+            financial_currency="USD",
+            country="India",
+            total_revenue=2.03e10,
+            revenue_average=4.9165e11,  # annualised ~97x totalRevenue: out of band
+        ),
+    )
+    detail = await earnings_provider.get_estimate_detail("INFY.NS")
+    assert detail.revenue_currency == "INR"
+
+
+@pytest.mark.asyncio
+async def test_estimate_detail_revenue_currency_adr_also_out_of_band(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The INFY ADR (trading currency USD, same statement payload as the NSE
+    listing) gets the SAME answer: the currency label follows the issuer, not
+    the listing venue."""
+    monkeypatch.setattr(
+        earnings_provider,
+        "_yf_ticker",
+        _currency_shaped_ticker(
+            currency="USD",
+            financial_currency="USD",
+            country="India",
+            total_revenue=2.03e10,
+            revenue_average=4.9165e11,
+        ),
+    )
+    detail = await earnings_provider.get_estimate_detail("INFY")
+    assert detail.currency == "USD"
+    assert detail.revenue_currency == "INR"
+
+
+@pytest.mark.asyncio
+async def test_estimate_detail_revenue_currency_out_of_band_unmapped_country_is_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The fresh case: out of scale band, and a country the map does not
+    cover — never a guessed label."""
+    monkeypatch.setattr(
+        earnings_provider,
+        "_yf_ticker",
+        _currency_shaped_ticker(
+            currency="USD",
+            financial_currency="USD",
+            country="Bermuda",
+            total_revenue=2.03e10,
+            revenue_average=4.9165e11,
+        ),
+    )
+    detail = await earnings_provider.get_estimate_detail("XYZ")
+    assert detail.revenue_currency is None
+
+
+@pytest.mark.asyncio
+async def test_history_row_revenue_currency_scale_checked_too(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Class pin (a case the fix was not written against): the same scale
+    check applies on the history-row shape, not just the estimate detail."""
+    monkeypatch.setattr(
+        earnings_provider,
+        "_yf_ticker",
+        _currency_shaped_ticker(
+            currency="INR", financial_currency="USD", country="India", total_revenue=2.03e10
+        ),
+    )
+    history = await earnings_provider.get_history("INFY.NS")
     assert history.history
     for row in history.history:
-        assert row.currency == "USD"
         assert row.revenue_currency == "INR"
-    surprises = await earnings_provider.get_surprises("WIT")
+    surprises = await earnings_provider.get_surprises("INFY.NS")
     assert surprises.surprises
     for row in surprises.surprises:
-        assert row.currency == "USD"
         assert row.revenue_currency == "INR"
 
 
 @pytest.mark.asyncio
-async def test_revenue_currency_falls_back_to_trading_currency_when_unstated(
+async def test_revenue_currency_none_when_nothing_is_determinable(
     mock_yf_earnings: type[_FakeEarningsTicker],
 ) -> None:
-    """No ``financialCurrency`` (AAPL's own ``info`` never sets it) -> revenue
-    is denominated the same as everything else, so ``revenue_currency`` falls
-    back to ``currency`` rather than a bare hardcoded default."""
+    """No ``financialCurrency``, no ``totalRevenue`` and no ``country`` (AAPL's
+    own ``info`` in the base fixture sets none of them) -> ``revenue_currency``
+    is ``None``, never a guessed fallback to the trading currency."""
     detail = await earnings_provider.get_estimate_detail("AAPL")
-    assert detail.currency == detail.revenue_currency == "USD"
+    assert detail.currency == "USD"
+    assert detail.revenue_currency is None

@@ -168,12 +168,12 @@ def _evidence_rows(result: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _row_domains(rows: list[dict[str, Any]]) -> set[str]:
-    """The distinct registrable hosts among the evidence rows."""
+    """The distinct registrable domains among the evidence rows."""
     domains: set[str] = set()
     for row in rows:
         host = finance.domain_of(str(row.get("url") or ""))
         if host:
-            domains.add(host)
+            domains.add(finance.registrable_domain(host))
     return domains
 
 

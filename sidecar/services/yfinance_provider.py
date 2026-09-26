@@ -12,7 +12,8 @@ upstream API drifts over time, so each function is defensive and tests mock the
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime
+import re
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 import pandas as pd
@@ -139,6 +140,53 @@ def _utcnow() -> datetime:
     return datetime.now(tz=UTC)
 
 
+#: Yahoo's intraday lookback ceiling in days, by yfinance interval — a sub-hour
+#: bar (2m-30m) serves at most 60 days, 1m at most 7, 1h at most 730 (R15-DATA-064).
+#: Daily-and-up intervals are uncapped. The str is a period Yahoo itself accepts.
+_INTRADAY_CAP_DAYS: dict[str, tuple[int, str]] = {
+    "1m": (7, "7d"),
+    "2m": (60, "60d"),
+    "5m": (60, "60d"),
+    "15m": (60, "60d"),
+    "30m": (60, "60d"),
+    "1h": (730, "730d"),
+}
+
+_PERIOD_RE = re.compile(r"(\d+)(d|mo|y)")
+
+
+def _period_days(period: str) -> float:
+    """Approximate calendar-day length of a Yahoo period string (``5d``, ``3mo``,
+    ``1y``, ``ytd``, ``max``), to compare against :data:`_INTRADAY_CAP_DAYS`.
+
+    An unrecognised string is treated as unbounded so the clamp still fires
+    rather than silently trusting a string it cannot parse.
+    """
+    if period == "max":
+        return float("inf")
+    if period == "ytd":
+        today = _utcnow().date()
+        return max((today - date(today.year, 1, 1)).days, 1)
+    match = _PERIOD_RE.fullmatch(period)
+    if not match:
+        return float("inf")
+    count, unit = int(match.group(1)), match.group(2)
+    return count * {"d": 1, "mo": 30, "y": 365}[unit]
+
+
+def _clamp_period(interval: str, period: str) -> tuple[str, int | None]:
+    """Shorten ``period`` to Yahoo's intraday lookback cap for ``interval``.
+
+    Returns the (possibly shortened) period string, and the cap in days when
+    the period was actually shortened (``None`` when it was left alone) so the
+    caller can mark the series ``partial``.
+    """
+    cap = _INTRADAY_CAP_DAYS.get(interval)
+    if cap is None or _period_days(period) <= cap[0]:
+        return period, None
+    return cap[1], cap[0]
+
+
 def _normalize_symbol(symbol: str) -> str:
     """Translate yfinance dot-ticker quirks (``BRK.B`` → ``BRK-B``).
 
@@ -212,7 +260,10 @@ def _yahoo_symbol(symbol: str) -> str:
         pass it through UNCHANGED (the old ``_normalize_symbol`` wrongly turned
         ``ROUTE.NS`` into ``ROUTE-NS`` via its dot→dash rule, which Yahoo 502s on —
         the root cause of the all-dashes Indian Equity Overview); an NSE Emerge
-        name given as ``.NS`` takes its ``-SM.NS`` form;
+        name given as ``.NS`` takes its ``-SM.NS`` form. A numeric-scrip-code
+        ``.BO`` (``506597.BO``) is canonicalised to its BSE ticker first
+        (``AMAL.BO``) — Yahoo has no such symbol as the bare code (R15-LEAD-028);
+        an unmapped code passes through unchanged so Yahoo 404s it honestly;
       * a bare ticker that is a known NSE instrument (and NOT also a US one) gets
         the ``.NS`` (or Emerge ``-SM.NS``) suffix so Yahoo returns NSE data
         instead of an empty US lookup;
@@ -223,8 +274,15 @@ def _yahoo_symbol(symbol: str) -> str:
       * everything else takes the US dot→dash quirk (``BRK.B`` → ``BRK-B``).
     """
     s = symbol.strip().upper()
-    if s.startswith("^") or s.endswith(".BO"):
+    if s.startswith("^"):
         return s  # a caret index (^NSEI, ^BSESN) is served unsuffixed (R15-LEAD-011)
+    if s.endswith(".BO"):
+        bare = s[:-3]
+        if bare.isdigit():
+            ticker = symbol_resolver.bse_symbol_for_code(bare)
+            if ticker is not None:
+                return f"{ticker}.BO"
+        return s
     if s.endswith(".NS"):
         return _nse_listing(s[:-3]) if symbol_resolver.is_nse_emerge(s) else s
     # Region-aware India resolution. The symbol's intrinsic hint wins; else the
@@ -516,10 +574,16 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
     ``network`` error, never an empty series; Yahoo answering with no bars
     (``YFTickerMissingError``) stays the empty series the history route
     downgrades to "no price data".
+
+    An explicit ``range_`` past Yahoo's intraday lookback cap (R15-DATA-064) is
+    clamped to the cap before the fetch — the caller asked for more than Yahoo
+    serves at this timeframe, not for an empty series — and the returned
+    series is marked ``partial`` with ``coverage_start`` set to what was
+    actually served.
     """
     normalized = _yahoo_symbol(symbol)
     interval, default_period = _TIMEFRAME_MAP.get(timeframe, ("1d", "1y"))
-    period = range_ or default_period
+    period, clamped_cap_days = _clamp_period(interval, range_ or default_period)
     ticker = yf.Ticker(normalized)
     try:
         frame = ticker.history(period=period, interval=interval)
@@ -558,7 +622,17 @@ def get_history(symbol: str, timeframe: str, range_: str | None = None) -> OHLCV
                 volume=volume,
             )
         )
-    return OHLCVSeries(symbol=normalized.upper(), timeframe=timeframe, bars=bars, provider=PROVIDER)
+    series = OHLCVSeries(
+        symbol=normalized.upper(), timeframe=timeframe, bars=bars, provider=PROVIDER
+    )
+    if clamped_cap_days is not None:
+        series.partial = True
+        series.coverage_start = (
+            bars[0].timestamp.date()
+            if bars
+            else _utcnow().date() - timedelta(days=clamped_cap_days)
+        )
+    return series
 
 
 #: Balance-sheet / income-statement rows read for the derived-ratio leg

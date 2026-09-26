@@ -615,13 +615,23 @@ _SHP_INDEX = json.loads((_BSE_FIXTURES / "shp_quarters_509470.json").read_text(e
 _SHP_XBRL = (_BSE_FIXTURES / "shp_xbrl_509470_jun2026.xml").read_text(encoding="utf-8")
 
 
-def _shp_http_stub(index=None, xbrl=None):
-    """A ``_http_get`` stub dispatching by URL: index JSON vs XBRL text."""
+def _shp_api_stub(index=None):
+    """An ``_api_json`` stub serving the SHPQNewFormat quarter index
+    (R15-DATA-116: the index rides the impersonated lane, not plain httpx)."""
     payload = index if index is not None else _SHP_INDEX
 
+    def fake(path: str, _params: dict[str, str]) -> object:
+        if path != "SHPQNewFormat/w":
+            raise AssertionError(f"unexpected SHP api path {path}")
+        return payload
+
+    return fake
+
+
+def _shp_http_stub(xbrl=None):
+    """An ``_http_get`` stub serving the per-quarter SEBI XBRL only."""
+
     def fake(url: str) -> httpx.Response:
-        if "SHPQNewFormat" in url:
-            return httpx.Response(200, json=payload)
         if url.endswith(".xml"):
             body = xbrl if xbrl is not None else _SHP_XBRL
             if isinstance(body, int):  # a status code → an error response
@@ -630,6 +640,29 @@ def _shp_http_stub(index=None, xbrl=None):
         raise AssertionError(f"unexpected SHP url {url}")
 
     return fake
+
+
+def _patch_shp(monkeypatch: pytest.MonkeyPatch, *, index=None, xbrl=None) -> None:
+    """Patch both SHP lanes for one test: the index via ``_api_json``, the
+    per-quarter XBRL via ``_http_get``."""
+    monkeypatch.setattr(bse_provider, "_api_json", _shp_api_stub(index=index))
+    monkeypatch.setattr(bse_provider, "_http_get", _shp_http_stub(xbrl=xbrl))
+
+
+def test_shp_index_rides_the_impersonated_lane(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-116: the SHPQNewFormat quarter index must go through the
+    impersonated ``_api_json`` lane, never plain ``_http_get`` (which 403s)."""
+    monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+
+    def http_must_not_run(url: str) -> httpx.Response:
+        if "SHPQNewFormat" in url:
+            raise AssertionError(f"the SHP index must not ride _http_get: {url}")
+        return _shp_http_stub()(url)
+
+    monkeypatch.setattr(bse_provider, "_api_json", _shp_api_stub())
+    monkeypatch.setattr(bse_provider, "_http_get", http_must_not_run)
+    rows = bse_provider.get_shareholding("BOMOXY-B1")
+    assert rows and rows[0]["promoter_percent"] == 73.29
 
 
 def test_parse_shp_xbrl_reads_summary_categories() -> None:
@@ -718,13 +751,12 @@ def test_get_shareholding_mixed_schema_history_never_exceeds_100_percent(
     xbrl_by_file = {"good.xml": _SHP_XBRL, "corrupt.xml": _corrupt_shp_xbrl()}
 
     def fake(url: str) -> httpx.Response:
-        if "SHPQNewFormat" in url:
-            return httpx.Response(200, json=index)
         for name, body in xbrl_by_file.items():
             if url.endswith(name):
                 return httpx.Response(200, content=body.encode("utf-8"))
         raise AssertionError(f"unexpected SHP url {url}")
 
+    monkeypatch.setattr(bse_provider, "_api_json", _shp_api_stub(index=index))
     monkeypatch.setattr(bse_provider, "_http_get", fake)
     rows = bse_provider.get_shareholding("BOMOXY-B1")
     assert len(rows) == 2
@@ -748,7 +780,7 @@ def test_get_shareholding_assembles_index_plus_xbrl(
     tmp_path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
-    monkeypatch.setattr(bse_provider, "_http_get", _shp_http_stub())
+    _patch_shp(monkeypatch)
 
     rows = bse_provider.get_shareholding("BOMOXY-B1")
     assert len(rows) == len(_SHP_INDEX["Table"]) == 4
@@ -763,6 +795,7 @@ def test_get_shareholding_assembles_index_plus_xbrl(
 
 def test_get_shareholding_caches_parsed_xbrl(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_api_json", _shp_api_stub())
     calls = {"n": 0}
 
     def counting(url: str) -> httpx.Response:
@@ -772,11 +805,11 @@ def test_get_shareholding_caches_parsed_xbrl(tmp_path, monkeypatch: pytest.Monke
     monkeypatch.setattr(bse_provider, "_http_get", counting)
     bse_provider.get_shareholding("BOMOXY-B1")
     first = calls["n"]
-    # Second call: the index is refetched but every XBRL is now cached → no new XBRL GETs.
+    assert first >= 1  # at least one XBRL GET on the first, cold call
+    # Second call: the index is refetched (via _api_json, uncounted here) but
+    # every XBRL is now cached → no new XBRL GETs.
     bse_provider.get_shareholding("BOMOXY-B1")
-    xbrl_gets_first = first - 1  # minus the one index call
-    assert calls["n"] - first == 1  # only the index refetch, no XBRL re-GET
-    assert xbrl_gets_first >= 1
+    assert calls["n"] == first
 
 
 def test_get_shareholding_offline_xbrl_serves_null_percentages(
@@ -784,7 +817,7 @@ def test_get_shareholding_offline_xbrl_serves_null_percentages(
 ) -> None:
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
     # Index reachable, every XBRL 404s → rows carry quarter_end + link, no percentages.
-    monkeypatch.setattr(bse_provider, "_http_get", _shp_http_stub(xbrl=404))
+    _patch_shp(monkeypatch, xbrl=404)
     rows = bse_provider.get_shareholding("BOMOXY-B1")
     assert rows and all("promoter_percent" not in r for r in rows)
     assert rows[0]["quarter_end"] == date(2026, 6, 30)
@@ -794,11 +827,11 @@ def test_get_shareholding_offline_xbrl_serves_null_percentages(
 def test_get_shareholding_index_failure_raises(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
 
-    def dead(url: str) -> httpx.Response:
-        return httpx.Response(503, content=b"")
+    def dead(path: str, _params: dict[str, str]) -> object:
+        raise ProviderError(f"bse {path}: HTTP 503")
 
-    monkeypatch.setattr(bse_provider, "_http_get", dead)
-    with pytest.raises(ProviderError, match="index HTTP 503"):
+    monkeypatch.setattr(bse_provider, "_api_json", dead)
+    with pytest.raises(ProviderError, match="SHPQNewFormat/w: HTTP 503"):
         bse_provider.get_shareholding("BOMOXY-B1")
 
 
@@ -816,7 +849,7 @@ def _row_from_cached_summary(tmp_path, monkeypatch: pytest.MonkeyPatch, summary:
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
     index = {"Table": [{**_SHP_INDEX["Table"][0], "XbrlFile": "cached.xml"}]}
     bse_provider._shp_write_cache("cached.xml", {**summary, "promoter_pledge_basis": None})
-    monkeypatch.setattr(bse_provider, "_http_get", _shp_http_stub(index=index))
+    _patch_shp(monkeypatch, index=index)
     return bse_provider.get_shareholding("BOMOXY-B1")[0]
 
 
@@ -899,6 +932,6 @@ def test_summary_cached_before_the_pledge_parse_is_reparsed(tmp_path, monkeypatc
     index = {"Table": [{**_SHP_INDEX["Table"][0], "XbrlFile": "pledged.xml"}]}
     bse_provider._shp_write_cache("pledged.xml", {"promoter_percent": 13.33})
     pledged = _bse_fixture("shp_xbrl_500032_jun2026_pledged.xml")
-    monkeypatch.setattr(bse_provider, "_http_get", _shp_http_stub(index=index, xbrl=pledged))
+    _patch_shp(monkeypatch, index=index, xbrl=pledged)
     row = bse_provider.get_shareholding("BOMOXY-B1")[0]
     assert (row["promoter_pledged_percent"], row["promoter_pledge_basis"]) == (100.0, "filed")

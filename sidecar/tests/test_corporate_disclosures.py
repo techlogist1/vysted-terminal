@@ -868,12 +868,15 @@ def test_shareholding_keeps_a_day_dated_or_unparsed_bse_pattern(
         ]
     }
 
+    def fake_api(path: str, _params: dict[str, str]) -> object:
+        assert path == "SHPQNewFormat/w"
+        return index
+
     def fake_get(url: str) -> httpx.Response:
-        if "SHPQNewFormat" in url:
-            return httpx.Response(200, json=index)
         return httpx.Response(404, content=b"")  # the XBRL itself is offline
 
     monkeypatch.setattr(bse_provider, "_cache_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(bse_provider, "_api_json", fake_api)
     monkeypatch.setattr(bse_provider, "_http_get", fake_get)
 
     response = corporate_disclosures.get_shareholding("SMR")

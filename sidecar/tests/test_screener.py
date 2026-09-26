@@ -764,13 +764,14 @@ async def test_resolve_universe_custom_symbols_canonicalise_india_names(
 
 
 @pytest.mark.asyncio
-async def test_resolve_universe_custom_symbols_bo_suffix_passes_through(
+async def test_resolve_universe_custom_symbols_bo_code_maps_to_its_ticker(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Case not written against: an already-suffixed .BO code is left alone."""
+    """Case not written against: an already-suffixed .BO keeps its suffix, and a
+    numeric scrip code reaches Yahoo as its ticker (R15-LEAD-028)."""
     monkeypatch.setattr(config, "get_region", lambda: "IN")
-    universe = await screener.resolve_universe("custom", ["532540.bo"])
-    assert universe.symbols == ["532540.BO"]
+    universe = await screener.resolve_universe("custom", ["532540.bo", "reliance.bo"])
+    assert universe.symbols == ["TCS.BO", "RELIANCE.BO"]
 
 
 # ---------------------------------------------------------------------------

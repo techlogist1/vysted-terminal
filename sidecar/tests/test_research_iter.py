@@ -797,4 +797,7 @@ def test_heavy_panel_markers_are_remapped_to_the_merged_list_by_url() -> None:
     merged = iter_research._merge_sources([angle_1, angle_2])
     assert [s.url for s in merged] == [a.url, b.url, c.url]
     remapped = iter_research._remap_markers("x [1] y [2] z [5].", angle_2.sources, merged)
-    assert remapped == "x [3] y [1] z ."
+    assert remapped == "x [3] y [1] z."
+    # A grouped marker (R15-RESEARCH-043) remaps too, never in local numbering.
+    grouped = iter_research._remap_markers("w [Sources 1, 2].", angle_2.sources, merged)
+    assert grouped == "w [3][1]."

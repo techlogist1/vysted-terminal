@@ -50,7 +50,7 @@ async def _resolve_symbol(args: dict[str, Any]) -> dict[str, Any]:
         config.normalize_region(args.get("region")) if args.get("region") else config.get_region()
     )
     # On a worker thread, like the /resolve router: a master miss falls through
-    # to a blocking yfinance Search (up to 30 s) that must not stall the loop.
+    # to a blocking yfinance Search (capped at 5 s) that must not stall the loop.
     try:
         resolution = await asyncio.to_thread(symbol_resolver.resolve, query, region)
     except Exception as exc:  # noqa: BLE001 — a resolver failure is an honest miss

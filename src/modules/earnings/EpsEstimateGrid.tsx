@@ -29,9 +29,12 @@ function eps(value: number | null, currency: string, digits = 2): string | null 
   return `${prefix}${formatPrice(value, digits)}${suffix}`;
 }
 
-/** R15-DATA-031: revenue's K/M/B suffix carried no currency symbol either. */
-function revenue(value: number | null, currency: string): string | null {
+/** R15-DATA-031: revenue's K/M/B suffix carried no currency symbol either.
+ *  `currency === null` means the provider could not determine it
+ *  (R15-DATA-113) — render the bare number, never a guessed code. */
+function revenue(value: number | null, currency: string | null): string | null {
   if (value === null) return null;
+  if (currency === null) return formatUnit(value);
   const { prefix, suffix } = currencyAffix(currency);
   return `${prefix}${formatUnit(value)}${suffix}`;
 }
@@ -59,10 +62,13 @@ export function EpsEstimateGrid({ estimate }: Props) {
       </div>
     );
   }
-  // R15-DATA-113: revenue is stated in Yahoo's financialCurrency, which for a
-  // foreign reporter differs from the trading currency `currency` carries;
-  // fall back to `currency` for a pre-fix cached envelope that lacks it.
-  const revenueCurrency = estimate.revenue_currency ?? estimate.currency;
+  // R15-DATA-113: revenue is stated in its own scale-checked currency, which
+  // for a foreign reporter differs from the trading currency `currency`
+  // carries. `undefined` (a pre-fix cached envelope) falls back to
+  // `currency`; `null` (the provider could not determine it) stays null so
+  // the grid renders no currency code rather than a guessed one.
+  const revenueCurrency =
+    estimate.revenue_currency === undefined ? estimate.currency : estimate.revenue_currency;
   return (
     <div data-testid="eps-estimate-grid">
       <DataTable

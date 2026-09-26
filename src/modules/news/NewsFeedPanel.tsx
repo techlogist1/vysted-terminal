@@ -6,6 +6,7 @@ import { Newspaper } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { STAGGER, tween } from "@/lib/motion";
 import { SidecarError } from "@/lib/sidecar-client";
 import { useRetryOnSidecarReady } from "@/lib/use-sidecar-retry";
@@ -135,19 +136,26 @@ function NewsRow({
           </span>
           <SentimentBadge item={item} />
         </div>
-        {item.symbols.length > 0 ? (
-          <div className="flex flex-wrap gap-1">
-            {item.symbols.map((symbol) => (
-              <span
-                key={symbol}
-                className="bg-charcoal-800 rounded-control text-micro text-charcoal-300 px-1 py-0.5"
-              >
-                {symbol}
-              </span>
-            ))}
-          </div>
-        ) : null}
       </a>
+      {item.symbols.length > 0 ? (
+        // Sibling of the anchor, not nested inside it (R15-AGENT-053): a
+        // <button> inside an <a> is invalid interactive nesting, and it was
+        // swallowing every symbol click as a navigation to the article.
+        <div className="flex flex-wrap gap-1 px-4 pb-3">
+          {item.symbols.map((symbol) => (
+            <button
+              key={symbol}
+              type="button"
+              aria-label={`Load ${symbol} in chart`}
+              title={`Load ${symbol} into the chart`}
+              onClick={() => loadSymbolIntoChart(symbol)}
+              className="bg-charcoal-800 rounded-control text-micro text-charcoal-300 hover:text-charcoal-100 focus-visible:ring-charcoal-500/70 px-1 py-0.5 transition-colors focus-visible:ring-1 focus-visible:outline-none"
+            >
+              {symbol}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </motion.li>
   );
 }

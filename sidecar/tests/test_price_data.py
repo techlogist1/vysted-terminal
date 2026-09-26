@@ -66,3 +66,48 @@ def test_range_under_the_cap_returns_every_bar(monkeypatch: pytest.MonkeyPatch) 
 
     assert result["bars_returned"] == result["bars_available"] == 21
     assert result["window_start"] == datetime(2026, 1, 1, tzinfo=UTC).isoformat()
+
+
+def test_30m_timeframe_default_range_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-064 acceptance: a 30m request with no explicit range (the
+    default 6mo, past Yahoo's 60-day sub-hour cap) reaches the REAL provider
+    chain and still succeeds — the provider clamps the range rather than
+    coming back with an empty, gate-rejected series."""
+    import pandas as pd
+
+    from services import yfinance_provider
+
+    class _FastInfo:
+        last_price = 100.0
+        previous_close = 99.0
+        last_volume = 1_000.0
+        currency = "USD"
+
+    class _Ticker:
+        def __init__(self, symbol: str) -> None:  # noqa: ARG002
+            pass
+
+        @property
+        def fast_info(self) -> _FastInfo:
+            return _FastInfo()
+
+        def get_history_metadata(self) -> dict:
+            return {"regularMarketTime": int(datetime.now(tz=UTC).timestamp())}
+
+        def history(self, period: str, interval: str) -> pd.DataFrame:  # noqa: ARG002
+            index = pd.to_datetime(["2026-05-12", "2026-05-13"])
+            return pd.DataFrame(
+                {
+                    "Open": [100.0, 101.0],
+                    "High": [101.0, 102.0],
+                    "Low": [99.0, 100.0],
+                    "Close": [100.5, 101.5],
+                    "Volume": [1_000.0, 1_100.0],
+                },
+                index=index,
+            )
+
+    monkeypatch.setattr(yfinance_provider.yf, "Ticker", _Ticker)
+    result = asyncio.run(price_data._price_data({"symbol": "AAPL", "timeframe": "30m"}))
+    assert result["ok"] is True
+    assert result["bars_returned"] > 0
