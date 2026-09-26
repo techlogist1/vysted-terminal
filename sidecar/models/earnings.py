@@ -99,10 +99,13 @@ class EarningsEstimateDetail(BaseModel):
 
     symbol: str
     fiscal_period: FiscalPeriod | None = None
-    eps_estimate_mean: float
+    #: R15-LEAD-039: nullable, same shape as the revenue triple below — Yahoo's
+    #: calendar payload omits these for several liquid non-US names (RDY, TM,
+    #: SONY); each field is independently nullable, never a raise.
+    eps_estimate_mean: float | None = None
     eps_estimate_median: float | None = None
-    eps_estimate_high: float
-    eps_estimate_low: float
+    eps_estimate_high: float | None = None
+    eps_estimate_low: float | None = None
     eps_estimate_stddev: float | None = None
     estimate_analyst_count: int | None = Field(default=None, ge=0)
     revenue_estimate_mean: float | None = None
