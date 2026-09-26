@@ -3,10 +3,10 @@
   "base": "4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
   "writers_base": "ebc5ed4194f9362422c3178c27d4cdf946428968",
   "branch": "worktree-agent-lows-P1-int-4c6dfe8",
-  "head": "70fe85c9af801387dc503e4a4bc97552f7a532d8",
+  "head": "dbe5fe4f15f1aca12273038a9ef61c66497513ec",
   "pushed": true,
-  "ls_remote": "70fe85c9af801387dc503e4a4bc97552f7a532d8",
-  "assembled": "06:50-06:54 IST",
+  "ls_remote": "dbe5fe4f15f1aca12273038a9ef61c66497513ec",
+  "assembled": "06:50-06:54 IST (sets W1-W9); fix pass 07:10 IST; extras 07:26-07:29 IST",
   "status": "untested pending integration",
   "merge_order": [
     {
@@ -100,19 +100,62 @@
       "conflicts": 0
     }
   ],
-  "extra_branches": [],
-  "style_commit": {
-    "sha": "70fe85c9af801387dc503e4a4bc97552f7a532d8",
-    "files": [
-      "sidecar/routers/backtest.py",
-      "sidecar/tests/test_backtest_engine.py",
-      "sidecar/tests/test_backtest_lows.py",
-      "docs/CURRENT_STATE.md",
-      "docs/redesign/R4_STALE_CODE_REGISTER.md"
-    ],
-    "why": "ruff I001 (W1, fails 'ruff check sidecar'); prettier table alignment (W9, fails prettier --check; both clean at base)"
-  },
-  "conflict_map": [],
+  "extra_branches": [
+    {
+      "order": 10,
+      "branch": "worktree-agent-lows-CN-r15-code-research-005-4c6dfe8",
+      "entries": [
+        "R15-CODE-RESEARCH-005"
+      ],
+      "after_set": "W3",
+      "origin_head": "113ab130ceafc98621733532b098d41cc8219ac7",
+      "merge_sha": "c6f84c85e412eab186887bf6d72b3c203149e573",
+      "conflicts": 0,
+      "followup": {
+        "sha": "b1fd419b",
+        "why": "drop the branch's root RESULT.md from the tree"
+      }
+    },
+    {
+      "order": 11,
+      "branch": "worktree-agent-lows-CN-r15-code-agent-031-4c6dfe8",
+      "entries": [
+        "R15-CODE-AGENT-031"
+      ],
+      "after_set": "W6",
+      "origin_head": "695e934a12aaa4c4be611c6a93f593231e19efb3",
+      "merge_sha": "82c4478b",
+      "conflicts": 0,
+      "note": "RESULT.md left out inside the merge commit"
+    },
+    {
+      "order": 12,
+      "branch": "worktree-agent-lows-DEF-A-4c6dfe8",
+      "entries": [
+        "R15-CODE-FRONTEND-033 (fixed_untested, test-only)",
+        "R15-AGENT-065 (not_a_defect_proposed)",
+        "R15-AGENT-085 (deferred_feature, size M)",
+        "R15-AGENT-086 (not_a_defect_proposed)",
+        "R15-CODE-FRONTEND-031 (not_a_defect_proposed)"
+      ],
+      "origin_head": "8113ddc16e872be4282879d3055f93d55c1b2e48",
+      "merge_sha": "938a1017",
+      "conflicts": 0,
+      "note": "RESULT.md left out inside the merge commit"
+    }
+  ],
+  "conflict_map": [
+    {
+      "file": "RESULT.md (repo root)",
+      "intents": "each extra branch adds its writer report at the root (add/add across 3 branches)",
+      "resolution": "left out of the tree (b1fd419b, and inside merges 82c4478b/938a1017); content stays on origin/<branch>; its tests are listed here",
+      "entries": [
+        "R15-CODE-RESEARCH-005",
+        "R15-CODE-AGENT-031",
+        "DEF-A set"
+      ]
+    }
+  ],
   "base_moved_writer_files": {
     "files": [
       "sidecar/services/agent_runtime.py",
@@ -129,8 +172,118 @@
   },
   "blocked_hunks": [],
   "risk_map": {
-    "files_touched_by_multiple_writers": [],
-    "cross_partition_overlap": [],
+    "files_touched_by_multiple_writers": [
+      {
+        "file": "sidecar/services/research/deep.py",
+        "writers": [
+          "W3 (R15-RESEARCH-041 is_web_search_source)",
+          "CN research-005 (private->public rename)"
+        ],
+        "result": "auto-merged; the module-local `_Findings = Findings` alias (deep.py:497) kept for web_only_floor_note's annotation (deep.py:332, postponed by `from __future__ import annotations`)"
+      },
+      {
+        "file": "sidecar/services/research/iter.py",
+        "writers": [
+          "W3",
+          "CN research-005"
+        ],
+        "result": "auto-merged; grep over sidecar finds no stale old private name"
+      },
+      {
+        "file": "sidecar/tests/test_research_deep.py",
+        "writers": [
+          "W3",
+          "CN research-005"
+        ],
+        "result": "auto-merged; deep._researcher_web_query still private and still defined (deep.py:1059), not in the rename set"
+      },
+      {
+        "file": "sidecar/tests/test_research_depth.py",
+        "writers": [
+          "W3 (R15-CODE-RESEARCH-006)",
+          "CN research-005"
+        ],
+        "result": "auto-merged"
+      },
+      {
+        "file": "src/lib/delegate-runs.ts",
+        "writers": [
+          "W6 (R15-CODE-AGENT-032 poll guard + AbortSignal timeout)",
+          "CN agent-031 (snake-only reader)"
+        ],
+        "result": "auto-merged; both present; no camelCase runs-wire reader left in src"
+      },
+      {
+        "file": "src/lib/delegate-runs.test.ts",
+        "writers": [
+          "W6",
+          "CN agent-031"
+        ],
+        "result": "auto-merged; W6's in-flight test mocks {runs: []} (spelling-neutral)"
+      },
+      {
+        "file": "src/lib/host-actions.test.ts",
+        "writers": [
+          "W3 (R15-CODE-FRONTEND-035, R15-RESEARCH-041)",
+          "DEF-A (R15-CODE-FRONTEND-033)"
+        ],
+        "result": "auto-merged; DEF-A expectation 'Focused on Screener' matches host-actions.ts:1626 panelLabel('screener')"
+      }
+    ],
+    "cross_partition_overlap": [
+      {
+        "file": "src/lib/workspace.test.ts",
+        "partitions": [
+          "P1 fix pass (a642caac, ^NSEI expectation)",
+          "P2"
+        ],
+        "note": "P2 seeds/asserts via DEFAULT_SYMBOLS symbolically; trial merge clean"
+      },
+      {
+        "file": "src/store/settings.test.ts",
+        "partitions": [
+          "P1 fix pass",
+          "P2"
+        ],
+        "note": "trial merge clean"
+      },
+      {
+        "file": "docs/SIDECAR_API.md",
+        "partitions": [
+          "P1 CN agent-031",
+          "P3"
+        ],
+        "note": "trial merge clean"
+      },
+      {
+        "file": "sidecar/services/research/relevance.py",
+        "partitions": [
+          "P1 CN research-005",
+          "P3 (finance.host_matches)"
+        ],
+        "note": "trial merge clean; no stale private names in the P1+P2+P3 trial tree"
+      },
+      {
+        "file": "sidecar/tests/test_run_manager.py",
+        "partitions": [
+          "P1 CN agent-031 (host_actions)",
+          "P3 (test_crashed_run_detail_is_humanized)"
+        ],
+        "note": "trial merge clean"
+      },
+      {
+        "file": "src/modules/chart/ChartPanel.test.tsx",
+        "partitions": [
+          "P1 fix pass",
+          "P3"
+        ],
+        "note": "trial merge clean"
+      },
+      {
+        "trial": "git merge-tree P1 x P2, P1 x P3, (P1+P2) x P3 at dbe5fe4f / d7d0d325 / aa1690ee",
+        "result": "no textual conflict"
+      }
+    ],
     "safety_adjacent_reviewed": [
       {
         "file": "sidecar/services/agent_runtime.py",
@@ -163,22 +316,30 @@
       "W7 main-sidecar readiness now requires /health 200 with service=vysted-sidecar (15 s); Rust not cargo-verified",
       "W6 list_runs LIMIT 100 + 30-day terminal-row pruning at first connect",
       "W2 agent prompt byte cap 4608 (test_agent_system_prompts_within_byte_budget); MCP set pinned by name (31 ids)",
-      "W3 structured.source_floor leg not rendered by the frontend"
+      "W3 structured.source_floor leg not rendered by the frontend",
+      "CN agent-031 changes the runs wire contract: snake_case only both ways; a camelCase launch body is now 422 (FastAPI's 422 body echoes the input, incl. an apiKey sent camelCase; only caller sends api_key). Two tests were rewritten/renamed, not deleted: test_launch_accepts_snake_case_run_budget -> test_launch_rejects_a_camel_case_budget, test_list_runs_dual_case_shape -> test_list_runs_shape. Verifier should confirm the inversion is the entry's intent.",
+      "CN agent-031 exact key-set test (test_runs_rows_carry_only_snake_case_keys) fails on any later field added to the run models; intended signal.",
+      "CLAUDE.md gotcha 'GET /runs emits BOTH camelCase + snake_case' becomes false after this merge; Tier-1 file, lead edits it (not touched here).",
+      "CN research-005 renames 15 deep.py helpers to public names; any post-tag branch importing the old _names breaks (test_research_module_boundary pins it)."
     ],
     "could_not": [
       {
         "id": "R15-CODE-RESEARCH-005",
-        "set": "W3"
+        "set": "W3",
+        "closed_by": "worktree-agent-lows-CN-r15-code-research-005-4c6dfe8 (fixed_untested)"
       },
       {
         "id": "R15-CODE-AGENT-031",
-        "set": "W6"
+        "set": "W6",
+        "closed_by": "worktree-agent-lows-CN-r15-code-agent-031-4c6dfe8 (fixed_untested)"
       }
     ],
     "handed_to_lead": [
       "R15-DOCS-009 DECISIONS.md line",
       "R15-CODE-PLATFORM-049 exa orphan-secret migration skipped",
-      "spec.md stale four-mode mentions outside FR-003/US3/SC-029"
+      "spec.md stale four-mode mentions outside FR-003/US3/SC-029",
+      "DEF-A R15-AGENT-085 deferred_feature (size M): per-turn chat sources footer, needs agent_runtime.py + types/ai.ts + streaming + ChatSidebar; run after runtime-catalog and llm-chat land",
+      "DEF-A not_a_defect_proposed: R15-AGENT-065, R15-AGENT-086, R15-CODE-FRONTEND-031"
     ]
   },
   "claimed_tests": {
@@ -237,6 +398,21 @@
       ],
       "sidecar/tests/test_workspace.py": [
         "test_replace_retries_permission_error_then_succeeds"
+      ],
+      "sidecar/tests/test_research_module_boundary.py": [
+        "test_no_research_module_imports_a_private_name_across_modules",
+        "test_shared_round_helpers_are_public_deep_exports"
+      ],
+      "sidecar/tests/test_runs_router.py": [
+        "test_runs_rows_carry_only_snake_case_keys",
+        "test_launch_returns_201_with_run_id",
+        "test_launch_response_never_echoes_api_key",
+        "test_launch_rejects_a_camel_case_budget",
+        "test_list_runs_shape",
+        "test_get_run_returns_transcript"
+      ],
+      "sidecar/tests/test_run_manager.py": [
+        "test_run_output_is_returned_untruncated_by_get_run"
       ]
     },
     "vitest": {
@@ -248,7 +424,8 @@
       ],
       "src/lib/host-actions.test.ts": [
         "write_note append with a trailing-whitespace addendum equals appendSymbolNote",
-        "briefFromInput with only vysted:// + nsearchives rows -> webAvailable false"
+        "briefFromInput with only vysted:// + nsearchives rows -> webAvailable false",
+        "arrange_layout pattern=focus resolves a panel ALIAS, matching focus_panel (R15-CODE-FRONTEND-033)"
       ],
       "src/modules/chat/DepthControl.test.tsx": [
         "Tier B + ULTRA renders an estimate before dispatch"
@@ -273,7 +450,8 @@
         "get_portfolio holdings carry a currency field on both paths (R15-AGENT-091)"
       ],
       "src/lib/delegate-runs.test.ts": [
-        "skips a poll while one is in flight, and bounds the /runs read with a timeout"
+        "skips a poll while one is in flight, and bounds the /runs read with a timeout",
+        "run_id / host_actions mocks (R15-CODE-AGENT-031, whole file)"
       ],
       "src/lib/keychain.test.ts": [
         "surfaces the keychain-migrate:waiting countdown while the migration runs"
@@ -333,12 +511,10 @@
       "R15-CODE-PLATFORM-060",
       "R15-RELEASE-010"
     ],
-    "not_written": [
-      "R15-CODE-AGENT-031 test_runs_router.py::test_runs_rows_carry_only_snake_case_keys (could_not)"
-    ]
+    "not_written": []
   },
   "commands": {
-    "pytest": "cd sidecar && .venv/bin/python -m pytest -q tests/test_backtest_lows.py tests/test_backtest_engine.py tests/test_backtest_custom.py tests/test_bar_loader.py tests/test_backtest_agent_parity.py tests/test_backtest_store.py tests/test_backtest_strategies.py tests/test_strategy_critic_e2e.py tests/test_agent_runtime.py tests/test_planner.py tests/test_toolbelt_integrity.py tests/test_mcp_catalog_parity.py tests/test_capability_completeness.py tests/test_capability_catalog.py tests/test_b3_runtime_intent_gate.py tests/test_research_fast.py tests/test_research_iter.py tests/test_research_deep.py tests/test_research_depth.py tests/test_research_model_lane.py tests/test_research_tools.py tests/test_sonar_lane.py tests/test_perplexity_backend.py tests/test_agents_store.py tests/test_plugins.py tests/test_portfolio.py tests/test_schema_version.py tests/test_runs_store.py tests/test_runs_router.py tests/test_run_manager.py tests/test_workspace.py tests/test_mcp_server.py tests/test_agents_router.py",
+    "pytest": "cd sidecar && .venv/bin/python -m pytest -q tests/test_backtest_lows.py tests/test_backtest_engine.py tests/test_backtest_custom.py tests/test_bar_loader.py tests/test_backtest_agent_parity.py tests/test_backtest_store.py tests/test_backtest_strategies.py tests/test_strategy_critic_e2e.py tests/test_agent_runtime.py tests/test_planner.py tests/test_toolbelt_integrity.py tests/test_mcp_catalog_parity.py tests/test_capability_completeness.py tests/test_capability_catalog.py tests/test_b3_runtime_intent_gate.py tests/test_research_fast.py tests/test_research_iter.py tests/test_research_deep.py tests/test_research_depth.py tests/test_research_model_lane.py tests/test_research_tools.py tests/test_sonar_lane.py tests/test_perplexity_backend.py tests/test_agents_store.py tests/test_plugins.py tests/test_portfolio.py tests/test_schema_version.py tests/test_runs_store.py tests/test_runs_router.py tests/test_run_manager.py tests/test_workspace.py tests/test_mcp_server.py tests/test_agents_router.py tests/test_research_module_boundary.py tests/test_research_verify.py tests/test_research_disclosures.py tests/test_research_r9_regressions.py tests/test_b6_research_funnel.py tests/test_b7_research_sources.py",
     "vitest": "pnpm exec vitest run src/modules/backtest/ src/store/backtest.test.ts src/store/proposed-changes.test.ts src/lib/host-actions.test.ts src/modules/chat/DepthControl.test.tsx src/store/search-settings.test.ts src/modules/chat/mentions.test.ts src/store/portfolios.test.ts src/modules/portfolio/metrics.test.ts src/modules/portfolio/PortfolioPanel.test.tsx src/lib/csv.test.ts src/modules/chat/context-provider.test.ts src/lib/delegate-runs.test.ts src/lib/keychain.test.ts src/store/onboarding.test.ts src/components/KeyEntryDialog.test.tsx scripts/audit-design-tokens.test.mjs src/store/symbols.test.ts src/store/chart-drawings.test.ts src/store/marketplace.test.ts src/modules/marketplace/MarketplacePanel.test.tsx src/store/agent-mode.test.ts",
     "vitest_ripple": "pnpm exec vitest run src/modules/watchlist/WatchlistPanel.test.tsx src/modules/news/NewsFeedPanel.test.tsx src/modules/panel-context-publishers.test.tsx src/modules/notes/NotesPanel.test.tsx src/lib/workspace.test.ts src/store/settings.test.ts",
     "cargo": [
@@ -349,15 +525,44 @@
     "docs_grep": [
       "grep -i langgraph docs/BLUEPRINT.md  # empty (checked)",
       "grep -ic 'system tray' docs/BLUEPRINT.md  # 0 (checked)"
-    ]
+    ],
+    "pytest_extras_focused": "cd sidecar && .venv/bin/python -m pytest -q tests/test_research_module_boundary.py \"tests/test_runs_router.py::test_runs_rows_carry_only_snake_case_keys\" \"tests/test_runs_router.py::test_launch_returns_201_with_run_id\" \"tests/test_runs_router.py::test_launch_response_never_echoes_api_key\" \"tests/test_runs_router.py::test_launch_rejects_a_camel_case_budget\" \"tests/test_runs_router.py::test_list_runs_shape\" \"tests/test_runs_router.py::test_get_run_returns_transcript\" \"tests/test_run_manager.py::test_run_output_is_returned_untruncated_by_get_run\"",
+    "vitest_extras_focused": "pnpm exec vitest run src/lib/delegate-runs.test.ts src/lib/host-actions.test.ts src/modules/chat/AgentsRail.test.tsx"
   },
   "integration_recipe": [
     "git fetch origin",
     "git worktree add <scratch>/P1-int origin/worktree-agent-lows-P1-int-4c6dfe8 -b lows-P1-int-on-tag",
     "git rebase --rebase-merges --onto r15-rc1 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2",
-    "fallback: git reset --hard r15-rc1; replay the nine merges in order with git merge --no-ff --no-edit origin/worktree-agent-lows-P1-<set>; git cherry-pick 70fe85c9",
-    "pnpm ci-local + the focused commands; fix W8 ripple fixtures in their owning files",
+    "fallback: git reset --hard r15-rc1; merge in order origin/worktree-agent-lows-P1-{W1-backtest,W2-runtime-catalog,W3-actions-research,W4-chat-composer,W5-portfolio,W6-runs-stores,W7-rust-core,W8-tokens-market,W9-docs-truth}; git cherry-pick 70fe85c9 a642caac; merge origin/worktree-agent-lows-CN-r15-code-research-005-4c6dfe8, origin/worktree-agent-lows-CN-r15-code-agent-031-4c6dfe8, origin/worktree-agent-lows-DEF-A-4c6dfe8 each with --no-commit then git rm RESULT.md before committing; git cherry-pick dbe5fe4f",
+    "pnpm ci-local + the focused commands",
     "one fresh verifier over r15-rc1..HEAD",
+    "lead: update CLAUDE.md runs-wire gotcha to snake_case only",
     "merge --no-ff into 004-r4-experience-rebuild"
+  ],
+  "diff_vs_base": "113 files, +3588/-1033",
+  "fix_pass_commit": {
+    "sha": "a642caacc313dbafb281472e3388fef6a73183da",
+    "entry": "R15-UI-076",
+    "why": "seed US defaults in suites written against them"
+  },
+  "style_commits": [
+    {
+      "sha": "70fe85c9af801387dc503e4a4bc97552f7a532d8",
+      "files": [
+        "sidecar/routers/backtest.py",
+        "sidecar/tests/test_backtest_engine.py",
+        "sidecar/tests/test_backtest_lows.py",
+        "docs/CURRENT_STATE.md",
+        "docs/redesign/R4_STALE_CODE_REGISTER.md"
+      ],
+      "why": "ruff I001 (W1, fails 'ruff check sidecar'); prettier table alignment (W9, fails prettier --check; both clean at base)"
+    },
+    {
+      "sha": "dbe5fe4f15f1aca12273038a9ef61c66497513ec",
+      "files": [
+        "src/lib/host-actions.test.ts"
+      ],
+      "why": "prettier line wrap on the DEF-A R15-CODE-FRONTEND-033 test (writer had no node_modules)"
+    }
   ]
 }

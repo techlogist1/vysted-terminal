@@ -1,10 +1,10 @@
 # P1 lows pre-integration candidate
 
-Assembled 06:50-06:54 IST. Untested pending integration: no pytest, vitest, cargo, tsc or eslint was run on the candidate. Only py_compile, ruff and prettier ran.
+Assembled 06:50-06:54 IST (sets W1-W9), fix pass 07:10 IST, extra branches 07:26-07:29 IST. Untested pending integration: no pytest, vitest, cargo, tsc or eslint was run on the candidate. Only py_compile, ruff and prettier ran.
 
 - Base: `4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2` (writer branches were cut from `ebc5ed41`, which is an ancestor of the base)
-- Branch: `worktree-agent-lows-P1-int-4c6dfe8`, pushed; `git ls-remote` shows `70fe85c9af801387dc503e4a4bc97552f7a532d8`
-- Head: `70fe85c9af801387dc503e4a4bc97552f7a532d8`. The candidate differs from the base in 91 files (+3156/-764).
+- Branch: `worktree-agent-lows-P1-int-4c6dfe8`, pushed; `git ls-remote` shows `dbe5fe4f15f1aca12273038a9ef61c66497513ec`
+- Head: `dbe5fe4f15f1aca12273038a9ef61c66497513ec`. The candidate differs from the base in 113 files (+3588/-1033).
 - Worktree: `scratchpad/lows-preint/P1`. It is kept, not removed.
 
 ## Merge order
@@ -23,12 +23,22 @@ Each branch was merged with `git merge --no-ff --no-edit origin/<branch>`.
 | 8 | W8 tokens-market | worktree-agent-lows-P1-W8-tokens-market | 2a2f0564 | match | bae0c204 | clean |
 | 9 | W9 docs-truth | worktree-agent-lows-P1-W9-docs-truth | dd10d2e0 | match | 21175c2e | clean |
 | - | style | (assembler) | - | - | 70fe85c9 | ruff I001 on 3 W1 files, prettier on 2 W9 docs |
+| - | fix pass | (assembler) | - | - | a642caac | R15-UI-076 ripple: US defaults seeded in suites written against them |
+| 10 | CN research-005 (after W3) | worktree-agent-lows-CN-r15-code-research-005-4c6dfe8 | 113ab130 | n/a | c6f84c85 | clean; b1fd419b drops its root RESULT.md |
+| 11 | CN agent-031 (after W6) | worktree-agent-lows-CN-r15-code-agent-031-4c6dfe8 | 695e934a | n/a | 82c4478b | clean; RESULT.md left out in the merge |
+| 12 | DEF-A | worktree-agent-lows-DEF-A-4c6dfe8 | 8113ddc1 | n/a | 938a1017 | clean; RESULT.md left out in the merge |
+| - | style | (assembler) | - | - | dbe5fe4f | prettier line wrap on the DEF-A host-actions test |
 
-- Head mismatches: none. Extra branches: none.
+- Head mismatches: none (all 9 set heads re-verified 07:25 IST). The 3 extra branches are cut from the base `4c6dfe8c` itself.
 
 ## Conflict map
 
-There were no textual conflicts, and no writer hunk was dropped. No file is touched by more than one P1 writer.
+There were no textual conflicts in code. The one resolved collision is `RESULT.md` at the repo root: each of the 3 extra branches adds its writer report there (add/add). It is a report, not product code, so it is left out of the candidate tree (`b1fd419b`, and inside merges `82c4478b` / `938a1017`); each report stays on its origin branch and its tests are listed below. No code or test hunk was dropped.
+
+Files touched by more than one P1 writer (all auto-merged, each read after merge):
+- `sidecar/services/research/deep.py`, `iter.py`, `tests/test_research_deep.py`, `tests/test_research_depth.py`: W3 and CN research-005. A grep over `sidecar/` finds none of the 14 old private names. The module-local `_Findings = Findings` alias (`deep.py:497`) stays, and `web_only_floor_note`'s annotation at `deep.py:332` still uses it; the module has `from __future__ import annotations`, so the forward use is fine. `deep._researcher_web_query` (used by `test_research_deep.py`) is outside the rename set and still defined at `deep.py:1059`.
+- `src/lib/delegate-runs.ts` + `.test.ts`: W6 (R15-CODE-AGENT-032 poll guard + `AbortSignal.timeout`) and CN agent-031 (snake-only reader). Both behaviours are present. No camelCase runs-wire reader is left in `src/` or `sidecar/` (the remaining `runId` hits are the backtest and workflow wires).
+- `src/lib/host-actions.test.ts`: W3 and DEF-A. DEF-A's expectation `"Focused on Screener"` matches `host-actions.ts:1626` `panelLabel(intent.panel)`.
 
 The base moved `ebc5ed41..4c6dfe8c` on three W2 files: `sidecar/services/agent_runtime.py`, `sidecar/services/planner.py` and `sidecar/tests/test_agent_runtime.py`. The base-side commits are R15-LEAD-030/035/036: the figure/citation guard rewrite and the "no-tool" intent signal in `_resolve_tool_surface`. Git auto-merged these files. I checked the result by reading it:
 - Both `_resolve_model` call sites use the new 3-arg form (`agent_runtime.py:1852`, `:2623`).
@@ -90,11 +100,14 @@ None of this is cargo-verified on the candidate: cargo fmt, clippy and test were
 
 **W3 R15-RESEARCH-042.** Adds a `structured.source_floor` leg and a "N sources (below 3)" markdown marker. The frontend (`types/brief.ts` / `brief-blocks.tsx`) does not render the leg yet. The Sonar and Perplexity lanes are not floor-stamped.
 
-**Cross-partition overlap.** None found: no P1 file appears in any P2 or P3 writer diff from `ebc5ed41`.
+**Cross-partition overlap (vs the P2 `d7d0d325` and P3 `aa1690ee` candidates).** Shared files: `src/lib/workspace.test.ts`, `src/store/settings.test.ts` (P1 fix pass and P2; P2 uses `DEFAULT_SYMBOLS` symbolically), `docs/SIDECAR_API.md`, `sidecar/services/research/relevance.py`, `sidecar/tests/test_run_manager.py`, `src/modules/chart/ChartPanel.test.tsx` (P1 and P3). `git merge-tree` of P1 x P2, P1 x P3 and (P1+P2) x P3 has no textual conflict, and the three-way trial tree has no stale research private name.
 
-**Could-not entries (not fixed, no code).**
-- R15-CODE-RESEARCH-005: needs `services/research/citecheck.py` plus five non-owned tests.
-- R15-CODE-AGENT-031: needs `sidecar/tests/test_run_manager.py:758,760`, owned by P3 W2. The CLAUDE.md "GET /runs emits BOTH" gotcha stays as it is.
+**Could-not entries, now closed by the CN branches (fixed_untested).**
+- R15-CODE-RESEARCH-005: CN branch promotes the 15 underscore helpers to public `deep` exports (rename only, `deep.__all__`), pinned by the new `test_research_module_boundary.py`. Tier-2 deviation: promoted in place instead of a new `_loop.py`.
+- R15-CODE-AGENT-031: the runs wire is snake_case only, both ways. This is a wire-contract change: a camelCase launch body is now a 422, and FastAPI's 422 body echoes the input (an `apiKey` sent camelCase would come back on loopback; the only caller sends `api_key`). Two tests were rewritten and renamed, not deleted: `test_launch_accepts_snake_case_run_budget` -> `test_launch_rejects_a_camel_case_budget`, `test_list_runs_dual_case_shape` -> `test_list_runs_shape`. The verifier should confirm the inversion is the entry's intent. The exact key-set test fails on any later field added to the run models, which is the intended signal.
+- The CLAUDE.md gotcha "GET /runs emits BOTH camelCase + snake_case" becomes false after this merge. It is a Tier-1 file: the lead edits it.
+
+**DEF-A (R15-CODE-FRONTEND-033 test-only fix plus 4 no-diff outcomes).** R15-AGENT-065, R15-AGENT-086 and R15-CODE-FRONTEND-031 are not_a_defect_proposed; R15-AGENT-085 is deferred_feature (size M: a per-turn chat sources footer spanning `agent_runtime.py`, `types/ai.ts`, streaming and `ChatSidebar.tsx`). No safety-surface hunk in any extra branch.
 
 **Handed to the lead.**
 - W9 R15-DOCS-009: the DECISIONS.md line recording the hand-rolled orchestration.
@@ -131,6 +144,11 @@ These are the writers' own claims, all untested on the candidate.
 | test_agents_store.py / test_plugins.py / test_portfolio.py / test_schema_version.py | R15-CODE-AGENT-029 | test_connect_is_idempotent (x3) + schema_version openers |
 | test_runs_store.py | R15-CODE-AGENT-032 | test_list_runs_is_bounded_and_prunes_old_terminal_rows |
 | test_workspace.py | R15-CROSS-PLATFORM-007 | test_replace_retries_permission_error_then_succeeds |
+| test_research_module_boundary.py | R15-CODE-RESEARCH-005 (CN) | test_no_research_module_imports_a_private_name_across_modules |
+| test_research_module_boundary.py | R15-CODE-RESEARCH-005 (CN) | test_shared_round_helpers_are_public_deep_exports |
+| test_runs_router.py | R15-CODE-AGENT-031 (CN) | test_runs_rows_carry_only_snake_case_keys (new) |
+| test_runs_router.py | R15-CODE-AGENT-031 (CN) | test_launch_returns_201_with_run_id, test_launch_response_never_echoes_api_key, test_launch_rejects_a_camel_case_budget, test_list_runs_shape, test_get_run_returns_transcript (rewritten) |
+| test_run_manager.py | R15-CODE-AGENT-031 (CN) | test_run_output_is_returned_untruncated_by_get_run (rewritten) |
 
 Every named def was grep-confirmed present on the candidate.
 
@@ -159,9 +177,17 @@ cd sidecar && .venv/bin/python -m pytest -q \
   "tests/test_plugins.py::test_connect_is_idempotent" \
   "tests/test_portfolio.py::test_connect_is_idempotent" \
   "tests/test_runs_store.py::test_list_runs_is_bounded_and_prunes_old_terminal_rows" \
-  "tests/test_workspace.py::test_replace_retries_permission_error_then_succeeds"
+  "tests/test_workspace.py::test_replace_retries_permission_error_then_succeeds" \
+  tests/test_research_module_boundary.py \
+  "tests/test_runs_router.py::test_runs_rows_carry_only_snake_case_keys" \
+  "tests/test_runs_router.py::test_launch_returns_201_with_run_id" \
+  "tests/test_runs_router.py::test_launch_response_never_echoes_api_key" \
+  "tests/test_runs_router.py::test_launch_rejects_a_camel_case_budget" \
+  "tests/test_runs_router.py::test_list_runs_shape" \
+  "tests/test_runs_router.py::test_get_run_returns_transcript" \
+  "tests/test_run_manager.py::test_run_output_is_returned_untruncated_by_get_run"
 # then the whole touched-file set plus the neighbours the writers ran:
-cd sidecar && .venv/bin/python -m pytest -q tests/test_backtest_lows.py tests/test_backtest_engine.py tests/test_backtest_custom.py tests/test_bar_loader.py tests/test_backtest_agent_parity.py tests/test_backtest_store.py tests/test_backtest_strategies.py tests/test_strategy_critic_e2e.py tests/test_agent_runtime.py tests/test_planner.py tests/test_toolbelt_integrity.py tests/test_mcp_catalog_parity.py tests/test_capability_completeness.py tests/test_capability_catalog.py tests/test_b3_runtime_intent_gate.py tests/test_research_fast.py tests/test_research_iter.py tests/test_research_deep.py tests/test_research_depth.py tests/test_research_model_lane.py tests/test_research_tools.py tests/test_sonar_lane.py tests/test_perplexity_backend.py tests/test_agents_store.py tests/test_plugins.py tests/test_portfolio.py tests/test_schema_version.py tests/test_runs_store.py tests/test_runs_router.py tests/test_run_manager.py tests/test_workspace.py tests/test_mcp_server.py tests/test_agents_router.py
+cd sidecar && .venv/bin/python -m pytest -q tests/test_backtest_lows.py tests/test_backtest_engine.py tests/test_backtest_custom.py tests/test_bar_loader.py tests/test_backtest_agent_parity.py tests/test_backtest_store.py tests/test_backtest_strategies.py tests/test_strategy_critic_e2e.py tests/test_agent_runtime.py tests/test_planner.py tests/test_toolbelt_integrity.py tests/test_mcp_catalog_parity.py tests/test_capability_completeness.py tests/test_capability_catalog.py tests/test_b3_runtime_intent_gate.py tests/test_research_fast.py tests/test_research_iter.py tests/test_research_deep.py tests/test_research_depth.py tests/test_research_model_lane.py tests/test_research_tools.py tests/test_sonar_lane.py tests/test_perplexity_backend.py tests/test_agents_store.py tests/test_plugins.py tests/test_portfolio.py tests/test_schema_version.py tests/test_runs_store.py tests/test_runs_router.py tests/test_run_manager.py tests/test_workspace.py tests/test_mcp_server.py tests/test_agents_router.py tests/test_research_module_boundary.py tests/test_research_verify.py tests/test_research_disclosures.py tests/test_research_r9_regressions.py tests/test_b6_research_funnel.py tests/test_b7_research_sources.py
 ```
 
 ### vitest
@@ -186,9 +212,11 @@ cd sidecar && .venv/bin/python -m pytest -q tests/test_backtest_lows.py tests/te
 | src/store/marketplace.test.ts | R15-CODE-PLATFORM-049 | deletes each granted secret |
 | src/modules/marketplace/MarketplacePanel.test.tsx | R15-UI-089 | whole file |
 | src/store/agent-mode.test.ts | R15-AGENT-087 | whole file |
+| src/lib/host-actions.test.ts | R15-CODE-FRONTEND-033 (DEF-A) | arrange_layout pattern=focus resolves a panel ALIAS, matching focus_panel |
+| src/lib/delegate-runs.test.ts | R15-CODE-AGENT-031 (CN) | whole file (run_id / host_actions mocks) |
 
 ```
-pnpm exec vitest run src/modules/backtest/ src/store/backtest.test.ts src/store/proposed-changes.test.ts src/lib/host-actions.test.ts src/modules/chat/DepthControl.test.tsx src/store/search-settings.test.ts src/modules/chat/mentions.test.ts src/store/portfolios.test.ts src/modules/portfolio/metrics.test.ts src/modules/portfolio/PortfolioPanel.test.tsx src/lib/csv.test.ts src/modules/chat/context-provider.test.ts src/lib/delegate-runs.test.ts src/lib/keychain.test.ts src/store/onboarding.test.ts src/components/KeyEntryDialog.test.tsx scripts/audit-design-tokens.test.mjs src/store/symbols.test.ts src/store/chart-drawings.test.ts src/store/marketplace.test.ts src/modules/marketplace/MarketplacePanel.test.tsx src/store/agent-mode.test.ts
+pnpm exec vitest run src/modules/backtest/ src/store/backtest.test.ts src/store/proposed-changes.test.ts src/lib/host-actions.test.ts src/modules/chat/DepthControl.test.tsx src/store/search-settings.test.ts src/modules/chat/mentions.test.ts src/store/portfolios.test.ts src/modules/portfolio/metrics.test.ts src/modules/portfolio/PortfolioPanel.test.tsx src/lib/csv.test.ts src/modules/chat/context-provider.test.ts src/lib/delegate-runs.test.ts src/lib/keychain.test.ts src/store/onboarding.test.ts src/components/KeyEntryDialog.test.tsx scripts/audit-design-tokens.test.mjs src/store/symbols.test.ts src/store/chart-drawings.test.ts src/store/marketplace.test.ts src/modules/marketplace/MarketplacePanel.test.tsx src/store/agent-mode.test.ts src/modules/chat/AgentsRail.test.tsx
 # W8 ripple (expected to need fixture updates, outside P1):
 pnpm exec vitest run src/modules/watchlist/WatchlistPanel.test.tsx src/modules/news/NewsFeedPanel.test.tsx src/modules/panel-context-publishers.test.tsx src/modules/notes/NotesPanel.test.tsx src/lib/workspace.test.ts src/store/settings.test.ts
 ```
@@ -232,9 +260,11 @@ git worktree add <scratch>/P1-int origin/worktree-agent-lows-P1-int-4c6dfe8 -b l
 cd <scratch>/P1-int
 git rebase --rebase-merges --onto r15-rc1 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2
 #  if the tag is not a descendant of 4c6dfe8c, or the rebase conflicts, replay instead:
-#  git reset --hard r15-rc1 && for b in W1-backtest W2-runtime-catalog W3-actions-research W4-chat-composer W5-portfolio W6-runs-stores W7-rust-core W8-tokens-market W9-docs-truth; do git merge --no-ff --no-edit origin/worktree-agent-lows-P1-$b || break; done && git cherry-pick 70fe85c9
+#  git reset --hard r15-rc1 && for b in W1-backtest W2-runtime-catalog W3-actions-research W4-chat-composer W5-portfolio W6-runs-stores W7-rust-core W8-tokens-market W9-docs-truth; do git merge --no-ff --no-edit origin/worktree-agent-lows-P1-$b || break; done && git cherry-pick 70fe85c9 a642caac
+#  for x in CN-r15-code-research-005 CN-r15-code-agent-031 DEF-A; do git merge --no-ff --no-commit origin/worktree-agent-lows-$x-4c6dfe8 && git rm -q --cached RESULT.md && rm RESULT.md && git commit --no-edit || break; done && git cherry-pick dbe5fe4f
 pnpm ci-local   # full chain: lint, format:check, typecheck, clippy, ruff, vitest, cargo test, pytest
-#  plus the focused commands above; fix the W8 ripple fixtures in their owning files
+#  plus the focused commands above (the W8 ripple fixtures are already seeded in a642caac)
+#  lead: change the CLAUDE.md runs gotcha to "GET /runs is snake_case only" (Tier-1, not in this branch)
 #  then one fresh verifier over the diff r15-rc1..HEAD
 git checkout 004-r4-experience-rebuild && git merge --no-ff lows-P1-int-on-tag
 ```
@@ -270,3 +300,9 @@ Left (advisories):
   - The proposed-changes.ts ack plumbing, which sits next to the order-safety gate and was not touched.
   - The carried could-not and lead items.
 
+
+## Extras pass (07:26-07:29 IST)
+
+Continued from the fix-pass candidate `a642caac` (worktree clean, origin matched). Merged the three extra branches last, in the given order: CN research-005 `c6f84c85` (+ `b1fd419b`), CN agent-031 `82c4478b`, DEF-A `938a1017`; then `dbe5fe4f` (prettier on the DEF-A test). Each CN branch merged after the set that carried its first attempt (W3, W6). All clean; details are in the merge table, conflict map and risk map above.
+
+Sanity on every file the candidate changes vs base: py_compile passes on 49 .py files; `ruff format --check` (49 formatted; 446 sidecar-wide) and `ruff check` pass from `sidecar/`; prettier is clean on all 60 ts/tsx/js/mjs/json/md/css files. Pushed without force; `git ls-remote` shows `dbe5fe4f15f1aca12273038a9ef61c66497513ec`. Status: untested pending integration.
