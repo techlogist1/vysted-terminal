@@ -32,7 +32,7 @@
       "type": "array",
       "items": { "type": "string", "minLength": 1 },
       "uniqueItems": true,
-      "description": "Specialty tool ids this agent's persona is written around (surfaced separately as `declaredTools` in GET /agents) — NOT an enforced allow-list: every first-party agent is granted the catalog's full default tool set at load time (`agent_runtime._grant_first_party_hands`), so this list only documents the ids the system prompt was tuned for (R15-AGENT-072). Common values: `\"price_data\"`, `\"fundamentals\"`, `\"news\"`, `\"backtest_summary\"`."
+      "description": "Specialty tool ids this agent's persona is written around (surfaced as `tools` in GET /agents, beside `effective_tools`, the real grant) — NOT an enforced allow-list: every first-party agent is granted the catalog's full default tool set at load time (`agent_runtime._grant_first_party_hands`), so this list only documents the ids the system prompt was tuned for (R15-AGENT-072). Common values: `\"price_data\"`, `\"fundamentals\"`, `\"news\"`, `\"backtest_summary\"`."
     },
     "defaultProvider": {
       "type": "string",
