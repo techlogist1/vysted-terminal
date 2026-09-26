@@ -18,8 +18,9 @@ research run on an Indian name can pull real filings:
   requested quarter's) earnings-call transcript filed on NSE/BSE, its PDF read
   to text (R15-RESEARCH-030).
 
-On any provider error the tools return ``{"ok": False, "error": "<msg>"}`` so
-the agent surfaces the failure verbatim instead of crashing the run. A symbol
+A provider error propagates to :func:`services.agent_tools.invoke_tool`,
+which converts it to ``{"ok": False, "error": "<msg>"}`` so the agent
+surfaces the failure verbatim instead of crashing the run. A symbol
 the Indian exchanges do not cover answers ``ok: True`` with ``coverage`` and a
 ``note`` (C3); a US-listed ADR's shareholding carries its 20-F major holders
 (``provider`` ``"sec-20f"``). All are read-only data tools (no trading path, D81).
@@ -33,7 +34,6 @@ from typing import Any
 
 from services import corporate_disclosures, sec_ownership
 from services.agent_tools import register_tool
-from services.errors import ProviderError
 from services.search import extract
 
 _DEFAULT_LIMIT = 20
@@ -69,12 +69,7 @@ async def _corporate_announcements(args: dict[str, Any]) -> dict[str, Any]:
     except (TypeError, ValueError):
         return {"ok": False, "error": "limit must be an integer"}
     limit = max(1, min(limit, _MAX_LIMIT))
-    try:
-        response = await corporate_disclosures.get_announcements_cached(symbol, exchange, limit)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await corporate_disclosures.get_announcements_cached(symbol, exchange, limit)
     return {
         "ok": True,
         "symbol": response.symbol,
@@ -92,13 +87,8 @@ async def _shareholding_pattern(args: dict[str, Any]) -> dict[str, Any]:
     symbol = args.get("symbol")
     if not isinstance(symbol, str) or not symbol.strip():
         return {"ok": False, "error": "missing or non-string symbol"}
-    try:
-        response = await asyncio.to_thread(corporate_disclosures.get_shareholding, symbol)
-        response = await sec_ownership.attach_major_shareholders(response)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await asyncio.to_thread(corporate_disclosures.get_shareholding, symbol)
+    response = await sec_ownership.attach_major_shareholders(response)
     patterns = response.patterns[:_MAX_QUARTERS]
     holders = {}
     if response.major_shareholders:
@@ -122,12 +112,7 @@ async def _corporate_actions(args: dict[str, Any]) -> dict[str, Any]:
     symbol = args.get("symbol")
     if not isinstance(symbol, str) or not symbol.strip():
         return {"ok": False, "error": "missing or non-string symbol"}
-    try:
-        response = await asyncio.to_thread(corporate_disclosures.get_corporate_actions, symbol)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await asyncio.to_thread(corporate_disclosures.get_corporate_actions, symbol)
     return {
         "ok": True,
         "symbol": response.symbol,
@@ -147,12 +132,7 @@ async def _exchange_deals(args: dict[str, Any]) -> dict[str, Any]:
     kind = args.get("kind")
     if kind is not None and kind not in corporate_disclosures.DEAL_KINDS:
         return {"ok": False, "error": f"unknown kind {kind!r} (use bulk, block or sast)"}
-    try:
-        response = await asyncio.to_thread(corporate_disclosures.get_deals, symbol, kind)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await asyncio.to_thread(corporate_disclosures.get_deals, symbol, kind)
     return {
         "ok": True,
         "symbol": response.symbol,
@@ -176,14 +156,9 @@ async def _earnings_call_transcript(args: dict[str, Any]) -> dict[str, Any]:
             quarter = date.fromisoformat(str(args["quarter"]))
         except ValueError:
             return {"ok": False, "error": "quarter must be the quarter-end date, YYYY-MM-DD"}
-    try:
-        response = await corporate_disclosures.get_announcements_cached(
-            symbol, None, corporate_disclosures.MAX_LIMIT
-        )
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await corporate_disclosures.get_announcements_cached(
+        symbol, None, corporate_disclosures.MAX_LIMIT
+    )
     if response.coverage != "covered":
         return {"ok": True, "symbol": response.symbol, "available": False, "reason": response.note}
     transcripts = [

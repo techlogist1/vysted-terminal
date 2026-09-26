@@ -114,11 +114,24 @@ async def _market_overview(args: dict[str, Any]) -> dict[str, Any]:
     )
     symbols = _indices_for_region(region)
 
-    indices, (headlines, headlines_error) = await asyncio.gather(
-        asyncio.gather(*(_quote_one(symbol, region) for symbol in symbols)),
+    raw_indices, (headlines, headlines_error) = await asyncio.gather(
+        asyncio.gather(*(_quote_one(symbol, region) for symbol in symbols), return_exceptions=True),
         _headlines(_HEADLINE_LIMIT),
     )
-    indices = list(indices)
+    # ``_quote_one`` already catches every known failure path internally, but
+    # ``return_exceptions=True`` is the outer backstop so a truly unexpected
+    # exception still degrades to a per-symbol error row instead of raising
+    # out of ``gather`` (R15-AGENT-069).
+    indices = [
+        {
+            "symbol": symbol,
+            "name": _INDEX_LABELS.get(symbol, symbol),
+            "error": f"unexpected error for {symbol}: {r}",
+        }
+        if isinstance(r, BaseException)
+        else r
+        for symbol, r in zip(symbols, raw_indices, strict=True)
+    ]
 
     resolved = [idx for idx in indices if "error" not in idx]
     payload: dict[str, Any] = {
@@ -127,6 +140,11 @@ async def _market_overview(args: dict[str, Any]) -> dict[str, Any]:
         "indices": indices,
         "headlines": headlines,
     }
+    if region not in _INDICES_BY_REGION:
+        # GLOBAL (and any other unmapped region) silently reuses the US index
+        # set — name that substitution so the model doesn't read "GLOBAL" as
+        # its own benchmark (R15-DATA-101).
+        payload["note"] = f"no index set for region {region!r} — showing the US proxy benchmark"
     if headlines_error:
         payload["headlines_error"] = headlines_error
     if not resolved:

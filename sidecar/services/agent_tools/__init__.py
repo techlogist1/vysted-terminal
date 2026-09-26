@@ -22,9 +22,7 @@ Domain submodules (in order of registration):
   - :mod:`services.agent_tools.price_data` — registered by
     :func:`register_v0_5_0_tools`.
   - :mod:`services.agent_tools.fundamentals` — same.
-  - :mod:`services.agent_tools.registry_v0_6_0` — exposes
-    :func:`register_v0_6_0_tools` aggregator the Phase 6 teammates
-    extend with their per-domain ``register_<domain>_tools()`` hooks.
+  - :func:`register_v0_6_0_tools` below — the Phase 6 domain aggregator.
 """
 
 from __future__ import annotations
@@ -32,6 +30,8 @@ from __future__ import annotations
 import logging
 from collections.abc import Awaitable, Callable
 from typing import Any
+
+from services.errors import ProviderError
 
 logger = logging.getLogger(__name__)
 
@@ -59,32 +59,82 @@ def is_registered(tool_id: str) -> bool:
     return tool_id in _TOOLS
 
 
+def coerce_int_in_range(
+    args: dict[str, Any], key: str, default: int, *, minimum: int, maximum: int, error: str
+) -> tuple[int | None, dict[str, Any] | None]:
+    """Coerce ``args[key]`` to an int in ``[minimum, maximum]``.
+
+    Returns ``(value, None)`` on success or ``(None, error-envelope)`` when
+    the raw value can't be parsed as an int OR falls outside the range — a
+    non-numeric arg fails identically to an out-of-range one, with the same
+    message, rather than raising past the handler's own validation
+    (R15-AGENT-068 — ``earnings_upcoming({"days": "seven"})`` used to raise a
+    raw ``ValueError`` instead of returning its own range message).
+    """
+    raw = args.get(key, default)
+    try:
+        value = int(raw) if raw is not None else default
+    except (TypeError, ValueError):
+        return None, {"ok": False, "error": error}
+    if value < minimum or value > maximum:
+        return None, {"ok": False, "error": error}
+    return value, None
+
+
+def clamp_int(args: dict[str, Any], key: str, default: int, *, minimum: int, maximum: int) -> int:
+    """Coerce ``args[key]`` to an int, silently clamped to ``[minimum, maximum]``.
+
+    Mirrors the ``max(1, min(N, int(x)))`` convention several sibling tools
+    (``news``, ``macro_search``) already use for a ``limit`` arg: a
+    missing/non-numeric value falls back to ``default``, and an in-range
+    value passes through unchanged — unlike :func:`coerce_int_in_range`, an
+    out-of-range ``limit`` is a hint to shrink, not a validation failure
+    (R15-CODE-AGENT-015 — ``sec_tools`` passed an unclamped model-supplied
+    limit straight to the provider).
+    """
+    raw = args.get(key, default)
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        value = default
+    return max(minimum, min(maximum, value))
+
+
 async def invoke_tool(tool_id: str, args: dict[str, Any]) -> dict[str, Any]:
-    """Invoke a registered tool. Raises ``KeyError`` on unknown id."""
+    """Invoke a registered tool. Raises ``KeyError`` on unknown id.
+
+    A handler that lets a ``ProviderError`` (or any other exception) escape
+    gets it converted to the tool's ``{"ok": False, "error": ...}`` envelope
+    here, with one spelling, instead of every handler re-deriving its own
+    copy of this try/except (R15-CODE-AGENT-014). A handler that already
+    returns its own envelope — including one with extra fields, like
+    ``fundamentals``'s ``reason`` classification — is unaffected: this only
+    fires when the handler raises.
+    """
     handler = _TOOLS.get(tool_id)
     if handler is None:
         raise KeyError(f"unknown tool {tool_id!r}; registered: {registered_tools()}")
-    return await handler(args)
+    try:
+        return await handler(args)
+    except ProviderError as exc:
+        return {"ok": False, "error": f"provider error: {exc}"}
+    except Exception as exc:  # noqa: BLE001 — surface to the model, never crash the turn
+        return {"ok": False, "error": f"unexpected error: {exc}"}
 
 
 def reset_for_tests() -> None:
     """Clear the registry — used only from the test suite.
 
-    Re-registers the import-time foundation tool (``backtest_summary``)
-    so the v0.5.0 invariant — ``agent_tools.is_registered("backtest_summary")``
-    is True immediately after import — survives a reset. The v0.5.0
-    flat-file ``agent_tools.py`` had the same shape implicitly via the
-    bottom-of-file ``register_tool(...)`` call; the F4 package refactor
-    moved that to ``backtest_summary.py``'s import-time side effect, so
-    a naive ``_TOOLS.clear()`` would leave the registry empty until a
-    test re-imported the submodule. Re-registering here keeps the test
-    contract identical to v0.5.0.
+    Restores whatever registered itself at package-import time (a snapshot
+    taken below, right after those imports run) — currently just
+    ``backtest_summary``, but generically: any future module-level
+    ``register_tool(...)`` call anywhere in the package survives a reset
+    without this function needing to name it (R15-CODE-AGENT-027 — the old
+    hardcoded ``backtest_summary`` re-registration silently dropped a second
+    import-time tool, making tests that reset order-dependent).
     """
     _TOOLS.clear()
-    # Re-register import-time foundation tools.
-    from services.agent_tools.backtest_summary import _backtest_summary
-
-    register_tool("backtest_summary", _backtest_summary)
+    _TOOLS.update(_IMPORT_TIME_TOOLS)
 
 
 # ---------------------------------------------------------------------------
@@ -102,6 +152,11 @@ def reset_for_tests() -> None:
 # package's __init__.
 from services.agent_tools import backtest_summary as _backtest_summary_mod  # noqa: E402, F401
 
+#: Snapshot of whatever registered at package-import time (above), so
+#: :func:`reset_for_tests` can restore it generically instead of naming
+#: ``backtest_summary`` by hand (R15-CODE-AGENT-027).
+_IMPORT_TIME_TOOLS: dict[str, AgentToolHandler] = dict(_TOOLS)
+
 
 def register_v0_5_0_tools() -> None:
     """Register the v0.5.0 (Teammate K) production tools.
@@ -118,23 +173,106 @@ def register_v0_5_0_tools() -> None:
 
 
 def register_v0_6_0_tools() -> None:
-    """Register the v0.6.0 Phase 6 production tools.
+    """Register every Phase 6 (v0.6.0) agent tool.
 
-    Aggregator the Phase 6 teammates extend with their per-domain
-    ``register_<domain>_tools()`` hooks. Idempotent. Each domain's
-    submodule lives in this package alongside the registry contract
-    above. The list below is intentionally exhaustive — teammates
-    uncomment their entry when their domain is integrated; lead
-    integration hand-merges if more than one teammate touches the call
-    list at the same line.
+    Idempotent. Calls each domain's ``register()`` helper. Inlined from the
+    former ``registry_v0_6_0`` module (R15-CODE-AGENT-028): that module was a
+    pure pass-through with no callers besides this function.
     """
-    from services.agent_tools import registry_v0_6_0
+    registered: list[str] = []
 
-    registry_v0_6_0.register_v0_6_0_tools()
+    # Teammate M — Macro Expansion (FRED + ECB + IMF + World Bank).
+    from services.agent_tools import macro_tools
+
+    macro_tools.register()
+    registered.append("macro")
+
+    # Teammate F — SEC Filings Reader.
+    from services.agent_tools import sec_tools
+
+    sec_tools.register()
+    registered.append("sec")
+
+    # Teammate Q — QuantLib pricing modules.
+    from services.agent_tools import quant_tools
+
+    quant_tools.register()
+    registered.append("quant")
+
+    # Teammate E — Earnings + Analyst Ratings expansion.
+    from services.agent_tools import analyst_tools, earnings_tools
+
+    earnings_tools.register()
+    analyst_tools.register()
+    registered.append("earnings+analyst")
+
+    # Teammate Sc — Screener / Scanner.
+    from services.agent_tools import screener_tools
+
+    screener_tools.register()
+    registered.append("screener")
+
+    # News — headlines + sentiment (also projected to the external MCP surface).
+    from services.agent_tools import news_tool
+
+    news_tool.register()
+    registered.append("news")
+
+    # Market overview — locale-aware market-state snapshot (indices + headlines)
+    # for a broad "how's the market today" question. Read-only; reuses the
+    # provider_registry quote path + the news provider (no new data fetching).
+    from services.agent_tools import market_overview
+
+    market_overview.register()
+    registered.append("market_overview")
+
+    # Pass B (B1) — locale-aware symbol resolution (name/ticker -> instrument).
+    from services.agent_tools import resolve_symbol
+
+    resolve_symbol.register()
+    registered.append("resolve_symbol")
+
+    # Pass B (B2) — multi-symbol comparison (quote + fundamentals + relative perf).
+    from services.agent_tools import compare_symbols
+
+    compare_symbols.register()
+    registered.append("compare_symbols")
+
+    # Pass B (B3) — web search (BYOK Exa / local SearXNG; native rides the adapter).
+    from services.agent_tools import web_search
+
+    web_search.register()
+    registered.append("web_search")
+
+    # Pass B (B4) — the ONE research engine (FR-115): a single ``research`` tool
+    # that escalates in place from a fast bundle (depth=quick) to the DEEP
+    # budget-bounded loop (depth=deep/heavy). ``deep_research`` is no longer a
+    # registered tool — its engine is called internally by ``research``.
+    from services.agent_tools import research
+
+    research.register()
+    registered.append("research")
+
+    # R7 Component 3 — India corporate disclosures (merged BSE+NSE announcements
+    # + quarterly shareholding patterns), read-only.
+    from services.agent_tools import disclosure_tools
+
+    disclosure_tools.register()
+    registered.append("disclosures")
+
+    # R7 Track N — custom-DSL backtest authoring.
+    from services.agent_tools import run_custom_backtest
+
+    run_custom_backtest.register()
+    registered.append("backtest-custom")
+
+    logger.info("agent_tools: registered v0.6.0 domains: %s", ", ".join(registered))
 
 
 __all__ = [
     "AgentToolHandler",
+    "clamp_int",
+    "coerce_int_in_range",
     "invoke_tool",
     "is_registered",
     "register_tool",

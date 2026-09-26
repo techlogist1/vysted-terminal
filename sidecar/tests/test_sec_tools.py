@@ -169,6 +169,43 @@ async def test_sec_insider_transactions(
     assert result["transactions"]["transactions"][0]["direction"] == "disposed"
 
 
+@pytest.mark.asyncio
+async def test_limit_is_clamped_both_ways(
+    available_provider: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-CODE-AGENT-015: sec_filings_list/sec_insider_transactions used to
+    pass an unclamped model-supplied limit (100000, -1) straight to the
+    provider while every sibling tool clamps."""
+    seen_limits: dict[str, int] = {}
+
+    async def _fake_list_filings(identifier: str, **kwargs: Any) -> FilingsListResponse:
+        seen_limits["filings"] = kwargs["limit"]
+        return FilingsListResponse(cik="0000320193", company_name="Apple Inc.", filings=[])
+
+    async def _fake_list_insider(
+        identifier: str, form_type: Any = None, limit: int = 30
+    ) -> InsiderTransactionsResponse:
+        seen_limits["insider"] = limit
+        return InsiderTransactionsResponse(
+            cik="0000320193", issuer_name="Apple Inc.", transactions=[]
+        )
+
+    monkeypatch.setattr(sec_filings_provider, "list_filings", _fake_list_filings)
+    monkeypatch.setattr(sec_filings_provider, "list_insider_transactions", _fake_list_insider)
+
+    await agent_tools.invoke_tool("sec_filings_list", {"symbol": "AAPL", "limit": 100000})
+    assert seen_limits["filings"] == 100
+
+    await agent_tools.invoke_tool("sec_filings_list", {"symbol": "AAPL", "limit": -1})
+    assert seen_limits["filings"] == 1
+
+    await agent_tools.invoke_tool("sec_insider_transactions", {"symbol": "AAPL", "limit": 100000})
+    assert seen_limits["insider"] == 100
+
+    await agent_tools.invoke_tool("sec_insider_transactions", {"symbol": "AAPL", "limit": -1})
+    assert seen_limits["insider"] == 1
+
+
 def test_tool_ids_have_no_execution_substrings() -> None:
     """§6.5 audit grep — none of our tool ids touch broker execution."""
     ids = agent_tools.registered_tools()

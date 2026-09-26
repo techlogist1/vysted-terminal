@@ -12,15 +12,15 @@ reads through the data_cache TTL layer. Tool ids are deliberately
 namespaced ``sec_*`` (no ``place_*`` / ``submit_*`` / ``execute_*`` /
 ``auto_approve`` substrings — the §6.5 grep check passes).
 
-Registered via :func:`register` from the Phase 6 aggregator in
-:mod:`services.agent_tools.registry_v0_6_0`.
+Registered via :func:`register` from the Phase 6 aggregator,
+:func:`services.agent_tools.register_v0_6_0_tools`.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
-from services.agent_tools import register_tool
+from services.agent_tools import clamp_int, register_tool
 
 # Honest unavailability message (Phase 9.5 nit): the binary IS bundled; when
 # unreachable it almost always failed to bind a port this launch (UC1 cold
@@ -29,6 +29,10 @@ _UNAVAILABLE_ERROR = (
     "sec-edgar-mcp is not available — the subprocess did not bind a port "
     "this launch (relaunch to retry)"
 )
+
+#: Row cap so a chatty backfill (a model-supplied 100000 or a stray -1)
+#: never reaches the provider unclamped (R15-CODE-AGENT-015).
+_MAX_LIMIT = 100
 
 
 async def _sec_filings_list(args: dict[str, Any]) -> dict[str, Any]:
@@ -45,28 +49,16 @@ async def _sec_filings_list(args: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(identifier, str) or not identifier:
         return {"ok": False, "error": "missing cik/symbol"}
     form_type = args.get("form_type")
-    limit_raw = args.get("limit", 20)
-    try:
-        limit = int(limit_raw)
-    except (TypeError, ValueError):
-        limit = 20
+    limit = clamp_int(args, "limit", 20, minimum=1, maximum=_MAX_LIMIT)
 
     from services import sec_filings_provider
-    from services.errors import ProviderError
 
     if not sec_filings_provider.is_available():
         return {
             "ok": False,
             "error": _UNAVAILABLE_ERROR,
         }
-    try:
-        response = await sec_filings_provider.list_filings(
-            identifier, form_type=form_type, limit=limit
-        )
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await sec_filings_provider.list_filings(identifier, form_type=form_type, limit=limit)
 
     return {
         "ok": True,
@@ -92,21 +84,15 @@ async def _sec_filing_content(args: dict[str, Any]) -> dict[str, Any]:
         return {"ok": False, "error": "missing identifier (cik or symbol)"}
 
     from services import sec_filings_provider
-    from services.errors import ProviderError
 
     if not sec_filings_provider.is_available():
         return {
             "ok": False,
             "error": _UNAVAILABLE_ERROR,
         }
-    try:
-        detail = await sec_filings_provider.get_filing(
-            accession, cik_or_symbol=identifier, form_type=args.get("form_type") or None
-        )
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    detail = await sec_filings_provider.get_filing(
+        accession, cik_or_symbol=identifier, form_type=args.get("form_type") or None
+    )
 
     return {
         "ok": True,
@@ -127,28 +113,18 @@ async def _sec_insider_transactions(args: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(identifier, str) or not identifier:
         return {"ok": False, "error": "missing cik/symbol"}
     form = args.get("form") or args.get("form_type")
-    limit_raw = args.get("limit", 30)
-    try:
-        limit = int(limit_raw)
-    except (TypeError, ValueError):
-        limit = 30
+    limit = clamp_int(args, "limit", 30, minimum=1, maximum=_MAX_LIMIT)
 
     from services import sec_filings_provider
-    from services.errors import ProviderError
 
     if not sec_filings_provider.is_available():
         return {
             "ok": False,
             "error": _UNAVAILABLE_ERROR,
         }
-    try:
-        response = await sec_filings_provider.list_insider_transactions(
-            identifier, form_type=form, limit=limit
-        )
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await sec_filings_provider.list_insider_transactions(
+        identifier, form_type=form, limit=limit
+    )
 
     return {
         "ok": True,
