@@ -83,6 +83,7 @@ import { basename, join, resolve } from "node:path";
 import { tmpdir, platform } from "node:os";
 import { mkdtemp, rm } from "node:fs/promises";
 import { setTimeout as sleep } from "node:timers/promises";
+import { pathToFileURL } from "node:url";
 
 import { SIDECAR_SPECS, assertAllFresh, binaryPath, targetTriple } from "./sidecar-specs.mjs";
 
@@ -988,7 +989,7 @@ async function main() {
 
 // Guarded so this module can be imported by vitest (to unit-test the pure
 // helpers below) without spawning real sidecar processes as a side effect.
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((err) => {
     console.error("[smoke] unexpected error:", err);
     process.exit(1);
