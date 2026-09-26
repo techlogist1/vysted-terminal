@@ -1,0 +1,217 @@
+=== R15-CODE-FRONTEND-001: workspace.ts load-named-workspace scope ===
+ * pre-R3 override (e.g. a captured minimax/minimax-m3) is dropped on load so the
+ * workspace adopts the current default instead of shadowing it.
+ */
+const MODEL_OVERRIDES_VERSION = 3;
+
+/**
+ * Forward-only blob migrations: entry `n` takes a version-`n` blob to `n + 1`.
+ * Step 1 is the identity — version 0 is today's shape with optional fields, and
+ * each slice's restore already guards the fields an older blob lacks.
+ */
+const WORKSPACE_MIGRATIONS: ReadonlyArray<(workspace: SerializedWorkspace) => SerializedWorkspace> =
+  [(workspace) => workspace];
+
+/** The blob version this build writes. */
+export const WORKSPACE_SCHEMA_VERSION = WORKSPACE_MIGRATIONS.length;
+
+/**
+ * Upgrade a blob to {@link WORKSPACE_SCHEMA_VERSION}. A blob from a newer build
+ * is logged and returned as it is — never downgraded.
+ */
+export function migrateWorkspace(workspace: SerializedWorkspace): SerializedWorkspace {
+  let version = typeof workspace.schemaVersion === "number" ? workspace.schemaVersion : 0;
+  if (version > WORKSPACE_SCHEMA_VERSION) {
+    console.warn(
+      `[workspace] "${workspace.name}" was saved by a newer build (schema ${version}, this build reads ${WORKSPACE_SCHEMA_VERSION}); restoring it as it is.`,
+    );
+    return workspace;
+  }
+  let migrated = workspace;
+  for (; version < WORKSPACE_SCHEMA_VERSION; version++) {
+    migrated = WORKSPACE_MIGRATIONS[version](migrated);
+  }
+  return { ...migrated, schemaVersion: version };
+}
+
+/**
+ * One persisted slice of the workspace blob: what it writes, how it restores,
+ * and which store change schedules an autosave. {@link PERSISTED_SLICES} is the
+ * single registry — the payload, the restore and the autosave triggers all
+ * iterate it, so a slice added here persists, restores and autosaves together.
+ */
+export interface PersistedSlice {
+  /** The blob key this slice owns (`read` may also write a companion key). */
+  key: string;
+  /**
+   * `layout` — per-workspace state a named workspace restores (the cockpit
+   * itself). `global` — the user's own data, shared by every workspace:
+   * restored only by the launch restore of the autosave slot, never by loading
+   * a named workspace (R15-CODE-FRONTEND-001).
+   */
+  scope: "layout" | "global";
+  read: () => Partial<SerializedWorkspace>;
+  restore: (workspace: SerializedWorkspace) => void;
+  /** Subscribe `onChange` to the change that must be persisted; returns the unsubscribe. */
+  subscribe: (onChange: () => void) => () => void;
+}
+
+/** The blob's valid chart views; a malformed entry is dropped. */
+function chartViewsOf(workspace: SerializedWorkspace): Record<string, ChartView> {
+  const out: Record<string, ChartView> = {};
+  const raw: unknown = workspace.chartViews;
+  if (!raw || typeof raw !== "object") {
+    return out;
+  }
+  for (const [panelId, value] of Object.entries(raw)) {
+    const view = value as Partial<ChartView> | null;
+    if (
+      view &&
+      typeof view.symbol === "string" &&
+      view.symbol &&
+      typeof view.timeframe === "string"
+4: * A workspace blob carries the dockview layout plus every `PERSISTED_SLICES`
+227: * and which store change schedules an autosave. {@link PERSISTED_SLICES} is the
+240:  scope: "layout" | "global";
+300:export const PERSISTED_SLICES: readonly PersistedSlice[] = [
+308:    scope: "layout",
+321:    scope: "layout",
+330:    scope: "layout",
+349:    scope: "global",
+361:    scope: "global",
+373:    scope: "global",
+397:    scope: "global",
+408:    scope: "global",
+419:    scope: "global",
+453:    scope: "global",
+472:    scope: "global",
+484:    scope: "global",
+508:    scope: "global",
+526:    scope: "global",
+537:    scope: "global",
+554:    scope: "global",
+568:    scope: "global",
+585:    scope: "layout",
+631:  for (const slice of PERSISTED_SLICES) {
+639: * every {@link PERSISTED_SLICES} slice. Throws if the dockview layout has not
+656:export function deserializeWorkspace(saved: SerializedWorkspace): boolean {
+690:  for (const slice of PERSISTED_SLICES) {
+782:export async function loadWorkspace(name: string): Promise<void> {
+1099: * Wire every {@link PERSISTED_SLICES} trigger to {@link autosaveLayout} (the
+1103:  const unsubscribes = PERSISTED_SLICES.map((slice) => slice.subscribe(autosaveLayout));
+ */
+export function deserializeWorkspace(saved: SerializedWorkspace): boolean {
+  if (!useWorkspaceStore.getState().dockviewApi) {
+    throw new WorkspaceError("The panel layout is not ready yet.");
+  }
+  const workspace = migrateWorkspace(saved);
+  restoreSlices(workspace, "global");
+  return applyLayoutSlice(workspace);
+}
+
+/**
+ * Apply the per-workspace slices (enabled modules, chart drawings, the
+ * research-space marker) and the dockview layout — what loading a named
+ * workspace restores. Panels whose component is not registered are stripped
+ * from the layout and the rest restores. Returns false when no restorable
+ * layout remains.
+ */
+function applyLayoutSlice(workspace: SerializedWorkspace): boolean {
+  const api = useWorkspaceStore.getState().dockviewApi;
+  if (!api) {
+    throw new WorkspaceError("The panel layout is not ready yet.");
+  }
+  useWorkspaceStore.getState().setName(workspace.name);
+  restoreSlices(workspace, "layout");
+  const layout = stripUnknownPanels(workspace.layout);
+  if (!layout) {
+    return false;
+  }
+  api.fromJSON(layout);
+  migrateLegacyLayout(api);
+  return true;
+}
+
+/** Restore every slice of `scope`, each independently of the others. */
+function restoreSlices(workspace: SerializedWorkspace, scope: PersistedSlice["scope"]): void {
+  for (const slice of PERSISTED_SLICES) {
+    if (slice.scope !== scope) {
+      continue;
+    }
+    try {
+      slice.restore(workspace);
+    } catch (error) {
+      console.warn(
+        `[workspace] could not restore the ${slice.key} slice; kept the live one.`,
+        error,
+      );
+    }
+  }
+}
+
+/** Build the sidecar `/workspace` URL, optionally for a single named workspace. */
+async function workspaceUrl(name?: string): Promise<string> {
+  const base = await getSidecarBaseUrl();
+  const path = name === undefined ? "/workspace" : `/workspace/${encodeURIComponent(name)}`;
+  return new URL(path, base).toString();
+}
+--- loadWorkspace ---
+export async function loadWorkspace(name: string): Promise<void> {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new WorkspaceError("A workspace name is required.");
+  }
+  const response = await fetch(await workspaceUrl(trimmed));
+  if (!response.ok) {
+    throw await sidecarFailure(`Could not load workspace "${trimmed}"`, response);
+  }
+  let workspace: SerializedWorkspace;
+  try {
+    workspace = (await response.json()) as SerializedWorkspace;
+  } catch {
+    throw new WorkspaceError(`Could not parse workspace "${trimmed}" (malformed JSON).`);
+  }
+  workspace = migrateWorkspace(workspace);
+  const layoutRestored = applyLayoutSlice(workspace);
+  // Entering a research space scopes the Notes panel to its ticker, as creating
+  // one does (the notes themselves are global and stay as they are).
+  const symbol = researchSymbolOf(workspace);
+  if (symbol) {
+    useNotesStore.getState().setFocusSymbol(symbol);
+  }
+  if (!layoutRestored) {
+    const api = useWorkspaceStore.getState().dockviewApi;
+    if (api) {
+      api.clear();
+      applyDefaultLayout(
+        api,
+        new Set(
+          useModulesStore
+            .getState()
+            .enabledPanels()
+            .map((panel) => panel.id),
+        ),
+      );
+    }
+  }
+}
+
+/**
+ * One-time hygiene over a freshly-restored layout (R7): old saved blobs can
+ * carry (a) duplicate chart panels minted before the singleton fix (ids like
+ * `chart-<ts>-<rand>` alongside the canonical `chart`) — the "persistent
+ * duplicate Chart tab" — and (b) a bare `screener` panel id from the era when
+ * the arrange templates drifted from the module's registered `screener-panel`
+ * id, which would make every future arrange/open mint a second screener.
+ * Removing the ghosts here means the very next autosave persists the clean
+ * layout and the migration self-retires.
+ */
+function migrateLegacyLayout(api: DockviewApi): void {
+  for (const panel of [...api.panels]) {
+    const component = (panel as { view?: { contentComponent?: string } }).view?.contentComponent;
+    const isChartDupe = component === "chart-panel" && panel.id !== "chart";
+    const isLegacyScreener =
+      panel.id === "screener" && api.getPanel("screener-panel") !== undefined;
+    if (isChartDupe || isLegacyScreener) {
+      try {
+        api.removePanel(panel);

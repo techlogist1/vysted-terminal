@@ -1,0 +1,3 @@
+historical	src-tauri/src/keychain.rs:491	manual: #[cfg(test)] fixture for the one-time dev-keystore migration using the pre-D81 legacy account name	"broker:_meta:first-launch-tos".to_string(),
+historical	src-tauri/src/keychain.rs:506	manual: #[cfg(test)] fixture for the one-time dev-keystore migration using the pre-D81 legacy account name	"broker:_meta:first-launch-tos" => Some("2026-06-11".to_string()),
+false_positive	src-tauri/src/lib.rs:129	term used in a non-trading sense (financial margin / CSS / model-router broker / test simulation / company name / order book)	/// Phase-9 UC1 fix: the prior flat 15s budget was marginal for a COLD

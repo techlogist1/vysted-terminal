@@ -1,0 +1,20 @@
+{
+  "holdings": [
+    {
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "assetClass": "equity",
+      "note": null,
+      "id": "h-5185cd88-40db-48f7-a776-1b34ee6567f5"
+    },
+    {
+      "symbol": "AAPL",
+      "quantity": 8,
+      "costBasis": 310,
+      "assetClass": "equity",
+      "note": null,
+      "id": "h-e5b19dee-03a8-4caa-9519-cc1e91d5722c"
+    }
+  ]
+}

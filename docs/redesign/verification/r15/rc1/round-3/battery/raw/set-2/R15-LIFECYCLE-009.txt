@@ -1,0 +1,42 @@
+=== R15-LIFECYCLE-009: PortfolioPanel reads legacy sidecar positions on empty blob ===
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/src/lib/workspace.ts:22:import { fetchLegacyPositions } from "@/modules/portfolio/api";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/src/lib/workspace.ts:45:import { type Portfolio, seedDefaultPortfolio, usePortfoliosStore } from "@/store/portfolios";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/src/lib/workspace.ts:998:  const imported = saved && "portfolios" in saved ? false : await importLegacyPositions();
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/src/lib/workspace.ts:1012:async function importLegacyPositions(): Promise<boolean> {
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/src/lib/workspace.ts:1014:    const holdings = await fetchLegacyPositions();
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/src/lib/workspace.ts:1018:    seedDefaultPortfolio(holdings);
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-cand/src/modules/portfolio/api.ts:68:export async function fetchLegacyPositions(): Promise<HoldingInput[]> {
+  return { quotes, failed };
+}
+
+/**
+ * The holdings in the sidecar's SQLite positions ledger (`GET
+ * /portfolio/positions`), where tracked holdings lived before they moved into
+ * the workspace blob. Empty when the ledger is empty or unreadable.
+ */
+export async function fetchLegacyPositions(): Promise<HoldingInput[]> {
+  const base = await getSidecarBaseUrl();
+  const response = await fetch(new URL("/portfolio/positions", base).toString());
+  if (!response.ok) {
+    return [];
+  }
+  const rows: unknown = await response.json();
+  if (!Array.isArray(rows)) {
+    return [];
+  }
+  return (rows as Position[]).map((row) => ({
+    symbol: row.symbol,
+    quantity: row.quantity,
+    costBasis: row.cost_basis,
+    assetClass: row.asset_class === "crypto" ? "crypto" : "equity",
+    note: row.note ?? undefined,
+  }));
+}
+
+// --- Risk analytics price history (R15-CODE-PLATFORM-023) ------------------
+
+/** The benchmark `/history` symbol for a resolved-quote currency bucket, or
+ *  `null` when there's no named benchmark for it (beta stays null for that
+--- live GET /portfolio/positions on my sidecar ---
+[]
+HTTP:200

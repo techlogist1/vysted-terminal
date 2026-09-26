@@ -1,0 +1,3243 @@
+{
+ "slot": "P11",
+ "symbol": "FUSION",
+ "manifest_name": "Fusion Finance Ltd",
+ "exchange": "NSE+BSE",
+ "bse_code": "543652",
+ "collected_at": "2026-09-26T21:39:29+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=FUSION",
+   "status": 200,
+   "elapsed_ms": 2,
+   "body": {
+    "ok": true,
+    "query": "FUSION",
+    "region": "IN",
+    "resolved": {
+     "symbol": "FUSION",
+     "name": "Fusion Finance Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "FUSION.NS",
+     "confidence": 1.0,
+     "isin": "INE139R01012",
+     "bse_code": "543652",
+     "industry": "Credit Services",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "FUSION",
+      "name": "Fusion Finance Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "FUSION.NS",
+      "confidence": 1.0,
+      "isin": "INE139R01012",
+      "bse_code": "543652",
+      "industry": "Credit Services",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "FUSION",
+      "name": "Fusion Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "FUSION.BO",
+      "confidence": 1.0,
+      "isin": "INE139R01012",
+      "bse_code": "543652",
+      "industry": "Credit Services",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=Fusion+Finance+Ltd",
+   "status": 200,
+   "elapsed_ms": 562,
+   "body": {
+    "ok": true,
+    "query": "Fusion Finance Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "FUSION",
+     "name": "Fusion Finance Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "FUSION.NS",
+     "confidence": 1.0,
+     "isin": "INE139R01012",
+     "bse_code": "543652",
+     "industry": "Credit Services",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "FUSION",
+      "name": "Fusion Finance Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "FUSION.NS",
+      "confidence": 1.0,
+      "isin": "INE139R01012",
+      "bse_code": "543652",
+      "industry": "Credit Services",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "SSPNFIN",
+      "name": "SSPN Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SSPNFIN.BO",
+      "confidence": 0.8235,
+      "isin": "INE820R01017",
+      "bse_code": "539026",
+      "industry": null,
+      "former_name": null,
+      "board": "SME",
+      "exchange_group": "M",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "USHAKIRA",
+      "name": "Ushakiran Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "USHAKIRA.BO",
+      "confidence": 0.8205,
+      "isin": "INE697C01011",
+      "bse_code": "511507",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "INDUSFINL",
+      "name": "Indus Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "INDUSFINL.BO",
+      "confidence": 0.8,
+      "isin": "INE935D01013",
+      "bse_code": "531841",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "HASTIFIN",
+      "name": "Hasti Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "HASTIFIN.BO",
+      "confidence": 0.8,
+      "isin": "INE671D01014",
+      "bse_code": "531387",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "JUMBFNL",
+      "name": "Jumbo Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JUMBFNL.BO",
+      "confidence": 0.8,
+      "isin": "INE122N01017",
+      "bse_code": "511060",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52313/resolve?q=543652",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "543652",
+    "region": "IN",
+    "resolved": {
+     "symbol": "FUSION",
+     "name": "Fusion Finance Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "FUSION.BO",
+     "confidence": 1.0,
+     "isin": "INE139R01012",
+     "bse_code": "543652",
+     "industry": "Credit Services",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "FUSION",
+      "name": "Fusion Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "FUSION.BO",
+      "confidence": 1.0,
+      "isin": "INE139R01012",
+      "bse_code": "543652",
+      "industry": "Credit Services",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/FUSION?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 254,
+   "body": {
+    "symbol": "FUSION",
+    "price": 177.14,
+    "change": 0.339999999999975,
+    "change_percent": 0.19230769230767816,
+    "volume": 397315.0,
+    "open": null,
+    "high": null,
+    "low": null,
+    "prev_close": null,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-25T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/FUSION",
+   "status": 200,
+   "elapsed_ms": 16139,
+   "body": {
+    "symbol": "FUSION.NS",
+    "name": "Fusion Finance Limited",
+    "sector": "Financial Services",
+    "industry": "Credit Services",
+    "sector_source": "resolver",
+    "currency": "INR",
+    "financial_currency": null,
+    "ratio_price": 177.14,
+    "market_cap": 28646430720.0,
+    "pe_ratio": 14.413344,
+    "forward_pe": 5.9869876,
+    "peg_ratio": null,
+    "price_to_book": 1.1664153,
+    "price_to_sales": 3.3379667,
+    "ev_to_ebitda": null,
+    "book_value": 151.867,
+    "dividend_yield": 0.0,
+    "dividend_per_share": null,
+    "eps": 10.28,
+    "beta": 1.03,
+    "fifty_two_week_high": 243.0,
+    "fifty_two_week_low": 136.5,
+    "fifty_two_week_change": -0.073860645,
+    "fifty_two_week_high_date": "2026-07-13",
+    "fifty_two_week_low_date": "2026-03-30",
+    "listing_date": "2022-11-15",
+    "first_trade_date": "2022-11-15",
+    "forward_pe_fiscal_year": "2027-03-31",
+    "roe": 0.06861352041792722,
+    "roa": null,
+    "gross_margin": 1.0,
+    "operating_margin": 0.23219,
+    "profit_margin": 0.19635001,
+    "debt_to_equity": 2.27507,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": -0.01280831350945286,
+    "basis": "standalone",
+    "revenue_ttm": 17144200000.0,
+    "net_income_ttm": 1685100000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": 161552105.0,
+    "revenue_growth": 0.05464631816403103,
+    "earnings_growth": 1.676531165311653,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": 0.54203,
+    "held_percent_institutions": 0.16417,
+    "dividend_per_share_ttm": 0.0,
+    "revenue_growth_computed": null,
+    "earnings_growth_computed": null,
+    "growth_computed_quarters": null,
+    "field_meta": {
+     "name": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "industry": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "sector_source": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "currency": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ratio_price": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:59:57+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "market_cap": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:59:57+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "pe_ratio": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:59:57+00:00",
+      "reason": "trailing EPS 12.29 disagrees by 15% with the payload's net income / shares outstanding (1,685,100,032 / 161,552,105 = 10.43); the P/E it implies at the ratio price 177.1 is 17.0 \u2014 the EPS may be from a stale fiscal period; kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:59:57+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "peg_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:59:57+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_book": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:59:57+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "price_to_sales": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:59:57+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "ev_to_ebitda": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:59:57+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "book_value": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_yield": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
+      "basis_note": null
+     },
+     "dividend_per_share": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "beta": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_change": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-25T09:59:57+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_high_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "fifty_two_week_low_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "listing_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "first_trade_date": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "forward_pe_fiscal_year": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "roe": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "net income (TTM) / stockholders equity"
+     },
+     "roa": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "gross_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "operating_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "profit_margin": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "debt_to_equity": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "current_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "quick_ratio": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "roce": {
+      "status": "ok",
+      "provider": "derived",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": "annual EBIT / (total assets - current liabilities)"
+     },
+     "basis": {
+      "status": "ok",
+      "provider": "exchange-filings",
+      "as_of": "2026-09-26T16:09:15.055240+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": "exchange-filed (NSE) figure served; the provider's 8,582,000,128 disagrees with it \u2014 not served",
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "free_cash_flow": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "shares_outstanding": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": "exchange-filed (NSE) figure served; the provider's 128.1% disagrees with it \u2014 not served",
+      "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "held_percent_insiders": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": null,
+      "label": null,
+      "basis_note": null
+     },
+     "held_percent_institutions": {
+      "status": "flagged",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": "yfinance institutions 16.42% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: 20.02%) beyond 3pp (provider institutions \u2260 exchange institutional holding); kept, flagged",
+      "label": null,
+      "basis_note": null
+     },
+     "identity_note": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "as_of": "2026-09-26T16:09:00.460965+00:00",
+      "reason": "provider did not publish this field",
+      "label": null,
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "as_of": null,
+      "reason": "no dividends paid (trailing 12m)",
+      "label": "no dividends paid (trailing 12m)",
+      "basis_note": null
+     }
+    },
+    "provider": "yfinance",
+    "identity_note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/FUSION/income",
+   "status": 200,
+   "elapsed_ms": 286,
+   "body": {
+    "symbol": "FUSION.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31"
+    ],
+    "lines": [
+     {
+      "label": "operating_revenue",
+      "values": {
+       "2026-03-31": 15131300000.0,
+       "2025-03-31": 21289700000.0,
+       "2024-03-31": 20866300000.0,
+       "2023-03-31": 15899900000.0
+      }
+     },
+     {
+      "label": "total_revenue",
+      "values": {
+       "2026-03-31": 15131300000.0,
+       "2025-03-31": 21289700000.0,
+       "2024-03-31": 20866300000.0,
+       "2023-03-31": 15899900000.0
+      }
+     },
+     {
+      "label": "cost_of_revenue",
+      "values": {
+       "2026-03-31": 10941700000.0,
+       "2025-03-31": 13317400000.0,
+       "2024-03-31": 11554500000.0,
+       "2023-03-31": 9307500000.0
+      }
+     },
+     {
+      "label": "gross_profit",
+      "values": {
+       "2026-03-31": 4189600000.0,
+       "2025-03-31": 7972300000.0,
+       "2024-03-31": 9311800000.0,
+       "2023-03-31": 6592400000.0
+      }
+     },
+     {
+      "label": "rent_and_landing_fees",
+      "values": {
+       "2026-03-31": 314800000.0,
+       "2025-03-31": 302200000.0,
+       "2024-03-31": 233000000.0,
+       "2023-03-31": 188300000.0
+      }
+     },
+     {
+      "label": "general_and_administrative_expense",
+      "values": {
+       "2026-03-31": 249000000.0,
+       "2025-03-31": 245600000.0,
+       "2024-03-31": 198100000.0,
+       "2023-03-31": 125900000.0
+      }
+     },
+     {
+      "label": "selling_and_marketing_expense",
+      "values": {
+       "2026-03-31": 6200000.0,
+       "2025-03-31": 6800000.0,
+       "2024-03-31": 5700000.0,
+       "2023-03-31": 2700000.0
+      }
+     },
+     {
+      "label": "selling_general_and_admin_expense",
+      "values": {
+       "2026-03-31": 255200000.0,
+       "2025-03-31": 252400000.0,
+       "2024-03-31": 203800000.0,
+       "2023-03-31": 128600000.0
+      }
+     },
+     {
+      "label": "depreciation_income_statement",
+      "values": {
+       "2026-03-31": 96000000.0,
+       "2025-03-31": 116700000.0,
+       "2024-03-31": 90100000.0,
+       "2023-03-31": 74100000.0
+      }
+     },
+     {
+      "label": "depreciation_and_amortization_in_income_statement",
+      "values": {
+       "2026-03-31": 96000000.0,
+       "2025-03-31": 116700000.0,
+       "2024-03-31": 90100000.0,
+       "2023-03-31": 74100000.0
+      }
+     },
+     {
+      "label": "other_operating_expenses",
+      "values": {
+       "2026-03-31": 1425800000.0,
+       "2025-03-31": 1409300000.0,
+       "2024-03-31": 1066400000.0,
+       "2023-03-31": 785100000.0
+      }
+     },
+     {
+      "label": "operating_expense",
+      "values": {
+       "2026-03-31": 2557900000.0,
+       "2025-03-31": 2639400000.0,
+       "2024-03-31": 1780900000.0,
+       "2023-03-31": 1364500000.0
+      }
+     },
+     {
+      "label": "operating_income",
+      "values": {
+       "2026-03-31": 1631700000.0,
+       "2025-03-31": 5332900000.0,
+       "2024-03-31": 7530900000.0,
+       "2023-03-31": 5227900000.0
+      }
+     },
+     {
+      "label": "interest_income_non_operating",
+      "values": {
+       "2026-03-31": 193900000.0,
+       "2025-03-31": 52500000.0,
+       "2024-03-31": 52700000.0,
+       "2023-03-31": 101100000.0
+      }
+     },
+     {
+      "label": "interest_expense_non_operating",
+      "values": {
+       "2026-03-31": 15500000.0,
+       "2025-03-31": 12300000.0,
+       "2024-03-31": 9900000.0,
+       "2023-03-31": 10200000.0
+      }
+     },
+     {
+      "label": "total_other_finance_cost",
+      "values": {
+       "2026-03-31": 20000000.0,
+       "2025-03-31": 99000000.0,
+       "2024-03-31": 71300000.0,
+       "2023-03-31": 30500000.0
+      }
+     },
+     {
+      "label": "net_non_operating_interest_income_expense",
+      "values": {
+       "2026-03-31": 158400000.0,
+       "2025-03-31": -58800000.0,
+       "2024-03-31": -28500000.0,
+       "2023-03-31": 60400000.0
+      }
+     },
+     {
+      "label": "write_off",
+      "values": {
+       "2026-03-31": 3712700000.0,
+       "2025-03-31": 18518600000.0,
+       "2024-03-31": 3380500000.0,
+       "2023-03-31": 1823800000.0
+      }
+     },
+     {
+      "label": "special_income_charges",
+      "values": {
+       "2026-03-31": -3712700000.0,
+       "2025-03-31": -18518600000.0,
+       "2024-03-31": -3380500000.0,
+       "2023-03-31": -1823800000.0
+      }
+     },
+     {
+      "label": "other_non_operating_income_expenses",
+      "values": {
+       "2026-03-31": 339700000.0,
+       "2025-03-31": 249500000.0,
+       "2024-03-31": 688800000.0,
+       "2023-03-31": 400600000.0
+      }
+     },
+     {
+      "label": "total_pre_tax_income",
+      "values": {
+       "2026-03-31": -629300000.0,
+       "2025-03-31": -11330100000.0,
+       "2024-03-31": 6632600000.0,
+       "2023-03-31": 5119800000.0
+      }
+     },
+     {
+      "label": "tax_provision",
+      "values": {
+       "2026-03-31": -767800000.0,
+       "2025-03-31": 915300000.0,
+       "2024-03-31": 1579700000.0,
+       "2023-03-31": 1248300000.0
+      }
+     },
+     {
+      "label": "net_income_continuous_operations",
+      "values": {
+       "2026-03-31": 138500000.0,
+       "2025-03-31": -12245400000.0,
+       "2024-03-31": 5052900000.0,
+       "2023-03-31": 3871500000.0
+      }
+     },
+     {
+      "label": "net_income_including_noncontrolling_interests",
+      "values": {
+       "2026-03-31": 138500000.0,
+       "2025-03-31": -12245400000.0,
+       "2024-03-31": 5052900000.0,
+       "2023-03-31": 3871500000.0
+      }
+     },
+     {
+      "label": "net_income",
+      "values": {
+       "2026-03-31": 138500000.0,
+       "2025-03-31": -12245400000.0,
+       "2024-03-31": 5052900000.0,
+       "2023-03-31": 3871500000.0
+      }
+     },
+     {
+      "label": "otherunder_preferred_stock_dividend",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0
+      }
+     },
+     {
+      "label": "net_income_attributable_to_common_shareholders",
+      "values": {
+       "2026-03-31": 138500000.0,
+       "2025-03-31": -12245400000.0,
+       "2024-03-31": 5052900000.0,
+       "2023-03-31": 3871500000.0
+      }
+     },
+     {
+      "label": "diluted_ni_availto_com_stockholders",
+      "values": {
+       "2026-03-31": 138500000.0,
+       "2025-03-31": -12245400000.0,
+       "2024-03-31": 5052900000.0,
+       "2023-03-31": 3871500000.0
+      }
+     },
+     {
+      "label": "basic_earnings_per_share",
+      "values": {
+       "2026-03-31": 1.01,
+       "2025-03-31": -111.41,
+       "2024-03-31": 46.06,
+       "2023-03-31": 41.931961
+      }
+     },
+     {
+      "label": "diluted_earnings_per_share",
+      "values": {
+       "2026-03-31": 1.01,
+       "2025-03-31": -111.41,
+       "2024-03-31": 45.89,
+       "2023-03-31": 41.776981
+      }
+     },
+     {
+      "label": "weighted_average_basic_shares_outstanding",
+      "values": {
+       "2026-03-31": 137652950.0,
+       "2025-03-31": 109909320.0,
+       "2024-03-31": 109702311.0,
+       "2023-03-31": 92316977.0
+      }
+     },
+     {
+      "label": "weighted_average_diluted_shares_outstanding",
+      "values": {
+       "2026-03-31": 137676103.0,
+       "2025-03-31": 109911733.0,
+       "2024-03-31": 110072284.0,
+       "2023-03-31": 92670716.0
+      }
+     },
+     {
+      "label": "rent_expense_supplemental",
+      "values": {
+       "2026-03-31": 314800000.0,
+       "2025-03-31": 302200000.0,
+       "2024-03-31": 233000000.0,
+       "2023-03-31": 188300000.0
+      }
+     },
+     {
+      "label": "total_expenses",
+      "values": {
+       "2026-03-31": 13499600000.0,
+       "2025-03-31": 15956800000.0,
+       "2024-03-31": 13335400000.0,
+       "2023-03-31": 10672000000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_and_discontinued_operation",
+      "values": {
+       "2026-03-31": 138500000.0,
+       "2025-03-31": -12245400000.0,
+       "2024-03-31": 5052900000.0,
+       "2023-03-31": 3871500000.0
+      }
+     },
+     {
+      "label": "normalized_income",
+      "values": {
+       "2026-03-31": 1667840000.0,
+       "2025-03-31": -474060000.0,
+       "2024-03-31": 6233961856.58716,
+       "2023-03-31": 4266907506.152584
+      }
+     },
+     {
+      "label": "interest_income",
+      "values": {
+       "2026-03-31": 193900000.0,
+       "2025-03-31": 52500000.0,
+       "2024-03-31": 52700000.0,
+       "2023-03-31": 101100000.0
+      }
+     },
+     {
+      "label": "interest_expense",
+      "values": {
+       "2026-03-31": 15500000.0,
+       "2025-03-31": 12300000.0,
+       "2024-03-31": 9900000.0,
+       "2023-03-31": 10200000.0
+      }
+     },
+     {
+      "label": "net_interest_income",
+      "values": {
+       "2026-03-31": 158400000.0,
+       "2025-03-31": -58800000.0,
+       "2024-03-31": -28500000.0,
+       "2023-03-31": 60400000.0
+      }
+     },
+     {
+      "label": "ebit",
+      "values": {
+       "2026-03-31": -613800000.0,
+       "2025-03-31": -11317800000.0,
+       "2024-03-31": 6642500000.0,
+       "2023-03-31": 5130000000.0
+      }
+     },
+     {
+      "label": "ebitda",
+      "values": {
+       "2026-03-31": -517800000.0,
+       "2025-03-31": -11201100000.0,
+       "2024-03-31": 6732600000.0,
+       "2023-03-31": 5204100000.0
+      }
+     },
+     {
+      "label": "reconciled_cost_of_revenue",
+      "values": {
+       "2026-03-31": 10941700000.0,
+       "2025-03-31": 13317400000.0,
+       "2024-03-31": 11554500000.0,
+       "2023-03-31": 9307500000.0
+      }
+     },
+     {
+      "label": "reconciled_depreciation",
+      "values": {
+       "2026-03-31": 96000000.0,
+       "2025-03-31": 116700000.0,
+       "2024-03-31": 90100000.0,
+       "2023-03-31": 74100000.0
+      }
+     },
+     {
+      "label": "net_income_from_continuing_operation_net_minority_interest",
+      "values": {
+       "2026-03-31": 138500000.0,
+       "2025-03-31": -12245400000.0,
+       "2024-03-31": 5052900000.0,
+       "2023-03-31": 3871500000.0
+      }
+     },
+     {
+      "label": "total_unusual_items_excluding_goodwill",
+      "values": {
+       "2026-03-31": -2548900000.0,
+       "2025-03-31": -16816200000.0,
+       "2024-03-31": -1550300000.0,
+       "2023-03-31": -522900000.0
+      }
+     },
+     {
+      "label": "total_unusual_items",
+      "values": {
+       "2026-03-31": -2548900000.0,
+       "2025-03-31": -16816200000.0,
+       "2024-03-31": -1550300000.0,
+       "2023-03-31": -522900000.0
+      }
+     },
+     {
+      "label": "normalized_ebitda",
+      "values": {
+       "2026-03-31": 2031100000.0,
+       "2025-03-31": 5615100000.0,
+       "2024-03-31": 8282900000.0,
+       "2023-03-31": 5727000000.0
+      }
+     },
+     {
+      "label": "tax_rate_for_calcs",
+      "values": {
+       "2026-03-31": 0.4,
+       "2025-03-31": 0.3,
+       "2024-03-31": 0.238172,
+       "2023-03-31": 0.243818
+      }
+     },
+     {
+      "label": "tax_effect_of_unusual_items",
+      "values": {
+       "2026-03-31": -1019560000.0,
+       "2025-03-31": -5044860000.0,
+       "2024-03-31": -369238143.41284,
+       "2023-03-31": -127492493.847416
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/FUSION/balance",
+   "status": 200,
+   "elapsed_ms": 471,
+   "body": {
+    "symbol": "FUSION.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "cash_financial",
+      "values": {
+       "2026-03-31": 13198300000.0,
+       "2025-03-31": 7379200000.0,
+       "2024-03-31": 13496000000.0,
+       "2023-03-31": 7702600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_equivalents",
+      "values": {
+       "2026-03-31": 5550100000.0,
+       "2025-03-31": 451300000.0,
+       "2024-03-31": 1250900000.0,
+       "2023-03-31": 1801000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_and_cash_equivalents",
+      "values": {
+       "2026-03-31": 18748400000.0,
+       "2025-03-31": 7830500000.0,
+       "2024-03-31": 14746900000.0,
+       "2023-03-31": 9503600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "short_term_investments",
+      "values": {
+       "2026-03-31": 901800000.0,
+       "2025-03-31": 569100000.0,
+       "2024-03-31": 944500000.0,
+       "2023-03-31": 914700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "cash_cash_equivalents_and_short_term_investments",
+      "values": {
+       "2026-03-31": 19650200000.0,
+       "2025-03-31": 8399600000.0,
+       "2024-03-31": 15691400000.0,
+       "2023-03-31": 10418300000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gross_accounts_receivable",
+      "values": {
+       "2026-03-31": 85800000.0,
+       "2025-03-31": 37000000.0,
+       "2024-03-31": 138500000.0,
+       "2023-03-31": 144100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "allowance_for_doubtful_accounts_receivable",
+      "values": {
+       "2026-03-31": -11800000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accounts_receivable",
+      "values": {
+       "2026-03-31": 74000000.0,
+       "2025-03-31": 37000000.0,
+       "2024-03-31": 138500000.0,
+       "2023-03-31": 144100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "taxes_receivable",
+      "values": {
+       "2026-03-31": 61200000.0,
+       "2025-03-31": 336100000.0,
+       "2024-03-31": 32500000.0,
+       "2023-03-31": 383600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_receivables",
+      "values": {
+       "2026-03-31": 33906300000.0,
+       "2025-03-31": 50883000000.0,
+       "2024-03-31": 61472300000.0,
+       "2023-03-31": 50409100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "prepaid_assets",
+      "values": {
+       "2026-03-31": 138600000.0,
+       "2025-03-31": 336100000.0,
+       "2024-03-31": 32500000.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "restricted_cash",
+      "values": {
+       "2026-03-31": 821500000.0,
+       "2025-03-31": 478500000.0,
+       "2024-03-31": 418100000.0,
+       "2023-03-31": 759600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_current_assets",
+      "values": {
+       "2026-03-31": 49800000.0,
+       "2025-03-31": 499800000.0,
+       "2024-03-31": 291200000.0,
+       "2023-03-31": 90400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_current_assets",
+      "values": {
+       "2026-03-31": 54640400000.0,
+       "2025-03-31": 60634000000.0,
+       "2024-03-31": 78044000000.0,
+       "2023-03-31": 62205100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "properties",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "land_and_improvements",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 0.0,
+       "2024-03-31": 50200000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "buildings_and_improvements",
+      "values": {
+       "2026-03-31": 288400000.0,
+       "2025-03-31": 240800000.0,
+       "2024-03-31": 212100000.0,
+       "2023-03-31": 172500000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "machinery_furniture_equipment",
+      "values": {
+       "2026-03-31": 360500000.0,
+       "2025-03-31": 369100000.0,
+       "2024-03-31": 318100000.0,
+       "2023-03-31": 225800000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_properties",
+      "values": {
+       "2026-03-31": 11400000.0,
+       "2025-03-31": 16800000.0,
+       "2024-03-31": 15700000.0,
+       "2023-03-31": 13300000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "construction_in_progress",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 0.0,
+       "2023-03-31": 2500000.0,
+       "2022-03-31": 0.0
+      }
+     },
+     {
+      "label": "plant_property_equipment_gross",
+      "values": {
+       "2026-03-31": 660300000.0,
+       "2025-03-31": 626700000.0,
+       "2024-03-31": 596100000.0,
+       "2023-03-31": 414100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accumulated_depreciation",
+      "values": {
+       "2026-03-31": -414600000.0,
+       "2025-03-31": -381200000.0,
+       "2024-03-31": -287100000.0,
+       "2023-03-31": -202200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "plant_property_equipment_net",
+      "values": {
+       "2026-03-31": 245700000.0,
+       "2025-03-31": 245500000.0,
+       "2024-03-31": 309000000.0,
+       "2023-03-31": 211900000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_intangible_assets",
+      "values": {
+       "2026-03-31": 204800000.0,
+       "2025-03-31": 52700000.0,
+       "2024-03-31": 27200000.0,
+       "2023-03-31": 200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "goodwill_and_other_intangible_assets",
+      "values": {
+       "2026-03-31": 204800000.0,
+       "2025-03-31": 52700000.0,
+       "2024-03-31": 27200000.0,
+       "2023-03-31": 200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "available_for_sale_securities",
+      "values": {
+       "2026-03-31": 97700000.0,
+       "2025-03-31": 42000000.0,
+       "2024-03-31": 70200000.0,
+       "2023-03-31": 45700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investmentin_financial_assets",
+      "values": {
+       "2026-03-31": 97700000.0,
+       "2025-03-31": 42000000.0,
+       "2024-03-31": 70200000.0,
+       "2023-03-31": 45700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "financial_assets",
+      "values": {
+       "2026-03-31": 351100000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 1390000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_assets",
+      "values": {
+       "2026-03-31": 763900000.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 916700000.0,
+       "2023-03-31": 777400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_prepaid_assets",
+      "values": {
+       "2026-03-31": 57900000.0,
+       "2025-03-31": 2500000.0,
+       "2024-03-31": 2800000.0,
+       "2023-03-31": 100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_current_assets",
+      "values": {
+       "2026-03-31": 57900000.0,
+       "2025-03-31": 2500000.0,
+       "2024-03-31": 2800000.0,
+       "2023-03-31": 100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_non_current_assets",
+      "values": {
+       "2026-03-31": 28307600000.0,
+       "2025-03-31": 22292700000.0,
+       "2024-03-31": 39699200000.0,
+       "2023-03-31": 31428800000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_assets",
+      "values": {
+       "2026-03-31": 82948000000.0,
+       "2025-03-31": 82926700000.0,
+       "2024-03-31": 117743200000.0,
+       "2023-03-31": 93635400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "accounts_payable",
+      "values": {
+       "2026-03-31": 323400000.0,
+       "2025-03-31": 189500000.0,
+       "2024-03-31": 677300000.0,
+       "2023-03-31": 716300000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_tax_payable",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 7100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_payable",
+      "values": {
+       "2026-03-31": 111000000.0,
+       "2025-03-31": null,
+       "2024-03-31": 556000000.0,
+       "2023-03-31": 230600000.0,
+       "2022-03-31": 86480000.0
+      }
+     },
+     {
+      "label": "payables",
+      "values": {
+       "2026-03-31": 434400000.0,
+       "2025-03-31": 189500000.0,
+       "2024-03-31": 677300000.0,
+       "2023-03-31": 954000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_provisions",
+      "values": {
+       "2026-03-31": 87200000.0,
+       "2025-03-31": 82500000.0,
+       "2024-03-31": 55200000.0,
+       "2023-03-31": 56500000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_debt",
+      "values": {
+       "2026-03-31": 32546900000.0,
+       "2025-03-31": 47091500000.0,
+       "2024-03-31": 32431100000.0,
+       "2023-03-31": 25602600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 32546900000.0,
+       "2025-03-31": 47091500000.0,
+       "2024-03-31": 32431100000.0,
+       "2023-03-31": 25602600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_current_liabilities",
+      "values": {
+       "2026-03-31": 89400000.0,
+       "2025-03-31": 283400000.0,
+       "2024-03-31": 556000000.0,
+       "2023-03-31": 18010000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "current_liabilities",
+      "values": {
+       "2026-03-31": 35026000000.0,
+       "2025-03-31": 49102900000.0,
+       "2024-03-31": 35392800000.0,
+       "2023-03-31": 28096300000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_provisions",
+      "values": {
+       "2026-03-31": 58900000.0,
+       "2025-03-31": 77500000.0,
+       "2024-03-31": 50200000.0,
+       "2023-03-31": 52500000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt",
+      "values": {
+       "2026-03-31": 23160700000.0,
+       "2025-03-31": 16928700000.0,
+       "2024-03-31": 53727900000.0,
+       "2023-03-31": 42181400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_and_capital_lease_obligation",
+      "values": {
+       "2026-03-31": 23160700000.0,
+       "2025-03-31": 16928700000.0,
+       "2024-03-31": 53727900000.0,
+       "2023-03-31": 42181400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "non_current_deferred_taxes_liabilities",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 0.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "derivative_product_liabilities",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 1700000.0,
+       "2024-03-31": 0.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_current_liabilities",
+      "values": {
+       "2026-03-31": 200400000.0,
+       "2025-03-31": 283800000.0,
+       "2024-03-31": 556000000.0,
+       "2023-03-31": 123860000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_non_current_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 23362700000.0,
+       "2025-03-31": 17390500000.0,
+       "2024-03-31": 53868900000.0,
+       "2023-03-31": 42319900000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_liabilities_net_minority_interest",
+      "values": {
+       "2026-03-31": 58388700000.0,
+       "2025-03-31": 66493400000.0,
+       "2024-03-31": 89261700000.0,
+       "2023-03-31": 70416200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock",
+      "values": {
+       "2026-03-31": 1615200000.0,
+       "2025-03-31": 1006500000.0,
+       "2024-03-31": 1006200000.0,
+       "2023-03-31": 1003500000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_stock",
+      "values": {
+       "2026-03-31": 1615200000.0,
+       "2025-03-31": 1006500000.0,
+       "2024-03-31": 1006200000.0,
+       "2023-03-31": 1003500000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "additional_paid_in_capital",
+      "values": {
+       "2026-03-31": 23887400000.0,
+       "2025-03-31": 16629700000.0,
+       "2024-03-31": 16579100000.0,
+       "2023-03-31": 16416400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "retained_earnings",
+      "values": {
+       "2026-03-31": -3494300000.0,
+       "2025-03-31": -3672800000.0,
+       "2024-03-31": 8564400000.0,
+       "2023-03-31": 4520600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "treasury_stock",
+      "values": {
+       "2026-03-31": 107000000.0,
+       "2025-03-31": 108200000.0,
+       "2024-03-31": 116500000.0,
+       "2023-03-31": 41000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_equity_interest",
+      "values": {
+       "2026-03-31": 377100000.0,
+       "2025-03-31": 302400000.0,
+       "2024-03-31": 185400000.0,
+       "2023-03-31": 79700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_common_equity",
+      "values": {
+       "2026-03-31": 24559300000.0,
+       "2025-03-31": 16433300000.0,
+       "2024-03-31": 28481500000.0,
+       "2023-03-31": 23219200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_equity_non_controlling_interests",
+      "values": {
+       "2026-03-31": 24559300000.0,
+       "2025-03-31": 16433300000.0,
+       "2024-03-31": 28481500000.0,
+       "2023-03-31": 23219200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_capitalization",
+      "values": {
+       "2026-03-31": 47720000000.0,
+       "2025-03-31": 33362000000.0,
+       "2024-03-31": 82209400000.0,
+       "2023-03-31": 65400600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "common_stock_equity",
+      "values": {
+       "2026-03-31": 24559300000.0,
+       "2025-03-31": 16433300000.0,
+       "2024-03-31": 28481500000.0,
+       "2023-03-31": 23219200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_tangible_assets",
+      "values": {
+       "2026-03-31": 24354500000.0,
+       "2025-03-31": 16380600000.0,
+       "2024-03-31": 28454300000.0,
+       "2023-03-31": 23219000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "working_capital",
+      "values": {
+       "2026-03-31": 19614400000.0,
+       "2025-03-31": 11531100000.0,
+       "2024-03-31": 42651200000.0,
+       "2023-03-31": 34108800000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "invested_capital",
+      "values": {
+       "2026-03-31": 80266900000.0,
+       "2025-03-31": 80453500000.0,
+       "2024-03-31": 114640500000.0,
+       "2023-03-31": 91003200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "tangible_book_value",
+      "values": {
+       "2026-03-31": 24354500000.0,
+       "2025-03-31": 16380600000.0,
+       "2024-03-31": 28454300000.0,
+       "2023-03-31": 23219000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "total_debt",
+      "values": {
+       "2026-03-31": 55707600000.0,
+       "2025-03-31": 64020200000.0,
+       "2024-03-31": 86159000000.0,
+       "2023-03-31": 67784000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_debt",
+      "values": {
+       "2026-03-31": 36959200000.0,
+       "2025-03-31": 56189700000.0,
+       "2024-03-31": 71412100000.0,
+       "2023-03-31": 58280400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "share_issued",
+      "values": {
+       "2026-03-31": 162082277.0,
+       "2025-03-31": 104295716.0,
+       "2024-03-31": 104295716.0,
+       "2023-03-31": 103889834.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "ordinary_shares_number",
+      "values": {
+       "2026-03-31": 161716337.0,
+       "2025-03-31": 103913548.0,
+       "2024-03-31": 103878756.0,
+       "2023-03-31": 103889834.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "treasury_shares_number",
+      "values": {
+       "2026-03-31": 365940.0,
+       "2025-03-31": 382168.0,
+       "2024-03-31": 416960.0,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/FUSION/cashflow",
+   "status": 200,
+   "elapsed_ms": 372,
+   "body": {
+    "symbol": "FUSION.NS",
+    "periods": [
+     "2026-03-31",
+     "2025-03-31",
+     "2024-03-31",
+     "2023-03-31",
+     "2022-03-31"
+    ],
+    "lines": [
+     {
+      "label": "net_income_from_continuing_operations",
+      "values": {
+       "2026-03-31": -629300000.0,
+       "2025-03-31": -11330100000.0,
+       "2024-03-31": 6632600000.0,
+       "2023-03-31": 5119800000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gain_loss_on_sale_of_ppe",
+      "values": {
+       "2026-03-31": 0.0,
+       "2025-03-31": 14000000.0,
+       "2024-03-31": 200000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_foreign_currency_exchange_gain_loss",
+      "values": {
+       "2026-03-31": 210200000.0,
+       "2025-03-31": 37500000.0,
+       "2024-03-31": 8300000.0,
+       "2023-03-31": 46200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "gain_loss_on_investment_securities",
+      "values": {
+       "2026-03-31": -1159800000.0,
+       "2025-03-31": -1701700000.0,
+       "2024-03-31": -1829600000.0,
+       "2023-03-31": 694200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "pension_and_employee_benefit_expense",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": 37400000.0,
+       "2023-03-31": 31200000.0,
+       "2022-03-31": 26070000.0
+      }
+     },
+     {
+      "label": "depreciation",
+      "values": {
+       "2026-03-31": 96000000.0,
+       "2025-03-31": 116700000.0,
+       "2024-03-31": 90100000.0,
+       "2023-03-31": 74100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "depreciation_and_amortization",
+      "values": {
+       "2026-03-31": 96000000.0,
+       "2025-03-31": 116700000.0,
+       "2024-03-31": 90100000.0,
+       "2023-03-31": 74100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "provisionand_write_offof_assets",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": null,
+       "2024-03-31": -24600000.0,
+       "2023-03-31": 11600000.0,
+       "2022-03-31": -6130000.0
+      }
+     },
+     {
+      "label": "stock_based_compensation",
+      "values": {
+       "2026-03-31": 142600000.0,
+       "2025-03-31": 128900000.0,
+       "2024-03-31": 131100000.0,
+       "2023-03-31": 67200000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "other_non_cash_items",
+      "values": {
+       "2026-03-31": -122300000.0,
+       "2025-03-31": 5300000.0,
+       "2024-03-31": -10100000.0,
+       "2023-03-31": -24400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_receivables",
+      "values": {
+       "2026-03-31": 8347800000.0,
+       "2025-03-31": 8319600000.0,
+       "2024-03-31": -22668300000.0,
+       "2023-03-31": -23330100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_payable",
+      "values": {
+       "2026-03-31": 133900000.0,
+       "2025-03-31": 88600000.0,
+       "2024-03-31": -39000000.0,
+       "2023-03-31": 439600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_assets",
+      "values": {
+       "2026-03-31": -138500000.0,
+       "2025-03-31": 1126000000.0,
+       "2024-03-31": 1389700000.0,
+       "2023-03-31": 915700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_other_current_liabilities",
+      "values": {
+       "2026-03-31": 38200000.0,
+       "2025-03-31": -784600000.0,
+       "2024-03-31": 509200000.0,
+       "2023-03-31": 445800000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "change_in_working_capital",
+      "values": {
+       "2026-03-31": 8398500000.0,
+       "2025-03-31": 8817000000.0,
+       "2024-03-31": -20795600000.0,
+       "2023-03-31": -21529000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "taxes_refund_paid",
+      "values": {
+       "2026-03-31": 274900000.0,
+       "2025-03-31": -303700000.0,
+       "2024-03-31": -1379000000.0,
+       "2023-03-31": -1129900000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "operating_cash_flow",
+      "values": {
+       "2026-03-31": 11462500000.0,
+       "2025-03-31": 14478800000.0,
+       "2024-03-31": -13503400000.0,
+       "2023-03-31": -16630400000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investments_in_property_plant_and_equipment",
+      "values": {
+       "2026-03-31": -16900000.0,
+       "2025-03-31": -66400000.0,
+       "2024-03-31": -165000000.0,
+       "2023-03-31": -75300000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "sale_of_ppe",
+      "values": {
+       "2026-03-31": 3500000.0,
+       "2025-03-31": 36500000.0,
+       "2024-03-31": 100000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_ppe_purchase_and_sale",
+      "values": {
+       "2026-03-31": -13400000.0,
+       "2025-03-31": -29900000.0,
+       "2024-03-31": -164900000.0,
+       "2023-03-31": -75300000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "purchase_of_intangibles",
+      "values": {
+       "2026-03-31": -165500000.0,
+       "2025-03-31": -38600000.0,
+       "2024-03-31": -28300000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_intangibles_purchase_and_sale",
+      "values": {
+       "2026-03-31": -165500000.0,
+       "2025-03-31": -38600000.0,
+       "2024-03-31": -28300000.0,
+       "2023-03-31": 0.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "purchase_of_investment",
+      "values": {
+       "2026-03-31": -93001300000.0,
+       "2025-03-31": -122897300000.0,
+       "2024-03-31": -127520000000.0,
+       "2023-03-31": -77150000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "sale_of_investment",
+      "values": {
+       "2026-03-31": 93301900000.0,
+       "2025-03-31": 123709800000.0,
+       "2024-03-31": 128028000000.0,
+       "2023-03-31": 77403800000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_investment_purchase_and_sale",
+      "values": {
+       "2026-03-31": 300600000.0,
+       "2025-03-31": 812500000.0,
+       "2024-03-31": 508000000.0,
+       "2023-03-31": 253800000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_other_investing_changes",
+      "values": {
+       "2026-03-31": null,
+       "2025-03-31": 200000.0,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "investing_cash_flow",
+      "values": {
+       "2026-03-31": 121700000.0,
+       "2025-03-31": 744000000.0,
+       "2024-03-31": 314800000.0,
+       "2023-03-31": 178500000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_issuance",
+      "values": {
+       "2026-03-31": 48133600000.0,
+       "2025-03-31": 40301300000.0,
+       "2024-03-31": 71731900000.0,
+       "2023-03-31": 51950000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "long_term_debt_payments",
+      "values": {
+       "2026-03-31": -56613500000.0,
+       "2025-03-31": -62471300000.0,
+       "2024-03-31": -53345800000.0,
+       "2023-03-31": -41935700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_long_term_debt_issuance",
+      "values": {
+       "2026-03-31": -8479900000.0,
+       "2025-03-31": -22170000000.0,
+       "2024-03-31": 18386100000.0,
+       "2023-03-31": 10014300000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_issuance_payments_of_debt",
+      "values": {
+       "2026-03-31": -8479900000.0,
+       "2025-03-31": -22170000000.0,
+       "2024-03-31": 18386100000.0,
+       "2023-03-31": 10014300000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_common_equity",
+      "values": {
+       "2026-03-31": 7973200000.0,
+       "2025-03-31": 56900000.0,
+       "2024-03-31": 66000000.0,
+       "2023-03-31": 5844600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "repurchase_of_common_equity",
+      "values": {
+       "2026-03-31": -126100000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_common_stock_issuance",
+      "values": {
+       "2026-03-31": 7847100000.0,
+       "2025-03-31": 56900000.0,
+       "2024-03-31": 66000000.0,
+       "2023-03-31": 5844600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "financing_cash_flow",
+      "values": {
+       "2026-03-31": -666300000.0,
+       "2025-03-31": -22139200000.0,
+       "2024-03-31": 18431900000.0,
+       "2023-03-31": 15841800000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "net_change_in_cash_and_equivalents",
+      "values": {
+       "2026-03-31": 10917900000.0,
+       "2025-03-31": -6916400000.0,
+       "2024-03-31": 5243300000.0,
+       "2023-03-31": -610100000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "beginning_cash_position",
+      "values": {
+       "2026-03-31": 7830500000.0,
+       "2025-03-31": 14746900000.0,
+       "2024-03-31": 9503600000.0,
+       "2023-03-31": 10113700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "end_cash_position",
+      "values": {
+       "2026-03-31": 18748400000.0,
+       "2025-03-31": 7830500000.0,
+       "2024-03-31": 14746900000.0,
+       "2023-03-31": 9503600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "capital_expenditure",
+      "values": {
+       "2026-03-31": -182400000.0,
+       "2025-03-31": -105000000.0,
+       "2024-03-31": -193300000.0,
+       "2023-03-31": -75300000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_capital_stock",
+      "values": {
+       "2026-03-31": 7973200000.0,
+       "2025-03-31": 56900000.0,
+       "2024-03-31": 66000000.0,
+       "2023-03-31": 5844600000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "issuance_of_debt",
+      "values": {
+       "2026-03-31": 48133600000.0,
+       "2025-03-31": 40301300000.0,
+       "2024-03-31": 71731900000.0,
+       "2023-03-31": 51950000000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "repayment_of_debt",
+      "values": {
+       "2026-03-31": -56613500000.0,
+       "2025-03-31": -62471300000.0,
+       "2024-03-31": -53345800000.0,
+       "2023-03-31": -41935700000.0,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "repurchase_of_capital_stock",
+      "values": {
+       "2026-03-31": -126100000.0,
+       "2025-03-31": null,
+       "2024-03-31": null,
+       "2023-03-31": null,
+       "2022-03-31": null
+      }
+     },
+     {
+      "label": "free_cash_flow",
+      "values": {
+       "2026-03-31": 11280100000.0,
+       "2025-03-31": 14373800000.0,
+       "2024-03-31": -13696700000.0,
+       "2023-03-31": -16705700000.0,
+       "2022-03-31": null
+      }
+     }
+    ],
+    "provider": "openbb-mcp",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/FUSION/ratings",
+   "status": 200,
+   "elapsed_ms": 409,
+   "body": {
+    "symbol": "FUSION.NS",
+    "consensus": "buy",
+    "target_mean": 238.75,
+    "target_high": 260.0,
+    "target_low": 210.0,
+    "strong_buy": 2,
+    "buy": 4,
+    "hold": 2,
+    "sell": 0,
+    "strong_sell": 0,
+    "provider": "yfinance",
+    "as_of": "2026-09-26T16:09:21.501906Z"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=FUSION",
+   "status": 200,
+   "elapsed_ms": 4079,
+   "body": {
+    "symbol": "FUSION",
+    "count": 17,
+    "patterns": [
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2026-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 53.96,
+      "fii_percent": 4.77,
+      "dii_percent": 15.25,
+      "institutions_percent": 20.02,
+      "public_percent": 45.81,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 25.79,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2026-07-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1696464_20072026115011_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2026-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 1.15,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2026-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 54.55,
+      "fii_percent": 4.74,
+      "dii_percent": 14.42,
+      "institutions_percent": 19.16,
+      "public_percent": 45.23,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.06,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2026-04-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1681928_16062026105301_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2026-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.83,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2025-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 54.92,
+      "fii_percent": 4.89,
+      "dii_percent": 11.93,
+      "institutions_percent": 16.82,
+      "public_percent": 44.85,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.03,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2026-01-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1606109_20012026063004_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 4.49,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2025-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 54.95,
+      "fii_percent": 3.93,
+      "dii_percent": 11.88,
+      "institutions_percent": 15.81,
+      "public_percent": 44.82,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.02,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2025-10-21",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1555087_21102025093923_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-09-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 4.49,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2025-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 55.01,
+      "fii_percent": 2.99,
+      "dii_percent": 12.58,
+      "institutions_percent": 15.57,
+      "public_percent": 44.76,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.19,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2025-07-21",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1576697_15112025055857_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 4.49,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2025-05-02",
+      "quarter_basis": null,
+      "promoter_percent": 55.2,
+      "fii_percent": 2.58,
+      "dii_percent": 16.15,
+      "institutions_percent": 18.73,
+      "public_percent": 44.57,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 25.83,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2025-05-08",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_198974_1433995_08052025050205_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-05-02",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 4.16,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2025-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 57.71,
+      "fii_percent": 1.69,
+      "dii_percent": 16.91,
+      "institutions_percent": 18.6,
+      "public_percent": 41.92,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 23.33,
+      "employee_trusts_percent": 0.37,
+      "submission_date": "2025-04-16",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_197338_1415368_16042025104928_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 6.38,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2024-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 57.71,
+      "fii_percent": 0.56,
+      "dii_percent": 18.13,
+      "institutions_percent": 18.69,
+      "public_percent": 41.92,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 23.24,
+      "employee_trusts_percent": 0.37,
+      "submission_date": "2025-01-13",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_194424_1343390_13012025011630_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 5.34,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2024-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 57.71,
+      "fii_percent": 2.83,
+      "dii_percent": 19.19,
+      "institutions_percent": 22.02,
+      "public_percent": 41.92,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 19.9,
+      "employee_trusts_percent": 0.37,
+      "submission_date": "2024-10-19",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_193157_1280038_19102024030909_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-09-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 4.48,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2024-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 57.71,
+      "fii_percent": 3.96,
+      "dii_percent": 22.79,
+      "institutions_percent": 26.75,
+      "public_percent": 41.92,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 15.17,
+      "employee_trusts_percent": 0.37,
+      "submission_date": "2024-07-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_190551_1196562_20072024105129_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.78,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2024-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 57.71,
+      "fii_percent": 5.97,
+      "dii_percent": 23.28,
+      "institutions_percent": 29.25,
+      "public_percent": 41.89,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 12.64,
+      "employee_trusts_percent": 0.4,
+      "submission_date": "2024-04-12",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_186454_1089204_12042024021923_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.78,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2023-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 57.7,
+      "fii_percent": 6.74,
+      "dii_percent": 22.81,
+      "institutions_percent": 29.55,
+      "public_percent": 41.82,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 12.26,
+      "employee_trusts_percent": 0.48,
+      "submission_date": "2024-01-15",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_184151_1020576_15012024120522_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.78,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2023-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 67.92,
+      "fii_percent": 5.15,
+      "dii_percent": 15.36,
+      "institutions_percent": 20.51,
+      "public_percent": 31.54,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 11.03,
+      "employee_trusts_percent": 0.54,
+      "submission_date": "2023-10-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_182641_962469_20102023020814_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-09-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.36,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2023-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 68.18,
+      "fii_percent": 5.15,
+      "dii_percent": 15.36,
+      "institutions_percent": 20.51,
+      "public_percent": 31.57,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 11.03,
+      "employee_trusts_percent": 0.25,
+      "submission_date": "2023-07-19",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_179570_891392_19072023100726_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-09-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.36,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2023-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 68.18,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": 31.54,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": 0.28,
+      "submission_date": "2023-04-15",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_176726_820142_15042023125220_WEB.xml",
+      "source": "NSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2022-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 68.18,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": 31.48,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": 0.34,
+      "submission_date": "2023-01-19",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_174975_773095_19012023032910_WEB.xml",
+      "source": "NSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2022-11-10",
+      "quarter_basis": null,
+      "promoter_percent": 68.18,
+      "fii_percent": null,
+      "dii_percent": null,
+      "institutions_percent": null,
+      "public_percent": 31.41,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": null,
+      "employee_trusts_percent": 0.41,
+      "submission_date": "2022-11-17",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_173282_746482_17112022063038_WEB.xml",
+      "source": "NSE",
+      "split_source": null,
+      "split_as_of": null,
+      "split_basis": null,
+      "promoter_pledged_percent": null,
+      "promoter_pledge_basis": null
+     }
+    ],
+    "coverage": "covered",
+    "note": null,
+    "provider": null,
+    "major_shareholders": [],
+    "source_url": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=FUSION&limit=25",
+   "status": 200,
+   "elapsed_ms": 1326,
+   "body": {
+    "symbol": "FUSION",
+    "exchange": null,
+    "count": 25,
+    "announcements": [
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9725f172-f548-4bd5-ab51-624771903b3b.pdf",
+      "ts": "2026-09-25T18:20:27.490000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding Cessation of Mrs Priyanka Seth Wadhera as Chief Strategy Officer of the company w.e.f. September 25, 2026.",
+      "category": "Cessation",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_25092026181925_ChangeinManagement_25Sep2026.pdf",
+      "ts": "2026-09-25T18:19:33+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+      "category": "Trading Window",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_25092026145813_Closure_TradingWindow_Sep26_Sign.pdf",
+      "ts": "2026-09-25T14:58:24+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/de426752-0ada-4eff-94fd-ef9824e0f07a.pdf",
+      "ts": "2026-09-25T14:39:44.817000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_17092026125507_InvestorMeetingIntimation_17092026_SIGN.pdf",
+      "ts": "2026-09-17T12:55:23+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4e92ce5c-421d-49b3-9abd-4a5556efe120.pdf",
+      "ts": "2026-09-17T12:39:37.693000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about Resignation of Director/KMP/SMP",
+      "category": "Resignation of Director/KMP/SMP",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSION_ROID_98443_KMP_Doc.zip",
+      "ts": "2026-09-16T11:55:59+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding 'Grant of ESOP - Disclosure under Regulation 30 and 51 of SEBI (Listing Obligations & Disclosure Requirements) Regulations, 2015'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_15092026203306_GrantofESOPIntimation_15092026SIGN.pdf",
+      "ts": "2026-09-15T20:33:17+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding Cessation of Mrs Pooja Mehta as CHRO of the company w.e.f. September 15, 2026.",
+      "category": "Cessation",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_15092026203008_OutcomeofBoardMeeting_15092026_SIGN.pdf",
+      "ts": "2026-09-15T20:30:20+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding Appointment of Ms Chinmayi Trivedi as Chief Human Resource Officer of the company w.e.f. September 15, 2026.",
+      "category": "Appointment",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_15092026202621_OutcomeofBoardMeeting_15092026_SIGN.pdf",
+      "ts": "2026-09-15T20:28:16+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d06eb108-0676-431b-8165-0c1a1a174dcc.pdf",
+      "ts": "2026-09-15T20:15:44.620000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding Outcome of Board Meeting held on September 15, 2026.",
+      "category": "Outcome of Board Meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_15092026201134_OutcomeofBoardMeeting_15092026_SIGN.pdf",
+      "ts": "2026-09-15T20:12:36+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding 'Disclosure under Regulation 30 of the Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015   Transfer of stressed loan portfolio to Asset Reconstruction Company'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_08092026213506_Intimation_ARCSale080926VS3.pdf",
+      "ts": "2026-09-08T21:35:19+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about General Updates",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_03092026223557_Trading_approval_intimation_letter_STX.pdf",
+      "ts": "2026-09-03T22:36:13+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Intimation Of Record Date Under Regulation 60(2) Of SEBI (Listing Obligation And Disclosure Requirements) Regulations, 2015",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0a65bf65-6eb9-4560-b387-365aec793257.pdf",
+      "ts": "2026-09-03T14:45:24.957000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_31082026130646_InvestorMeetingIntimation_31082026_SIGN.pdf",
+      "ts": "2026-08-31T13:07:16+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Certificate For Payment Of Interest On Non-Convertible Debentures Under Regulation 57 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b2cb258b-5b50-4ef4-8c7c-ac2bbb704cf1.pdf",
+      "ts": "2026-08-29T12:53:07.670000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Earnings Call Transcript",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/23c5aa5c-672b-486d-9367-e1128df46885.pdf",
+      "ts": "2026-08-17T21:22:03.100000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about Transcript",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_17082026210844_Transcript_EarningsConferenceCall_10Aug26SIGN.pdf",
+      "ts": "2026-08-17T21:09:39+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about General Updates",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_15082026152504_Reg30_Penalty_15Aug26_SIGN.pdf",
+      "ts": "2026-08-15T15:25:13+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Rumour verification - Regulation 30(11)",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/57fe9b5d-cc43-48ed-a2a0-4c59a67a6619.pdf",
+      "ts": "2026-08-13T10:54:40.320000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "The Exchange has sought clarification from Fusion Finance Limited with respect to recent news item captioned Fusion Finance aims to cut microfin share, offer larger retail loans.  The response from the Company is attached.",
+      "category": "News Verification",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_13082026104312_NSERESPONSE13082026.pdf",
+      "ts": "2026-08-13T10:43:28+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "The Exchange has sought clarification from Fusion Finance Limited with respect to recent news item captioned Fusion Finance aims to cut microfin share, offer larger retail loans.  The response from the Company is awaited.",
+      "category": "News Verification",
+      "attachment_url": "-",
+      "ts": "2026-08-12T16:47:31+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about Copy of Newspaper Publication",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_11082026165910_NewspaperAdv_11AugSIGN.pdf",
+      "ts": "2026-08-11T16:59:33+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about General Updates",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_11082026163723_Letter-Reclassification_of_PromotorSIGN.pdf",
+      "ts": "2026-08-11T16:37:36+05:30"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "windows": {
+     "NSE": {
+      "window_start": "2026-08-11",
+      "window_end": "2026-09-26"
+     },
+     "BSE": {
+      "window_start": "2026-08-11",
+      "window_end": "2026-09-26"
+     }
+    },
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=FUSION",
+   "status": 200,
+   "elapsed_ms": 445,
+   "body": {
+    "symbol": "FUSION",
+    "count": 29,
+    "events": [
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2026",
+      "date": "2026-08-10",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Other business matters",
+      "description": "To consider and approve the financial results for the quarter and financial year ended March 31, 2026.",
+      "date": "2026-05-15",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "FUSION FINANCE LIMITED",
+      "purpose": "General",
+      "description": null,
+      "date": "2026-05-15",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2025",
+      "date": "2026-02-06",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising",
+      "date": "2025-12-29",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "FUSION FINANCE LIMITED",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-12-29",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising by issuance of non-convertible debentures on a private placement basis.",
+      "date": "2025-12-16",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "FUSION FINANCE LIMITED",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-12-16",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Fund Raising",
+      "description": "To consider and approve the financial results for the period ended September 30, 2025 and Fund Raising",
+      "date": "2025-11-04",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Fund Raising",
+      "description": "To consider and approve the financial results for the period ended September 30, 2025 and Fund Raising",
+      "date": "2025-11-04",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "FUSION FINANCE LIMITED",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-11-04",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2025",
+      "date": "2025-08-08",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "Prior intimation of the Board Meeting scheduled to beheld on Friday, August 08, 2025  inter-alia to consider and approve the financial results for the period ended June 30, 2025.",
+      "date": "2025-08-08",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "FUSION FINANCE LIMITED",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-06-10",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "The Board Meeting of the Company is scheduled to be held on Friday, May 23, 2025, inter-alia to consider and approve the Audited Financial Results of the Company for the Quarter and Year ended on March 31, 2025.",
+      "date": "2025-05-23",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising and discuss and decide various matters in connection with the Rights Issue, such as the determination of the Rights Issue price, related payment mechanism, rights entitlement ratio and other incidental matters thereto.",
+      "date": "2025-03-29",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2024",
+      "date": "2025-02-12",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Fund Raising/Other business matters",
+      "description": "To consider Fund Raising and other business matters",
+      "date": "2024-12-04",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "FUSION : 14-Nov-2024 :  The Company has informed the Exchange that a Board meeting to be held on November 11, 2024 has been re-scheduled. Further, the Company has informed the Exchange that the meeting of the Board of Directors of the Company will be held on November 14, 2024,  To consider and approve the financial results for the period ended September 30, 2024",
+      "date": "2024-11-14",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Other business matters",
+      "description": "To consider and approve the financial results for the period ended September 30, 2024 and other business matters",
+      "date": "2024-11-11",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Other business matters",
+      "description": "Prior intimation of the Board Meeting under Regulation 29 and other applicable provisions ofSecurities and Exchange Board of India (Listing Obligations and Disclosure Requirements)Regulations, 2015.",
+      "date": "2024-10-05",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2024",
+      "date": "2024-08-06",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Other business matters",
+      "description": "To consider and approve the financial results for the period ended March 31, 2024 and other business matters",
+      "date": "2024-05-06",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2023",
+      "date": "2024-02-05",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2023",
+      "date": "2023-11-06",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2023",
+      "date": "2023-08-02",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2023",
+      "date": "2023-05-22",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Other business matters",
+      "description": "To consider and approve the financial results for the period ended December 31, 2022 and other business matters",
+      "date": "2023-02-11",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "Fusion Micro Finance Limited  has informed the Exchange about Board Meeting to be held on 28-Nov-2022 to consider and approve the Standalone Unaudited Financial Results of the Company for the Quarter and Six Months ended on September 30, 2022. Further, it is also being informed that the trading window shall open on Thursday, December 1, 2022, in accordance with the \"Code of Conduct for Prevention of Insider Trading\" as adopted by the Company in compliance of Securities and Exchange Board of India (Prohibition of Insider Trading) Regulations, 2015.",
+      "date": "2022-11-28",
+      "exchange": "NSE"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

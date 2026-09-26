@@ -1,0 +1,12 @@
+GET /quotes/RELIANCE.NS
+{"symbol":"RELIANCE","price":1226.0,"change":6.7999999999999545,"change_percent":0.5577427821522273,"volume":13138735.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+
+GET /quotes/TCS.NS
+{"symbol":"TCS","price":2082.0,"change":-5.0,"change_percent":-0.23957834211787254,"volume":3342195.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+
+GET /portfolio/positions -> 200
+[]
+
+POST /portfolio/positions -> 405  (expect 405, write surface removed per R15-CODE-PLATFORM-021/022)
+PUT /portfolio/positions/1 -> 404  (expect 404, no such route)
+DELETE /portfolio/positions/1 -> 404  (expect 404, no such route)

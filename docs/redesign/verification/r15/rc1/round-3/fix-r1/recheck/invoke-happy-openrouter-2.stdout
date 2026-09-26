@@ -1,0 +1,11 @@
+[   2.3s] done: {"kind": "done", "usage": {"input_tokens": 11279, "output_tokens": 105, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.0}
+
+=== THINKING (streamed as kind=thinking) ===
+We need to answer in one sentence: what does a P/E ratio measure? Provide concise definition: price-to-earnings ratio measures the price investors are willing to pay per rupee (or dollar) of earnings, indicating market's valuation of earnings. Should we fetch any data? Not needed as it's a definition. No tool needed. Provide one sentence.
+
+
+
+=== ASSISTANT TEXT ===
+A P/E ratio measures how much investors are paying for each unit of a company's earnings, reflecting the market’s valuation of its profitability.
+
+=== ok · 2.3s · events {'thinking': 31, 'delta': 9, 'done': 1} · usage in=11279 out=105 · est $0.00000 · nvidia/nemotron-3-super-120b-a12b:free

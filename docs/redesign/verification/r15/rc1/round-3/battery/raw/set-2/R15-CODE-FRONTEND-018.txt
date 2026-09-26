@@ -1,0 +1,13 @@
+=== R15-CODE-FRONTEND-018: screener savedScreens in PERSISTED_SLICES ===
+42:import { type SavedScreen, deserializeSavedScreens, useScreenerStore } from "@/store/screener";
+170:  /** The screener's saved screens. Optional for older blobs (absent → none). */
+171:  savedScreens?: SavedScreen[];
+553:    key: "savedScreens",
+555:    read: () => ({ savedScreens: useScreenerStore.getState().savedScreens }),
+557:      if (Array.isArray(workspace.savedScreens)) {
+560:          .setSavedScreens(deserializeSavedScreens(JSON.stringify(workspace.savedScreens)));
+563:    subscribe: onChange(useScreenerStore, (s) => s.savedScreens),
+826: * duplicate Chart tab" — and (b) a bare `screener` panel id from the era when
+827: * the arrange templates drifted from the module's registered `screener-panel`
+828: * id, which would make every future arrange/open mint a second screener.
+837:      panel.id === "screener" && api.getPanel("screener-panel") !== undefined;

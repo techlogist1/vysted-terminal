@@ -1,0 +1,115 @@
+=== R15-RESEARCH-015: verify.py independence floor ===
+    """
+    from services.search.scrub import wrap_untrusted
+
+    evidence = ""
+    if rows:
+        evidence += wrap_untrusted(
+            "fresh re-check web results (SearXNG lane)", rows[:_MAX_EVIDENCE_ROWS]
+        )
+    if native_text:
+        if evidence:
+            evidence += "\n\n"
+        evidence += wrap_untrusted(
+            "native model web search (grounded completion)", native_text[:2000]
+        )
+    dual_line = (
+        " Two retrieval channels are shown; if they state materially different "
+        "figures from each other, the verdict is DISAGREE."
+        if native_text and rows
+        else ""
+    )
+    out = await _safe_llm(
+        llm_call,
+        [
+            {
+                "role": "system",
+                "content": (
+--- 360,400 ---
+        check["channels"] = channels
+        check["corroborated"] = (
+            verdict == _VERDICT_AGREE
+            and "searxng" in channels
+            and "native" in channels
+            and evidence["distinct_lanes"]
+        )
+    return check
+
+
+def _render_section(checks: list[dict[str, Any]], min_domains: int, *, dual: bool = False) -> str:
+    """The markdown "Cross-check" section appended to the ULTRA brief."""
+    intro = (
+        f"Top numeric claims re-checked against fresh web evidence "
+        f"(at least {min_domains} independent domains required per claim):"
+    )
+    if dual:
+        intro = (
+            "Top numeric claims re-checked across TWO retrieval channels — "
+            "SearXNG and the model's native web search (at least "
+            f"{min_domains} independent sources required per claim):"
+        )
+    lines = ["## Cross-check", "", intro, ""]
+    for check in checks:
+        verdict = str(check["verdict"])
+        label = {
+            _VERDICT_AGREE: "AGREE",
+            _VERDICT_DISAGREE: "DISAGREEMENT",
+            _VERDICT_UNVERIFIED: "UNVERIFIED",
+        }[verdict]
+        if check.get("corroborated"):
+            label = "AGREE (corroborated across channels)"
+        domains = ", ".join(check["domains"]) if check["domains"] else "no sources"
+        line = f"- **{label}** — {check['claim']} ({domains})"
+        channels = check.get("channels")
+        if dual and channels is not None and len(channels) == 1:
+344:        "distinct_lanes": not native_rows or not native_domains <= searxng_domains,
+365:            and evidence["distinct_lanes"]
+    native_rows = [
+        row
+        for row in (native_res.get("citations") or [])
+        if isinstance(row, dict) and row.get("url")
+    ]
+    searxng_domains = _row_domains(rows)
+    native_domains = _row_domains(native_rows)
+    domains = searxng_domains | native_domains
+    channels: list[str] = []
+    if rows:
+        channels.append("searxng")
+    if native_text:
+        channels.append("native")
+    return {
+        "rows": rows,
+        "native_text": native_text,
+        "domains": domains,
+        "channels": channels,
+        # Independence: distinct registrable domains. A native completion that
+        # cites its sources is already counted by those domains; only an
+        # UNCITED native completion adds one retrieval path of its own.
+        "independence": len(domains) + (1 if native_text and not native_rows else 0),
+        # The lanes corroborate each other only when the native lane rests on
+        # a domain the SearXNG lane did not already reach.
+        "distinct_lanes": not native_rows or not native_domains <= searxng_domains,
+    }
+
+
+def _check_row(
+    claim: str, verdict: str, detail: str, evidence: dict[str, Any], *, dual: bool
+) -> dict[str, Any]:
+    """The ``structured["cross_check"]`` row for one claim."""
+    check: dict[str, Any] = {
+        "claim": claim,
+        "verdict": verdict,
+        "detail": detail,
+        "domains": sorted(evidence["domains"]),
+    }
+    if dual:
+        channels = evidence["channels"]
+        check["channels"] = channels
+        check["corroborated"] = (
+            verdict == _VERDICT_AGREE
+evidence: {'rows': [], 'native_text': 'found it', 'domains': {'example.com'}, 'channels': ['native'], 'independence': 1, 'distinct_lanes': True}
+check row corroborated: False independence would have been (pre-fix formula): 2
+actual independence field: 1
+evidence: {'rows': [{'url': 'https://example.com/a'}], 'native_text': 'found it', 'domains': {'example.com'}, 'channels': ['searxng', 'native'], 'independence': 1, 'distinct_lanes': False}
+check row corroborated: False
+independence (fixed): 1  -- pre-fix formula would have given: 2

@@ -1,0 +1,52 @@
+[
+  {
+    "id": "panel-portfolio",
+    "area": "portfolio",
+    "surface": "Portfolio (paper) panel",
+    "entry": "src/modules/portfolio/index.ts:15; src/modules/portfolio/PortfolioPanel.tsx:88",
+    "states": ["empty(no positions)", "error(form validation, dismissible :701-708)", "populated", "tenth-item"],
+    "drive": "browser",
+    "driven": "ok",
+    "evidence": "vitest-panels.log (PortfolioPanel.test.tsx, 30/30 pass: empty state, form validation, live-quote P&L/weight, unresolved-quote null-not-zero R15-UI-005, mixed-currency subtotals, delete/edit-after-switch R15-UI-034/035, CSV export incl. R15-DATA-042, risk analytics R15-CODE-PLATFORM-023, id publication R15-AGENT-042, quote-refresh interval R15-UI-036/090, crypto pricing R15-DATA-081); sidecar-portfolio-routes.txt (live /quotes/RELIANCE.NS, /quotes/TCS.NS 200 with real EOD prices; legacy ledger GET-only confirmed live: POST 405, PUT/DELETE 404, matches R15-CODE-PLATFORM-021/022); agent-add-infy.log (live llama3.1:8b agent adds INFY.NS 10@1500 via portfolio_add_position, ok:true ack)."
+  },
+  {
+    "id": "panel-notes",
+    "area": "notes",
+    "surface": "Notes panel (per-stock + general)",
+    "entry": "src/modules/notes/index.ts:11-27; src/modules/notes/NotesPanel.tsx:86",
+    "states": ["empty(new note)", "editing(:426)", "export-status(:214)", "populated"],
+    "drive": "browser",
+    "driven": "ok",
+    "evidence": "vitest-panels.log (NotesPanel.test.tsx, notes.test.ts, 34/34 pass combined: store is authoritative for agent write_note + editor keystroke race R15-UI-001, scope-switch-inside-debounce saves each scope, slash-menu row height R15-UI-050, wikilink picker sees post-mount watchlist additions R15-UI-024); notes-persistence.ts code-read (persistNoteMd/exportNoteMd no-op cleanly outside __TAURI_INTERNALS__, matches browser dev-mode fallback design, actual Rust write_text_atomic path is NEEDS-GUI)."
+  },
+  {
+    "id": "notes-toolbar",
+    "area": "notes",
+    "surface": "Notes formatting toolbar",
+    "entry": "src/modules/notes/NotesToolbar.tsx:131",
+    "states": ["populated(active mark states per Tiptap editor selection)"],
+    "drive": "browser",
+    "driven": "ok",
+    "evidence": "vitest-panels.log (NotesToolbar.test.tsx, 5/5 pass: H1-H3/bold/italic/code/lists/quote/code-block apply and reflect active state; Link opens an inline popover and applies the mark, never window.prompt (R15-UI-025 fix confirmed for the popover; the WKWebView-specific window.prompt absence itself is NEEDS-GUI); Task list toggles without throwing (R15-UI-024); Insert [[wikilink]] WRAPS a selection instead of deleting it)."
+  },
+  {
+    "id": "notes-slash-menu",
+    "area": "notes",
+    "surface": "Notes '/' slash-command menu",
+    "entry": "src/modules/notes/SlashCommandExtension.ts; src/modules/notes/slash-commands.ts",
+    "states": ["open(filtered list)", "closed"],
+    "drive": "browser",
+    "driven": "ok",
+    "evidence": "vitest-panels.log (notes.test.ts R15-UI-024 suggestion keyboard navigation: ArrowDown+Enter picks the second slash-command item; typing '/' over a selection keeps the selection instead of deleting it)."
+  },
+  {
+    "id": "notes-wikilink-menu",
+    "area": "notes",
+    "surface": "Notes [[wikilink]] suggestion popup",
+    "entry": "src/modules/notes/WikiLinkExtension.ts",
+    "states": ["open(symbol matches)", "closed"],
+    "drive": "browser",
+    "driven": "ok",
+    "evidence": "vitest-panels.log (notes.test.ts: [[SYMBOL]] round-trips through getMarkdown/setContent unchanged, ArrowDown+Enter picks the second wikilink item, typing '[' over a selection keeps the selection; NotesPanel.test.tsx: the [[ picker offers a symbol added to the watchlist AFTER mount, was frozen-at-mount per census SURF-PORTFOLIO-NOTES-8, now live)."
+  }
+]

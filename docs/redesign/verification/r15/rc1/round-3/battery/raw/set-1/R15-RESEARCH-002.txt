@@ -1,0 +1,4 @@
+'UNVERIFIED - no source confirms the 23% operating margin.' -> ('unverified', 'UNVERIFIED - no source confirms the 23% operating margin.')
+'UNVERIFIED - evidence does not support the figure' -> ('unverified', 'UNVERIFIED - evidence does not support the figure')
+'UNVERIFIED - no matching figure' -> ('unverified', 'UNVERIFIED - no matching figure')
+'AGREE - the figure matches the filed 10-K.' -> ('agree', 'AGREE - the figure matches the filed 10-K.')

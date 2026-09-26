@@ -1,0 +1,4 @@
+get_portfolio payload (snapshot): [('h-5185cd88-40db-48f7-a776-1b34ee6567f5', 'RELIANCE.NS', 10, 1200), ('h-e5b19dee-03a8-4caa-9519-cc1e91d5722c', 'AAPL', 8, 310)]
+ledger (__autosave__): [('h-5185cd88-40db-48f7-a776-1b34ee6567f5', 'RELIANCE.NS', 10, 1200), ('h-e5b19dee-03a8-4caa-9519-cc1e91d5722c', 'AAPL', 8, 310)]
+MATCH True
+model answer: RELIANCE.NS qty 10 cost 1200; AAPL qty 8 cost 310 -> quantities/cost bases match; AAPL shown in ₹ (currency mislabel = open R15-AGENT-091, low)

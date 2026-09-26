@@ -1,0 +1,85 @@
+{
+  "action": {
+    "tool_call_id": "call_67023d13853f4277a91f4926ce030c28",
+    "name": "portfolio_add_position",
+    "input": {
+      "note": "market order",
+      "purchased_at": "2026-09-26",
+      "quantity": 10,
+      "symbol": "AAPL",
+      "asset_class": "equity",
+      "cost_basis": 0
+    }
+  },
+  "stagedOutcome": "staged",
+  "change": {
+    "kind": "data-write",
+    "title": "Add 10 AAPL @ ₹0 to the portfolio",
+    "status": "pending",
+    "before": "Portfolio: 3 positions",
+    "after": "Portfolio: +AAPL ×10 @ ₹0 (4 total)"
+  },
+  "ledgerBefore": [
+    {
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "note": null
+    },
+    {
+      "symbol": "AAPL",
+      "quantity": 8,
+      "costBasis": 310,
+      "note": null
+    },
+    {
+      "symbol": "MSFT",
+      "quantity": 4,
+      "costBasis": 480,
+      "note": null
+    }
+  ],
+  "ledgerWhilePending": [
+    {
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "note": null
+    },
+    {
+      "symbol": "AAPL",
+      "quantity": 8,
+      "costBasis": 310,
+      "note": null
+    },
+    {
+      "symbol": "MSFT",
+      "quantity": 4,
+      "costBasis": 480,
+      "note": null
+    }
+  ],
+  "storeHoldingsWhilePending": 3,
+  "acceptResult": "rejected",
+  "ledgerAfterAccept": [
+    {
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "note": null
+    },
+    {
+      "symbol": "AAPL",
+      "quantity": 8,
+      "costBasis": 310,
+      "note": null
+    },
+    {
+      "symbol": "MSFT",
+      "quantity": 4,
+      "costBasis": 480,
+      "note": null
+    }
+  ],
+  "unchangedWhilePending": true
+}

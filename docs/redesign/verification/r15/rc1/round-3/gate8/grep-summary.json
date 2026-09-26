@@ -1,0 +1,32 @@
+{
+ "src": {
+  "total": 111,
+  "product": 0,
+  "historical": 24,
+  "false_positive": 87
+ },
+ "sidecar": {
+  "total": 255,
+  "product": 0,
+  "historical": 71,
+  "false_positive": 184
+ },
+ "src-tauri": {
+  "total": 3,
+  "product": 0,
+  "historical": 2,
+  "false_positive": 1
+ },
+ "plugins": {
+  "total": 0,
+  "product": 0,
+  "historical": 0,
+  "false_positive": 0
+ },
+ "docs": {
+  "total": 70985,
+  "product": 0,
+  "historical": 50212,
+  "false_positive": 20773
+ }
+}

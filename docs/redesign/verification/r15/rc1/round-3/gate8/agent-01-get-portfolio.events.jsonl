@@ -1,0 +1,111 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_0143e4ebbaab4be0a774e886f5af39af", "name": "get_portfolio", "input": {}}
+{"kind": "tool_result", "tool_call_id": "call_0143e4ebbaab4be0a774e886f5af39af", "name": "get_portfolio", "ok": true, "error": null}
+{"kind": "delta", "text": "Based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " tool"}
+{"kind": "delta", "text": " call"}
+{"kind": "delta", "text": " output"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " your"}
+{"kind": "delta", "text": " portfolio"}
+{"kind": "delta", "text": " consists"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " two"}
+{"kind": "delta", "text": " holdings"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " REL"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "ANCE"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "\t"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Quantity"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "\t"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Cost"}
+{"kind": "delta", "text": " Basis"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "120"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "\t"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Market"}
+{"kind": "delta", "text": " Value"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "260"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "\t"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "n"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Profit"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " Loss"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "260"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " AAP"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "\t"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Quantity"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "8"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "\t"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Cost"}
+{"kind": "delta", "text": " Basis"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "310"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "\t"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " Market"}
+{"kind": "delta", "text": " Value"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "728"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "56"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "\t"}
+{"kind": "delta", "text": "*"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "n"}
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "248"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "56"}
+{"kind": "done", "usage": {"input_tokens": 3144, "output_tokens": 104, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

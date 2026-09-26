@@ -1,0 +1,52 @@
+[
+  {
+    "id": "panel-screener",
+    "area": "screener",
+    "surface": "Screener panel shell",
+    "entry": "src/modules/screener/index.ts:16-32; src/modules/screener/ScreenerPanel.tsx:90",
+    "states": ["error(:298-305, truncated backend error message)", "universe-status-error(:107,214)", "populated", "tenth-item(results table)"],
+    "drive": "api",
+    "driven": "ok",
+    "evidence": "01-run-default-sp500.json (497/503 evaluated, 3 rows, partial:false — R15-DATA-110/UI-055 fixed, was 0/506 rate_limited in census); 05/06/07-universe+limit validation; 08-zero-result.json"
+  },
+  {
+    "id": "screener-criteria-builder",
+    "area": "screener",
+    "surface": "Screener criteria builder (AND/OR groups)",
+    "entry": "src/modules/screener/ScreenerCriteriaBuilder.tsx:390; src/modules/screener/CriterionGroupEditor.tsx:317",
+    "states": ["empty(no criteria)", "populated(nested groups)"],
+    "drive": "browser",
+    "driven": "ok",
+    "evidence": "11-or-group.json (flat OR group, 12 rows); nested-group precedence code-read at src/store/screener.ts:412-421 (pruneGroup/hasNestedGroup) unchanged from census, group semantics confirmed live. Visual builder interaction itself is NEEDS-GUI."
+  },
+  {
+    "id": "screener-formula-input",
+    "area": "screener",
+    "surface": "Screener formula leaf (raw expression input)",
+    "entry": "src/modules/screener/ScreenerFormulaLeaf.tsx:46,202",
+    "states": ["parse-error(data-testid=screener-formula-error, :202-207 shows caret at compiled.position)", "valid"],
+    "drive": "browser",
+    "driven": "ok",
+    "evidence": "02-formula-validate-bad.json (col 21 caret on '%'), 03-formula-validate-unknown-field.json (29 fields listed, matches census), 10-pasted-formula.json (113/2284 live nse-all run). R15-RESEARCH-025 (boolean coercion into min/max) now REJECTED at validate time — new positive: formula validate for 'min(pe_ratio < 5, roe) > 0.5' now returns ok:false 'min() needs a numeric argument, not a boolean expression', where census logged this as an accepted-but-meaningless screen (COD-screener-6-adjacent). Leaf caret rendering itself is NEEDS-GUI."
+  },
+  {
+    "id": "screener-results-table",
+    "area": "screener",
+    "surface": "Screener results table",
+    "entry": "src/modules/screener/ScreenerResultsTable.tsx:318",
+    "states": ["empty", "populated", "tenth-item(scroll/virtualization)"],
+    "drive": "browser",
+    "driven": "ok",
+    "evidence": "04a/04b-india-wide-limit*.json — matched_count (2799) now distinct from result_count/page size (200 vs 1000), fixing R15-UI-006's page-cap-presented-as-match-count bug; overflow:auto (not hidden) at ScreenerResultsTable.tsx:408,534, no clipping. Row-click drill / visual virtualization is NEEDS-GUI (unchanged from census)."
+  },
+  {
+    "id": "screener-presets",
+    "area": "screener",
+    "surface": "Screener saved/preset screens",
+    "entry": "src/modules/screener/ScreenerPresets.tsx:119,125,141",
+    "states": ["populated(PRESETS catalog)", "applied(criteria+universe overwritten, combinator reset to AND :128-129)"],
+    "drive": "browser",
+    "driven": "ok",
+    "evidence": "Code-read ScreenerPresets.tsx:126-140 — apply() now calls applyFilters with no `group`, which store.applyFilters (screener.ts:349-364) resolves to `group: null, advanced: false`, clearing any prior nested tree/formula-stale-state (R15-UI-007 fixed; census found the old tree+formula survived a preset click). Saved screens now ride the workspace blob (src/lib/workspace.ts:170-171,553-563 savedScreens field — R15-CODE-FRONTEND-018 fixed; census flagged session-only)."
+  }
+]

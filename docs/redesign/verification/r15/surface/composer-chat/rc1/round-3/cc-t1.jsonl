@@ -1,0 +1,106 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_880c60e56051411e99f74e32451452e4", "name": "fundamentals", "input": {"symbol": "COCHINSHIP.NS"}}
+{"kind": "heartbeat"}
+{"kind": "tool_result", "tool_call_id": "call_880c60e56051411e99f74e32451452e4", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "C"}
+{"kind": "delta", "text": "och"}
+{"kind": "delta", "text": "in"}
+{"kind": "delta", "text": " Ship"}
+{"kind": "delta", "text": "yard"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " an"}
+{"kind": "delta", "text": " Indian"}
+{"kind": "delta", "text": " ship"}
+{"kind": "delta", "text": "building"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " manufactures"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " repairs"}
+{"kind": "delta", "text": " ships"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Its"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "137"}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "36"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "226"}
+{"kind": "delta", "text": " cro"}
+{"kind": "delta", "text": "res"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " Price"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "53"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "19"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " sector"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " Indust"}
+{"kind": "delta", "text": "ri"}
+{"kind": "delta", "text": "als"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " industry"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " Capital"}
+{"kind": "delta", "text": " Goods"}
+{"kind": "delta", "text": " /"}
+{"kind": "delta", "text": " Ship"}
+{"kind": "delta", "text": " Building"}
+{"kind": "delta", "text": " &"}
+{"kind": "delta", "text": " Allied"}
+{"kind": "delta", "text": " Services"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " listed"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " National"}
+{"kind": "delta", "text": " Stock"}
+{"kind": "delta", "text": " Exchange"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "NSE"}
+{"kind": "delta", "text": ")."}
+{"kind": "done", "usage": {"input_tokens": 5853, "output_tokens": 91, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

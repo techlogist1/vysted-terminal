@@ -1,0 +1,32 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " assist"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " actions"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " require"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " brokerage"}
+{"kind": "delta", "text": " connection"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " research"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " track"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " though"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "How"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 7574, "output_tokens": 27, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

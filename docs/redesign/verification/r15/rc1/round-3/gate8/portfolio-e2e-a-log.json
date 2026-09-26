@@ -1,0 +1,12 @@
+[
+  {
+    "step": "restore",
+    "holdingsBefore": [
+      {
+        "id": "default",
+        "name": "Portfolio",
+        "holdings": []
+      }
+    ]
+  }
+]

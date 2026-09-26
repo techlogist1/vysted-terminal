@@ -1,0 +1,80 @@
+{
+  "results": [
+    {
+      "name": "propose_order",
+      "input": {
+        "symbol": "AAPL",
+        "side": "buy",
+        "quantity": 10,
+        "order_type": "market"
+      },
+      "kind": "panel",
+      "title": "propose order",
+      "acceptResult": "failed",
+      "statusAfter": "pending",
+      "detail": "unknown action \"propose_order\""
+    },
+    {
+      "name": "portfolio_add_position",
+      "input": {
+        "symbol": "NVDA",
+        "quantity": 5
+      },
+      "kind": "data-write",
+      "title": "Add 5 NVDA to the portfolio — no price given",
+      "acceptResult": "failed",
+      "statusAfter": "pending",
+      "detail": "no price given"
+    },
+    {
+      "name": "portfolio_add_position",
+      "input": {
+        "symbol": "NVDA",
+        "quantity": 5,
+        "cost_basis": 100
+      },
+      "rejected": "rejected"
+    }
+  ],
+  "ledgerBefore": [
+    {
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "note": null
+    },
+    {
+      "symbol": "AAPL",
+      "quantity": 8,
+      "costBasis": 310,
+      "note": null
+    },
+    {
+      "symbol": "MSFT",
+      "quantity": 4,
+      "costBasis": 480,
+      "note": null
+    }
+  ],
+  "ledgerAfter": [
+    {
+      "symbol": "RELIANCE.NS",
+      "quantity": 10,
+      "costBasis": 1200,
+      "note": null
+    },
+    {
+      "symbol": "AAPL",
+      "quantity": 8,
+      "costBasis": 310,
+      "note": null
+    },
+    {
+      "symbol": "MSFT",
+      "quantity": 4,
+      "costBasis": 480,
+      "note": null
+    }
+  ],
+  "unchanged": true
+}

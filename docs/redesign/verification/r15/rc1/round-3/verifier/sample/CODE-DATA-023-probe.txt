@@ -1,0 +1,47 @@
+# CODE-DATA-023 probe, git show 5ff9be041180c1c316ad48ceb120a23549a7575a
+## screener_universe_india.py 1-20
+"""Full-market India screener universes from the bundled resolver masters (R10, D40).
+
+Resolves the three India universe ids the contracts commit added to
+``models/screener.py``:
+
+  - ``nse-all``   — every NSE master row (EQ + ETF + SM/NSE Emerge) as
+    ``SYMBOL.NS``.
+  - ``bse-all``   — BSE master rows with STATUS == "Active" as ``SYMBOL.BO``
+    (the liquidity ``group`` is retained in the per-symbol meta).
+  - ``india-all`` — the union, NSE listing preferred: a BSE row whose SYMBOL
+    also appears in the NSE master is skipped (dual-listings screen once,
+    on the deeper-liquidity venue).
+
+The masters are the same bundled JSON snapshots the symbol resolver reads
+(``services.resolver_masters`` via :mod:`importlib.resources` — offline,
+deterministic, test-stable); ``india_sector_map.json`` rides the same package
+and supplies the build-time sector / shares_outstanding seed the fundamentals
+store warms from.
+"""
+
+## grep counts
+95:    O(1). The boot seed calls it once per ``india-all`` symbol (~5,156);
+97:    loop ~4 s at startup."""
+## models/screener.py 25-45
+# Universe
+# ---------------------------------------------------------------------------
+
+ScreenerUniverseId = Literal[
+    "sp500",
+    "nifty50",
+    "crypto-top50",
+    "custom",
+    # R10 (D40): full-market India universes resolved from the bundled resolver
+    # masters — nse-all (EQ + ETF + SM/NSE Emerge rows), bse-all (Active
+    # scrips), india-all (union, NSE listing preferred on dual-listings).
+    "nse-all",
+    "bse-all",
+    "india-all",
+]
+ScreenerAssetClass = Literal["equity", "crypto"]
+
+
+class ScreenerUniverse(BaseModel):
+    """A universe definition the screener fans out across."""
+

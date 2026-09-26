@@ -1,0 +1,26 @@
+## curl -s http://127.0.0.1:52312/earnings/TM/estimates
+{"symbol":"TM","fiscal_period":null,"eps_estimate_mean":null,"eps_estimate_median":null,"eps_estimate_high":null,"eps_estimate_low":null,"eps_estimate_stddev":null,"estimate_analyst_count":1,"revenue_estimate_mean":13345378533800.0,"revenue_estimate_median":null,"revenue_estimate_high":14070000000000.0,"revenue_estimate_low":12863000000000.0,"revenue_analyst_count":9,"currency":"USD","revenue_currency":"JPY","provider":"yfinance","as_of":"2026-09-26T17:44:56.902670Z"}
+CREATE TABLE workflows (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    spec_json TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+CREATE INDEX idx_workflows_updated ON workflows(updated_at DESC);
+## own data copy: inserted workflows row id rv-junk spec_json 'not json{'
+## curl -si http://127.0.0.1:52312/workflow/saved/rv-junk
+HTTP/1.1 500 Internal Server Error
+date: Sat, 26 Sep 2026 17:45:02 GMT
+server: uvicorn
+content-length: 21
+content-type: text/plain; charset=utf-8
+
+Internal Server Error
+## curl -s http://127.0.0.1:52312/workflow/saved
+{"workflows":[],"unreadable":[{"id":"rv-junk","name":"junk","reason":"Expecting value: line 1 column 1 (char 0)"}]}## own data copy: POST workspace rvtest, removed its .bak, truncated /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-3-data-rc1-verifier/workspaces/rvtest.vysted-workspace
+## curl -si http://127.0.0.1:52312/workspace/rvtest
+HTTP/1.1 404 Not Found
+{"detail":"Workspace 'rvtest' not found."}
+__autosave__.vysted-workspace
+__autosave__.vysted-workspace.bak
+rvtest.vysted-workspace.corrupt-1790444711541

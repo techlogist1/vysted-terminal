@@ -1,0 +1,4 @@
+data: {"kind": "error", "message": "No Google Gemini API key is set \u2014 add it in Settings.", "action": "Add your Google Gemini API key in Settings.", "detail": "No API key was provided. Please pass a valid API key. Learn how to create an API key at https://ai.google.dev/gemini-api/docs/api-key.", "code": "auth"}
+
+data: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+

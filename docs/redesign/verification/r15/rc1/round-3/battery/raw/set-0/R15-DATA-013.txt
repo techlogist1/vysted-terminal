@@ -1,0 +1,9 @@
+=== R15-DATA-013 (piggybacked on DAL fundamentals above) pe_ratio field_meta ===
+eps 2.0500000000000016 pe_ratio 5.6044946
+field_meta.eps {'status': 'ok', 'provider': 'bse', 'as_of': '2026-06-30', 'reason': "exchange-filed (BSE) figure served; the provider's 8.90 disagrees with it — not served", 'label': 'standalone, sum of 4 filed quarters to 2026-06-30', 'basis_note': None}
+field_meta.pe_ratio {'status': 'flagged', 'provider': 'yfinance', 'as_of': '2025-03-12T03:58:51+00:00', 'reason': "trailing EPS 8.9 disagrees by 77% with the payload's net income / shares outstanding (10,200,000 / 5,010,000 = 2.04); the P/E it implies at the ratio price 49.88 is 24.5 — the EPS may be from a stale fiscal period; kept, flagged", 'label': None, 'basis_note': None}
+
+=== SMR ===
+eps 5.58 pe_ratio 16.845879 net_income_ttm 247484992.0 shares_outstanding 18653743.0
+field_meta.eps {'status': 'flagged', 'provider': 'yfinance', 'as_of': '2026-09-26T16:04:48.303085+00:00', 'reason': "trailing EPS 5.58 disagrees by 58% with the payload's net income / shares outstanding (247,484,992 / 18,653,743 = 13.27); the P/E it implies at the ratio price 94 is 7.1 — the EPS may be from a stale fiscal period; kept, flagged", 'label': None, 'basis_note': None}
+field_meta.pe_ratio {'status': 'flagged', 'provider': 'yfinance', 'as_of': '2026-09-25T09:53:31+00:00', 'reason': "trailing EPS 5.58 disagrees by 58% with the payload's net income / shares outstanding (247,484,992 / 18,653,743 = 13.27); the P/E it implies at the ratio price 94 is 7.1 — the EPS may be from a stale fiscal period; kept, flagged", 'label': None, 'basis_note': None}
