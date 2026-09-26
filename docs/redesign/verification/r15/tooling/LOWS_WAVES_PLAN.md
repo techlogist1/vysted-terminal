@@ -12,6 +12,16 @@ Workflow({scriptPath: "…/lows-waves.js", args: {mode: "integrate", partition: 
 
 Add `dry_run: true` to any of these for a check that costs nothing. It logs the agents it would spawn (label, model, effort, branch, ports), returns `{dry_run: true, would_spawn}`, and **spawns no agent**. A workflow script cannot read files, so a dry run can show the per-set detail only when you pass that data in `args.data`: `partitions.P<n>` of `PARTITION.json` for `write`, or `WRITERS.json` for `integrate`. Without it, the dry run logs the fixed skeleton. For example: `python3 -c 'import json;print(json.dumps(json.load(open("docs/redesign/verification/r15/stage-c/lows/PARTITION.json"))["partitions"]["P1"]))'`.
 
+## Integrating from a pre-assembled candidate
+
+Pass `candidate` (a branch name on origin) and `candidate_base` (the sha it was cut from) to `integrate` and the integrator starts from that pre-assembled candidate instead of an empty cut: it worktree-adds `origin/<candidate>` and rebases it onto `sha` (`git rebase --rebase-merges --onto <sha> <candidate_base>`); if `<sha>` is not a descendant of `<candidate_base>`, or the rebase conflicts beyond a trivial fix, it aborts the rebase and replays the candidate's own `<LOWS>/<P>/PREINT.md` "Integration recipe" instead (reset hard to `<sha>`, `--no-ff` merge the writer branches from `WRITERS.json` in `merge_order_hint` order, cherry-pick the candidate's fix-pass commits), recording which path it took in `INTEGRATION.md`. It also runs PREINT.md's "Claimed tests" commands alongside `ci-local` and pastes their counts, and treats PREINT.md's "risks for the verifier" and "Handed to the lead" items as things to report, not fix. The reviewer and verifier are pointed at PREINT.md/PREINT_REVIEW.md as prior context; the diff under review is still `sha..HEAD`. With no `candidate`, integrate mode is unchanged. The three pre-assembled candidates (all cut from base `4c6dfe8c`) — **P2 integrates LAST** (its PREINT.md flags a source-guards/open-panel-literals cross-partition risk to re-check on the combined tree):
+
+```
+Workflow({scriptPath: "…/lows-waves.js", args: {mode: "integrate", partition: "P1", sha: "<current origin/004 head>", candidate: "worktree-agent-lows-P1-int-4c6dfe8", candidate_base: "4c6dfe8c"}})
+Workflow({scriptPath: "…/lows-waves.js", args: {mode: "integrate", partition: "P3", sha: "<current origin/004 head>", candidate: "worktree-agent-lows-P3-int-4c6dfe8", candidate_base: "4c6dfe8c"}})
+Workflow({scriptPath: "…/lows-waves.js", args: {mode: "integrate", partition: "P2", sha: "<current origin/004 head>", candidate: "worktree-agent-lows-P2-int-4c6dfe8", candidate_base: "4c6dfe8c"}})
+```
+
 | Arg | Default | Meaning |
 | --- | ------- | ------- |
 | `mode` | required | `partition`, `write` or `integrate`. The script throws on anything else. |
@@ -22,6 +32,8 @@ Add `dry_run: true` to any of these for a check that costs nothing. It logs the 
 | `data` | none | write: `partitions.P<n>` of `PARTITION.json`, which skips the loader agent. dry_run: the data described above. |
 | `salvage` | none | `{"<agent label>": "<note>"}`. The note is appended as `RESUME SALVAGE` to that one agent's prompt only. |
 | `scratch` | this session's scratchpad | The scratch root, as in rc1-gate. |
+| `candidate` | none | integrate only: a pre-assembled candidate branch on origin (e.g. `worktree-agent-lows-P1-int-4c6dfe8`) to start the integration branch from instead of an empty cut. Requires `candidate_base`. |
+| `candidate_base` | none | integrate only: the sha the candidate was cut from (its base). Required when `candidate` is set. |
 
 ## Agents per mode
 
