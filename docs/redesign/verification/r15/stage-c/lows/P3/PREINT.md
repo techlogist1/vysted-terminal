@@ -246,3 +246,21 @@ Left, with reasons:
 I merged the four second-attempt branches last, in the given order (merges 10-13 above). The only conflict was `RESULT.md`, three times, and each was concatenated. I then made one style commit, `6e41bfc1`, and pushed `aa1690ee..6e41bfc1` (no force; `git ls-remote` confirms `6e41bfc1bdd4255b427da84bb999641f7df78998`).
 
 Checks on the whole candidate against the base: `py_compile` passes on 95 changed .py files, `ruff format --check` and `ruff check` are clean, and `prettier --check` is clean on 77 changed ts/tsx/js/mjs/json/md/css files. No tsc, eslint, vitest, pytest, cargo or build was run. Everything is untested pending integration.
+
+## Fix pass (07:41 IST)
+
+Worktree: scratchpad/lows-preint/P3 (the existing assembler worktree), branch worktree-agent-lows-P3-int-4c6dfe8. Head 6e41bfc1 -> f9da207a, pushed without force; ls-remote shows f9da207a. Untested pending integration: only py_compile, ruff and prettier were run.
+
+Applied:
+- 0d7f0d38 R15-DATA-102 fixup (blocking). In sidecar/tests/test_growth_check.py, added "growth_basis": "mrq_yoy" to the test_snapshot_attaches_computed_growth_next_to_provider_values fixture. Root cause: should_cross_check (services/growth_check.py:85) now needs an explicitly stated mrq_yoy basis, so the old fixture never ran the cross-check and the computed-key lookup raised KeyError. Advisory folded in: the same key was added to the test_snapshot_attaches_nothing_when_statements_unavailable fixture, which now reaches the None-yoy path and no longer passes vacuously. No assertion was changed or removed. py_compile passes, ruff format leaves the file unchanged, and ruff check is clean.
+- f9da207a (advisory). Moved repo-root RESULT.md (the four writer reports) to docs/redesign/verification/r15/stage-c/lows/P3/writers/RESULT.md as a pure rename with no content change, prettier --check clean. Nothing referenced the old path.
+
+Left (not trivial, or outside this lane):
+- LEAD-036 merge e377d55a is kept under the P1 precedent (fence guard only; no proposed-changes gate hunk). Dropping it is the lead's call.
+- R15-DATA-102 blast radius (legacy fundamentals_store rows and non-yfinance producers lose the cross-check; semantics.py still labels growth 'mrq_yoy (provider-claimed)' unconditionally). This is a behaviour and design question, not a trivial fix. It needs the listed suites run at integration: test_growth_check, test_research_semantics, test_b7_exchange_financials, test_fundamentals*, test_yfinance_provider.
+- LEAD-036 guard behaviour: run test_agent_runtime.py now and again after P1 lands (gate lane).
+- PLATFORM-080 lib.rs: cargo fmt/clippy/test are off-lane. The lib.rs conflict with P1 dbe5fe4f and the P2 conflicts stand for the lead's integration.
+- PLATFORM-078: pip install -r sidecar/requirements-dev.txt on a fresh venv is an operator/gate step with no code change.
+- FRONTEND-038 INEFFECTIVE_DYNAMIC_IMPORT needs a real build (off-lane).
+- R15-DOCS-025, the conflict audit and the static checks are informational; no action.
+- Items carried from 07:00 (sidecarRequest timeout / AbortSignal.any WebKit floor, test_ddg_backend deletions, unrun **_k fakes, the QuantLib wording in UI-077, the PLATFORM-068 boot pytest plus smoke) remain open for the gate.
