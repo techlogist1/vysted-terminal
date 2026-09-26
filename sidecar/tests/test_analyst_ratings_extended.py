@@ -237,11 +237,14 @@ async def test_price_target_history_ignores_the_dead_legacy_column_names(
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("symbol", ["RELIANCE.NS", "532540.BO"])
+@pytest.mark.parametrize(
+    ("symbol", "expected"), [("RELIANCE.NS", "RELIANCE.NS"), ("532540.BO", "TCS.BO")]
+)
 async def test_ratings_lane_keeps_india_suffixes(
-    monkeypatch: pytest.MonkeyPatch, symbol: str
+    monkeypatch: pytest.MonkeyPatch, symbol: str, expected: str
 ) -> None:
-    """R15-DATA-029: the old dot-to-dash normaliser sent RELIANCE-NS / 532540-BO."""
+    """R15-DATA-029: the old dot-to-dash normaliser sent RELIANCE-NS / 532540-BO.
+    A numeric BSE scrip code reaches Yahoo as its ticker (R15-LEAD-028)."""
     asked: list[str] = []
 
     def _recording(sym: str) -> _FakeRatingsTicker:
@@ -250,5 +253,5 @@ async def test_ratings_lane_keeps_india_suffixes(
 
     monkeypatch.setattr(analyst_ratings_extended, "_yf_ticker", _recording)
     result = await analyst_ratings_extended.get_ratings_history(symbol)
-    assert asked == [symbol]
-    assert result.symbol == symbol
+    assert asked == [expected]
+    assert result.symbol == expected
