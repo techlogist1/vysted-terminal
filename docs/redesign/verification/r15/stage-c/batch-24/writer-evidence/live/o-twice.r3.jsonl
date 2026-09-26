@@ -1,0 +1,32 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_e65c807cc6da45a8ac355f4245e2f7cf", "name": "fundamentals", "input": {"symbol": "HDFCBANK.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_e65c807cc6da45a8ac355f4245e2f7cf", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "Based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " provided"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " HDF"}
+{"kind": "delta", "text": "CB"}
+{"kind": "delta", "text": "ANK"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capital"}
+{"kind": "delta", "text": "ization"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "134"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "044"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5830, "output_tokens": 26, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
