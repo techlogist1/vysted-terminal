@@ -1216,6 +1216,12 @@ def _scan_names(
             if band_score is None:
                 continue
             band, s = band_score
+            # R15-BATTERY-14: discount a former-name hit slightly so an
+            # identical current name at the same band always outranks it
+            # (e.g. BSOFT's retired name "KPIT Technologies Limited" no
+            # longer ties KPITTECH's current name and forces a
+            # disambiguation).
+            s *= 0.99
             inst = replace(_instrument_us(sym, s, band), former_name=old_name)
             scored.append((band, _locale_rank(region, inst.region), s, inst))
     former_in = former.get("in", {})
@@ -1228,6 +1234,7 @@ def _scan_names(
             if band_score is None:
                 continue
             band, s = band_score
+            s *= 0.99  # R15-BATTERY-14: see the US former-name loop above.
             inst = replace(_instrument_nse(sym, s, band), former_name=old_name)
             scored.append((band, _locale_rank(region, inst.region), s, inst))
     for sym in _bse_master():
@@ -1241,6 +1248,7 @@ def _scan_names(
             if band_score is None:
                 continue
             band, s = band_score
+            s *= 0.99  # R15-BATTERY-14: see the US former-name loop above.
             inst = replace(_instrument_bse(sym, s, band), former_name=old_name)
             scored.append((band, _locale_rank(region, inst.region), s, inst))
 
