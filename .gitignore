@@ -65,3 +65,4 @@ dev-keystore.json
 docs/redesign/verification/R15_BRIEF*.md
 docs/redesign/verification/r15/local/
 Claude outputs/
+coverage/
