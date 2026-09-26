@@ -128,7 +128,7 @@ async def _canonicalize(symbol: str) -> _Canonicalization:
 
     region = config.get_region()
     try:
-        resolution = await asyncio.to_thread(symbol_resolver.resolve, symbol, region)
+        resolution = await symbol_resolver.resolve_async(symbol, region)
     except Exception:  # noqa: BLE001 — the original provider error then stands
         return _Canonicalization()
     decision = resolution_policy.decide(resolution)

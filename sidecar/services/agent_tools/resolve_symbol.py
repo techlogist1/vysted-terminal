@@ -17,7 +17,6 @@ NSE + BSE masters + a best-effort live fallback). Registered via :func:`register
 
 from __future__ import annotations
 
-import asyncio
 from typing import Any
 
 from services.agent_tools import register_tool
@@ -52,7 +51,7 @@ async def _resolve_symbol(args: dict[str, Any]) -> dict[str, Any]:
     # On a worker thread, like the /resolve router: a master miss falls through
     # to a blocking yfinance Search (capped at 5 s) that must not stall the loop.
     try:
-        resolution = await asyncio.to_thread(symbol_resolver.resolve, query, region)
+        resolution = await symbol_resolver.resolve_async(query, region)
     except Exception as exc:  # noqa: BLE001 — a resolver failure is an honest miss
         return {
             "ok": False,
