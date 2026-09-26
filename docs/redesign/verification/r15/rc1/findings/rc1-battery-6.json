@@ -1,11 +1,1 @@
-[
-  {
-    "key": "battery-6-docs-017-incomplete",
-    "kind": "new_defect",
-    "severity": "low",
-    "register_id": "R15-DOCS-017",
-    "title": "CURRENT_STATE.md screener bullet still omits nse-all/bse-all/india-all universes despite fix_shape naming them",
-    "repro": "Read docs/CURRENT_STATE.md:358-365; grep -n universe docs/CURRENT_STATE.md shows zero nse-all/bse-all/india-all mentions, though they are real, live universes in sidecar/services/screener_universe_india.py (nse-all ~2675, bse-all, india-all ~5156). The certifying commit f10fb8ce1 (message names R15-DOCS-017) fixed the AND-only and top-100 claims but never added this third element its own fix_shape called for.",
-    "evidence_file": "docs/redesign/verification/r15/rc1/battery/set-56.md"
-  }
-]
+[]

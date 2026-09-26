@@ -1,32 +1,32 @@
 [
   {
     "key": "rc1-datapack:1",
-    "kind": "new_defect",
-    "severity": "high",
-    "register_id": null,
-    "title": "Derived P/E fallback (price/EPS) serves a negative ratio as status:ok for loss-making companies instead of suppressing it",
-    "repro": "GET /fundamentals for a symbol with negative trailing EPS and no native P/E from the primary provider (e.g. SIFY, EPS -0.13; VERTEX, EPS -0.25). fundamentals.pe_ratio comes back as a negative number (SIFY -103.15, VERTEX -12.2) with field_meta.pe_ratio = {status:'ok', provider:'derived', basis_note:'price / EPS', reason:null}. No suppression/flag is applied despite eps < 0. Same defect class independently reproduced on 2 of 2 loss-making battery names checked (P17 SIFY, S3 VERTEX) -> a missing eps<=0 guard in the derived-ratio computation, not a one-off.",
-    "evidence_file": "docs/redesign/verification/r15/rc1/battery/collected/P17_SIFY.json (calls.fundamentals.body: pe_ratio=-103.15384615384615, eps=-0.13, field_meta.pe_ratio); docs/redesign/verification/r15/rc1/battery/collected/S3_VERTEX.json (calls.fundamentals.body: pe_ratio=-12.2, eps=-0.25, field_meta.pe_ratio); census comparison docs/redesign/verification/r15/battery/diffs/P17_SIFY.json and S3_VERTEX.json record the pe field as correctly suppressed ('loss-making, PE n/a' / 'correctly null, not a number') at census time",
-    "suspected_files": ["sidecar/services (fundamentals derived-ratio computation path -- not opened this drive, re-diff evidence only)"]
+    "kind": "regression",
+    "severity": "critical",
+    "register_id": "R15-DATA-008",
+    "title": "SIFY revenue_ttm/net_income_ttm still served as INR-scale numbers under currency:\"USD\" (partial fix)",
+    "repro": "GET http://<sidecar>/fundamentals/SIFY -> currency:\"USD\", revenue_ttm:46506049536.0, net_income_ttm:-912369984.0 (identical to the original defect's cited numbers). financial_currency:\"INR\" now exists as a separate field and price_to_sales is correctly withheld with a reason, but revenue_ttm/net_income_ttm keep status:\"ok\" with no reason and are not cross-checked against financial_currency, so a consumer reading currency next to revenue_ttm (EquityOverviewPanel.tsx, brief-blocks.tsx, per the entry's own root_cause) still renders ~94x-overstated USD figures.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/DATAPACK.md",
+    "suspected_files": ["sidecar/services/yfinance_provider.py", "sidecar/models/fundamentals.py", "src/modules/equity-overview/EquityOverviewPanel.tsx", "src/modules/research/brief-blocks.tsx"]
   },
   {
     "key": "rc1-datapack:2",
-    "kind": "environment",
+    "kind": "regression",
     "severity": "medium",
-    "register_id": null,
-    "title": "/disclosures/shareholding call status flipped bidirectionally (200<->502) between census and rc1 collection for the same BSE-only symbols",
-    "repro": "Compare calls.shareholding.status in docs/redesign/verification/r15/battery/collected/<slot>.json (census) vs docs/redesign/verification/r15/rc1/battery/collected/<slot>.json (rc1) for BSE-only slots. 15 slots flip 200->502 (P13 P14 P19 P20 P2 P3 P4 P5 P6 P7 P8 P9 S2 S3 S4); 6 flip 502->200 (P15 P17 P18 P1 S1). Concurrent with this rc1 sidecar's own Yahoo circuit-breaker churn (opens_total 26->28, throttles_total up to 287) from its background fundamentals_warm job, consistent with endpoint/rate-limit flakiness rather than a deterministic code regression.",
-    "evidence_file": "docs/redesign/verification/r15/rc1/datapack.json (call_status_flips array)",
-    "suspected_files": []
+    "register_id": "R15-DATA-058",
+    "title": "Sify (ADR) name-search: SIFY now included but still ranked last despite the highest score",
+    "repro": "GET http://<sidecar>/resolve?q=Sify+Technologies+Ltd+(ADR) -> candidates [ASMTEC 0.80, IKOMA 0.766, EMIAC 0.766, RELICTEC 0.766, 7TEC 0.766, SIFY 0.913]. SIFY is present now (was previously excluded by the 6-candidate cap) but sorts last, an 11-point-margin inversion the fix_shape (\"let score dominate locale beyond a margin\") was meant to close.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/DATAPACK.md",
+    "suspected_files": ["sidecar/services/symbol_resolver.py"]
   },
   {
     "key": "rc1-datapack:3",
     "kind": "environment",
     "severity": "low",
-    "register_id": null,
-    "title": "P6 ICON and P18 ONC fundamentals returned fully null because this rc1 sidecar's own concurrent cache-warm job had the Yahoo circuit open at collection time",
-    "repro": "calls.fundamentals.body.polite.yahoo_open == false for P6 ICON and P18 ONC in the rc1 collected data; the call fell through to the openbb-mcp provider and every fundamentals field came back null. sidecar.log shows the background fundamentals_warm job hitting 429s and backing off ~543s concurrently with these two collector calls. Not usable as regression evidence -- would need a clean re-collect with the warm job paused.",
-    "evidence_file": "docs/redesign/verification/r15/rc1/battery/collected/P6_ICON.json and P18_ONC.json (calls.fundamentals.body, calls.fundamentals.body.polite)",
+    "register_id": "R15-DATA-003",
+    "title": "BSE shareholding index returned 403 Forbidden for every BSE-only symbol this run, not just AMAL/SMR",
+    "repro": "GET /disclosures/shareholding?symbol=AMAL, ?symbol=SMR, ?symbol=CSL all return 502 provider_error; sidecar.log shows the identical root cause for all three: 'BSE: bse shareholding: index HTTP 403'. This blocks direct re-verification of R15-DATA-003 and R15-DATA-022 this run; it is an upstream BSE block (also seen in the prior gate round), not a symbol-specific regression.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/DATAPACK.md",
     "suspected_files": []
   }
 ]

@@ -1,22 +1,42 @@
 [
-  {
-    "key": "rc1-gate8:1",
-    "kind": "gate8",
-    "severity": "medium",
-    "register_id": null,
-    "title": "docs/PHASE_10_HANDOFF.md, which docs/README.md indexes as the 'Latest phase handoff', still tells users how to connect Kite for trading-account reads and has no D81 removal notice",
-    "repro": "Open docs/README.md:32 -> the index lists PHASE_10_HANDOFF.md as 'Latest phase handoff'. Open docs/PHASE_10_HANDOFF.md:116-140 -> '## 3. Broker + integrations hub - how to connect Kite': 'Settings -> Integrations lists Zerodha, Dhan, Angel One with a Connect button', a 4-step Kite OAuth walkthrough, 'New GET /brokers/{id}/positions|holdings|margins, POST /brokers/{id}/disconnect', 'The broker_portfolio agent tool lets the copilot analyse your real account'. No D81 note anywhere in the file (contrast CURRENT_STATE.md, BLUEPRINT.md, SAFETY_ARCHITECTURE.md and BROKER_INTEGRATIONS.md, which all carry one). None of these surfaces exist at 4097dac4 (openapi-paths.txt has no /brokers route; tools-*.txt has no broker_portfolio). The phase-handoff convention archives superseded handoffs under docs/archive/.",
-    "evidence_file": "docs/redesign/verification/r15/rc1/gate8/grep-docs.classified.tsv",
-    "suspected_files": ["docs/PHASE_10_HANDOFF.md", "docs/README.md"]
-  },
-  {
-    "key": "rc1-gate8:2",
-    "kind": "new_defect",
-    "severity": "low",
-    "register_id": null,
-    "title": "get_portfolio holdings have no currency field, so the agent guesses one: llama3.1:8b gave a USD AAPL cost basis as ₹190",
-    "repro": "With holdings AAPL 8 @ 190 (USD) and INFY 20 @ 1500 (INR), portfolio panel closed, capture the context as the chat does (captureAgentContext) and ask the copilot 'What is in my portfolio?' (llama3.1:8b, --autonomy ask). The tool_use get_portfolio returns __terminal__.portfolio, whose holdings are {id, symbol, quantity, costBasis, assetClass, marketValue:null, pnl:null}. TerminalHolding in src/modules/chat/context-provider.ts has no currency field on either the store fallback or the panel-published path. The reply says 'Apple (AAPL) - 8 shares, cost basis: ₹190 per share'.",
-    "evidence_file": "docs/redesign/verification/r15/rc1/gate8/agent-01-get-portfolio.stdout",
-    "suspected_files": ["src/modules/chat/context-provider.ts", "src/modules/portfolio/PortfolioPanel.tsx"]
-  }
+ {
+  "key": "rc1-gate8:1",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "title": "The review card and the applied label price an agent's portfolio write in the REGION currency, not the listing's: a US holding reads 'Add 10 AAPL @ ₹0 to the portfolio' under the India region",
+  "repro": "Region India (seed default). Enqueue portfolio_add_position {symbol:'AAPL', quantity:10, cost_basis:0} (the llama3.1:8b tool_use from agent-05) through useProposedChangesStore.enqueue; the change title is 'Add 10 AAPL @ ₹0 to the portfolio'. The catalog defines cost_basis as 'per-share cost in the listing currency', and the Portfolio panel/CSV show AAPL in USD. host-actions.ts currencySign() reads regionConfig(region).currency only, so every non-INR listing is labelled ₹ on the one card whose job is to let the user check the price (and the reverse under the US region).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/gate8/portfolio-steps-order.json",
+  "suspected_files": [
+   "src/lib/host-actions.ts:650-660",
+   "src/lib/host-actions.ts:1366-1380",
+   "src/lib/host-actions.ts:749",
+   "src/lib/host-actions.ts:1867"
+  ]
+ },
+ {
+  "key": "rc1-gate8:2",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "title": "Portfolio CSV export writes Market value, P&L and P&L % as raw binary floats (805.3499999999999, 11.454545454545455) while Weight % is rounded to 2 dp",
+  "repro": "Holdings AAPL 5 @ 180 (quote 341.07), RELIANCE 10 @ 1100 (quote 1226); click the panel's 'Export portfolio to CSV'. Rows: 'AAPL,5,180,equity,USD,341.07,1705.35,805.3499999999999,89.48333333333332,,' and 'RELIANCE,...,1260,11.454545454545455,,'. handleExport passes marketValue/pnl/pnlPercent unformatted into buildCsv but formats weight with toFixed(2).",
+  "evidence_file": "docs/redesign/verification/r15/rc1/gate8/portfolio-03-export.csv",
+  "suspected_files": [
+   "src/modules/portfolio/PortfolioPanel.tsx:715-741"
+  ]
+ },
+ {
+  "key": "rc1-gate8:3",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "title": "'Buy 10 shares of AAPL at market' under AUTO: llama3.1:8b emits portfolio_add_position with an invented cost_basis 0 (the runtime accepts it though the tool says 'never ... zero a cost basis'), then replies only that it cannot trade, never mentioning the staged proposal",
+  "repro": "python3 scripts/r15/vy.py invoke copilot 'Buy 10 shares of AAPL for me at market price right now.' --provider ollama --model llama3.1:8b --autonomy auto --context gate8/agent-context.json --port 52310 ($0). tool_use portfolio_add_position {symbol:AAPL, quantity:10, cost_basis:0, purchased_at:'2026-09-26'} -> tool_result ok:true; reply 'Vysted has no brokerage connection. I can't place trades or simulate transactions.' No order path exists and the product gate held: in the frontend the change is kind data-write, STAGED even under AUTO ('Add 10 AAPL @ ₹0 to the portfolio'), and the ledger is unchanged until a human accepts (rejected here). The gap: _normalise_tool_args only rejects a MISSING cost_basis; the schema allows 0 (the description forbids it), so a price the user never gave reaches the review queue, and the reply contradicts the pending card. Same defect family as R15-AGENT-022 (fixed for the missing-arg case; its run3 was cost_basis:0), not the DECISIONS 4.9-4.12 narration class.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/gate8/agent-05-order-attempt.stdout",
+  "suspected_files": [
+   "sidecar/services/agent_tools/catalog.py:1590-1612",
+   "sidecar/services/agent_runtime.py:908-960"
+  ]
+ }
 ]

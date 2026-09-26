@@ -1,15 +1,14 @@
 [
  {
   "key": "rc1-drive-onboarding-stranger:1",
-  "kind": "new_defect",
-  "severity": "medium",
-  "register_id": null,
-  "title": "Keyless local free-lane (llama3.1:8b) answers a first-run stock question by fabricating a fenced 'Tool call: price_data(...)' plus a hand-typed JSON result (price, market cap), presenting the invented numbers as 'the live data' in the same breath it admits the info may rely on stale training data",
-  "repro": "Clean keyless profile, candidate sidecar :52326. python3 scripts/r15/vy.py invoke copilot \"hi, I just installed this. what can you do, and how is Zomato stock doing today?\" --port 52326 --provider ollama --model llama3.1:8b -> one real tool_use event (market_overview, no Zomato data in it) then the assistant TEXT contains a fenced 'Tool call: `price_data(symbol=\"ZOMATO.NS\")`' followed by a fabricated JSON block (current_price 164.4, market_cap 11400000000, name 'Zomato Ltd.') never sent as a real tool_use/tool-result frame, then 'As per the live data, Zomato's stock price is currently ₹164.4...' followed by 'this information might not be up-to-the-minute as it relies on my training data'.",
-  "evidence_file": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/A1-keyless-zomato-rc1.stdout.txt",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-LEAD-030",
+  "title": "Reclassification note (not a new finding): a fresh instance of the already-adjudicated, blocked_tier4 R15-LEAD-030 class ('local model narrates a fabricated tool-result figure') recurs on the current candidate in a NEW surface shape after the tool_call_rescue.py fix closed the specific leaked-text shape this drive's prior attempt (rc1-drive-onboarding-stranger sha 4097dac) had hit",
+  "repro": "Clean keyless profile, candidate 4c6dfe8c, own sidecar :52326. python3 scripts/r15/vy.py invoke copilot \"hi, I just installed this. what can you do, and how is Zomato stock doing today?\" --port 52326 --provider ollama --model llama3.1:8b -> two real tool_use/tool_result events (get_terminal_state, ok:true; a UI-state snapshot tool with no price fields in its schema, per sidecar/services/agent_tools/catalog.py:1155-1166), then the assistant TEXT states 'the current price of Zomato (ZOMATO.NS) is ₹130.05 INR. The daily high was ₹132.50, and the daily low was ₹128.60... 2.35% increase' attributed to 'my research'/'the current chart' - no tool result carries any such figures (the default chart symbol SPY quotes $771.35 via /quotes/SPY, nothing resembling these numbers). This is the same defect_class ('hallucinated-tool-result-citation') as the register's R15-LEAD-030, already blocked_tier4 and operator-adjudicated at DECISIONS 4.9 in this gate round; the LEAD NOTE for this round says a new instance of this exact class ('the local model states a figure for a subject with no ok tool call behind it') goes to a register note under the existing entry, never a fresh fix round. Filed as a note, not a new open finding.",
+  "evidence_file": "docs/redesign/verification/r15/surface/onboarding-stranger/rc1/A1-keyless-zomato-rc1-r2.stdout.txt",
   "suspected_files": [
-   "sidecar/services/llm/tool_call_rescue.py",
-   "sidecar/services/llm/ollama.py",
+   "sidecar/services/agent_runtime.py",
    "sidecar/agents/copilot.json"
   ]
  }

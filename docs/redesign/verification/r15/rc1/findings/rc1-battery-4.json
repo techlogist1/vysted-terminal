@@ -1,15 +1,1 @@
-[
-  {
-    "key": "rc1-battery-4:1",
-    "kind": "new_defect",
-    "severity": "medium",
-    "register_id": null,
-    "title": "nse_direct's process-wide throttle serializes concurrent snapshot_structured legs past their shared 6s witness timeout",
-    "repro": "In-process, candidate sidecar venv, PYTHONPATH=sidecar, VYSTED_DATA_DIR=<own seed copy>: `await asyncio.gather(agent_tools.invoke_tool('price_data', {'symbol': 'RELIANCE'}), agent_tools.invoke_tool('fundamentals', {'symbol': 'RELIANCE'}))` takes ~18.3s combined (both legs individually succeed in 1-3s when called alone, sequentially). Called through `services.research.fast.snapshot_structured(..., 'RELIANCE', region='IN')`, both legs report `{'ok': False, 'error': '... timed out after 6s — dropped'}` even though the underlying data is available and each fetch alone is fast. Root cause: services/nse_provider.py's module-level `_Throttle` (min_interval=1.0s+jitter) and `_lock` (threading.Lock around the actual session.get call) serialize ALL nse_direct HTTP calls process-wide (an intentional anti-bot pacer, tagged 'R15-DATA-066' in a comment, not new to batch-6). services/research/fast.py's `_WITNESS_LEG_TIMEOUT_S = 6.0` time-boxes price+fundamentals AND all 7 cross-check witness legs (dividend TTM, growth, ownership, declared dividend, earnings quality, 52-week range, market-cap witness) independently and concurrently via the same asyncio.gather fan-out — up to 9 concurrent tasks can all be waiting on the same serialized nse_direct resource at once, so later-queued legs routinely exceed the shared 6s budget purely from queueing, not from any real slowness or failure in the data itself.",
-    "evidence_file": "docs/redesign/verification/r15/rc1/battery/raw/set-21/R15-CODE-RESEARCH-002.txt",
-    "suspected_files": [
-      "sidecar/services/research/fast.py",
-      "sidecar/services/nse_provider.py"
-    ]
-  }
-]
+[]

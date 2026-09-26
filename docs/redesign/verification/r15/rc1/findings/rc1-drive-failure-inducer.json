@@ -7,6 +7,7 @@
     "title": "Shared SearXNG's DDG/Brave/Startpage engines are currently CAPTCHA'd/rate-limited (upstream, not candidate code)",
     "repro": "GET http://127.0.0.1:52327/search/searxng/status (my sidecar, proxying the shared already-running SearXNG container) -> state:\"degraded\", reason:\"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA\"",
     "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/rc1/rc1-nodocker-status.txt",
-    "suspected_files": []
+    "suspected_files": [],
+    "notes": "Re-probed on gate round 2 against candidate 4c6dfe8c2d939ce3557e977a3ddcf802931ac2a2 via GET http://127.0.0.1:52152/search/searxng/status (shared stack, read-only) -- same degraded state, same three engines, unchanged. Round-2 evidence: docs/redesign/verification/r15/surface/failure-inducer/rc1/nodocker-status-r2.txt."
   }
 ]
