@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidecarError } from "@/lib/sidecar-client";
@@ -14,11 +14,17 @@ vi.mock("./api", () => ({
   fetchNewsSourcesStatus: vi.fn(),
 }));
 
+vi.mock("@/lib/host-actions", () => ({
+  loadSymbolIntoChart: vi.fn(),
+}));
+
 import { fetchNews, fetchNewsSourcesStatus } from "./api";
+import { loadSymbolIntoChart } from "@/lib/host-actions";
 import { NewsFeedPanel } from "./NewsFeedPanel";
 
 const mockFetchNews = vi.mocked(fetchNews);
 const mockFetchNewsSourcesStatus = vi.mocked(fetchNewsSourcesStatus);
+const mockLoadSymbolIntoChart = vi.mocked(loadSymbolIntoChart);
 
 function newsItem(overrides: Partial<NewsItem> = {}): NewsItem {
   return {
@@ -46,6 +52,7 @@ describe("NewsFeedPanel", () => {
     mockFetchNews.mockReset();
     mockFetchNewsSourcesStatus.mockReset();
     mockFetchNewsSourcesStatus.mockResolvedValue({ newsapi: "absent" });
+    mockLoadSymbolIntoChart.mockReset();
   });
 
   afterEach(() => {
@@ -195,5 +202,29 @@ describe("NewsFeedPanel", () => {
       expect(screen.getByText("NVDA")).toBeInTheDocument();
     });
     expect(screen.getByText("SPY")).toBeInTheDocument();
+  });
+
+  it("renders symbol chips as buttons outside the article anchor and loads the symbol on click (R15-AGENT-053)", async () => {
+    mockFetchNews.mockResolvedValue([newsItem({ symbols: ["NVDA"] })]);
+    render(<NewsFeedPanel />);
+
+    const button = await screen.findByRole("button", { name: /load nvda in chart/i });
+    expect(button.closest("a")).toBeNull();
+
+    fireEvent.click(button);
+    expect(mockLoadSymbolIntoChart).toHaveBeenCalledWith("NVDA");
+  });
+
+  it("gives a two-symbol item two buttons and loads only the clicked symbol", async () => {
+    mockFetchNews.mockResolvedValue([newsItem({ symbols: ["NVDA", "AMD"] })]);
+    render(<NewsFeedPanel />);
+
+    const nvdaButton = await screen.findByRole("button", { name: /load nvda in chart/i });
+    const amdButton = screen.getByRole("button", { name: /load amd in chart/i });
+
+    fireEvent.click(amdButton);
+    expect(mockLoadSymbolIntoChart).toHaveBeenCalledTimes(1);
+    expect(mockLoadSymbolIntoChart).toHaveBeenCalledWith("AMD");
+    expect(nvdaButton.closest("a")).toBeNull();
   });
 });
