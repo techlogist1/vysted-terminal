@@ -26,9 +26,15 @@ The manager is a small state machine — the CONTRACT for the UI's guided
   ``error``                       a setup/start step failed; ``reason`` says why.
                                   STICKY through the status poll: the polled
                                   surface is the only one the UI has (setup runs
-                                  as a background task), so :meth:`refresh` must
-                                  not re-derive over it — only the next
-                                  ``setup()``/``teardown()`` clears it.
+                                  as a background task), so :meth:`refresh`
+                                  never re-derives it into a state that would
+                                  hide it (not_setup/starting/no-docker). Only a
+                                  container that is actually serving again
+                                  (ready/degraded — e.g. the user ran
+                                  ``docker start`` by hand) supersedes it, and
+                                  ``last_error`` keeps reporting the failure
+                                  until the next ``setup()``/``teardown()``
+                                  (R15-LIFECYCLE-035).
 
 Every docker CLI invocation goes through ONE asyncio-subprocess seam
 (:func:`_run_docker`) and every health check through one probe seam
@@ -103,6 +109,10 @@ _STOP_TIMEOUT_SECS = 60.0
 _HEALTH_REQUEST_TIMEOUT_SECS = 5.0
 DEFAULT_HEALTH_TIMEOUT_SECS = 90.0
 DEFAULT_HEALTH_INTERVAL_SECS = 1.5
+#: While in ``error``, the retrieval hot path re-derives from docker at most
+#: this often, so a container the user fixed by hand is picked up without a
+#: Settings visit, and a broken docker never costs every search a CLI round trip.
+ERROR_REPROBE_INTERVAL_SECS = 30.0
 
 #: R15-RESEARCH-028: consecutive zero-result engine-quality probes (no engine
 #: named itself unresponsive, but nothing came back either) before a
@@ -380,6 +390,7 @@ class SearxngManager:
         self._config_dir = config_dir
         # One-shot hot-path world-derivation guard (see ready_base_url_detected).
         self._hot_path_detected = False
+        self._error_reprobe_at = 0.0
         self._detect_lock = asyncio.Lock()
         self._detect_task: asyncio.Task[str | None] | None = None
         self._consecutive_empty_probes = 0
@@ -391,6 +402,9 @@ class SearxngManager:
         self.state: str = STATE_UNKNOWN
         self.detail: str | None = None
         self.reason: str | None = None
+        # The most recent setup failure; outlives an ``error`` state that a
+        # hand-fixed container superseded (R15-LIFECYCLE-035).
+        self.last_error: str | None = None
         self.port: int | None = None
         self._container: str | None = None
         self._docker_probe: DockerProbe | None = None
@@ -423,6 +437,8 @@ class SearxngManager:
         self.state = state
         self.detail = detail
         self.reason = reason if state in (STATE_ERROR, STATE_DEGRADED) else None
+        if state == STATE_ERROR:
+            self.last_error = reason
 
     def _apply_quality(self, probe: EngineProbe, port: int) -> None:
         """Resolve READY vs DEGRADED from one engine-quality probe (R15-RESEARCH-028).
@@ -507,6 +523,7 @@ class SearxngManager:
             "state": self.state,
             "detail": self.detail,
             "reason": self.reason,
+            "last_error": self.last_error,
             "port": self.port,
             "url": url,
             "container": self._container,
@@ -546,10 +563,15 @@ class SearxngManager:
         callers racing the cold first read both await the SAME derivation
         instead of the second one reading a still-``STATE_UNKNOWN`` manager and
         wrongly concluding "no managed instance" for that one request.
+
+        R15-LIFECYCLE-035: while the manager sits in ``error`` the hot path
+        re-derives again, throttled to :data:`ERROR_REPROBE_INTERVAL_SECS`, so a
+        container the user fixed by hand is used without a Retry or restart.
         """
-        if not self._hot_path_detected:
+        if self._hot_path_needs_derive():
             async with self._detect_lock:
-                if not self._hot_path_detected:
+                if self._hot_path_needs_derive():
+                    self._error_reprobe_at = time.monotonic() + ERROR_REPROBE_INTERVAL_SECS
                     try:
                         await self.refresh()
                     except Exception:  # noqa: BLE001 — detection must never break retrieval
@@ -557,6 +579,11 @@ class SearxngManager:
                     finally:
                         self._hot_path_detected = True
         return self.ready_base_url()
+
+    def _hot_path_needs_derive(self) -> bool:
+        if not self._hot_path_detected:
+            return True
+        return self.state == STATE_ERROR and time.monotonic() >= self._error_reprobe_at
 
     def warm_detect(self) -> None:
         """Kick the one-shot hot-path derivation off eagerly (app lifespan boot).
@@ -616,17 +643,26 @@ class SearxngManager:
         health are re-probed so the status endpoint never lies about a container
         the user removed behind our back.
 
-        Exception: a settled ``error`` is STICKY. Setup runs as a background
-        task, so the status poll is the only surface that can ever deliver
-        ``error(reason)`` to the UI — re-deriving here would overwrite a failed
-        pull/run with ``docker_present_not_setup`` on the very first poll and
-        the reason would never be observable. The error survives until the next
-        :meth:`setup`/:meth:`begin_setup` (retry) or :meth:`teardown` clears it.
+        A settled ``error`` is STICKY against any re-derivation that would hide
+        it: setup runs as a background task, so the status poll is the only
+        surface that can deliver ``error(reason)`` to the UI, and a failed pull
+        re-derives to ``docker_present_not_setup`` (a never-healthy container to
+        ``starting``). The world still gets probed, though: a container that is
+        serving again (``ready``/``degraded``, e.g. the user ran ``docker
+        start`` by hand) supersedes the error, with ``last_error`` still
+        reporting it (R15-LIFECYCLE-035). Otherwise the error survives until the
+        next :meth:`setup`/:meth:`begin_setup` (retry) or :meth:`teardown`.
         """
         if self._task is not None and not self._task.done():
             return self.snapshot()
-        if self.state == STATE_ERROR:
-            return self.snapshot()
+        sticky = (self.detail, self.reason) if self.state == STATE_ERROR else None
+        await self._derive()
+        if sticky is not None and self.state not in (STATE_READY, STATE_DEGRADED):
+            self._set(STATE_ERROR, detail=sticky[0], reason=sticky[1])
+        return self.snapshot()
+
+    async def _derive(self) -> None:
+        """Probe docker + container + health and set the matching state."""
         probe = await self.detect()
         if not probe.cli_present:
             self._container = None
@@ -634,14 +670,14 @@ class SearxngManager:
                 STATE_NOT_INSTALLED_DOCKER,
                 detail="docker CLI not found — install Docker Desktop or OrbStack",
             )
-            return self.snapshot()
+            return
         if not probe.daemon_running:
             self._container = None
             self._set(
                 STATE_NOT_INSTALLED_DOCKER,
                 detail="docker CLI found but the daemon is not running — start Docker/OrbStack",
             )
-            return self.snapshot()
+            return
 
         container = await self._container_status()
         self._container = container
@@ -665,7 +701,6 @@ class SearxngManager:
                 STATE_DOCKER_PRESENT_NOT_SETUP,
                 detail=f"managed container exists but is {container} — setup will restart it",
             )
-        return self.snapshot()
 
     # ------------------------------------------------------------------- setup
 
@@ -691,12 +726,14 @@ class SearxngManager:
         """
         if self._task is not None and not self._task.done():
             return self.snapshot()
+        self.last_error = None
         self._set(STATE_PULLING, detail="starting guided setup — checking docker")
         self._task = asyncio.create_task(self.setup())
         return self.snapshot()
 
     async def setup(self) -> dict[str, object]:
         """Run the full pull → configure → run → health sequence to READY (or error)."""
+        self.last_error = None
         try:
             async with self._lock:
                 return await self._setup_locked()
@@ -817,6 +854,7 @@ class SearxngManager:
             # error (the other is a setup retry); drop back to the pre-probe
             # placeholder so the closing refresh() re-derives from the world.
             self._set(STATE_UNKNOWN)
+            self.last_error = None
         return await self.refresh()
 
     async def shutdown(self) -> None:
