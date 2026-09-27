@@ -2898,9 +2898,9 @@
     "data-smallcaps",
     "research-search"
    ],
-   "status": "open",
-   "note": "filed at rc1 gate round 5 @633f8440 from rc1-verifier:5; new high → one bounded fix round inside the gate (gate rule change 1)",
-   "closure_evidence": null
+   "status": "fixed",
+   "note": "filed at rc1 gate round 5 @633f8440 from rc1-verifier:5; new high → one bounded fix round inside the gate (gate rule change 1)\n18:31 IST 27 Sep: fixed in the round-5 bounded fix round and certified (see closure_evidence). The verifier's adjacent high on the explicit .BO pin is filed as R15-LEAD-116 (DECISIONS 4.22); its adjacent low as R15-LEAD-117.",
+   "closure_evidence": "rc1 round-5 fix-r2 (the one bounded fix round under gate rule change 1): writer 52fd29e9 (listing_lanes(bare) anchors all five disclosure lanes on symbol_resolver.dual_listed_bse_code, never the same-ticker BSE scrip; _company_name_key strips BSE's trailing '-$'), int 769b1f31 (ruff clean, pytest 3784 passed / 1 skipped), fresh verifier CERTIFIED at 769b1f31 (round-5/fix-r2/VERIFY.md): FOCUS 44 rows all NSE with the different-company note; held-out KALYANI/MAL/SEL/RAJPUTANA NSE-only; INFY/HDFCBANK/IZMO still merge both exchanges; BSE-only SPICEJET/ASMTEC served; sibling lanes agree; 184 tests. Merged onto 004 as 794bc68f."
   },
   {
    "id": "R15-LIFECYCLE-001",
@@ -19088,6 +19088,61 @@
    ],
    "status": "open",
    "note": "triage@e032be7: still_reproduces, confidence 5, prompt + parser + model + TS mirror + typed render blocks, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-094"
+  },
+  {
+   "id": "R15-LEAD-116",
+   "title": "FOCUS.BO (an explicit BSE pin on a same-ticker, different-company name) serves the NSE company's feed in all five disclosure lanes",
+   "severity": "high",
+   "area": "data",
+   "subsystem": "resolver",
+   "files": [
+    "sidecar/services/corporate_disclosures.py (the exchange suffix is stripped into `bare` before listing_lanes(bare), so the .BO pin is lost; the same bare feeds announcements, results, shareholding, corporate-actions and deals)",
+    "sidecar/services/symbol_resolver.py"
+   ],
+   "repro": "Own sidecar at 794bc68f, header X-Vysted-Region: IN: GET /disclosures/announcements?symbol=FOCUS.BO -> 44 rows, all Focus Lighting and Fixtures (NSE) with note 'BSE FOCUS is a different company; only the NSE feed is served'. Expected: Focus Business Solution's BSE 543312 feed (GET ...?symbol=543312 serves its 19 BSE rows). The results, shareholding, corporate-actions and deals lanes behave the same way for FOCUS.BO.",
+   "evidence": "docs/redesign/verification/r15/rc1/round-5/fix-r2/verify/a2-FOCUS-BO-ann.json; docs/redesign/verification/r15/rc1/round-5/fix-r2/VERIFY.md (adjacent 1)",
+   "root_cause": "corporate_disclosures.py resolves the request to `bare` (strip_exchange_suffix drops .BO) before listing_lanes(bare); an explicit BSE identity therefore collapses onto the NSE company whenever the same ticker names two companies. Collision set in the bundled masters after the LEAD-059 fix: FOCUS, KALYANI, RAJPUTANA, MAL, SEL, ZEAL (6 of 2657 shared tickers). Pre-existing: before the LEAD-059 fix FOCUS.BO served the mixed feed.",
+   "fix_shape": "Honour an explicit .BO: when the suffix is BSE and the same-ticker BSE scrip is a different company from the NSE listing, take the BSE company's lanes (scrip from the BSE master) and no NSE lane; a same-company .BO (AMAL.BO) keeps today's behaviour, pinned by test_class_case_deals_and_actions_gate_the_same_way_amal_bo_still_served. Acceptance: FOCUS.BO announcements == the symbol=543312 rows in all five lanes; AMAL.BO and bare FOCUS unchanged.",
+   "defect_class": "identity-by-ticker-string",
+   "raw_ids": [
+    "rc1-r5-fix-verifier adjacent"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "research-search"
+   ],
+   "status": "open",
+   "note": "filed 18:31 IST 27 Sep from the round-5 fix round's fresh verifier (VERIFY.md adjacent, evidence a2-FOCUS-BO-ann.json). Not a regression of the LEAD-059 fix (pre-existing). A new HIGH found AFTER the one bounded fix round gate rule change 1 allows: the rc1 bar needs open critical/high = 0, so the tag waits on the operator — DECISIONS_FOR_OPERATOR.md 4.22 (options a/b/c, recommendation b).",
+   "closure_evidence": null,
+   "source": "rc1 gate round 5 fix-r2 fresh verifier"
+  },
+  {
+   "id": "R15-LEAD-117",
+   "title": "FOCUS&exchange=BSE answers venue_not_covered with a note claiming FOCUS is not listed on BSE (BSE 543312 exists, a different company)",
+   "severity": "low",
+   "area": "data",
+   "subsystem": "resolver",
+   "files": [
+    "sidecar/services/corporate_disclosures.py (venue_not_covered note wording for a same-ticker, different-company BSE listing)"
+   ],
+   "repro": "Own sidecar at 794bc68f, X-Vysted-Region: IN: GET /disclosures/announcements?symbol=FOCUS&exchange=BSE -> coverage venue_not_covered, note 'FOCUS is not listed on BSE, so its BSE feed does not cover it'. BSE does list a FOCUS (543312, Focus Business Solution).",
+   "evidence": "docs/redesign/verification/r15/rc1/round-5/fix-r2/verify/a2-FOCUS_exchange_BSE-ann.json; VERIFY.md (adjacent 2)",
+   "root_cause": "The venue_not_covered note assumes the ticker is absent from BSE; for a different-company collision the truthful wording is that BSE FOCUS is another company.",
+   "fix_shape": "Note wording: 'BSE FOCUS (543312) is a different company; use symbol=543312 (or FOCUS.BO once R15-LEAD-116 lands) for it'. Acceptance: the note names the other company for the six collision names; unchanged elsewhere.",
+   "defect_class": "identity-by-ticker-string",
+   "raw_ids": [
+    "rc1-r5-fix-verifier adjacent"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "data-smallcaps",
+    "research-search"
+   ],
+   "status": "open",
+   "note": "filed 18:31 IST 27 Sep from the round-5 fix round's fresh verifier (adjacent 2); open at 0.9.0 -> first 0.9.1 batch.",
+   "closure_evidence": null,
+   "source": "rc1 gate round 5 fix-r2 fresh verifier"
   }
  ],
  "rejections": [
@@ -19398,11 +19453,11 @@
  ],
  "counts": {
   "raw": 887,
-  "entries": 736,
+  "entries": 738,
   "rejections": 76,
   "critical": 16,
-  "high": 122,
+  "high": 123,
   "medium": 329,
-  "low": 269
+  "low": 270
  }
 }

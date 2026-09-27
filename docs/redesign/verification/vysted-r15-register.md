@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 736 entries + 76 rejections. critical: 16 . high: 122 . medium: 329 . low: 269
+887 raw findings -> 738 entries + 76 rejections. critical: 16 . high: 123 . medium: 329 . low: 270
 
-Status: blocked_tier4: 35 . fixed: 394 . needs_gui: 11 . not_a_defect: 6 . open: 276 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 395 . needs_gui: 11 . not_a_defect: 6 . open: 277 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -325,7 +325,7 @@ Status: blocked_tier4: 35 . fixed: 394 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-RESEARCH-041** [low] The 'structured data only - no web' brief banner can never fire: briefFromInput counts vysted:// and exchange rows as web availability, so zero-web DEEP/ULTRA briefs never get the promised affordance — _open_
 - **R15-RESEARCH-042** [low] The research cockpit's brief has no floor of >=3 cited sources (SC-016): nothing enforces or measures source count per brief, and with no web backend FAST publishes structured-only with fewer — _open_
 
-### Data on small or obscure stocks (156)
+### Data on small or obscure stocks (158)
 
 - **R15-DATA-001** [critical] Income / balance-sheet / cash-flow statements (and one /fundamentals identity) for Indian tickers that collide with a US ticker serve the US company's real financials under the Indian name (DAL->Delta, CHTR->Charter, SAFE->Safehold, CSL->Carlisle, ICON->Icon Energy, AMAL->Amalgamated, SMR->NuScale, TTC->Toro, SUMAX->a US muni fund) — _fixed_
 - **R15-DATA-002** [critical] A bare ticker that exists in both the US and Indian masters binds silently to the session region, and every data panel re-queries the bare symbol, so the user who picked NASDAQ:AMAL or NYSE:SMR gets Amal Ltd / SMR Jewels quote, ratios and 52w range (and, for SMR, NuScale statements under the same header) — _blocked_tier4_
@@ -376,7 +376,7 @@ Status: blocked_tier4: 35 . fixed: 394 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-011** [high] ^NSEI (Nifty 50) and other caret-prefixed Yahoo index symbols get wrongly suffixed .NS by _yahoo_symbol's IN bare-ticker path, so index history returns 0 bars — _fixed_
 - **R15-LEAD-022** [high] _yahoo_symbol rewrites every non-Indian foreign exchange suffix with a dash (BHP.AX -> BHP-AX, 0700.HK -> 0700-HK, 7203.T -> 7203-T, VOD.L -> VOD-L), so Yahoo answers 'possibly delisted' and every non-US, non-IN listing is unquotable — _fixed_
 - **R15-LEAD-044** [high] Screener universe fetches (sp500/nifty50) resolve bare tickers by session region with no universe-intrinsic region, poisoning the store with wrong-entity rows that persist across sessions — _fixed_
-- **R15-LEAD-059** [high] FOCUS announcements merge the BSE feed of a different company (BSE scrip 543312) with Focus Lighting and Fixtures NSE items under one symbol — _open_
+- **R15-LEAD-059** [high] FOCUS announcements merge the BSE feed of a different company (BSE scrip 543312) with Focus Lighting and Fixtures NSE items under one symbol — _fixed_
 - **R15-LIFECYCLE-004** [high] Exchange payload field drift is served as fabricated data: a renamed open/high/low/volume field yields open=high=low=close candles with zero volume under the exchange's own provider label, and the correctness gate passes them — _fixed_
 - **R15-AGENT-060** [medium] shareholding_pattern returns the parsed FII/DII split, but both its catalog description and a hardcoded handler note tell the model the split is not there (lives in the XBRL filing) — _fixed_
 - **R15-AGENT-061** [medium] The fundamentals agent tool discards ProviderError.kind and re-derives it by substring, so a real not_found (instrument does not exist) is reported as provider_error ('our feed's gap') — _fixed_
@@ -483,6 +483,8 @@ Status: blocked_tier4: 35 . fixed: 394 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-110** [low] A listed 1994 JPM 10-K opens as 502 'unexpected response' (sec-edgar-mcp get_filing_sections NoneType) instead of degrading to the raw filing text — _open_
 - **R15-LEAD-112** [low] 200 F&O bhavcopy with truncated PK zip raises BadZipFile out of fetch_latest_fo, no walk-back — _open_
 - **R15-LEAD-115** [low] The quarterly-gap TTM reason always says 'a quarter of the trailing year' is unfiled, which understates the gap for fresh listings with only one or two quarters ever filed — _open_
+- **R15-LEAD-116** [high] FOCUS.BO (an explicit BSE pin on a same-ticker, different-company name) serves the NSE company's feed in all five disclosure lanes — _open_
+- **R15-LEAD-117** [low] FOCUS&exchange=BSE answers venue_not_covered with a note claiming FOCUS is not listed on BSE (BSE 543312 exists, a different company) — _open_
 
 ## All entries by severity
 
@@ -593,7 +595,7 @@ Status: blocked_tier4: 35 . fixed: 394 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-LEAD-022 | high | data | resolver | _yahoo_symbol rewrites every non-Indian foreign exchange suffix with a dash (BHP.AX -> BHP-AX, 0700.HK -> 0700-HK, 7203.T -> 7203-T, VOD.L -> VOD-L), so Yahoo answers 'possibly delisted' and every non-US, non-IN listing is unquotable | fixed |  |
 | R15-LEAD-030 | high | agent | agent-tools | After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries | blocked_tier4 |  |
 | R15-LEAD-044 | high | data | market-data-providers-1 | Screener universe fetches (sp500/nifty50) resolve bare tickers by session region with no universe-intrinsic region, poisoning the store with wrong-entity rows that persist across sessions | fixed | rc1-vshard-6:1, R15-LEAD-013 |
-| R15-LEAD-059 | high | data | resolver | FOCUS announcements merge the BSE feed of a different company (BSE scrip 543312) with Focus Lighting and Fixtures NSE items under one symbol | open |  |
+| R15-LEAD-059 | high | data | resolver | FOCUS announcements merge the BSE feed of a different company (BSE scrip 543312) with Focus Lighting and Fixtures NSE items under one symbol | fixed |  |
 | R15-LIFECYCLE-001 | high | lifecycle | rust-core | Every launch freezes the app's main event loop for the whole MCP bind window (about 25 s warm, 34 s+ cold, up to 90 s), and the data sidecar is not even spawned until both MCP binds return | needs_gui | COD-rust-core-1, INT-deferred-0-1 |
 | R15-LIFECYCLE-002 | high | lifecycle | workspace-layout | A layout-level restore failure discards ALL non-layout state (portfolio holdings, watchlist, notes, settings, research memory) and the next autosave overwrites the user's blob; the scheduled trading-panel removal triggers it deterministically for any user whose last autosave had a broker panel docked | fixed | COD-workspace-layout-4, LIFE-L4-UPGRADE-1 |
 | R15-LIFECYCLE-003 | high | lifecycle | workspace-layout | Autosave is neither gated on restore nor serialized: every launch fires a burst of PARTIAL full-blob POSTs mid-restore, and the last one drops researchSymbol and the research-memory archive | fixed | COD-workspace-layout-3 |
@@ -1224,3 +1226,5 @@ Status: blocked_tier4: 35 . fixed: 394 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-UI-089 | low | ui | plugins | Plugin data credentials (the optional NewsAPI key) are saved from a separate Marketplace form with no validation, unlike LLM keys, which are live-probed before save | open | INT-spec-90-8 |
 | R15-UI-093 | low | ui | frontend-panels-agent-shell | The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change | open | INT-spec-135-158 |
 | R15-UI-094 | low | ui | fundamentals-profile | The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) | open | INT-spec-135-174 |
+| R15-LEAD-116 | high | data | resolver | FOCUS.BO (an explicit BSE pin on a same-ticker, different-company name) serves the NSE company's feed in all five disclosure lanes | open | rc1-r5-fix-verifier adjacent |
+| R15-LEAD-117 | low | data | resolver | FOCUS&exchange=BSE answers venue_not_covered with a note claiming FOCUS is not listed on BSE (BSE 543312 exists, a different company) | open | rc1-r5-fix-verifier adjacent |
