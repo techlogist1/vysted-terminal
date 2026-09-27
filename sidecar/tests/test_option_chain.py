@@ -222,3 +222,31 @@ async def test_two_calls_with_todays_404_probe_the_network_once(
     second = await option_chain.fetch_latest_fo(max_lookback_days=0)
     assert first is None and second is None
     assert calls == [date(2026, 9, 25)]  # the second call reused the cached probe
+
+
+@pytest.mark.asyncio
+async def test_failed_walk_back_day_turns_the_walk_cache_only(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Tue is missing, Mon fails, Fri is cached: every call serves Fri, and a
+    failed walk-back day is probed once, not re-fetched per request."""
+    data_cache.reset_for_tests(tmp_path / "cache.db")
+    monkeypatch.setattr(nse_bhavcopy, "_ist_today", lambda: date(2026, 9, 22))
+    friday = date(2026, 9, 18)
+    cached_rows = {"NIFTY": [["2026-09-29", 23000, "call", 100, 10, 1.0, 1.0, 5, 23000.0]]}
+    calls: list[str] = []
+
+    async def fake_fetch(day: date) -> tuple[str, None]:
+        calls.append(day.isoformat())
+        return ("missing" if day == date(2026, 9, 22) else "failed"), None
+
+    monkeypatch.setattr(option_chain, "_fetch_fo_day", fake_fetch)
+    try:
+        await data_cache.set(option_chain._cache_key(friday), {"rows": cached_rows})
+        for _ in range(3):
+            result = await option_chain.fetch_latest_fo()
+            assert result is not None
+            assert result.trade_date == friday
+        assert calls == ["2026-09-22", "2026-09-21"]
+    finally:
+        data_cache.reset_for_tests(None)
