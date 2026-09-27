@@ -207,17 +207,17 @@ and collate step finish (they were still running when this handover was
 written):
 
 - **Battery result** — holds / ci_pinned / regressed counts across all 25
-  shards (`<<recheck-battery-holds/ci_pinned/regressed>>`; chain and Gate 8
+  shards (`FILLED 27 Sep 21:3x IST: 316 holds / 79 ci_pinned / 0 regressed over 395 fixed ids in 90 sets, 25 shards`; chain and Gate 8
   are already green on disk and do not need refilling).
 - **`MISSING_RAW.json` count** — should be 0 per the hardened round-4/5
-  script; fill the actual number (`<<recheck-missing-raw-count>>`).
+  script; fill the actual number (`FILLED: 0 actually missing — the collator listed 11 as `no_file`, all 11 have suffixed raw files under their set directory (see `r15/rc1/round-5-recheck/RECHECK_READING.md`)`).
 - **The recheck's own total measured wall-clock** — launch 18:33 IST through
-  the collate step's finish (`<<recheck-measured-wallclock>>`); this also
+  the collate step's finish (`FILLED: 167 min, 18:33 to about 21:20 IST, 30 agents, 5.35M tokens`); this also
   becomes the new, more accurate "a chain run" / "a battery" analogue for
   section (b) above once it lands, superseding the round-5 decomposition
   figures used there.
 - **Hosted spend for the recheck** — OpenAI-direct + OpenRouter ledger rows
-  tagged to this run (`<<recheck-spend-usd>>`).
+  tagged to this run (`FILLED: USD 0.00 hosted (six free local-model rows)`).
 - **The tag sha itself** — `<<tag-sha>>` in `HEADER_DRAFT_rc1.md`'s
   `Newest tag:` block, filled once DECISIONS §4.22 resolves and the recheck
   (or the LEAD-116 fix-round-plus-recheck, if option (a) is chosen) reads
