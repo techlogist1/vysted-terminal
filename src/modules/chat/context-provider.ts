@@ -270,7 +270,20 @@ export function genericPanelSummary(payload: Record<string, unknown>): string {
     }
     let rendered: string;
     if (Array.isArray(value)) {
-      rendered = `${value.length} item${value.length === 1 ? "" : "s"}`;
+      // R15-AGENT-053: an array of primitives (symbol lists, tag lists, …) is
+      // more useful to the agent inlined than collapsed to a bare count —
+      // show the first few values, joined, so e.g. a watchlist is legible.
+      const isPrimitiveArray =
+        value.length > 0 &&
+        value.every(
+          (v) => typeof v === "string" || typeof v === "number" || typeof v === "boolean",
+        );
+      if (isPrimitiveArray) {
+        const shown = value.slice(0, 5).map(String).join(",");
+        rendered = value.length > 5 ? `${shown},+${value.length - 5} more` : shown;
+      } else {
+        rendered = `${value.length} item${value.length === 1 ? "" : "s"}`;
+      }
     } else if (typeof value === "object") {
       rendered = "…";
     } else {
