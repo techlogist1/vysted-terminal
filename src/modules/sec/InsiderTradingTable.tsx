@@ -40,7 +40,7 @@ const COLUMNS: DataColumn<InsiderTransaction>[] = [
     header: "Reporter",
     truncate: true,
     width: "14ch",
-    format: (t) => t.reporter_name,
+    format: (t) => t.reporter_name || null,
   },
   {
     key: "reporter_title",
@@ -62,13 +62,17 @@ const COLUMNS: DataColumn<InsiderTransaction>[] = [
     key: "direction",
     header: "Direction",
     width: "8ch",
-    cell: (t) => (
-      <span
-        className={cn("capitalize", t.direction === "disposed" ? "text-negative" : "text-positive")}
-      >
-        {t.direction}
-      </span>
-    ),
+    cell: (t) =>
+      t.direction === null ? null : (
+        <span
+          className={cn(
+            "capitalize",
+            t.direction === "disposed" ? "text-negative" : "text-positive",
+          )}
+        >
+          {t.direction}
+        </span>
+      ),
   },
   {
     key: "shares",
@@ -114,6 +118,10 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
     return raw;
   }, [byIdentifier, identifier, form]);
 
+  const hasFilingLevelRows = response.transactions.some(
+    (t) => t.direction === null && t.shares === null,
+  );
+
   useEffect(() => {
     if (identifier) {
       void loadInsider(identifier, form === "all" ? undefined : form);
@@ -154,6 +162,12 @@ export function InsiderTradingTable({ identifier }: InsiderTradingTableProps) {
           {response.transactions.length} transactions
         </span>
         {status === "loading" && <span className="text-charcoal-400 text-micro">Loading…</span>}
+        {hasFilingLevelRows && (
+          <span className="text-charcoal-500 text-micro" data-testid="insider-filing-level-note">
+            Filing index only — the SEC feed lists these filings without per-trade detail (reporter,
+            direction, shares, price); open the filing for its trades.
+          </span>
+        )}
       </header>
 
       <div
