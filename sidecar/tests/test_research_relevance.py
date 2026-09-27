@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from typing import Any
 
+import pytest
+
 from services.research import relevance
 from services.research.target import target_from_payload
 
@@ -399,3 +401,34 @@ def test_ticker_headline_with_a_52_week_high_is_kept() -> None:
 def test_hyphenated_foreign_index_is_still_dropped() -> None:
     row = _row("https://tribune.com.pk/kse", "KSE-100 index falls 2% amid selloff")
     assert not relevance.row_relevant(row, target=_kse())
+
+
+# --- R15-RESEARCH-001: a short US ticker is not an English word ---------------
+
+_ON_SEMI = "ON Semiconductor Corporation"
+
+
+@pytest.mark.parametrize(
+    ("symbol", "name", "title", "kept"),
+    [
+        # A ≤3-char ticker/brand token read as prose, or a sector word read as
+        # the brand, is not the company.
+        ("ON", _ON_SEMI, "Lockheed wins contract on hypersonic program", False),
+        ("ON", _ON_SEMI, "On Holding announces buyback", False),
+        ("ON", _ON_SEMI, "Nvidia semiconductor sales soar", False),
+        ("ALL", "Allstate Corp", "All eyes on the Fed", False),
+        # Naming the company, or writing a 3+ char ticker as a ticker, counts.
+        ("ON", _ON_SEMI, "ON Semiconductor beats estimates", True),
+        ("AMD", "Advanced Micro Devices, Inc.", "AMD beats estimates on data-center demand", True),
+    ],
+)
+def test_short_us_ticker_needs_the_company_or_the_written_ticker(
+    symbol: str, name: str, title: str, kept: bool
+) -> None:
+    """The title match is case-folded, so a non-IN short-only signal used to
+    score an uncorroborated 0.6; it now needs the company named or the ticker
+    written upper-case (3+ chars). "onsemi" is a brand the name never carries,
+    so it is no name signal here (ON's own per-symbol feed carries it)."""
+    target = _target(symbol=symbol, name=name, exchange="NASDAQ", region="US")
+    row = _row("https://news.example/x", title)
+    assert relevance.row_relevant(row, target=target) is kept
