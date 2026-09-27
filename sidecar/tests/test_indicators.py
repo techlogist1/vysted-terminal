@@ -505,6 +505,45 @@ def test_indicators_endpoint_returns_requested(
     assert len(rsi["lines"][0]["points"]) == len(mock_history.bars)
 
 
+def test_indicators_endpoint_carries_series_freshness(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, series: OHLCVSeries
+) -> None:
+    """R15-DATA-063: the response mirrors the underlying series' freshness
+    label — the same badge the chart panel shows for the bars themselves."""
+    from services import provider_registry
+
+    def _fake_get_history(
+        symbol: str,
+        timeframe: str,
+        range_: str | None = None,  # noqa: ARG001
+        asset_class: str = "equity",  # noqa: ARG001
+    ) -> OHLCVSeries:
+        return OHLCVSeries(
+            symbol=symbol, timeframe=timeframe, bars=series.bars, provider="test", freshness="eod"
+        )
+
+    monkeypatch.setattr(provider_registry, "get_history", _fake_get_history)
+    response = client.get("/indicators/SPY", params={"indicators": "rsi"})
+    assert response.status_code == 200
+    assert response.json()["freshness"] == "eod"
+
+
+def test_indicators_endpoint_downgraded_empty_series_has_no_freshness(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Class case: the EmptySeriesError downgrade never fabricates a freshness."""
+    from services import provider_registry
+    from services.correctness_gate import EmptySeriesError
+
+    def _empty(symbol: str, timeframe: str, range_, asset_class: str):  # noqa: ANN001
+        raise EmptySeriesError(f"correctness gate: empty series for {symbol!r}")
+
+    monkeypatch.setattr(provider_registry, "get_history", _empty)
+    response = client.get("/indicators/DAL.BO", params={"indicators": "rsi"})
+    assert response.status_code == 200
+    assert response.json()["freshness"] is None
+
+
 def test_indicators_endpoint_panel_classification(
     client: TestClient, mock_history: OHLCVSeries
 ) -> None:
