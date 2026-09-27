@@ -1267,7 +1267,7 @@ export function describeIntent(intent: HostIntent): {
           after: `Layout: ${label}${scope}`,
         };
       }
-      if (pattern in MENU_PAYLOAD_TO_MODE) {
+      if (Object.hasOwn(MENU_PAYLOAD_TO_MODE, pattern)) {
         const label = pattern.replace("-", " ");
         return {
           kind: "panel",
@@ -1683,7 +1683,9 @@ export function applyIntent(intent: HostIntent): ApplyResult {
       // Layout-MENU mode ids (fundamental/technical/macro/compare-desk) reaching
       // arrange_layout through chat get the SAME layout the native menu produces
       // (R15-LEAD-048) — never the silent factory reset below.
-      const mode = MENU_PAYLOAD_TO_MODE[pattern];
+      const mode = Object.hasOwn(MENU_PAYLOAD_TO_MODE, pattern)
+        ? MENU_PAYLOAD_TO_MODE[pattern]
+        : undefined;
       if (mode) {
         const api = ws.dockviewApi;
         if (!api) {

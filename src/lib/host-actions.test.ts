@@ -1889,19 +1889,23 @@ describe("arrange_layout routes Layout-menu mode ids instead of resetting (R15-L
     expect(api.addPanel).toHaveBeenCalledWith(expect.objectContaining({ id: "chart" }));
   });
 
-  it("an unrecognised pattern ('banana') fails, names it, and does not reset", () => {
-    const resetLayout = vi.fn();
-    useWorkspaceStore.setState({ dockviewApi: null, resetLayout } as never);
+  // "constructor" is an inherited Object key, not an own mode id.
+  it.each(["banana", "constructor"])(
+    "an unrecognised pattern (%s) fails, names it, and does not reset",
+    (pattern) => {
+      const resetLayout = vi.fn();
+      useWorkspaceStore.setState({ dockviewApi: null, resetLayout } as never);
 
-    const result = applyIntent(parseHostAction("arrange_layout", { pattern: "banana" }));
-    expect(result.label).toBeNull();
-    expect(result.reason).toMatch(/unrecognised layout "banana"/);
-    expect(resetLayout).not.toHaveBeenCalled();
+      const result = applyIntent(parseHostAction("arrange_layout", { pattern }));
+      expect(result.label).toBeNull();
+      expect(result.reason).toContain(`unrecognised layout "${pattern}"`);
+      expect(resetLayout).not.toHaveBeenCalled();
 
-    const preview = describeHostAction("arrange_layout", { pattern: "banana" });
-    expect(preview.title).not.toMatch(/^Reset/);
-    expect(preview.after).toMatch(/can't apply/);
-  });
+      const preview = describeHostAction("arrange_layout", { pattern });
+      expect(preview.title).not.toMatch(/^Reset/);
+      expect(preview.after).toMatch(/can't apply/);
+    },
+  );
 
   it("'default' still resets", () => {
     const resetLayout = vi.fn();
