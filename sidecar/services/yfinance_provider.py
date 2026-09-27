@@ -213,53 +213,6 @@ def _nse_listing(bare: str) -> str:
     return f"{bare}-SM.NS" if symbol_resolver.is_nse_emerge(bare) else f"{bare}.NS"
 
 
-#: Known Yahoo exchange suffixes carried unchanged (dot form) after the ``.NS``/
-#: ``.BO``/``^`` cases above — R15-LEAD-022. None of these is a US share-class
-#: letter, so a genuine US quirk ticker (``BRK.B``, ``BF.B``) still falls through
-#: to the dash rewrite below.
-_YAHOO_EXCHANGE_SUFFIXES = frozenset(
-    {
-        "AX",
-        "HK",
-        "T",
-        "L",
-        "TO",
-        "V",
-        "DE",
-        "PA",
-        "AS",
-        "SW",
-        "MI",
-        "MC",
-        "KS",
-        "KQ",
-        "SS",
-        "SZ",
-        "TW",
-        "TWO",
-        "SI",
-        "JK",
-        "BK",
-        "KL",
-        "NZ",
-        "SA",
-        "MX",
-        "JO",
-        "ST",
-        "OL",
-        "CO",
-        "HE",
-        "IR",
-        "VI",
-        "BR",
-        "LS",
-        "WA",
-        "IS",
-        "TA",
-    }
-)
-
-
 def _yahoo_symbol(symbol: str) -> str:
     """Resolve the symbol to the form Yahoo actually serves data for.
 
@@ -275,11 +228,12 @@ def _yahoo_symbol(symbol: str) -> str:
       * a bare ticker that is a known NSE instrument (and NOT also a US one) gets
         the ``.NS`` (or Emerge ``-SM.NS``) suffix so Yahoo returns NSE data
         instead of an empty US lookup;
-      * a symbol ending in a known non-Indian Yahoo exchange suffix
-        (``.AX``, ``.HK``, ``.T``, ``.L``, ...) is already Yahoo's dot form —
-        pass it through UNCHANGED (R15-LEAD-022: dash-rewriting ``BHP.AX`` to
-        ``BHP-AX`` makes Yahoo report it "possibly delisted");
-      * everything else takes the US dot→dash quirk (``BRK.B`` → ``BRK-B``).
+      * a dotted symbol is dash-rewritten ONLY when its dashed form is a known
+        US-listed ticker (``BRK.B`` → ``BRK-B``, ``BF.B`` → ``BF-B``, the US
+        share-class quirk) — every other dotted symbol (``2222.SR``, ``SAP.F``,
+        ``BHP.AX``, ...) is already Yahoo's own dot form and passes through
+        UNCHANGED (R15-LEAD-022: dashing a foreign exchange suffix Yahoo does
+        not recognise makes Yahoo report the listing "possibly delisted").
     """
     s = symbol.strip().upper()
     if s.startswith("^"):
@@ -317,9 +271,10 @@ def _yahoo_symbol(symbol: str) -> str:
         return f"{s}.NS"
     if symbol_resolver.is_nse_symbol(s) and not symbol_resolver.is_us_symbol(s):
         return _nse_listing(s)
-    if "." in s and s.rsplit(".", 1)[-1] in _YAHOO_EXCHANGE_SUFFIXES:
-        return s
-    return s.replace(".", "-")
+    if "." in s:
+        dashed = s.replace(".", "-")
+        return dashed if symbol_resolver.is_us_symbol(dashed) else s
+    return s
 
 
 def _is_junk_fundamentals_name(name: str | None, yahoo_symbol: str) -> bool:
