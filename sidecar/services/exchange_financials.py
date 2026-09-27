@@ -69,29 +69,6 @@ _BSE_MILLION = 1_000_000.0
 _BSE_QTR_RE = re.compile(r"/corporates/(results|NBFC)\.aspx\?.*?qtr=([0-9.]+)", re.IGNORECASE)
 
 
-def _fiscal_half(d: date) -> tuple[date, date]:
-    """The Indian fiscal half (Apr-Sep or Oct-Mar) containing ``d``."""
-    if 4 <= d.month <= 9:
-        return date(d.year, 4, 1), date(d.year, 9, 30)
-    if d.month >= 10:
-        return date(d.year, 10, 1), date(d.year + 1, 3, 31)
-    return date(d.year - 1, 10, 1), date(d.year, 3, 31)
-
-
-def _fiscal_halves(window_start: date, window_end: date) -> list[tuple[date, date]]:
-    """Every Indian fiscal half overlapping ``[window_start, window_end]``, newest first."""
-    halves: list[tuple[date, date]] = []
-    start, end = _fiscal_half(window_end)
-    while end >= window_start:
-        halves.append((start, end))
-        start, end = (
-            (date(start.year - 1, 10, 1), date(start.year, 3, 31))
-            if start.month == 4
-            else (date(start.year, 4, 1), date(start.year, 9, 30))
-        )
-    return halves
-
-
 @dataclass(frozen=True)
 class FiledPeriod:
     """One filed quarter or half-year. Sizes in INR, EPS in INR per share."""
@@ -135,32 +112,20 @@ class FiledPeriods:
         return tuple(chain) if months == 12 else None
 
     def cadence(self) -> str:
-        """``quarterly`` when every Indian fiscal half (Apr-Sep, Oct-Mar)
-        overlapping the trailing year has a 3-month period filed inside it,
-        and the trailing chain is complete; ``quarterly-gap`` when every such
-        half has a filed quarter but the trailing chain still has a hole
-        (R15-LEAD-004: the exchange merged one trailing quarter into a
-        half-year context — e.g. NDTV's Sep-2025 Integrated Filing carries only
-        an Apr-Sep 2025 context — but the filer is quarterly, one quarter is
-        just unfiled/unparsed standalone); ``half-yearly`` only when at least
-        one overlapping half has NO 3-month period filed anywhere inside it —
-        a half-yearly filer never files a quarter. Deciding by fiscal half
-        (not by whether the trail happens to include a 6-month period) is
-        what keeps a quarter filed standalone but shadowed by a redundant
-        6-month context (Fresh B) from being called half-yearly, and what
-        keeps a plain unfiled quarter with no 6-month context at all
-        (Fresh A) from being called half-yearly either."""
-        if not self.periods:
-            return "half-yearly"
-        newest_end = self.periods[0].end
-        window_start = newest_end - timedelta(days=364)
-        every_half_has_a_quarter = all(
-            any(p.months == 3 and p.start >= half_start and p.end <= half_end for p in self.periods)
-            for half_start, half_end in _fiscal_halves(window_start, newest_end)
-        )
-        if not every_half_has_a_quarter:
-            return "half-yearly"
-        return "quarterly" if self.trailing() is not None else "quarterly-gap"
+        """``half-yearly`` only when NO 3-month period is filed anywhere on
+        record — a half-yearly filer never files a quarter. Any filed quarter
+        (however few, however recent — a fresh listing with only two quarters
+        ever filed is still quarterly, not half-yearly) makes the filer
+        quarterly: ``quarterly`` when the trailing chain is complete,
+        ``quarterly-gap`` when it still has a hole (R15-LEAD-004: the exchange
+        merged one trailing quarter into a half-year context — e.g. NDTV's
+        Sep-2025 Integrated Filing carries only an Apr-Sep 2025 context — but
+        the filer is quarterly, one quarter is just unfiled/unparsed
+        standalone; R15-LEAD-051: a fresh listing with only its first one or
+        two quarters ever filed has the same gapped-but-quarterly shape)."""
+        if any(p.months == 3 for p in self.periods):
+            return "quarterly" if self.trailing() is not None else "quarterly-gap"
+        return "half-yearly"
 
     def year_ago(self, period: FiledPeriod) -> FiledPeriod | None:
         """The same-length period ending about a year before ``period``."""

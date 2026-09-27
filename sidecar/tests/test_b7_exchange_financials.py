@@ -180,17 +180,22 @@ def test_the_registry_bulk_path_never_calls_the_lane(
 # --- R15-LEAD-004: the cadence label comes from the filings -----------------------
 
 
-def test_jonjua_keeps_the_half_yearly_label(
+def test_jonjua_keeps_yahoos_value_on_a_fresh_listings_quarter_gap(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """BSE holds no filed quarter for Sep-25 (JONJUA filed that half-year), so
-    no trailing-4Q sum exists: Yahoo's value stays, labelled half-yearly."""
+    """JONJUA is a recent listing with only its first three quarters ever
+    filed (Oct-25..Jun-26; BSE has nothing before that, not a half-year — the
+    earlier qtr ids are blank stubs). R15-LEAD-051 corrected this filer's
+    label from 'half-yearly' (the pre-fix reading of the fiscal-half rule) to
+    'quarterly-gap': it has filed quarters, it is just missing the rest of
+    the trailing year because it hasn't existed that long. No trailing-4Q sum
+    exists either way, so Yahoo's value still stays, kept and flagged."""
     _replay(monkeypatch, _JONJUA)
     fields = {"revenue_ttm": 239_033_504, "net_income_ttm": 87_482_000, "profit_margin": 0.36598}
     body = _route(client, monkeypatch, "JONJUA.BO", fields, 212_051_000, _QUARTERS)
     assert body["revenue_ttm"] == 239_033_504
     reason = body["field_meta"]["revenue_ttm"]["reason"]
-    assert "half-yearly filer" in reason and "annual, not trailing-4Q" in reason
+    assert "half-yearly" not in reason and "unfiled or unparsed" in reason
 
 
 def test_a_quarterly_filer_with_a_six_month_q2_is_not_half_yearly() -> None:
@@ -248,6 +253,35 @@ def test_a_half_year_with_its_quarter_filed_inside_is_not_half_yearly() -> None:
             FiledPeriod(date(2025, 10, 1), date(2025, 12, 31), 100.0, 10.0, 1.0),
             FiledPeriod(date(2025, 7, 1), date(2025, 9, 30), 100.0, 10.0, 1.0),
         ),
+    )
+    assert periods.cadence() != "half-yearly"
+
+
+def test_a_fresh_listing_with_only_two_quarters_filed_is_not_half_yearly() -> None:
+    """R15-LEAD-051: a recently listed filer with only its first two quarters
+    ever filed (no half-yearly period on record, no prior fiscal half to
+    contradict) is quarterly, not half-yearly — the trailing chain is
+    incomplete (6 of 12 months), so the label is 'quarterly-gap'."""
+    periods = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2026, 1, 1), date(2026, 3, 31), 100.0, 10.0, 1.0),
+        ),
+    )
+    assert periods.cadence() == "quarterly-gap"
+    reason = correctness_gate._ttm_basis(None, periods.cadence())
+    assert "half-yearly" not in reason
+
+
+def test_a_fresh_listing_with_only_one_quarter_filed_is_not_half_yearly() -> None:
+    """Class case not written against: a single filed quarter (no half-yearly
+    period, no other quarter) is still not half-yearly."""
+    periods = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 100.0, 10.0, 1.0),),
     )
     assert periods.cadence() != "half-yearly"
 
