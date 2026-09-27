@@ -2121,9 +2121,9 @@
         "data-smallcaps"
       ],
       "tier4": false,
-      "status": "open",
+      "status": "blocked_tier4",
       "closure_evidence": "dcbe7ba fix(r15): Stage C batch 4",
-      "note": "Verifier batch-4 residual: fixing the under-match risks an over-match -- the bare-ticker alias can now also tag an unrelated same-name company's headlines (e.g. RELIANCE would also tag 'Reliance Power'/'Reliance Communications' to RELIANCE.NS). Not reproduced against live data by this batch; flagged for the next verifier pass. (docs/redesign/verification/r15/stage-c/batch-4/VERDICTS.md issue 8)\n\nrc1 gate round 4 refutation audit @33586c21: partial (rc1-vshard-1:2) — root cause: sidecar/services/news_provider.py:583 keeps every bare or suffixed ticker of 2+ characters as a text alias, and :606-607 matches aliases case-insensitively with \\b..\\b over title and summary. A bare ticker that is the leading word of another listed company's name (RELIANCE and 'Reliance Power', LT and 'LT Foods', ITC and 'ITC Hotels') or an English word (IT, ON, ALL) therefore tags unrelated headlines.; fix shape: In news_provider._aliases and _tag_symbols, match ticker aliases (bare and suffixed) case-sensitively as uppercase tokens and keep only the company-name alias case-insensitive. Drop the bare-ticker text alias when the ticker is the first word of a different listed company's name in the resolver masters (RELIANCE: Reliance Power and Reliance Infrastructure; LT: LT Foods; ITC: ITC Hotels), leaving the company-name alias and per-symbol-feed provenance to tag those symbols.; acceptance: sidecar/tests/test_news.py, parametrised _tag_symbols(item with symbols=[], build_aliases([sym])): IT + 'Tax-free bond yields are in a sweet spot. Get in before it's too late.' gives []; ON + 'Choosing these AI-exposed college majors could dent your job prospects' gives []; RELIANCE.NS + 'Reliance Power wins Bhutan project' gives []; LT.NS + 'LT Foods Q2 profit jumps 30%' gives []; ITC.NS + 'ITC Hotels shares list at premium' gives []. Controls: RELIANCE.NS + 'Reliance Industries Q2 profit rises 10%' gives ['RELIANCE.NS']; IT + 'Gartner beats estimates' gives ['IT']. Live: curl -s -H 'X-Vysted-Region: US' 'http://127.0.0.1:<port>/news?symbols=IT&limit=50' | jq '[.[]|select(.source|test(\"IT News\")|not)]|length' prints 0.; certification failures so far: 1 (R15-DATA-030: baseline 0 (its note has no 'certification failures so far' clause; not in any not_certified list; no audit partial or regression verdict), plus 1 for this partial) || Batch-29 register adjudication (10:21 IST 27 Sep): batch-28 writer landed the alias-collision-filter half of the fix_shape (8eb855e3), but the integrator reverted it in c780c516 because it broke single-word company names (e.g. AAPL lost the 'apple' text alias) with no regression test covering that case; the via_symbol_feed (RESEARCH-001) half of 8eb855e3 was kept. Stays open. Not a certification failure (a verifier never certified or rejected it this batch); integrator-revert count: 1.\n\nBatch-30 register adjudication: certification failures so far: 2 (prior 1 — round-4 gate audit partial — + batch-29 not-certified: the case-sensitive ticker alias and full-multi-word name alias regressed this entry's own under-match claim on single-short-name mentions — RELIANCE.NS/MARUTI.NS/META/UBER headlines tagged at base 522c3246 went untagged at e7d5a628, including the live TheStreet 'Bank of America backs Meta stock…' headline dropped from /news?symbols=META; the acronym/common-word ticker class also stayed unfixed, live /news?symbols=AI still returning 7 off-entity alias-tagged region items). Batch-29 rework reverted e7d5a628 cleanly (news_provider.py byte-identical to pre-fix again) and added a guard test (test_news.py::test_data_030_revert_guard_short_name_headline_tags_its_symbol, parametrised over the verifier's six on-entity headlines, merged a1d39053 then e1956966) pinning those six on-entity cases so a third attempt cannot silently regress them again. Two residual observations from the batch-29 rework carried here rather than filed separately (same mechanism, inputs to the pending third attempt): no regression guard yet exists for the batch-28-style single-word-company-name under-match itself ('Apple beats on services'-style controls are still unpinned until the third attempt lands them), and a bare 'Meta' mention in an IN-region session resolves via the region resolver to 'string metaverse' and tags only through the ticker match, not the name alias. A fourth failure on the next attempt stops it (DECISIONS_FOR_OPERATOR)."
+      "note": "Verifier batch-4 residual: fixing the under-match risks an over-match -- the bare-ticker alias can now also tag an unrelated same-name company's headlines (e.g. RELIANCE would also tag 'Reliance Power'/'Reliance Communications' to RELIANCE.NS). Not reproduced against live data by this batch; flagged for the next verifier pass. (docs/redesign/verification/r15/stage-c/batch-4/VERDICTS.md issue 8)\n\nrc1 gate round 4 refutation audit @33586c21: partial (rc1-vshard-1:2) — root cause: sidecar/services/news_provider.py:583 keeps every bare or suffixed ticker of 2+ characters as a text alias, and :606-607 matches aliases case-insensitively with \\b..\\b over title and summary. A bare ticker that is the leading word of another listed company's name (RELIANCE and 'Reliance Power', LT and 'LT Foods', ITC and 'ITC Hotels') or an English word (IT, ON, ALL) therefore tags unrelated headlines.; fix shape: In news_provider._aliases and _tag_symbols, match ticker aliases (bare and suffixed) case-sensitively as uppercase tokens and keep only the company-name alias case-insensitive. Drop the bare-ticker text alias when the ticker is the first word of a different listed company's name in the resolver masters (RELIANCE: Reliance Power and Reliance Infrastructure; LT: LT Foods; ITC: ITC Hotels), leaving the company-name alias and per-symbol-feed provenance to tag those symbols.; acceptance: sidecar/tests/test_news.py, parametrised _tag_symbols(item with symbols=[], build_aliases([sym])): IT + 'Tax-free bond yields are in a sweet spot. Get in before it's too late.' gives []; ON + 'Choosing these AI-exposed college majors could dent your job prospects' gives []; RELIANCE.NS + 'Reliance Power wins Bhutan project' gives []; LT.NS + 'LT Foods Q2 profit jumps 30%' gives []; ITC.NS + 'ITC Hotels shares list at premium' gives []. Controls: RELIANCE.NS + 'Reliance Industries Q2 profit rises 10%' gives ['RELIANCE.NS']; IT + 'Gartner beats estimates' gives ['IT']. Live: curl -s -H 'X-Vysted-Region: US' 'http://127.0.0.1:<port>/news?symbols=IT&limit=50' | jq '[.[]|select(.source|test(\"IT News\")|not)]|length' prints 0.; certification failures so far: 1 (R15-DATA-030: baseline 0 (its note has no 'certification failures so far' clause; not in any not_certified list; no audit partial or regression verdict), plus 1 for this partial) || Batch-29 register adjudication (10:21 IST 27 Sep): batch-28 writer landed the alias-collision-filter half of the fix_shape (8eb855e3), but the integrator reverted it in c780c516 because it broke single-word company names (e.g. AAPL lost the 'apple' text alias) with no regression test covering that case; the via_symbol_feed (RESEARCH-001) half of 8eb855e3 was kept. Stays open. Not a certification failure (a verifier never certified or rejected it this batch); integrator-revert count: 1.\n\nBatch-30 register adjudication: certification failures so far: 2 (prior 1 — round-4 gate audit partial — + batch-29 not-certified: the case-sensitive ticker alias and full-multi-word name alias regressed this entry's own under-match claim on single-short-name mentions — RELIANCE.NS/MARUTI.NS/META/UBER headlines tagged at base 522c3246 went untagged at e7d5a628, including the live TheStreet 'Bank of America backs Meta stock…' headline dropped from /news?symbols=META; the acronym/common-word ticker class also stayed unfixed, live /news?symbols=AI still returning 7 off-entity alias-tagged region items). Batch-29 rework reverted e7d5a628 cleanly (news_provider.py byte-identical to pre-fix again) and added a guard test (test_news.py::test_data_030_revert_guard_short_name_headline_tags_its_symbol, parametrised over the verifier's six on-entity headlines, merged a1d39053 then e1956966) pinning those six on-entity cases so a third attempt cannot silently regress them again. Two residual observations from the batch-29 rework carried here rather than filed separately (same mechanism, inputs to the pending third attempt): no regression guard yet exists for the batch-28-style single-word-company-name under-match itself ('Apple beats on services'-style controls are still unpinned until the third attempt lands them), and a bare 'Meta' mention in an IN-region session resolves via the region resolver to 'string metaverse' and tags only through the ticker match, not the name alias. A fourth failure on the next attempt stops it (DECISIONS_FOR_OPERATOR).\n\nthree-failure rule: partial rc1 gate round 4 refutation audit (rc1-vshard-1:2), not_certified stage-c batch-29 (e7d5a628 reverted), not_certified stage-c batch-30 (6ae7a46d news-layer hunks reverted before the merge; relevance.py stoplist kept for LEAD-050) = three; stopped 12:57 IST Sun 27 Sep; DECISIONS_FOR_OPERATOR.md 4.21; no fix round in this run without the operator. Correction to the batch-30 adjudication note above: the rule is three failures, not four; the count reached three at batch-30. Also from the batch-30 verifier: Reliance Infra / Reliance Group abbreviations still tag RELIANCE.NS (same prefix-alias class, folded here)."
     },
     {
       "id": "R15-DATA-031",
@@ -17578,7 +17578,7 @@
       ],
       "tier4": false,
       "status": "open",
-      "note": "Filed by the batch-30 register adjudicator from stage-c/batch-29/VERDICTS.md 'Issues noticed' item 1 (source: verifier batch-29, fresh case; a residual of the R15-RESEARCH-001 fix, no live repro today). Grepped the register (all-caps, ponytail ceiling, _strong_entity_score): no existing entry covers this case; R15-RESEARCH-001 is the fix this refines, left open as the precedent, not a duplicate."
+      "note": "Filed by the batch-30 register adjudicator from stage-c/batch-29/VERDICTS.md 'Issues noticed' item 1 (source: verifier batch-29, fresh case; a residual of the R15-RESEARCH-001 fix, no live repro today). Grepped the register (all-caps, ponytail ceiling, _strong_entity_score): no existing entry covers this case; R15-RESEARCH-001 is the fix this refines, left open as the precedent, not a duplicate. || stage-c batch-30 fresh verifier not_certified @int 67c56430: The literal repro holds: 'ALL EYES ON THE FED AS RATE DECISION LOOMS' is irrelevant for ALL (base True). The fresh case 'ALL IN ON AI: WHY INVESTORS KEEP BUYING' is also dropped, and anchored 'NYSE: ALL' is kept. But the fix_shape asks that a common-word ticker still count when it sits in an otherwise-mixed-case headline, and the shipped rule drops every non-anchored mention. That regresses real on-entity web and news evidence. row_relevant on real Google News titles, base -> head: ICE 99->84 ('ICE Launches Private Credit Reference Data Service', 'ICE and Ornn to Launch GPU Compute Futures Contracts', 'ICE Invests in OKX at $25 Billion'), KEY 95->90 ('KEY Q2 Earnings Beat as NII & Fee Income Grow'), LOW 100->98 ('3 Reasons to Avoid LOW and 1 Stock to Buy Instead'). All of these are mixed-case headlines that write the ticker upper-case.; the LEAD-050 half of c3309201 ships; certification failures so far: 1 (stage-c batch-30)"
     },
     {
       "id": "R15-LEAD-053",
@@ -17646,6 +17646,75 @@
       "tier4": false,
       "status": "open",
       "note": "Filed by the batch-30 register adjudicator from the r15 run-state ledger's batch-29-rework DONE line (source: batch-29 integration-rework agent, carried explicitly 'to the batch-30 adjudicator'). Grepped the register (NewsFeedPanel, context-bus, topHeadline): R15-AGENT-053 is the entry whose fix this test guards, left open as the sibling reference, not a duplicate; this is a test-infra flake, not a re-opening of AGENT-053 itself."
+    },
+    {
+      "id": "R15-LEAD-056",
+      "title": "DOW's (and NICE's) own stripped company-name alias is the common word itself, so the DATA-030 stoplist's anchored-ticker rule never applies and 'Dow Jones falls 300 points' still tags DOW",
+      "severity": "low",
+      "area": "data",
+      "subsystem": "market-data-providers-2",
+      "files": [
+        "sidecar/services/news_provider.py"
+      ],
+      "repro": "In-process, base and head identical: DOW's name alias 'dow' tags 'Dow Jones falls 300 points' at both base and head, and NICE behaves the same way (batch-30 fresh verifier, issue 1).",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-30/VERDICTS.md 'Issues noticed' item 1 (verifier batch-30, outside any entry's diff); sidecar/services/news_provider.py:553-571 (_company_name strips only the corporate suffix, not the ticker word itself) and :575-586 (_aliases appends the stripped name as a case-insensitive alias with no stoplist check).",
+      "root_cause": "_company_name (news_provider.py:553) returns the master name with its corporate suffix stripped but never checks the result against COMMON_WORD_TICKERS; when the company's own stripped name equals the stoplisted word (DOW -> 'dow', NICE -> 'nice'), _aliases (:575) appends it as an ordinary case-insensitive text alias, so the DATA-030 stoplist's anchored-mention rule (which only gates the ticker alias) never sees it and every bare-word occurrence tags the symbol.",
+      "fix_shape": "Run the stoplist/anchored-mention check against the name alias too when the stripped name equals (or reduces to) a COMMON_WORD_TICKERS entry, not only against the ticker alias; pin with DOW + 'Dow Jones falls 300 points' -> [] and NICE + an equivalent prose mention -> [].",
+      "defect_class": "stoplist-bypassed-via-name-alias",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "status": "open",
+      "source": "verifier batch-30",
+      "note": "Filed by the batch-30 register adjudicator from stage-c/batch-30/VERDICTS.md 'Issues noticed' item 1 (source: verifier batch-30, outside any entry's diff; the plan's own 'on semiconductor' residual, same class). Grepped the register (dow jones, keycorp, amazon com, name alias artefact): no existing entry covers a stoplisted ticker whose own stripped company name IS the stoplisted word; R15-DATA-030 covers the ticker-alias half of the stoplist only."
+    },
+    {
+      "id": "R15-LEAD-057",
+      "title": "Name-alias derivation leaves master-name registry artefacts in place ('amazon com', 'keycorp /new/'), so plain-prose company mentions never tag",
+      "severity": "low",
+      "area": "data",
+      "subsystem": "market-data-providers-2",
+      "files": [
+        "sidecar/services/news_provider.py"
+      ],
+      "repro": "In-process, base and head identical: AMZN's derived name alias is 'amazon com' (not 'amazon'), and KEY's is 'keycorp /new/' (not 'keycorp'), so 'Amazon unveils new drones' and 'KeyCorp raises dividend' both tag nothing (batch-30 fresh verifier, issue 2, pre-existing).",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-30/VERDICTS.md 'Issues noticed' item 2 (verifier batch-30, pre-existing, identical at base); sidecar/services/news_provider.py:553-571 (_company_name / symbol_resolver._strip_corporate_suffix).",
+      "root_cause": "_company_name (news_provider.py:553) passes the master's raw registered name straight to symbol_resolver._strip_corporate_suffix, which strips known corporate suffixes (Inc, Corp, ...) but leaves other artefacts in the source name untouched -- the bare 'com' token from 'Amazon.com, Inc.' and the exchange-listing suffix '/NEW/' from 'KeyCorp /NEW/' -- so the derived alias is 'amazon com' / 'keycorp /new/' rather than the plain brand name a headline actually uses.",
+      "fix_shape": "Strip trailing registry/domain artefacts (a lone 'com' token from '.com', bracketed or slash-delimited listing-class suffixes like '/NEW/', '/OLD/') when deriving the name alias, in addition to the existing corporate-suffix strip; pin with AMZN + 'Amazon unveils new drones' -> ['AMZN'] and KEY + 'KeyCorp raises dividend' -> ['KEY'].",
+      "defect_class": "unstripped-master-name-artefact",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "data-smallcaps"
+      ],
+      "status": "open",
+      "source": "verifier batch-30",
+      "note": "Filed by the batch-30 register adjudicator from stage-c/batch-30/VERDICTS.md 'Issues noticed' item 2 (source: verifier batch-30, outside any entry's diff; pre-existing, identical at base 19a70e80). Grepped the register (amazon com, keycorp, name alias artefact, strip_corporate_suffix): no existing entry covers a master-name derivation artefact surviving into the alias; distinct from R15-DATA-030 (over/under-match on already-correct aliases)."
+    },
+    {
+      "id": "R15-LEAD-058",
+      "title": "GM and GS (2-letter tickers with no brand token) never pass the non-IN relevance gate on a bare mention",
+      "severity": "low",
+      "area": "research",
+      "subsystem": "research-relevance",
+      "files": [
+        "sidecar/services/research/relevance.py"
+      ],
+      "repro": "In-process, base 19a70e80 and head identical: 'GM beats estimates' for GM, 'GS tops estimates' for GS and 'HP rig count rises' for HP all score irrelevant; none of the three has a distinctive brand-name token near the ticker for _entity_signals to key on (batch-30 fresh verifier, issue 4, pre-existing).",
+      "evidence": "docs/redesign/verification/r15/stage-c/batch-30/VERDICTS.md 'Issues noticed' item 4 (verifier batch-30, pre-existing, identical at base 19a70e80); sidecar/services/research/relevance.py:428-458 (_entity_signals).",
+      "root_cause": "_entity_signals (relevance.py:428) only grants a symbol a short-token entity signal when len(symbol) >= 3 (:446); the R15-LEAD-050 fix restores bare-mention relevance for a 2-letter ticker only through a distinctive company-name token reaching the short branch (e.g. GE via 'GE Aerospace'), so a 2-letter ticker whose company name shares no distinctive token with the ticker word itself (GM, GS, HP) never gets a signal at all and a bare ticker-only mention never counts as relevant.",
+      "fix_shape": "Extend the short-token entity signal to 2-letter tickers directly (drop or lower the len(symbol) >= 3 floor for the plain ticker-token check, keeping the existing common-word/anchoring gate for stoplisted tickers), so a bare 'GM beats estimates' passes for GM the way a bare 'GE beats estimates' now passes for GE; pin with GM, GS and one held-out 2-letter ticker.",
+      "defect_class": "under-broad-entity-signal-threshold",
+      "raw_ids": [],
+      "tier4": false,
+      "operator_areas": [
+        "research-search"
+      ],
+      "status": "open",
+      "source": "verifier batch-30",
+      "note": "Filed by the batch-30 register adjudicator from stage-c/batch-30/VERDICTS.md 'Issues noticed' item 4 (source: verifier batch-30, outside any entry's diff; pre-existing, identical at base 19a70e80). Grepped the register (entity_signals, 2-letter ticker, bare mention, GM, GS): R15-LEAD-050 fixed the sibling 2-letter-with-brand-token case (GE); no existing entry covers the no-brand-token case (GM/GS/HP)."
     }
   ],
   "rejections": [
@@ -17956,11 +18025,11 @@
   ],
   "counts": {
     "raw": 887,
-    "entries": 676,
+    "entries": 679,
     "rejections": 76,
     "critical": 16,
     "high": 121,
     "medium": 305,
-    "low": 234
+    "low": 237
   }
 }

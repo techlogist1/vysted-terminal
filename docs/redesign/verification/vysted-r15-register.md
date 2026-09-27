@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 676 entries + 76 rejections. critical: 16 . high: 121 . medium: 305 . low: 234
+887 raw findings -> 679 entries + 76 rejections. critical: 16 . high: 121 . medium: 305 . low: 237
 
-Status: blocked_tier4: 34 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open: 215 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open: 217 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -235,7 +235,7 @@ Status: blocked_tier4: 34 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-036** [low] The all-errored fabrication guard's replacement prose renders inside the original code fence, leaving a ```json block that contains a sentence instead of JSON — _open_
 - **R15-LEAD-042** [low] The proposed-change review card and its applied label price a US lot in the session region's currency, not the listing's: {MSFT, 4, 480 USD} under an IN session reads 'Add 4 MSFT @ ₹480 to the portfolio' — _open_
 
-### Research / web search (56)
+### Research / web search (57)
 
 - **R15-AGENT-001** [critical] Chat narrates derived money figures 10-100x wrong: fraction values labelled unit 'percent' are read as percent, and a raw-rupee market cap is mis-scaled by the model — _fixed_
 - **R15-DATA-003** [critical] Research treats a US-bound AMAL as the Indian Amal Ltd for ownership: the ownership applicability gate checks bare-ticker NSE/BSE master membership, so Amalgamated Financial's brief states 'Promoter group (exchange filing) 71.35%' from Amal Ltd's BSE shareholding and raises a false conflict — _fixed_
@@ -293,8 +293,9 @@ Status: blocked_tier4: 34 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-RESEARCH-042** [low] The research cockpit's brief has no floor of >=3 cited sources (SC-016): nothing enforces or measures source count per brief, and with no web backend FAST publishes structured-only with fewer — _open_
 - **R15-LEAD-050** [medium] A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace — _open_
 - **R15-LEAD-052** [low] An ALL-CAPS headline still over-matches a 3-character common-word ticker in the non-IN relevance gate — _open_
+- **R15-LEAD-058** [low] GM and GS (2-letter tickers with no brand token) never pass the non-IN relevance gate on a bare mention — _open_
 
-### Data on small or obscure stocks (138)
+### Data on small or obscure stocks (140)
 
 - **R15-DATA-001** [critical] Income / balance-sheet / cash-flow statements (and one /fundamentals identity) for Indian tickers that collide with a US ticker serve the US company's real financials under the Indian name (DAL->Delta, CHTR->Charter, SAFE->Safehold, CSL->Carlisle, ICON->Icon Energy, AMAL->Amalgamated, SMR->NuScale, TTC->Toro, SUMAX->a US muni fund) — _fixed_
 - **R15-DATA-002** [critical] A bare ticker that exists in both the US and Indian masters binds silently to the session region, and every data panel re-queries the bare symbol, so the user who picked NASDAQ:AMAL or NYSE:SMR gets Amal Ltd / SMR Jewels quote, ratios and 52w range (and, for SMR, NuScale statements under the same header) — _blocked_tier4_
@@ -324,7 +325,7 @@ Status: blocked_tier4: 34 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-DATA-026** [high] Financial statements are shallow and invisible to the agent: income/balance/cash-flow are annual-only (4-5 periods, no quarterly route - DHANBANK's just-filed Q1 FY27 is invisible) and not registered capabilities, so 'show me revenue over N years/quarters' is unanswerable — _fixed_
 - **R15-DATA-027** [high] yfinance is the de-facto India primary for fundamentals, statements and analyst data, contradicting spec.md:817 ('yfinance is never the trusted India primary'): the IN-scoped providers serve quote/ohlcv only — _fixed_
 - **R15-DATA-029** [high] Earnings, analyst-ratings and news lanes never resolve Indian symbols: .NS/.BO are mangled to -NS/-BO (every Indian symbol returns empty) and bare NSE tickers hit the US namesake (BDL news = Flanigan's; INFY estimate = the ADR's USD EPS beside INR revenue) — _fixed_
-- **R15-DATA-030** [high] News symbol tagging matches the raw request string: every exchange-suffixed or company-named Indian ticker (RELIANCE.NS, HDFCBANK, SBIN) tags nothing and the News panel shows an empty feed, while single-letter tickers (A, T, F) tag every headline containing the article 'a' — _open_
+- **R15-DATA-030** [high] News symbol tagging matches the raw request string: every exchange-suffixed or company-named Indian ticker (RELIANCE.NS, HDFCBANK, SBIN) tags nothing and the News panel shows an empty feed, while single-letter tickers (A, T, F) tag every headline containing the article 'a' — _blocked_tier4_
 - **R15-DATA-032** [high] Earnings estimate statistics are fabricated on typed fields: 'median' is the mean, 'Std. dev.' is (high-low)/4, and the revenue analyst count is the EPS count, all shown as measured values with no approximation marker — _fixed_
 - **R15-DATA-033** [high] The correctness gate accepts NaN prices/closes (`x <= 0` is False for NaN), so a NaN bar ends the provider walk and the client gets price/close null on a numeric field instead of the next healthy lane — _fixed_
 - **R15-DATA-034** [high] The v7 batch path (screener + warm store) bypasses the correctness gate and stamps no field_meta, and the dividend-yield plausibility bound exists at three values (2.0, 2.0, 0.25), so a symbol can show a 150% yield in the screener and a withheld dash in the overview — _fixed_
@@ -434,6 +435,8 @@ Status: blocked_tier4: 34 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-051** [medium] A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly — _open_
 - **R15-LEAD-053** [low] Direct GET /quotes/TATAMOTORS.NS and .BO still 404 with no rename hint to TMPV, even though /resolve already lists TMPV first for the same query — _open_
 - **R15-LEAD-054** [low] sp500.json carries ECHO and VMRK, two symbols absent from the current US resolver master, the same stale-universe-seed class R15-LEAD-049 fixed for nifty50 — _open_
+- **R15-LEAD-056** [low] DOW's (and NICE's) own stripped company-name alias is the common word itself, so the DATA-030 stoplist's anchored-ticker rule never applies and 'Dow Jones falls 300 points' still tags DOW — _open_
+- **R15-LEAD-057** [low] Name-alias derivation leaves master-name registry artefacts in place ('amazon com', 'keycorp /new/'), so plain-prose company mentions never tag — _open_
 
 ## All entries by severity
 
@@ -513,7 +516,7 @@ Status: blocked_tier4: 34 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-DATA-027 | high | data | market-data-providers-1 | yfinance is the de-facto India primary for fundamentals, statements and analyst data, contradicting spec.md:817 ('yfinance is never the trusted India primary'): the IN-scoped providers serve quote/ohlcv only | fixed | INT-spec-90-4 |
 | R15-DATA-028 | high | agent | agent-tools-catalog-ledger | The agent's earnings calendar defaults to ten US mega-caps and the India results calendar is unreachable from the tool loop, so 'which Indian companies report this week' returns AAPL..WMT | fixed | WLD-T-7 |
 | R15-DATA-029 | high | data | market-data-providers-1 | Earnings, analyst-ratings and news lanes never resolve Indian symbols: .NS/.BO are mangled to -NS/-BO (every Indian symbol returns empty) and bare NSE tickers hit the US namesake (BDL news = Flanigan's; INFY estimate = the ADR's USD EPS beside INR revenue) | fixed | COD-market-data-providers-1-3, SURF-PANELS-LAYOUTS-2 |
-| R15-DATA-030 | high | data | market-data-providers-2 | News symbol tagging matches the raw request string: every exchange-suffixed or company-named Indian ticker (RELIANCE.NS, HDFCBANK, SBIN) tags nothing and the News panel shows an empty feed, while single-letter tickers (A, T, F) tag every headline containing the article 'a' | open | COD-market-data-providers-2-3, COD-market-data-providers-2-14 |
+| R15-DATA-030 | high | data | market-data-providers-2 | News symbol tagging matches the raw request string: every exchange-suffixed or company-named Indian ticker (RELIANCE.NS, HDFCBANK, SBIN) tags nothing and the News panel shows an empty feed, while single-letter tickers (A, T, F) tag every headline containing the article 'a' | blocked_tier4 | COD-market-data-providers-2-3, COD-market-data-providers-2-14 |
 | R15-DATA-031 | high | ui | market-data-providers-3 | Earnings and analyst panels drop the contract's currency: EPS/revenue/targets render unlabelled, the Consensus EPS column sorts USD against INR by magnitude, and the surprise chart hardcodes 'EPS $' | fixed | COD-market-data-providers-3-1 |
 | R15-DATA-032 | high | data | market-data-providers-1 | Earnings estimate statistics are fabricated on typed fields: 'median' is the mean, 'Std. dev.' is (high-low)/4, and the revenue analyst count is the EPS count, all shown as measured values with no approximation marker | fixed | COD-market-data-providers-1-2, INT-blueprint-240-1 |
 | R15-DATA-033 | high | data | market-data-providers-1 | The correctness gate accepts NaN prices/closes (`x <= 0` is False for NaN), so a NaN bar ends the provider walk and the client gets price/close null on a numeric field instead of the next healthy lane | fixed | COD-market-data-providers-1-1 |
@@ -1115,3 +1118,6 @@ Status: blocked_tier4: 34 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-LEAD-053 | low | data | resolver | Direct GET /quotes/TATAMOTORS.NS and .BO still 404 with no rename hint to TMPV, even though /resolve already lists TMPV first for the same query | open |  |
 | R15-LEAD-054 | low | data | resolver | sp500.json carries ECHO and VMRK, two symbols absent from the current US resolver master, the same stale-universe-seed class R15-LEAD-049 fixed for nifty50 | open |  |
 | R15-LEAD-055 | low | ui | frontend-tests | R15-AGENT-053's own regression test (NewsFeedPanel 'publishes the top headline...') flakes under full vitest-suite load: a context-bus publish is asserted synchronously right after a waitFor on DOM text, racing the useEffect that fires it | open |  |
+| R15-LEAD-056 | low | data | market-data-providers-2 | DOW's (and NICE's) own stripped company-name alias is the common word itself, so the DATA-030 stoplist's anchored-ticker rule never applies and 'Dow Jones falls 300 points' still tags DOW | open |  |
+| R15-LEAD-057 | low | data | market-data-providers-2 | Name-alias derivation leaves master-name registry artefacts in place ('amazon com', 'keycorp /new/'), so plain-prose company mentions never tag | open |  |
+| R15-LEAD-058 | low | research | research-relevance | GM and GS (2-letter tickers with no brand token) never pass the non-IN relevance gate on a bare mention | open |  |
