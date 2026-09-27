@@ -1045,6 +1045,99 @@ describe("ChartPanel", () => {
     expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(0);
   });
 
+  it("a body-targeted Delete deletes only the chart whose selection was NOT cleared by an outside pointerdown (R15-UI-021)", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "draw-a",
+      panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    useChartDrawingsStore.getState().addDrawing("chart-B", {
+      id: "draw-b",
+      panelId: "chart-B",
+      symbol: "SPY",
+      timeframe: "1d",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    render(
+      <>
+        <ChartPanel api={{ id: "chart-A" }} />
+        <ChartPanel api={{ id: "chart-B" }} />
+      </>,
+    );
+    await waitFor(() => expect(historyMock).toHaveBeenCalledTimes(2));
+
+    const [chipA, chipB] = screen.getAllByRole("button", { name: "Select trendline" });
+    // Select A.
+    fireEvent.pointerDown(chipA!);
+    fireEvent.click(chipA!);
+    // Select B — the pointerdown lands outside chart-A's root, clearing A's
+    // selection before B's own click selects its drawing.
+    fireEvent.pointerDown(chipB!);
+    fireEvent.click(chipB!);
+
+    fireEvent.keyDown(document.body, { key: "Delete" });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(1);
+    expect(useChartDrawingsStore.getState().getDrawings("chart-B")).toHaveLength(0);
+  });
+
+  it("a pointerdown outside every chart clears the selection, so a later Backspace on body deletes nothing (R15-UI-021)", async () => {
+    useChartDrawingsStore.getState().addDrawing("chart-A", {
+      id: "draw-a",
+      panelId: "chart-A",
+      symbol: "SPY",
+      timeframe: "1d",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    useChartDrawingsStore.getState().addDrawing("chart-B", {
+      id: "draw-b",
+      panelId: "chart-B",
+      symbol: "SPY",
+      timeframe: "1d",
+      kind: "trendline",
+      points: [
+        { time: 1, price: 100 },
+        { time: 2, price: 110 },
+      ],
+      style: { color: "#e9a94d", lineWidth: 1 },
+      createdAt: 0,
+    });
+    render(
+      <>
+        <ChartPanel api={{ id: "chart-A" }} />
+        <ChartPanel api={{ id: "chart-B" }} />
+      </>,
+    );
+    await waitFor(() => expect(historyMock).toHaveBeenCalledTimes(2));
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Select trendline" })[0]!);
+    // Outside both charts' roots.
+    fireEvent.pointerDown(document.body);
+
+    fireEvent.keyDown(document.body, { key: "Backspace" });
+    expect(useChartDrawingsStore.getState().getDrawings("chart-A")).toHaveLength(1);
+    expect(useChartDrawingsStore.getState().getDrawings("chart-B")).toHaveLength(1);
+  });
+
   it("clears every drawing through the inspector's Clear drawings control", async () => {
     useChartDrawingsStore.getState().addDrawing("chart-A", {
       id: "draw-1",
