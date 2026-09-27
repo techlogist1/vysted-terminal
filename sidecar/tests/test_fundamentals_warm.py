@@ -442,3 +442,37 @@ async def test_india_sweep_429s_alone_do_not_open_the_user_circuit(
         assert not provider_health.is_open(provider_health.YAHOO)
     finally:
         provider_health.reset_for_tests()
+
+
+@pytest.mark.asyncio
+async def test_fifty_india_sweeps_alone_still_leave_the_circuit_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LIFECYCLE-020, class case: warm 429s carry zero weight, so even 50
+    all-429 sweeps (not just 3) never advance the streak past 0."""
+    from services import screener_universe_india
+
+    symbols = [f"S{i:03d}.NS" for i in range(600)]
+    monkeypatch.setattr(screener_universe_india, "load_india_universe", _tiny_universe(symbols))
+
+    async def _no_sleep(_secs: float) -> None:
+        return None
+
+    monkeypatch.setattr(yb.asyncio, "sleep", _no_sleep)
+
+    def all_429(request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        if request.url.path.endswith("/v7/finance/quote"):
+            return httpx.Response(429, text="Too Many Requests")
+        return httpx.Response(200, text="ok")
+
+    yb.reset_for_tests(httpx.MockTransport(all_429))
+    provider_health.reset_for_tests()
+    try:
+        for _ in range(50):
+            assert await fundamentals_warm._sweep_once() is True
+        assert not provider_health.is_open(provider_health.YAHOO)
+        assert provider_health.status(provider_health.YAHOO)["consecutive_throttles"] == 0
+    finally:
+        provider_health.reset_for_tests()

@@ -10,6 +10,7 @@ vi.mock("@/lib/sidecar-client", () => ({
 import {
   applyHostAction,
   applyHostActionAsync,
+  applyIntent,
   applyIntentAsync,
   describeHostAction,
   describeIntent,
@@ -1830,7 +1831,11 @@ describe("arrange_layout's default is a layout-only reset (R15-AGENT-056)", () =
     useChartDrawingsStore.getState().replaceAll({ byPanel: {} });
   });
 
-  it.each([{}, { pattern: "bogus" }])("keeps drawings and module choices for %o", (input) => {
+  // Was `[{}, { pattern: "bogus" }]`: an unrecognised pattern like "bogus" used
+  // to silently reset (the R15-LEAD-048 defect). It now fails instead — see
+  // "arrange_layout routes Layout-menu mode ids instead of resetting" below —
+  // so only the missing-pattern and explicit-"default" cases still reset here.
+  it.each([{}, { pattern: "default" }])("keeps drawings and module choices for %o", (input) => {
     const clear = vi.fn();
     const addPanel = vi.fn(() => ({ api: { setSize: vi.fn() } }));
     useWorkspaceStore.setState({
@@ -1847,6 +1852,88 @@ describe("arrange_layout's default is a layout-only reset (R15-AGENT-056)", () =
     expect(clear).toHaveBeenCalledTimes(1);
     expect(useModulesStore.getState().enabled).toEqual({ news: false });
     expect(useChartDrawingsStore.getState().byPanel.chart).toHaveLength(1);
+  });
+});
+
+describe("arrange_layout routes Layout-menu mode ids instead of resetting (R15-LEAD-048)", () => {
+  // A fake dockview api that satisfies applyLayoutMode's applyPlan (clear +
+  // addPanel + the empty-grid checks it makes along the way).
+  function fakeDockviewApi() {
+    return {
+      panels: [],
+      getPanel: () => undefined,
+      addPanel: vi.fn(() => ({ api: { setSize: vi.fn(), setActive: vi.fn() } })),
+      clear: vi.fn(),
+      width: 0,
+      height: 0,
+      hasMaximizedGroup: () => false,
+      exitMaximizedGroup: vi.fn(),
+      maximizeGroup: vi.fn(),
+    };
+  }
+
+  afterEach(() => {
+    useWorkspaceStore.setState({ dockviewApi: null, resetLayout: realResetLayout } as never);
+  });
+
+  it("a recognised Layout-menu mode id (e.g. 'fundamental') applies that mode, never resetLayout", () => {
+    const resetLayout = vi.fn();
+    const api = fakeDockviewApi();
+    useWorkspaceStore.setState({ dockviewApi: api, resetLayout } as never);
+
+    const label = applyHostAction("arrange_layout", { pattern: "fundamental" });
+
+    expect(label).toMatch(/fundamental/i);
+    expect(resetLayout).not.toHaveBeenCalled();
+    expect(api.clear).toHaveBeenCalledTimes(1);
+    expect(api.addPanel).toHaveBeenCalledWith(expect.objectContaining({ id: "chart" }));
+  });
+
+  // "constructor" is an inherited Object key, not an own mode id.
+  it.each(["banana", "constructor"])(
+    "an unrecognised pattern (%s) fails, names it, and does not reset",
+    (pattern) => {
+      const resetLayout = vi.fn();
+      useWorkspaceStore.setState({ dockviewApi: null, resetLayout } as never);
+
+      const result = applyIntent(parseHostAction("arrange_layout", { pattern }));
+      expect(result.label).toBeNull();
+      expect(result.reason).toContain(`unrecognised layout "${pattern}"`);
+      expect(resetLayout).not.toHaveBeenCalled();
+
+      const preview = describeHostAction("arrange_layout", { pattern });
+      expect(preview.title).not.toMatch(/^Reset/);
+      expect(preview.after).toMatch(/can't apply/);
+    },
+  );
+
+  it("'default' still resets", () => {
+    const resetLayout = vi.fn();
+    useWorkspaceStore.setState({ dockviewApi: null, resetLayout } as never);
+
+    expect(applyHostAction("arrange_layout", { pattern: "default" })).toMatch(/default/i);
+    expect(resetLayout).toHaveBeenCalledTimes(1);
+  });
+
+  it("class case: 'compare-desk' routes to the mode, 'compare' still takes the template path", () => {
+    const resetLayout = vi.fn();
+    const api = fakeDockviewApi();
+    useWorkspaceStore.setState({ dockviewApi: api, resetLayout } as never);
+
+    const deskLabel = applyHostAction("arrange_layout", { pattern: "compare-desk" });
+    expect(deskLabel).toMatch(/compare desk/i);
+    expect(resetLayout).not.toHaveBeenCalled();
+    expect(api.clear).toHaveBeenCalledTimes(1);
+
+    api.clear.mockClear();
+    const cmpLabel = applyHostAction("arrange_layout", {
+      pattern: "compare",
+      symbols: ["AAPL", "MSFT"],
+    });
+    expect(cmpLabel).toMatch(/compare/i);
+    // The agent's additive template arrange never clears the grid — only a
+    // Layout-menu mode switch does.
+    expect(api.clear).not.toHaveBeenCalled();
   });
 });
 

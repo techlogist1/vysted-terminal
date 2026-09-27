@@ -386,8 +386,9 @@ async def fetch_quotes_batch(
 
     ``throttle_weight`` is what each chunk that ends rate-limited records on
     the shared Yahoo circuit: 1.0 for a user-facing fetch; the background warm
-    loops pass less, so their 429s alone never open the circuit user screens
-    read (R15-LIFECYCLE-020)."""
+    loops pass 0.0, so their 429s never advance the circuit's streak at all —
+    only user-path 429s can open the circuit user screens read
+    (R15-LIFECYCLE-020)."""
     cleaned = [s.strip() for s in symbols if s and s.strip()]
     if not cleaned:
         return {}, {}

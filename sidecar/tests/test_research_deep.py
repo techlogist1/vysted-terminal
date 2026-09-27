@@ -653,6 +653,88 @@ def test_run_researcher_drops_off_entity_news_for_a_non_in_equity_target() -> No
     assert "Tax-free bond yields" not in prompt
 
 
+def _news_item(item_id: str, title: str, symbol: str, *, own_feed: bool) -> dict[str, Any]:
+    return {
+        "id": item_id,
+        "title": title,
+        "summary": None,
+        "url": f"https://news.example/{item_id}",
+        "source": "Test Feed",
+        "symbols": [symbol],
+        "via_symbol_feed": own_feed,
+    }
+
+
+def _run_news_leg(target: ResearchTarget, items: list[dict[str, Any]]) -> tuple[list[str], str]:
+    """Drive ``_run_researcher`` with ``items`` as the news result; return the
+    URLs in the structured news pair and the extraction prompt text."""
+
+    async def tool_call(name: str, _args: dict[str, Any]) -> dict[str, Any]:
+        if name == "news":
+            return {"ok": True, "count": len(items), "news": items}
+        return {"ok": False, "message": "no backend"}
+
+    recorded: list[list[dict[str, Any]]] = []
+
+    async def llm_call(messages: list[dict[str, Any]]) -> str:
+        recorded.append(messages)
+        return "Finding."
+
+    _finding, _web, pairs, _visited, _failed = asyncio.run(
+        deep._run_researcher(
+            "What is the latest news?",
+            target=target,
+            query=f"{target.name} news",
+            region="US",
+            tool_call=tool_call,
+            llm_call=llm_call,
+        )
+    )
+    urls = [item["url"] for pair in pairs for item in pair["result"].get("news", [])]
+    prompt = " ".join(str(m.get("content", "")) for m in recorded[0]) if recorded else ""
+    return urls, prompt
+
+
+# The ON (ON Semiconductor) region-feed items batch-28's DEEP run leaked, live
+# titles: each scored an uncorroborated short-token 0.6 on the prose word "on".
+_ON_REGION_TITLES = (
+    "Pressure from the bond market hits a new level, and US stocks slide on worries",
+    "Lockheed Martin (LMT) Is Spending Ahead on JATM. Will a Multiyear Contract Follow?",
+    "On Holding (ONON) Outlines Ambitious Goals and $1B Buyback, Jumps 7.6%",
+    "Nvidia doubles down on selling to both sides of the AI race",
+    "Retired Couple With $1.4 Million Pays $0 Tax on a $52,000 Stock Gain",
+    "Innate Pharma (IPHA) Closes Sobi Deal. Can the New Funding Keep Drug Trials on Track?",
+    "Accordia Bank review (2026): Top rates on savings and CD accounts",
+)
+
+
+def test_run_researcher_drops_common_word_ticker_region_news() -> None:
+    """R15-RESEARCH-001: for ON (US) no region-feed item alias-tagged ``ON``
+    reaches the structured pair or the extraction prompt; ON's own-feed item
+    is kept."""
+    target = ResearchTarget("ON", "ON Semiconductor Corporation", "NASDAQ", "equity", 1.0, "US")
+    own = _news_item("own", "Penguin Solutions and onsemi Shares Skyrocket", "ON", own_feed=True)
+    region = [
+        _news_item(f"r{i}", title, "ON", own_feed=False)
+        for i, title in enumerate(_ON_REGION_TITLES)
+    ]
+    urls, prompt = _run_news_leg(target, [own, *region])
+    assert urls == [own["url"]]
+    assert "Penguin Solutions" in prompt
+    for title in _ON_REGION_TITLES:
+        assert title not in prompt
+
+
+def test_run_researcher_drops_acronym_ticker_region_news() -> None:
+    """Class case the fix was not written against: C3.ai (AI) and a region
+    headline where "AI" is the acronym, not the company."""
+    target = ResearchTarget("AI", "C3.ai, Inc.", "NYSE", "equity", 1.0, "US")
+    region = _news_item("ai1", "AI stocks rally as chipmakers surge", "AI", own_feed=False)
+    urls, prompt = _run_news_leg(target, [region])
+    assert urls == []
+    assert "AI stocks rally" not in prompt
+
+
 def test_reflect_complete_reads_the_leading_token_not_a_substring() -> None:
     """R15-RESEARCH-034: the reflect reply is read by its leading COMPLETE/GAPS
     word; a gap statement that happens to contain "covered" is not complete."""

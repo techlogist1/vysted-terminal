@@ -241,6 +241,29 @@ def test_items_from_a_symbols_own_feed_are_tagged_by_provenance(
     assert [i.symbols for i in items] == [["HDFCBANK"]]
 
 
+@pytest.mark.parametrize(
+    ("symbol", "title"),
+    [
+        ("RELIANCE.NS", "Reliance Q2 profit jumps 9% on retail, Jio"),
+        ("RELIANCE.NS", "Reliance shares hit record high"),
+        ("MARUTI.NS", "Maruti sales rise 8% in September"),
+        ("META", "Meta unveils new Llama model"),
+        ("META", "Bank of America backs Meta stock after Muse surprise"),
+        ("UBER", "Uber beats estimates on ride growth"),
+    ],
+)
+def test_data_030_revert_guard_short_name_headline_tags_its_symbol(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, symbol: str, title: str
+) -> None:
+    """R15-DATA-030 regression guard: a headline that names the company by its
+    short name ("Meta", not "Meta Platforms"; "Reliance", not "Reliance
+    Industries") tags the symbol. e7d5a628 made tickers case-sensitive, so none
+    of these tagged; the batch-29 integration reverted it."""
+    item = _news_item("g1", title)
+    body = _news_for(client, monkeypatch, item, symbol)
+    assert [i["symbols"] for i in body] == [[symbol]]
+
+
 # --------------------------------------------------------------------------
 # news_provider.fetch_news — RSS/NewsAPI fetchers mocked at the function level
 # --------------------------------------------------------------------------

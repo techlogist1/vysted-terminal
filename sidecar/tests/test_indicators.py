@@ -508,8 +508,35 @@ def test_indicators_endpoint_returns_requested(
 def test_indicators_endpoint_carries_series_freshness(
     client: TestClient, monkeypatch: pytest.MonkeyPatch, series: OHLCVSeries
 ) -> None:
-    """R15-DATA-063: the response mirrors the underlying series' freshness
-    label — the same badge the chart panel shows for the bars themselves."""
+    """R15-DATA-063: the real provider registry never labels freshness itself
+    (only /history's own downgrade path did) — stubbing an UNLABELLED series
+    (no ``freshness`` kwarg, the real provider shape) must still come back
+    non-null from /indicators, and match /history for that same stub. This is
+    a parity check, not a fixed value, so it does not depend on the clock."""
+    from services import provider_registry
+
+    def _fake_get_history(
+        symbol: str,
+        timeframe: str,
+        range_: str | None = None,  # noqa: ARG001
+        asset_class: str = "equity",  # noqa: ARG001
+    ) -> OHLCVSeries:
+        return OHLCVSeries(symbol=symbol, timeframe=timeframe, bars=series.bars, provider="test")
+
+    monkeypatch.setattr(provider_registry, "get_history", _fake_get_history)
+    history_freshness = client.get("/history/SPY", params={"timeframe": "1d"}).json()["freshness"]
+    response = client.get("/indicators/SPY", params={"indicators": "rsi"})
+    assert response.status_code == 200
+    indicators_freshness = response.json()["freshness"]
+    assert indicators_freshness is not None
+    assert indicators_freshness == history_freshness
+
+
+def test_indicators_endpoint_crypto_is_live(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, series: OHLCVSeries
+) -> None:
+    """Class case the fix was not written against: crypto is labelled 'live'
+    regardless of the last bar's date (R15-DATA-063's asset_class branch)."""
     from services import provider_registry
 
     def _fake_get_history(
@@ -519,13 +546,15 @@ def test_indicators_endpoint_carries_series_freshness(
         asset_class: str = "equity",  # noqa: ARG001
     ) -> OHLCVSeries:
         return OHLCVSeries(
-            symbol=symbol, timeframe=timeframe, bars=series.bars, provider="test", freshness="eod"
+            symbol=symbol, timeframe=timeframe, bars=series.bars, provider="ccxt:binance"
         )
 
     monkeypatch.setattr(provider_registry, "get_history", _fake_get_history)
-    response = client.get("/indicators/SPY", params={"indicators": "rsi"})
+    response = client.get(
+        "/indicators/BTC%2FUSDT", params={"indicators": "rsi", "asset_class": "crypto"}
+    )
     assert response.status_code == 200
-    assert response.json()["freshness"] == "eod"
+    assert response.json()["freshness"] == "live"
 
 
 def test_indicators_endpoint_downgraded_empty_series_has_no_freshness(
