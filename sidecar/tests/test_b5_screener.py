@@ -208,7 +208,7 @@ async def test_warm_loop_is_lazy_and_follows_the_request_region(
     screener run under IN starts it on nifty50, not sp500."""
     warmed: list[list[str]] = []
 
-    async def record_batch(symbols: list[str]):
+    async def record_batch(symbols: list[str], *, throttle_weight: float = 1.0):
         warmed.append(list(symbols))
         return {}, {}
 
@@ -252,3 +252,47 @@ async def test_warm_loop_is_lazy_and_follows_the_request_region(
         assert warmed and warmed[0] == list(nifty)
     finally:
         await screener.stop_warm_precompute()
+
+
+def _all_v7_429(calls: dict[str, int]) -> httpx.MockTransport:
+    def handler(request: httpx.Request) -> httpx.Response:
+        if "getcrumb" in request.url.path:
+            return httpx.Response(200, text="crumb")
+        if request.url.path.endswith("/v7/finance/quote"):
+            calls["v7"] += 1
+            return httpx.Response(429, text="Too Many Requests")
+        return httpx.Response(200, text="ok")
+
+    return httpx.MockTransport(handler)
+
+
+@pytest.mark.asyncio
+async def test_warm_429s_alone_do_not_open_the_user_circuit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LIFECYCLE-020: three all-429 warm cycles over the real sp500 (11
+    chunks each) leave the Yahoo circuit closed, so a user fetch still goes
+    out; three user-path chunk 429s open it."""
+    calls = {"v7": 0}
+
+    async def _no_sleep(_secs: float) -> None:
+        return None
+
+    monkeypatch.setattr(yb.asyncio, "sleep", _no_sleep)
+    monkeypatch.setattr(screener, "_warm_universe", "sp500")
+    yb.reset_for_tests(_all_v7_429(calls))
+
+    for _ in range(3):
+        assert await screener._warm_once() is True
+    assert not provider_health.is_open(provider_health.YAHOO)
+
+    before = calls["v7"]
+    _rows, failures = await yb.fetch_quotes_batch(["AAA"])
+    assert calls["v7"] > before
+    assert failures == {"AAA": "rate_limited"}
+
+    # Control: the user path records full weight per chunk.
+    provider_health.reset_for_tests()
+    for sym in ("AAA", "BBB", "CCC"):
+        await yb.fetch_quotes_batch([sym])
+    assert provider_health.is_open(provider_health.YAHOO)

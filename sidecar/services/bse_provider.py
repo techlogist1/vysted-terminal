@@ -606,8 +606,9 @@ def _fetch_scrip_header(bare: str, code: str) -> Quote | None:
     fall back to the bhavcopy-derived quote.
 
     The header carries no traded quantity, so the session volume is read from
-    ``StockTrading`` (``TTQ``) for the same code (R15-DATA-053); when that call
-    fails the quote is served with volume null. Both go through ``_api_json``:
+    ``StockTrading`` (``TTQ``, scaled by its ``TTQin`` unit — :func:`_ttq_shares`)
+    for the same code (R15-DATA-053); when that call fails the quote is served
+    with volume null. Both go through ``_api_json``:
     ``api.bseindia.com`` answers a plain httpx client with 403.
     """
     try:
@@ -627,8 +628,24 @@ def _fetch_scrip_header(bare: str, code: str) -> Quote | None:
     except ProviderError as exc:
         logger.debug("bse: StockTrading fetch failed for %s: %s", code, exc)
         return quote
-    quote.volume = _num(trading.get("TTQ")) if isinstance(trading, dict) else None
+    quote.volume = _ttq_shares(trading) if isinstance(trading, dict) else None
     return quote
+
+
+def _ttq_shares(trading: dict) -> float | None:
+    """StockTrading's traded quantity in shares. ``TTQ`` is stated in its
+    ``TTQin`` unit — empty for raw shares (AMAL ``'5388'``), ``'(Lakh)'`` for a
+    liquid scrip (INFY ``'8.12'`` = 812,000) or ``'(Cr)'``. An unknown unit
+    serves null rather than a volume off by an unknown factor."""
+    ttq = _num(trading.get("TTQ"))
+    unit = str(trading.get("TTQin") or "").strip()
+    if ttq is None or not unit:
+        return ttq
+    if "Lakh" in unit:
+        return float(round(ttq * 1e5))
+    if "Cr" in unit:
+        return float(round(ttq * 1e7))
+    return None
 
 
 def _ason_trade_day(raw: object) -> date | None:
