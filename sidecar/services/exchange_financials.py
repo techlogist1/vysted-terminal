@@ -127,8 +127,7 @@ class FiledPeriods:
             if half.months != 6:
                 continue
             if any(
-                q.months == 3 and q.start >= half.start and q.end <= half.end
-                for q in self.periods
+                q.months == 3 and q.start >= half.start and q.end <= half.end for q in self.periods
             ):
                 return "quarterly-gap"
         return "half-yearly"
