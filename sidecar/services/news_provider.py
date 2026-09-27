@@ -45,7 +45,6 @@ import logging
 import os
 import re
 from datetime import UTC, datetime
-from functools import lru_cache
 from time import struct_time
 from typing import Any
 
@@ -577,15 +576,9 @@ def _aliases(symbol: str) -> list[str]:
     """Text forms that mean ``symbol``: the ticker as requested, its bare
     exchange/pair-stripped base (2+ characters only, so ``A`` never matches
     the article "a"), and the company name (the only text alias a one-letter
-    ticker gets). Tickers are upper-case and match case-sensitively, so ``IT``
-    never matches "it's"; the name is lower-case and matches case-insensitively
-    (:func:`_tag_symbols`)."""
+    ticker gets)."""
     tickers = dict.fromkeys(
-        [
-            symbol.strip().upper(),
-            strip_exchange_suffix(symbol),
-            _normalize_symbol_for_aliases(symbol),
-        ]
+        [symbol, strip_exchange_suffix(symbol), _normalize_symbol_for_aliases(symbol)]
     )
     aliases = [t for t in tickers if len(t) >= 2]
     name = _company_name(symbol)
@@ -599,65 +592,19 @@ def build_aliases(symbols: list[str]) -> dict[str, list[str]]:
     return {symbol: _aliases(symbol) for symbol in symbols}
 
 
-@lru_cache(maxsize=1)
-def _multiword_names() -> dict[str, list[tuple[str, str, tuple[str, ...]]]]:
-    """First name word -> ``(symbol, isin, name words)`` for every NSE, BSE and
-    US listing whose suffix-stripped name has 2+ words ("itc hotels", "lt
-    foods", "apple hospitality reit"). A one-word name continues into nothing."""
-    rows = [(sym, "", row[0]) for sym, row in symbol_resolver._nse_master().items()]
-    rows += [(sym, row[3], row[0]) for sym, row in symbol_resolver._bse_master().items()]
-    rows += [(sym, "", name) for sym, name in symbol_resolver._us_master().items()]
-    index: dict[str, list[tuple[str, str, tuple[str, ...]]]] = {}
-    for sym, isin, name in rows:
-        words = tuple(symbol_resolver._strip_corporate_suffix(name.lower()).split())
-        if len(words) > 1:
-            index.setdefault(words[0], []).append((sym, isin, words))
-    return index
-
-
-def _names_another_company(symbol: str, alias: str, rest: str) -> bool:
-    """Does this occurrence of ``alias``, followed by ``rest``, run on into a
-    DIFFERENT listed company's name — "ITC Hotels", "LT Foods", "RELIANCE
-    POWER", "Apple Hospitality"? Judged per occurrence, never per alias: the
-    same alias still tags "ITC Q2 profit rises". The target's own rows (same
-    bare symbol, or same ISIN) are never another company."""
-    words = tuple(symbol_resolver._strip_corporate_suffix(alias.lower()).split())
-    if not words:
-        return False
-    bare = _normalize_symbol_for_aliases(symbol)
-    bse_row = symbol_resolver._bse_master().get(bare)
-    own_isin = bse_row[3] if bse_row else ""
-    for sym, isin, name in _multiword_names().get(words[0], ()):
-        if sym == bare or (own_isin and isin == own_isin):
-            continue
-        if len(name) > len(words) and name[: len(words)] == words:
-            follow = re.escape(name[len(words)])
-            if re.match(rf"\W+{follow}(?!\w)", rest, flags=re.IGNORECASE):
-                return True
-    return False
-
-
 def _tag_symbols(item: NewsItem, aliases: dict[str, list[str]]) -> list[str]:
     """Return the symbols (keys of ``aliases``) the item is about.
 
     An item from a symbol's own per-symbol feed is tagged by provenance
-    (``item.symbols``, set by the provider); otherwise an occurrence of an
-    alias (:func:`_aliases`) must appear word-boundary-anchored in the title or
-    summary, so ``ETH`` does not match ``ethics`` — tickers case-sensitively,
-    the lower-case name case-insensitively — and that occurrence must not be
-    the start of another listed company's name (:func:`_names_another_company`).
+    (``item.symbols``, set by the provider); otherwise any alias of the symbol
+    (:func:`_aliases`) must appear word-boundary-anchored in the title or
+    summary, so ``ETH`` does not match ``ethics``.
     """
     haystack = f"{item.title} {item.summary or ''}"
     matched: list[str] = []
     for symbol, forms in aliases.items():
         if symbol in item.symbols or any(
-            not _names_another_company(symbol, alias, haystack[m.end() :])
-            for alias in forms
-            for m in re.finditer(
-                rf"\b{re.escape(alias)}\b",
-                haystack,
-                flags=re.IGNORECASE if alias.islower() else 0,
-            )
+            re.search(rf"\b{re.escape(alias)}\b", haystack, flags=re.IGNORECASE) for alias in forms
         ):
             matched.append(symbol)
     return matched

@@ -241,48 +241,6 @@ def test_items_from_a_symbols_own_feed_are_tagged_by_provenance(
     assert [i.symbols for i in items] == [["HDFCBANK"]]
 
 
-@pytest.mark.parametrize(
-    ("region", "symbol", "title", "expected"),
-    [
-        # A ticker read as an English word, or as the first word of ANOTHER
-        # listed company's name, is not the target.
-        ("US", "IT", "Tax-free bond yields are in a sweet spot. Get in before it's too late.", []),
-        ("US", "ON", "Choosing these AI-exposed college majors could dent your job prospects", []),
-        ("US", "ON", "On Holding announces $500m buyback", []),
-        ("IN", "RELIANCE.NS", "Reliance Power wins Bhutan project", []),
-        ("IN", "RELIANCE.NS", "RELIANCE POWER SHARES SURGE", []),
-        ("IN", "LT.NS", "LT Foods Q2 profit jumps 30%", []),
-        ("IN", "ITC.NS", "ITC Hotels shares list at premium", []),
-        # Single-word company names still tag (the batch-28 revert regressions).
-        ("IN", "RELIANCE.NS", "Reliance Industries Q2 profit rises 10%", ["RELIANCE.NS"]),
-        ("US", "IT", "Gartner beats estimates", ["IT"]),
-        ("US", "AAPL", "Apple beats on services", ["AAPL"]),
-        ("US", "MSFT", "Microsoft raises dividend", ["MSFT"]),
-        ("US", "NVDA", "Nvidia unveils a new chip", ["NVDA"]),
-        ("IN", "INFY.NS", "Infosys wins $1bn deal", ["INFY.NS"]),
-        ("IN", "ITC.NS", "ITC Q2 profit rises 8%", ["ITC.NS"]),
-        # Class cases the fix was not written against.
-        ("US", "AAPL", "Apple Hospitality REIT raises dividend", []),
-        ("US", "ALL", "All eyes on the Fed", []),
-    ],
-)
-def test_tagging_reads_tickers_case_sensitively_and_name_collisions_per_occurrence(
-    region: str, symbol: str, title: str, expected: list[str]
-) -> None:
-    """R15-DATA-030: tickers match as upper-case tokens, the company name
-    case-insensitively, and an occurrence that runs on into a different listed
-    company's name ("ITC Hotels", "Apple Hospitality") does not tag."""
-    import config
-
-    token = config.set_request_region(region)
-    try:
-        aliases = news_provider.build_aliases([symbol])
-    finally:
-        config.reset_request_region(token)
-    item = _news_item("t1", title)
-    assert news_provider._tag_symbols(item, aliases) == expected
-
-
 # --------------------------------------------------------------------------
 # news_provider.fetch_news — RSS/NewsAPI fetchers mocked at the function level
 # --------------------------------------------------------------------------
