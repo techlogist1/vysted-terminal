@@ -342,7 +342,13 @@ export const useScreenerStore = create<ScreenerState>((set, get) => ({
   setFormula: (formula) => set({ formula }),
   applyFilters: ({ criteria, group, universe, formula }) =>
     set((state) => ({
-      criteria,
+      // R15-AGENT-096: a flat group SUPERSEDES the caller's flat `criteria` —
+      // the ack, label and server all treat the group as the source of truth,
+      // so `runScreener` must send the same leaves, not the stale flat list.
+      // A nested group is unchanged (it drives `advanced` / the `group` wire
+      // field instead).
+      criteria:
+        group && !hasNestedGroup(group) ? (group.criteria as ScreenerCriterion[]) : criteria,
       group: group ?? null,
       advanced: hasNestedGroup(group ?? null),
       // A flat group from the agent collapses to the simple combinator so the

@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SidecarError } from "@/lib/sidecar-client";
+import { usePanelContextBus } from "@/store/panel-context";
 import { useSettingsStore } from "@/store/settings";
 import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
 
@@ -226,5 +227,31 @@ describe("NewsFeedPanel", () => {
     expect(mockLoadSymbolIntoChart).toHaveBeenCalledTimes(1);
     expect(mockLoadSymbolIntoChart).toHaveBeenCalledWith("AMD");
     expect(nvdaButton.closest("a")).toBeNull();
+  });
+
+  it("publishes the top headline, and the hovered row's headline on mouseEnter (R15-AGENT-053)", async () => {
+    mockFetchNews.mockResolvedValue([
+      newsItem({ id: "n1", title: "NVDA shares climb on strong demand" }),
+      newsItem({ id: "n2", title: "AAPL slumps after weak guidance" }),
+    ]);
+    render(<NewsFeedPanel />);
+
+    await waitFor(() => {
+      expect(screen.getByText("AAPL slumps after weak guidance")).toBeInTheDocument();
+    });
+    expect(usePanelContextBus.getState().lastEventBySource.news?.payload).toMatchObject({
+      topHeadline: "NVDA shares climb on strong demand",
+      focusedHeadline: null,
+    });
+
+    const row2 = screen.getByText("AAPL slumps after weak guidance").closest("a");
+    expect(row2).not.toBeNull();
+    fireEvent.mouseEnter(row2 as HTMLElement);
+
+    await waitFor(() => {
+      expect(usePanelContextBus.getState().lastEventBySource.news?.payload).toMatchObject({
+        focusedHeadline: "AAPL slumps after weak guidance",
+      });
+    });
   });
 });

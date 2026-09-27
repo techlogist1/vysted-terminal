@@ -832,8 +832,24 @@ function ChartPanel(props: ChartPanelProps = {}) {
         setSelectedDrawingId(null);
       }
     };
+    // R15-UI-021: the Delete listener above is window-scoped (it has to be —
+    // a clicked drawing chip leaves body focused), so without this a Delete
+    // typed anywhere still targets THIS instance's `selectedDrawingId` if it
+    // happens to be set, deleting the selection in every open chart at once.
+    // Clearing the selection the moment focus/pointer activity leaves this
+    // instance's root keeps a stale selection from outliving its chart.
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target || !rootRef.current?.contains(target)) {
+        setSelectedDrawingId(null);
+      }
+    };
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
   }, [drawings, panelId, removeDrawing, selectedDrawingId]);
 
   // --- sync bus: subscribe to crosshair / range / symbol broadcasts ------

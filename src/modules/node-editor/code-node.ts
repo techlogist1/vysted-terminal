@@ -15,11 +15,16 @@
  * the sidecar registry has carried a `transform.code` handler since
  * v0.6.0, and it is now the ONE evaluator for every run path (editor or
  * agent/MCP-triggered alike), so it can never silently disagree with a
- * second, client-side answer. The mathjs sandbox below is used ONLY for the
- * inline syntax check as you type (`compileCodeExpression`) and the
- * inspector's live preview (`evaluateCodeExpression`) — never to produce a
- * run's real output. See `code-node-run.ts` for the one thing still checked
- * client-side before a run: a full-graph cycle.
+ * second, client-side answer. This includes the inspector's live preview
+ * (`code-node-inspector.tsx`), which now posts a throwaway one-node spec to
+ * `/workflow/run` instead of evaluating locally. The mathjs sandbox below is
+ * used ONLY for the inline "does this parse" hint as you type
+ * (`compileCodeExpression`) — never to produce a run's real output.
+ * `evaluateCodeExpression` stays exported (it has its own unit tests below
+ * and is spied on by `NodeEditorPanel.test.tsx` to pin that a real run never
+ * calls it) but has no production caller any more. See `code-node-run.ts`
+ * for the one thing still checked client-side before a run: a full-graph
+ * cycle.
  *
  * SECURITY — sandboxed per mathjs's own guidance
  * (https://mathjs.org/docs/expressions/security.html):
