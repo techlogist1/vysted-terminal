@@ -5,6 +5,8 @@
 import fs from 'fs'
 import crypto from 'crypto'
 import path from 'path'
+import os from 'os'
+import { execSync } from 'child_process'
 import { fileURLToPath } from 'url'
 
 const argv = process.argv.slice(2)
@@ -100,6 +102,20 @@ async function main() {
   const B = await run(SCRIPT, LAUNCH, 'desc')
   const C = await run(SCRIPT, LAUNCH, 'mix')
   check(seq(A) === seq(B) && seq(A) === seq(C), 'labels, prompts and keys byte-identical across 3 completion sequences (' + A.calls.length + ' calls each): no prompt or position depends on call sequence')
+
+  // Case (a) — args.lanes absent: sequence + keys byte-identical to the script as committed at HEAD (i.e. lane selection changes
+  // nothing about the default, all-lanes run). Compares the current SCRIPT against 'git show HEAD:<its own path>' so this also
+  // guards every future edit to rc1-gate.js, not just this one.
+  const BASELINE_REL = 'docs/redesign/verification/r15/tooling/rc1-gate.js'
+  try {
+    const baselineSrc = execSync('git show HEAD:' + BASELINE_REL, { cwd: HERE, encoding: 'utf8' })
+    const baselineFile = path.join(os.tmpdir(), 'rc1-gate-baseline-' + process.pid + '.js')
+    fs.writeFileSync(baselineFile, baselineSrc)
+    const base = await run(baselineFile, LAUNCH, 'asc')
+    fs.unlinkSync(baselineFile)
+    check(seq(base) === seq(A), 'args.lanes absent: sequence + keys byte-identical to the HEAD-committed script (' + base.calls.length + ' calls)')
+  } catch (e) { console.log('INFO baseline compare (git show HEAD:' + BASELINE_REL + ') skipped: ' + e.message) }
+
   const cache = new Map(A.calls.map(c => [c.key, c.out]))
   for (const mode of ['asc', 'desc', 'mix']) {
     const R = await run(SCRIPT, LAUNCH, mode, cache)
@@ -156,6 +172,29 @@ async function main() {
   check(/pass\^3/.test(sc) && /--tag rc1-round-4-scenarios/.test(sc) && /\$0\.90/.test(sc) && /vy\._key\(p\) is not None/.test(sc), 'scenario role: hosted triples graded pass^3, key resolved via vy.py booleans, tagged spend with a $0.90 stop')
   const dr = A.calls.find(c => c.label === 'rc1-drive-onboarding-stranger').prompt
   check(/RAW OUTPUT IS MANDATORY/.test(dr) && /NOT RUN: <named reason>/.test(dr), 'drive role makes per-row raw files mandatory')
+
+  // Case (b) — a partial re-run: only the named lanes launch, in the same relative order, nothing throws, and a non-numeric
+  // round string ('5-recheck') reaches every RN-built path.
+  const ALL_LANE_NAMES = ['preflight', 'gate8', 'heavy', 'scenarios', 'battery-index', 'drives', 'datapack', 'battery', 'collate', 'fixloop', 'vshards', 'verifier']
+  const LANE_SUBSET = ['preflight', 'gate8', 'heavy', 'battery-index', 'battery', 'collate']
+  let laneErr = null
+  const laneRun = await run(SCRIPT, { ...LAUNCH, lanes: LANE_SUBSET, skip_verifier: true, round: '5-recheck' }, 'asc').catch(e => { laneErr = e; return null })
+  check(!laneErr, 'args.lanes + skip_verifier + a string round completes without throwing' + (laneErr ? ': ' + laneErr.message : ''))
+  if (laneRun) {
+    const labels = laneRun.calls.map(c => c.label)
+    const offLabels = l => l === 'rc1-scenarios' || l.startsWith('rc1-drive-') || l === 'rc1-datapack' || /^rc1-fix-r\d+-/.test(l) || l.startsWith('rc1-vshard-') || l === 'rc1-verifier'
+    const onLabel = l => l === 'rc1-preflight' || l === 'rc1-gate8' || l === 'rc1-heavy' || /^rc1-battery-index(-redo)?$/.test(l) || /^rc1-battery-\d+$/.test(l) || l === 'rc1-collate'
+    check(labels.every(onLabel) && !labels.some(offLabels), 'only the selected lanes launch agents (' + labels.length + ' calls): ' + [...new Set(labels.map(l => l.replace(/-\d+$/, '-<k>')))].join(', '))
+    check(['rc1-preflight', 'rc1-gate8', 'rc1-heavy', 'rc1-battery-index', 'rc1-collate'].every(l => labels.includes(l)) && labels.some(l => /^rc1-battery-\d+$/.test(l)), 'every selected lane launched at least one agent')
+    check(labels[0] === 'rc1-preflight' && labels[1] === 'rc1-gate8', 'preflight then gate8 lead the sequence: ' + labels.slice(0, 2).join(' > '))
+    check(labels[labels.length - 1] === 'rc1-collate', 'collate is issued last (it waits on every other selected lane): ' + labels[labels.length - 1])
+    const ixAt = labels.indexOf('rc1-battery-index')
+    const shardAts = labels.map((l, i) => (/^rc1-battery-\d+$/.test(l) ? i : -1)).filter(i => i >= 0)
+    check(ixAt >= 0 && shardAts.length > 0 && shardAts.every(i => i > ixAt), 'battery-index is issued before every battery shard (index at ' + ixAt + ', shards ' + shardAts[0] + '-' + shardAts[shardAts.length - 1] + ')')
+    check(labels.every(l => laneRun.calls.find(c => c.label === l).prompt.includes('round-5-recheck')), "a string round ('5-recheck') reaches every prompt via RN, not just a numeric conversion of args.round")
+    const r = laneRun.result
+    check(!!r && r.lanes_run.join() === LANE_SUBSET.join() && r.lanes_skipped.join() === ALL_LANE_NAMES.filter(l => !LANE_SUBSET.includes(l)).join(), 'the return value carries lanes_run/lanes_skipped matching the request' + (r ? ' (' + r.lanes_run.join(',') + ' / ' + r.lanes_skipped.join(',') + ')' : ''))
+  }
 
   const count = {}
   for (const c of A.calls) { const k = c.label.replace(/-\d+$/, '-<k>').replace(/^rc1-drive-.*/, 'rc1-drive-<group>').replace(/^rc1-fix-r(\d+)-W.*/, 'rc1-fix-r$1-<writer>'); count[k] = (count[k] || 0) + 1 }

@@ -14,8 +14,8 @@ export const meta = {
 
 const A = args || {}
 // Every per-round evidence path hangs off args.round, so a gate round never reads, merges, continues from or clobbers an earlier round's files.
-if (A.round == null || !/^[1-9][0-9]*$/.test(String(A.round))) throw new Error('args.round is required: the gate round, an integer >= 1 (evidence goes under r15/rc1/round-<round>/); got ' + JSON.stringify(A.round))
-const ROUND = +A.round
+if (A.round == null || !/^[1-9][0-9]*(-.+)?$/.test(String(A.round))) throw new Error('args.round is required: the gate round, an integer >= 1 (evidence goes under r15/rc1/round-<round>/); got ' + JSON.stringify(A.round))
+const ROUND = A.round
 const RN = 'round-' + ROUND
 const LEADNOTE = A.note ? '\n\nLEAD NOTE FOR THIS RUN (applies to every role; it adds to the rules above, never relaxes lanes or secrets): ' + String(A.note) : ''
 const REPO = '/Users/lokavyasingh/Documents/dev/vysted-terminal'
@@ -38,6 +38,16 @@ const BL = intArg('batt_limit', 2)
 const BATT_SHARDS = A.batt_shards == null ? null : intArg('batt_shards', null, 64)
 const IDLE_CMD = "ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($NF/1000000000); exit}'"
 const FRONT_CMD = 'lsappinfo info -only name $(lsappinfo front)'
+
+// LANES: args.lanes selects which stages run (absent/empty = every lane, unchanged from before this existed); args.skip_verifier
+// is shorthand for leaving 'verifier' out of lanes. A skipped lane launches no agent and writes nothing; its consumers get a
+// value (null/[]/a placeholder) that keeps the rest of the script from throwing — see the return's lanes_run/lanes_skipped.
+const ALL_LANES = ['preflight', 'gate8', 'heavy', 'scenarios', 'battery-index', 'drives', 'datapack', 'battery', 'collate', 'fixloop', 'vshards', 'verifier']
+const LANES = Array.isArray(A.lanes) && A.lanes.length ? new Set(A.lanes) : new Set(ALL_LANES)
+if (A.skip_verifier === true || A.skip_verifier === 'true') LANES.delete('verifier')
+const laneOn = l => LANES.has(l)
+const lanesRun = ALL_LANES.filter(laneOn)
+const lanesSkipped = ALL_LANES.filter(l => !laneOn(l))
 
 // RESUME KEYS (read from Claude Code 2.1.280, reproduced on round 2's journal): agent() caches under
 // sha256(<key of the previously INVOKED agent() call> \0 prompt \0 {schema, model, effort, isolation, agentType}) — a hash chain over
@@ -89,7 +99,7 @@ const fixable = f => ['regression', 'chain', 'gate8'].includes(f.kind) || (f.kin
 
 // ---------------------------------------------------------------- 1. Preflight
 phase('Preflight')
-const pre = await run(`${COMMON}
+const pre = laneOn('preflight') ? await run(`${COMMON}
 
 ${facts(A.sha || '(to resolve)', CAND)}
 
@@ -100,12 +110,16 @@ ROLE: PREFLIGHT (Sonnet, mechanical; label rc1-preflight). You alone may build i
 (4) Shared stack: kill only the sleep pids ${ISO}/pids.json lists (each must be 'sleep 86400'); boot :52153/:52154 from the worktree's src-tauri/binaries and :52152 from its sidecar/ on ${ISO}/data per ISO_STACK.md; new pids → pids.json; /health ok with openbb-mcp available. A port held by an unlisted process: never kill it → 'blocked'.
 (5) Env: llama3.1:8b in ollama list; /search/status + /search/searxng/status on :52152 (never start Docker); df -h (block < 10 GB, warn < 25 GB); idle: ${IDLE_CMD}; frontmost: ${FRONT_CMD}.
 (6) Register: read docs/redesign/verification/vysted-r15-register.json DIRECTLY at the candidate (its own 'counts' field + the 'entries' list); NEVER 'register.py status', which recomputes from r15/census/merge/ and lags the JSON that the Stage-C adjudicators write. Counts by status; critical/high/medium ids whose status is exactly 'open'; needs_gui ids; blocked_tier4 ids.
-Return model, status, sha, build_log, stack_ok, ollama_llama31, searxng, disk_free_gb, idle_s, frontmost, status_counts, open_chm, needs_gui, blocked_tier4, blockers, notes, summary ≤120 words.`, { label: 'rc1-preflight', phase: 'Preflight', model: 'sonnet', effort: 'high', schema: PRE })
+Return model, status, sha, build_log, stack_ok, ollama_llama31, searxng, disk_free_gb, idle_s, frontmost, status_counts, open_chm, needs_gui, blocked_tier4, blockers, notes, summary ≤120 words.`, { label: 'rc1-preflight', phase: 'Preflight', model: 'sonnet', effort: 'high', schema: PRE }) : (() => {
+  if (!A.sha) throw new Error("args.lanes skips 'preflight' but args.sha is not set — preflight resolves the candidate sha; pass args.sha to skip it")
+  log('preflight skipped (args.lanes)')
+  return { model: 'skipped', status: 'ready', sha: A.sha, build_log: '', stack_ok: true, ollama_llama31: true, searxng: 'skipped', disk_free_gb: 0, idle_s: 0, frontmost: '', status_counts: {}, open_chm: [], needs_gui: [], blocked_tier4: [], blockers: [], notes: ['preflight skipped via args.lanes'], summary: 'preflight skipped (args.lanes)' }
+})()
 
 if (!pre || pre.status !== 'ready') {
   const why = pre ? (pre.blockers.length ? pre.blockers : ['preflight status ' + pre.status]) : ['preflight agent died']
   log('preflight blocked — the gate does not run: ' + JSON.stringify(why))
-  return { status: 'blocked', round: ROUND, evidence_root: EV, gate8: null, regression: null, scenarios: null, drives: [], battery: null, harness: null, gui: null, verifier: null, tag_sha: null, candidate_sha: pre ? pre.sha || null : null, blockers: why, deferred_needs_gui: pre ? pre.needs_gui : [] }
+  return { status: 'blocked', round: ROUND, evidence_root: EV, gate8: null, regression: null, scenarios: null, drives: [], battery: null, harness: null, gui: null, verifier: null, tag_sha: null, candidate_sha: pre ? pre.sha || null : null, blockers: why, deferred_needs_gui: pre ? pre.needs_gui : [], lanes_run: lanesRun, lanes_skipped: lanesSkipped }
 }
 const SHA = pre.sha
 // Fix branches and the integration worktree are per gate round and candidate, so a re-run of the gate never needs a force-push.
@@ -123,7 +137,7 @@ const F0 = facts(SHA, CAND)
 
 // ---------------------------------------------------------------- 2. Gate 8
 phase('Gate 8')
-const g8 = await run(`${COMMON}
+const g8 = laneOn('gate8') ? await run(`${COMMON}
 
 ${F0}
 
@@ -133,8 +147,8 @@ ROLE: GATE 8 PROVER (Opus; label rc1-gate8). Law (D81): prove NO order, broker o
 (c) pytest sidecar/tests/test_no_trading_surface.py (that file only) → counts.
 (d) rg -n -i over src/, sidecar/, src-tauri/, plugins/, docs/ (skip node_modules, .venv, target, out, .next, binaries) for broker, place.?order, propose_order, 'order (entry|ticket|book|placement)', paper.?trad, simulat, 'live.?(trading|mode)', kill.?switch, audit_orders, margin, demat. RAW GREP OUTPUT NEVER GOES UNDER THE EVIDENCE DIR: GitHub rejects any pushed file over 100 MB and warns over 50 MB (round 4's docs/ root alone ran to 193k lines, ~185 MB combined across the raw and classified dumps, and broke the push) — write each root's full rg output to ${SCRATCH}/gate8-${ROUND}/<root>.txt (mkdir -p; name that scratch dir in GATE8.md so the lead can find it; it is never committed and never written under ${EV}). Classify EVERY hit from those files: product surface (UI, tool, route, setting, terms, user-facing doc offering trading → FAIL), historical record (CHANGELOG, docs/archive, verification evidence, a doc saying it was removed → OK, say why), false positive. Under ${EV}/gate8/ keep only: gate8/grep-summary.json ({"<root>": {"total", "product", "historical", "false_positive"}} per root), gate8/grep-product-hits.tsv (EVERY product-surface hit, in full — this class is always small since D81 removed the surface), and gate8/grep-examples.tsv (at most 200 example rows per root for the historical and false_positive classes, each row labelled by root and class). No file you write under ${EV} may exceed 20 MB; if an examples file would, cut to 200 rows per root per class — never widen or drop a search pattern to shrink the raw count, and say so in GATE8.md. Quote what Settings and the first-launch terms say about trading.
 (e) Portfolio e2e on :52310: add 3 manual holdings with cost bases (NSE, US, one with a note), read back; recompute P&L from /quote prices you fetch and compare; update, delete, read back; CSV export via the panel's code path, run headless (scratch code never committed): columns vs holdings; notes CRUD; watchlist CRUD; the agent on llama3.1:8b: get_portfolio matches the ledger, then a GATED write: portfolio_add_position under --autonomy ask is proposed and the ledger is unchanged until applied; apply it as the frontend does, read back.
-Write ${EV}/GATE8.md (per item: command, excerpt, verdict) and ${EV}/gate8.json {pass, routes, tools, mcp, grep:{<root>:{total, product, historical, false_positive}}, portfolio:{steps}, failures}. Each product-surface hit or portfolio break → finding kind gate8. Stop your sidecar. Return model, lane 'gate8', status, evidence_files, counts, findings, notes, summary ≤150 words.`, { label: 'rc1-gate8', phase: 'Gate 8', model: 'opus', effort: 'high', schema: LANE })
-if (!g8) blockers.push('Gate 8 agent died: no proof')
+Write ${EV}/GATE8.md (per item: command, excerpt, verdict) and ${EV}/gate8.json {pass, routes, tools, mcp, grep:{<root>:{total, product, historical, false_positive}}, portfolio:{steps}, failures}. Each product-surface hit or portfolio break → finding kind gate8. Stop your sidecar. Return model, lane 'gate8', status, evidence_files, counts, findings, notes, summary ≤150 words.`, { label: 'rc1-gate8', phase: 'Gate 8', model: 'opus', effort: 'high', schema: LANE }) : (log('gate8 skipped (args.lanes)'), null)
+if (laneOn('gate8') && !g8) blockers.push('Gate 8 agent died: no proof')
 log('gate 8: ' + (g8 ? g8.status + ', ' + g8.findings.length + ' findings' : 'no result'))
 
 // ---------------------------------------------------------------- 3. Regression suite
@@ -225,21 +239,25 @@ ROLE: DATA-PACK RE-COLLECTION (Sonnet; label rc1-datapack). The 24 battery names
 // Issue sequence is fixed: heavy, scenarios, index, data pack, then waves of DL drives and BL shards; drive i waits for drive i-DL and
 // shard k for shard k-BL (the lane caps); an empty shard issues nothing. The index check sits after the first drive wave, before
 // shard 0 (which waits for the plan anyway): a valid index issues nothing there, a rejected one issues its single redo.
-const heavyP = step([], () => heavyLane())
-const scenP = step([], () => scenarioLane())
-const indexP = step([], () => indexLane(''))
-const packP = step([], () => packLane())
+const EMPTY_INDEX = { model: 'skipped', sets: [], fixed_total: 0, unplanned_fixed: 0, index_file: '', summary: 'battery-index skipped (args.lanes)' }
+const EMPTY_SHARDS = Array.from({ length: NB }, () => ({ batches: [], sets: [] }))
+const heavyP = step([], () => (laneOn('heavy') ? heavyLane() : (log('heavy skipped (args.lanes)'), null)))
+const scenP = step([], () => (laneOn('scenarios') ? scenarioLane() : (log('scenarios skipped (args.lanes)'), null)))
+const indexP = step([], () => (laneOn('battery-index') ? indexLane('') : (log('battery-index skipped (args.lanes)'), EMPTY_INDEX)))
+const packP = step([], () => (laneOn('datapack') ? packLane() : (log('datapack skipped (args.lanes)'), null)))
+if (!laneOn('drives')) log('drives skipped (args.lanes)')
+if (!laneOn('battery')) log('battery skipped (args.lanes)')
 let ixP = null
 let planP = null
 const driveP = []
 const battP = []
 for (let w = 0; w * DL < DRIVE_GROUPS.length || w * BL < NB; w++) {
-  for (let i = w * DL; i < Math.min((w + 1) * DL, DRIVE_GROUPS.length); i++) driveP[i] = step(i >= DL ? [driveP[i - DL]] : [], () => driveLane(DRIVE_GROUPS[i], i))
+  for (let i = w * DL; i < Math.min((w + 1) * DL, DRIVE_GROUPS.length); i++) driveP[i] = step(i >= DL ? [driveP[i - DL]] : [], () => (laneOn('drives') ? driveLane(DRIVE_GROUPS[i], i) : null))
   if (!w) {
-    ixP = step([indexP], ([ix]) => (ix && indexProblem(ix) ? indexLane(indexProblem(ix)) : ix))
-    planP = ixP.then(planShards)
+    ixP = laneOn('battery-index') ? step([indexP], ([ix]) => (ix && indexProblem(ix) ? indexLane(indexProblem(ix)) : ix)) : indexP
+    planP = laneOn('battery-index') ? ixP.then(planShards) : Promise.resolve(EMPTY_SHARDS)
   }
-  for (let k = w * BL; k < Math.min((w + 1) * BL, NB); k++) battP[k] = step(k >= BL ? [planP, battP[k - BL]] : [planP], ([sh]) => (sh[k].sets.length ? shardLane(sh[k], k) : null))
+  for (let k = w * BL; k < Math.min((w + 1) * BL, NB); k++) battP[k] = step(k >= BL ? [planP, battP[k - BL]] : [planP], ([sh]) => (laneOn('battery') && sh[k].sets.length ? shardLane(sh[k], k) : null))
 }
 // Fail fast: an unplannable battery throws here, by name, before any shard runs (the lanes already issued are the harness's to stop).
 const batteryShards = await planP
@@ -252,31 +270,31 @@ const drives = driveRes.filter(Boolean)
 const battery = (await Promise.all(battP)).filter(Boolean)
 log('battery: ' + batteryIndex.sets.length + ' writer sets, ' + batteryIndex.fixed_total + ' fixed entries in ' + liveShards + ' shards (' + batteryShards.filter(sh => sh.sets.length).map(x => x.batches.join('+') + ':' + entryCount(x)).join(', ') + ')')
 // A drive's return must list a raw (non-.md) file under its group's round dir; the collator re-checks on disk.
-const driveNoRawSeen = DRIVE_GROUPS.filter((g, i) => !(driveRes[i] && driveRes[i].evidence_files.some(f => f.includes(SURF + '/' + g + '/rc1/' + RN + '/') && !/[.]md$/i.test(f))))
+const driveNoRawSeen = laneOn('drives') ? DRIVE_GROUPS.filter((g, i) => !(driveRes[i] && driveRes[i].evidence_files.some(f => f.includes(SURF + '/' + g + '/rc1/' + RN + '/') && !/[.]md$/i.test(f)))) : []
 if (driveNoRawSeen.length) log('owner-drives with no raw file in their return: ' + driveNoRawSeen.join(', '))
-const scenGap = !scen ? ['the lane returned nothing'] : scen.hosted.provider === 'none' ? ['no hosted key: ' + scen.hosted.reason] : SC_PROPS.filter(p => !scen.properties.some(x => x.property === p && x.hosted_complete >= 4)).map(p => p + ': fewer than 4 complete hosted triples')
+const scenGap = !laneOn('scenarios') ? [] : !scen ? ['the lane returned nothing'] : scen.hosted.provider === 'none' ? ['no hosted key: ' + scen.hosted.reason] : SC_PROPS.filter(p => !scen.properties.some(x => x.property === p && x.hosted_complete >= 4)).map(p => p + ': fewer than 4 complete hosted triples')
 if (scenGap.length) blockers.push('HARNESS scenarios-lane: ' + scenGap.join('; '))
 const expectedSets = batteryIndex.sets.map(s => s.set)
 const expectedIds = batteryShards.flatMap(sh => sh.sets.flatMap(x => x.entries))
 const seenIds = new Set(battery.flatMap(b => b.results.map(x => x.id)))
 const battMissing = expectedIds.filter(id => !seenIds.has(id))
 const battTally = battery.flatMap(b => b.results).reduce((m, x) => { m[x.verdict] = (m[x.verdict] || 0) + 1; return m }, {})
-if (drives.length < DRIVE_GROUPS.length) log('owner-drives missing: ' + DRIVE_GROUPS.filter(g => !drives.some(d => d.lane === 'drive:' + g)).join(', '))
-if (battery.length < liveShards) log('battery shards missing: ' + (liveShards - battery.length) + ' of ' + liveShards)
-if (battMissing.length) log('battery entries with no result: ' + battMissing.length + ' of ' + expectedIds.length + ': ' + battMissing.join(', '))
+if (laneOn('drives') && drives.length < DRIVE_GROUPS.length) log('owner-drives missing: ' + DRIVE_GROUPS.filter(g => !drives.some(d => d.lane === 'drive:' + g)).join(', '))
+if (laneOn('battery') && battery.length < liveShards) log('battery shards missing: ' + (liveShards - battery.length) + ' of ' + liveShards)
+if (laneOn('battery') && battMissing.length) log('battery entries with no result: ' + battMissing.length + ' of ' + expectedIds.length + ': ' + battMissing.join(', '))
 log('regression lanes: ci/smoke ' + (heavy ? heavy.status : 'none') + '; scenarios ' + (scen ? scen.status : 'none') + '; drives ' + drives.map(d => d.lane.slice(6) + '=' + d.status).join(' ') + '; battery ' + battery.length + '/' + liveShards + ' shards ' + JSON.stringify(battTally) + '; datapack ' + (pack ? pack.status : 'none'))
 
-const collate = await run(`${COMMON}
+const collate = laneOn('collate') ? await run(`${COMMON}
 
 ${F0}
 
-ROLE: COLLATOR (Sonnet, mechanical; label rc1-collate). Write index files from the per-agent evidence already on disk — no new judgement, no re-runs. ${EV}/OWNER_DRIVE.md: one row per group from ${EV}/drives/*.md (interactions driven; ok/partial/broken/NEEDS-GUI counts; census→rc1 deltas; finding keys; evidence dir). DRIVE RAW OUTPUT, checked on disk, in the mandatory OWNER_DRIVE.md section '## Drive raw output': for every expected group list the files in ${SURF}/<group>/rc1/${RN}/; a group whose dir is missing or holds no file other than .md has NO RAW OUTPUT, a named lane failure: write 'FAIL drive-raw-missing: <group>' there and return the group in drive_no_raw; also list per group the scored rows of ${EV}/drives/<group>.md whose cited raw file does not exist; the section reads 'none missing' only when every group has raw files. ${EV}/BATTERY.md: one row per set from ${EV}/battery/set-*.md (ids; holds/regressed/ci_pinned/needs_gui/blocked_env counts), then a data-pack section from ${EV}/DATAPACK.md. BATTERY RAW OUTPUT, checked on disk against the script's shard plan (per shard: each set's raw dir under ${EV}/battery/ and its ids): ${JSON.stringify(batteryShards.map((sh, k) => ({ shard: k, sets: sh.sets.map(x => ({ raw: x.raw, ids: x.entries })) })).filter(x => x.sets.length))}. MECHANICAL RULE, apply it exactly, no judgement call (round 4's collator matched only the literal string 'NOT RUN:' at the start and missed 22 of 25 differently-worded placeholders — R15_GATE_R5 fix): for EVERY id in that plan look for ${EV}/battery/<raw dir>/<id>*.txt. No file at all → missing, reason 'no_file'. A file exists but its first non-blank line matches, case-insensitively, a skip placeholder — starts with 'NOT RUN' or 'NOT-RUN' or 'SKIPPED' in any phrasing that follows those opening words ('NOT RUN:', 'NOT RUN AS A LIVE PROBE:', 'not-run', 'skipped —', etc.) — → missing, reason 'not_run', regardless of any grep, source-check or other investigation written after that first line: it is still not the command and its output the entry's own repro calls for. Any other file content is raw output, present. List EVERY missing id this way — never cap or sample the list, however many there are. ALWAYS write both, even when nothing is missing: ${EV}/battery/MISSING_RAW.json as {"harness_failure": "battery-raw-missing", "count": <n>, "missing": [{"id", "shard", "set", "reason": "no_file" | "not_run"}]} (count 0 and [] when none; count always equals missing.length, uncapped), and the BATTERY.md section '## Missing ids by shard' (one line per shard with its missing ids and each one's reason category; the single line 'none' when none). The battery status line reads 'incomplete' (a named harness failure, battery-raw-missing, listing the count and the ids) when any id lacks raw output, 'complete' only when none does — never 'pass'. EVIDENCE SIZE CHECK: find ${EV} -type f -size +20M and list every hit (path, size) in your return field oversize — [] when none; a file this large cannot be pushed (GitHub rejects over 100 MB, warns over 50 MB) and the lead must move it out of the evidence dir before pushing. Merge every ${EV}/findings/*.json into ${EV}/FINDINGS.json (sorted by kind then severity) and a FINDINGS.md table. Expected groups: ${JSON.stringify(DRIVE_GROUPS)}; expected sets: ${expectedSets.length} (${EV}/battery/INDEX.json). Anything expected with no file → listed as MISSING in the index file and in your return. Return model, files_written, missing, battery_status, no_raw[{key: id, reason}], drive_no_raw, oversize, summary ≤100 words.`, { label: 'rc1-collate', phase: 'Regression', model: 'sonnet', effort: 'medium', schema: COLLATE })
+ROLE: COLLATOR (Sonnet, mechanical; label rc1-collate). Write index files from the per-agent evidence already on disk — no new judgement, no re-runs. ${EV}/OWNER_DRIVE.md: one row per group from ${EV}/drives/*.md (interactions driven; ok/partial/broken/NEEDS-GUI counts; census→rc1 deltas; finding keys; evidence dir). DRIVE RAW OUTPUT, checked on disk, in the mandatory OWNER_DRIVE.md section '## Drive raw output': for every expected group list the files in ${SURF}/<group>/rc1/${RN}/; a group whose dir is missing or holds no file other than .md has NO RAW OUTPUT, a named lane failure: write 'FAIL drive-raw-missing: <group>' there and return the group in drive_no_raw; also list per group the scored rows of ${EV}/drives/<group>.md whose cited raw file does not exist; the section reads 'none missing' only when every group has raw files. ${EV}/BATTERY.md: one row per set from ${EV}/battery/set-*.md (ids; holds/regressed/ci_pinned/needs_gui/blocked_env counts), then a data-pack section from ${EV}/DATAPACK.md. BATTERY RAW OUTPUT, checked on disk against the script's shard plan (per shard: each set's raw dir under ${EV}/battery/ and its ids): ${JSON.stringify(batteryShards.map((sh, k) => ({ shard: k, sets: sh.sets.map(x => ({ raw: x.raw, ids: x.entries })) })).filter(x => x.sets.length))}. MECHANICAL RULE, apply it exactly, no judgement call (round 4's collator matched only the literal string 'NOT RUN:' at the start and missed 22 of 25 differently-worded placeholders — R15_GATE_R5 fix): for EVERY id in that plan look for ${EV}/battery/<raw dir>/<id>*.txt. No file at all → missing, reason 'no_file'. A file exists but its first non-blank line matches, case-insensitively, a skip placeholder — starts with 'NOT RUN' or 'NOT-RUN' or 'SKIPPED' in any phrasing that follows those opening words ('NOT RUN:', 'NOT RUN AS A LIVE PROBE:', 'not-run', 'skipped —', etc.) — → missing, reason 'not_run', regardless of any grep, source-check or other investigation written after that first line: it is still not the command and its output the entry's own repro calls for. Any other file content is raw output, present. List EVERY missing id this way — never cap or sample the list, however many there are. ALWAYS write both, even when nothing is missing: ${EV}/battery/MISSING_RAW.json as {"harness_failure": "battery-raw-missing", "count": <n>, "missing": [{"id", "shard", "set", "reason": "no_file" | "not_run"}]} (count 0 and [] when none; count always equals missing.length, uncapped), and the BATTERY.md section '## Missing ids by shard' (one line per shard with its missing ids and each one's reason category; the single line 'none' when none). The battery status line reads 'incomplete' (a named harness failure, battery-raw-missing, listing the count and the ids) when any id lacks raw output, 'complete' only when none does — never 'pass'. EVIDENCE SIZE CHECK: find ${EV} -type f -size +20M and list every hit (path, size) in your return field oversize — [] when none; a file this large cannot be pushed (GitHub rejects over 100 MB, warns over 50 MB) and the lead must move it out of the evidence dir before pushing. Merge every ${EV}/findings/*.json into ${EV}/FINDINGS.json (sorted by kind then severity) and a FINDINGS.md table. Expected groups: ${JSON.stringify(DRIVE_GROUPS)}; expected sets: ${expectedSets.length} (${EV}/battery/INDEX.json). Anything expected with no file → listed as MISSING in the index file and in your return. Return model, files_written, missing, battery_status, no_raw[{key: id, reason}], drive_no_raw, oversize, summary ≤100 words.`, { label: 'rc1-collate', phase: 'Regression', model: 'sonnet', effort: 'medium', schema: COLLATE }) : (log('collate skipped (args.lanes)'), null)
 if (collate && collate.missing.length) log('collator: missing evidence ' + collate.missing.join(', '))
 if (collate && collate.oversize.length) blockers.push('HARNESS evidence-oversize: ' + collate.oversize.join('; '))
 const battNoRaw = collate ? collate.no_raw.map(x => x.key) : null
 const driveNoRaw = [...new Set([...driveNoRawSeen, ...(collate ? collate.drive_no_raw : [])])]
-if (!collate) blockers.push('HARNESS collator-died: battery and drive raw output were not checked on disk')
-else if (collate.battery_status === 'incomplete' || battNoRaw.length) blockers.push('HARNESS battery-raw-missing: ' + battNoRaw.length + ' of ' + expectedIds.length + ' fixed ids have no raw output (' + EV + '/battery/MISSING_RAW.json): ' + battNoRaw.join(', '))
+if (laneOn('collate') && !collate) blockers.push('HARNESS collator-died: battery and drive raw output were not checked on disk')
+else if (collate && (collate.battery_status === 'incomplete' || battNoRaw.length)) blockers.push('HARNESS battery-raw-missing: ' + battNoRaw.length + ' of ' + expectedIds.length + ' fixed ids have no raw output (' + EV + '/battery/MISSING_RAW.json): ' + battNoRaw.join(', '))
 if (driveNoRaw.length) blockers.push('HARNESS drive-raw-missing: ' + driveNoRaw.join(', ') + ' (no raw file under ' + SURF + '/<group>/rc1/' + RN + '/)')
 
 const allFindings = [g8, heavy, scen, pack, ...drives, ...battery].filter(Boolean).flatMap(r => r.findings)
@@ -293,9 +311,10 @@ let tagWt = CAND
 const rounds = []
 const rejectedAll = []
 const deferredAll = []
-if (!open.length) log('no regressions or c/h/m new defects — fix loop skipped')
+if (!laneOn('fixloop')) log('fixloop skipped (args.lanes)')
+else if (!open.length) log('no regressions or c/h/m new defects — fix loop skipped')
 else if (MAX_ROUNDS < 1) log('max_fix_rounds is 0 — ' + open.length + ' findings left open')
-for (let r = 1; r <= MAX_ROUNDS && open.length; r++) {
+for (let r = 1; laneOn('fixloop') && r <= MAX_ROUNDS && open.length; r++) {
   const base = tagSha
   const keys = open.map(f => f.key)
   log('fix round ' + r + ': ' + keys.length + ' findings on ' + base.slice(0, 7))
@@ -394,16 +413,16 @@ const SHARD = 8
 const shards = []
 for (let k = 0; k * SHARD < sample.length; k++) shards.push(sample.slice(k * SHARD, (k + 1) * SHARD))
 log('adversarial sample: ' + sample.reduce((n, x) => n + x.picks.length, 0) + ' entries over ' + sample.length + ' sets in ' + shards.length + ' shards')
-const shardRes = (await Promise.all(shards.map((sh, k) => run(`${COMMON}
+const shardRes = laneOn('vshards') ? (await Promise.all(shards.map((sh, k) => run(`${COMMON}
 
 ${facts(tagSha, tagWt)}
 
-ROLE: ADVERSARIAL SAMPLE VERIFIER shard ${k} (Opus, fresh context; label rc1-vshard-${k}). Try to REFUTE that these certified entries are fixed at ${tagSha}: ${JSON.stringify(sh)}. Your inputs are the register entries (repro, evidence), the running app and the outside world — do NOT read anything under docs/redesign/verification/r15/rc1/ (this round's ${EV} or any earlier round) or any VERDICTS.md conclusion. Your own sidecar from ${tagWt} (read-only) on :${52600 + k}. RUBRIC. For each id: run the ENTRY'S OWN stated repro at ${tagSha} (curl, vy.py on llama3.1:8b, in-process python with the worktree venv; screener.in, NSE/BSE, SEC EDGAR where the entry is data). 'refuted' ONLY when that repro reproduces THIS entry's defect. Then one fresh variant the fix was not written against: a different defect it (or anything else) turns up nearby is an ADJACENT finding (new, its own severity) returned in adjacent[], never a refutation. A docs entry is refuted only by a factual mismatch between the document and the code at ${tagSha}, never on taste, wording or completeness. CERTIFY THE CLAIM, NOT ONLY THE REPRO: an entry is certified only when its stated conclusion holds — its title, its fix_shape and its acceptance_test — checked against the running app with at least one fresh case the fix was not written against (a different symbol, phrasing, host, provider or file of the same class). A fix that holds the entry's literal repro but leaves any part of the title claim or fix_shape unfixed is not_certified, with the unfixed claim named in the reason and the fresh case recorded as its repro. Every refutation records the exact command, the checkout sha it ran in ('git rev-parse HEAD' in that directory) and the output. holds / refuted / inconclusive (say what blocked you: a lock_timeout or upstream 5xx is inconclusive), each with an evidence excerpt. Write ${EV}/verifier/shard-${k}.md. Stop your sidecar. Return model, shard '${k}', checked[{id, verdict, evidence, command, checkout_sha}], adjacent[{near_id, title, severity, evidence}], evidence_file, summary ≤80 words.`, { label: 'rc1-vshard-' + k, phase: 'Verify', model: 'opus', effort: 'high', schema: VSHARD })))).filter(Boolean)
+ROLE: ADVERSARIAL SAMPLE VERIFIER shard ${k} (Opus, fresh context; label rc1-vshard-${k}). Try to REFUTE that these certified entries are fixed at ${tagSha}: ${JSON.stringify(sh)}. Your inputs are the register entries (repro, evidence), the running app and the outside world — do NOT read anything under docs/redesign/verification/r15/rc1/ (this round's ${EV} or any earlier round) or any VERDICTS.md conclusion. Your own sidecar from ${tagWt} (read-only) on :${52600 + k}. RUBRIC. For each id: run the ENTRY'S OWN stated repro at ${tagSha} (curl, vy.py on llama3.1:8b, in-process python with the worktree venv; screener.in, NSE/BSE, SEC EDGAR where the entry is data). 'refuted' ONLY when that repro reproduces THIS entry's defect. Then one fresh variant the fix was not written against: a different defect it (or anything else) turns up nearby is an ADJACENT finding (new, its own severity) returned in adjacent[], never a refutation. A docs entry is refuted only by a factual mismatch between the document and the code at ${tagSha}, never on taste, wording or completeness. CERTIFY THE CLAIM, NOT ONLY THE REPRO: an entry is certified only when its stated conclusion holds — its title, its fix_shape and its acceptance_test — checked against the running app with at least one fresh case the fix was not written against (a different symbol, phrasing, host, provider or file of the same class). A fix that holds the entry's literal repro but leaves any part of the title claim or fix_shape unfixed is not_certified, with the unfixed claim named in the reason and the fresh case recorded as its repro. Every refutation records the exact command, the checkout sha it ran in ('git rev-parse HEAD' in that directory) and the output. holds / refuted / inconclusive (say what blocked you: a lock_timeout or upstream 5xx is inconclusive), each with an evidence excerpt. Write ${EV}/verifier/shard-${k}.md. Stop your sidecar. Return model, shard '${k}', checked[{id, verdict, evidence, command, checkout_sha}], adjacent[{near_id, title, severity, evidence}], evidence_file, summary ≤80 words.`, { label: 'rc1-vshard-' + k, phase: 'Verify', model: 'opus', effort: 'high', schema: VSHARD })))).filter(Boolean) : (log('vshards skipped (args.lanes)'), [])
 const refuted = shardRes.flatMap(s => s.checked.filter(c => c.verdict === 'refuted').map(c => c.id + ' (' + (c.checkout_sha || 'no sha').slice(0, 7) + ': ' + (c.command || 'no command') + ')'))
 const adjacent = shardRes.flatMap(s => s.adjacent || [])
-if (shardRes.length < shards.length) log('verifier shards missing: ' + (shards.length - shardRes.length))
+if (laneOn('vshards') && shardRes.length < shards.length) log('verifier shards missing: ' + (shards.length - shardRes.length))
 
-const verifier = await run(`${COMMON}
+const verifier = laneOn('verifier') ? await run(`${COMMON}
 
 ${facts(tagSha, tagWt)}
 
@@ -419,9 +438,9 @@ WORK.
 5. Adversarial sample (RUBRIC b). Your shards refuted: ${JSON.stringify(refuted)}${sample.length ? '' : ' (no shards ran: pick 3 fixed entries per stage-c batch by position and re-run their original repros yourself)'}; adjacent findings they filed: ${JSON.stringify(adjacent)}. A refutation stands ONLY if the entry's own stated repro reproduces the entry's defect at ${tagSha} — re-run it yourself and record the exact command, 'git rev-parse HEAD' of the directory it ran in, and the output; a refuted entry that holds on your re-run is not a blocker. A different defect found nearby is an adjacent finding (new, its own severity; c/h/m ones are blockers as new defects, not refutations). A docs entry is refuted only by a factual mismatch between the document and the code at ${tagSha}, never on taste.
 6. GUI round${SKIP_GUI ? ' — SKIPPED by args.skip_gui (the computer-use grant does not cover the built app): read every id with status needs_gui from the register at ' + tagSha + ' and list each in the sheet as operator-attended with the reason \'computer-use grant does not cover the built app\'; the GUI item reads DEFERRED with cause operator_attended, never FAIL. As recorded' : ', as claimed'}: status ${gui.status}; deferred ${JSON.stringify(gui.deferred)}; rule: ${gui.idle_rule}. A GUI-certified id counts only with its populated proof shot in ${SHOTS} and presence readings in ${EV}/gui/presence.log bracketing it; else it stays needs_gui. The brief allows deferring the GUI proof, not the fix: a deferred entry stays needs_gui and the item reads DEFERRED, not FAIL.
 
-WRITE docs/redesign/verification/R15_GATE_RC1.md — the sheet the lead reads: one PASS/FAIL/DEFERRED line per gate item (register criterion; Gate 8 no trading path; Gate 8 tracked portfolio; ci-local; smoke; agent scenarios; owner-drives; fixed-name battery; data packs; fix loop closed; GUI round; adversarial sample) with the evidence path for each, and for every FAIL or DEFERRED item its cause: product defect, harness/environment (lock_timeout, upstream 5xx, missing grant, a lane that produced no output) or operator-attended (blocked_tier4 / needs_gui / not_a_defect / removed_with_feature, a skipped GUI round); an operator-attended section listing those ids with status and reason; the fixed-uncertified ids; the adjacent findings; the blockers; the exact ids still needs_gui; a 'four named areas' section: for each of ui-panels, agent-chat, research-search, data-smallcaps, one line naming the before evidence (the census drive under r15/surface/<group>/ or the R15 gate-2 sheet) and the after evidence (the rc1 owner-drive raw output under r15/surface/<group>/rc1/${RN}/ and the battery shards) with the count of entries in that area by status at the candidate, plus the list of not_a_defect/out_of_scope/removed_with_feature ids in that area with the concurrence pointer for each (or 'refused'); the gate round (${ROUND}) and its evidence root (${EV}; your own evidence goes under ${EV}/verifier/); the sha to tag (you never tag it: ${tagSha}${tagSha === SHA ? '' : ': the head of ' + FIXBR + ', a fast-forward of ' + SHA + '; the lead fast-forwards 004 to it'}; if 004 has moved past it, say the tagged tree must be this sha or the gate re-runs). Then ${EV}/VERDICT.md with the evidence excerpt behind every line. Overall PASS only if every item is PASS or an allowed DEFERRED. Stop your sidecar. Return model, verdict, gate_items[{item, result, cause, evidence}], gate8_refuted, refuted_entries, operator_attended, fixed_uncertified, adjacent_findings, blockers, needs_gui, tag_sha, sheet_file, summary ≤200 words.`, { label: 'rc1-verifier', phase: 'Verify', model: 'opus', effort: 'xhigh', schema: VERDICT })
-if (!verifier) blockers.push('final verifier died: no gate sheet')
-else blockers.push(...verifier.blockers)
+WRITE docs/redesign/verification/R15_GATE_RC1.md — the sheet the lead reads: one PASS/FAIL/DEFERRED line per gate item (register criterion; Gate 8 no trading path; Gate 8 tracked portfolio; ci-local; smoke; agent scenarios; owner-drives; fixed-name battery; data packs; fix loop closed; GUI round; adversarial sample) with the evidence path for each, and for every FAIL or DEFERRED item its cause: product defect, harness/environment (lock_timeout, upstream 5xx, missing grant, a lane that produced no output) or operator-attended (blocked_tier4 / needs_gui / not_a_defect / removed_with_feature, a skipped GUI round); an operator-attended section listing those ids with status and reason; the fixed-uncertified ids; the adjacent findings; the blockers; the exact ids still needs_gui; a 'four named areas' section: for each of ui-panels, agent-chat, research-search, data-smallcaps, one line naming the before evidence (the census drive under r15/surface/<group>/ or the R15 gate-2 sheet) and the after evidence (the rc1 owner-drive raw output under r15/surface/<group>/rc1/${RN}/ and the battery shards) with the count of entries in that area by status at the candidate, plus the list of not_a_defect/out_of_scope/removed_with_feature ids in that area with the concurrence pointer for each (or 'refused'); the gate round (${ROUND}) and its evidence root (${EV}; your own evidence goes under ${EV}/verifier/); the sha to tag (you never tag it: ${tagSha}${tagSha === SHA ? '' : ': the head of ' + FIXBR + ', a fast-forward of ' + SHA + '; the lead fast-forwards 004 to it'}; if 004 has moved past it, say the tagged tree must be this sha or the gate re-runs). Then ${EV}/VERDICT.md with the evidence excerpt behind every line. Overall PASS only if every item is PASS or an allowed DEFERRED. Stop your sidecar. Return model, verdict, gate_items[{item, result, cause, evidence}], gate8_refuted, refuted_entries, operator_attended, fixed_uncertified, adjacent_findings, blockers, needs_gui, tag_sha, sheet_file, summary ≤200 words.`, { label: 'rc1-verifier', phase: 'Verify', model: 'opus', effort: 'xhigh', schema: VERDICT }) : (log('verifier skipped (args.lanes / skip_verifier)'), null)
+if (laneOn('verifier') && !verifier) blockers.push('final verifier died: no gate sheet')
+else if (verifier) blockers.push(...verifier.blockers)
 log('verifier: ' + (verifier ? verifier.verdict + ' — tag ' + (verifier.tag_sha || '').slice(0, 7) : 'no result'))
 
 return {
@@ -440,4 +459,6 @@ return {
   candidate_sha: tagSha,
   blockers: [...new Set(blockers)],
   deferred_needs_gui: verifier ? verifier.needs_gui : gui.deferred,
+  lanes_run: lanesRun,
+  lanes_skipped: lanesSkipped,
 }
