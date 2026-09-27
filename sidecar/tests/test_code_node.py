@@ -62,6 +62,33 @@ class TestTernaryTranslation:
         assert _run("a + b", {"a": 1, "b": 2})["value"] == 3
 
 
+class TestInspectorPreviewParity:
+    """The inspector's live preview now posts to this same evaluator
+    (R15-CODE-PLATFORM-017) — pin the 3 cases where the retired mathjs
+    preview would have silently answered differently, or answered at all
+    where the server refuses."""
+
+    def test_unregistered_function_is_disallowed_syntax_not_a_value(self) -> None:
+        # mathjs has a built-in `log`; this evaluator's `_FUNCS` does not, so
+        # it must fail loudly rather than the inspector showing "= 2".
+        with pytest.raises(ValueError, match=r"disallowed syntax: Call"):
+            _run("log(x, 10)", {"x": 100})
+
+    def test_round_two_decimals_float_precision_matches_server(self) -> None:
+        # 1.005 * 100 is 100.49999999999999 in IEEE754, so the half-away-
+        # from-zero shift floors to 100, not 101 — the preview must show
+        # the SAME "= 1" the server produces on a real run, not "= 1.01".
+        assert _run("round(x, 2)", {"x": 1.005})["value"] == 1.0
+
+    def test_nested_ternary_without_grouping_parens_is_a_parse_error(self) -> None:
+        # Only ONE top-level `?`/`:` pair is translated; an un-parenthesized
+        # ternary in the false-branch leaves a bare `?`/`:` for ast.parse to
+        # choke on — the preview must show that parse error, not silently
+        # evaluate a mathjs-side answer.
+        with pytest.raises(ValueError, match=r"transform\.code: parse error"):
+            _run("a > b ? a : c > d ? c : d", {"a": 1, "b": 2, "c": 3, "d": 4})
+
+
 class TestExistingBehaviourUnchanged:
     """The pre-existing arithmetic/comparison/function subset stays intact."""
 
