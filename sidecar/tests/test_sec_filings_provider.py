@@ -271,6 +271,56 @@ async def test_get_filing_sections_with_the_real_form_type(recorder: _RecordingC
 
 
 @pytest.mark.asyncio
+async def test_get_filing_falls_back_to_raw_content_when_sections_are_empty(
+    recorder: _RecordingClient,
+) -> None:
+    """R15-DATA-038: sec-edgar-mcp 1.0.8's ``get_filing_sections`` extracts
+    business/risk_factors/mda only when the filing object exposes them (a
+    10-K, and only sometimes a 10-Q); this 10-Q comes back with just
+    ``{"has_financials": true}`` — no text field, zero parsed sections — even
+    though the filing itself is not empty. ``get_filing_content``'s raw text
+    fills the gap, wrapped as one "Filing Content" section."""
+    recorder.respond(
+        "get_filing_sections",
+        {"success": True, "sections": {"has_financials": True}, "available_sections": []},
+    )
+    recorder.respond(
+        "get_filing_content",
+        {"success": True, "content": "Item 1. Financial Statements... " * 50},
+    )
+    recorder.respond("get_recent_filings", _AAPL_FILINGS_PAYLOAD)
+
+    detail = await sec_filings_provider.get_filing("0000320193-24-000100", cik_or_symbol="AAPL")
+
+    assert len(detail.sections) == 1
+    assert detail.sections[0].title == "Filing Content"
+    assert detail.total_chars > 0
+    content_call = next(c for c in recorder.calls if c["name"] == "get_filing_content")
+    assert content_call["arguments"] == {
+        "identifier": "AAPL",
+        "accession_number": "0000320193-24-000100",
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_filing_raises_uncached_when_content_is_also_empty(
+    recorder: _RecordingClient,
+) -> None:
+    """The class case the fix was not written against: when the raw-content
+    fallback is ALSO empty (an 8-K sec-edgar-mcp truly could not read), the
+    result is an honest ProviderError, never a cached empty (R15-DATA-038)."""
+    recorder.respond(
+        "get_filing_sections", {"success": True, "sections": {}, "available_sections": []}
+    )
+    recorder.respond("get_filing_content", {"success": True, "content": ""})
+    recorder.respond("get_recent_filings", _AAPL_FILINGS_PAYLOAD)
+
+    with pytest.raises(ProviderError):
+        await sec_filings_provider.get_filing("0000320193-24-000080", cik_or_symbol="AAPL")
+    assert await data_cache.get("sec:filing:0000320193-24-000080", 86400.0) is None
+
+
+@pytest.mark.asyncio
 async def test_get_filing_raises_not_found_when_metadata_is_unavailable(
     recorder: _RecordingClient,
 ) -> None:

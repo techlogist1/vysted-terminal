@@ -9,9 +9,11 @@ curl_cffi Chrome-impersonation lane (:func:`services.search.transport
 Parsing is bs4 with layered selectors: the precise current markup first
 (``div.snippet[data-type="web"]``), then progressively looser heuristics so a
 class-name drift degrades to "fewer fields" rather than zero rows. Zero parsed
-rows is returned as an empty (successful) response — a valid "found nothing",
-distinct from a transport failure or a block (which raise the typed
-:class:`~services.search.base.SearchError` the rotation layer keys on).
+rows is returned as an empty (successful) response — a valid "found nothing" —
+UNLESS the page body is an anti-bot challenge/CAPTCHA wall (still HTTP 200),
+which raises the typed :class:`~services.search.base.SearchError` the
+rotation layer keys on (R15-RESEARCH-022), same as a transport failure or a
+403/429 block.
 """
 
 from __future__ import annotations
@@ -27,6 +29,7 @@ from .base import (
     SearchResponse,
     SearchResult,
     normalize_results_to_citations,
+    raise_if_challenge_page,
     result_limit,
 )
 from .transport import TransportError, impersonated_fetch
@@ -129,6 +132,8 @@ class BraveSearchBackend(SearchBackend):
             raise SearchError(f"Brave HTML search failed (HTTP {fetched.status_code})")
 
         results = _parse(fetched.text, limit=limit)
+        if not results:
+            raise_if_challenge_page(fetched.text, "Brave")
         return SearchResponse(
             results=results,
             citations=normalize_results_to_citations(results, limit=limit),

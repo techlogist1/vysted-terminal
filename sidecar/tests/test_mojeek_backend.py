@@ -105,6 +105,21 @@ def test_block_statuses_raise_typed_rate_limit(status: int) -> None:
     assert err.value.reason == SEARCH_REASON_RATE_LIMITED
 
 
+def test_challenge_page_on_200_raises_typed_rate_limit() -> None:
+    """R15-RESEARCH-022: a 200 CAPTCHA wall parses to zero rows — that used to
+    read as a healthy empty answer instead of the block it actually is."""
+    fetched = FetchResult(
+        status_code=200,
+        text="<html><body>Please complete this CAPTCHA to continue</body></html>",
+        url="u",
+    )
+    backend = MojeekSearchBackend(fetch=_fetcher(fetched, []))
+    with pytest.raises(SearchError) as err:
+        _run(backend.search("x"))
+    assert err.value.reason == SEARCH_REASON_RATE_LIMITED
+    assert "Mojeek: blocked (challenge page)" in str(err.value)
+
+
 def test_server_error_raises_unreachable() -> None:
     fetched = FetchResult(status_code=503, text="oops", url="u")
     backend = MojeekSearchBackend(fetch=_fetcher(fetched, []))

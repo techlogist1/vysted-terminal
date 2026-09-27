@@ -113,6 +113,22 @@ def test_block_statuses_raise_typed_rate_limit(status: int) -> None:
     assert err.value.reason == SEARCH_REASON_RATE_LIMITED
 
 
+def test_challenge_page_on_200_raises_typed_rate_limit() -> None:
+    """Class case the fix was not written against (R15-RESEARCH-022): Brave's
+    own 'unusual traffic' wall, still HTTP 200, must raise too, not just
+    Mojeek's CAPTCHA wording."""
+    fetched = FetchResult(
+        status_code=200,
+        text="<html><body>Unusual traffic detected from your network</body></html>",
+        url="u",
+    )
+    backend = BraveSearchBackend(fetch=_fetcher(fetched, []))
+    with pytest.raises(SearchError) as err:
+        _run(backend.search("x"))
+    assert err.value.reason == SEARCH_REASON_RATE_LIMITED
+    assert "Brave: blocked (challenge page)" in str(err.value)
+
+
 def test_server_error_raises_unreachable() -> None:
     fetched = FetchResult(status_code=500, text="oops", url="u")
     backend = BraveSearchBackend(fetch=_fetcher(fetched, []))
