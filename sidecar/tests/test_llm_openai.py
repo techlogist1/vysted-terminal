@@ -621,6 +621,51 @@ async def test_repair_rejects_a_schema_echo_on_a_tool_with_no_required_keys(
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("tool", "bad_args", "reply", "rejected"),
+    [
+        ("fundamentals", '{"symbol": 123}', '{"symbol": "string"}', True),
+        ("resolve_symbol", '{"query": 123}', '{"query": "string"}', True),
+        ("write_note", '{"scope": 1}', '{"scope": "string", "text": "string"}', True),
+        ("news", '{"symbols": ["AA', "{}", False),
+        ("fundamentals", '{"symbol": 123}', '{"symbol": "AAPL"}', False),
+    ],
+)
+async def test_repair_rejects_a_type_name_placeholder_echo(
+    monkeypatch: pytest.MonkeyPatch, tool: str, bad_args: str, reply: str, rejected: bool
+) -> None:
+    """R15-LEAD-014: a repair reply keyed by the tool's real properties but filled
+    with each property's own type name validates, yet it is not args. It must fall
+    to the sentinel; a real (or legitimately empty) reply is still returned."""
+    from services.llm.openai import INVALID_ARGS_SENTINEL
+
+    _patch_client(monkeypatch, chunks=_tool_call_chunks(tool, bad_args))
+
+    async def _fake_complete(*_a: Any, **_k: Any) -> tuple[str, None]:
+        return reply, None
+
+    import services.llm.oneshot as oneshot_mod
+
+    monkeypatch.setattr(oneshot_mod, "complete_with_usage", _fake_complete)
+
+    out = [
+        e
+        async for e in OpenAIProvider().stream_chat(
+            messages=[LLMMessage(role="user", content="go")],
+            model="gpt-4.1-mini",
+            api_key="sk-test",
+            tool_ids=[tool],
+        )
+    ]
+    tool_use = [e for e in out if e.kind == "tool_use"]
+    assert len(tool_use) == 1
+    if rejected:
+        assert INVALID_ARGS_SENTINEL in tool_use[0].input
+    else:
+        assert tool_use[0].input == json.loads(reply)
+
+
+@pytest.mark.asyncio
 async def test_repairs_are_capped_timed_and_metered_per_round(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
