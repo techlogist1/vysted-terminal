@@ -162,6 +162,12 @@ _WARM_BACKOFF_CAP_SECONDS = 600.0
 _WARM_BACKOFF_JITTER_FRACTION = 0.2
 _WARM_THROTTLE_RATIO = 0.5
 
+#: How much of one throttle observation a WHOLE background warm cycle that
+#: ends rate-limited records on the shared Yahoo circuit (R15-LIFECYCLE-020):
+#: user screens read that circuit, so warm 429s alone (three cycles) must never
+#: open it; only a sustained block across many backed-off cycles does.
+_WARM_THROTTLE_WEIGHT = 0.25
+
 #: Observable backoff state: consecutive throttled warm cycles.
 _warm_consecutive_throttles = 0
 
@@ -1376,7 +1382,9 @@ async def _warm_once() -> bool:
         logger.debug("screener warm: cannot resolve %s: %s", _warm_universe, exc)
         return False
     symbols = list(universe.symbols)
-    rows, failures = await yahoo_batch_provider.fetch_quotes_batch(symbols)
+    rows, failures = await yahoo_batch_provider.fetch_quotes_batch(
+        symbols, throttle_weight=_warm_chunk_weight(len(symbols))
+    )
     rate_limited = sum(1 for reason in failures.values() if reason == "rate_limited")
     items = []
     for _sym, row in rows.items():
@@ -1385,6 +1393,14 @@ async def _warm_once() -> bool:
             items.append((quote.symbol, yahoo_batch_provider.fundamentals_from_v7(row), quote))
     await fundamentals_store.upsert_v7_batch(items)
     return bool(symbols) and rate_limited >= len(symbols) * _WARM_THROTTLE_RATIO
+
+
+def _warm_chunk_weight(n_symbols: int) -> float:
+    """Per-chunk throttle weight for a warm batch over ``n_symbols`` — spread
+    so the cycle totals at most :data:`_WARM_THROTTLE_WEIGHT` (a per-chunk
+    0.25 would still open the circuit in one india-all sweep of 100 chunks).
+    Shared by the India warm worker."""
+    return _WARM_THROTTLE_WEIGHT / max(1, yahoo_batch_provider.chunk_count(n_symbols))
 
 
 def _warm_sleep_seconds(base: float, consecutive_throttles: int) -> float:

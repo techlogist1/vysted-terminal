@@ -274,6 +274,7 @@ def _retry_sleep_seconds(attempt: int, retry_after: float | None = None) -> floa
 async def _fetch_chunk(
     chunk: list[str],
     sem: asyncio.Semaphore,
+    throttle_weight: float,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
     """Fetch one ≤50-symbol chunk; return (results_by_symbol, failures_by_symbol).
 
@@ -333,7 +334,7 @@ async def _fetch_chunk(
                     )
                     await asyncio.sleep(sleep_s)
                     continue
-                provider_health.record_rate_limited(provider_health.YAHOO)
+                provider_health.record_rate_limited(provider_health.YAHOO, weight=throttle_weight)
                 for sym in chunk:
                     failures[sym] = "rate_limited"
                 return results, failures
@@ -372,6 +373,8 @@ async def _fetch_chunk(
 
 async def fetch_quotes_batch(
     symbols: list[str],
+    *,
+    throttle_weight: float = 1.0,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
     """Batch-fetch raw v7 quote rows for ``symbols`` (chunked, concurrent).
 
@@ -379,14 +382,19 @@ async def fetch_quotes_batch(
     maps each unreturned input symbol to a skip-ledger reason. Never raises:
     every per-chunk error is captured as a failure reason so the screener can
     itemize it (SC-034 — zero silent drops). A total wipeout (every chunk fails)
-    leaves ``rows`` empty so the caller can degrade to the per-symbol path."""
+    leaves ``rows`` empty so the caller can degrade to the per-symbol path.
+
+    ``throttle_weight`` is what each chunk that ends rate-limited records on
+    the shared Yahoo circuit: 1.0 for a user-facing fetch; the background warm
+    loops pass less, so their 429s alone never open the circuit user screens
+    read (R15-LIFECYCLE-020)."""
     cleaned = [s.strip() for s in symbols if s and s.strip()]
     if not cleaned:
         return {}, {}
     chunks = _chunk(cleaned)
     sem = asyncio.Semaphore(_BATCH_CONCURRENCY)
     chunk_results = await asyncio.gather(
-        *(_fetch_chunk(chunk, sem) for chunk in chunks),
+        *(_fetch_chunk(chunk, sem, throttle_weight) for chunk in chunks),
         return_exceptions=True,
     )
     rows: dict[str, dict[str, Any]] = {}
