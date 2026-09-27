@@ -50,7 +50,7 @@ What's in the box today:
 populated visuals are operator-verified, not CI-verified** (the harness can't drive the
 webview with real data). Vysted has no brokerage connection — it cannot place, stage or
 simulate an order. The app currently ships **unsigned with no release pipeline**, and
-version strings sit at `0.8.0` pending a release cut. See
+version strings sit at `0.9.0` pending the launch tag. See
 [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md) for the full works/buggy/deferred map.
 
 ---
