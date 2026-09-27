@@ -1,12 +1,12 @@
 # R15 register (readable view)
 
-887 raw findings -> 679 entries + 76 rejections. critical: 16 . high: 121 . medium: 305 . low: 237
+887 raw findings -> 736 entries + 76 rejections. critical: 16 . high: 122 . medium: 329 . low: 269
 
-Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open: 215 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 394 . needs_gui: 11 . not_a_defect: 6 . open: 276 . removed_with_feature: 14
 
 ## The operator's four areas
 
-### UI / panels / layout (116)
+### UI / panels / layout (125)
 
 - **R15-DATA-031** [high] Earnings and analyst panels drop the contract's currency: EPS/revenue/targets render unlabelled, the Consensus EPS column sorts USD against INR by magnitude, and the surprise chart hardcodes 'EPS $' — _fixed_
 - **R15-DATA-042** [high] Portfolio CSV export writes a cross-currency Weight % and no currency column, abandoning the D57 rule the table enforces (the table drops Wt when currencies are mixed) — _fixed_
@@ -30,6 +30,12 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-CROSS-PLATFORM-004** [medium] The deterministic layout modes (Fundamental / Technical / Macro / Compare / Reset) exist only in the macOS native menu; Windows/Linux can reach them only via '/layout', which goes through the gated, additive, viewport-downgraded fitLayoutTemplate path the menu bridge was written to avoid — _fixed_
 - **R15-DATA-081** [medium] Crypto pairs are second-class: slash symbols go into path segments, so a BTC/USDT watchlist row opens a 404 Equity Overview, the chart cannot chart a pair, and a portfolio lot entered as BTC/USDT is never priced and shows its cost in rupees — _fixed_
 - **R15-DATA-092** [medium] The Region setting says it only affects number formatting and 'Defaults to United States', but the default is India and region picks the symbol resolver's market, the trading calendar, macro/news providers and the screener universe — _fixed_
+- **R15-LEAD-048** [medium] arrange_layout silently resets to the default layout for any pattern it does not recognise, including the Layout-menu mode ids (fundamental/technical/macro/compare-desk) typed through chat — _fixed_
+- **R15-LEAD-067** [medium] Macro search failure renders as an empty "No matching series": the store catches every error and stores []; keyless FRED search is a 502 with an actionable message — _open_
+- **R15-LEAD-068** [medium] Settings privacy copy over-promises: "Nothing leaves this machine except calls you make to providers you configure" while keyless lanes (Yahoo, NSE/BSE, DDG) call out without configuration — _open_
+- **R15-LEAD-075** [medium] Editing a custom agent silently clears its default_model on save (customSpecToSummary sets defaultModel: null) — _open_
+- **R15-LEAD-076** [medium] A partially throttled screen shows "No rows matched - loosen a threshold / Reset filters" although most symbols were never evaluated — _open_
+- **R15-LEAD-080** [medium] Agent/MCP compute_greeks and price_option return QuantLib-unit vega/theta/rho unlabelled; the model restated them as per-unit values — _open_
 - **R15-LIFECYCLE-023** [medium] No React error boundary anywhere: one panel's render throw blanks the whole cockpit (portfolio and chat included) with no message or recovery, and the stack goes to a console a release build cannot open — _fixed_
 - **R15-UI-010** [medium] Backtest paramsSchema minimum/maximum are advertised and enforced nowhere: a cleared or out-of-range field surfaces a raw Python exception as the run error — _fixed_
 - **R15-UI-011** [medium] A running backtest cannot be cancelled: startRun accepts an AbortSignal no caller supplies and there is no Stop control — _fixed_
@@ -94,6 +100,11 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-CROSS-PLATFORM-009** [low] UI hints hardcode macOS glyphs (⌘K, ⌘B, ⌘↵, ⌘⌫) on every OS, bypassing formatBinding, so Windows/Linux users are told to press a key that does not exist there (Win+K opens Cast) and rebinding is ignored — _open_
 - **R15-DATA-100** [low] The Bond Pricer hard-prefixes '$' on every price in an India-first terminal — _fixed_
 - **R15-LEAD-027** [low] The command palette's empty-query starter row 'Open Chart' duplicates the chart.open command row and shows no keyboard chord, unlike every other row — _open_
+- **R15-LEAD-055** [low] R15-AGENT-053's own regression test (NewsFeedPanel 'publishes the top headline...') flakes under full vitest-suite load: a context-bus publish is asserted synchronously right after a waitFor on DOM text, racing the useEffect that fires it — _open_
+- **R15-LEAD-089** [low] Import toast says "Imported settings." for {settings:{fontSize}} when nothing applied — _open_
+- **R15-LEAD-095** [low] Bond pricer display currency fixed at mount; region switch while open keeps USD — _open_
+- **R15-LEAD-106** [low] SEC company search is a raw substring match — _open_
+- **R15-LEAD-111** [low] clearSearch does not bump searchGeneration; late 501 paints error under emptied SEC search field — _open_
 - **R15-LIFECYCLE-028** [low] The debounced layout autosave has no flush on close, so a rearrange followed by quit within 1.5 s is lost — _open_
 - **R15-LIFECYCLE-029** [low] PanelHost restores the saved layout as soon as first-party modules register, before plugin modules exist, so any plugin panel in the saved layout deterministically trips the restore-failure path (latent: no bundled plugin contributes panels yet) — _open_
 - **R15-UI-060** [low] Backtest 'progress' and 'trade' SSE events are declared in three layers and never emitted, so the 0/N progress readout is frozen (briefly) and 38 lines of handlers are unreachable — _open_
@@ -122,10 +133,8 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-UI-089** [low] Plugin data credentials (the optional NewsAPI key) are saved from a separate Marketplace form with no validation, unlike LLM keys, which are live-probed before save — _open_
 - **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _open_
 - **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _open_
-- **R15-LEAD-048** [medium] arrange_layout silently resets to the default layout for any pattern it does not recognise, including the Layout-menu mode ids (fundamental/technical/macro/compare-desk) typed through chat — _fixed_
-- **R15-LEAD-055** [low] R15-AGENT-053's own regression test (NewsFeedPanel 'publishes the top headline...') flakes under full vitest-suite load: a context-bus publish is asserted synchronously right after a waitFor on DOM text, racing the useEffect that fires it — _open_
 
-### Agent / chat (107)
+### Agent / chat (119)
 
 - **R15-AGENT-002** [high] Stop does not stop: aborting the chat stream leaves the in-flight tool task (research, LLM and web calls) running for minutes, spending the BYOK key and holding the single Ollama slot — _fixed_
 - **R15-AGENT-003** [high] At the 6-round tool cap the capped round's tool calls are streamed to the UI (and may be auto-applied as host actions) but never dispatched, and the turn ends with no answer text — _fixed_
@@ -161,7 +170,7 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-030** [high] After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries — _blocked_tier4_
 - **R15-AGENT-025** [medium] A provider that accepts the request and never streams (or a hung planner pre-pass) leaves the chat on a silent spinner for up to 600 s: no client timeout, no heartbeat and no stall watchdog — _fixed_
 - **R15-AGENT-026** [medium] A truncated or empty answer is shown as a complete one: max_tokens/length finishes (Anthropic hard-capped at 4096), streams that end with no finish_reason, and rounds with zero text and zero tool calls all settle as success with no notice or Retry — _fixed_
-- **R15-AGENT-027** [medium] humanize() classifies by HTTP status alone, so users get a next step that cannot work: OpenAI no-credit 429 and free-model shared-pool 429 say 'wait a minute', invalid Gemini/xAI keys (400), invalid model ids (400) and context overflow (400/413) say 'try again', a stopped Ollama says 'check your network' — _fixed_
+- **R15-AGENT-027** [medium] humanize() classifies by HTTP status alone, so users get a next step that cannot work: OpenAI no-credit 429 and free-model shared-pool 429 say 'wait a minute', invalid Gemini/xAI keys (400), invalid model ids (400) and context overflow (400/413) say 'try again', a stopped Ollama says 'check your network' — _open_
 - **R15-AGENT-028** [medium] Keyless first run with Ollama running but the model not pulled: validation passes, then the 404 'try pulling it first' is humanised to 'pick another model in Settings' (whose list is empty) and the existing Download-model flow is never offered — _fixed_
 - **R15-AGENT-029** [medium] If the sidecar is not ready when the user sends, the chat wedges: the send promise rejects outside onError, the assistant bubble stays 'streaming' forever, Stop does nothing and later prompts queue behind it — _fixed_
 - **R15-AGENT-030** [medium] Router last-resort SSE guards blame the AI provider or the user's network for internal sidecar crashes (substring heuristics on str(exc), provider id never passed) — _fixed_
@@ -209,6 +218,11 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-038** [medium] When an explicit no-tool instruction correctly empties the tool surface, llama3.1:8b still narrates a false completed portfolio write with no tool call behind it — _blocked_tier4_
 - **R15-LEAD-040** [medium] Cold resolver-masters load under concurrent first resolves starves the shared to_thread pool, delaying unrelated work by ~9.4s even when yf.Search answers instantly — _fixed_
 - **R15-LEAD-043** [medium] Missing/invalid API key on OpenAI, Groq or another eagerly-validating provider surfaced the router's generic 'internal error, restart Vysted' frame instead of a humanized 'add your API key' message, on both /agents/{id}/invoke and /llm/chat — _fixed_
+- **R15-LEAD-062** [medium] A Gemini free-tier per-minute 429 (RESOURCE_EXHAUSTED ... retry in Ns) is shown as "out of credit or quota. Add credit or check your plan" — _open_
+- **R15-LEAD-063** [medium] historyForSend drops the oldest turns once the thread passes 60k chars with no notice to the user or the model — _open_
+- **R15-LEAD-066** [medium] write_screener_filters with only the documented OR/nested group tree is rejected: schema requires criteria — _open_
+- **R15-LEAD-073** [medium] The latest round's tool results are never elided by _fit_to_window, so a multi-result round leaves the answer below the 1/8 reserve — _open_
+- **R15-LEAD-079** [medium] ReasoningSplitter releases a held reasoning echo in full when an answer follows it (provisional, shard evidence only) — _open_
 - **R15-LIFECYCLE-013** [medium] Delegate resume drops the user's provider/model and silently runs on the agent default (live: Ollama swapped llama3.1:8b for Qwen2.5 7B), and the paused/answer state is unreachable — _fixed_
 - **R15-LIFECYCLE-014** [medium] A malformed or missing agent JSON silently shrinks the roster: warning log only (nothing at all for a missing agents dir), HTTP 200, no runtime surface — _fixed_
 - **R15-LIFECYCLE-025** [medium] A custom agent saved on the v0.8.0 tag silently loses its 'macro' tool: the id was renamed with no alias or row migration, every adapter drops unknown ids without a log, and re-saving the agent 422s — _fixed_
@@ -234,8 +248,15 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-031** [low] The ratio-guard's replacement text splices onto a leaked text-form tool-call JSON fragment with no separator — _fixed_
 - **R15-LEAD-036** [low] The all-errored fabrication guard's replacement prose renders inside the original code fence, leaving a ```json block that contains a sentence instead of JSON — _open_
 - **R15-LEAD-042** [low] The proposed-change review card and its applied label price a US lot in the session region's currency, not the listing's: {MSFT, 4, 480 USD} under an IN session reads 'Add 4 MSFT @ ₹480 to the portfolio' — _open_
+- **R15-LEAD-086** [low] The sibling [failed: ...] trailer still rides verbatim assistant history to the provider (_without_step_trailers strips only [tool steps:]) — _open_
+- **R15-LEAD-087** [low] Ratio guard still replaces a correct ADS-ratio sentence dated 26-Jun-2026 / Jun-26-2026 with "not available" — _open_
+- **R15-LEAD-088** [low] Resolver suggestions for MAZAGONDOCK / RELIANCEIND variants — _open_
+- **R15-LEAD-091** [low] Type-first JSON tool-call text can leak into the visible answer — _open_
+- **R15-LEAD-094** [low] sidecar/agents/copilot.json system prompt example reply "Built you a brief on NVDA - it's at the top of the cockpit" teaches an applied-tense claim that conflicts with review mode (local rb1/rb4 overclaim) — _open_
+- **R15-LEAD-102** [low] Ollama adapter catch-all humanizes internal exceptions as an Ollama error — _open_
+- **R15-LEAD-107** [low] add_chart_drawing: a non-empty bogus panelId bypasses the open-chart fallback — _open_
 
-### Research / web search (57)
+### Research / web search (66)
 
 - **R15-AGENT-001** [critical] Chat narrates derived money figures 10-100x wrong: fraction values labelled unit 'percent' are read as percent, and a raw-rupee market cap is mis-scaled by the model — _fixed_
 - **R15-DATA-003** [critical] Research treats a US-bound AMAL as the Indian Amal Ltd for ownership: the ownership applicability gate checks bare-ticker NSE/BSE master membership, so Amalgamated Financial's brief states 'Promoter group (exchange filing) 71.35%' from Amal Ltd's BSE shareholding and raises a false conflict — _fixed_
@@ -256,6 +277,12 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-RESEARCH-010** [high] Settings certifies any string as a working OpenRouter key ('research bills to it'), and when hosted Tier B research then 401s the trace shows only ok steps and 'done' - the failure reaches only the model, which answers with unfetched 'sources' — _fixed_
 - **R15-RESEARCH-011** [high] A BSE-XBRL institutional-holding figure is shown in the brief labelled 'NSE shareholding filing, <NSE quarter>' - the service's honest split_source/split_as_of stamp is discarded one layer up — _fixed_
 - **R15-AGENT-063** [medium] News sentiment scoring and symbol tagging live in the HTTP route, so the agent and MCP news tool return unscored, untagged items while claiming to mirror GET /news; raw watchlist symbols like BTC/USDT also tag nothing — _fixed_
+- **R15-LEAD-050** [medium] A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace — _fixed_
+- **R15-LEAD-060** [medium] Verifier verdict text wrapped in underscore emphasis (_UNVERIFIED_ / __UNVERIFIED__) parses as AGREE — _open_
+- **R15-LEAD-061** [medium] strip_model_bibliography misses common bibliography heading variants, so a model-written source list survives beside the verified one — _open_
+- **R15-LEAD-065** [medium] FAST research web-only branch (no instrument resolves) awaits _web_round without a time box; only the resolved branch uses asyncio.wait_for — _open_
+- **R15-LEAD-069** [medium] Screener formula validate accepts a boolean operand in a comparison ("roe > (pe_ratio < 15)", "(pe_ratio > 3) > 0.5") and coerces it — _open_
+- **R15-LEAD-072** [medium] Heavy/ULTRA brief stopped by its spend ceiling publishes note=None, and the cross-check keeps spending after the breach — _open_
 - **R15-LIFECYCLE-018** [medium] The web_search hot path documented as an 'instant in-process read, no network probe' awaits a full docker derivation (up to one ~15 s docker-version timeout on a wedged daemon) on the first search of every process, and a concurrent first search reads a stale None — _fixed_
 - **R15-RESEARCH-012** [medium] The research structured filings floor is the 5 newest attachments, not the results filing first: gather_floor omits the sub_question that turns on results-banding, so in results season thin-web runs cite procedural intimations — _fixed_
 - **R15-RESEARCH-013** [medium] FAST research's filings leg always stamps provider 'nse+bse', including BSE-only listings and single-lane outages, overriding the sources/errors the announcements tool already reports — _fixed_
@@ -267,7 +294,7 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-RESEARCH-019** [medium] A primary filing behind an anti-bot 403, an SSRF block or an unsupported content type silently vanishes from research evidence: visit_for_research collapses every fetch_page error to None and no step records it — _fixed_
 - **R15-RESEARCH-020** [medium] On the SearXNG tier web_search ignores the caller's numResults: an agent asking for 3 results gets every row the instance returned (40 in repro) into its context, and citations are pinned at 8 — _fixed_
 - **R15-RESEARCH-021** [medium] A headline naming the ticker followed by a 2-3 digit number ('BAJFINANCE 200 DMA breakout', 'BAJFINANCE 52-week high') scores 0.0 and is silently dropped as off-entity — _fixed_
-- **R15-RESEARCH-022** [medium] A 200-status CAPTCHA/block page from a keyless engine is recorded as a healthy empty answer and resets that engine's circuit breaker, so a blocking engine is never benched and an all-blocked search reports 'found nothing' instead of 'rate-limited' — _fixed_
+- **R15-RESEARCH-022** [medium] A 200-status CAPTCHA/block page from a keyless engine is recorded as a healthy empty answer and resets that engine's circuit breaker, so a blocking engine is never benched and an all-blocked search reports 'found nothing' instead of 'rate-limited' — _open_
 - **R15-RESEARCH-023** [medium] The keyless SERP quality filter drops company investor-relations results because their snippet carries an 'All rights reserved' footer, before relevance ever scores them — _fixed_
 - **R15-RESEARCH-024** [medium] Every web source in a research brief loses its publication date and its domain reads as the literal 'web': the Citation shape drops published_at/source and the brief recorder prefers citations — _fixed_
 - **R15-RESEARCH-025** [medium] Screener formulas silently coerce a boolean into a number inside arithmetic and min/max/abs: 'min(pe < 5, roe) > 0.5' validates ok and returns a plausible but meaningless screen — _fixed_
@@ -277,6 +304,12 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-RESEARCH-029** [medium] ULTRA briefs ship a model-authored 'Merged Sources'/'References' list and literal '[n] 1' markers that do not resolve to the source rail, and the citation check never inspects them — _fixed_
 - **R15-RESEARCH-030** [medium] The agent cannot answer 'what did management say on the last call': there is no earnings-call transcript capability, and transcript PDFs are reachable only if a research sub-question happens to select that announcement — _fixed_
 - **R15-RESEARCH-043** [medium] Research brief citation-integrity net matches only a bare [n]; grouped markers [2, 3] and prose pseudo-citations [New findings] ship unresolved as literal text — _blocked_tier4_
+- **R15-LEAD-052** [low] An ALL-CAPS headline still over-matches a 3-character common-word ticker in the non-IN relevance gate — _open_
+- **R15-LEAD-058** [low] GM and GS (2-letter tickers with no brand token) never pass the non-IN relevance gate on a bare mention — _open_
+- **R15-LEAD-090** [low] Cross-check extract still slow before the wall timeout (verdict leg boxed) — _open_
+- **R15-LEAD-096** [low] leading_token reads a negated COMPLETE sentence as complete — _open_
+- **R15-LEAD-103** [low] Onboarding local-model recommendation collapses any sidecar failure to 'Couldn't reach the local engine' — _open_
+- **R15-LEAD-104** [low] Perplexity/Sonar ResearchSource builders drop published_at — _open_
 - **R15-LIFECYCLE-034** [low] The SearXNG one-click setup task has no exception boundary (write_settings OSError kills it mid-PULLING with no reason) and the module's logger is declared but never used — _open_
 - **R15-LIFECYCLE-035** [low] The managed-SearXNG error state is sticky for the process: a container the user fixes by hand is bypassed (search stays keyless) until they press Retry or restart — _open_
 - **R15-RESEARCH-031** [low] A research query containing a newline never starts the brief panel's in-flight run: research:begin is parsed with a single-line regex, so every later step is ignored — _open_
@@ -291,11 +324,8 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-RESEARCH-040** [low] Hosted Tier B research shows its cost estimate only after the run has been billed; nothing shows a per-run estimate before dispatch (FR-073) — _open_
 - **R15-RESEARCH-041** [low] The 'structured data only - no web' brief banner can never fire: briefFromInput counts vysted:// and exchange rows as web availability, so zero-web DEEP/ULTRA briefs never get the promised affordance — _open_
 - **R15-RESEARCH-042** [low] The research cockpit's brief has no floor of >=3 cited sources (SC-016): nothing enforces or measures source count per brief, and with no web backend FAST publishes structured-only with fewer — _open_
-- **R15-LEAD-050** [medium] A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace — _fixed_
-- **R15-LEAD-052** [low] An ALL-CAPS headline still over-matches a 3-character common-word ticker in the non-IN relevance gate — _open_
-- **R15-LEAD-058** [low] GM and GS (2-letter tickers with no brand token) never pass the non-IN relevance gate on a bare mention — _open_
 
-### Data on small or obscure stocks (140)
+### Data on small or obscure stocks (156)
 
 - **R15-DATA-001** [critical] Income / balance-sheet / cash-flow statements (and one /fundamentals identity) for Indian tickers that collide with a US ticker serve the US company's real financials under the Indian name (DAL->Delta, CHTR->Charter, SAFE->Safehold, CSL->Carlisle, ICON->Icon Energy, AMAL->Amalgamated, SMR->NuScale, TTC->Toro, SUMAX->a US muni fund) — _fixed_
 - **R15-DATA-002** [critical] A bare ticker that exists in both the US and Indian masters binds silently to the session region, and every data panel re-queries the bare symbol, so the user who picked NASDAQ:AMAL or NYSE:SMR gets Amal Ltd / SMR Jewels quote, ratios and 52w range (and, for SMR, NuScale statements under the same header) — _blocked_tier4_
@@ -346,6 +376,7 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-011** [high] ^NSEI (Nifty 50) and other caret-prefixed Yahoo index symbols get wrongly suffixed .NS by _yahoo_symbol's IN bare-ticker path, so index history returns 0 bars — _fixed_
 - **R15-LEAD-022** [high] _yahoo_symbol rewrites every non-Indian foreign exchange suffix with a dash (BHP.AX -> BHP-AX, 0700.HK -> 0700-HK, 7203.T -> 7203-T, VOD.L -> VOD-L), so Yahoo answers 'possibly delisted' and every non-US, non-IN listing is unquotable — _fixed_
 - **R15-LEAD-044** [high] Screener universe fetches (sp500/nifty50) resolve bare tickers by session region with no universe-intrinsic region, poisoning the store with wrong-entity rows that persist across sessions — _fixed_
+- **R15-LEAD-059** [high] FOCUS announcements merge the BSE feed of a different company (BSE scrip 543312) with Focus Lighting and Fixtures NSE items under one symbol — _open_
 - **R15-LIFECYCLE-004** [high] Exchange payload field drift is served as fabricated data: a renamed open/high/low/volume field yields open=high=low=close candles with zero volume under the exchange's own provider label, and the correctness gate passes them — _fixed_
 - **R15-AGENT-060** [medium] shareholding_pattern returns the parsed FII/DII split, but both its catalog description and a hardcoded handler note tell the model the split is not there (lives in the XBRL filing) — _fixed_
 - **R15-AGENT-061** [medium] The fundamentals agent tool discards ProviderError.kind and re-derives it by substring, so a real not_found (instrument does not exist) is reported as provider_error ('our feed's gap') — _fixed_
@@ -415,6 +446,14 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-039** [medium] Earnings estimate detail 502s for any symbol Yahoo serves with incomplete Earnings High/Low/Average fields (RDY, TM, SONY), pre-existing and untouched by the batch-25 diff — _fixed_
 - **R15-LEAD-045** [medium] The sidecar's own yfinance v7/crumb path always 404s/429s live (fc.yahoo.com crumb + v7/quote), so screener and warm-store fundamentals silently fall back to a stale cached basis — _fixed_
 - **R15-LEAD-046** [medium] HDB's forward_pe is stale against the home listing (16.54 vs 11.66 for HDFCBANK.NS) while the trailing P/E matches — a different mechanism from the ADR mixed-currency basis withholding — _not_a_defect_
+- **R15-LEAD-049** [medium] TATAMOTORS.NS/.BO return not_found in the nifty50 universe sweep and in direct quotes: the post-demerger NSE/BSE masters carry the symbol only as TMPV (with 'Tata Motors Limited' as a former name), while the nifty50 constituent list and any direct TATAMOTORS quote still use the retired ticker — _fixed_
+- **R15-LEAD-051** [medium] A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly — _fixed_
+- **R15-LEAD-064** [medium] 20-F ownership lane returns not_applicable with 0 holders for ADRs whose 20-F has a holders table (IBN, HDB) — _open_
+- **R15-LEAD-070** [medium] Analyst ratings swallow a Yahoo rate-limit into an empty 200 list that reads as no coverage — _open_
+- **R15-LEAD-071** [medium] A Yahoo rate-limit on earnings history is swallowed as an empty history and cached for 24 h — _open_
+- **R15-LEAD-081** [medium] sp500 screen serves S&P 500 member PTC as PTC India Limited (INR) from a fundamentals row written before the LEAD-044 fix; no migration purges it — _open_
+- **R15-LEAD-082** [medium] Screener top-K round-robin gives currency-less rows their own group slot, so a null-market-cap row displaces a real one — _open_
+- **R15-LEAD-083** [medium] Earnings drill-down As-of chip shows the client fetch clock and ignores the envelope server as_of — _open_
 - **R15-LIFECYCLE-017** [medium] Screener enrichment swallows every exception as 'field missing' at DEBUG and stalls its own progress bar on failure, so a broken adapter looks like a slow upstream — _fixed_
 - **R15-LIFECYCLE-019** [medium] One failed rename-master fetch at boot turns the NSE rename lane off for the rest of the IST day, silently: a renamed scrip answers with its dead identity and its current ticker resolves to an unrelated US company — _fixed_
 - **R15-LIFECYCLE-020** [medium] At boot the sidecar starts a US-only S&P 500 warm loop every ~40 s whatever the region, spending the shared Yahoo circuit on 506 US symbols on an India-first install — _fixed_
@@ -431,12 +470,19 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-020** [low] exchange_financials.get_filed_periods caches only successful lookups, so a transient NSE miss falls back to Yahoo (flagged) and the very next call for the same symbol can serve NSE instead, showing a different provider on consecutive loads — _open_
 - **R15-LEAD-025** [low] The fundamentals warmer hits openbb-mcp hard at boot with no observed throttling on the default (non-IN) universe warm path — _open_
 - **R15-LEAD-041** [low] Earnings estimate detail's analyst count and its EPS triple are read from different upstream fields and disagree: TM shows estimate_analyst_count 1 while the EPS triple is null — _open_
-- **R15-LEAD-049** [medium] TATAMOTORS.NS/.BO return not_found in the nifty50 universe sweep and in direct quotes: the post-demerger NSE/BSE masters carry the symbol only as TMPV (with 'Tata Motors Limited' as a former name), while the nifty50 constituent list and any direct TATAMOTORS quote still use the retired ticker — _fixed_
-- **R15-LEAD-051** [medium] A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly — _fixed_
 - **R15-LEAD-053** [low] Direct GET /quotes/TATAMOTORS.NS and .BO still 404 with no rename hint to TMPV, even though /resolve already lists TMPV first for the same query — _open_
 - **R15-LEAD-054** [low] sp500.json carries ECHO and VMRK, two symbols absent from the current US resolver master, the same stale-universe-seed class R15-LEAD-049 fixed for nifty50 — _open_
 - **R15-LEAD-056** [low] DOW's (and NICE's) own stripped company-name alias is the common word itself, so the DATA-030 stoplist's anchored-ticker rule never applies and 'Dow Jones falls 300 points' still tags DOW — _open_
 - **R15-LEAD-057** [low] Name-alias derivation leaves master-name registry artefacts in place ('amazon com', 'keycorp /new/'), so plain-prose company mentions never tag — _open_
+- **R15-LEAD-084** [low] NSE holiday table ends 2026-12-25; 2027-01-26 (Republic Day) is treated as an IN trading day (D-B9-4 covers the test horizon, not the data) — _open_
+- **R15-LEAD-085** [low] Suffixed unknown symbols (QQZZFAKE.NS, XYZNOTATICKER.BO) still return 200, 0 bars, reason null — _open_
+- **R15-LEAD-097** [low] A scrip with one trade inside 52 weeks keeps a forward-fill-derived provider 52w low unflagged when it is within the 10% tolerance — _open_
+- **R15-LEAD-098** [low] The announcements cache key includes limit and the raw symbol form, so callers that differ in limit or .NS suffix refetch the full history — _open_
+- **R15-LEAD-100** [low] _us_isin caches a definite ISIN miss for the life of the process — _open_
+- **R15-LEAD-109** [low] /earnings/{sym}/estimates maps a yfinance 429 to 502 provider_error 'unexpected response', while /fundamentals/{sym}/ratings maps the same throttle to 429 rate_limited — _open_
+- **R15-LEAD-110** [low] A listed 1994 JPM 10-K opens as 502 'unexpected response' (sec-edgar-mcp get_filing_sections NoneType) instead of degrading to the raw filing text — _open_
+- **R15-LEAD-112** [low] 200 F&O bhavcopy with truncated PK zip raises BadZipFile out of fetch_latest_fo, no walk-back — _open_
+- **R15-LEAD-115** [low] The quarterly-gap TTM reason always says 'a quarter of the trailing year' is unfiled, which understates the gap for fresh listings with only one or two quarters ever filed — _open_
 
 ## All entries by severity
 
@@ -547,6 +593,7 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-LEAD-022 | high | data | resolver | _yahoo_symbol rewrites every non-Indian foreign exchange suffix with a dash (BHP.AX -> BHP-AX, 0700.HK -> 0700-HK, 7203.T -> 7203-T, VOD.L -> VOD-L), so Yahoo answers 'possibly delisted' and every non-US, non-IN listing is unquotable | fixed |  |
 | R15-LEAD-030 | high | agent | agent-tools | After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries | blocked_tier4 |  |
 | R15-LEAD-044 | high | data | market-data-providers-1 | Screener universe fetches (sp500/nifty50) resolve bare tickers by session region with no universe-intrinsic region, poisoning the store with wrong-entity rows that persist across sessions | fixed | rc1-vshard-6:1, R15-LEAD-013 |
+| R15-LEAD-059 | high | data | resolver | FOCUS announcements merge the BSE feed of a different company (BSE scrip 543312) with Focus Lighting and Fixtures NSE items under one symbol | open |  |
 | R15-LIFECYCLE-001 | high | lifecycle | rust-core | Every launch freezes the app's main event loop for the whole MCP bind window (about 25 s warm, 34 s+ cold, up to 90 s), and the data sidecar is not even spawned until both MCP binds return | needs_gui | COD-rust-core-1, INT-deferred-0-1 |
 | R15-LIFECYCLE-002 | high | lifecycle | workspace-layout | A layout-level restore failure discards ALL non-layout state (portfolio holdings, watchlist, notes, settings, research memory) and the next autosave overwrites the user's blob; the scheduled trading-panel removal triggers it deterministically for any user whose last autosave had a broker panel docked | fixed | COD-workspace-layout-4, LIFE-L4-UPGRADE-1 |
 | R15-LIFECYCLE-003 | high | lifecycle | workspace-layout | Autosave is neither gated on restore nor serialized: every launch fires a burst of PARTIAL full-blob POSTs mid-restore, and the last one drops researchSymbol and the research-memory archive | fixed | COD-workspace-layout-3 |
@@ -581,7 +628,7 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-UI-090 | high | ui | market-data-providers-3 | Quote freshness is stamped against the USER's locale calendar, not the instrument's exchange, so a closed US quote reads 'live' during Indian market hours on every surface (chart/watchlist included), and Portfolio shows no session/staleness cue at all | blocked_tier4 | INT-spec-135-168 |
 | R15-AGENT-025 | medium | agent | llm-adapters | A provider that accepts the request and never streams (or a hung planner pre-pass) leaves the chat on a silent spinner for up to 600 s: no client timeout, no heartbeat and no stall watchdog | fixed | SURF-FAILURE-INDUCER-3, COD-agent-runtime-3 |
 | R15-AGENT-026 | medium | agent | error-layer | A truncated or empty answer is shown as a complete one: max_tokens/length finishes (Anthropic hard-capped at 4096), streams that end with no finish_reason, and rounds with zero text and zero tool calls all settle as success with no notice or Retry | fixed | COD-error-layer-2-3, SURF-FAILURE-INDUCER-1 |
-| R15-AGENT-027 | medium | agent | error-layer | humanize() classifies by HTTP status alone, so users get a next step that cannot work: OpenAI no-credit 429 and free-model shared-pool 429 say 'wait a minute', invalid Gemini/xAI keys (400), invalid model ids (400) and context overflow (400/413) say 'try again', a stopped Ollama says 'check your network' | fixed | COD-error-layer-5, COD-error-layer-2-4, SURF-FAILURE-INDUCER-5, SURF-RESEARCH-BRIEFS-8 |
+| R15-AGENT-027 | medium | agent | error-layer | humanize() classifies by HTTP status alone, so users get a next step that cannot work: OpenAI no-credit 429 and free-model shared-pool 429 say 'wait a minute', invalid Gemini/xAI keys (400), invalid model ids (400) and context overflow (400/413) say 'try again', a stopped Ollama says 'check your network' | open | COD-error-layer-5, COD-error-layer-2-4, SURF-FAILURE-INDUCER-5, SURF-RESEARCH-BRIEFS-8 |
 | R15-AGENT-028 | medium | agent | error-layer | Keyless first run with Ollama running but the model not pulled: validation passes, then the 404 'try pulling it first' is humanised to 'pick another model in Settings' (whose list is empty) and the existing Download-model flow is never offered | fixed | COD-error-layer-2-2 |
 | R15-AGENT-029 | medium | agent | error-layer | If the sidecar is not ready when the user sends, the chat wedges: the send promise rejects outside onError, the assistant bubble stays 'streaming' forever, Stop does nothing and later prompts queue behind it | fixed | COD-error-layer-2-1 |
 | R15-AGENT-030 | medium | agent | error-layer | Router last-resort SSE guards blame the AI provider or the user's network for internal sidecar crashes (substring heuristics on str(exc), provider id never passed) | fixed | COD-error-layer-6 |
@@ -684,7 +731,7 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-CODE-PLATFORM-029 | medium | code | backtest | Backtest engine replaces an existing position on a second buy: cash is debited for every buy but only the last lot is held, so a flat market reports -3.0% total return and orphaned entries never reach the metrics | fixed | COD-backtest-3 |
 | R15-CODE-PLATFORM-030 | medium | code | backtest | Backtest engine credits a sell larger than the held position in full and pops the whole position, minting cash from phantom shares | fixed | COD-backtest-4 |
 | R15-CODE-PLATFORM-071 | medium | code | plugins | First-party panels bypass the plugin model: every core panel is a static-import VystedModule the user cannot install or remove, skipping manifests and the requiredHostVersion check, contrary to FR-050's one unified extension model | blocked_tier4 | INT-spec-90-11 |
-| R15-CODE-PLATFORM-072 | medium | code | plugins | Data-source description is hand-maintained in marketplace.ts, disconnected from provider_registry and the plugin contract, and has already drifted (yfinance entry lists 3 keys vs 7 served; nse_direct/nse/bse/ccxt have no entry); adding a source needs host edits in two languages | fixed | INT-spec-90-12, INT-spec-180-187 |
+| R15-CODE-PLATFORM-072 | medium | code | plugins | Data-source description is hand-maintained in marketplace.ts, disconnected from provider_registry and the plugin contract, and has already drifted (yfinance entry lists 3 keys vs 7 served; nse_direct/nse/bse/ccxt have no entry); adding a source needs host edits in two languages | open | INT-spec-90-12, INT-spec-180-187 |
 | R15-CODE-PLATFORM-073 | medium | code | scripts-build | The design-token off-scale audit (PDD section 16's 'gate for one system') runs in neither ci-local nor any CI workflow, and covers only part of section 16, so an off-scale or raw-hex regression ships silently (NodeEditorPanel already hardcodes the retired warm palette) | blocked_tier4 | INT-pdd-readme-90-2 |
 | R15-CODE-RESEARCH-001 | medium | code | research-depth-iter-deep | ULTRA deep-research wall budget silently cut: explicit wall_seconds clamps to 300 (profile default 360) and the model-facing schema advertises default 120 / max 300, while docstrings still say deep 120 / ultra 240 | fixed | COD-research-depth-iter-deep-10 |
 | R15-CODE-RESEARCH-002 | medium | code | research-depth-iter-deep | snapshot_structured's 'never raises' promise is not held by its own asyncio.gather: one cross-check without its own try/except breaks every research path | fixed | COD-research-depth-iter-deep-6 |
@@ -782,6 +829,34 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-LEAD-043 | medium | agent | llm-adapters | Missing/invalid API key on OpenAI, Groq or another eagerly-validating provider surfaced the router's generic 'internal error, restart Vysted' frame instead of a humanized 'add your API key' message, on both /agents/{id}/invoke and /llm/chat | fixed |  |
 | R15-LEAD-045 | medium | data | market-data-providers-1 | The sidecar's own yfinance v7/crumb path always 404s/429s live (fc.yahoo.com crumb + v7/quote), so screener and warm-store fundamentals silently fall back to a stale cached basis | fixed |  |
 | R15-LEAD-046 | medium | data | fundamentals-profile | HDB's forward_pe is stale against the home listing (16.54 vs 11.66 for HDFCBANK.NS) while the trailing P/E matches — a different mechanism from the ADR mixed-currency basis withholding | not_a_defect |  |
+| R15-LEAD-048 | medium | ui | workspace-layout | arrange_layout silently resets to the default layout for any pattern it does not recognise, including the Layout-menu mode ids (fundamental/technical/macro/compare-desk) typed through chat | fixed |  |
+| R15-LEAD-049 | medium | data | resolver | TATAMOTORS.NS/.BO return not_found in the nifty50 universe sweep and in direct quotes: the post-demerger NSE/BSE masters carry the symbol only as TMPV (with 'Tata Motors Limited' as a former name), while the nifty50 constituent list and any direct TATAMOTORS quote still use the retired ticker | fixed |  |
+| R15-LEAD-050 | medium | research | research-relevance | A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace | fixed |  |
+| R15-LEAD-051 | medium | data | exchange_financials | A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly | fixed |  |
+| R15-LEAD-060 | medium | research | research-depth-iter-deep | Verifier verdict text wrapped in underscore emphasis (_UNVERIFIED_ / __UNVERIFIED__) parses as AGREE | open |  |
+| R15-LEAD-061 | medium | research | research-extraction-synthesis | strip_model_bibliography misses common bibliography heading variants, so a model-written source list survives beside the verified one | open |  |
+| R15-LEAD-062 | medium | agent | error-layer | A Gemini free-tier per-minute 429 (RESOURCE_EXHAUSTED ... retry in Ns) is shown as "out of credit or quota. Add credit or check your plan" | open |  |
+| R15-LEAD-063 | medium | agent | agent-runtime | historyForSend drops the oldest turns once the thread passes 60k chars with no notice to the user or the model | open |  |
+| R15-LEAD-064 | medium | data | disclosures-witnesses | 20-F ownership lane returns not_applicable with 0 holders for ADRs whose 20-F has a holders table (IBN, HDB) | open |  |
+| R15-LEAD-065 | medium | research | research-depth-iter-deep | FAST research web-only branch (no instrument resolves) awaits _web_round without a time box; only the resolved branch uses asyncio.wait_for | open |  |
+| R15-LEAD-066 | medium | agent | host-actions-proposed-changes | write_screener_filters with only the documented OR/nested group tree is rejected: schema requires criteria | open |  |
+| R15-LEAD-067 | medium | ui | macro-quant | Macro search failure renders as an empty "No matching series": the store catches every error and stores []; keyless FRED search is a 502 with an actionable message | open |  |
+| R15-LEAD-068 | medium | ui | frontend-panels-agent-shell | Settings privacy copy over-promises: "Nothing leaves this machine except calls you make to providers you configure" while keyless lanes (Yahoo, NSE/BSE, DDG) call out without configuration | open |  |
+| R15-LEAD-069 | medium | research | screener | Screener formula validate accepts a boolean operand in a comparison ("roe > (pe_ratio < 15)", "(pe_ratio > 3) > 0.5") and coerces it | open |  |
+| R15-LEAD-070 | medium | data | market-data-providers-3 | Analyst ratings swallow a Yahoo rate-limit into an empty 200 list that reads as no coverage | open |  |
+| R15-LEAD-071 | medium | data | market-data-providers-1 | A Yahoo rate-limit on earnings history is swallowed as an empty history and cached for 24 h | open |  |
+| R15-LEAD-072 | medium | research | research-depth-iter-deep | Heavy/ULTRA brief stopped by its spend ceiling publishes note=None, and the cross-check keeps spending after the breach | open |  |
+| R15-LEAD-073 | medium | agent | agent-runtime | The latest round's tool results are never elided by _fit_to_window, so a multi-result round leaves the answer below the 1/8 reserve | open |  |
+| R15-LEAD-074 | medium | code | frontend-stores | Scheduled and MCP-run workflows run with no event sink: action.notify_desktop reports notified:true but nothing is shown | open |  |
+| R15-LEAD-075 | medium | ui | frontend-panels-agent-shell | Editing a custom agent silently clears its default_model on save (customSpecToSummary sets defaultModel: null) | open |  |
+| R15-LEAD-076 | medium | ui | screener | A partially throttled screen shows "No rows matched - loosen a threshold / Reset filters" although most symbols were never evaluated | open |  |
+| R15-LEAD-077 | medium | code | frontend-panels-agent-shell | A focused SEC Filings panel publishes identifier, not symbol, so the agent context names the wrong symbol | open |  |
+| R15-LEAD-078 | medium | release | research-extraction-synthesis | Flaky test_research_fast::test_fast_web_round_runs_alongside_a_time_boxed_fan_out: an unstubbed earnings-quality leg makes it timing-dependent | open |  |
+| R15-LEAD-079 | medium | agent | llm-adapters-and-errors | ReasoningSplitter releases a held reasoning echo in full when an answer follows it (provisional, shard evidence only) | open |  |
+| R15-LEAD-080 | medium | ui | macro-quant | Agent/MCP compute_greeks and price_option return QuantLib-unit vega/theta/rho unlabelled; the model restated them as per-unit values | open |  |
+| R15-LEAD-081 | medium | data | market-data-providers-1 | sp500 screen serves S&P 500 member PTC as PTC India Limited (INR) from a fundamentals row written before the LEAD-044 fix; no migration purges it | open |  |
+| R15-LEAD-082 | medium | data | screener | Screener top-K round-robin gives currency-less rows their own group slot, so a null-market-cap row displaces a real one | open |  |
+| R15-LEAD-083 | medium | data | market-data-providers-3 | Earnings drill-down As-of chip shows the client fetch clock and ignores the envelope server as_of | open |  |
 | R15-LIFECYCLE-010 | medium | lifecycle | rust-core | A sidecar spawn failure is indistinguishable from a slow boot: the documented SidecarPort==0 'disconnected' sentinel is honoured nowhere, so a missing or denied binary ends in a 120 s blind spinner and a message that names nothing | fixed | COD-rust-core-9 |
 | R15-LIFECYCLE-011 | medium | lifecycle | error-layer | sidecarStatus is a one-shot boot latch: nothing re-probes, so the header stays green 'Connected' over a dead engine, boot-time 'error' has no retry short of reload, and the retry hook's 're-arm on reconnect' fires at most once per app lifetime | fixed | COD-error-layer-14 |
 | R15-LIFECYCLE-012 | medium | lifecycle | runs-durable-delegate | 'Durable' Delegate runs are row-deep: no startup reconciliation and a checkpoint written only at exit, so a restart leaves zombie `running` rows and a hard kill leaves a run that cannot be resumed | fixed | COD-runs-durable-delegate-6 |
@@ -796,7 +871,7 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-LIFECYCLE-021 | medium | data | market-data-providers-1 | A dead or moved NSE endpoint is invisible: /health keeps naming nse_direct as primary, provider-health tracks only Yahoo, and an .NS chart silently switches to BSE bars (last-bar volume 10.7M -> 0.56M) | fixed | LIFE-L2-ROT-2 |
 | R15-LIFECYCLE-022 | medium | data | market-data-providers-1 | A moved NSE bhavcopy archive path is read as a week of holidays: every past weekday's 404 is cached as an empty 'holiday' marker with no log, the UDiFF-primary 404 never tries the live legacy fallback, and the IN EOD freshness lane silently dies | fixed | LIFE-L2-ROT-4 |
 | R15-LIFECYCLE-023 | medium | ui | frontend-panels-shell-chrome | No React error boundary anywhere: one panel's render throw blanks the whole cockpit (portfolio and chat included) with no message or recovery, and the stack goes to a console a release build cannot open | fixed | LIFE-L3-DIAGNOSTICS-2 |
-| R15-LIFECYCLE-024 | medium | lifecycle | workspace-layout | No persistent store records a schema version (user_version 0 on all 8 SQLite DBs; no top-level workspace blob version) and nothing backs up the data dir before a new build touches it, so the first non-additive schema change will crash or silently drop data | fixed | LIFE-L4-UPGRADE-2 |
+| R15-LIFECYCLE-024 | medium | lifecycle | workspace-layout | No persistent store records a schema version (user_version 0 on all 8 SQLite DBs; no top-level workspace blob version) and nothing backs up the data dir before a new build touches it, so the first non-additive schema change will crash or silently drop data | open | LIFE-L4-UPGRADE-2 |
 | R15-LIFECYCLE-025 | medium | agent | agent-runtime | A custom agent saved on the v0.8.0 tag silently loses its 'macro' tool: the id was renamed with no alias or row migration, every adapter drops unknown ids without a log, and re-saving the agent 422s | fixed | LIFE-L4-UPGRADE-4 |
 | R15-LIFECYCLE-026 | medium | lifecycle | market-data-providers-1 | Under light realistic load the sidecar burns ~60% of a CPU core continuously, 99% of it on the event-loop thread and mostly between requests (a clean idle sidecar sits at 0-0.8%) | fixed | LIFE-L6-LONGSESSION-1 |
 | R15-RELEASE-005 | medium | release | scripts-build | Sidecar staleness gate ignores .json.gz, so regenerating the bundled Indian fundamentals seed does not rebuild the binary and assertFresh still passes: a local release ships the previous seed snapshot | fixed | COD-scripts-build-1 |
@@ -812,7 +887,7 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-RESEARCH-019 | medium | research | research-extraction-synthesis | A primary filing behind an anti-bot 403, an SSRF block or an unsupported content type silently vanishes from research evidence: visit_for_research collapses every fetch_page error to None and no step records it | fixed | COD-research-extraction-synthesis-10 |
 | R15-RESEARCH-020 | medium | research | research-retrieval-relevance | On the SearXNG tier web_search ignores the caller's numResults: an agent asking for 3 results gets every row the instance returned (40 in repro) into its context, and citations are pinned at 8 | fixed | COD-research-retrieval-relevance-1 |
 | R15-RESEARCH-021 | medium | research | research-retrieval-relevance | A headline naming the ticker followed by a 2-3 digit number ('BAJFINANCE 200 DMA breakout', 'BAJFINANCE 52-week high') scores 0.0 and is silently dropped as off-entity | fixed | COD-research-retrieval-relevance-2 |
-| R15-RESEARCH-022 | medium | research | research-retrieval-relevance | A 200-status CAPTCHA/block page from a keyless engine is recorded as a healthy empty answer and resets that engine's circuit breaker, so a blocking engine is never benched and an all-blocked search reports 'found nothing' instead of 'rate-limited' | fixed | COD-research-retrieval-relevance-3 |
+| R15-RESEARCH-022 | medium | research | research-retrieval-relevance | A 200-status CAPTCHA/block page from a keyless engine is recorded as a healthy empty answer and resets that engine's circuit breaker, so a blocking engine is never benched and an all-blocked search reports 'found nothing' instead of 'rate-limited' | open | COD-research-retrieval-relevance-3 |
 | R15-RESEARCH-023 | medium | research | research-retrieval-relevance | The keyless SERP quality filter drops company investor-relations results because their snippet carries an 'All rights reserved' footer, before relevance ever scores them | fixed | COD-research-retrieval-relevance-4 |
 | R15-RESEARCH-024 | medium | research | research-retrieval-relevance | Every web source in a research brief loses its publication date and its domain reads as the literal 'web': the Citation shape drops published_at/source and the brief recorder prefers citations | fixed | COD-research-retrieval-relevance-10 |
 | R15-RESEARCH-025 | medium | research | screener | Screener formulas silently coerce a boolean into a number inside arithmetic and min/max/abs: 'min(pe < 5, roe) > 0.5' validates ok and returns a plausible but meaningless screen | fixed | COD-screener-6 |
@@ -1053,6 +1128,45 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-LEAD-041 | low | data | fundamentals-profile | Earnings estimate detail's analyst count and its EPS triple are read from different upstream fields and disagree: TM shows estimate_analyst_count 1 while the EPS triple is null | open |  |
 | R15-LEAD-042 | low | agent | host-actions-proposed-changes | The proposed-change review card and its applied label price a US lot in the session region's currency, not the listing's: {MSFT, 4, 480 USD} under an IN session reads 'Add 4 MSFT @ ₹480 to the portfolio' | open |  |
 | R15-LEAD-047 | low | code | fundamentals-profile | A derived EPS (e.g. MSFT) is stamped field_meta status 'ok' with no reason text distinguishing it from a directly-served EPS | open |  |
+| R15-LEAD-052 | low | research | research-relevance | An ALL-CAPS headline still over-matches a 3-character common-word ticker in the non-IN relevance gate | open |  |
+| R15-LEAD-053 | low | data | resolver | Direct GET /quotes/TATAMOTORS.NS and .BO still 404 with no rename hint to TMPV, even though /resolve already lists TMPV first for the same query | open |  |
+| R15-LEAD-054 | low | data | resolver | sp500.json carries ECHO and VMRK, two symbols absent from the current US resolver master, the same stale-universe-seed class R15-LEAD-049 fixed for nifty50 | open |  |
+| R15-LEAD-055 | low | ui | frontend-tests | R15-AGENT-053's own regression test (NewsFeedPanel 'publishes the top headline...') flakes under full vitest-suite load: a context-bus publish is asserted synchronously right after a waitFor on DOM text, racing the useEffect that fires it | open |  |
+| R15-LEAD-056 | low | data | market-data-providers-2 | DOW's (and NICE's) own stripped company-name alias is the common word itself, so the DATA-030 stoplist's anchored-ticker rule never applies and 'Dow Jones falls 300 points' still tags DOW | open |  |
+| R15-LEAD-057 | low | data | market-data-providers-2 | Name-alias derivation leaves master-name registry artefacts in place ('amazon com', 'keycorp /new/'), so plain-prose company mentions never tag | open |  |
+| R15-LEAD-058 | low | research | research-relevance | GM and GS (2-letter tickers with no brand token) never pass the non-IN relevance gate on a bare mention | open |  |
+| R15-LEAD-084 | low | data | market-data-providers-1 | NSE holiday table ends 2026-12-25; 2027-01-26 (Republic Day) is treated as an IN trading day (D-B9-4 covers the test horizon, not the data) | open |  |
+| R15-LEAD-085 | low | data | error-layer | Suffixed unknown symbols (QQZZFAKE.NS, XYZNOTATICKER.BO) still return 200, 0 bars, reason null | open |  |
+| R15-LEAD-086 | low | agent | frontend-stores | The sibling [failed: ...] trailer still rides verbatim assistant history to the provider (_without_step_trailers strips only [tool steps:]) | open |  |
+| R15-LEAD-087 | low | agent | agent-tools | Ratio guard still replaces a correct ADS-ratio sentence dated 26-Jun-2026 / Jun-26-2026 with "not available" | open |  |
+| R15-LEAD-088 | low | agent | host-actions-proposed-changes | Resolver suggestions for MAZAGONDOCK / RELIANCEIND variants | open |  |
+| R15-LEAD-089 | low | ui | frontend-panels-shell-chrome | Import toast says "Imported settings." for {settings:{fontSize}} when nothing applied | open |  |
+| R15-LEAD-090 | low | research | research-depth-iter-deep | Cross-check extract still slow before the wall timeout (verdict leg boxed) | open |  |
+| R15-LEAD-091 | low | agent | agent-tools | Type-first JSON tool-call text can leak into the visible answer | open |  |
+| R15-LEAD-092 | low | code | disclosures-witnesses | _row_value has a twin implementation that can drift | open |  |
+| R15-LEAD-093 | low | docs | host-actions-proposed-changes | One doc line still says "the 18" host actions while the others and the catalog say 19 | open |  |
+| R15-LEAD-094 | low | agent | host-actions-proposed-changes | sidecar/agents/copilot.json system prompt example reply "Built you a brief on NVDA - it's at the top of the cockpit" teaches an applied-tense claim that conflicts with review mode (local rb1/rb4 overclaim) | open |  |
+| R15-LEAD-095 | low | ui | macro-quant | Bond pricer display currency fixed at mount; region switch while open keeps USD | open |  |
+| R15-LEAD-096 | low | research | research-depth-iter-deep | leading_token reads a negated COMPLETE sentence as complete | open |  |
+| R15-LEAD-097 | low | data | market-data-providers-1 | A scrip with one trade inside 52 weeks keeps a forward-fill-derived provider 52w low unflagged when it is within the 10% tolerance | open |  |
+| R15-LEAD-098 | low | data | disclosures-witnesses | The announcements cache key includes limit and the raw symbol form, so callers that differ in limit or .NS suffix refetch the full history | open |  |
+| R15-LEAD-099 | low | code | host-actions-proposed-changes | save_screen overwrites the user's live screener draft without disclosing it; Undo does not restore the draft | open |  |
+| R15-LEAD-100 | low | data | resolver | _us_isin caches a definite ISIN miss for the life of the process | open |  |
+| R15-LEAD-101 | low | release | release/build | CONTRIBUTING.md says 'Python 3.13+' but the build requires exactly 3.13 | open |  |
+| R15-LEAD-102 | low | agent | error-layer | Ollama adapter catch-all humanizes internal exceptions as an Ollama error | open |  |
+| R15-LEAD-103 | low | research | frontend-panels-shell-chrome | Onboarding local-model recommendation collapses any sidecar failure to 'Couldn't reach the local engine' | open |  |
+| R15-LEAD-104 | low | research | research-retrieval-relevance | Perplexity/Sonar ResearchSource builders drop published_at | open |  |
+| R15-LEAD-105 | low | code | llm-adapters | OpenRouter chat URL literal in research lanes | open |  |
+| R15-LEAD-106 | low | ui | market-data-providers-3 | SEC company search is a raw substring match | open |  |
+| R15-LEAD-107 | low | agent | host-actions-proposed-changes | add_chart_drawing: a non-empty bogus panelId bypasses the open-chart fallback | open |  |
+| R15-LEAD-108 | low | docs | frontend-panels-shell-chrome | BLUEPRINT says 12 AI agents; 13 first-party agents ship | open |  |
+| R15-LEAD-109 | low | data | market-data-providers-3 | /earnings/{sym}/estimates maps a yfinance 429 to 502 provider_error 'unexpected response', while /fundamentals/{sym}/ratings maps the same throttle to 429 rate_limited | open |  |
+| R15-LEAD-110 | low | data | market-data-providers-1 | A listed 1994 JPM 10-K opens as 502 'unexpected response' (sec-edgar-mcp get_filing_sections NoneType) instead of degrading to the raw filing text | open |  |
+| R15-LEAD-111 | low | ui | error-layer | clearSearch does not bump searchGeneration; late 501 paints error under emptied SEC search field | open |  |
+| R15-LEAD-112 | low | data | option-chain | 200 F&O bhavcopy with truncated PK zip raises BadZipFile out of fetch_latest_fo, no walk-back | open |  |
+| R15-LEAD-113 | low | code | workflow-engine | Stale 'client-side mathjs' comments in node-registry.ts:185-190 and code-node-run.ts header | open |  |
+| R15-LEAD-114 | low | code | screener | nse_bhavcopy.py:36-40 docstring says the NSE master is '~2,675 symbols' and that SME (SM/ST) rows are 'outside the master'; the master is now 3506 rows including 571 SM | open |  |
+| R15-LEAD-115 | low | data | exchange_financials | The quarterly-gap TTM reason always says 'a quarter of the trailing year' is unfiled, which understates the gap for fresh listings with only one or two quarters ever filed | open |  |
 | R15-LIFECYCLE-027 | low | lifecycle | error-layer | No timeout or AbortSignal anywhere in the shared sidecar client: one hung /health probe holds the shared readyPromise past its 120 s budget, a hung route is an eternal spinner, and the boot-time plugin path fetches every plugin's config twice, serially, with no ceiling | open | COD-error-layer-12, COD-plugins-11 |
 | R15-LIFECYCLE-028 | low | ui | frontend-panels-shell-chrome | The debounced layout autosave has no flush on close, so a rearrange followed by quit within 1.5 s is lost | open | COD-frontend-panels-shell-chrome-10 |
 | R15-LIFECYCLE-029 | low | ui | frontend-panels-shell-chrome | PanelHost restores the saved layout as soon as first-party modules register, before plugin modules exist, so any plugin panel in the saved layout deterministically trips the restore-failure path (latent: no bundled plugin contributes panels yet) | open | COD-frontend-panels-shell-chrome-11 |
@@ -1110,14 +1224,3 @@ Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-UI-089 | low | ui | plugins | Plugin data credentials (the optional NewsAPI key) are saved from a separate Marketplace form with no validation, unlike LLM keys, which are live-probed before save | open | INT-spec-90-8 |
 | R15-UI-093 | low | ui | frontend-panels-agent-shell | The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change | open | INT-spec-135-158 |
 | R15-UI-094 | low | ui | fundamentals-profile | The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) | open | INT-spec-135-174 |
-| R15-LEAD-048 | medium | ui | workspace-layout | arrange_layout silently resets to the default layout for any pattern it does not recognise, including the Layout-menu mode ids (fundamental/technical/macro/compare-desk) typed through chat | fixed |  |
-| R15-LEAD-049 | medium | data | resolver | TATAMOTORS.NS/.BO return not_found in the nifty50 universe sweep and in direct quotes: the post-demerger NSE/BSE masters carry the symbol only as TMPV (with 'Tata Motors Limited' as a former name), while the nifty50 constituent list and any direct TATAMOTORS quote still use the retired ticker | fixed |  |
-| R15-LEAD-050 | medium | research | research-relevance | A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace | fixed |  |
-| R15-LEAD-051 | medium | data | exchange_financials | A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly | fixed |  |
-| R15-LEAD-052 | low | research | research-relevance | An ALL-CAPS headline still over-matches a 3-character common-word ticker in the non-IN relevance gate | open |  |
-| R15-LEAD-053 | low | data | resolver | Direct GET /quotes/TATAMOTORS.NS and .BO still 404 with no rename hint to TMPV, even though /resolve already lists TMPV first for the same query | open |  |
-| R15-LEAD-054 | low | data | resolver | sp500.json carries ECHO and VMRK, two symbols absent from the current US resolver master, the same stale-universe-seed class R15-LEAD-049 fixed for nifty50 | open |  |
-| R15-LEAD-055 | low | ui | frontend-tests | R15-AGENT-053's own regression test (NewsFeedPanel 'publishes the top headline...') flakes under full vitest-suite load: a context-bus publish is asserted synchronously right after a waitFor on DOM text, racing the useEffect that fires it | open |  |
-| R15-LEAD-056 | low | data | market-data-providers-2 | DOW's (and NICE's) own stripped company-name alias is the common word itself, so the DATA-030 stoplist's anchored-ticker rule never applies and 'Dow Jones falls 300 points' still tags DOW | open |  |
-| R15-LEAD-057 | low | data | market-data-providers-2 | Name-alias derivation leaves master-name registry artefacts in place ('amazon com', 'keycorp /new/'), so plain-prose company mentions never tag | open |  |
-| R15-LEAD-058 | low | research | research-relevance | GM and GS (2-letter tickers with no brand token) never pass the non-IN relevance gate on a bare mention | open |  |
