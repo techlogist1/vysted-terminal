@@ -823,3 +823,95 @@ async def test_a_halted_rounds_host_actions_are_not_proposed(
     assert row is not None and row.status == "error"
     assert dispatched == []
     assert row.host_actions == []
+
+
+class _ActionThenHaltedBriefProvider:
+    """Round 1 dispatches ``first``; round 2 publishes a brief over the ceiling."""
+
+    def __init__(self, first: str) -> None:
+        self.first = first
+        self.calls = 0
+
+    async def stream_chat(
+        self, messages: list[LLMMessage], model: str, api_key: str | None = None, **kwargs: Any
+    ) -> AsyncIterator[Any]:
+        self.calls += 1
+        if self.calls == 1:
+            args = (
+                {"title": "dispatched brief", "markdown": "## A"}
+                if self.first == "publish_brief"
+                else {"scope": "NVDA", "text": "Watch the margin"}
+            )
+            yield LLMToolUseEvent(tool_call_id="c-1", name=self.first, input=args)
+            yield LLMDoneEvent(usage=LLMUsage(input_tokens=5, output_tokens=5))
+            return
+        brief = {"title": "halted brief", "markdown": "## B"}
+        yield LLMToolUseEvent(tool_call_id="c-2", name="publish_brief", input=brief)
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=100_000, output_tokens=0))
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("first", "expected_title"), [("publish_brief", "dispatched brief"), ("write_note", None)]
+)
+async def test_a_halted_rounds_brief_is_not_delivered(
+    monkeypatch: pytest.MonkeyPatch, first: str, expected_title: str | None
+) -> None:
+    """R15-AGENT-092: publish_brief is a host action like any other. A brief the
+    halt stopped before dispatch never lands, nor overwrites a dispatched one."""
+    _patch(monkeypatch, _ActionThenHaltedBriefProvider(first))
+    run_id = run_manager.launch_run(
+        agent_id="copilot", prompt="x", api_key="sk", budget=RunBudget(max_tokens=1000)
+    )
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "error"
+    assert (row.brief or {}).get("title") == expected_title
+
+
+class _ResearchAndBacktestProvider:
+    """Round 1 calls research and a backtest; round 2 answers."""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def stream_chat(
+        self, messages: list[LLMMessage], model: str, api_key: str | None = None, **kwargs: Any
+    ) -> AsyncIterator[Any]:
+        self.calls += 1
+        if self.calls == 1:
+            yield LLMToolUseEvent(tool_call_id="c-1", name="research", input={"query": "NVDA"})
+            backtest = {
+                "entry": "sma(20) > sma(50)",
+                "exit": "sma(20) < sma(50)",
+                "symbols": ["NVDA"],
+                "start_date": "2024-01-01",
+                "end_date": "2025-01-01",
+            }
+            yield LLMToolUseEvent(tool_call_id="c-2", name="run_custom_backtest", input=backtest)
+        else:
+            yield LLMDeltaEvent(text="Done.")
+        yield LLMDoneEvent(usage=LLMUsage(input_tokens=5, output_tokens=5))
+
+
+@pytest.mark.asyncio
+async def test_runtime_events_derived_from_a_dispatched_call_are_delivered(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Class case for R15-AGENT-092: the research auto-brief and the backtest
+    auto-open are emitted after their source call is dispatched and never get a
+    result of their own, so buffering them must not drop them."""
+    _patch(monkeypatch, _ResearchAndBacktestProvider())
+
+    async def _dispatch(tool_call: Any, *_a: Any, **_k: Any) -> str:
+        if tool_call.name == "research":
+            return '{"ok": true, "brief": {"title": "auto brief", "markdown": "## R"}}'
+        return '{"ok": true, "runId": "bt-1"}'
+
+    monkeypatch.setattr(agent_runtime, "_dispatch_tool", _dispatch)
+    run_id = run_manager.launch_run(agent_id="copilot", prompt="x", api_key="sk")
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "done"
+    assert row.brief == {"title": "auto brief", "markdown": "## R"}
+    assert [(a["name"], a["input"]) for a in row.host_actions] == [
+        ("open_panel", {"panel": "backtest", "run_id": "bt-1"})
+    ]

@@ -178,10 +178,22 @@ async def _drive_run(
     # thread on the terminal poll — never applied here.
     brief: dict[str, Any] | None = None
     host_actions: list[dict[str, Any]] = []
-    # A round's host actions wait here, keyed by call id, until the runtime
-    # dispatches them: a budget halt stops before dispatch, and an action the
-    # model never got a result for is never proposed (R15-AGENT-092).
+    # A round's host actions (publish_brief included) wait here, keyed by call
+    # id, until the runtime dispatches them: a budget halt stops before
+    # dispatch, and an action the model never got a result for is never
+    # proposed or delivered as the brief (R15-AGENT-092).
     undispatched: dict[str, dict[str, Any]] = {}
+    # Ids the runtime has dispatched. An event it derives from one (the research
+    # auto-brief, the backtest auto-open) is emitted after that dispatch and
+    # carries the source id, so it is delivered as is.
+    dispatched: list[str] = []
+
+    def _deliver(action: dict[str, Any]) -> None:
+        nonlocal brief
+        if action["name"] == "publish_brief":
+            brief = action["input"]
+        else:
+            host_actions.append(action)
 
     def _output() -> dict[str, Any]:
         return {
@@ -201,9 +213,10 @@ async def _drive_run(
         return {"prompt": checkpoint["prompt"], "turns": list(turns)}
 
     def _on_tool_result(tool_call: Any, result_str: str) -> None:
+        dispatched.append(tool_call.tool_call_id)
         action = undispatched.pop(tool_call.tool_call_id, None)
         if action is not None:
-            host_actions.append(action)
+            _deliver(action)
         status, line = _result_line(result_str)
         _flush_text()
         turns.append({"role": "assistant", "content": f"[{tool_call.name} → {line}]"})
@@ -296,14 +309,16 @@ async def _drive_run(
                     # text starts a new one instead of running on.
                     if delta_buffer and delta_buffer[-1] != "\n\n":
                         delta_buffer.append("\n\n")
-                    if name == "publish_brief":
-                        brief = dict(event.input)
-                    elif name in HOST_ACTION_TOOLS:
-                        undispatched[event.tool_call_id] = {
+                    if name in HOST_ACTION_TOOLS:
+                        action = {
                             "tool_call_id": event.tool_call_id,
                             "name": name,
                             "input": dict(event.input),
                         }
+                        if any(src in event.tool_call_id for src in dispatched):
+                            _deliver(action)
+                        else:
+                            undispatched[event.tool_call_id] = action
                 elif kind == "research_step" and event.tool == agent_runtime.HALT_NOTICE_TOOL:
                     halted = True
                 elif kind == "error":
