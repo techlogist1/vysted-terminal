@@ -2396,6 +2396,59 @@ def test_compare_symbols_market_cap_reads_in_each_row_quote_currency() -> None:
     assert rows[2] == {"symbol": "ZZZZ", "error": "no quote"}
 
 
+def test_fundamentals_model_payload_renders_fractions_as_percent() -> None:
+    """R15-AGENT-001: a bare fraction (dividend_yield 0.0082) was read as a
+    percent ("0.0082%"). The model only ever sees the percent display."""
+    from services.agent_tools.research import _FRACTION_FIELDS, model_view
+
+    cochinship = {
+        "symbol": "COCHINSHIP.NS",
+        "currency": "INR",
+        "market_cap": 362262233088.0,
+        "dividend_yield": 0.0082,
+        "revenue_growth": 0.02397,
+        "earnings_growth": -0.19366,
+        "roe": 0.1159,
+        "pe_ratio": 48.2,
+    }
+    content = agent_runtime._model_facing_content(
+        "fundamentals", json.dumps({"ok": True, "fundamentals": cochinship})
+    )
+    fund = json.loads(content)["fundamentals"]
+    assert fund["dividend_yield"] == "0.82%"
+    assert fund["revenue_growth"] == "2.40%"
+    assert fund["earnings_growth"] == "-19.37%"
+    assert fund["roe"] == "11.59%"
+    assert fund["pe_ratio"] == 48.2
+    assert not any(isinstance(fund.get(key), float) for key in _FRACTION_FIELDS)
+
+    # Class cases the fix was not written against: a compare_symbols row and a
+    # research payload's structured fundamentals leg.
+    compare = {
+        "ok": True,
+        "symbols": [
+            {
+                "symbol": "TCS.NS",
+                "quote": {"currency": "INR"},
+                "fundamentals": {"roe": 0.5189, "profit_margin": 0.1912},
+            }
+        ],
+    }
+    content = agent_runtime._model_facing_content("compare_symbols", json.dumps(compare))
+    row = json.loads(content)["symbols"][0]["fundamentals"]
+    assert row == {"roe": "51.89%", "profit_margin": "19.12%"}
+
+    research = {
+        "ok": True,
+        "structured": {
+            "fundamentals": {"data": {"currency": "INR", "held_percent_insiders": 0.7286}}
+        },
+    }
+    leg = model_view(research)["structured"]["fundamentals"]["data"]
+    assert leg["held_percent_insiders"] == "72.86%"
+    assert research["structured"]["fundamentals"]["data"]["held_percent_insiders"] == 0.7286
+
+
 async def _scripted_answer(
     monkeypatch: pytest.MonkeyPatch,
     tool: str | dict[str, dict[str, Any]] | None,
