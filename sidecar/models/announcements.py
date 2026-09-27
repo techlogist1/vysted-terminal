@@ -88,7 +88,9 @@ class AnnouncementsResponse(BaseModel):
     #: not "absent").
     windows: dict[str, AnnouncementWindow] = {}
     coverage: Coverage = "covered"
-    #: Why nothing is served when ``coverage`` is not ``covered``.
+    #: Why nothing is served when ``coverage`` is not ``covered`` — or, on a
+    #: covered feed, why the other exchange's same-ticker feed (another company)
+    #: was withheld (R15-LEAD-059).
     note: str | None = None
 
 
