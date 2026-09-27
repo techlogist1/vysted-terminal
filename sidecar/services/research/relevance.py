@@ -302,6 +302,232 @@ FOREIGN_MARKET_HOSTS: frozenset[str] = frozenset(
     }
 )
 
+#: Listed tickers (US + NSE + BSE masters) that are also a common English word,
+#: a news acronym, a surname/place/corporate-suffix token, or a date abbreviation
+#: (R15-DATA-030 / R15-LEAD-050). Case-folded matching reads them as prose ("it's",
+#: "On Holding", "AI-exposed", "all-time high"), so a bare mention never names the
+#: company — only an :func:`anchored_ticker` form does. Curated by hand from the
+#: masters' 2-5 char tickers intersected with a dictionary plus news acronyms;
+#: tickers the company is routinely WRITTEN as (META, UBER, SAIL, SNAP, GAP, ARM,
+#: GE, BP, SM, CAT, TITAN, ROUTE, ...) are deliberately absent.
+COMMON_WORD_TICKERS: frozenset[str] = frozenset(
+    {
+        # 2 letters
+        "AB",
+        "AD",
+        "AG",
+        "AI",
+        "AM",
+        "AN",
+        "AR",
+        "AS",
+        "BE",
+        "BY",
+        "DE",
+        "EL",
+        "EU",
+        "EY",
+        "GO",
+        "HE",
+        "HR",
+        "IR",
+        "IT",
+        "LI",
+        "MA",
+        "ON",
+        "OR",
+        "PC",
+        "PM",
+        "PR",
+        "SA",
+        "SE",
+        "SO",
+        "ST",
+        "TV",
+        "UK",
+        "UP",
+        "VC",
+        "VR",
+        # 3 letters
+        "ACT",
+        "AGM",
+        "AGO",
+        "AIM",
+        "AIR",
+        "AKA",
+        "ALL",
+        "ANY",
+        "API",
+        "ARE",
+        "BID",
+        "BIT",
+        "BOT",
+        "CAN",
+        "CAR",
+        "COO",
+        "CTO",
+        "DAO",
+        "DOW",
+        "EAT",
+        "EGG",
+        "ESG",
+        "EYE",
+        "FIX",
+        "FLY",
+        "FOR",
+        "FPI",
+        "FUN",
+        "GEN",
+        "GIG",
+        "HAS",
+        "HIT",
+        "ICE",
+        "INR",
+        "IOT",
+        "JAN",
+        "JOB",
+        "JOE",
+        "KEY",
+        "LAB",
+        "LAW",
+        "LOT",
+        "LOW",
+        "MAN",
+        "MAR",
+        "MAX",
+        "MET",
+        "NET",
+        "NOW",
+        "ODD",
+        "OIL",
+        "OUT",
+        "PAY",
+        "PMI",
+        "PSB",
+        "RIG",
+        "RIO",
+        "RUN",
+        "SAN",
+        "SAY",
+        "SKY",
+        "SON",
+        "SUN",
+        "TEN",
+        "TOP",
+        "TWO",
+        "USA",
+        "VIA",
+        "WAY",
+        "YOU",
+        # 4-5 letters
+        "BACK",
+        "BEAT",
+        "BETA",
+        "BILL",
+        "BOOM",
+        "BULL",
+        "CARE",
+        "CASH",
+        "CENT",
+        "COIN",
+        "COOK",
+        "COST",
+        "DEEP",
+        "DEFI",
+        "EARN",
+        "EVER",
+        "FACT",
+        "FAST",
+        "FIVE",
+        "FORM",
+        "FOUR",
+        "FUND",
+        "GAIN",
+        "GAME",
+        "GIFT",
+        "GOLD",
+        "GOOD",
+        "GROW",
+        "HELP",
+        "HERE",
+        "HOPE",
+        "HOUR",
+        "IDEA",
+        "LAND",
+        "LIFE",
+        "LINE",
+        "LINK",
+        "LIVE",
+        "LOAN",
+        "LOOP",
+        "LOVE",
+        "MAIN",
+        "MOVE",
+        "NEXT",
+        "NICE",
+        "NINE",
+        "NOTE",
+        "ONTO",
+        "OPEN",
+        "PACE",
+        "PLAY",
+        "PLUS",
+        "POST",
+        "RACE",
+        "RAIL",
+        "RARE",
+        "REAL",
+        "RENT",
+        "ROAD",
+        "SAFE",
+        "SHIP",
+        "SHOP",
+        "SPOT",
+        "STAR",
+        "STEP",
+        "SUCH",
+        "TAKE",
+        "TALK",
+        "TEAM",
+        "TECH",
+        "TRIP",
+        "UNIT",
+        "WELL",
+        "WEST",
+        "WHEN",
+        "ZONE",
+        "ALPHA",
+        "CLEAN",
+        "DELTA",
+        "FOCUS",
+        "INFRA",
+        "METAL",
+        "SUPER",
+        "TOTAL",
+        "TRUST",
+        "VALUE",
+        "WORTH",
+    }
+)
+
+_ANCHOR_EXCHANGES = r"NYSE(?: American| ?Arca| ?ARCA)?|NASDAQ|Nasdaq|AMEX|NSE|BSE"
+
+
+def anchored_ticker(ticker: str, text: str) -> bool:
+    """Does ``text`` write ``ticker`` unmistakably AS a ticker? Case-sensitive:
+    ``$ON``, ``NASDAQ: ON`` / ``(NYSE:AI)``, or ``IT.NS`` / ``IT.BO`` — the only
+    mention that names a :data:`COMMON_WORD_TICKERS` company."""
+    t = re.escape(ticker)
+    return bool(
+        re.search(
+            rf"\${t}(?![A-Za-z0-9])"
+            rf"|(?<![A-Za-z])(?:{_ANCHOR_EXCHANGES})\s*:\s*{t}(?![A-Za-z0-9])"
+            rf"|(?<![A-Za-z0-9.$]){t}\.(?:NS|BO)(?![A-Za-z0-9])",
+            text,
+        )
+    )
+
+
 _TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9.&-]*")
 
 
@@ -502,10 +728,12 @@ def _strong_entity_score(
     Moneycontrol" still does for ITC. A NON-Indian short-only signal is gated
     too (R15-RESEARCH-001): the title matching is case-folded, so a ≤3-char
     token is also English prose ("contract on hypersonic", "All eyes on the
-    Fed"). It keeps 0.6 only when the title writes the ticker AS a ticker — an
-    upper-case 3+ char token ("AMD beats estimates"); a 2-letter ticker (AI, IT,
-    ON) never passes alone. Otherwise it falls to the WEAK ceiling, and naming
-    the company is the distinctive signal above.
+    Fed"). It keeps 0.6 only when the title writes the ticker AS a ticker: an
+    upper-case token of any length ("AMD beats estimates", "GE beats
+    estimates"), or, for a :data:`COMMON_WORD_TICKERS` ticker (IT, ON, ALL, AI),
+    only an :func:`anchored_ticker` form ("NASDAQ: ON") — an ALL-CAPS headline
+    writes the word, not the ticker (R15-LEAD-050/052). Otherwise it falls to
+    the WEAK ceiling, and naming the company is the distinctive signal above.
 
     Snippets are consulted ONLY for the India/foreign CONTEXT judgement, never
     for entity identity (a snippet passing-mention is still the leak shape).
@@ -518,10 +746,11 @@ def _strong_entity_score(
     if not short_sig:
         return 0.0
     if not is_india_target(target):
-        # ponytail: an ALL-CAPS headline still writes a 3-char ticker as a token.
         ticker = target.symbol.upper()
+        if ticker in COMMON_WORD_TICKERS:
+            return 0.6 if anchored_ticker(ticker, title) else 0.0
         written = re.search(rf"(?<![A-Za-z0-9]){re.escape(ticker)}(?![A-Za-z0-9])", title)
-        return 0.6 if len(ticker) >= 3 and written else 0.0
+        return 0.6 if written else 0.0
     if _foreign_shadow(text_lc, host):
         return 0.0
     if _india_context(text_lc, host):
@@ -666,6 +895,7 @@ def gate_news(items: list[Any], *, target: ResearchTarget) -> tuple[list[Any], s
 
 
 __all__ = [
+    "COMMON_WORD_TICKERS",
     "CRYPTO_HOSTS",
     "FOREIGN_MARKET_HOSTS",
     "FOREIGN_MARKET_MARKERS",
@@ -675,6 +905,7 @@ __all__ = [
     "MATCH_FLOOR",
     "RELAXED_FLOOR",
     "WEAK_MATCH_CEILING",
+    "anchored_ticker",
     "brand_tokens",
     "entity_match",
     "is_india_target",
