@@ -160,6 +160,8 @@ _GENERIC_NAME_TOKENS: frozenset[str] = frozenset(
         "agro",
         "green",
         "renewables",
+        "semiconductor",
+        "semiconductors",
     }
 )
 
@@ -482,7 +484,7 @@ def _entity_signals(
 
 
 def _strong_entity_score(
-    target: ResearchTarget, *, title_lc: str, host: str, url_lc: str, text_lc: str
+    target: ResearchTarget, *, title: str, host: str, url_lc: str, text_lc: str
 ) -> float:
     """The STRONG-channel score: does the title/host/url itself name the target?
 
@@ -497,21 +499,29 @@ def _strong_entity_score(
     drops to 0 outright on explicit foreign-market evidence (Karachi / KSE-100 /
     Pakistan). An uncorroborated short match falls through to the WEAK ceiling —
     so "KSE-100 index falls 2%" can never count for KSE Ltd, while "ITC Q4 —
-    Moneycontrol" still does for ITC. A non-Indian short symbol keeps the prior
-    0.6 (the collision class the gate targets is IN tickers shadowed abroad).
+    Moneycontrol" still does for ITC. A NON-Indian short-only signal is gated
+    too (R15-RESEARCH-001): the title matching is case-folded, so a ≤3-char
+    token is also English prose ("contract on hypersonic", "All eyes on the
+    Fed"). It keeps 0.6 only when the title writes the ticker AS a ticker — an
+    upper-case 3+ char token ("AMD beats estimates"); a 2-letter ticker (AI, IT,
+    ON) never passes alone. Otherwise it falls to the WEAK ceiling, and naming
+    the company is the distinctive signal above.
 
     Snippets are consulted ONLY for the India/foreign CONTEXT judgement, never
     for entity identity (a snippet passing-mention is still the leak shape).
     """
     distinctive_sig, short_sig = _entity_signals(
-        target, title_lc=title_lc, host=host, url_lc=url_lc
+        target, title_lc=title.lower(), host=host, url_lc=url_lc
     )
     if distinctive_sig:
         return 1.0
     if not short_sig:
         return 0.0
     if not is_india_target(target):
-        return 0.6
+        # ponytail: an ALL-CAPS headline still writes a 3-char ticker as a token.
+        ticker = target.symbol.upper()
+        written = re.search(rf"(?<![A-Za-z0-9]){re.escape(ticker)}(?![A-Za-z0-9])", title)
+        return 0.6 if len(ticker) >= 3 and written else 0.0
     if _foreign_shadow(text_lc, host):
         return 0.0
     if _india_context(text_lc, host):
@@ -573,9 +583,7 @@ def entity_match(
             return 1.0
         return _token_score(tokens, text, host)
 
-    strong = _strong_entity_score(
-        target, title_lc=title.lower(), host=host, url_lc=url_lc, text_lc=text
-    )
+    strong = _strong_entity_score(target, title=title, host=host, url_lc=url_lc, text_lc=text)
     if strong > 0.0:
         return min(strong, 1.0)
     # Explicit foreign-market negative evidence (R13): for an Indian target with
