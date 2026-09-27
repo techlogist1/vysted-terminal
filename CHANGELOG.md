@@ -4,6 +4,50 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 rc1 gate — round 4: FAIL — 7 refuted fixed entries stand, adjacent high, battery raw undercount (2026-09-27)
+
+Fourth full pre-tag release gate, run against the round-3-repair candidate `1006c6da` (`rc1-gate.js` round 4,
+`batt_shards: 25`). Attempt 1 (`wf_f8604b35-a49`) blocked after 6 min on a preflight harness cause — a Sonnet
+preflight returned blocked citing a time budget no prompt states, mid-build. Attempt 2 (`wf_a404279c-3f4`), same
+args with the preflight repaired to state the 15-30 min build duration and poll to exit, measured 304 min, 58
+agents, 10.24M tokens, 0 errors.
+
+- **PASSED:** the register criterion (0 open critical/high/medium; four-area concurrences rc1-verifier:18-25);
+  Gate 8 twice over (111 openapi routes, zero hits on the barred-surface grep; two scripted execution-shaped calls
+  both failed closed with holdings unchanged and no tool call issued; the safety-audit table does not exist;
+  tracked-portfolio round-trip clean — CSV export, delete leaves the ledger empty); `ci-local` at the fix-round
+  head `68d5573` twice, both EXIT=0 (pytest 3671 + 1 skipped, vitest 1849, cargo 19); smoke; owner drives (all 8
+  groups carry raw output, spot-checks agree); data packs; the fix loop, closed.
+- **FAILED, and why:**
+  - **Adversarial sample.** Seven fixed entries stand on the verifier's own repro at `68d5573`: R15-DATA-003
+    (critical — a US-bound AMAL still gets Amal Ltd's BSE shareholding/announcements), R15-LEAD-022 (high —
+    2222.SR/SAP.F/GGAL.BA/OPAP.AT dash-rewritten and 404), R15-LEAD-014 (medium — a placeholder schema echo
+    accepted as tool args), R15-LEAD-004 (medium — quarterly filer NDTV labelled half-yearly), R15-AGENT-055
+    (medium — the agent and the menu build different panel sets for the same id), R15-DATA-053 (medium —
+    NSE-direct OHLC null, BSE volume in lakh), R15-UI-015 (low residual — sec.searchCompanies discards the
+    reason).
+  - **Adjacent high.** rc1-verifier:1 — `arrange_layout` `pattern=custom` raises a TypeError (unhashable list) in
+    `agent_runtime._coerce`, near AGENT-093.
+  - **Fixed-name battery, HARNESS.** 25 of 395 fixed ids carry only a NOT RUN raw placeholder; the collator's own
+    `MISSING_RAW.json` claimed 3. Of the 395: 322 hold, 71 are `ci_pinned`, 1 regressed (R15-RESEARCH-017, also
+    R15-DATA-008 critical in the data-pack lane).
+  - **Agent scenarios.** Hosted pass^3: read-back 4/4, self-consistency 4/4, skepticism 1/4. sk-amal and sk-dal
+    fail on DATA-002 (blocked_tier4 concurrence notes, decision 4.15); sk-sify fails on a new medium — the ratio
+    guard releases a partial sentence mid-stream (rc1-verifier:2).
+- **Fix round.** Three writers, merged through three merge commits ending at `68d5573`: the research auto-brief
+  now stages for review outside AUTO and tells the model (rc1-scenarios:1); yfinance returns not_found for
+  out-of-alphabet symbols and empty statement frames (failure-inducer:1/:2, R15-DATA-061); the resolver's current
+  name now outranks a former-name tie (rc1-battery-14:1). Chain green at `68d5573` (`ci-local` EXIT=0 twice:
+  pytest 3671 + 1 skipped, vitest 1849, cargo 19).
+- **Harness slip.** The Gate 8 raw grep dumps (`grep-docs.txt` 111.75 MB, `grep-docs-classified.tsv` 64.97 MB)
+  were rejected by GitHub's 100 MB push limit; both moved unchanged to the session scratchpad and summarised in
+  `GREP_DUMPS_NOTE.md` (sizes, sha256, classification counts — zero product-surface hits). The three unpushed
+  local commits were rebuilt without them via plumbing (a first `reset --hard` attempt was refused by the
+  head-guard hook and left a stray ledger revert, dropped).
+- The refutation audit for round 4 (`wf_65e7ee56-238`, eight Opus auditors + a Sonnet collator, at head
+  `33586c21`) is IN FLIGHT over the seven standing refutations plus the adjacent high. This section decides
+  nothing about its outcome.
+
 ## R15 Stage C — batch 27: DATA-117 mixed-basis ratio class and LEAD-040 resolver pool certified — open critical/high/medium back to zero (2026-09-27)
 
 **Scope:** base `e4b9554d`. Two open critical/high/medium entering this batch, both new and both planned as fixes:
