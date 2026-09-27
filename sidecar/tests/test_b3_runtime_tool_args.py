@@ -213,3 +213,39 @@ def test_nested_numeric_string_is_coerced() -> None:
     row = event.input["instruments"][0]
     assert row["tenor"] == 3 and type(row["tenor"]) is int
     assert row["rate"] == 0.05 and type(row["rate"]) is float
+
+
+@pytest.mark.parametrize(
+    "panels",
+    [["chart", "news"], [{"panel": "news", "direction": "right", "reference": "chart"}]],
+)
+def test_union_typed_items_do_not_crash(panels: list[Any]) -> None:
+    # R15-AGENT-094: arrange_layout panels.items is ["string", "object"]; _coerce
+    # hashed the list and raised TypeError, killing the whole turn.
+    args = {"pattern": "custom", "panels": panels}
+    event = LLMToolUseEvent(
+        tool_call_id="c-1", name="arrange_layout", input=json.loads(json.dumps(args))
+    )
+    agent_runtime._normalise_tool_args(event)
+    assert event.input == args
+
+
+def test_coerce_never_raises_on_any_union_typed_catalog_schema() -> None:
+    # Class guard: every list-valued `type` anywhere in the catalog, plus one the
+    # fix was not written against, is left to the validator untouched.
+    from services.agent_tools import catalog
+
+    def _unions(schema: Any) -> list[dict[str, Any]]:
+        if isinstance(schema, dict):
+            found = [schema] if isinstance(schema.get("type"), list) else []
+            return found + [s for v in schema.values() for s in _unions(v)]
+        if isinstance(schema, list):
+            return [s for v in schema for s in _unions(v)]
+        return []
+
+    unions = [s for cap in catalog.CAPABILITY_CATALOG.values() for s in _unions(cap.input_schema)]
+    assert unions
+    unions.append({"type": ["integer", "null"]})
+    for schema in unions:
+        for sample in ("5", "chart", '{"a": 1}', {"panel": "news"}, [1], 5, None):
+            assert agent_runtime._coerce(sample, schema) == sample

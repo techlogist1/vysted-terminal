@@ -920,6 +920,9 @@ def _coerce(value: Any, schema: Any) -> Any:
     if not isinstance(schema, dict):
         return value
     expected = schema.get("type")
+    # A union type (["string", "object"]) is left to the validator (R15-AGENT-094).
+    if not isinstance(expected, str):
+        return value
     if expected in _JSON_STRING_TYPES and isinstance(value, str):
         try:
             parsed = json.loads(value, parse_constant=_reject_json_constant)
