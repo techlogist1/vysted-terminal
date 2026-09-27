@@ -77,25 +77,25 @@ closed that gap; Stage C batch-28 then fixed what it found.
   - **Reviewer / fresh verifier** (`VERDICTS.md`, Opus, fresh sidecar + MCP instances: "Verdict:
     approve"). **25 certified**, none a regression, each on a fresh case the fix wasn't written
     against:
-    - *Agent runtime:* AGENT-001 renders fundamentals fraction fields (dividend yield, margins,
+    - _Agent runtime:_ AGENT-001 renders fundamentals fraction fields (dividend yield, margins,
       ROE/ROA/ROCE, growth) to the model as percent strings, not raw floats read 100x low. AGENT-092
       only delivers a Delegate brief once its `publish_brief` actually dispatched, not on a later
       halted round. AGENT-094 stops `_coerce` crashing on a union-typed schema. AGENT-095 keeps a
       dated, sourced ADR-ratio sentence instead of replacing it. LEAD-014 rejects a type-name
       placeholder echo from tool-arg repair.
-    - *Data, disclosures & quotes:* DATA-003 gates India-only disclosure lanes by session region, not
+    - _Data, disclosures & quotes:_ DATA-003 gates India-only disclosure lanes by session region, not
       master-list membership. DATA-024 fetches a dual-listed NSE name's BSE deal rows too. DATA-038
       falls back to raw filing text when section parsing returns nothing. RESEARCH-022 raises on a
       200-status CAPTCHA page instead of a false-empty answer. DATA-053 scales BSE volume by its
       stated unit and adds NSE-direct OHLC fields. LEAD-022 dash-rewrites a dotted Yahoo symbol only
       for the US share-class quirk. DATA-008 stops the NSE-filed INR overlay rendering under a stale
       USD label. DATA-055 falls back to `first_trade_date` for a young listing's range label.
-    - *Screener & quant:* LEAD-044 threads a universe's own region through per-symbol fetches.
+    - _Screener & quant:_ LEAD-044 threads a universe's own region through per-symbol fetches.
       LEAD-045 moves the Yahoo batch transport onto a Chrome-impersonated `curl_cffi` session.
       DATA-114 treats a failed F&O walk-back day as cache-only instead of ending the walk. RESEARCH-027
       boxes the FAST web leg at an 8s timeout. DATA-113 derives a scale-checked EPS currency instead
       of reusing the ADR's own quoted currency.
-    - *Frontend:* AGENT-053 publishes the hovered headline text to agent context, not an opaque
+    - _Frontend:_ AGENT-053 publishes the hovered headline text to agent context, not an opaque
       article id. AGENT-055 unifies native-menu layout ids with layout-template mode ids. AGENT-096
       lets a flat filter group supersede stale flat criteria on apply. CODE-FRONTEND-017/UI-015
       race-guard `sec.ts`'s loaders by generation and surface a dropped search error. UI-021 stops a
