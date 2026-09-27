@@ -66,7 +66,7 @@ import json
 import logging
 import random
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from importlib import resources
@@ -170,6 +170,19 @@ _warm_consecutive_throttles = 0
 _BATCH_UNIVERSES: frozenset[ScreenerUniverseId] = frozenset(
     {"sp500", "nifty50", "nse-all", "bse-all", "india-all"}
 )
+
+#: Each batch universe's intrinsic region (R15-LEAD-044). A bare ticker in
+#: both masters (HAL, CCL, IEX) otherwise resolves by the SESSION region, so an
+#: IN session fetched Hindustan Aeronautics for the S&P 500's HAL and stored it
+#: under the bare key every later session reads. ``custom`` / ``crypto-top50``
+#: carry no region and keep the session's.
+_UNIVERSE_REGION: dict[str, str] = {
+    "sp500": "US",
+    "nifty50": "IN",
+    "nse-all": "IN",
+    "bse-all": "IN",
+    "india-all": "IN",
+}
 
 #: Progress callback shape: ``(phase, done, total, detail)``.
 ProgressFn = Callable[[str, int, int, str], None]
@@ -538,10 +551,30 @@ def _cheap_prune_criteria(
 # ---------------------------------------------------------------------------
 
 
+@contextlib.contextmanager
+def _region_scope(region: str | None) -> Iterator[None]:
+    """Resolve the enclosed registry calls under ``region`` (the universe's).
+
+    Sets the request-region ContextVar the registry's ``_effective_region``
+    falls back to, so an ambiguous bare ticker means the universe's company.
+    Each fan-out ``_one`` runs in its own task, and ``asyncio.to_thread``
+    copies the context, so the scope never leaks past the call. ``None`` keeps
+    the session region."""
+    if region is None:
+        yield
+        return
+    token = config.set_request_region(region)
+    try:
+        yield
+    finally:
+        config.reset_request_region(token)
+
+
 async def _fetch_pair(
-    symbol: str, asset_class: str
+    symbol: str, asset_class: str, region: str | None
 ) -> tuple[tuple[Fundamentals, Quote | None] | None, str | None]:
-    """Fetch ``(Fundamentals, Quote | None)`` for one symbol via the registry.
+    """Fetch ``(Fundamentals, Quote | None)`` for one symbol via the registry,
+    resolved under the universe's ``region`` (:func:`_region_scope`).
 
     Returns ``(pair, skip_reason)``. ``pair is None`` ⇒ the symbol is skipped
     and ``skip_reason`` is a ledger reason. A fundamentals failure is fatal for
@@ -551,10 +584,11 @@ async def _fetch_pair(
         # D53: the Yahoo family is inside an open cooldown — spend nothing.
         return None, "rate_limited"
     try:
-        fundamentals = await asyncio.wait_for(
-            provider_registry.get_fundamentals(symbol),
-            timeout=_SYMBOL_TIMEOUT_SECONDS,
-        )
+        with _region_scope(region):
+            fundamentals = await asyncio.wait_for(
+                provider_registry.get_fundamentals(symbol),
+                timeout=_SYMBOL_TIMEOUT_SECONDS,
+            )
     except TimeoutError:
         logger.debug("screener: fundamentals timed out for %s", symbol)
         return None, "timeout"
@@ -570,10 +604,11 @@ async def _fetch_pair(
     quote: Quote | None = None
     try:
         # provider_registry.get_quote is synchronous — run on a thread.
-        quote = await asyncio.wait_for(
-            asyncio.to_thread(provider_registry.get_quote, symbol, asset_class),
-            timeout=_SYMBOL_TIMEOUT_SECONDS,
-        )
+        with _region_scope(region):
+            quote = await asyncio.wait_for(
+                asyncio.to_thread(provider_registry.get_quote, symbol, asset_class),
+                timeout=_SYMBOL_TIMEOUT_SECONDS,
+            )
     except (ProviderError, TimeoutError) as exc:
         logger.debug("screener: quote failed for %s: %s", symbol, exc)
         quote = None
@@ -991,6 +1026,7 @@ async def _sweep_v7(
 async def _fallback_retry(
     symbols: list[str],
     asset_class: str,
+    region: str | None,
     budget_s: float,
     state: _RunState,
     emit: ProgressFn,
@@ -1010,7 +1046,7 @@ async def _fallback_retry(
     async def _one(sym: str) -> None:
         nonlocal done
         async with sem:
-            pair, reason = await _fetch_pair(sym, asset_class)
+            pair, reason = await _fetch_pair(sym, asset_class, region)
         key = sym.upper()
         if pair is not None:
             await _store_pair(key, pair)
@@ -1062,6 +1098,7 @@ async def _enrich_survivors(
     sem = asyncio.Semaphore(_FETCH_CONCURRENCY)
     done = 0
     total = len(to_enrich)
+    region = _UNIVERSE_REGION.get(state.universe.id)
 
     async def _one(sym: str) -> None:
         nonlocal done
@@ -1074,10 +1111,11 @@ async def _enrich_survivors(
                 return
             async with sem:
                 try:
-                    rich = await asyncio.wait_for(
-                        provider_registry.get_fundamentals(key),
-                        timeout=_INFO_TIMEOUT_SECONDS,
-                    )
+                    with _region_scope(region):
+                        rich = await asyncio.wait_for(
+                            provider_registry.get_fundamentals(key),
+                            timeout=_INFO_TIMEOUT_SECONDS,
+                        )
                 except (TimeoutError, ProviderError) as exc:  # field stays missing
                     if isinstance(exc, ProviderError) and exc.kind == "rate_limited":
                         state.throttled_seen = True
@@ -1235,6 +1273,7 @@ async def _run_batch_phases(
         await _fallback_retry(
             misses,
             universe.asset_class,
+            _UNIVERSE_REGION.get(universe.id),
             max(0.0, remaining() - _FINALIZE_RESERVE_SECONDS),
             state,
             emit,
@@ -1285,7 +1324,9 @@ async def _run_per_symbol(
     async def _one(sym: str) -> None:
         nonlocal done
         async with sem:
-            pair, reason = await _fetch_pair(sym, universe.asset_class)
+            pair, reason = await _fetch_pair(
+                sym, universe.asset_class, _UNIVERSE_REGION.get(universe.id)
+            )
         key = sym.upper()
         if pair is not None:
             await _store_pair(key, pair)
