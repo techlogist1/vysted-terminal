@@ -1,0 +1,108 @@
+HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8
+## AGENT-055 own repro: agent template plans vs menu payload modes
+cmd: grep -n (layout-templates.ts, lib.rs)
+  { positions: Record<string, PlannedPanelPosition>; focus: string; maximize?: string }
+> = {
+  // The quick "show me AAPL": the chart, maximized.
+  "single-focus": { positions: {}, focus: "chart", maximize: "chart" },
+  // FLAGSHIP ("research NVDA"): chart anchors the left; the right column stacks
+  // the equity overview, the synthesised brief and news — so the cited brief
+  // docks BESIDE the chart, never as a tab in the chart group.
+  "research-cockpit": {
+    positions: {
+      "equity-overview": { referencePanel: "chart", direction: "right" },
+      brief: { referencePanel: "equity-overview", direction: "below" },
+      news: { referencePanel: "brief", direction: "below" },
+    },
+    focus: "brief",
+  },
+  // "NVDA vs AMD": one maximized chart; the second symbol is an OVERLAY pushed
+  // through the chart-command channel, never a second chart panel.
+  compare: { positions: {}, focus: "chart", maximize: "chart" },
+  // "what's leading today": macro anchors; chart to its right; screener below.
+...
+  },
+  // TECHNICAL ANALYSIS — chart-dominant (indicators ride the chart) with a
+  // watchlist to flip symbols and news for catalysts.
+  technical: {
+    panels: [
+      modePanel("chart"),
+      modePanel("watchlist", { referencePanel: "chart", direction: "right" }),
+      modePanel("news", { referencePanel: "watchlist", direction: "below" }),
+    ],
+    focus: "chart",
+  },
+  // MACRO — the macro desk: macro anchor + chart + screener.
+  macro: {
+    panels: [
+      modePanel("macro"),
+      modePanel("chart", { referencePanel: "macro", direction: "right" }),
+      modePanel("screener", { referencePanel: "macro", direction: "below" }),
+    ],
+    focus: "macro",
+  },
+  // COMPARE DESK — the chart (carrying the dual-symbol overlay pushed via the
+  // chart-command channel) beside the equity overview for the focused name.
+  "compare-desk": {
+    panels: [
+      modePanel("chart"),
+      modePanel("equity-overview", { referencePanel: "chart", direction: "right" }),
+    ],
+    focus: "chart",
+  },
+};
+
+/** The native menu's payload ids (historical template names, `lib.rs`) → the
+ *  mode each one means. "default" is not here: the bridge routes it to the
+ *  factory reset. */
+export const MENU_PAYLOAD_TO_MODE: Readonly<Record<string, LayoutMode>> = {
+  "research-cockpit": "fundamental",
+  "single-focus": "technical",
+  "macro-scan": "macro",
+  compare: "compare-desk",
+};
+## src-tauri/src/lib.rs menu items
+                true,
+                None::<&str>,
+            )?,
+            &MenuItem::with_id(
+                h,
+                "layout:single-focus",
+                "Technical Analysis",
+                true,
+                None::<&str>,
+            )?,
+            &MenuItem::with_id(h, "layout:macro-scan", "Macro Scan", true, None::<&str>)?,
+            &MenuItem::with_id(h, "layout:compare", "Compare", true, None::<&str>)?,
+            &MenuItem::with_id(h, "layout:default", "Reset Layout", true, None::<&str>)?,
+        ],
+    )?;
+
+## UI-015 secondary clause: sec.searchCompanies catch
+254-        limit: 10,
+255-      });
+256-      set({ searchResults: response.results, searchStatus: "ready" });
+257-    } catch {
+258:      set({ searchResults: EMPTY_SEARCH, searchStatus: "error" });
+## use-sidecar-retry retry predicate
+
+import { SidecarError } from "@/lib/sidecar-client";
+import { useAppStore, type SidecarStatus } from "@/store/app";
+
+const MAX_ATTEMPTS = 12;
+const MAX_BACKOFF_MS = 5000;
+
+/** True for a failure a later retry can fix: the engine is unreachable or not
+ *  ready yet. Anything the engine actually answered is deterministic. */
+function isTransientSidecarFailure(err: unknown): boolean {
+  return !(err instanceof SidecarError) || err.status === 0 || err.status === 503;
+}
+
+/**
+ * Run `loadFn` on mount and auto-retry it until it succeeds, re-arming on a
+ * fresh sidecar reconnect.
+ *
+ * @param loadFn   Async load to (re)run. Must reject on a recoverable failure.
+ * @param deps     When these change the hook re-runs `loadFn` from a clean slate
+ *                 (same contract as a `useEffect` dependency array). Pass the
+ *                 panel's default-fetch inputs (e.g. the default symbol). Do NOT

@@ -1,0 +1,14 @@
+Repro (live, own sidecar :52346, X-Vysted-Region: IN), same symbols (ICON, AMAL) as the register
+repro:
+
+$ curl -s "http://127.0.0.1:52346/quotes/ICON?asset_class=equity" -H "X-Vysted-Region: IN"
+{"volume":1200.0,"open":64.45,"high":64.45,"low":64.45,"prev_close":63.06,"provider":"bse",...}
+
+$ curl -s "http://127.0.0.1:52346/quotes/AMAL?asset_class=equity" -H "X-Vysted-Region: IN"
+{"volume":13368.0,"open":null,"high":null,"low":null,"prev_close":null,"provider":"nse_direct",...}
+
+Verdict: holds for ICON, the register's primary repro symbol: volume is populated (was null) and
+open/high/low/prev_close are all populated (Quote model previously had none of these fields for
+BSE). AMAL routed to nse_direct rather than bse this run (provider selection, not part of this
+entry) and still carries volume; its OHLC nulls there are a routing/session artifact, not the
+BSE-header defect this entry names.

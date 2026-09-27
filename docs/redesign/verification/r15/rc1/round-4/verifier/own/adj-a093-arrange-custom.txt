@@ -1,0 +1,6 @@
+# HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8
+panels schema: {"type": "array", "description": "For pattern='custom': the panels to place, in order. Each item is a panel name (chart|watchlist|news|portfolio|equity-overview|macro|screener|brief) OR {panel, direction:left|right|above|below, reference}. The first anchors; bare items tile coherently.", "items": {"type": ["string", "object"]}}
+RAISED {'pattern': 'custom', 'panels': ['chart', 'news']} TypeError unhashable type: 'list'
+RAISED {'pattern': 'custom', 'panels': [{'component': 'chart'}]} TypeError unhashable type: 'list'
+OK {'pattern': 'research-cockpit'} -> {'pattern': 'research-cockpit'}
+LIST-TYPE arrange_layout/properties/panels/items ['string', 'object']

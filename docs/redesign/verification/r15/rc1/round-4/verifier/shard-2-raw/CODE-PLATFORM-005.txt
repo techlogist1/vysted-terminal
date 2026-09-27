@@ -1,0 +1,52 @@
+sha: 68d5573aff9a579af084dcbb124843f2aecff6e8
+$ ./.venv/bin/python3 scratchpad/vs2/p005.py   (live, own sidecar :52602)
+import asyncio, httpx, collections
+U = "http://127.0.0.1:52602/quant"
+def opt(val, exp, method="black-scholes"):
+    return {"exercise": "european", "payoff": "call", "spot": 100, "strike": 90, "risk_free_rate": 0.05, "dividend_yield": 0.0, "volatility": 0.2, "valuation_date": val, "expiry_date": exp, "method": method}
+def grk(val, exp):
+    d = opt(val, exp); d.pop("method"); d.pop("exercise"); return d
+async def main():
+    async with httpx.AsyncClient(timeout=60) as c:
+        # schema probe
+        r = await c.post(U + "/option/price", json=opt("2026-05-16", "2027-05-16"))
+        print("single A:", r.status_code, r.text[:200])
+        r = await c.post(U + "/option/greeks", json=grk("2030-01-02", "2030-07-02"))
+        print("single greeks B:", r.status_code, r.text[:200])
+        jobs = []
+        for i in range(150):
+            jobs.append(("A-price", c.post(U + "/option/price", json=opt("2026-05-16", "2027-05-16"))))
+            jobs.append(("B-greeks", c.post(U + "/option/greeks", json=grk("2030-01-02", "2030-07-02"))))
+            jobs.append(("C-binom", c.post(U + "/option/price", json=opt("2028-03-01", "2028-09-01", "binomial"))))
+        res = await asyncio.gather(*(j for _, j in jobs), return_exceptions=True)
+        seen = collections.defaultdict(collections.Counter)
+        for (lbl, _), r in zip(jobs, res):
+            if isinstance(r, Exception): seen[lbl]["EXC " + type(r).__name__] += 1; continue
+            if r.status_code != 200: seen[lbl][f"HTTP{r.status_code}"] += 1; continue
+            d = r.json(); p = d.get("price")
+            seen[lbl][round(p, 6) if isinstance(p, (int, float)) else str(p)] += 1
+        for k, v in seen.items(): print(k, dict(v))
+asyncio.run(main())
+--- output
+single A: 200 {"price":16.699448408416004,"greeks":{"delta":0.8097030607754925,"gamma":0.01358128974631473,"vega":27.162579492629458,"theta":-5.9298008327196134,"rho":64.27085766913324},"method":"black-scholes","mo
+single greeks B: 200 {"greeks":{"delta":0.8400249054204456,"gamma":0.017274122793178748,"vega":17.132143701727966,"theta":-6.981456614677575,"rho":34.976460391428574},"price":13.469849421207925,"duration_ms":1.28683296497
+A-price {16.699448: 150}
+B-greeks {13.469849: 150}
+C-binom {13.528444: 150}
+$ PYTHONPATH=. ./.venv/bin/python3 scratchpad/vs2/p005t.py  (in-process threads)
+import threading, collections, datetime as dt
+from models.quant import OptionPricingRequest, BondPricingRequest
+from services.quant import options, bonds
+import inspect
+print("BondPricingRequest fields:", list(BondPricingRequest.model_fields))
+A = OptionPricingRequest(exercise="european", payoff="call", spot=100, strike=90, risk_free_rate=0.05, dividend_yield=0, volatility=0.2, valuation_date=dt.date(2026,5,16), expiry_date=dt.date(2026,8,16), method="black-scholes")
+B = OptionPricingRequest(exercise="american", payoff="put", spot=100, strike=110, risk_free_rate=0.05, dividend_yield=0, volatility=0.3, valuation_date=dt.date(2030,1,2), expiry_date=dt.date(2030,6,2), method="binomial", binomial_steps=200)
+out = collections.defaultdict(collections.Counter)
+def run(lbl, req, n):
+    for _ in range(n):
+        out[lbl][round(options.price(req).price, 6)] += 1
+ts = [threading.Thread(target=run, args=("A", A, 1500)), threading.Thread(target=run, args=("B", B, 300))]
+[t.start() for t in ts]; [t.join() for t in ts]
+print({k: dict(v) for k, v in out.items()})
+--- output: A 1500x euro BS 2026 + B 300x american binomial 2030 concurrently
+{'A': {11.68574: 1500}, 'B': {12.89473: 300}}

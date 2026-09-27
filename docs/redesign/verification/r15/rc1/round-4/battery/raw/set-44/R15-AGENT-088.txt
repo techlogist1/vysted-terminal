@@ -1,0 +1,25 @@
+R15-AGENT-088: frontend slash-command parser — needs vitest to execute; out of scope for this role.
+
+CMD: sed -n '95,108p' src/modules/chat/slash-commands.ts
+export function parseSlashCommand(
+  input: string,
+  knownSymbols?: ReadonlySet<string>,
+): SlashParseResult {
+  const trimmed = input.trim();
+  if (trimmed.length === 0) {
+    return { kind: "error", message: "empty input" };
+  }
+  if (!trimmed.startsWith("/")) {
+    const bareTicker = matchBareTicker(trimmed, knownSymbols);
+    if (bareTicker) {
+      return { kind: "bare-ticker", symbol: bareTicker };
+    }
+    return { kind: "raw", prompt: trimmed };
+
+CMD: grep -n 'ChatSidebar.tsx:731\|bare-ticker' src/modules/chat/ChatSidebar.tsx
+427:  // The composer's known-ticker set for the bare-ticker fast path (R15-AGENT-088,
+736:      if (result.kind === "bare-ticker") {
+
+Confirms: non-slash input first tries matchBareTicker(); a resolved lone/@-prefixed known ticker returns {kind:'bare-ticker', symbol} (LLM-free), consumed by ChatSidebar without opening a model stream; unresolved/multi-word input still falls through to {kind:'raw'}.
+Pinned tests: src/modules/chat/slash-commands.test.ts:27,34,48,55,79,86,98
+VERDICT: ci_pinned

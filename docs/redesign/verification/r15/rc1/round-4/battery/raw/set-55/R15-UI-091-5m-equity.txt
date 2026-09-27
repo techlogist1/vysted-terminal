@@ -1,0 +1,3 @@
+CMD: curl -s -m 20 'http://127.0.0.1:52344/indicators/suggested?timeframe=5m&asset_class=equity'
+---
+{"indicators":["ema:9","ema:21","vwap","rsi"]}

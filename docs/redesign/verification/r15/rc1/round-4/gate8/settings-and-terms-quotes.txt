@@ -1,0 +1,35 @@
+## First-launch terms (src/modules/safety/DisclaimerFlow.tsx:28-35 @1006c6da)
+const TOS_BODY = `Vysted Terminal is a data and analysis tool. It does not provide investment advice and is not a registered broker-dealer or investment adviser.
+
+By continuing you acknowledge:
+
+- Vysted has no brokerage connection. It cannot place, route or simulate orders.
+- Market data may be delayed, incomplete or wrong. Check anything you rely on against the source.
+- AI-generated analysis can be wrong. You remain solely responsible for your own decisions.
+- Vysted Terminal is source-available under PolyForm Strict 1.0.0 (noncommercial use) or a commercial license — see LICENSING.md.`;
+
+## Settings sections (src/components/SettingsPanel.tsx:148-152)
+  { id: "settings-providers", label: "AI Providers", short: "Providers" },
+  { id: "settings-research", label: "Research", short: "Research" },
+  { id: "settings-region", label: "Region & locale", short: "Region" },
+  { id: "settings-keybindings", label: "Keybindings", short: "Keys" },
+  { id: "settings-advanced", label: "Advanced", short: "Advanced" },
+
+## Every trade/trading/brokerage/order word in SettingsPanel.tsx (rg -n -i 'trad|brokerage|place.*order|paper|kill')
+82: * Interface section died; see the kill list in
+385:  "border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-500 rounded-control text-body focus:border-charcoal-500 h-8 border px-3 outline-none";
+1423:        hint="Number formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses."
+
+## Agent autonomy doc (src/store/agent-autonomy.ts:12-17)
+ *                the one declaration is `AUTO_APPLIED_KINDS` in
+ *                types/proposed-change, which `autoApplies` reads).
+ *
+ * Vysted has no brokerage connection, so no host action can place, stage or
+ * simulate a trade in any mode; autonomy changes confirmation friction only.
+ */
+
+## Copilot system prompt (sidecar/services/agent_runtime.py:172-175)
+    "means it did NOT happen — say plainly what could not be done. Vysted has "
+    "no brokerage connection: you cannot place, stage or simulate trades. If "
+    "the user asks to buy or sell, say so plainly and offer to research it or "
+    "to track the holding in their local portfolio (portfolio_add_position).\n"

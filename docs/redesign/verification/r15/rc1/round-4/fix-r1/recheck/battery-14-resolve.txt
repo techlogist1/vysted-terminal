@@ -1,0 +1,73 @@
+# rc1-fix-r1-recheck, own sidecar :52336 at 68d5573a, 2026-09-26T23:33:31Z
+== GET /resolve?q=KPIT Technologies
+needs_disambiguation False resolved KPITTECH
+   KPITTECH | KPIT Technologies Limited | 1.0 | former_name None
+   BSOFT | BIRLASOFT LIMITED | 0.99 | former_name KPIT
+   EXATO | Exato Technologies Ltd | 0.7179 | former_name None
+   IKOMA | Ikoma Technologies Ltd | 0.7179 | former_name None
+== GET /resolve?q=KPIT Technologies Limited
+needs_disambiguation False resolved KPITTECH
+   KPITTECH | KPIT Technologies Limited | 1.0 | former_name None
+   BSOFT | BIRLASOFT LIMITED | 0.99 | former_name KPIT
+   KFINTECH | Kfin Technologies Limited | 0.92 | former_name None
+   IKIO | IKIO Technologies Limited | 0.92 | former_name None
+== GET /resolve?q=KPIT
+needs_disambiguation False resolved BSOFT
+   BSOFT | BIRLASOFT LIMITED | 1.0 | former_name KPIT
+   KPITTECH | KPIT Technologies Limited | 0.97 | former_name None
+== GET /resolve?q=Bajaj Auto
+needs_disambiguation False resolved BAJAJ-AUTO
+   BAJAJ-AUTO | Bajaj Auto Limited | 1.0 | former_name None
+   BAJAJHLDNG | Bajaj Holdings & Investment Limited | 0.99 | former_name BAJAJAUTO
+   BAJFINANCE | Bajaj Finance Limited | 0.9108 | former_name BAJAUTOFIN
+   BAJGLOB | Bajaj Global Ltd | 0.6154 | former_name None
+== GET /resolve?q=Gujarat Fluorochemicals
+needs_disambiguation False resolved FLUOROCHEM
+   FLUOROCHEM | Gujarat Fluorochemicals Limited | 1.0 | former_name None
+   GFLLIMITED | GFL Limited | 0.99 | former_name GUJFLUORO
+   GHCL | GHCL Limited | 0.6732 | former_name Gujarat Heavy Chemicals Ltd
+   ANDHRAPET | Andhra Petrochemicals Ltd | 0.625 | former_name None
+== GET /resolve?q=Kirloskar Oil Engines
+needs_disambiguation False resolved KIRLOSENG
+   KIRLOSENG | Kirloskar Oil Engines Limited | 1.0 | former_name None
+   KIRLOSIND | Kirloskar Industries Limited | 0.99 | former_name Kirloskar Oil Engines Limited
+   CUMMINSIND | Cummins India Limited | 0.5986 | former_name KIRLOSKCUM
+== GET /resolve?q=Max India
+needs_disambiguation False resolved MAXIND
+   MAXIND | Max India Limited | 1.0 | former_name None
+   MFSL | Max Financial Services Limited | 0.99 | former_name MAX
+   EMAINDIA | EMA India Ltd | 0.7273 | former_name None
+   MAXGROW | Maxgrow India Ltd | 0.6923 | former_name None
+== GET /resolve?q=Sundaram Clayton
+needs_disambiguation False resolved SUNCLAY
+   SUNCLAY | Sundaram Clayton Limited | 1.0 | former_name None
+   TVSHLTD | TVS Holdings Limited | 0.99 | former_name SUNCLAYLTD
+   SUNDARMFIN | Sundaram Finance Limited | 0.6 | former_name None
+== GET /resolve?q=Deep Industries
+needs_disambiguation False resolved DEEPINDS
+   DEEPINDS | Deep Industries Limited | 1.0 | former_name None
+   RAIDEEPIND | Raideep Industries Ltd | 0.8 | former_name None
+   TEXELIN | Texel Industries Ltd | 0.7429 | former_name None
+   MEERA | Meera Industries Ltd | 0.7429 | former_name None
+== GET /resolve?q=Essar Shipping
+needs_disambiguation False resolved ESSARSHPNG
+   ESSARSHPNG | Essar Shipping Limited | 1.0 | former_name None
+   SHAHISHIP | Shahi Shipping Ltd-$ | 0.6471 | former_name None
+   TRANSWORLD | TRANSWORLD SHIPPING LINES LIMITED | 0.6406 | former_name SHREYAS
+   TK | TEEKAY CORP LTD | 0.6406 | former_name TEEKAY SHIPPING CORP
+== GET /resolve?q=Tata Motors
+needs_disambiguation False resolved TMCV
+   TMCV | Tata Motors Limited | 1.0 | former_name None
+   TMPV | Tata Motors Passenger Vehicles Limited | 0.99 | former_name TATAMOTORS
+   KETOMOTORS | Keto Motors Ltd | 0.6154 | former_name None
+   MOTOUR | MOTILALAMC - MOTOUR | 0.6 | former_name None
+== GET /resolve?q=Iifl Wealth Management
+needs_disambiguation False resolved 360ONE
+   360ONE | 360 ONE WAM LIMITED | 0.99 | former_name IIFLWAM
+   NUVAMA | Nuvama Wealth Management Limited | 0.6667 | former_name None
+   POPULARES | Popular Estate Management Ltd | 0.6275 | former_name None
+   VCU | VCU Data Management Ltd | 0.6222 | former_name None
+== GET /resolve?q=Birla 3M
+needs_disambiguation False resolved 3MINDIA
+   3MINDIA | 3M India Limited | 0.99 | former_name BIRLA3M
+   BIRLANU | BirlaNu Limited | 0.6087 | former_name HIL

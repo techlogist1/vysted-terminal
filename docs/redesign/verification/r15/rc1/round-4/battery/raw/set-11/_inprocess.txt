@@ -1,0 +1,50 @@
+{
+  "CODE-PLATFORM-002": {
+    "json_path": {
+      "extracted": "AAPL"
+    },
+    "compare_ne": {
+      "result": false
+    },
+    "branch_true": {
+      "true_path": "yes",
+      "false_path": "SKIP"
+    },
+    "sleep_elapsed_s": 0.0,
+    "notify": {
+      "notified": true,
+      "title": "b7",
+      "message": "",
+      "intent": "desktop-notification"
+    }
+  },
+  "AGENT-015_note": "source-confirmed: node-registry.ts key=prompt_template; builtin.py reads config.get('prompt_template')",
+  "api_key_rejected": "1 validation error for WorkflowNode\nconfig\n  Value error, node config must not carry 'api_key'; the run uses the selected provider's key from the request [type=value_error, input_value={'agent_id': 'buffett', 'api_key': 'sk-x'}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/value_error",
+  "agent_invoke_error_raises": "ai.agent_invoke (strategy_critic): Something went wrong with Anthropic.",
+  "DATA-030_matcher": [
+    {
+      "title": "Reliance Industries Q2 profit rises 10%",
+      "tagged": [
+        "RELIANCE.NS"
+      ]
+    },
+    {
+      "title": "TCS wins $1bn deal",
+      "tagged": [
+        "TCS.NS"
+      ]
+    },
+    {
+      "title": "Nvidia unveils a new chip",
+      "tagged": [
+        "NVDA"
+      ]
+    },
+    {
+      "title": "NVDA soars",
+      "tagged": [
+        "NVDA"
+      ]
+    }
+  ]
+}

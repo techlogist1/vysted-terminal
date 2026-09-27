@@ -1,0 +1,10 @@
+0000320193-25-000079?identifier=AAPL -> 200 1.956326s form 10-K filed 2025-10-31 sections 2 chars 20000
+0000320193-24-000123?identifier=AAPL -> 200 2.059948s form 10-K filed 2024-11-01 sections 2 chars 20000
+0000320193-21-000105?identifier=AAPL -> 200 1.867494s form 10-K filed 2021-10-29 sections 2 chars 20000
+0000320193-17-000070?identifier=AAPL -> 200 2.329672s form 10-K filed 2017-11-03 sections 2 chars 20000
+0000320193-21-000105/sections?identifier=AAPL&form_type=10-K -> 200 0.002308s sections 2
+0000320193-18-000145/sections?identifier=AAPL -> 200 2.093701s sections 2
+0001193125-13-160748?identifier=MSFT -> 200 5.775253s form 10-Q filed 2013-04-18 sections 0 chars 0
+0001193125-10-090116?identifier=MSFT -> 404 7.920283s {'detail': 'The data provider has no data for this symbol or series — check the symbol.', 'code': 'not_found', 'action': 'Check the symbol or series id.'}
+0001193125-10-090116?identifier=MSFT&form_type=10-Q -> 200 23.159545s form 10-Q filed 2010-04-22 sections 0 chars 0
+DONE

@@ -1,0 +1,7 @@
+not_found kind -> not_found
+not_found kind2 -> not_found
+network kind -> provider_error
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP:404
+{"symbol":"KSE.NS","name":"KSE Limited","sector":"Consumer Defensive","industry":"Packaged Foods","sector_source":"yfinance","currency":"INR","financial_currency":null,"ratio_price":180.76,"market_cap":5784320000.0,"pe_ratio":12.449035,"forward_pe":null,"peg_ratio":null,"price_to_book":1.6550233,"pr
+{"symbol":"BOMOXY-B1.BO","name":"Bombay Oxygen Investments Limited","sector":"Financial Services","industry":"Asset Management","sector_source":"yfinance","currency":"INR","financial_currency":null,"ratio_price":17952.0,"market_cap":2692800000.0,"pe_ratio":256.4205,"forward_pe":null,"peg_ratio":null

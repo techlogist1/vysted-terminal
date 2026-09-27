@@ -1,0 +1,93 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_8860db4e7b8e4348923a5f3d26d56ce2", "name": "market_overview", "input": {}}
+{"kind": "tool_result", "tool_call_id": "call_8860db4e7b8e4348923a5f3d26d56ce2", "name": "market_overview", "ok": true, "error": null}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "No"}
+{"kind": "delta", "text": " news"}
+{"kind": "delta", "text": " found"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " check"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " performance"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "**"}
+{"kind": "tool_use", "tool_call_id": "call_f74b225299014216b39bf633fc23759c", "name": "price_data", "input": {"symbol": "ZOMATO.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_f74b225299014216b39bf633fc23759c", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'ZOMATO.NS' from 'yfinance'"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Our"}
+{"kind": "delta", "text": " provider"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " missing"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Z"}
+{"kind": "delta", "text": "om"}
+{"kind": "delta", "text": "ato"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Z"}
+{"kind": "delta", "text": "OM"}
+{"kind": "delta", "text": "ATO"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ")."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'ll"}
+{"kind": "delta", "text": " keep"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " up"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " date"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " becomes"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5400, "output_tokens": 47, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+The ADR-to-ordinary-share ratio is not available from this session's sources.
+
+=== ok · 5.2s · events {'tool_use': 2, 'tool_result': 2, 'delta': 1, 'done': 1} · usage in=11072 out=23 · est $0.00167 · gpt-4o-mini

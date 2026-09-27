@@ -1,0 +1,72 @@
+data: {"kind": "delta", "text": "What"}
+
+data: {"kind": "delta", "text": "'s"}
+
+data: {"kind": "delta", "text": " NV"}
+
+data: {"kind": "delta", "text": "DA"}
+
+data: {"kind": "delta", "text": " trading"}
+
+data: {"kind": "delta", "text": " at"}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " what"}
+
+data: {"kind": "delta", "text": " am"}
+
+data: {"kind": "delta", "text": " I"}
+
+data: {"kind": "delta", "text": " looking"}
+
+data: {"kind": "delta", "text": " at"}
+
+data: {"kind": "delta", "text": "?\n\n"}
+
+data: {"kind": "delta", "text": "NV"}
+
+data: {"kind": "delta", "text": "DA"}
+
+data: {"kind": "delta", "text": " last"}
+
+data: {"kind": "delta", "text": " traded"}
+
+data: {"kind": "delta", "text": " at"}
+
+data: {"kind": "delta", "text": " $"}
+
+data: {"kind": "delta", "text": "181"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": "20"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " you"}
+
+data: {"kind": "delta", "text": " are"}
+
+data: {"kind": "delta", "text": " looking"}
+
+data: {"kind": "delta", "text": " at"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " chart"}
+
+data: {"kind": "delta", "text": " panel"}
+
+data: {"kind": "delta", "text": " for"}
+
+data: {"kind": "delta", "text": " NV"}
+
+data: {"kind": "delta", "text": "DA"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "done", "usage": {"input_tokens": 2825, "output_tokens": 36, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

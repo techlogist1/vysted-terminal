@@ -1,0 +1,1 @@
+REQ: {"universe":"nifty50","criteria":[{"field":"pe_ratio","operator":"gt","value":0},{"field":"pe_ratio","operator":"lt","value":0.5}],"limit":200,"sort_by":"market_cap","sort_dir":"desc"}

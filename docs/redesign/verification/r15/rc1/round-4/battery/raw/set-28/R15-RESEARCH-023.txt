@@ -1,0 +1,4 @@
+COMMAND: python -c _filter_results() on Route Mobile 'All rights reserved' row + a challenge row
+EXIT: 0
+OUTPUT:
+route_mobile_kept=1 route_mobile_blocked=0 challenge_kept=0 challenge_blocked=1

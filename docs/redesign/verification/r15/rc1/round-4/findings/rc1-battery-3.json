@@ -1,0 +1,11 @@
+[
+  {
+    "key": "rc1-battery-3:1",
+    "kind": "new_defect",
+    "severity": "low",
+    "title": "CURRENT_STATE.md §3.3 still documents the pre-fix earnings fiscal_period/EPS-stddev behaviour that DATA-032/DATA-067 removed",
+    "repro": "Read docs/CURRENT_STATE.md:356-358: 'earnings_provider.py — yfinance calendar/estimates/surprises. Fiscal period inferred from calendar month (best-effort, UI-only); EPS stddev is an approximation (high−low)/4.' Live GET /earnings/INFY/estimates on the candidate (:52343) returns fiscal_period:null and eps_estimate_stddev:null — the DATA-032/DATA-067 fix (batch-5) deleted _fiscal_period_for and the (high-low)/4 approximation; the doc line was not updated in the same fix and now describes removed behaviour.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/battery/raw/set-19/R15-DATA-032.txt",
+    "suspected_files": ["docs/CURRENT_STATE.md:356-358", "sidecar/services/earnings_provider.py"]
+  }
+]

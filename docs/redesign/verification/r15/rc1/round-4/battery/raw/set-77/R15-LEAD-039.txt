@@ -1,0 +1,25 @@
+=== /earnings/RDY/estimates ===
+{"symbol":"RDY","fiscal_period":null,"eps_estimate_mean":null,"eps_estimate_median":null,"eps_estimate_high":null,"eps_estimate_low":null,"eps_estimate_stddev":null,"estimate_analyst_count":null,"revenue_estimate_mean":84513956800.0,"revenue_estimate_median":null,"revenue_estimate_high":86000000000.0,"revenue_estimate_low":83116000000.0,"revenue_analyst_count":5,"currency":"USD","revenue_currency":"INR","provider":"yfinance","as_of":"2026-09-26T21:25:31.650012Z"}
+HTTP:200
+
+=== /earnings/TM/estimates ===
+{"symbol":"TM","fiscal_period":null,"eps_estimate_mean":null,"eps_estimate_median":null,"eps_estimate_high":null,"eps_estimate_low":null,"eps_estimate_stddev":null,"estimate_analyst_count":1,"revenue_estimate_mean":13345378533800.0,"revenue_estimate_median":null,"revenue_estimate_high":14070000000000.0,"revenue_estimate_low":12863000000000.0,"revenue_analyst_count":9,"currency":"USD","revenue_currency":"JPY","provider":"yfinance","as_of":"2026-09-26T21:25:34.029818Z"}
+HTTP:200
+
+=== /earnings/SONY/estimates ===
+{"symbol":"SONY","fiscal_period":null,"eps_estimate_mean":null,"eps_estimate_median":null,"eps_estimate_high":null,"eps_estimate_low":null,"eps_estimate_stddev":null,"estimate_analyst_count":1,"revenue_estimate_mean":3153763366770.0,"revenue_estimate_median":null,"revenue_estimate_high":3325900000000.0,"revenue_estimate_low":3040688221520.0,"revenue_analyst_count":11,"currency":"USD","revenue_currency":"JPY","provider":"yfinance","as_of":"2026-09-26T21:25:36.057309Z"}
+HTTP:200
+
+=== /earnings/HMC/estimates ===
+{"symbol":"HMC","fiscal_period":null,"eps_estimate_mean":null,"eps_estimate_median":null,"eps_estimate_high":null,"eps_estimate_low":null,"eps_estimate_stddev":null,"estimate_analyst_count":null,"revenue_estimate_mean":5837728178990.0,"revenue_estimate_median":null,"revenue_estimate_high":6166000000000.0,"revenue_estimate_low":5430500000000.0,"revenue_analyst_count":8,"currency":"USD","revenue_currency":"JPY","provider":"yfinance","as_of":"2026-09-26T21:25:38.839839Z"}
+HTTP:200
+
+=== fresh case not in prior certifications: NSANY, IX ===
+--- /earnings/NSANY/estimates ---
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP:502
+
+--- /earnings/IX/estimates ---
+{"symbol":"IX","fiscal_period":null,"eps_estimate_mean":null,"eps_estimate_median":null,"eps_estimate_high":null,"eps_estimate_low":null,"eps_estimate_stddev":null,"estimate_analyst_count":null,"revenue_estimate_mean":null,"revenue_estimate_median":null,"revenue_estimate_high":null,"revenue_estimate_low":null,"revenue_analyst_count":0,"currency":"USD","revenue_currency":null,"provider":"yfinance","as_of":"2026-09-26T21:25:52.018012Z"}
+HTTP:200
+

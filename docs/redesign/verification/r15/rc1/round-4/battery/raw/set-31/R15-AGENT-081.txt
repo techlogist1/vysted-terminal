@@ -1,0 +1,12 @@
+Static source check of candidate:
+  - src/lib/host-actions.ts case "open_company_overview": openCompanyOverview(symbol, resolveMetric(highlight) ?? undefined)
+  - src/modules/equity-overview/EquityOverviewPanel.tsx:817-820: reads highlightMetric from
+    equityCommand and calls setSpotlight(resolveMetric(highlightMetric))
+  - :191 renders data-highlighted on the matching metric row cell
+  - :866 querySelector("[data-highlighted]") drives the scroll-to
+This matches batch-8 VERDICTS.md exactly (highlight:"roe" -> 1 row data-highlighted;
+highlight:"moat_score" -> 0 rows, "is not a metric on that panel" message).
+Pinned test: src/store/equity-command.test.ts ("carries highlightMetric through and drops it on
+the next plain issue") plus the panel-level vitest render test.
+Not rerun here (vitest suites owned by the heavy lane per task rules).
+VERDICT: ci_pinned (src/store/equity-command.test.ts)

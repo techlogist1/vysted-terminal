@@ -1,0 +1,76 @@
+{"detail":[{"type":"int_parsing","loc":["body","budget","max_tokens"],"msg":"Input should be a valid integer, unable to parse string as an integer","input":"abc"}]}187:    useAgentRunsStore.getState().endRun(localId, "error", `Could not start: ${reasonOf(err)}`);
+ *  the sidecar's own sentence). */
+function reasonOf(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+function costOf(w: RunWire) {
+  return {
+    tokens: w.cost?.tokens ?? 0,
+    spendUsd: w.cost?.spend_usd ?? 0,
+    steps: w.cost?.steps ?? 0,
+  };
+}
+
+const POLL_MS = 2000;
+let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+/** Consecutive `/runs` poll failures. After {@link POLL_FAIL_THRESHOLD} the live
+ *  rail badges its active runs as stale instead of freezing on a frozen readout
+ *  forever (A6 — a delegate run must never silently lose contact). */
+let pollFailures = 0;
+const POLL_FAIL_THRESHOLD = 5;
+
+/** Badge every active run as having lost contact with the sidecar. */
+function markRunsStale(): void {
+  const store = useAgentRunsStore.getState();
+  for (const run of store.runs) {
+    if (run.sidecarRunId && isLiveRun(run.status)) {
+      store.updateRun(run.id, {
+        detail: "Lost contact with the run — the sidecar may be down. Status may be stale.",
+      });
+    }
+--- sidecarRequest + extractSidecarDetail ---
+49:export function extractSidecarDetail(body: unknown, fallback: string): string {
+50-  if (body && typeof body === "object" && "detail" in body) {
+51-    const detail = (body as { detail?: unknown }).detail;
+52-    if (typeof detail === "string" && detail.trim() !== "") {
+53-      return detail;
+54-    }
+55-    if (Array.isArray(detail) && detail.length > 0) {
+56-      const messages = detail
+57-        .map((entry) => {
+58-          const e = entry as FastApiValidationError;
+59-          const field = Array.isArray(e.loc) ? e.loc[e.loc.length - 1] : undefined;
+60-          const msg = typeof e.msg === "string" ? e.msg : undefined;
+61-          if (msg && field !== undefined) {
+62-            return `${String(field)}: ${msg}`;
+63-          }
+64-          return msg ?? String(entry);
+65-        })
+66-        .filter((m): m is string => Boolean(m));
+67-      if (messages.length > 0) {
+68-        return messages.join("; ");
+69-      }
+--
+226:export async function sidecarRequest<T>(
+227-  method: "GET" | "POST" | "PUT" | "DELETE",
+228-  path: string,
+229-  opts: SidecarRequestOptions = {},
+230-): Promise<T> {
+231-  const base = await getSidecarBaseUrl();
+232-  const url = new URL(path, base);
+233-  if (opts.params) {
+234-    for (const [key, value] of Object.entries(opts.params)) {
+235-      if (value !== undefined) {
+236-        url.searchParams.set(key, String(value));
+237-      }
+238-    }
+239-  }
+240-  // The active region rides every sidecar request (Pass B B1 locale-native
+241-  // contract): the sidecar reads `X-Vysted-Region` to pick region-first data
+242-  // providers/feeds. Read at call time so a region change reflects immediately;
+243-  // `getState()` is SSR/static-export safe (no window/navigator at module load).
+244-  const requestHeaders: Record<string, string> = {
+245-    "X-Vysted-Region": useSettingsStore.getState().region,
+246-  };

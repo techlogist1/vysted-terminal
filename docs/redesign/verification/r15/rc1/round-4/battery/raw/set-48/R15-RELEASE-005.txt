@@ -1,0 +1,3 @@
+node --input-type=module direct probe of isStale() against sidecar-staleness.mjs (R15-RELEASE-005)
+binary newer than .json.gz seed -> isStale = false
+seed bumped newer than binary -> isStale = true

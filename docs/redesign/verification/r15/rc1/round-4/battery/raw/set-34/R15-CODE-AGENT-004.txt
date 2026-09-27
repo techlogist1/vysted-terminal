@@ -1,0 +1,4 @@
+usage input_tokens= 1200 output_tokens= 6800
+breach reason after record: None
+['breach']
+breach(): token ceiling 7000 reached (8000 used)

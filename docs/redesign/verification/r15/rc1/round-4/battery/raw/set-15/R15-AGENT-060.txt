@@ -1,0 +1,47 @@
+"""Corporate-disclosure agent tools (R7 Component 3).
+
+Registers read-only tools the copilot + research agents can invoke so a
+research run on an Indian name can pull real filings:
+
+* ``corporate_announcements(symbol, exchange=None, limit=20)`` — the merged
+  BSE+NSE announcement feed (deduped, newest first) from
+  :mod:`services.corporate_disclosures`.
+* ``shareholding_pattern(symbol)`` — the quarterly shareholding patterns
+  (promoter/public/employee-trust percentages, the FII/DII split and the
+  promoter pledge; each pattern's ``source``/``split_source``/``split_as_of``/
+  ``split_basis`` carry the provenance — never fabricated).
+* ``corporate_actions(symbol)`` — dividends, bonuses, splits, rights and
+  buybacks from both exchanges with ex/record/payment dates.
+* ``exchange_deals(symbol, kind=None)`` — bulk/block deals and SAST (Reg 29)
+  disclosures, newest first.
+* ``earnings_call_transcript(symbol, quarter=None)`` — the newest (or the
+  requested quarter's) earnings-call transcript filed on NSE/BSE, its PDF read
+  to text (R15-RESEARCH-030).
+
+On any provider error the tools return ``{"ok": False, "error": "<msg>"}`` so
+the agent surfaces the failure verbatim instead of crashing the run. A symbol
+the Indian exchanges do not cover answers ``ok: True`` with ``coverage`` and a
+``note`` (C3); a US-listed ADR's shareholding carries its 20-F major holders
+(``provider`` ``"sec-20f"``). All are read-only data tools (no trading path, D81).
+"""
+
+from __future__ import annotations
+
+import asyncio
+NOTE: candidate at 1006c6da; source excerpt above shows no hardcoded misleading FII/DII note; catalog docstring line 10-11 names FII/DII split + pledge
+821:            "shareholding_pattern",
+822-            description=(
+823-                "Quarterly shareholding pattern for an NSE- or BSE-listed Indian "
+824-                "company, newest quarter first: promoter(+group), public (incl. "
+825-                "institutions) and the non-institutional float, the FII/DII/"
+826-                "institutions split, and the promoter pledge (pledged or encumbered, "
+827-                "percent of the promoter holding; 0 when the filing declares none, "
+828-                "null when it declares nothing). source/split_source/split_as_of/"
+829-                "split_basis state where each figure came from. Use to check "
+830-                "promoter-stake and pledge trends and ownership shifts on Indian names."
+831-            ),
+832-            input_schema=_obj(
+833-                {
+834-                    "symbol": {
+835-                        "type": "string",
+836-                        "description": "NSE/BSE ticker, e.g. RELIANCE.",

@@ -1,0 +1,6 @@
+CMD: pytest -v test_search_redirect_ssrf.py (candidate sha 1006c6da694ede5776c3dabbd27b305aeb56b5ad, sidecar/tests)
+---MATCHED LINES---
+tests/test_search_redirect_ssrf.py::test_fetch_page_blocks_a_public_page_that_redirects_to_loopback PASSED [ 71%]
+tests/test_search_redirect_ssrf.py::test_pdf_lane_blocks_the_same_redirect PASSED [ 78%]
+tests/test_search_redirect_ssrf.py::test_impersonated_lane_blocks_the_same_redirect PASSED [ 85%]
+tests/test_search_redirect_ssrf.py::test_an_allowed_redirect_is_still_followed PASSED [ 92%]

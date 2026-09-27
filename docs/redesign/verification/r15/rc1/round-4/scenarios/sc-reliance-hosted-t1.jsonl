@@ -1,0 +1,63 @@
+{"kind": "tool_use", "tool_call_id": "call_77860b0d9e2f4353bc4a27660dbce53d", "name": "price_data", "input": {"symbol": "RELIANCE.NS", "timeframe": "1d", "range": "1d"}}
+{"kind": "tool_use", "tool_call_id": "call_547b5b01146944a4b302c88bbc1161c3", "name": "fundamentals", "input": {"symbol": "RELIANCE.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_77860b0d9e2f4353bc4a27660dbce53d", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_547b5b01146944a4b302c88bbc1161c3", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Reli"}
+{"kind": "delta", "text": "ance"}
+{"kind": "delta", "text": " Industries"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "RE"}
+{"kind": "delta", "text": "LI"}
+{"kind": "delta", "text": "ANCE"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ")**"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "122"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "earn"}
+{"kind": "delta", "text": "ings"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "22"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "22"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " adjustments"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " feel"}
+{"kind": "delta", "text": " free"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " ask"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 18275, "output_tokens": 58, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.016223}

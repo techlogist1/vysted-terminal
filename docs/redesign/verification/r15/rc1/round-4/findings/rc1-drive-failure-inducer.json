@@ -1,0 +1,27 @@
+[
+  {
+    "key": "rc1-drive-failure-inducer:1",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-DATA-061",
+    "title": "A malformed ticker with special characters (a script tag, '$$%^') that makes yfinance return a non-JSON body is still classified provider_error/502/\"Retry\" instead of not_found -- same recurring misclassification the round-3 verifier already flagged (rc1-verifier:7) against this fixed entry, still unfixed on the round-4 candidate",
+    "repro": "curl 'http://127.0.0.1:52327/quotes/%3Cscript%3Ealert%281%29%3C%2Fscript%3E' -> HTTP 502 {\"detail\":\"The data provider returned an unexpected response.\",\"code\":\"provider_error\",\"action\":\"Retry, or try again later.\"}; sidecar log: 'yfinance quote failed for ...: Expecting value: line 1 column 1 (char 0)' (Yahoo returned an empty/non-JSON body for this deterministically-invalid symbol). Repeated with the round-3 verifier's exact repro 'curl http://127.0.0.1:52327/quotes/%24%24%25%5E' -> identical 502 provider_error/Retry body. The 'Retry' action is actively wrong: this symbol will 502 identically every time, it is not a transient upstream fault. A plain malformed symbol without special characters ($$$, 300-char string, unicode, RELIANCE.NS.NS, a SQL-injection string) all correctly 404 not_found on the same candidate -- only the subset that makes yfinance return a non-JSON/empty body (rather than its usual 'no data found' JSON error) falls into the still-unfixed 502 path.",
+    "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/rc1/round-4/03-malformed-symbols-regression.txt",
+    "suspected_files": [
+      "sidecar/services/errors.py",
+      "sidecar/services/yfinance_provider.py"
+    ]
+  },
+  {
+    "key": "rc1-drive-failure-inducer:2",
+    "kind": "new_defect",
+    "severity": "medium",
+    "register_id": "R15-DATA-061",
+    "title": "An unknown-but-plausible symbol's /fundamentals/{sym}/income, /balance and /ratings answer 200 with empty/null data and no reason field, indistinguishable from a real company that legitimately has zero filings -- same recurring class the round-3 verifier flagged against this fixed entry, still unfixed on the round-4 candidate",
+    "repro": "GET /fundamentals/ZZZZNOTREAL/income -> 200 {\"symbol\":\"ZZZZNOTREAL.NS\",\"periods\":[],\"lines\":[],\"provider\":\"yfinance\",\"gaps\":[]}; /balance -> same shape, empty; /ratings -> 200 {\"consensus\":null,...,\"strong_buy\":0,...}. No field anywhere states the symbol itself was not found -- 'gaps' is an empty array, not a reason. Contrast GET /quotes/ZZZZNOTREAL on the same sidecar, which correctly 404s not_found with 'check the symbol'. A user or agent reading only the fundamentals/ratings routes for a mistyped symbol sees clean zero-value data, not an error.",
+    "evidence_file": "docs/redesign/verification/r15/surface/failure-inducer/rc1/round-4/05-unknown-symbol-fundamentals-subroutes.txt",
+    "suspected_files": [
+      "sidecar/routers/fundamentals.py"
+    ]
+  }
+]

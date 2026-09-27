@@ -1,0 +1,10 @@
+LIVE_QUOTE {"symbol":"MSFT","price":516.1699829101562,"currency":"USD","provider":"yfinance","timestamp":"2026-09-25T20:00:01Z"}
+STORE_AFTER_ADD [{"id":"h-a99b5690-9a80-4c03-8c2b-4027eedc1c54","symbol":"MSFT","quantity":10,"costBasis":300,"assetClass":"equity"}]
+PNL_RENDERED +$2,161.70 (+72.06%) EXPECTED_PNL 2161.70
+CSV_PATH /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-verifier-r4/appdata/exports/csv/vysted-portfolio-portfolio.csv
+CSV_CONTENT
+Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note
+MSFT,10,300,equity,USD,516.1699829101562,5161.6998291015625,2161.6998291015625,72.05666097005209,100.00,
+STORE_AFTER_FIRST_CLICK(armed) 1
+STORE_AFTER_DELETE []
+INVOKE_CMDS ["get_sidecar_port","get_app_data_dir","write_text_atomic"]

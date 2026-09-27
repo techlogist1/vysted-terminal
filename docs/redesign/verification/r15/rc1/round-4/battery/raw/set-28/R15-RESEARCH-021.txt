@@ -1,0 +1,4 @@
+COMMAND: python -c entity_match() on 'BAJFINANCE 200 DMA breakout...' / '52-week high' / fresh KPITTECH case
+EXIT: 0
+OUTPUT:
+200dma=1.0 52wk=1.0 kpittech_200dma=1.0

@@ -1,0 +1,3 @@
+=== DATA-087: /macro/CPIAUCSL (no provider) ===
+HTTP:422
+{"detail":"provider is required for a series id"}

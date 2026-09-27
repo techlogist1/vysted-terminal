@@ -1,0 +1,20 @@
+=== symbol: $$$ (encoded: %24%24%24) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+
+=== symbol: RELIANCE.NS.NS (encoded: RELIANCE.NS.NS) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+
+=== symbol: '; DROP TABLE quotes;-- (encoded: %27%3B%20DROP%20TABLE%20quotes%3B--) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+
+=== symbol: <script>alert(1)</script> (encoded: %3Cscript%3Ealert%281%29%3C/script%3E) ===
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+
+=== symbol: भारत (encoded: %E0%A4%AD%E0%A4%BE%E0%A4%B0%E0%A4%A4) ===
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}
+HTTP 404
+

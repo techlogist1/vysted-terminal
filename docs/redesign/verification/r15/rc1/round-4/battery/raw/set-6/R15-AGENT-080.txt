@@ -1,0 +1,12 @@
+R15-AGENT-080: frontend TS/store/component logic — cannot execute the exact original repro without vitest+jsdom or a live GUI (both out of scope for this role: 'never run vitest or pytest suites'; 'No GUI').
+
+Static source check performed instead:
+CMD: grep -n 'AUTO_APPLIED_KINDS\|autoApplies' types/proposed-change.ts
+8: * {@link autoApplies}); rejecting leaves state unchanged. This is the trust
+34: * auto-applied set — {@link autoApplies} reads it (R15-DOCS-016/017/018;
+38:export const AUTO_APPLIED_KINDS: readonly ProposedChangeKind[] = [
+44:export function autoApplies(kind: ProposedChangeKind): boolean {
+45:  return (AUTO_APPLIED_KINDS as readonly ProposedChangeKind[]).includes(kind);
+
+Pinned test that exercises this behavior at runtime: src/store/proposed-changes.test.ts:128,139
+VERDICT: ci_pinned

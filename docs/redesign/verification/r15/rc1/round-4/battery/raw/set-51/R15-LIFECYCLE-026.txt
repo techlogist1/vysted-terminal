@@ -1,0 +1,9 @@
+=== R15-LIFECYCLE-026: idle CPU sample on own sidecar (pid 10076) ===
+sample 1:
+  PID ELAPSED     UTIME      TIME
+10076   04:16   0:06.43   0:07.26
+22:— are sync, and callers wrap them in ``asyncio.to_thread``); the openbb-backed
+465:            result = await asyncio.to_thread(provider.serves[model_key], *args)
+sample 2 (~65s later):
+  PID ELAPSED     UTIME      TIME
+10076   06:00   0:07.32   0:08.24

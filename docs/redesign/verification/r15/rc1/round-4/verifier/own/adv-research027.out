@@ -1,0 +1,3 @@
+HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8
+{"q": "KSE", "wall_s": 0.0, "ok": true, "legs_ok": {"price": null, "fundamentals": null, "news": null, "filings": null}, "web": {"available": null, "reason": null, "note": null}}
+{"q": "Kaveri Seed", "wall_s": 16.7, "ok": true, "legs_ok": {"price": false, "fundamentals": false, "news": true, "filings": true}, "web": {"available": true, "reason": null, "note": null}}

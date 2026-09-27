@@ -1,0 +1,8 @@
+NOT RUN AS A LIVE PROBE: certification is a jsdom/vitest component test (batch-25 VERDICTS.md calls it "news053.test.tsx", shorthand for the R15-AGENT-053 case inside NewsFeedPanel.test.tsx). The battery role does not run vitest suites (owned by the heavy lane).
+Pinned test found and read:
+  src/modules/news/NewsFeedPanel.test.tsx:207
+  it("renders symbol chips as buttons outside the article anchor and loads the symbol on click (R15-AGENT-053)", ...)
+  - asserts button role "load nvda in chart", button.closest("a") is null (chip not inside the article anchor)
+  - click -> loadSymbolIntoChart called with "NVDA"
+Adjacent test (same file, immediately below, unlabeled but the multi-symbol case the round-4 lead note's fresh check describes): "gives a two-symbol item two buttons and loads only the clicked symbol" — NVDA+AMD, clicking AMD calls loadSymbolIntoChart exactly once with "AMD", NVDA button still not inside an anchor.
+Verdict: ci_pinned (NewsFeedPanel.test.tsx, R15-AGENT-053 test case + its adjacent multi-symbol case).

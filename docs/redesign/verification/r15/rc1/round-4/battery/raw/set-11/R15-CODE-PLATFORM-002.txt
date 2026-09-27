@@ -1,0 +1,2 @@
+=== R15-CODE-PLATFORM-002: in-process node handler probe (see _inprocess.txt for full output) ===
+json_path/logic.compare(neq)/logic.branch/flow.sleep/notify_desktop all produced real output — see CODE-PLATFORM-002 key in _inprocess.txt

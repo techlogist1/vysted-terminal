@@ -1,0 +1,26 @@
+COMMAND (in-process, candidate sidecar venv, sha 1006c6da): monkeypatched
+services.llm.oneshot.complete_with_usage to a fast stub (records each call + its `timeout` kwarg,
+returns fake usage), instantiated the real OpenAIProvider, and called
+provider._resolve_tool_events with 5 tool-use events that all fail schema validation
+(price_data with input={}, missing required "symbol") -- the exact "five tool calls that all fail
+schema validation in one round" repro:
+
+  cd <cand>/sidecar && ./.venv/bin/python3 test_agent048.py
+
+OUTPUT:
+repair calls made: 2
+repairs ledger len: 2
+call_0 {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+call_1 {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+call_2 {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+call_3 {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+call_4 {'__vysted_invalid_args__': "invalid arguments for price_data: 'symbol' is a required property; call again with valid args"}
+
+VERDICT: holds.
+Exactly 2 of 5 failing calls triggered a repair call (each carrying timeout=_REPAIR_TIMEOUT_S,
+openai.py:546), each usage appended to the round's `repairs` ledger (openai.py:552) so it reaches
+LLMDoneEvent usage; the 3rd-5th calls short-circuit at `len(repairs) >= _MAX_REPAIRS_PER_ROUND`
+(openai.py:527, _MAX_REPAIRS_PER_ROUND=2, openai.py:142) with zero network calls and go straight to
+the INVALID_ARGS_SENTINEL. Matches batch-5's certification ("real repairs against local llama are
+capped at 2 of 5, and each is timed and metered into usage; the other 3 get the invalid-args
+sentinel") exactly.

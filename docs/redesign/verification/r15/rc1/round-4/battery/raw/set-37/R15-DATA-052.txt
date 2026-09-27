@@ -1,0 +1,19 @@
+COMMAND (live curl, candidate sidecar :52357, sha 1006c6da):
+  curl -s http://127.0.0.1:52357/fundamentals/ELCIDIN
+  curl -s http://127.0.0.1:52357/fundamentals/NAPEROL
+(full bodies: R15-DATA-052-elcidin.txt / R15-DATA-052-naperol.txt)
+
+OUTPUT:
+ELCIDIN  -> sector="Financial Services", industry="Investment Company", field_meta status=ok
+           (register's original bug: empty strings stamped status ok; register's own expected
+           value per BSE was "Financial Services" -- now matches)
+NAPEROL  -> sector="Financial Services", industry="Investment Company", field_meta status=ok
+           (register's original bug: "Basic Materials"/"Chemicals"; BSE/screener's correct
+           classification is Financial Services/Investment Company -- now matches)
+
+VERDICT: holds.
+Both Indian-name misclassifications the register named are fixed live: ELCIDIN no longer ships
+empty sector/industry, and NAPEROL no longer carries Yahoo's wrong Basic Materials/Chemicals tag
+-- both now read the correct Financial Services/Investment Company classification, consistent
+with the india_sector_map.json override path (resolver_masters/india_sector_map.json,
+regenerate_india_sectors.py) batch-9 wired in ahead of the raw Yahoo value.

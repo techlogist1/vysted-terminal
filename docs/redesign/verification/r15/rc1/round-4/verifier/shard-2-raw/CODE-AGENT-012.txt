@@ -1,0 +1,22 @@
+sha: 68d5573aff9a579af084dcbb124843f2aecff6e8
+$ ./.venv/bin/python3 scratchpad/vs2/mcp012.py  (live MCP tools/list on own sidecar :52602/mcp/)
+import asyncio, json
+from fastmcp import Client
+async def main():
+    async with Client("http://127.0.0.1:52602/mcp/") as c:
+        tools = await c.list_tools()
+        print("tool count:", len(tools))
+        ia = [t for t in tools if t.name == "invoke_agent"]
+        print("invoke_agent schema:", json.dumps(ia[0].inputSchema) if ia else "MISSING")
+        leaky = []
+        for t in tools:
+            props = (t.inputSchema or {}).get("properties", {})
+            for p in props:
+                if any(s in p.lower() for s in ("key", "secret", "token", "password", "credential", "auth")):
+                    leaky.append((t.name, p))
+        print("secret-shaped params across ALL tools:", leaky)
+asyncio.run(main())
+--- output
+tool count: 40
+invoke_agent schema: {"additionalProperties": false, "properties": {"agent_id": {"type": "string"}, "prompt": {"type": "string"}}, "required": ["agent_id", "prompt"], "type": "object"}
+secret-shaped params across ALL tools: []

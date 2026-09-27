@@ -1,0 +1,132 @@
+NOT RUN AS VITEST: battery role does not run vitest/pytest suites (heavy lane owns them); verdict ci_pinned.
+5 committed pinned tests exist in candidate 1006c6da covering this exact drift class:
+
+=== src/lib/workspace.test.ts:464 ===
+    expect(useModulesStore.getState().enabled).toEqual(saved.enabledModules);
+    expect(useWorkspaceStore.getState().name).toBe("research");
+  });
+
+  it("never persists plugin:* flags, and a blob with plugin:x=false keeps an enabled plugin on (R15-CODE-PLATFORM-013)", () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useModulesStore.setState({ enabled: { chart: true, "plugin:vysted-news": true } });
+    expect(serializeWorkspace("now").enabledModules).toEqual({ chart: true });
+
+    // An older blob saved while the plugin was off, restored after re-enabling it.
+    deserializeWorkspace({
+      name: "older",
+      layout: LAYOUT_A,
+      enabledModules: { chart: false, "plugin:vysted-news": false },
+    });
+    expect(useModulesStore.getState().enabled).toEqual({
+      chart: false,
+      "plugin:vysted-news": true,
+    });
+  });
+
+  it("serializeWorkspace throws when the dockview layout is not ready", () => {
+    expect(() => serializeWorkspace("research")).toThrow(/not ready/);
+  });
+
+  it("saveWorkspace POSTs the serialized workspace to the sidecar", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    useModulesStore.setState({ enabled: { chart: true, platform: true } });
+
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+
+    await saveWorkspace("research");
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe("http://127.0.0.1:51763/workspace");
+    expect(init?.method).toBe("POST");
+
+=== src/store/workspace.test.ts:98 ===
+    expect(useWorkspaceStore.getState().name).toBe("My desk");
+  });
+
+  it("resetToDefaultLayout keeps lifecycle-owned plugin:* flags (R15-CODE-PLATFORM-013)", () => {
+    seed();
+    useModulesStore.getState().setModuleEnabled("plugin:vysted-example", false);
+    useWorkspaceStore.getState().resetToDefaultLayout();
+    expect(useModulesStore.getState().enabled).toEqual({ "plugin:vysted-example": false });
+    useModulesStore.setState({ enabled: {} });
+  });
+});
+
+=== src/store/modules.test.ts:58 ===
+    expect(state.enabledModules().map((module) => module.id)).not.toContain("watchlist");
+  });
+
+  it("setEnabledMap keeps the live plugin:* flags and ignores incoming ones (R15-CODE-PLATFORM-013)", () => {
+    useModulesStore.getState().setModuleEnabled("plugin:x", false);
+    useModulesStore.getState().setEnabledMap({ "plugin:x": true, chart: false });
+    expect(useModulesStore.getState().enabled).toEqual({ "plugin:x": false, chart: false });
+  });
+
+  it("appendModules adds new modules and preserves the existing enabled map", () => {
+    useModulesStore.getState().registerModules(vystedModules);
+    useModulesStore.getState().setModuleEnabled("chart", false);
+    useModulesStore.getState().appendModules([fakeModule("plugin-a")]);
+    const state = useModulesStore.getState();
+    expect(state.modules).toHaveLength(vystedModules.length + 1);
+    expect(state.modules.at(-1)?.id).toBe("plugin-a");
+    // Pre-existing disabled flag preserved.
+    expect(state.enabled.chart).toBe(false);
+    // New module starts enabled.
+    expect(state.enabled["plugin-a"]).toBe(true);
+  });
+
+  it("appendModules deduplicates against the existing registry", () => {
+    useModulesStore.getState().registerModules(vystedModules);
+    const lengthBefore = useModulesStore.getState().modules.length;
+    useModulesStore.getState().appendModules([fakeModule("chart")]);
+    expect(useModulesStore.getState().modules).toHaveLength(lengthBefore);
+  });
+
+  it("appendModules into an empty registry adds modules and enables them", () => {
+    useModulesStore.getState().appendModules([fakeModule("plugin-a"), fakeModule("plugin-b")]);
+    const state = useModulesStore.getState();
+    expect(state.modules.map((module) => module.id)).toEqual(["plugin-a", "plugin-b"]);
+    expect(state.enabled).toEqual({ "plugin-a": true, "plugin-b": true });
+  });
+});
+
+=== src/lib/plugin-runtime.test.ts:598 ===
+describe("PluginRuntime — the one never-persisted default (R15-CODE-PLATFORM-013)", () => {
+  it("a patch or load of a never-seen plugin uses defaultEnabled, never a hard-coded true", async () => {
+    const initialize = vi.fn();
+    const runtime = new PluginRuntime({ defaultEnabled: () => false });
+    expect(await runtime.readConfig("p")).toMatchObject({ installed: false, enabled: false });
+
+    // configure() grants a secret to a plugin the user never enabled; it stays off.
+    await runtime.updateConfig("p", { grantedSecretIds: ["k"], installed: true });
+    expect((await runtime.readConfig("p")).enabled).toBe(false);
+    const snapshot = await runtime.loadPlugin(discovered(fakePlugin("p", { initialize })));
+    expect(snapshot.state).toBe("stopped");
+    expect(initialize).not.toHaveBeenCalled();
+  });
+});
+
+=== source guard, src/lib/workspace.ts:296-312 ===
+ * Every persisted slice. The launch restore applies the global slices before
+ * the layout slices, so the per-space memory archive is in place before the
+ * research marker enters a space.
+ */
+export const PERSISTED_SLICES: readonly PersistedSlice[] = [
+  {
+    // Restored before the layout so the panel components a layout references
+    // resolve against the module set that was active when it was saved.
+    // A plugin's `plugin:<id>` flag is NOT persisted here: the plugin runtime
+    // derives it (attach/detach) from plugins.db `enabled`, its one source, so a
+    // blob never re-hides a plugin enabled since it was saved (R15-CODE-PLATFORM-013).
+    key: "enabledModules",
+    scope: "layout",
+    read: () => ({ enabledModules: moduleFlags(useModulesStore.getState().enabled, false) }),
+    restore: (workspace) =>
+      useModulesStore.getState().setEnabledMap({
+        ...moduleFlags(workspace.enabledModules, false),
+        ...moduleFlags(useModulesStore.getState().enabled, true),

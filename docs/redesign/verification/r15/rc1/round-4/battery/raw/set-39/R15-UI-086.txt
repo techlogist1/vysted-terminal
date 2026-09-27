@@ -1,0 +1,4 @@
+NOT RUN LIVE: frontend-only (CommandPalette row rendering a <kbd>), needs a React/jsdom render.
+PINNED TEST (ci_pinned):
+  src/components/CommandPalette.test.tsx:170 it("an action row shows its current (remapped) chord as a <kbd> (R15-UI-086)")
+VERDICT BASIS: pinned test above directly named after this register id and matches its repro (a bound/remapped action row renders its chord).

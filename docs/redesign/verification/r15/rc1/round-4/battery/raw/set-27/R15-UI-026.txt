@@ -1,0 +1,35 @@
+=== R15-UI-026: ci_pinned ===
+Pinned test: src/modules/watchlist/WatchlistPanel.test.tsx
+    const symbols = useSymbolsStore.getState().entries.map((e) => e.symbol);
+    expect(symbols).toContain("TCS");
+    expect(symbols).not.toContain("TC");
+  });
+
+  it("backs off after a failed poll and pauses while the document is hidden", async () => {
+    vi.useFakeTimers();
+    mockFetch.mockRejectedValueOnce(new SidecarError(502, "down"));
+    render(<WatchlistPanel />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(1); // backed off to 10 s
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    const hidden = vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(30_000);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+    hidden.mockReturnValue(false);
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+    hidden.mockRestore();

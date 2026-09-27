@@ -1,0 +1,18 @@
+HEAD 68d5573aff9a579af084dcbb124843f2aecff6e8
+repair methods ['_repair_tool_args']
+fundamentals    full-schema-echo             reply='{"type": "object", "properties": {"symbol": {"type": "string", "description": "Equity tick' -> rejected
+fundamentals    properties-echo              reply='{"symbol": {"type": "string", "description": "Equity ticker, e.g. AAPL"}}' -> rejected
+fundamentals    placeholder-echo(all props)  reply='{"symbol": "string"}' -> ACCEPTED {"symbol": "string"}
+fundamentals    placeholder-echo(required)   reply='{"symbol": "string"}' -> ACCEPTED {"symbol": "string"}
+news            full-schema-echo             reply='{"type": "object", "properties": {"symbols": {"type": "array", "items": {"type": "string"}' -> rejected
+news            properties-echo              reply='{"symbols": {"type": "array", "items": {"type": "string"}, "description": "Optional ticker' -> rejected
+news            placeholder-echo(all props)  reply='{"symbols": "array", "limit": "integer"}' -> rejected
+news            placeholder-echo(required)   reply='{}' -> ACCEPTED {}
+price_data      full-schema-echo             reply='{"type": "object", "properties": {"symbol": {"type": "string", "description": "Ticker, e.g' -> rejected
+price_data      properties-echo              reply='{"symbol": {"type": "string", "description": "Ticker, e.g. AAPL or BTC/USDT"}, "timeframe"' -> rejected
+price_data      placeholder-echo(all props)  reply='{"symbol": "string", "timeframe": "string", "range": "string", "asset_class": "string"}' -> rejected
+price_data      placeholder-echo(required)   reply='{"symbol": "string"}' -> ACCEPTED {"symbol": "string"}
+resolve_symbol  full-schema-echo             reply='{"type": "object", "properties": {"query": {"type": "string", "description": "Company name' -> rejected
+resolve_symbol  properties-echo              reply='{"query": {"type": "string", "description": "Company name or ticker, e.g. \'Tata Steel\' or ' -> rejected
+resolve_symbol  placeholder-echo(all props)  reply='{"query": "string", "region": "string"}' -> rejected
+resolve_symbol  placeholder-echo(required)   reply='{"query": "string"}' -> ACCEPTED {"query": "string"}

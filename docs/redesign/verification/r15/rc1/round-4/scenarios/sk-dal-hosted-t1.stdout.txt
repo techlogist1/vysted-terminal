@@ -1,0 +1,15 @@
+
+=== ASSISTANT TEXT ===
+DAL refers to two different companies:
+
+1. **Delta Air Lines, Inc. (DAL)** - a major U.S. airline.
+2. **Dynamic Archistructures Limited (DAL.BO)** - a financial services company listed on the BSE.
+
+Since you asked for revenue and net income, I gathered the information for **Dynamic Archistructures Limited**:
+
+- **Revenue (TTM)**: ₹9.97 crore
+- **Net Income (TTM)**: ₹1.02 crore
+
+If you are interested in Delta Air Lines' financials, please let me know!
+
+=== ok · 10.8s · events {'tool_use': 3, 'tool_result': 3, 'delta': 121, 'done': 1} · usage in=17735 out=122 · est $0.00273 · gpt-4o-mini

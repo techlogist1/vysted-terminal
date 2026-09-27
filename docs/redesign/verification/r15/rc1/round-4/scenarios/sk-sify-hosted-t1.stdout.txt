@@ -1,0 +1,7 @@
+
+=== ASSISTANT TEXT ===
+The ADR-to-ordinary-share ratio is not available from this session's sources. Typically, ADRs represent a specific number of shares in the foreign company, often 1:1, but this can vary.
+
+For SIFY Technologies Ltd., I recommend checking their latest SEC filings or corporate announcements for accurate details on their ADR share representation. You can access their filings at the [SEC Archive for SIFY](https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&owner=exclude&count=40&search_text=SIFY).
+
+=== ok · 23.3s · events {'tool_use': 4, 'tool_result': 4, 'delta': 95, 'done': 1} · usage in=11313 out=119 · est $0.00177 · gpt-4o-mini

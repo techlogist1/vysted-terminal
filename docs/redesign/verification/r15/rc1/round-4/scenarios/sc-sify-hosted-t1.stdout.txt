@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+The ADR-to-ordinary-share ratio is not available from this session's sources. However, SIFY Technologies typically has its ADRs representing The ADR-to-ordinary-share ratio is not available from this session's sources. If you need this confirmation, I recommend checking the company's specific investor relations or the latest annual report for the most accurate details.
+
+=== ok · 5.4s · events {'tool_use': 2, 'tool_result': 2, 'delta': 39, 'done': 1} · usage in=8994 out=64 · est $0.00139 · gpt-4o-mini

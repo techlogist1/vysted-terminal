@@ -1,0 +1,56 @@
+=== R15-CODE-PLATFORM-019 probe (candidate 1006c6da) ===
+Script:
+import asyncio, sys, time
+sys.path.insert(0, ".")
+from services import workflow_engine
+from models.workflow import WorkflowSpec, WorkflowNode, WorkflowEdge
+
+def node(nid, t, cfg=None):
+    return WorkflowNode(id=nid, type=t, position={"x":0.0,"y":0.0}, config=cfg or {})
+def edge(eid, src, tgt, sp="out", tp="in"):
+    return WorkflowEdge(id=eid, sourceNode=src, sourcePort=sp, targetNode=tgt, targetPort=tp)
+
+order = []
+
+async def slow_handler(inputs, config):
+    await asyncio.sleep(2.0)
+    order.append(("A-done", time.monotonic()))
+    return {"out": "A"}
+
+async def fast_handler(inputs, config):
+    order.append(("B-done", time.monotonic()))
+    return {"out": "B"}
+
+async def c_handler(inputs, config):
+    order.append(("C-done", time.monotonic()))
+    return {"out": "C"}
+
+workflow_engine.reset_registry_for_tests()
+workflow_engine.register_node_type("test.slow", slow_handler)
+workflow_engine.register_node_type("test.fast", fast_handler)
+workflow_engine.register_node_type("test.c", c_handler)
+
+spec = WorkflowSpec(
+    id="wf-probe-019", name="probe019", version=1, updatedAt=0,
+    nodes=[node("A", "test.slow"), node("B", "test.fast"), node("C", "test.c")],
+    edges=[edge("e1", "B", "C", "out", "in")],
+)
+
+async def main():
+    t0 = time.monotonic()
+    result = await workflow_engine.run_workflow(spec, inputs={})
+    print("order:", order)
+    c_done_t = next(t for name, t in order if name == "C-done")
+    a_done_t = next(t for name, t in order if name == "A-done")
+    print("C finished before A:", c_done_t < a_done_t)
+    by_id = {n.node_id: n for n in result.nodes}
+    print({k: v.status for k, v in by_id.items()})
+
+asyncio.run(main())
+OUTPUT:
+order: [('B-done', 349291.885463375), ('C-done', 349291.885612333), ('A-done', 349293.887733083)]
+C finished before A: True
+{'B': 'ok', 'C': 'ok', 'A': 'ok'}
+
+Also confirmed: asyncio.wait(FIRST_COMPLETED) at workflow_engine.py:320, per-node asyncio.wait_for at :407, DEFAULT_NODE_TIMEOUT_SECONDS=600 at :55.
+VERDICT: holds. C (dependent only on fast B) finishes before slow A; each node wrapped in wait_for.

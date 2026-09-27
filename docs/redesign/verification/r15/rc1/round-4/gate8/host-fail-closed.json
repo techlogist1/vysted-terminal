@@ -1,0 +1,33 @@
+{
+ "propose_order": {
+  "isHostActionMutation": false,
+  "applyHostAction": null
+ },
+ "place_order": {
+  "isHostActionMutation": false,
+  "applyHostAction": null
+ },
+ "submit_order": {
+  "isHostActionMutation": false,
+  "applyHostAction": null
+ },
+ "execute_order": {
+  "isHostActionMutation": false,
+  "applyHostAction": null
+ },
+ "broker_portfolio": {
+  "isHostActionMutation": false,
+  "applyHostAction": null
+ },
+ "kill_switch": {
+  "isHostActionMutation": false,
+  "applyHostAction": null
+ },
+ "acceptNoCost": "failed",
+ "changeAfter": [
+  {
+   "status": "pending",
+   "detail": "no price given"
+  }
+ ]
+}

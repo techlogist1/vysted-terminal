@@ -1,0 +1,14 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  53.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_e6a65babf45a49a995955812ea0bfebf", "name": "portfolio_add_position", "input": {"note": "", "purchased_at": "2026-09-27", "quantity": 5, "symbol": "INFY.NS", "asset_class": "equity", "cost_basis": 1500}}
+[  53.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_e6a65babf45a49a995955812ea0bfebf", "name": "portfolio_add_position", "ok": true, "error": null}
+[  57.2s] research_step: {"kind": "research_step", "tool_call_id": "call_e6a65babf45a49a995955812ea0bfebf", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position INFY.NS. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+[  57.2s] done: {"kind": "done", "usage": {"input_tokens": 2971, "output_tokens": 41, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+I have proposed adding 5 shares of INFY.NS to your tracked portfolio at an average cost of 1500 rupees for review. Please review and accept this change in the proposal bar.
+
+=== ok · 57.2s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 41, 'research_step': 1, 'done': 1} · usage in=2971 out=41 · est $0.00000 · llama3.1:8b

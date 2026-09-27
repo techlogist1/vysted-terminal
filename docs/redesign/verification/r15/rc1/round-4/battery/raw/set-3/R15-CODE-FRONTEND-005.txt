@@ -1,0 +1,8 @@
+NOT RUN LIVE: frontend-only (chart-drawings/keybindings/research-spaces autosave trigger wiring), same constraint.
+SOURCE CHECK (candidate HEAD 1006c6da):
+  src/lib/workspace.ts:300 PERSISTED_SLICES table ({key, read, restore, subscribe}) -- single source for buildWorkspacePayload, deserializeWorkspace and the trigger-wiring loop (matches fix_shape exactly: "One PERSISTED_SLICES table ... iterated by buildWorkspacePayload, deserializeWorkspace and a single trigger-wiring loop").
+  src/lib/workspace.ts:1103 wires every slice's subscribe() to autosaveLayout, so chart-drawings/keybindings/research-spaces are covered generically, not via three different per-store conventions.
+PINNED TEST (ci_pinned):
+  src/lib/workspace.test.ts:1317 describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRONTEND-005/018)")
+  src/lib/workspace.test.ts:1457 it("every declared blob key is written by a registered slice, and each slice's change autosaves")
+VERDICT BASIS: source matches fix_shape; pinned tests above.

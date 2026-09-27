@@ -1,0 +1,8 @@
+CMD: sidecar/.venv/bin/python3 battery13_agent005.py
+EXIT: 0
+groq llama-3.3-70b-versatile: native_search_available=False expected=False [OK]
+gemini gemini-2.5-pro: native_search_available=False expected=False [OK]
+groq groq/compound: native_search_available=True expected=True [OK]
+gemini gemini-3-pro: native_search_available=True expected=True [OK]
+gemini gemini-2.5-pro one-shot (no function tools): native_search_available=True expected=True
+PASS AGENT-005: groq/gemini native-search gating is per-model as certified

@@ -1,0 +1,4 @@
+COMMAND: python -c visit_for_research() with fetch_page stubbed to return HTTP 403
+EXIT: 0
+OUTPUT:
+VisitResult(text=None, reason='HTTP 403')

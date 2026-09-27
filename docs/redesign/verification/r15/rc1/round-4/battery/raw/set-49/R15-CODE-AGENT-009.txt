@@ -1,0 +1,8 @@
+COMMAND(s):
+  ast line-count of invoke_agent/_dispatch_round in sidecar/services/agent_runtime.py (candidate)
+  grep -c test functions in sidecar/tests/test_runtime_phases.py
+EXIT: 0
+OUTPUT:
+_dispatch_round lines 3042 - 3223 = 182
+invoke_agent lines 3226 - 3326 = 101
+test_runtime_phases.py test count: 9 (docstring cites R15-CODE-AGENT-009)

@@ -1,0 +1,85 @@
+CMD: sed -n '245,325p' docs/BLUEPRINT.md
+---
+1. Tauri 2.x desktop shell (Win/Mac/Linux)
+2. Next.js 16 frontend skeleton
+3. Tailwind + shadcn/ui design system (Vysted aesthetic: charcoal + warm amber + sage + serif-meets-monospace typography)
+4. Command bar with slash commands (cmd+K)
+5. Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)
+6. Zustand state management
+7. Theming engine (dark default + light option + future custom themes)
+8. Python sidecar bootstrap (FastAPI on localhost, auto-managed by Tauri)
+
+### Plugin Architecture (7)
+9. VystedPlugin TypeScript interface
+10. Plugin registry + manifest format
+11. Plugin lifecycle management (init / shutdown / health)
+12. Panel-slot contribution system
+13. Command-bar contribution system
+14. Agent-capability contribution system
+15. Node-spec contribution system
+
+### Data Layer (5)
+16. OpenBB ODP wrap (bundled Python sidecar) — 100+ providers
+17. ccxt unified crypto WebSocket (Bybit, Binance, Kraken, Coinbase)
+18. yfinance fallback (no API key needed for basic use; R15-DATA-078 — alpha_vantage was
+    never built and is dropped from this list, not just unimplemented)
+19. News intelligence (RSS + NewsAPI + AI sentiment scoring)
+20. Macro / economic data (FRED + ECB + IMF + World Bank via ODP)
+
+### Charting & Analysis (6)
+21. Lightweight-charts integration (multi-pane sync)
+22. 50+ technical indicators (RSI, MACD, MA/EMA/SMA, Bollinger, Volume Profile, ADX, Stochastic, ATR, OBV, MFI, Ichimoku, Keltner, etc.)
+23. 10+ drawing tools (trendlines, channels, Fib retracements, harmonic patterns, support/resistance)
+24. Multi-chart sync (linked timeframes across symbols)
+25. Comparison overlays (peer comparison on same chart)
+26. Volume profile + market profile
+
+### Portfolio & Risk (2)
+27. Position tracking + P&L attribution (local SQLite, manually tracked holdings — no broker connection)
+28. Risk analytics (Sharpe, Sortino, Calmar, VaR, Beta, max drawdown, correlation matrix)
+
+### Research (4)
+29. Equity overview panel (price + ratios + statements + analyst ratings in one view)
+30. SEC filings reader (10-K, 10-Q, 8-K, Form 4, via OpenBB SEC provider)
+31. Earnings calendar
+32. Analyst ratings aggregator
+
+### AI / Automation (5)
+33. Multi-LLM chat sidebar (OpenAI / Anthropic / DeepSeek / Groq / Gemini / xAI / Ollama)
+34. 12 pre-built agents (config-driven, listed in §3.4)
+35. Custom Agent Builder UI (define agent without code)
+36. Node editor for workflow automation (react-flow based)
+37. Backtest engine (Python sidecar, event-driven, walk-forward support, AI Strategy Critic integration)
+
+### Customization Layer (3, baked into core)
+- License gate UI (PolyForm Strict/commercial choice on first launch)
+- Module toggle UI in settings (every module enable/disable)
+- Workspace save/load/export/import (`.vysted-workspace` JSON files)
+
+### Infrastructure (5, not user-facing)
+- MCP server for external AI tool access
+- GitHub Releases pipeline with Tauri auto-update
+- Code signing pipeline (SignPath integration for Win, ad-hoc for Mac)
+- CLA gate on PRs (so dual-license stays clean)
+- Opt-in anonymous telemetry (basic crash + usage; respects privacy posture)
+
+---
+
+## 5. Sandbox Customization Layer
+
+**No role-based presets.** Users get one sensible default layout on first launch and customize from there.
+
+### 5.1 Default first-launch layout (4-6 panels)
+- Main chart (default: SPY) — 50% of screen
+- Watchlist (pre-loaded: SPY, QQQ, BTC, ETH, NVDA, AAPL)
+- News feed (filtered to watchlist tickers)
+- AI chat sidebar (with welcome message + suggested first commands)
+- Portfolio panel (empty until user adds positions)
+
+### 5.2 Customization primitives
+- Drag-drop panel layout (resize, hide; pop-out to a second window is v1.0 roadmap — R15-CODE-PLATFORM-025)
+- Tab groups (multiple panel sets in one window)
+- Named workspaces (save layout, switch between them)
+- Workspace export/import as `.vysted-workspace` JSON files
+CMD: grep -rln 'WebviewWindowBuilder' src-tauri/src/*.rs
+(no hits — still no second-window spawn, matches deferred status)

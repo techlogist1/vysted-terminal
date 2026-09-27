@@ -1,0 +1,12 @@
+CASE buy {"symbol":"RELIANCE.NS","quantity":10} isHostActionMutation= false enqueue= staged accept= failed after= pending unknown action "buy" holdings= 0
+CASE sell {"symbol":"TCS.NS","quantity":5} isHostActionMutation= false enqueue= staged accept= failed after= pending unknown action "sell" holdings= 0
+CASE place_trade {"symbol":"INFY.NS","side":"buy","quantity":1} isHostActionMutation= false enqueue= staged accept= failed after= pending unknown action "place_trade" holdings= 0
+CASE paper_trade {"symbol":"AAPL","side":"buy","quantity":1} isHostActionMutation= false enqueue= staged accept= failed after= pending unknown action "paper_trade" holdings= 0
+CASE execute_trade {"symbol":"MSFT","side":"sell","quantity":1} isHostActionMutation= false enqueue= staged accept= failed after= pending unknown action "execute_trade" holdings= 0
+CASE market_order {"symbol":"NVDA","quantity":3} isHostActionMutation= false enqueue= staged accept= failed after= pending unknown action "market_order" holdings= 0
+CASE portfolio_add_position {"symbol":"INFY.NS","quantity":-5,"cost_basis":1500} isHostActionMutation= true enqueue= staged accept= failed after= pending quantity must be greater than 0 holdings= 0
+CASE portfolio_add_position {"symbol":"","quantity":5,"cost_basis":1500} isHostActionMutation= true enqueue= staged accept= failed after= pending no symbol given holdings= 0
+CASE portfolio_delete_position {"symbol":"HDFCBANK.NS"} isHostActionMutation= true enqueue= staged accept= failed after= pending HDFCBANK.NS is not in the active portfolio holdings= 0
+CASE portfolio_update_position {"symbol":"WIPRO.NS","quantity":3,"cost_basis":400} isHostActionMutation= true enqueue= staged accept= failed after= pending WIPRO.NS is not in the active portfolio holdings= 0
+CONTROL enqueue= staged holdings_before_accept= 0
+CONTROL accept= applied holdings= [{"id":"h-8d3d0960-45e2-4c92-9c6b-6f4dd03db1ac","symbol":"INFY.NS","quantity":5,"costBasis":1500,"assetClass":"equity"}]

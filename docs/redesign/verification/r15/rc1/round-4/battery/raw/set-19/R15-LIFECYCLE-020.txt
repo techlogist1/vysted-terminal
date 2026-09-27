@@ -1,0 +1,44 @@
+CMD: grep -in 'warm' /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/logs/rc1-battery-3-sidecar.log
+12:2026-09-27 01:49:16,563 INFO services.fundamentals_warm: fundamentals warm: seeded 5891 india rows
+14:2026-09-27 01:49:16,709 INFO services.fundamentals_warm: fundamentals warm: seeded 5891 india rows
+15:2026-09-27 01:49:16,858 INFO services.fundamentals_warm: fundamentals warm: seed pack applied to 5050 rows (2026-07-08)
+16:2026-09-27 01:49:16,888 INFO services.fundamentals_warm: fundamentals warm: bhavcopy EOD applied to 2924 NSE rows (trade date 2026-09-25)
+17:2026-09-27 01:49:17,028 INFO services.fundamentals_warm: fundamentals warm: seed pack applied to 5050 rows (2026-07-08)
+1086:2026-09-27 01:50:29,463 WARNING services.fundamentals_warm: fundamentals warm: rate-limited (streak=1); backing off 514s
+1099:2026-09-27 01:52:58,205 WARNING services.screener: screener warm: rate-limited (consecutive throttled cycles=1); backing off 84s before the next warm (base=40s, cap=600s)
+--- current time / boot time check ---
+Sun Sep 27 01:53:31 IST 2026
+#: The armed loop's interval — ``None`` until :func:`start_warm_precompute`.
+_warm_interval: float | None = None
+#: The universe the loop warms: the last screener run's region default.
+_warm_universe: ScreenerUniverseId = "sp500"
+
+
+def _warm_follow_region() -> None:
+    """Point the armed warm loop at the current request region's default
+    universe, starting the loop on the first run (R15-LIFECYCLE-020)."""
+    global _warm_task, _warm_universe
+    if _warm_interval is None:
+        return
+    _warm_universe = default_universe_for_region()
+    if _warm_task is None or _warm_task.done():
+        _warm_task = asyncio.get_running_loop().create_task(_warm_loop(_warm_interval))
+
+
+async def _warm_once() -> bool:
+    """Pre-warm one batch cycle over the warm universe into the store.
+
+    Returns ``True`` when the cycle was RATE-LIMITED (≥ ``_WARM_THROTTLE_RATIO``
+    of warmed symbols came back ``rate_limited``) — the loop's backoff signal."""
+    try:
+        universe = await resolve_universe(_warm_universe)
+    except ProviderError as exc:
+        logger.debug("screener warm: cannot resolve %s: %s", _warm_universe, exc)
+
+
+def start_warm_precompute(interval: float = _WARM_INTERVAL_SECONDS) -> None:
+    """Arm the warm precompute (idempotent). Nothing warms until the first
+    screener run names a region (R15-LIFECYCLE-020) — no boot-time sweep."""
+    global _warm_interval
+
+VERDICT: holds — code confirms no boot-time sweep: start_warm_precompute() (screener.py:1417-1423, docstring ':1419 no boot-time sweep. First run arms it on that run's region default; a later run from another region names a region (R15-LIFECYCLE-020)') only sets the interval; _warm_follow_region() (:1134) is called inside run_screener itself and repoints _warm_universe = default_universe_for_region() to the CURRENT request's region on every run. Live: sidecar log shows zero 'screener warm' activity in the ~3s between boot (01:49:16) and my first /screener/run call (R15-DATA-110 probe, immediately after health-check); the first 'screener warm' log line appears only after that first request (01:52:58), consistent with request-triggered arming, not an unconditional boot sweep across all 506 sp500 names.

@@ -1,0 +1,11 @@
+Repro (live, own sidecar :52346, X-Vysted-Region: IN), same symbol (CREST) as the register repro:
+
+$ curl -s "http://127.0.0.1:52346/fundamentals/CREST" -H "X-Vysted-Region: IN"
+... "pe_ratio":31.284481, "basis":"consolidated", "eps":12.209999999999999 ...
+field_meta.basis = {"status":"ok","provider":"exchange-filings", ...}
+field_meta.revenue_ttm.label = "consolidated, sum of 4 filed quarters to 2026-06-30"
+
+Verdict: holds. pe_ratio (~31.3x) matches the register's stated consolidated figure, and the
+response now names the basis explicitly via a top-level `basis":"consolidated"` field plus
+per-field labels ("consolidated, sum of 4 filed quarters...") on revenue/net-income/growth —
+the register's exact complaint (no field naming which basis was used) is resolved.

@@ -1,0 +1,42 @@
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand
+
+ ✓ src/modules/chat/streaming.test.ts > streaming — options wire mapping (research_depth) > maps options.researchDepth to snake_case research_depth on the agent wire 7ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — options wire mapping (research_depth) > maps options.researchDepth on the raw-chat wire too 1ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — options wire mapping (research_depth) > sends empty options untouched when none are provided 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — brief lifecycle feed (R10 D39) > the research:begin engine step keys the in-flight brief state 1ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — brief lifecycle feed (R10 D39) > an ultra begin maps onto the heavy tier; steps outside a run are ignored 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — structured error frames (R10 D43) > forwards action/detail/code on the error event; errorFrameOf reads them 1ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — structured error frames (R10 D43) > a legacy bare error stays a plain frame (errorFrameOf → null) 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — spend_usd on the done frame (R15-AGENT-082, C11) > parses a priced model's spend_usd into doneFrameOf 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — spend_usd on the done frame (R15-AGENT-082, C11) > a free model's spend_usd of 0 is a real zero, not dropped 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — spend_usd on the done frame (R15-AGENT-082, C11) > an unpriced model's done frame (no spend_usd) yields undefined, not 0 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — spend_usd on the done frame (R15-AGENT-082, C11) > doneFrameOf returns undefined for a non-done event 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — tool_result frames and unknown kinds (R15-CODE-AGENT-033) > drops a frame of an unknown kind; the delta and done around it still arrive 1ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — tool_result frames and unknown kinds (R15-CODE-AGENT-033) > normalises a tool_result frame to the camelCase shape 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — exactly one terminal callback > a sidecar that is not ready reaches onError once; the call does not reject 1ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — exactly one terminal callback > a consumer throw surfaces its own message once, not 'unparseable SSE frame' 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — exactly one terminal callback > a raw-chat stream that closes without done calls onError once 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — exactly one terminal callback > an agent-invocation stream that closes without done calls onError once 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — exactly one terminal callback > an error frame is the terminal; the server's trailing done is not a second one 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — stall watchdog > ends a silent agent stream with the stalled error, once 2ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — stall watchdog > does not fire while heartbeats keep arriving past the budget 1ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — error layer > a non-2xx string detail reaches onError as the sentence, not the JSON body 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — error layer > a 422 field-error array reaches onError as 'field: msg' 0ms
+ ✓ src/modules/chat/streaming.test.ts > streaming — error layer > a refused connection reaches onError as the unreachable sentence 0ms
+ ✓ src/lib/delegate-runs.test.ts > delegate-runs > launches a run, sends the budget, and records the sidecar run id 2ms
+ ✓ src/lib/delegate-runs.test.ts > delegate-runs > marks the run errored when the launch is rejected 0ms
+ ✓ src/lib/delegate-runs.test.ts > delegate-runs > syncs live cost/status from the poll and ends a budget-breached run 0ms
+ ✓ src/lib/delegate-runs.test.ts > delegate-runs > routes cancel + answer to the run routes 0ms
+ ✓ src/lib/delegate-runs.test.ts > delegate-runs — sidecar truth > adopts a live sidecar run the store never saw (a webview reload), once 1ms
+ ✓ src/lib/delegate-runs.test.ts > delegate-runs — sidecar truth > a failed cancel leaves the run running with a retry message 0ms
+ ✓ src/lib/delegate-runs.test.ts > delegate-runs — sidecar truth > a refused cancel names the sidecar's reason, not an HTTP code (class pin, R15-CODE-PLATFORM-011) 0ms
+ ✓ src/lib/delegate-runs.test.ts > delegate-runs — sidecar truth > a rejected launch shows the 422 field errors, not [object Object] 0ms
+ ✓ src/lib/delegate-runs.test.ts > delegate-runs — output delivery > appends the answer to the launching thread and gates the note and the brief 1ms
+ ✓ src/lib/delegate-runs.test.ts > delegate-runs — output delivery > a run that ends in error still delivers its partial text with the error 0ms
+
+ Test Files  2 passed (2)
+      Tests  33 passed (33)
+   Start at  02:33:22
+   Duration  809ms (transform 345ms, setup 91ms, import 422ms, tests 24ms, environment 741ms)
+

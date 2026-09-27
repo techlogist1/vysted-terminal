@@ -1,0 +1,19 @@
+# batch-4/W5-panels-screener — shard 9 re-verification
+
+Candidate sha: 1006c6da694ede5776c3dabbd27b305aeb56b5ad. Own sidecar :52349 (copy of seed data);
+LIFECYCLE-007 additionally re-launched a second candidate sidecar on :52356 under a genuine
+`env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin` launchd-style environment, per its repro.
+
+| id | repro run | observed | verdict |
+|---|---|---|---|
+| R15-UI-004 | Certified via jsdom+live-sidecar PortfolioPanel.test.tsx:117; vitest barred under stall rule. Static trace of api.ts/PortfolioPanel.tsx fix markers at candidate sha. | `failed` counter distinct from swallowed-null now drives the banner (api.ts:29-38, PortfolioPanel.tsx:236), matching the certified fix. | ci_pinned (PortfolioPanel.test.tsx:117) |
+| R15-UI-005 | Certified via jsdom+live-sidecar PortfolioPanel.test.tsx:141,175; vitest barred. Static trace. | `totalValueNote="no live quotes resolved"`, UI text `— (no live quotes)` present (PortfolioPanel.tsx:411,429,982). | ci_pinned (PortfolioPanel.test.tsx:141,175) |
+| R15-UI-006 | `POST /screener/run` india-all, 0<pe_ratio<40, sort_by pe_ratio asc, limit 200 against own sidecar :52349. | result_count 200, matched_count 2799, evaluated_count 4827; first 5 pe_ratios strictly ascending from ~0.0005 (tiny small caps lead the page). | holds |
+| R15-UI-007 | Certified via jsdom ScreenerPresets.test.tsx:33; vitest barred. Static trace of the exact click-handler + store code the test exercises. | ScreenerPresets.tsx:127-137 passes `group: null, formula: ""` on preset click; store `applyFilters` (screener.ts) honors both, resetting nested group/advanced/formula. | ci_pinned (ScreenerPresets.test.tsx:33) |
+| R15-DATA-044 | `POST /screener/run` nse-all, pe_ratio<20, limit 1000 against own sidecar. | coverage "screened 2,656 of 3,506 — 850 unavailable"; `skip_details` has 850 entries `{"reason":"missing_field:pe_ratio"}`. | holds |
+| R15-DATA-093 | `POST /screener/run` universe=custom, custom_symbols bare RELIANCE/TCS/INFY/HDFCBANK/COCHINSHIP, circuit closed, own sidecar. | evaluated_count 5, result_count 5, skipped_count 0; rows resolve to RELIANCE.NS/TCS.NS/INFY.NS/HDFCBANK.NS/COCHINSHIP.NS. | holds |
+| R15-UI-003 | `GET /custom-agents/tool-ids` (56 ids, incl. research/web_search/publish_brief); `POST /custom-agents` id=custom:battery9test tools=[research,web_search,price_data] provider=openrouter -> 201 preserves both; `PUT` same id, renamed, same tools/provider -> 200, read-back confirms tools+provider unchanged (not rewritten to anthropic); source confirms AgentBuilderPanel.tsx fetches `/custom-agents/tool-ids` live (KNOWN_TOOL_IDS is only the pre-fetch fallback). Cleaned up (DELETE) after. | Tool count and set grew (48->56) since batch-4 cert but research/web_search/publish_brief still present; create+rename+save PUT round-trip preserves tools and provider=openrouter (no anthropic rewrite). | holds |
+| R15-CODE-FRONTEND-020 | Pinned tests: agent-builder.test.tsx:335-342 (dynamic `brand_new_tool` mocked-fetch case) + sidecar/tests/test_custom_agents_router.py:73 area (pytest pinning the route to the catalog); both barred (vitest/pytest). Live confirmation of the underlying mechanism via the UI-003 probes above (dynamic tool-ids fetch, not the static array). | AgentBuilderPanel.tsx:136-154 fetches `/custom-agents/tool-ids` at runtime; KNOWN_TOOL_IDS is documented as "only the pre-fetch fallback". | holds |
+| R15-LIFECYCLE-007 | Re-launched a candidate sidecar under `env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin` (own data dir, port 52356) and hit `GET /search/searxng/status` live. | `"docker":{"cli_present":true,"daemon_running":true,"runtime":"Docker Engine - Community"}` under the minimal launchd-style PATH — matches the certified fix (`searxng_manager.py` searches known install paths beyond bare PATH: /usr/local/bin, /opt/homebrew/bin, ~/.orbstack/bin, /Applications/Docker.app/...). | holds |
+
+COVERAGE: 9/9 ids raw; no raw: none.

@@ -1,0 +1,13 @@
+=== docs/CURRENT_STATE.md around host-actions ===
+78:>   — the write surface is the catalog's 19 host actions (`open_panel`/
+80:>   layout writers/`set_region`; no order action exists, D81) — none auto-apply
+129:  read/host-action tools, and the loop iterates up to 6 rounds. 13 first-party
+582:host-actions.ts` — 19 host actions total), staged through the diff/accept
+682:host-actions.ts` — 19 host actions total) are per-invocation closures that
+753:   `src/lib/host-actions.ts`) — every agent-proposed mutation over the 18
+869:  trust gate over the 19 host actions is the most trustworthy asset — preserve
+885:  metadata-carried assistant tool-call turn, host-action execution, and
+=== live capability catalog count (non-read-only / host_action) ===
+count: 19
+has order-shaped id: False
+['add_chart_drawing', 'add_to_watchlist', 'arrange_layout', 'close_panel', 'focus_panel', 'open_company_overview', 'open_panel', 'portfolio_add_position', 'portfolio_delete_position', 'portfolio_update_position', 'publish_brief', 'remove_from_watchlist', 'save_layout', 'save_screen', 'set_chart_indicators', 'set_chart_symbol', 'set_region', 'write_note', 'write_screener_filters']

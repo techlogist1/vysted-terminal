@@ -1,0 +1,14 @@
+Repro (live, own sidecar :52346, X-Vysted-Region: IN), same symbol (DHOOTTRANS) as the register
+repro:
+
+$ curl -s "http://127.0.0.1:52346/fundamentals/DHOOTTRANS" -H "X-Vysted-Region: IN"
+... "listing_date":"2026-08-17",
+    "fifty_two_week_high_date":"2026-09-15", "fifty_two_week_low_date":"2026-08-17" ...
+field_meta.eps.as_of = "2026-09-26T20:50:18Z" (still one shared fetch timestamp per field, as
+expected — that part of the contract is unchanged and not what was fixed)
+
+Verdict: holds for the specific complaints checked: (a) listing_date is now a populated field
+(was entirely absent), (b) fifty_two_week_high_date / fifty_two_week_low_date now carry PER-LEG
+dates distinct from each other and from the fetch timestamp (was: no per-field date at all for
+these two). DHOOTTRANS's low_date (2026-08-17) matches its own listing_date, consistent with the
+register's "recently-listed" framing.

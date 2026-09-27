@@ -1,0 +1,17 @@
+2026-09-27 05:24:56,407 ERROR routers.agents: agent invoke crashed: unhashable type: 'list'
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-1006c6d-fix-int/sidecar/routers/agents.py", line 94, in _generator
+    async for event in agent_runtime.invoke_agent(
+    ...<10 lines>...
+        yield _encode_event(event)
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-1006c6d-fix-int/sidecar/services/agent_runtime.py", line 3326, in invoke_agent
+    async for event in events:
+        yield event
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-1006c6d-fix-int/sidecar/services/agent_runtime.py", line 2895, in _consume_round
+    _normalise_tool_args(event)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-1006c6d-fix-int/sidecar/services/agent_runtime.py", line 978, in _normalise_tool_args
+    _coerce(args, cap.input_schema)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-1006c6d-fix-int/sidecar/services/agent_runtime.py", line 938, in _coerce
+    value[key] = _coerce(value[key], sub_schema)

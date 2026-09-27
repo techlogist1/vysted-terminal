@@ -1,0 +1,8 @@
+== GET /quotes/ZZZZNOTREAL
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /quotes/MAZAGONDOCK
+{"detail":"The data provider has no data for this symbol or series — check the symbol.","code":"not_found","action":"Check the symbol or series id."}  HTTP 404
+== GET /macro/GDP
+{"detail":"provider is required for a series id"}  HTTP 422
+== GET /history/ZZZZNOTREAL
+{"symbol":"ZZZZNOTREAL","timeframe":"1d","bars":[],"provider":"none","freshness":null,"reason":"unknown_symbol","partial":false,"coverage_start":null}  HTTP 200

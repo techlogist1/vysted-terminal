@@ -1,0 +1,7 @@
+=== AGENT-038 (fake-provider in-process, corrected OneShotProvider repro) ===
+{
+  "status": "done",
+  "detail": "completed (step ceiling 1 reached (1 taken) on the final round)",
+  "cost_steps": 1,
+  "transcript_has_final_text": true
+}

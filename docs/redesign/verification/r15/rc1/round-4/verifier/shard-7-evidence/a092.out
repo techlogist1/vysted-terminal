@@ -1,0 +1,3 @@
+STATUS error token ceiling 1000 reached (100010 used) DISPATCHED ['write_note'] HOST_ACTIONS [{'scope': 'NVDA', 'text': 'A'}] BRIEF None
+STATUS error DISPATCHED ['write_note'] ROW FIELDS {'brief': {'symbol': 'MSFT', 'title': 'halted brief', 'markdown': 'x'}, 'host_actions': [{'tool_call_id': 'call_f5f66628bf2a4504a1b9eb56e64d11b8', 'name': 'write_note', 'input': {'scope': 'NVDA', 'text': 'A'}}]}
+2 passed in 1.37s

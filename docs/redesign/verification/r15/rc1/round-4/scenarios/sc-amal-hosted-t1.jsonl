@@ -1,0 +1,52 @@
+{"kind": "tool_use", "tool_call_id": "call_d5e83b7fa97e4c9eb6d64c27e3c41441", "name": "resolve_symbol", "input": {"query": "AMAL", "region": "IN"}}
+{"kind": "tool_result", "tool_call_id": "call_d5e83b7fa97e4c9eb6d64c27e3c41441", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_9b28069c1d1f4ca893fbc115ecf60d63", "name": "price_data", "input": {"symbol": "AMAL", "timeframe": "1d", "range": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_9b28069c1d1f4ca893fbc115ecf60d63", "name": "price_data", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Amal"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "AM"}
+{"kind": "delta", "text": "AL"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "674"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "40"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "It"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " decreased"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "93"}
+{"kind": "delta", "text": "%,"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " latest"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " session"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 11153, "output_tokens": 47, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.017409}

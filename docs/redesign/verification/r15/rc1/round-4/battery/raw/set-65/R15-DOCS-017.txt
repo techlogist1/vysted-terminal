@@ -1,0 +1,31 @@
+CMD: curl -s -m 30 'http://127.0.0.1:52343/screener/universe?id=nse-all'
+nse-all count 3506
+CMD: bse-all
+bse-all count 5042
+CMD: india-all
+india-all count 5891
+CMD: sp500
+sp500 count 503
+--- CURRENT_STATE.md §3.3 screener bullet ---
+  unverified from service code alone.**
+- **`news_provider.py`** — RSS (Yahoo, MarketWatch, per-symbol Yahoo; always on)
+  - NewsAPI (BYOK `NEWSAPI_KEY` only). Shared pooled `httpx.AsyncClient` (the
+    cold-start TLS-cascade fix). No caching — re-fetches live every request.
+- **`sentiment.py`** — VADER lexicon (a deliberate Tier-3 choice: FinBERT would
+  drag `torch` into the bundle). Coarse, "at a glance," **not finance-grade** —
+  flagged honestly in the docstring.
+- **`earnings_provider.py`** — yfinance calendar/estimates/surprises. Fiscal
+  period **inferred from calendar month** (best-effort, UI-only); EPS stddev is
+  an approximation `(high−low)/4`. Router-side caching.
+- **`analyst_ratings_extended.py`** — yfinance has **no individual-analyst
+  names** (firm used as label), **no real price-target timeline** (often a single
+  synthetic "Consensus" anchor row). Honest degeneracy baked in.
+- **`sec_filings_provider.py`** (conditional) — sec-edgar-mcp subprocess. Narrow
+  form coverage (10-K/10-Q/8-K/DEF 14A/3/4/5); extractors heavily defensive
+  against upstream shape drift. Caches via `data_cache`.
+--- grep for stale 2675/only top 100 figures ---
+378:  grouping is no longer reserved/unimplemented.
+467:consumer** (stdio is dead code reserved for filesystem plugins).
+910:  the inert DataSource/connector registry, the dead stdio transport reserved for
+
+VERDICT: holds — live GET /screener/universe?id=... on :52343 returns nse-all 3506, bse-all 5042, india-all 5891, sp500 503, matching CURRENT_STATE.md §3.3's stated counts (3,506 = EQ 2,584+ETF 351+SM 571; 5,042; 5,891; 503) and batch-13's own cert numbers exactly — no drift. models/screener.py:213 CriterionGroup on ScreenerRequest.group confirms nested AND/OR shipped (not 'reserved'). Separately (see new_defect finding rc1-battery-3:1): docs/CURRENT_STATE.md:356-358 still describes earnings fiscal_period as 'inferred from calendar month' and EPS stddev as 'an approximation (high-low)/4' — stale since the DATA-032/067 fix (confirmed live in set-19: both fields now return null, not fabricated/inferred values). That staleness is outside R15-DOCS-017's own scope (a different CURRENT_STATE.md section) and does not affect this entry's verdict.

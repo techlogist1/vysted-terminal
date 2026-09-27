@@ -1,0 +1,12 @@
+'Could you drop WIPRO from my portfolio?' -> signals= [] compound= False
+'Take TCS out of my holdings please' -> signals= [] compound= False
+'Get rid of my INFY position' -> signals= [] compound= False
+'Remove the 50 shares of HDFC I logged earlier' -> signals= ['\\bremove\\b'] compound= False
+'Update my portfolio: I sold all my ITC' -> signals= ['\\bsold\\b', '\\bupdate\\b'] compound= False
+'Could you drop WIPRO from my portfolio?' -> intent= read signals= [] STRIPPED= False
+'Take TCS out of my holdings please' -> intent= read signals= [] STRIPPED= False
+'Get rid of my INFY position' -> intent= read signals= [] STRIPPED= False
+'Remove the 50 shares of HDFC I logged earlier' -> intent= edit signals= ['\\bremove\\b'] STRIPPED= False
+'Update my portfolio: I sold all my ITC' -> intent= edit signals= ['\\bsold\\b', '\\bupdate\\b'] STRIPPED= False
+'Delete TCS from my portfolio' -> intent= edit signals= ['\\bdelete\\b'] STRIPPED= False
+'I bought 10 INFY at 1500' -> intent= edit signals= ['\\bbought\\b', '\\b\\d[\\d,.]*\\s+[a-z][\\w.&-]*\\s+at\\s+\\S*\\d'] STRIPPED= False

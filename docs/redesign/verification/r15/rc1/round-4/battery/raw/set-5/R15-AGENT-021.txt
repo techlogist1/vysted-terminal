@@ -1,0 +1,24 @@
+CMD: pytest -v test_search_scrub.py (candidate sha 1006c6da694ede5776c3dabbd27b305aeb56b5ad, sidecar/tests)
+---MATCHED LINES---
+tests/test_search_scrub.py::test_embedded_open_marker_is_neutralised PASSED [  4%]
+tests/test_search_scrub.py::test_embedded_close_marker_is_neutralised PASSED [  5%]
+tests/test_search_scrub.py::test_plain_text_passes_through_unchanged PASSED [  6%]
+tests/test_search_scrub.py::test_label_newlines_flattened PASSED         [  8%]
+tests/test_search_scrub.py::test_label_markers_escaped PASSED            [  9%]
+tests/test_search_scrub.py::test_wrapped_block_structure PASSED          [ 10%]
+tests/test_search_scrub.py::test_wrapped_block_cannot_be_broken_out_of PASSED [ 11%]
+tests/test_search_scrub.py::test_none_content_fences_empty_body_not_the_string_none PASSED [ 12%]
+tests/test_search_scrub.py::test_non_string_content_is_stringified PASSED [ 13%]
+tests/test_search_scrub.py::test_inline_flattens_multiline_titles PASSED [ 14%]
+tests/test_search_scrub.py::test_inline_escapes_markers PASSED           [ 16%]
+tests/test_search_scrub.py::test_inline_handles_empty_and_none_gracefully PASSED [ 17%]
+---vitest AUTO gate (host-actions.test.ts, 106 passed) full output below---
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand
+
+
+ Test Files  1 passed (1)
+      Tests  106 passed (106)
+   Start at  03:17:02
+   Duration  1.12s (transform 259ms, setup 80ms, import 293ms, tests 53ms, environment 594ms)
+

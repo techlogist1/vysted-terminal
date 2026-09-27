@@ -1,0 +1,534 @@
+{"kind": "tool_use", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "name": "research", "input": {"query": "TCS", "depth": "quick"}}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "tool": "research", "step_kind": "engine", "detail": "research:begin d5fadd65d1bf4229903c600630bdca65 depth=normal query=TCS", "latency_ms": null, "status": "ok", "index": 1}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "tool": "research", "step_kind": "plan", "detail": "resolving \"TCS\"", "latency_ms": null, "status": "ok", "index": 2}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 TCS", "latency_ms": 1, "status": "ok", "index": 3}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "tool": "research", "step_kind": "tool", "detail": "pulling market data for TCS", "latency_ms": null, "status": "ok", "index": 4}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "tool": "research", "step_kind": "search", "detail": "searching the web for Tata Consultancy Services Limited", "latency_ms": null, "status": "ok", "index": 5}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "tool": "research", "step_kind": "search", "detail": "0 web source(s)", "latency_ms": 778, "status": "ok", "index": 6}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "tool": "research", "step_kind": "tool", "detail": "price timed out after 6s \u2014 dropped", "latency_ms": 6000, "status": "error", "index": 7}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "tool": "research", "step_kind": "tool", "detail": "fundamentals timed out after 6s \u2014 dropped", "latency_ms": 6000, "status": "error", "index": 8}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "tool": "research", "step_kind": "tool", "detail": "pulled 2/4 data sources", "latency_ms": 6014, "status": "ok", "index": 9}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 10}
+{"kind": "tool_result", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449", "name": "research", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449__autobrief", "name": "publish_brief", "input": {"query": "TCS", "symbol": "TCS", "mode": "fast", "depth": "quick", "execution": {"run_id": "d5fadd65d1bf4229903c600630bdca65", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790465791.5557199, "finished_at": 1790465797.5719879, "degraded_reason": null}, "markdown": "", "sources": [], "structured": {"price": {"ok": false, "provider": null, "error": "price timed out after 6s \u2014 dropped", "reason": "provider_error"}, "fundamentals": {"ok": false, "provider": null, "error": "fundamentals timed out after 6s \u2014 dropped", "reason": "provider_error"}, "derived": {"ok": true, "provider": "derived", "data": {"drawdown_from_high": {"value": null, "label": "Below 52-week high", "basis": "vs 52w high", "formula": "(52w high - price) / 52w high", "unit": "fraction"}, "fifty_two_week_change": {"value": null, "label": "52-week price change (Yahoo)", "basis": "trailing 52 weeks", "unit": "fraction"}, "dividend_yield": {"value": null, "label": "Dividend yield", "basis": "fraction of price", "unit": "fraction"}, "dividend_per_share": {"value": null, "label": "Dividend per share", "basis": "per share, listing currency", "unit": "currency"}, "revenue_growth": {"value": null, "label": "Revenue growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction"}, "earnings_growth": {"value": null, "label": "Earnings growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction"}, "market_cap": {"value": null, "label": "Market cap", "basis": "provider market cap", "unit": "currency"}, "conflicts": []}}, "news": {"ok": true, "provider": "rss", "data": [{"id": "75c3fdc6443f768c", "title": "Porsche sharpens focus on core business with MHP sale to India\u2019s TCS", "summary": "The transaction, part of Porsche\u2019s Sportwagenschmiede 35 plan, will see a TCS subsidiary acquire full ownership of MHP Management- und IT-Beratung.", "url": "https://www.just-auto.com/news/porsche-core-business-mhp-sale-tcs/?.tsrc=rss", "source": "Yahoo! Finance: TCS.NS News", "published_at": "2026-08-25T18:02:45Z", "symbols": ["TCS"], "sentiment": 0.0, "sentiment_label": "neutral", "provider": "rss"}]}, "filings": {"ok": true, "provider": "nse+bse", "data": {"symbol": "TCS", "exchange": null, "coverage": "covered", "sources": ["NSE", "BSE"], "errors": {}, "count": 20, "announcements": [{"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange about Copy of Newspaper Publication", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_25092026172243_SEInt25092026_signed.pdf", "ts": "2026-09-25T17:23:14+05:30"}, {"symbol": "TCS", "exchange": "BSE", "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/88a5ea39-c277-48f2-aba8-b29d70bd4f74.pdf", "ts": "2026-09-24T18:54:15.950000+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange about Copy of Newspaper Publication", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_24092026184057_SE_Intimation_24092026.pdf", "ts": "2026-09-24T18:43:10+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS renews title partnership with Jaguar TCS Racing and expands role as official AI partner ahead of Formula E's GEN4 era'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_23092026132301_PR_23Sep26_signed.pdf", "ts": "2026-09-23T13:30:16+05:30"}, {"symbol": "TCS", "exchange": "BSE", "headline": "Corporate Action-Board to consider Dividend", "category": "Corp. Action", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d30099a0-47f4-4672-b9b0-ec38a4bd4147.pdf", "ts": "2026-09-22T18:37:02.150000+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange that Record date for the purpose of Dividend  is 14-Oct-2026.", "category": "Record Date", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_22092026182548_Pre_Board_meeting_intimation_signed.pdf", "ts": "2026-09-22T18:27:02+05:30"}, {"symbol": "TCS", "exchange": "BSE", "headline": "Board Meeting Intimation for Approval Of The Financial Results And Consideration Of Declaration Of Second Interim Dividend", "category": "Board Meeting", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/44d58746-a23e-4c75-822b-15876bd05df1.pdf", "ts": "2026-09-22T18:20:51.113000+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange about Copy of Newspaper Publication", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_17092026182355_SE_letter_17092026.pdf", "ts": "2026-09-17T18:24:44+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS to Accelerate AI-Led Technology Transformation for Germany's Aareal Bank'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_15092026142406_PR_15Sep26230pm_signed.pdf", "ts": "2026-09-15T14:30:07+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - DGCX partners with TCS to advance and upgrade derivatives market infrastructure'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_15092026112128_PR_15Sep26_signed.pdf", "ts": "2026-09-15T11:30:09+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS launches India's first lights-out factory lab to advance AI-first manufacturing'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_09092026112108_PR_09Sep26_signed.pdf", "ts": "2026-09-09T11:30:08+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS wins Rs 122 crore bid to build AI-enabled digital governance platform for Odisha Government'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_08092026112028_PR_08Sep26_signed.pdf", "ts": "2026-09-08T11:30:08+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS launches AI-native creative engineering studio in the UK'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_07092026112044_PR_07Sep26_signed.pdf", "ts": "2026-09-07T11:30:09+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Press Release titled  TCS  HyperVault to establish large-scale AI data center campus in Telangana  being issued by HyperVault AI Data Center Limited, a subsidiary of the Company.", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_05092026152211_Signed_Ltr_05Sep26.pdf", "ts": "2026-09-05T15:24:27+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS to harmonise Metro's IT application landscape and support scalable growth'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_03092026112207_PR_03Sep26_signed.pdf", "ts": "2026-09-03T11:30:13+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange about Schedule of meet", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_26082026153743_SEInt.pdf", "ts": "2026-08-26T15:38:08+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange about Bagging/Receiving of orders/contracts", "category": "Bagging/Receiving of orders/contracts", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_24082026165820_SE_Disclosure_award.pdf", "ts": "2026-08-24T16:58:28+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange regarding a press release dated August 24, 2026, titled \"TCS and Porsche AG Partner to Accelerate the Future of AI-Powered Mobility\".", "category": "Press Release", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_24082026165707_SE_Disclosure_240828_acq.pdf", "ts": "2026-08-24T16:57:29+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange about Acquisition", "category": "Acquisition", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_24082026165522_SE_Disclosure_240828_acq.pdf", "ts": "2026-08-24T16:55:49+05:30"}, {"symbol": "TCS", "exchange": "NSE", "headline": "Tata Consultancy Services Limited has informed the Exchange regarding 'Press Release - TCS launches Agentic AI platform to transform drug development'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/TCS_CORPCS_17082026112153_PR_17Aug26_signed.pdf", "ts": "2026-08-17T11:30:08+05:30"}]}}}, "cost": null, "web_available": true, "note": null, "web_reason": null, "backend": "keyless-fallback"}}
+{"kind": "tool_use", "tool_call_id": "call_9ee08b06d15243179529b7a35eed8209", "name": "price_data", "input": {"symbol": "TCS", "timeframe": "1d", "range": "6mo", "asset_class": "equity"}}
+{"kind": "tool_use", "tool_call_id": "call_9411c66e5d8e422088585f4300882a27", "name": "fundamentals", "input": {"symbol": "TCS"}}
+{"kind": "tool_use", "tool_call_id": "call_30babc5fedb442d193ae4960d12b91fc", "name": "news", "input": {"symbols": ["TCS"], "limit": 10}}
+{"kind": "tool_use", "tool_call_id": "call_6f15317ee5a84fcdbd63917b9c8ef506", "name": "corporate_announcements", "input": {"symbol": "TCS", "limit": 5}}
+{"kind": "tool_result", "tool_call_id": "call_9ee08b06d15243179529b7a35eed8209", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_9411c66e5d8e422088585f4300882a27", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_30babc5fedb442d193ae4960d12b91fc", "name": "news", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_6f15317ee5a84fcdbd63917b9c8ef506", "name": "corporate_announcements", "ok": true, "error": null}
+{"kind": "delta", "text": "Here's"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " quick"}
+{"kind": "delta", "text": " overview"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Tata"}
+{"kind": "delta", "text": " Consultancy"}
+{"kind": "delta", "text": " Services"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": "):\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Current"}
+{"kind": "delta", "text": " Price"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Price"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "082"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Change"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "5"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": " (-"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "24"}
+{"kind": "delta", "text": "%)\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Volume"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "342"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "195"}
+{"kind": "delta", "text": " shares"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Market"}
+{"kind": "delta", "text": " State"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " Closed"}
+{"kind": "delta", "text": " as"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " day"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Key"}
+{"kind": "delta", "text": " Fundamentals"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Market"}
+{"kind": "delta", "text": " Cap"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "753"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "286"}
+{"kind": "delta", "text": " crore"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "PEG"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "73"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Price"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Book"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "87"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " Share"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "EPS"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "137"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "64"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Dividend"}
+{"kind": "delta", "text": " Yield"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "12"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Dividend"}
+{"kind": "delta", "text": " per"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "65"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": ")\n\n"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "Growth"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ":\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Revenue"}
+{"kind": "delta", "text": " Growth"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Yo"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "93"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " Growth"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Yo"}
+{"kind": "delta", "text": "Y"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "62"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Return"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " Equity"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "RO"}
+{"kind": "delta", "text": "E"}
+{"kind": "delta", "text": "):"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "47"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "74"}
+{"kind": "delta", "text": "%\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Debt"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " Equity"}
+{"kind": "delta", "text": ":**"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Recent"}
+{"kind": "delta", "text": " News"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "P"}
+{"kind": "delta", "text": "orsche"}
+{"kind": "delta", "text": " Partners"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Porsche"}
+{"kind": "delta", "text": " sharp"}
+{"kind": "delta", "text": "ens"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " focus"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " core"}
+{"kind": "delta", "text": " business"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " sells"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " M"}
+{"kind": "delta", "text": "HP"}
+{"kind": "delta", "text": " unit"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " part"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " larger"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " mobility"}
+{"kind": "delta", "text": " strategy"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " ["}
+{"kind": "delta", "text": "Read"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "www"}
+{"kind": "delta", "text": ".just"}
+{"kind": "delta", "text": "-auto"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "/news"}
+{"kind": "delta", "text": "/p"}
+{"kind": "delta", "text": "orsche"}
+{"kind": "delta", "text": "-core"}
+{"kind": "delta", "text": "-business"}
+{"kind": "delta", "text": "-m"}
+{"kind": "delta", "text": "hp"}
+{"kind": "delta", "text": "-sale"}
+{"kind": "delta", "text": "-t"}
+{"kind": "delta", "text": "cs"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "?."}
+{"kind": "delta", "text": "ts"}
+{"kind": "delta", "text": "rc"}
+{"kind": "delta", "text": "=r"}
+{"kind": "delta", "text": "ss"}
+{"kind": "delta", "text": ").\n"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "AI"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " Impact"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " IT"}
+{"kind": "delta", "text": " Contracts"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Increasing"}
+{"kind": "delta", "text": " adoption"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " resh"}
+{"kind": "delta", "text": "aping"}
+{"kind": "delta", "text": " India's"}
+{"kind": "delta", "text": " IT"}
+{"kind": "delta", "text": " services"}
+{"kind": "delta", "text": " sector"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " demanding"}
+{"kind": "delta", "text": " better"}
+{"kind": "delta", "text": " value"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " service"}
+{"kind": "delta", "text": " providers"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " ["}
+{"kind": "delta", "text": "Read"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "finance"}
+{"kind": "delta", "text": ".yahoo"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "technology"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "ai"}
+{"kind": "delta", "text": "/articles"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "ai"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "resh"}
+{"kind": "delta", "text": "apes"}
+{"kind": "delta", "text": "-ind"}
+{"kind": "delta", "text": "ias"}
+{"kind": "delta", "text": "-services"}
+{"kind": "delta", "text": "-sector"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "230"}
+{"kind": "delta", "text": "207"}
+{"kind": "delta", "text": "347"}
+{"kind": "delta", "text": ".html"}
+{"kind": "delta", "text": "?."}
+{"kind": "delta", "text": "ts"}
+{"kind": "delta", "text": "rc"}
+{"kind": "delta", "text": "=r"}
+{"kind": "delta", "text": "ss"}
+{"kind": "delta", "text": ").\n"}
+{"kind": "delta", "text": "3"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " Press"}
+{"kind": "delta", "text": " Releases"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " Recently"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " announced"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " renewal"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " its"}
+{"kind": "delta", "text": " title"}
+{"kind": "delta", "text": " partnership"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " Jaguar"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " Racing"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " expanded"}
+{"kind": "delta", "text": " roles"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " AI"}
+{"kind": "delta", "text": " integration"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " ["}
+{"kind": "delta", "text": "Read"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "n"}
+{"kind": "delta", "text": "search"}
+{"kind": "delta", "text": "ives"}
+{"kind": "delta", "text": ".n"}
+{"kind": "delta", "text": "se"}
+{"kind": "delta", "text": "india"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "/c"}
+{"kind": "delta", "text": "orpor"}
+{"kind": "delta", "text": "ate"}
+{"kind": "delta", "text": "/T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": "_COR"}
+{"kind": "delta", "text": "PCS"}
+{"kind": "delta", "text": "_"}
+{"kind": "delta", "text": "230"}
+{"kind": "delta", "text": "920"}
+{"kind": "delta", "text": "261"}
+{"kind": "delta", "text": "323"}
+{"kind": "delta", "text": "01"}
+{"kind": "delta", "text": "_PR"}
+{"kind": "delta", "text": "_"}
+{"kind": "delta", "text": "23"}
+{"kind": "delta", "text": "Sep"}
+{"kind": "delta", "text": "26"}
+{"kind": "delta", "text": "_signed"}
+{"kind": "delta", "text": ".pdf"}
+{"kind": "delta", "text": ").\n\n"}
+{"kind": "delta", "text": "###"}
+{"kind": "delta", "text": " Corporate"}
+{"kind": "delta", "text": " Ann"}
+{"kind": "delta", "text": "ouncements"}
+{"kind": "delta", "text": "\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Dividend"}
+{"kind": "delta", "text": " Consider"}
+{"kind": "delta", "text": "ation"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ":"}
+{"kind": "delta", "text": " The"}
+{"kind": "delta", "text": " board"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " set"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " consider"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " dividend"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " ["}
+{"kind": "delta", "text": "Details"}
+{"kind": "delta", "text": "]("}
+{"kind": "delta", "text": "https"}
+{"kind": "delta", "text": "://"}
+{"kind": "delta", "text": "www"}
+{"kind": "delta", "text": ".b"}
+{"kind": "delta", "text": "se"}
+{"kind": "delta", "text": "india"}
+{"kind": "delta", "text": ".com"}
+{"kind": "delta", "text": "/xml"}
+{"kind": "delta", "text": "-data"}
+{"kind": "delta", "text": "/c"}
+{"kind": "delta", "text": "orp"}
+{"kind": "delta", "text": "fil"}
+{"kind": "delta", "text": "ing"}
+{"kind": "delta", "text": "/"}
+{"kind": "delta", "text": "Attach"}
+{"kind": "delta", "text": "His"}
+{"kind": "delta", "text": "/d"}
+{"kind": "delta", "text": "300"}
+{"kind": "delta", "text": "99"}
+{"kind": "delta", "text": "a"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "47"}
+{"kind": "delta", "text": "f"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "467"}
+{"kind": "delta", "text": "2"}
+{"kind": "delta", "text": "-b"}
+{"kind": "delta", "text": "9"}
+{"kind": "delta", "text": "b"}
+{"kind": "delta", "text": "0"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "ec"}
+{"kind": "delta", "text": "38"}
+{"kind": "delta", "text": "a"}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "bd"}
+{"kind": "delta", "text": "414"}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": ".pdf"}
+{"kind": "delta", "text": ").\n\n"}
+{"kind": "delta", "text": "Built"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": " \u2014"}
+{"kind": "delta", "text": " it's"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " top"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " cockpit"}
+{"kind": "delta", "text": ";"}
+{"kind": "delta", "text": " click"}
+{"kind": "delta", "text": " any"}
+{"kind": "delta", "text": " link"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " dig"}
+{"kind": "delta", "text": " in"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " add"}
+{"kind": "delta", "text": " indicators"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " chart"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " explore"}
+{"kind": "delta", "text": " another"}
+{"kind": "delta", "text": " aspect"}
+{"kind": "delta", "text": "?"}
+{"kind": "research_step", "tool_call_id": "call_bf59b6c6189c465e9c19ee9a932da449__autobrief", "tool": "publish_brief", "step_kind": "notice", "detail": "The brief panel did not confirm the publish \u2014 treat it as NOT rendered until get_terminal_state shows it.", "latency_ms": null, "status": "error", "index": 1}
+{"kind": "done", "usage": {"input_tokens": 26728, "output_tokens": 511, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.030998}

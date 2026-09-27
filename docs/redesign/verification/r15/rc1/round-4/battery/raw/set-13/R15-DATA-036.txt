@@ -1,0 +1,8 @@
+real 4.88
+user 0.00
+sys 0.00
+real 5.79
+user 0.00
+sys 0.00
+provider bse n_bars 255
+last bar {'timestamp': '2026-09-25T00:00:00Z', 'open': 184.7, 'high': 184.7, 'low': 179.25, 'close': 180.8, 'volume': 1529.0}

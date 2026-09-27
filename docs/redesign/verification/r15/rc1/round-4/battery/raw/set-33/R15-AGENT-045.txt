@@ -1,0 +1,116 @@
+provider nse_direct failed for quote, falling through: nse_direct: 'MAZAGONDOCK' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'MAZAGONDOCK' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: 'MAZAGONDOCK' is not a known BSE instrument
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: MAZAGONDOCK.NS"}}}
+$MAZAGONDOCK.NS: possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")
+$MAZAGONDOCK.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+provider yfinance failed for quote, falling through: yfinance quote failed for 'MAZAGONDOCK': $MAZAGONDOCK.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+provider nse_direct failed for quote, falling through: nse_direct: 'Mazagon Dock' is not a known NSE instrument
+provider nse_direct failed for quote, falling through: nse_direct: 'Cochin Shipyard' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'Mazagon Dock' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'Cochin Shipyard' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: 'Mazagon Dock' is not a known BSE instrument
+provider bse failed for quote, falling through: bse: 'Cochin Shipyard' is not a known BSE instrument
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: COCHIN SHIPYARD.NS"}}}
+$MAZAGON DOCK.NS: possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")
+$MAZAGON DOCK.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+$COCHIN SHIPYARD.NS: possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")
+provider yfinance failed for quote, falling through: yfinance quote failed for 'Mazagon Dock': $MAZAGON DOCK.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+$COCHIN SHIPYARD.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+provider yfinance failed for quote, falling through: yfinance quote failed for 'Cochin Shipyard': $COCHIN SHIPYARD.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+CASE1 (invented ticker):
+{
+  "ok": false,
+  "symbols": [
+    {
+      "symbol": "COCHINSHIP",
+      "provider": "nse_direct",
+      "quote": {
+        "price": 1377.0,
+        "change_percent": 0.5109489051094891,
+        "currency": "INR"
+      },
+      "fundamentals": {
+        "market_cap": 362262233088.0,
+        "pe_ratio": 53.18656,
+        "forward_pe": 30.805368,
+        "peg_ratio": null,
+        "price_to_book": 6.168222,
+        "dividend_yield": 0.008199999999999999,
+        "eps": 25.89,
+        "beta": 0.582
+      },
+      "return_pct_window": 8.49353923731484,
+      "bars": 127,
+      "window_start": "2026-03-23",
+      "window_end": "2026-09-25"
+    },
+    {
+      "symbol": "MAZAGONDOCK",
+      "error": "unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker",
+      "note": "unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker"
+    }
+  ],
+  "message": "fewer than two symbols resolved \u2014 1 of 2 returned a quote. MAZAGONDOCK: unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker"
+}
+CASE2 (names):
+{
+  "ok": true,
+  "timeframe": "1d",
+  "symbols": [
+    {
+      "symbol": "COCHINSHIP",
+      "requested": "Cochin Shipyard",
+      "note": "resolved 'Cochin Shipyard' \u2192 'COCHINSHIP.NS'",
+      "provider": "nse_direct",
+      "quote": {
+        "price": 1377.0,
+        "change_percent": 0.5109489051094891,
+        "currency": "INR"
+      },
+      "fundamentals": {
+        "market_cap": 362262233088.0,
+        "pe_ratio": 53.18656,
+        "forward_pe": 30.805368,
+        "peg_ratio": null,
+        "price_to_book": 6.168222,
+        "dividend_yield": 0.008199999999999999,
+        "eps": 25.89,
+        "beta": 0.582
+      },
+      "return_pct_window": 8.49353923731484,
+      "bars": 127,
+      "window_start": "2026-03-23",
+      "window_end": "2026-09-25"
+    },
+    {
+      "symbol": "MAZDOCK",
+      "requested": "Mazagon Dock",
+      "note": "resolved 'Mazagon Dock' \u2192 'MAZDOCK.NS'",
+      "provider": "nse_direct",
+      "quote": {
+        "price": 2199.6,
+        "change_percent": -0.10899182561308314,
+        "currency": "INR"
+      },
+      "fundamentals": {
+        "market_cap": 887274668032.0,
+        "pe_ratio": 33.111546,
+        "forward_pe": 28.561806,
+        "peg_ratio": null,
+        "price_to_book": 9.095684,
+        "dividend_yield": 0.0095,
+        "eps": 66.43,
+        "beta": 0.617
+      },
+      "return_pct_window": -0.3217474056283143,
+      "bars": 127,
+      "window_start": "2026-03-23",
+      "window_end": "2026-09-25"
+    }
+  ],
+  "relative": {
+    "best": "COCHINSHIP",
+    "worst": "MAZDOCK"
+  }
+}

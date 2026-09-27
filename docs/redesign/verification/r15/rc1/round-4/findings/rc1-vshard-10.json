@@ -1,0 +1,12 @@
+[
+  {
+    "key": "rc1-vshard-10:1",
+    "kind": "new_defect",
+    "severity": "low",
+    "register_id": null,
+    "title": "Backtest sell of exactly the held fractional quantity leaves a float-dust open position and an open trade row",
+    "repro": "sidecar/.venv/bin/python docs/redesign/verification/r15/rc1/round-4/verifier/shard-10-raw/p030.py at 68d5573a: scripted strategy buys 0.1 then 0.2 then sells 0.3 on a flat 100 market -> trades [(5.551115123125783e-17, None, None), (0.3, -0.06, '2025-01-04')]; the 5.55e-17 position stays open (sold < position.quantity because 0.1+0.2=0.30000000000000004). Latent: registered strategies exit with quantity=-held exactly.",
+    "evidence_file": "docs/redesign/verification/r15/rc1/round-4/verifier/shard-10-raw/p030.log",
+    "suspected_files": ["sidecar/services/backtest_engine.py"]
+  }
+]

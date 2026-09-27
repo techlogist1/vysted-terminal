@@ -1,0 +1,16 @@
+=== R15-UI-011 probe (candidate 1006c6da) ===
+No sidecar-side change for this entry (server already cancelled on client disconnect pre-fix); the fix is entirely a frontend AbortController + Stop button. No browser/GUI tool is available in this role/environment (playwright and tauri-mcp both failed to connect: 'npx'/'node' not on PATH; chrome-in-devtools cannot synthesize a real stream-abort scenario either).
+--- code inspection: src/store/backtest.ts AbortController wiring ---
+91:  startRun: (request: BacktestRequest, options?: { signal?: AbortSignal }) => Promise<string>;
+281:      await consumeBacktestStream(request, handleEvent, options?.signal);
+283:      if (options?.signal?.aborted) {
+380:  signal?: AbortSignal,
+389:    signal,
+--- code inspection: BacktestPanel.tsx Stop button ---
+117:  // One controller per run, shared by Run and Retry, so Stop can abort
+128:  const handleStop = useCallback(() => controllerRef.current?.abort(), []);
+279:              onClick={handleStop}
+281:              aria-label="Stop backtest"
+286:              Stop
+Pinned frontend test (not executed): src/modules/backtest/BacktestPanel.test.tsx:481-512, describe block 'BacktestPanel Stop (R15-UI-011)' -- 'Stop aborts the live stream, idles the run, and Retry runs on a fresh controller'.
+VERDICT: ci_pinned. NOT RUN this shard (frontend-only, needs_gui / heavy vitest lane); code shows AbortController + Stop wiring present; certification rests on the named pinned test.

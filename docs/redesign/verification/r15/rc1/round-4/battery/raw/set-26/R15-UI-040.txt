@@ -1,0 +1,13 @@
+{"runs":[{"id":"260684a4133345b395efaa65554bc2f8","agent_id":"copilot","agent_name":"Vysted Copilot","mode":"delegate","status":"cancelled","cost":{"tokens":0,"spend_usd":0.0,"steps":0,"spendUsd":0.0},"budget":{"max_tokens":null,"max_spend_usd":null,"max_wall_seconds":null,"max_steps":null,"maxTokens":null,"maxSpendUsd":null,"maxWallSeconds":null,"maxSteps":null},"provider":null,"model":null,"plan":null,"activity":[],"detail":"cancelled by user","question":null,"created_at":1783624449,"updated_at":1783624452,"agentId":"copilot","agentName":"Vysted Copilot","createdAt":1783624449,"updatedAt":1783624452},{"id":"3aa27a3b2ebb4e64bd8d48c2da23ae26","agent_id":"copilot","agent_name":"Vysted Copilot","mode":"delegate","status":"done","cost":{"tokens":54450,"spend_usd":0.1089,"steps":2,"spendUsd":0.1089},"budget":{"max_tokens":null,"max_spend_usd":null,"max_wall_seconds":null,"max_steps":null,"maxTokens":null,"maxSpendUsd":null,"maxWallSeconds":null,"maxSteps":null},"provider":null,"model":null,"plan":null,"activity":[],"detail":"completed","question":null,"created_at":1783624388,"updated_at":1783624433,"agentId":"copilot","agentName":"Vysted Copilot","createdAt":1783624388,"updatedAt":1783624433}]}
+=== Source cross-check (frontend fix, no vitest run — code inspection + this run's live GET /runs shape) ===
+src/lib/delegate-runs.ts:297-326 adoptSidecarRuns(): fetchRuns() -> GET /runs; for every
+live-status run the local store does not mirror (store.bySidecarId(w.id) miss), it calls
+store.startRun(...) + store.updateRun(...) to adopt it — so a reload repopulates the rail
+from the sidecar instead of staying empty.
+
+src/lib/delegate-runs.ts:336-343 cancelDelegateRun(): the local store is only marked
+"cancelled" INSIDE the try block, after `await sidecarRequest(...)` resolves without
+throwing; a failed cancel is caught and returns {ok:false, error} WITHOUT touching local
+state — response.ok is now checked (via sidecarRequest -> sidecar-client.ts:264
+`if (!response.ok) throw new SidecarError(...)`), so a failed cancel cannot show
+"cancelled" while the run keeps spending.

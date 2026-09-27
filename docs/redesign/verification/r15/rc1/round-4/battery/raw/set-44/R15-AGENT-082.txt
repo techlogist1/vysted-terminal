@@ -1,0 +1,41 @@
+R15-AGENT-082: frontend chat footer rendering — needs vitest+jsdom/GUI to execute; out of scope for this role.
+
+CMD: sed -n '1570,1585p' src/modules/chat/ChatSidebar.tsx
+/** A finished assistant message's token + spend footer (R15-AGENT-082):
+ *  "N tok · ~$X". Spend is omitted when unknown (`spendUsd` absent/null) and
+ *  shown as "~$0.00" when the model is free — the two read differently. */
+function MessageCostFooter({ message }: { message: ChatMessage }) {
+  if (message.role !== "assistant" || message.pending || !message.usage) {
+    return null;
+  }
+  const tokens = message.usage.inputTokens + message.usage.outputTokens;
+  const spendUsd = message.spendUsd;
+  const text =
+    typeof spendUsd === "number"
+      ? `${tokens.toLocaleString()} tok · ~$${spendUsd.toFixed(2)}`
+      : `${tokens.toLocaleString()} tok`;
+  return <div className="text-charcoal-500 text-micro mt-1 font-mono">{text}</div>;
+}
+
+
+CMD: sed -n '984,999p' src/modules/chat/ChatSidebar.tsx
+        onDone: (usage, finishReason, contextWindow, spendUsd) => {
+          if (abortRef.current === controller) {
+            abortRef.current = null;
+          }
+          // A raw chat has no runtime to notice a cut-off answer; the agent
+          // path's runtime emits the same notice itself (R15-AGENT-026).
+          if (!agentForCall && isLengthFinish(finishReason)) {
+            useMessageNoticesStore.getState().addNotice(assistantId, LENGTH_NOTICE);
+          }
+          finalize(assistantId, usage, contextWindow, spendUsd);
+          if (usage) {
+            updateRun(runId, {
+              cost: {
+                tokens: usage.inputTokens + usage.outputTokens,
+                spendUsd: spendUsd ?? 0,
+                steps: 0,
+
+Confirms: onDone callback now carries a real spendUsd param through to cost.spendUsd (was hard-coded 0); footer renders '$X.XX' when spendUsd is a number, omits the segment only when it is absent/null (not when it is a real 0).
+Pinned tests: src/modules/chat/ChatSidebar.test.tsx:1000,1018,1036
+VERDICT: ci_pinned

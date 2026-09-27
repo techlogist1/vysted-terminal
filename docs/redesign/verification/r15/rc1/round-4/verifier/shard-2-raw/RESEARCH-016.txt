@@ -1,0 +1,7 @@
+R15-RESEARCH-016 @ 68d5573aff9a579af084dcbb124843f2aecff6e8
+code: iter.py:371-393 explorer guard split: pull floor only when structured['disclosures'] is None, but ALWAYS _record_web(floor rows) (pre-seeded by run_heavy_research iter.py:989-995)
+own acceptance pin: tests/test_research_iter.py:662 test_ultra_cites_the_preseeded_filings_floor
+fresh variant cmd: cd <worktree>/sidecar && PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python scratchpad/vs2/r016.py (ULTRA angles=3 vs DEEP over the thin-web KSE stub floor)
+ULTRA angles=3 ResearchBrief n_sources 3 urls ['https://www.bseindia.com/xml/kse_bm.pdf', 'vysted://price/KSE', 'vysted://news/KSE'] dups {}
+DEEP ResearchBrief n_sources 3 urls ['https://www.bseindia.com/xml/kse_bm.pdf', 'vysted://price/KSE', 'vysted://news/KSE'] dups {}
+=> ULTRA cites the floor row identically to DEEP, no duplicate [n] across 3 explorers. Verdict: HOLDS

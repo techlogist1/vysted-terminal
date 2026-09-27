@@ -1,0 +1,4 @@
+data: {"kind": "error", "message": "The DeepSeek API key was rejected \u2014 check it in Settings.", "action": "Re-enter the API key in Settings.", "detail": "Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****-401 is invalid (request_id: 701dc6ab-8335-479f-8ed0-8a334d387314)', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}", "code": "auth"}
+
+data: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+

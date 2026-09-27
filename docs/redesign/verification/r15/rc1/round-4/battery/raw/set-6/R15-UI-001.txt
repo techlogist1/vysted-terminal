@@ -1,0 +1,66 @@
+R15-UI-001: frontend TipTap/React component logic — cannot execute the exact original repro without vitest+jsdom or a live GUI (both out of scope for this role).
+
+Static source check performed instead:
+CMD: sed -n '150,206p' src/modules/notes/NotesPanel.tsx
+  // What the editor shows: the note it last loaded from, or last wrote to, the store.
+  const shownRef = useRef<ScopedNote | null>(null);
+  // The user's unsaved edit, captured with the scope it was typed in.
+  const pendingRef = useRef<ScopedNote | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Write the pending edit to ITS scope: store first, then the atomic .md file.
+  const flush = useCallback(() => {
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    const pending = pendingRef.current;
+    if (!pending) return;
+    pendingRef.current = null;
+    shownRef.current = pending;
+    const notes = useNotesStore.getState();
+    if (pending.scope === "") {
+      notes.setGeneral(pending.md);
+    } else {
+      notes.setSymbolNote(pending.scope, pending.md);
+    }
+    void persistNoteMd(pending.scope, pending.md);
+  }, []);
+
+  // A user edit (programmatic loads never emit one) → capture + debounce.
+  useEffect(() => {
+    if (!editor) return;
+    const handler = () => {
+      const shown = shownRef.current;
+      if (!shown) return;
+      // `getMarkdown()` is added by the Markdown extension.
+      const md = (editor as unknown as { getMarkdown: () => string }).getMarkdown();
+      pendingRef.current = { scope: shown.scope, md };
+      if (timerRef.current !== null) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
+    };
+    editor.on("update", handler);
+    return () => {
+      editor.off("update", handler);
+    };
+  }, [editor, flush]);
+
+  // Scope switch, or a store change the editor did not make → reload the editor.
+  useEffect(() => {
+    if (!editor) return;
+    const shown = shownRef.current;
+    if (shown && shown.scope !== scope) {
+      flush(); // the previous scope's pending edit lands in the previous scope
+    } else if (shown && shown.md === storeNote) {
+      return; // the store already holds what the editor shows (incl. its own write)
+    }
+    // An outside write replaces the editor's unsaved edit: the store wins.
+    if (timerRef.current !== null) clearTimeout(timerRef.current);
+    timerRef.current = null;
+    pendingRef.current = null;
+    shownRef.current = { scope, md: storeNote };
+
+Confirms the rewrite: shownRef/pendingRef replace the old prevScopeRef early-return guard; scope switch calls flush() before loading the new scope; setContent uses emitUpdate:false so a store-driven load never re-triggers the update handler; useEffect(() => flush, [flush]) flushes on unmount.
+
+Pinned test that exercises this at runtime: src/modules/notes/NotesPanel.test.tsx:46 'shows an agent write_note into the open note, and the next keystroke keeps it', :66 'a scope switch inside the debounce window saves each scope's own text'
+VERDICT: ci_pinned

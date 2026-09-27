@@ -1,0 +1,15 @@
+COMMAND 1: grep -n '"lint"' package.json
+OUTPUT: 10:    "lint": "eslint . && node scripts/audit-design-tokens.mjs",
+-> the audit is now chained into package.json's lint script (fix_shape: append "&& node scripts/audit-design-tokens.mjs" to lint).
+
+COMMAND 2: node scripts/audit-design-tokens.mjs   (cwd: candidate worktree root, PATH includes node v24.15.0)
+EXIT: 0
+OUTPUT: design-token audit clean (373 files)
+
+Note: the negative case (inject gap-1.5/px-[7px]/text-[12px] into a panel and confirm
+the audit fails) was NOT run — it requires editing a file inside the read-only candidate
+worktree, which this role's rules forbid ("never edit ... in it"). The positive run above
+plus the package.json wiring confirms the register's repro command
+(`grep -rn audit-design package.json .github/workflows/`) now finds a hit and the audit
+itself still exits 0 clean, which is what batch-12's certification also asserted.
+Verdict: holds.

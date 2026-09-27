@@ -1,0 +1,17 @@
+# batch-2/W2-instrument-identity (rc1-battery-23, round 4)
+
+Candidate `1006c6da694ede5776c3dabbd27b305aeb56b5ad`. Own sidecar `127.0.0.1:52363`, data dir
+`rc1-round-4-data-rc1-battery-23` (seed copy). Raw output: `raw/set-1/`.
+
+| id | repro run | observed | verdict |
+| --- | --- | --- | --- |
+| R15-DATA-012 | In-process (candidate `.venv`): inject a rename row for BSE-only `NSDL` via `nse_symbol_change.set_active_map_for_tests`, then `symbol_resolver.resolve('NSDL','IN')`; separately `resolve('ZOMATO','IN')`. | `resolve('NSDL','IN')` returns `symbol=NSDL, exchange=BSE, rename=None` — the injected fake rename is NOT applied to the BSE-only ticker. `resolve('ZOMATO','IN')` returns `ETERNAL` (`former_name='Zomato Limited'`). Matches the certified fix exactly. | holds |
+| R15-CODE-DATA-001 | `GET /resolve?q=FOCUS`; `GET /disclosures/shareholding?symbol=FOCUS`. | NSE "Focus Lighting and Fixtures Limited" candidate carries `isin:null, bse_code:null` (no cross-stamp from Focus Business Solution's 543312/INE0DXR01010); the BSE candidate keeps its own isin/bse_code. `/disclosures/shareholding?symbol=FOCUS` carries `split_source:null` throughout. | holds |
+| R15-DATA-018 | `GET /resolve?q=zomato`, `?q=ZOMATO`, `GET /resolve/autocomplete?q=ZOMATO`, `GET /resolve?q=SEQUENT`. | zomato/ZOMATO → `ETERNAL` (`rename.renamed_from:"ZOMATO"`, effective 2025-04-09); autocomplete returns the same; SEQUENT → `VIYASH` (`rename.renamed_from:"SEQUENT"`, effective 2026-01-23). No unresolved query. | holds |
+| R15-DATA-001 | `GET /fundamentals/DAL/income`. | `symbol` context is the BSE listing; `operating_revenue` for 2026-03-31 = `20,668,000` — Dynamic Archistructures' own tiny figures (INR thousands), not Delta Air Lines'. | holds |
+| R15-DATA-003 | In-process: `ownership_check.is_applicable('AMAL')`/`('SMR')`/`('AMAL.BO')`/`('SMR.BO')`; `await get_exchange_ownership('AMAL')` vs `await get_exchange_ownership('AMAL.BO')`. | `is_applicable` is `False` for bare `AMAL`/`SMR`, `True` for `AMAL.BO`/`SMR.BO` (gated on `is_india_listing`, i.e. resolved-listing suffix, never bare-ticker membership). `get_exchange_ownership('AMAL')` → `None` (no 71.35 crossing into the US company). `get_exchange_ownership('AMAL.BO')` → `promoter_percent=71.35` (control, BSE). Note: the raw `/disclosures/shareholding?symbol=AMAL` REST route (India-only by design per its own docstring, no region param) still answers Amal Ltd's 71.35 regardless of an `X-Vysted-Region: US` header — that is the documented, out-of-scope residual named in the register's own evidence ("an India-only route by design"), not the applicability gate this entry certifies. | holds |
+| R15-CODE-DATA-005 | grep across `sidecar/services/`: `is_applicable =` / `def is_applicable`, `def is_block_error`, `def is_india_target` (+ importers), `def _row_value`. | `is_applicable` in `market_cap_witness.py:100`, `ownership_check.py:104`, `research/range_check.py:127` are all the identical one-line alias `= is_india_listing` (3, matching cert). `is_block_error` has exactly one definition (`witness.py:24`). `is_india_target` has exactly one definition (`research/relevance.py:374`), imported by `research/disclosures.py`, `research/fast.py`, `research/deep.py`. `_row_value` still has two independent definitions (`growth_check.py:94`, `earnings_quality.py:134`) — the documented residual, out of this entry's scope, not a regression. | holds |
+
+**Set result: 6/6 holds.**
+
+COVERAGE: 6/6 ids raw.

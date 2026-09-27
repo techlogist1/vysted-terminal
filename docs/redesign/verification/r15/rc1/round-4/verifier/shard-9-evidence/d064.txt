@@ -1,0 +1,12 @@
+SPY?timeframe=30m 286 provider= yfinance reason= None partial= False cov= None 2026-08-26T09:30:00-04:00 2026-09-25T15:30:00-04:00
+AAPL?timeframe=30m 286 provider= yfinance reason= None partial= False cov= None 2026-08-26T09:30:00-04:00 2026-09-25T15:30:00-04:00
+RELIANCE?timeframe=30m 286 provider= yfinance reason= None partial= False cov= None 2026-08-26T09:00:00+05:30 2026-09-25T15:00:00+05:30
+RELIANCE.NS?timeframe=30m 286 provider= yfinance reason= None partial= False cov= None 2026-08-26T09:00:00+05:30 2026-09-25T15:00:00+05:30
+TCS.NS?timeframe=30m 286 provider= yfinance reason= None partial= False cov= None 2026-08-26T09:00:00+05:30 2026-09-25T15:00:00+05:30
+RELIANCE.NS?timeframe=30m&range=1y 767 provider= yfinance reason= None partial= True cov= 2026-07-06 2026-07-06T09:00:00+05:30 2026-09-25T15:00:00+05:30
+AAPL?timeframe=30m&range=1y 780 provider= yfinance reason= None partial= True cov= 2026-07-02 2026-07-02T09:30:00-04:00 2026-09-25T15:30:00-04:00
+HDFCBANK.NS?timeframe=15m&range=6mo 1473 provider= yfinance reason= None partial= True cov= 2026-07-06 2026-07-06T09:15:00+05:30 2026-09-25T15:15:00+05:30
+MSFT?timeframe=1m&range=1mo 2730 provider= yfinance reason= None partial= True cov= 2026-09-17 2026-09-17T09:30:00-04:00 2026-09-25T15:59:00-04:00
+ITC.NS?timeframe=1h&range=5y 5041 provider= yfinance reason= None partial= True cov= 2023-10-18 2023-10-18T09:15:00+05:30 2026-09-25T15:15:00+05:30
+SBIN.BO?timeframe=30m 286 provider= yfinance reason= None partial= False cov= None 2026-08-26T09:00:00+05:30 2026-09-25T15:00:00+05:30
+506597.BO?timeframe=30m 254 provider= yfinance reason= None partial= False cov= None 2026-08-26T09:00:00+05:30 2026-09-25T15:00:00+05:30

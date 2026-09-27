@@ -1,0 +1,27 @@
+=== R15-LEAD-032: adr_ratio.lookup caches an exception-path miss (in-process, real code, patched transport) ===
+cmd: sidecar/.venv/bin/python3 /tmp/b5-lead032-test.py
+(monkeypatches only adr_ratio._get to sleep 20s then raise ConnectTimeout, simulating unreachable EDGAR;
+everything else -- lookup(), _fetch(), data_cache, the real ticker-map load -- is the real code)
+adr_ratio SIFY: TimeoutError()
+first lookup: result=None took=8.01s
+second lookup (should be instant from cached miss): result=None took=0.00s
+
+code confirms the fix shape (sidecar/services/adr_ratio.py):
+
+async def lookup(symbol: str) -> dict[str, Any] | None:
+    """``symbol``'s depositary ratio from its newest 20-F cover page, cached;
+    ``None`` when it files no 20-F, states no ratio, or EDGAR is unreachable.
+    Never raises."""
+    key = f"sec:ads-ratio:{symbol.upper()}"
+    cached = await data_cache.get(key, _TTL)
+    if isinstance(cached, dict):
+        return cached or None
+    if await data_cache.get(f"{key}:miss", _MISS_TTL) is not None:
+        return None
+    try:
+        found = await asyncio.wait_for(_fetch(symbol), _TIMEOUT)
+    except Exception as exc:  # noqa: BLE001 — an unreachable EDGAR is a miss, not a fault
+        # ponytail: a cold fetch slower than _TIMEOUT caches a 24 h miss (an honest
+        # absence; the ratio guard still defends); complete it in the background
+VERDICT: holds. Before the fix the exception path returned None without caching (up to ~120s re-fetched on
+every call); now bounded at exactly the 8s _TIMEOUT and the second call is instant from the miss cache.

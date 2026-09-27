@@ -1,0 +1,39 @@
+CMD: grep -n 'describe\|it(' src/modules/portfolio/metrics.test.ts | head -30
+1:import { describe, expect, it } from "vitest";
+27:describe("buildPortfolioSummary", () => {
+28:  it("computes coherent totals when all quotes resolve", () => {
+40:  it("excludes unresolved positions from the P&L% denominator (F-GUI-1)", () => {
+55:  it("returns 0% (not NaN) when no positions resolve", () => {
+66:  it("single-currency portfolio: one bucket, mixedCurrencies false (D57)", () => {
+90:  it("mixed-currency portfolio: per-currency subtotals, never a cross-currency sum (D57)", () => {
+113:  it("unresolved positions join no currency bucket; a blank quote currency buckets as ''", () => {
+132:describe("Gate 6 — INR portfolio scenario (R12)", () => {
+133:  it("5 RELIANCE + 5 INFY + 5 TATASTEEL yields correct cost bases and a non-zero INR total", () => {
+172:describe("risk metric primitives (R15-CODE-PLATFORM-023)", () => {
+173:  it("dailyReturns: simple day-over-day pct change", () => {
+181:  it("annualizedVolatility: sample stdev x sqrt(252)", () => {
+185:  it("sharpeRatio: rf = 0, annualized mean / annualized vol", () => {
+189:  it("sortinoRatio: MAR = 0, downside deviation over ALL observations", () => {
+193:  it("maxDrawdown: peak-to-trough on the implied equity curve", () => {
+197:  it("calmarRatio: annualized return / |max drawdown|", () => {
+201:  it("historicalVaR95: linear-interpolated 5th percentile, loss magnitude", () => {
+205:  it("correlation + beta: date-aligned pairwise stats", () => {
+210:  it("a flat/zero-length series never divides by zero", () => {
+244:describe("computeCurrencyRisk (R15-CODE-PLATFORM-023)", () => {
+245:  it("is null under MIN_RISK_HISTORY_DAYS overlapping days", () => {
+253:  it("is null for an empty holdings list", () => {
+257:  it("computes per-bucket metrics once >= MIN_RISK_HISTORY_DAYS days overlap, never a fabricated cross-currency blend", () => {
+293:  it("beta is null when the benchmark's history doesn't cover enough overlapping days", () => {
+---metrics.ts exports---
+98:export function buildPortfolioSummary(
+205:export const MIN_RISK_HISTORY_DAYS = 30;
+212:export function dailyReturns(closes: readonly number[]): number[] {
+233:export function annualizedVolatility(returns: readonly number[]): number {
+238:export function sharpeRatio(returns: readonly number[]): number {
+246:export function sortinoRatio(returns: readonly number[]): number {
+256:export function maxDrawdown(returns: readonly number[]): number {
+269:export function calmarRatio(returns: readonly number[]): number {
+280:export function historicalVaR95(returns: readonly number[]): number {
+298:export function correlation(a: readonly number[], b: readonly number[]): number {
+306:export function beta(returns: readonly number[], benchmarkReturns: readonly number[]): number {
+378:export function computeCurrencyRisk(

@@ -1,0 +1,6 @@
+== black-scholes theta baseline ==
+CMD: curl -s -X POST http://127.0.0.1:52353/quant/option/price -d '{"exercise":"european","payoff":"call","method":"black-scholes","spot":220,"strike":220,"risk_free_rate":0.05,"dividend_yield":0.005,"volatility":0.28,"valuation_date":"2026-05-16","expiry_date":"2026-06-30"}'
+{"price":9.218050578290278,"greeks":{"delta":0.54171127689196,"gamma":0.018330777419155803,"vega":30.626962469309518,"theta":-39.680656494131796,"rho":13.556518808787224},"method":"black-scholes","monte_carlo_std_error":null,"duration_ms":0.1955410116352141}
+== binomial 200 steps ==
+CMD: curl -s -X POST http://127.0.0.1:52353/quant/option/price -d '{"exercise":"european","payoff":"call","method":"binomial","binomial_steps":200,"spot":220,"strike":220,"risk_free_rate":0.05,"dividend_yield":0.005,"volatility":0.28,"valuation_date":"2026-05-16","expiry_date":"2026-06-30"}'
+{"price":9.207288976593283,"greeks":{"delta":0.5416604279820971,"gamma":0.018400424035197448,"vega":30.58868827193173,"theta":-39.81283030161026,"rho":13.556118357033498},"method":"binomial","monte_carlo_std_error":null,"duration_ms":0.5057500093244016}

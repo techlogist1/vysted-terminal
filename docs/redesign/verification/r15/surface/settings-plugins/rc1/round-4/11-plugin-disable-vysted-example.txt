@@ -1,0 +1,2 @@
+{"plugin_id":"vysted-example","enabled":false,"installed":true,"settings":{},"granted_secret_ids":[]}
+HTTP 200

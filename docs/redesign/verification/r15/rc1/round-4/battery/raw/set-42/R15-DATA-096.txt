@@ -1,0 +1,19 @@
+Repro: grep sidecar/routers/fundamentals.py + services/data_cache.py at 1006c6da.
+
+$ grep -n "_cached(" sidecar/routers/fundamentals.py
+213:    statement, _ = await _cached(   # /income
+226:    statement, _ = await _cached(   # /balance
+239:    statement, _ = await _cached(   # /cashflow
+250:    rating, as_of = await _cached(  # /ratings
+
+$ grep -n "evict\|to_thread\|LIMIT" sidecar/services/data_cache.py
+26: SQLite work itself runs on a worker thread (asyncio.to_thread) ...
+29: it evicts the least recently written rows, so per-symbol keys cannot grow
+82:#: The most rows kept; a `set` past it evicts the least recently written.
+268: "(SELECT key FROM cache ORDER BY updated_at DESC LIMIT -1 OFFSET ?)"
+
+Verdict: holds. All four previously-uncached routes (/income, /balance, /cashflow, /ratings) now
+go through `_cached()`; data_cache.py now has an LRU eviction ceiling (ORDER BY updated_at, evict
+oldest past max rows) and confirms SQLite work stays off the event loop via asyncio.to_thread —
+both halves of the register's complaint (no cache; cache-that-exists never evicts + runs
+on-loop) are addressed.

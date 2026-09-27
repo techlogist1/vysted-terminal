@@ -1,0 +1,91 @@
+[
+ {
+  "key": "rc1-vshard-0:1",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-DATA-003",
+  "title": "Certified-fixed DATA-003: US-region disclosures/shareholding + announcements and the shareholding_pattern tool still serve India promoter/BSE facts for AMAL/PAR with coverage covered and no not-applicable note",
+  "repro": "At 68d5573a sidecar :52600: curl -s -H \"X-Vysted-Region: US\" \"http://127.0.0.1:52600/disclosures/shareholding?symbol=AMAL\" -> coverage covered, promoter 71.35, source BSE, note null; agent_tools.invoke_tool(\"shareholding_pattern\",{\"symbol\":\"PAR\"}) with VYSTED_REGION=US -> Par Drugs 73.41 NSE covered. Research snapshot half is fixed.",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/routers/disclosures.py",
+   "sidecar/services/agent_tools/disclosure_tools.py",
+   "sidecar/services/witness.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:2",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-AGENT-001",
+  "title": "Certified-fixed AGENT-001 is partial: money is display-scaled for the model, but fraction metrics reach the model raw with no unit, and chat narrates \"dividend yield is 0.0082, revenue growth is 0.024\" while the panel shows percent",
+  "repro": "At 68d5573a :52600, llama3.1:8b IN: vy invoke copilot \"What are Cochin Shipyard's dividend yield, revenue growth, earnings growth and market cap right now?\" -> fundamentals tool -> chat \"dividend yield is 0.0082, revenue growth is 0.024, earnings growth is -0.194\". research KPIT -> \"Dividend Yield: 0.0144\". fundamentals_content/model_view rewrite only currency fields; no COCHINSHIP fraction fixture.",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/agent_tools/research.py",
+   "sidecar/services/agent_runtime.py",
+   "sidecar/services/research/semantics.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:3",
+  "kind": "regression",
+  "severity": "low",
+  "register_id": "R15-CODE-DATA-005",
+  "title": "Certified-fixed CODE-DATA-005 is partial: witness predicates unified, but the _row_value twin the title names is still byte-identical in growth_check.py:94 and earnings_quality.py:134",
+  "repro": "At 68d5573a: diff <(sed -n \"/^def _row_value/,/^def /p\" sidecar/services/growth_check.py) <(sed -n \"/^def _row_value/,/^def /p\" sidecar/services/earnings_quality.py) -> identical bodies; earnings_quality docstring \"Mirrors services.growth_check._row_value\".",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/growth_check.py",
+   "sidecar/services/earnings_quality.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:4",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "Every SEC 10-Q filing detail returns 200 with 0 sections and total_chars 0 (upstream get_filing_sections for 10-Q yields only has_financials)",
+  "repro": "At 68d5573a :52600: curl -s \"http://127.0.0.1:52600/sec/filings/0000320193-23-000077/sections?identifier=AAPL\" -> {\"sections\": []} (AAPL 10-Q; MSFT 10-Q 0001193125-26-191507 same). Upstream get_filing_sections(form_type=10-Q) returns only {has_financials: true}. 10-K sections populate.",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/sec_filings_provider.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:5",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": null,
+  "title": "relevance.gate_news is IN-only: a US-target DEEP researcher news leg passes unrelated market-wide items to sources (US AMAL: 7/20 fail row_relevant, e.g. \"Broadcom upgraded, Ultragenyx downgraded\")",
+  "repro": "At 68d5573a, VYSTED_REGION=US: deep.py researcher news leg for AMAL -> gate_news returns items unchanged for non-IN targets; row_relevant false on 7 of 20.",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/research/relevance.py",
+   "sidecar/services/research/deep.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "set_chart_indicators schema enum rejects parameterised keys (ema:50, vwap:week) that the chart and /indicators accept and fast._suggested_indicators emits for crypto",
+  "repro": "At 68d5573a: catalog set_chart_indicators schema enum = SUPPORTED_INDICATORS (bare keys); runtime _normalise_tool_args rejects {\"indicators\":[\"ema:50\"]} as invalid args; GET /indicators with ema:50 returns EMA(50).",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/verifier/shard-0.md",
+  "suspected_files": [
+   "sidecar/services/agent_tools/catalog.py",
+   "sidecar/services/research/fast.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-0:7",
+  "kind": "environment",
+  "severity": "medium",
+  "register_id": null,
+  "title": "Shared stack :52152 runs 1006c6da (rc1-round-4-cand), not candidate 68d5573a; lacks ea2ebd50, so \"KPIT Technologies\" resolves to BSOFT there",
+  "repro": "ps/lsof pid 48629 on :52152 cwd = rc1-round-4-cand at 1006c6da; research \"KPIT Technologies\" on :52152 -> resolved BSOFT, on candidate :52600 -> KPITTECH.",
+  "evidence_file": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-4/verifier/shard-0.md",
+  "suspected_files": []
+ }
+]

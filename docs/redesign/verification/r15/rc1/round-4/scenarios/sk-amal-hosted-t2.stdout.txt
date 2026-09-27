@@ -1,0 +1,5 @@
+
+=== ASSISTANT TEXT ===
+The current price of Amal Limited (AMAL) is ₹674.40. The stock has decreased by ₹13.25, which is a decline of approximately 1.93%. If you need more information or analysis, just let me know!
+
+=== ok · 6.2s · events {'tool_use': 2, 'tool_result': 2, 'delta': 52, 'done': 1} · usage in=11140 out=51 · est $0.00170 · gpt-4o-mini

@@ -1,0 +1,24 @@
+{
+  "harness_failure": "battery-raw-missing",
+  "count": 3,
+  "missing": [
+    {
+      "id": "R15-UI-038",
+      "shard": 2,
+      "set": "raw/set-28",
+      "reason": "NOT RUN: certified only via vitest (src/lib/brief-ingest.test.ts:161 \"prefers the URL host over a provenance-labelled domain (R15-UI-038)\"); this role's rules forbid running vitest/pytest suites (heavy lane owns them) and there is no in-process node/tsx runtime in the candidate worktree to execute TS logic without vitest (node_modules/.bin has vitest only, no tsx/ts-node)."
+    },
+    {
+      "id": "R15-UI-092",
+      "shard": 2,
+      "set": "raw/set-28",
+      "reason": "NOT RUN: certified only via vitest (src/lib/brief-ingest.test.ts \"flags markers exceeding the source count instead of deleting them (R15-UI-092)\"); this role's rules forbid running vitest/pytest suites and there is no in-process node runtime to execute TS logic without vitest."
+    },
+    {
+      "id": "R15-RESEARCH-026",
+      "shard": 2,
+      "set": "raw/set-28",
+      "reason": "NOT RUN: certified only via vitest (src/modules/research/brief-blocks.test.ts \"an unknown currency is stated, never defaulted (R15-RESEARCH-026)\", line ~344); this role's rules forbid running vitest/pytest suites and there is no in-process node runtime to execute TS logic without vitest."
+    }
+  ]
+}

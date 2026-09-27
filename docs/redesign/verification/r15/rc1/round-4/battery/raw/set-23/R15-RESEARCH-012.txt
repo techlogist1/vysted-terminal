@@ -1,0 +1,44 @@
+{
+  "symbol": "KAYNES.NS",
+  "ok": true,
+  "n_announcements": 50,
+  "n_rows": 5,
+  "raw_results_shaped_positions": [
+    2,
+    10,
+    15,
+    18,
+    21,
+    22,
+    26
+  ],
+  "top5_row_titles": [
+    "Kaynes Technology India Limited has informed the Exchange regarding 'Corrigendum to the consolidated financial results for the year ended 31, March 2026'.",
+    "Financial Results For The Quarter Ended 30 June 2026",
+    "Kaynes Technology India Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.",
+    "Board Meeting Intimation for Quarterly Results For The Period Ended June 30, 2026",
+    "Outcome of the Board meeting - Appointment of Internal Auditor for the FY 2026-27."
+  ]
+}
+{
+  "symbol": "CGPOWER.NS",
+  "ok": true,
+  "n_announcements": 50,
+  "n_rows": 5,
+  "raw_results_shaped_positions": [
+    1,
+    27,
+    30,
+    33,
+    34,
+    36,
+    40
+  ],
+  "top5_row_titles": [
+    "CG Power and Industrial Solutions Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.",
+    "Board Meeting Intimation for Consideration And Approval Of The Unaudited Financial Results For The First Quarter Ended 30Th June 2026.",
+    "CG Power and Industrial Solutions Limited has informed the Exchange regarding a press release dated September 04, 2026, titled \"CG strengthens India s power infrastructure manufacturing capabilities with the roll out of first transformer from India s largest transformer manufacturing facility at Sehore, Madhya Pradesh \".",
+    "Announcement under Regulation 30 (LODR)-Press Release / Media Release (Revised)",
+    "CG Power and Industrial Solutions Limited has informed the Exchange regarding a revised press release dated July 24, 2026, titled \"Press Release-Q1-FY 2026-27 results\"."
+  ]
+}

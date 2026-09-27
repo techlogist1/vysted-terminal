@@ -1,0 +1,13 @@
+{
+  "lane": "openrouter-free",
+  "model": "qwen/qwen3.8-27b:free",
+  "k": 1,
+  "scenarios": 2,
+  "pass_hat_k": 0.0,
+  "pass_hat_1": 0.0,
+  "per_scenario": {
+    "ask-watchlist-add": 0.0,
+    "macro-us-cpi": 0.0
+  },
+  "incomplete": []
+}

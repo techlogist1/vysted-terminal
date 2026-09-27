@@ -1,0 +1,2 @@
+{"detail":"Method Not Allowed"}
+HTTP 405

@@ -1,0 +1,9 @@
+sha: 68d5573aff9a579af084dcbb124843f2aecff6e8  2026-09-26T23:41:09Z
+$ curl http://127.0.0.1:52602/history/HDFC.NS?timeframe=1d&range=1mo
+{"symbol": "HDFC.NS", "timeframe": "1d", "bars": "<0 bars>", "provider": "none", "freshness": null, "reason": null, "partial": false, "coverage_start": null}
+$ curl http://127.0.0.1:52602/indicators/HDFC.NS?indicators=rsi&timeframe=1d&range=1mo
+keys ['symbol', 'timeframe', 'provider', 'indicators', 'volume_profile'] provider none n_ind 0  HTTP200
+$ curl http://127.0.0.1:52602/history/TCS?timeframe=1d&range=1mo
+{"symbol": "TCS", "timeframe": "1d", "bars": "<26 bars>", "provider": "nse_direct", "freshness": "eod", "reason": null, "partial": false, "coverage_start": null}
+$ curl http://127.0.0.1:52602/indicators/TCS?indicators=rsi&timeframe=1d&range=1mo
+keys ['symbol', 'timeframe', 'provider', 'indicators', 'volume_profile'] provider nse_direct n_ind 1  HTTP200

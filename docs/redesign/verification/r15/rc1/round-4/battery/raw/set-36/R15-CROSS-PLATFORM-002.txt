@@ -1,0 +1,7 @@
+=== R15-CROSS-PLATFORM-002: bare .read_text()/open() without encoding= in sidecar tests (Windows cp1252 crash) ===
+-- permanent pytest audit test exists: sidecar/tests/test_tests_encoding.py (not run: pytest suites are the heavy lane's) --
+.rw-r--r--@ 3.8k lokavyasingh 27 Sep 01:12 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-4-cand/sidecar/tests/test_tests_encoding.py
+-- static confirmation the fixed call site now passes encoding= --
+467:    payload = json.loads(fixture.read_text(encoding="utf-8"))
+-- static confirmation the other 12 call sites named in the register are also fixed --
+(empty grep above = every read_text() call at these files now passes encoding=)

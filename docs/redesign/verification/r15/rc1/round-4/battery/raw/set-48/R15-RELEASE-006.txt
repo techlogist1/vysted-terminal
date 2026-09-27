@@ -1,0 +1,9 @@
+smoke-test-sidecars.mjs freshness gate — check for SIDECAR_SPECS import (single source), no duplicated literal blocks
+80:import { SIDECAR_SPECS, assertAllFresh, binaryPath, targetTriple } from "./sidecar-specs.mjs";
+857:function _assertAllFresh(triple) {
+858:  assertAllFresh(triple);
+873:  _assertAllFresh(triple);
+876:  for (const spec of SIDECAR_SPECS) {
+
+grep for the old duplicated literal extraFiles blocks (should be ABSENT):
+grep exit code: 1

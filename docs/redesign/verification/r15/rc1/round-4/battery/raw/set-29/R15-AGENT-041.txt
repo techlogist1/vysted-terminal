@@ -1,0 +1,4 @@
+Static code check: src/store/proposed-changes.ts, src/lib/host-actions.ts undoPreImage/gate.undo path unchanged (grep confirms undoPreImage exported and used).
+Committed pinned test: src/lib/host-actions.test.ts:1651 'an applied holding delete can be undone: the holding is back with its id (R15-AGENT-041)'; :1677 note-replace undo variant.
+/Users/lokavyasingh/Documents/dev/vysted-terminal/src/lib/host-actions.ts:1927:export function undoPreImage(preImage: PreImage): ApplyResult {
+NOT RUN: vitest (role forbids running vitest/pytest suites).

@@ -1,0 +1,3 @@
+=== git show HEAD:docs/BLUEPRINT.md around alpha_vantage ===
+266:18. yfinance fallback (no API key needed for basic use; R15-DATA-078 — alpha_vantage was
+=== grep sidecar for alpha_vantage (disk, sidecar/ is intact) ===

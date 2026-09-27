@@ -1,0 +1,13 @@
+=== %5ENSEI ===
+bars: 23 reason: None
+=== %5EBSESN ===
+bars: 23 reason: None
+=== %5ENSEBANK ===
+bars: 23 reason: None
+=== corrected: LEAD-011 with timeframe param ===
+=== %5ENSEI ===
+bars: 23 reason: None
+=== %5EBSESN ===
+bars: 23 reason: None
+=== %5ENSEBANK ===
+bars: 23 reason: None

@@ -1,0 +1,97 @@
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_b7c82e26bf754d59817bb85364063922", "name": "add_chart_drawing", "input": {"kind": "horizontal-line", "panelId": "chart", "points": [{"price": 1450}]}}
+
+data: {"kind": "tool_result", "tool_call_id": "call_b7c82e26bf754d59817bb85364063922", "name": "add_chart_drawing", "ok": true, "error": null}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "delta", "text": "I"}
+
+data: {"kind": "delta", "text": "'ve"}
+
+data: {"kind": "delta", "text": " proposed"}
+
+data: {"kind": "delta", "text": " a"}
+
+data: {"kind": "delta", "text": " support"}
+
+data: {"kind": "delta", "text": " line"}
+
+data: {"kind": "delta", "text": " at"}
+
+data: {"kind": "delta", "text": " \u20b9"}
+
+data: {"kind": "delta", "text": "1"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": "450"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " REL"}
+
+data: {"kind": "delta", "text": "I"}
+
+data: {"kind": "delta", "text": "ANCE"}
+
+data: {"kind": "delta", "text": " chart"}
+
+data: {"kind": "delta", "text": " for"}
+
+data: {"kind": "delta", "text": " your"}
+
+data: {"kind": "delta", "text": " review"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "Please"}
+
+data: {"kind": "delta", "text": " accept"}
+
+data: {"kind": "delta", "text": " this"}
+
+data: {"kind": "delta", "text": " change"}
+
+data: {"kind": "delta", "text": " in"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " proposal"}
+
+data: {"kind": "delta", "text": " bar"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " apply"}
+
+data: {"kind": "delta", "text": " it"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " chart"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "research_step", "tool_call_id": "call_b7c82e26bf754d59817bb85364063922", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: add_chart_drawing. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+
+data: {"kind": "done", "usage": {"input_tokens": 2923, "output_tokens": 37, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+rmdir: /tmp/vysted-r15-ollama.lock: No such file or directory

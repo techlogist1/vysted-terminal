@@ -1,0 +1,8 @@
+price_per_million(openrouter, nvidia/nemotron-3-super-120b-a12b:free) = 0.0
+is it in PRICE_TABLE? False
+DEFAULT_RATE_PER_M = 5.0
+price_per_million(openrouter, unlisted paid) = 2.0
+cost for 64895 tokens on free slug: 0.0
+deepseek/deepseek-v4-flash rate: 0.9
+deepseek/deepseek-v4-flash rate 0.9 cost 0.05841
+some/unlisted-paid-model rate 2.0 cost 0.12979
