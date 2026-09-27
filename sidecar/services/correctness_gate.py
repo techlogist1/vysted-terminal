@@ -583,6 +583,11 @@ def _ttm_basis(quarter_ends: list[date] | None, cadence: str | None) -> str | No
             "TTM basis: the exchange filings do not cover the trailing year in four "
             f"quarters (a half-yearly filer) — {_HALF_YEARLY_BASIS}"
         )
+    if cadence == "quarterly-gap":
+        return (
+            "TTM basis: the exchange filings leave a quarter of the trailing year "
+            "unfiled or unparsed; kept, flagged"
+        )
     if not quarter_ends:  # an empty frame says nothing about the filing cadence
         return None
     ends = sorted(set(quarter_ends), reverse=True)

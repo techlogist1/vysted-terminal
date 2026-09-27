@@ -19,13 +19,14 @@ from fastapi.testclient import TestClient
 from models.fundamentals import Fundamentals, IncomeStatement, StatementLine
 from services import (
     bse_provider,
+    correctness_gate,
     exchange_financials,
     nse_provider,
     provider_registry,
     symbol_resolver,
     yfinance_provider,
 )
-from services.exchange_financials import FiledPeriods
+from services.exchange_financials import FiledPeriod, FiledPeriods
 from services.symbol_resolver import Resolution
 
 _FIXTURES = Path(__file__).parent / "fixtures"
@@ -190,6 +191,29 @@ def test_jonjua_keeps_the_half_yearly_label(
     assert body["revenue_ttm"] == 239_033_504
     reason = body["field_meta"]["revenue_ttm"]["reason"]
     assert "half-yearly filer" in reason and "annual, not trailing-4Q" in reason
+
+
+def test_a_quarterly_filer_with_a_six_month_q2_is_not_half_yearly() -> None:
+    """NDTV-shaped: three trailing quarters are filed standalone, but the
+    Sep-2025 Integrated Filing carries only an Apr-Sep 2025 (6-month) context.
+    A quarter (Apr-Jun 2025) IS filed separately inside that half, so this is
+    a quarterly filer with an unparsed quarter, not a half-yearly filer."""
+    periods = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2026, 1, 1), date(2026, 3, 31), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 10, 1), date(2025, 12, 31), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 4, 1), date(2025, 9, 30), 200.0, 20.0, 2.0),
+            FiledPeriod(date(2025, 4, 1), date(2025, 6, 30), 100.0, 10.0, 1.0),
+        ),
+    )
+    assert periods.cadence() == "quarterly-gap"
+    reason = correctness_gate._ttm_basis(None, periods.cadence())
+    assert "half-yearly" not in reason
+    assert "annual, not trailing-4Q" not in reason
+    assert "unfiled or unparsed" in reason
 
 
 def test_a_quarterly_filer_with_a_yahoo_gap_is_not_half_yearly(
