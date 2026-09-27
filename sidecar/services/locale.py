@@ -34,6 +34,12 @@ from zoneinfo import ZoneInfo
 REGION_US = "US"
 REGION_IN = "IN"
 REGION_GLOBAL = "GLOBAL"
+#: Not IN, not positively US (R15-UI-090) — a real (non-Indian, non-US) foreign
+#: listing with no exchange-timezone table of its own. Never a calendar to key
+#: :data:`_TZ_BY_REGION`/:data:`_SESSION_BY_REGION` with; a caller labelling
+#: freshness falls back to the US calendar with ``intraday=False`` so such a
+#: listing is never 'live'.
+REGION_FOREIGN = "FOREIGN"
 
 _CURRENCY_BY_REGION = {REGION_US: "USD", REGION_IN: "INR", REGION_GLOBAL: "USD"}
 
@@ -169,14 +175,27 @@ _IN_PROVIDERS = frozenset({"nse_direct", "nse", "bse"})
 #: VIX (R15-UI-090). No other caret index (e.g. .AX) is in scope here.
 _IN_INDEX_PREFIXES = ("^NSE", "^BSE", "^CNX", "^INDIAVIX")
 
+#: US caret indices (R15-UI-090) — everything else caret-prefixed (^N225,
+#: ^FTSE, ^HSI, ...) is a real foreign index with no US session of its own.
+_US_INDEX_TICKERS = frozenset({"^GSPC", "^DJI", "^IXIC", "^NDX", "^RUT", "^VIX", "^SPX"})
+
 
 def instrument_region(symbol: str, provider: str) -> str:
     """The trading-calendar region of a SERVED instrument (R15-UI-090).
 
     An Indian listing is known from the lane that served it, its ``.NS``/``.BO``
     symbol (yfinance echoes the listing it fetched), or an Indian index caret
-    symbol; anything else trades on the US calendar. Never the session region:
-    a US quote read in an IN session is still dated against the US session.
+    symbol. Never the session region: a US quote read in an IN session is
+    still dated against the US session.
+
+    Otherwise US only when the listing is POSITIVELY US: a plain ticker with
+    no dot (AAPL), a dotted symbol whose dashed form is a known US-listed
+    ticker (the R15-LEAD-022 share-class rule: ``BRK.B`` -> ``BRK-B``), or a
+    US caret index. Anything else (``BHP.AX``, ``7203.T``, ``^N225``, ...) is
+    :data:`REGION_FOREIGN` — a real foreign listing this module has no
+    exchange-timezone table for. ``ponytail``: fail closed rather than build
+    one — ``freshness_for`` never reads a foreign listing as 'live', even
+    mid-session; the upgrade path is a per-exchange tz/session table.
     """
     if (
         provider in _IN_PROVIDERS
@@ -184,7 +203,14 @@ def instrument_region(symbol: str, provider: str) -> str:
         or symbol.strip().upper().startswith(_IN_INDEX_PREFIXES)
     ):
         return REGION_IN
-    return REGION_US
+    s = symbol.strip().upper()
+    if s.startswith("^"):
+        return REGION_US if s in _US_INDEX_TICKERS else REGION_FOREIGN
+    if "." not in s:
+        return REGION_US
+    from services import symbol_resolver  # deferred: symbol_resolver imports this module
+
+    return REGION_US if symbol_resolver.is_us_symbol(s.replace(".", "-")) else REGION_FOREIGN
 
 
 def strip_exchange_suffix(symbol: str) -> str:

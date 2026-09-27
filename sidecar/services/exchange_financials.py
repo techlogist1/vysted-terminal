@@ -112,12 +112,24 @@ class FiledPeriods:
         return tuple(chain) if months == 12 else None
 
     def cadence(self) -> str:
-        """``quarterly`` when four filed quarters cover the trailing year, else
-        ``half-yearly`` (a half-year period, or a quarter the exchange holds no
-        filing for)."""
+        """``quarterly`` when four filed quarters cover the trailing year;
+        ``half-yearly`` when a half-year period backs the trailing year and no
+        3-month period is separately filed inside it (a true half-yearly
+        filer); ``quarterly-gap`` when a 3-month period IS filed inside that
+        half (R15-LEAD-004: the exchange merged one trailing quarter into a
+        half-year context — e.g. NDTV's Sep-2025 Integrated Filing carries only
+        an Apr-Sep 2025 context — but the filer is quarterly, one quarter is
+        just unfiled/unparsed standalone)."""
         trail = self.trailing()
-        if trail is not None and all(p.months == 3 for p in trail):
-            return "quarterly"
+        if trail is not None:
+            return "quarterly" if all(p.months == 3 for p in trail) else "half-yearly"
+        for half in self.periods:
+            if half.months != 6:
+                continue
+            if any(
+                q.months == 3 and q.start >= half.start and q.end <= half.end for q in self.periods
+            ):
+                return "quarterly-gap"
         return "half-yearly"
 
     def year_ago(self, period: FiledPeriod) -> FiledPeriod | None:

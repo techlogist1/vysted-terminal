@@ -670,4 +670,33 @@ describe("EquityOverviewPanel — batch-10 fundamentals labels (R15-DATA-048/054
     expect(screen.getByTestId("equity-header").textContent).toContain("52w");
     expect(screen.getByTitle("1Y change")).toBeInTheDocument();
   });
+
+  it("falls back to first_trade_date when listing_date is unset (R15-DATA-055)", async () => {
+    // No listing_date (a non-.NS listing never gets one) but a recent
+    // first_trade_date — still a young listing, not "52w".
+    const traded = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    mockLoad.mockResolvedValue(
+      overview({
+        fundamentals: fundamentals({ listing_date: null, first_trade_date: traded }),
+      }),
+    );
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    const header = screen.getByTestId("equity-header").textContent ?? "";
+    expect(header).toContain("since listing");
+    expect(header).not.toContain("52w");
+    expect(screen.queryByTitle("1Y change")).toBeNull();
+    cleanup();
+
+    // An old first_trade_date (no listing_date) keeps "52w" + the 1Y row.
+    mockLoad.mockResolvedValue(
+      overview({
+        fundamentals: fundamentals({ listing_date: null, first_trade_date: "2002-07-01" }),
+      }),
+    );
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(screen.getByTestId("equity-header").textContent).toContain("52w");
+    expect(screen.getByTitle("1Y change")).toBeInTheDocument();
+  });
 });

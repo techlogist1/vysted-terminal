@@ -658,3 +658,74 @@ def test_no_trade_in_52_weeks_withholds_the_range(monkeypatch: pytest.MonkeyPatc
         assert getattr(out, name) is None
         assert out.field_meta[name].status == "withheld"
         assert "last trade 2025-03-12" in out.field_meta[name].reason
+
+
+# --- R15-DATA-008: the exchange overlay resets financial_currency, no FX ----------
+
+
+def _filed_quarters(revenue: float, net_profit: float) -> object:
+    """Four filed INR quarters to 2026-06-30, each summing to ``revenue``/``net_profit``."""
+    from datetime import date
+
+    from services.exchange_financials import FiledPeriod, FiledPeriods
+
+    per_quarter_rev, per_quarter_ni = revenue / 4, net_profit / 4
+    ends = [date(2026, 6, 30), date(2026, 3, 31), date(2025, 12, 31), date(2025, 9, 30)]
+    starts = [date(2026, 4, 1), date(2026, 1, 1), date(2025, 10, 1), date(2025, 7, 1)]
+    periods = tuple(
+        FiledPeriod(start, end, per_quarter_rev, per_quarter_ni, per_quarter_ni / 100)
+        for start, end in zip(starts, ends, strict=True)
+    )
+    return FiledPeriods(venue="nse", basis="standalone", periods=periods)
+
+
+def test_overlay_resets_financial_currency_and_withholds_the_old_basis_fcf() -> None:
+    """INFY.NS-shaped: currency is INR (its real trading currency) but the
+    provider mislabelled financial_currency USD, so free_cash_flow (still on
+    that USD basis, untouched by the overlay) must be withheld rather than
+    read against the INR financial_currency this fix now sets, and the
+    revenue/net-income divergence check must not run cross-currency."""
+    filed = _filed_quarters(revenue=4_650_000_000, net_profit=-91_000_000)
+    f = _fund(
+        symbol="INFY.NS",
+        currency="INR",
+        financial_currency="USD",
+        revenue_ttm=46_506_049_536.0,
+        net_income_ttm=-912_369_984.0,
+        free_cash_flow=500_000_000.0,
+    )
+    out = correctness_gate.overlay_filed_periods(f, filed)
+    assert out.financial_currency in (None, "INR")
+    fcf_meta = out.field_meta["free_cash_flow"]
+    assert out.free_cash_flow is None
+    assert fcf_meta.status == "withheld"
+    assert "USD" in fcf_meta.reason and "INR" in fcf_meta.reason
+    for name in ("revenue_ttm", "net_income_ttm"):
+        reason = out.field_meta[name].reason or ""
+        assert "disagrees" not in reason
+
+    # Read-only use of W1's model-facing formatter (research.fundamentals_content):
+    # the INR revenue is now shown in the model's units, not raw USD-labelled.
+    import json
+
+    from services.agent_tools import research
+
+    rendered = research.fundamentals_content(json.dumps({"fundamentals": out.model_dump()}))
+    assert "₹" in json.loads(rendered)["fundamentals"]["revenue_ttm"]
+    assert "cr" in json.loads(rendered)["fundamentals"]["revenue_ttm"]
+
+
+def test_overlay_still_flags_a_same_basis_divergence() -> None:
+    """Control: a Fundamentals already on an INR basis still gets the
+    divergence reason when the provider's own figure is off by more than 30%."""
+    filed = _filed_quarters(revenue=100_000_000, net_profit=10_000_000)
+    f = _fund(
+        symbol="DAL.BO",
+        currency="INR",
+        revenue_ttm=27_600_000,  # far below the filed 100,000,000 sum
+        net_income_ttm=10_200_000,
+    )
+    out = correctness_gate.overlay_filed_periods(f, filed)
+    assert out.financial_currency is None
+    reason = out.field_meta["revenue_ttm"].reason
+    assert reason is not None and "disagrees" in reason

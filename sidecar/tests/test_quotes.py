@@ -238,6 +238,100 @@ def test_indian_index_reads_the_nse_calendar_regardless_of_session_region(
     assert body["freshness"] == "live"
 
 
+_FOREIGN_SESSION = datetime(2026, 9, 23, 15, 0, tzinfo=UTC)  # US session open (11:00 ET)
+
+
+@pytest.mark.parametrize("region_header", ["US", "IN"])
+@pytest.mark.parametrize(
+    "symbol, ts",
+    [
+        ("BHP.AX", datetime(2026, 9, 23, 6, 0, tzinfo=UTC)),
+        ("7203.T", datetime(2026, 9, 23, 6, 0, tzinfo=UTC)),
+        ("%5EN225", datetime(2026, 9, 23, 8, 0, tzinfo=UTC)),
+        ("0700.HK", datetime(2026, 9, 23, 8, 0, tzinfo=UTC)),
+    ],
+)
+def test_a_real_foreign_listing_is_never_live(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    symbol: str,
+    ts: datetime,
+    region_header: str,
+) -> None:
+    """R15-UI-090: a listing that is not positively US or IN (ASX/TSE/HKEX, or
+    a foreign caret index) has no exchange-timezone table here, so it is never
+    'live' — regardless of the session region or whether its own exchange is
+    actually open at the frozen "now"."""
+    from services import provider_registry
+
+    _freeze_locale_clock(monkeypatch, _FOREIGN_SESSION)
+
+    def quote(sym: str, asset_class: str = "equity") -> Quote:  # noqa: ARG001
+        return Quote(
+            symbol=sym,
+            price=100.0,
+            change=0.0,
+            change_percent=0.0,
+            timestamp=ts,
+            provider="yfinance",
+        )
+
+    monkeypatch.setattr(provider_registry, "get_quote", quote)
+    headers = {"X-Vysted-Region": region_header}
+    body = client.get(f"/quotes/{symbol}", headers=headers).json()
+    assert body["freshness"] != "live"
+
+
+def test_hsba_l_is_never_live_even_during_its_own_session(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-UI-090: HSBA.L's own (LSE) session is irrelevant — this module has
+    no LSE timezone table, so it is dated against the US calendar, never live."""
+    from services import provider_registry
+
+    _freeze_locale_clock(monkeypatch, datetime(2026, 9, 23, 17, 0, tzinfo=UTC))
+
+    def quote(symbol: str, asset_class: str = "equity") -> Quote:  # noqa: ARG001
+        return Quote(
+            symbol=symbol,
+            price=100.0,
+            change=0.0,
+            change_percent=0.0,
+            timestamp=datetime(2026, 9, 23, 15, 30, tzinfo=UTC),
+            provider="yfinance",
+        )
+
+    monkeypatch.setattr(provider_registry, "get_quote", quote)
+    body = client.get("/quotes/HSBA.L").json()
+    assert body["freshness"] != "live"
+
+
+@pytest.mark.parametrize("symbol", ["AAPL", "BRK.B"])
+def test_us_listings_still_read_live_during_the_us_session(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, symbol: str
+) -> None:
+    """Control: R15-UI-090's fail-closed FOREIGN rule must not catch a plain US
+    ticker or the US share-class dot quirk."""
+    from services import provider_registry
+
+    now = datetime(2026, 9, 23, 15, 0, tzinfo=UTC)  # 11:00 ET, US session open
+    _freeze_locale_clock(monkeypatch, now)
+
+    def quote(sym: str, asset_class: str = "equity") -> Quote:  # noqa: ARG001
+        return Quote(
+            symbol=sym,
+            price=100.0,
+            change=0.0,
+            change_percent=0.0,
+            timestamp=now,
+            provider="yfinance",
+        )
+
+    monkeypatch.setattr(provider_registry, "get_quote", quote)
+    body = client.get(f"/quotes/{symbol}").json()
+    assert body["freshness"] == "live"
+
+
 def test_a_crypto_pair_routes_through_the_quote_path(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:

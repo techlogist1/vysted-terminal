@@ -583,6 +583,11 @@ def _ttm_basis(quarter_ends: list[date] | None, cadence: str | None) -> str | No
             "TTM basis: the exchange filings do not cover the trailing year in four "
             f"quarters (a half-yearly filer) — {_HALF_YEARLY_BASIS}"
         )
+    if cadence == "quarterly-gap":
+        return (
+            "TTM basis: the exchange filings leave a quarter of the trailing year "
+            "unfiled or unparsed; kept, flagged"
+        )
     if not quarter_ends:  # an empty frame says nothing about the filing cadence
         return None
     ends = sorted(set(quarter_ends), reverse=True)
@@ -683,16 +688,37 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
     provider figure beyond the witness band (30% for sizes, the research
     growth tolerance for growth) is disclosed in the reason. Every other field
     stays the provider's.
+
+    The exchange files ``revenue_ttm``/``net_income_ttm`` in INR (R15-DATA-008);
+    no FX conversion is applied. When either is served: ``financial_currency``
+    is reset to match (``None`` when ``currency`` is already INR, else ``"INR"``,
+    since the statement sizes are now on a different basis than the trading
+    currency), the divergence check against the provider's own figure runs
+    only when the provider's own basis (its ``financial_currency`` or
+    ``currency`` before this overlay) was already INR — comparing across a
+    currency change is a basis difference, never a "disagrees" — and any
+    statement size the overlay did not replace (``free_cash_flow``) is
+    withheld when that old basis was not INR, since it would otherwise be read
+    against the new INR ``financial_currency``.
     """
     latest = filed.periods[0]
     as_of = latest.end.isoformat()
     meta = dict(f.field_meta or {})
     updates: dict[str, Any] = {}
+    #: The basis the provider's own (un-overlaid) statement sizes were on,
+    #: before this overlay resets ``financial_currency`` below. ``None`` (no
+    #: currency signal at all) is treated as INR-compatible — this lane only
+    #: ever runs for an Indian listing, so an unset currency is never a
+    #: confirmed cross-currency basis, only an explicit non-INR one is.
+    old_basis = f.financial_currency or f.currency
+    old_basis_is_inr = old_basis is None or old_basis == "INR"
 
-    def serve(name: str, value: float, label: str, disagrees: bool) -> None:
+    def serve(
+        name: str, value: float, label: str, disagrees: bool, basis_note: str | None = None
+    ) -> None:
         served = getattr(f, name)
-        reason = None
-        if served is not None and disagrees:
+        reason = basis_note
+        if reason is None and served is not None and disagrees:
             shown = (
                 f"{served:.1%}"
                 if name.endswith("_growth")
@@ -719,10 +745,42 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
                 continue
             total = sum(values)
             served = getattr(f, name)
-            off = served is not None and (
-                _relative_divergence(served, total) > _REVENUE_STATEMENT_DIVERGENCE
-            )
-            serve(name, total, label, off)
+            basis_checked = name in ("revenue_ttm", "net_income_ttm")
+            if basis_checked and not old_basis_is_inr:
+                off = False
+                basis_note = (
+                    f"exchange-filed (INR, {filed.venue.upper()}) figure served; the "
+                    f"provider's {served:,.0f} was served on a {old_basis or 'unknown'} "
+                    "basis, not INR — no FX conversion is applied, the figures are not "
+                    "compared"
+                    if served is not None
+                    else None
+                )
+            else:
+                off = served is not None and (
+                    _relative_divergence(served, total) > _REVENUE_STATEMENT_DIVERGENCE
+                )
+                basis_note = None
+            serve(name, total, label, off, basis_note)
+        if "revenue_ttm" in updates or "net_income_ttm" in updates:
+            updates["financial_currency"] = None if f.currency == "INR" else "INR"
+            if not old_basis_is_inr:
+                for name in ("revenue_ttm", "net_income_ttm", "free_cash_flow"):
+                    if name in updates:
+                        continue  # already replaced by the exchange filing above
+                    served = getattr(f, name)
+                    if served is None:
+                        continue
+                    updates[name] = None
+                    meta[name] = FieldMeta(
+                        status="withheld",
+                        provider=f.provider,
+                        reason=(
+                            f"served on a {old_basis or 'unknown'} basis while the exchange "
+                            "files this listing's results in INR; no FX conversion is "
+                            "applied — withheld"
+                        ),
+                    )
     prior = filed.year_ago(latest)
     if prior is not None and f.growth_basis == "mrq_yoy":
         label = f"{filed.basis}, period to {as_of} vs the same period to {prior.end.isoformat()}"
