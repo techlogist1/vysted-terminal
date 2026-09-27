@@ -4,6 +4,119 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 rc1 gate — round 4 refutation audit and Stage C batch-28: 29 reopened, 25 certified, six entries stopped for the operator (2026-09-27)
+
+Round 4's gate FAIL (below) left seven refuted entries plus an adjacent high unresolved, and a
+separate gate sheet carried 22 shard-filed/residual critical/high/medium adjacents never filed as
+register entries — rc1 cannot pass with an unregistered c/h/m defect. The refutation audit below
+closed that gap; Stage C batch-28 then fixed what it found.
+
+- **Refutation audit round 4** (`wf_65e7ee56-238`, launched 06:45 IST, head `33586c21`; collated
+  `80c995a2` at 07:54 IST — 70 min, 9 agents, 1.94M tokens, 934 tool uses). Two fixed waves of four
+  Opus auditors — wave 1 (`data`, `agent-llm`, `agent-inproc`, `surface`) re-checked the seven
+  refutations and the adjacent high; wave 2 (`triage-a/b/c/d`) split the 22 shard-filed/residual
+  adjacents — plus a Sonnet collator. Tally: 35 verdicts (3 `regression_confirmed`, 26 `partial`, 4
+  `new_defect_confirmed`, 2 `verifier_error`, 0 duplicate/not-a-defect/not-reproducible), **29
+  register entries reopened** (`docs/redesign/verification/r15/rc1/refutation-audit/round-4/`).
+  - **Verifier errors (2):** `rc1-vshard-3:3` (tie R15-AGENT-043) found a real screener symptom (a
+    stale flat group loses `market_cap`/`roe` on apply) that belongs to newly-filed R15-AGENT-096,
+    not AGENT-043, which stays certified. `rc1-vshard-2:5` (tie R15-CODE-FRONTEND-015) confirmed a
+    real publish-key mismatch (`EarningsCalendarPanel`/`ScreenerPanel` publish keys don't match their
+    dockview ids) that does not cause the claimed symptom, since `focusedSymbolFromBus` only reads
+    `payload.symbol`/`payload.ticker`.
+  - **New defects filed (4):** R15-AGENT-094 (high) — a union-typed schema `type` crashes
+    `agent_runtime._coerce` (unhashable list). R15-AGENT-095 (medium) — the ratio guard's
+    date-blanking regex leaves a date's day/month digits as share-count candidates, replacing a
+    dated, sourced ADR-ratio sentence. R15-AGENT-096 (medium) — a flat filter group is replaced by a
+    stale flat criteria list on `applyFilters`. R15-LEAD-044 (high) — the screener's per-symbol
+    fetches carry no region, so a US universe (sp500) serves India-namesake rows (HAL, CCL, IEX,
+    ACGL).
+  - **Follow-up datapack group:** **R15-DATA-008 reopened critical** (`regression_confirmed`, tied to
+    DATA-014/027/076/LEAD-004 via the NSE exchange-filed overlay `59de8327`) — the overlay swaps INR
+    filed sizes onto a listing whose `financial_currency` stayed Yahoo's USD, so INFY.NS revenue/net
+    income render as ~USD 1.85T/303B against a true ~USD 20.3B/3.3B (~91x); SIFY itself stays
+    correctly labelled. **R15-RESEARCH-017 not a defect** — DEEP and ULTRA now fail identically and
+    honestly on an injected prologue error; the depth asymmetry the entry named was removed on
+    purpose by R15-CODE-RESEARCH-003 (`68bb7aa4`).
+- **Three-failure rule stops** (`DECISIONS_FOR_OPERATOR.md` §4.16-4.20). Five entries hit or passed
+  three certification failures on the same defect class and are parked `blocked_tier4`, decision
+  pending the operator; the write-ups do not state which option will be taken.
+  - **R15-AGENT-019** (high, agent-chat, 3): a bare trailing `?` still counts as a read-only cue for
+    any agent-addressed question with no listed edit verb, stripping the data-write tool.
+  - **R15-AGENT-090** (high, agent-chat, 5 by the mechanical count, four predating the rule): the
+    ratio guard's segment-close check treats trailing whitespace as a sentence end, so a llama-style
+    bare-space token before a digit lets a fabricated ratio leak mid-sentence.
+  - **R15-RESEARCH-007** (high, research-search, 3): an `ir.`/`investors.` subdomain on an
+    un-enumerated blog platform still ranks `TIER_PRIMARY` — the third fresh leak of the same
+    enumerated-denylist approach.
+  - **R15-DATA-061** (medium, data, 3): ECB/World Bank/IMF failures for a wrong series id or provider
+    string still fall through to a generic 502 "Retry" body instead of a typed `not_found`/422.
+  - **R15-UI-090** (high, ui-panels, 3, the third at batch-28): quote freshness is still judged
+    against the US/IN calendar only — a foreign listing mid-session (7203.T at 02:00Z, inside Tokyo
+    hours) reads `eod` instead of `live`; batch-28's fail-closed fix skipped the exchange
+    timezone/session table the audit specified.
+- **Stage C batch-28** (base `bf203553`; merge target `worktree-agent-batch-28-int@c780c516`; merged
+  `--no-ff` as `c682ab81`). Adjudicator (`bf203553`) folded in the datapack reopen/close, set the four
+  round-4 stops `blocked_tier4`, and mined three entries from batch-27's "Issues noticed": R15-LEAD-045
+  (medium — the sidecar's own Yahoo-batch v7/crumb path 404s/429s live), R15-LEAD-046 (medium — HDB's
+  `forward_pe` looks stale against its home NSE listing), R15-LEAD-047 (low — a derived MSFT-style EPS
+  carries no reason distinguishing it from a directly-served one; open, below this batch's severity
+  floor). Planner (`PLAN.md`) took all 32 open c/h/m entries (31 fixes, LEAD-046 proposed
+  not-a-defect) across six writer sets: W1 opus (agent runtime — AGENT-001/092/094/095, LEAD-014), W2
+  sonnet (news/research legs/earnings — RESEARCH-001, DATA-030/063/113, RESEARCH-027), W3 sonnet
+  (disclosures/providers — DATA-003/024/038, RESEARCH-022), W4 sonnet (correctness gate/Yahoo symbol —
+  DATA-008/055, LEAD-004/022, UI-090), W5 opus (screener/warm-store/quant — LEAD-044/045,
+  LIFECYCLE-020, DATA-053/114), W6 sonnet (frontend — AGENT-053/055/096, CODE-FRONTEND-017,
+  UI-015/021, CODE-PLATFORM-017).
+  - **Integrator:** chain green twice (`ci-local` EXIT=0, pytest 3751 passed/1 skipped, vitest 1874,
+    cargo 19, smoke green). One partial revert (`c780c516`): dropped the R15-DATA-030 half of
+    `8eb855e3` because `news_provider._aliases`'s collision check compared an alias against itself
+    rather than the target's own symbol, so any single-word company name (Apple, Microsoft, Nvidia,
+    Infosys) lost its name alias entirely; R15-DATA-030 returns open. R15-RESEARCH-001's half
+    (per-symbol-feed provenance, the non-IN news gate) was kept.
+  - **Reviewer / fresh verifier** (`VERDICTS.md`, Opus, fresh sidecar + MCP instances: "Verdict:
+    approve"). **25 certified**, none a regression, each on a fresh case the fix wasn't written
+    against:
+    - *Agent runtime:* AGENT-001 renders fundamentals fraction fields (dividend yield, margins,
+      ROE/ROA/ROCE, growth) to the model as percent strings, not raw floats read 100x low. AGENT-092
+      only delivers a Delegate brief once its `publish_brief` actually dispatched, not on a later
+      halted round. AGENT-094 stops `_coerce` crashing on a union-typed schema. AGENT-095 keeps a
+      dated, sourced ADR-ratio sentence instead of replacing it. LEAD-014 rejects a type-name
+      placeholder echo from tool-arg repair.
+    - *Data, disclosures & quotes:* DATA-003 gates India-only disclosure lanes by session region, not
+      master-list membership. DATA-024 fetches a dual-listed NSE name's BSE deal rows too. DATA-038
+      falls back to raw filing text when section parsing returns nothing. RESEARCH-022 raises on a
+      200-status CAPTCHA page instead of a false-empty answer. DATA-053 scales BSE volume by its
+      stated unit and adds NSE-direct OHLC fields. LEAD-022 dash-rewrites a dotted Yahoo symbol only
+      for the US share-class quirk. DATA-008 stops the NSE-filed INR overlay rendering under a stale
+      USD label. DATA-055 falls back to `first_trade_date` for a young listing's range label.
+    - *Screener & quant:* LEAD-044 threads a universe's own region through per-symbol fetches.
+      LEAD-045 moves the Yahoo batch transport onto a Chrome-impersonated `curl_cffi` session.
+      DATA-114 treats a failed F&O walk-back day as cache-only instead of ending the walk. RESEARCH-027
+      boxes the FAST web leg at an 8s timeout. DATA-113 derives a scale-checked EPS currency instead
+      of reusing the ADR's own quoted currency.
+    - *Frontend:* AGENT-053 publishes the hovered headline text to agent context, not an opaque
+      article id. AGENT-055 unifies native-menu layout ids with layout-template mode ids. AGENT-096
+      lets a flat filter group supersede stale flat criteria on apply. CODE-FRONTEND-017/UI-015
+      race-guard `sec.ts`'s loaders by generation and surface a dropped search error. UI-021 stops a
+      body-targeted Delete from clearing a drawing selection on an unfocused chart panel.
+      CODE-PLATFORM-017 routes the code-node inspector's preview through the same sidecar evaluator
+      as execution, not a separate mathjs implementation that could disagree.
+  - **R15-LEAD-046 concurred not-a-defect:** a fresh `yfinance` counter-probe (HDB forward EPS 1.3915
+    from 4 analysts vs HDFCBANK.NS 63.07 from 41) agrees with the sidecar's own `forward_pe` within
+    ~3% once converted; the gap is two independent analyst consensus sets, not a code or
+    currency-basis error.
+  - **5 not certified**, each an improvement over base, not a regression: R15-RESEARCH-001
+    (common-word tickers like ON/ON Semiconductor still pull off-entity region-feed items into DEEP
+    research), R15-DATA-063 (`/indicators` still returns a null freshness label), R15-LEAD-004 (an
+    unfiled quarter with no half-year context still reports "half-yearly"), R15-LIFECYCLE-020
+    (background warm 429 weight still accumulates with no reset, opening the user-facing circuit
+    after ~10 warm cycles), R15-UI-090 (above).
+- **Net state into batch-29** (launched 10:17 IST as `wf_d476870a-216`): five open critical/high/medium
+  entries remain — R15-RESEARCH-001, R15-DATA-063, R15-LEAD-004, R15-LIFECYCLE-020, R15-DATA-030 —
+  each on its second attempt with a changed strategy. The rest of the rc1 line is gate round 5 at the
+  batch-29 merge head, run with the hardened `rc1-gate.js`.
+
 ## R15 rc1 gate — round 4: FAIL — 7 refuted fixed entries stand, adjacent high, battery raw undercount (2026-09-27)
 
 Fourth full pre-tag release gate, run against the round-3-repair candidate `1006c6da` (`rc1-gate.js` round 4,
