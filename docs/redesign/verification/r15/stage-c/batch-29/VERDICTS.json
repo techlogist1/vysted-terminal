@@ -1,0 +1,38 @@
+{
+  "batch": "batch-29",
+  "verifier": "fresh-context verifier (claude-opus-5-5)",
+  "merge_target": "worktree-agent-batch-29-int@cee5dc19b8411459254610f03b73170240e2db40",
+  "verdict": "block",
+  "blocking": [
+    "e7d5a628 fix(news) (R15-DATA-030) regresses on-entity news tagging. A ticker whose company is written in prose by its short name, where the master name has more words (META 'Meta Platforms', UBER 'Uber Technologies', RELIANCE.NS 'Reliance Industries', MARUTI.NS 'Maruti Suzuki India'), no longer tags headlines that the base tagged. The ticker alias is now case-sensitive, and the name alias needs every word of the full name. Live: the real TheStreet headline 'Bank of America backs Meta stock after Muse surprise' is tagged ['META'] at base and [] at head, and it is missing from GET /news?symbols=META. This is the same single-word-name regression class that got batch-28's DATA-030 fix reverted (c780c516). Revert or rework e7d5a628 only. The other six entries do not depend on it."
+  ],
+  "certified": [
+    "R15-RESEARCH-001",
+    "R15-DATA-063",
+    "R15-LEAD-004",
+    "R15-LIFECYCLE-020",
+    "R15-LEAD-048",
+    "R15-LEAD-049"
+  ],
+  "needs_gui": [],
+  "not_certified": [
+    {
+      "id": "R15-DATA-030",
+      "reason": "Two claims are not met. (1) Regression of the entry's own under-match claim, which the Indian flagship names headline: at head, 'Reliance Q2 profit jumps 9% on retail, Jio', 'Reliance shares hit record high' (RELIANCE.NS), 'Maruti sales rise 8% in September' (MARUTI.NS), 'Meta unveils new Llama model' (META) and 'Uber beats estimates on ride growth' (UBER) are all untagged; each is tagged at base 522c3246. The case-sensitive ticker alias no longer matches the title-case short name, and the name alias needs the full multi-word name. Live fresh case: the real headline 'Bank of America backs Meta stock after Muse surprise' is absent from /news?symbols=META (base tags it). (2) The common-word/acronym ticker class is fixed only for lower-case prose. Live /news?symbols=AI (C3.ai, US) returns 7 off-entity region-feed items tagged by alias. One of them is 'Choosing these AI-exposed college majors could dent your job prospects', the exact headline the acceptance pins as [] for ON. The IT/ON/ALL/RELIANCE POWER/LT Foods/ITC Hotels literal repros all pass."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": [],
+  "chain": {
+    "ci_local": "CI_EXIT=0 at 54239c87 (3784 passed, 1 skipped); smoke SMOKE_EXIT=0 at 54239c87",
+    "post_ci_commit": "cee5dc19 changes only src/lib/host-actions.ts(+test). Verifier re-ran it: vitest host-actions 115/115, prettier/eslint/tsc clean",
+    "focused_pytest_at_head": "263 passed (test_news, test_research_relevance, test_research_deep, test_research_fast, test_indicators, test_b7_exchange_financials, test_b5_screener, test_fundamentals_warm, test_resolver_rename)"
+  },
+  "issues": [
+    "relevance._strong_entity_score (non-IN): an ALL-CAPS headline still passes a 3-character common-word ticker at 0.6. 'ALL EYES ON THE FED AS RATE DECISION LOOMS' is relevant to ALL (Allstate); the code marks this with a ponytail ceiling. None of today's live US or IN feed items are all-caps.",
+    "relevance (non-IN): a 2-letter ticker no longer passes alone. 'GE beats estimates on jet engine demand' for GE (GE Aerospace) was True at base and is False at head, so FAST/DEEP web evidence for 2-letter US tickers is under-included when the title names only the ticker.",
+    "exchange_financials.cadence: a recently listed quarterly filer with only 2 filed quarters (Jan-Mar 2026, Apr-Jun 2026) is labelled 'half-yearly'. The Apr-Sep 2025 half predates its filings. This matches the fix_shape's literal rule, but not its rationale that a filer of any quarter is not half-yearly. Base behaved the same.",
+    "GET /quotes/TATAMOTORS.NS and /quotes/TATAMOTORS.BO still return 404 not_found without a rename hint to TMPV. /resolve?q=TATAMOTORS does list TMPV first. This is outside LEAD-049's fix_shape.",
+    "sp500.json carries ECHO and VMRK, which are absent from the US master. This is the same stale-universe class as LEAD-049 (the plan also noted it)."
+  ]
+}
