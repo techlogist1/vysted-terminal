@@ -16,7 +16,7 @@ before the fresh verifier's final read.
   auto-apply); the deterministic chain (`ci-local` EXIT=0 twice at `633f8440` — pytest 3780 passed/1
   skipped, vitest 1881, cargo 19; smoke EXIT=0, 13 agents, MCP toolCount 40); all 8 owner-drive
   groups (the one panels-layouts partial — the SEC Insider tab colouring a blank Direction green —
-  fixed in fix round 1 and reproved live on fresh symbols); the 25 battery shards (312 holds, 88
+  fixed in fix round 1 and reproved live on fresh symbols); the 25 battery shards (315 holds, 85
   ci_pinned, 0 regressed); data packs (24/24 complete, 0 5xx). Agent scenarios and the GUI round
   deferred operator_attended: skepticism 1/4 (sk3 passed; sk1/sk4 are the DATA-002 class, sk2 the
   AGENT-090 class, both already operator-pending); no computer-use grant on the built app.
