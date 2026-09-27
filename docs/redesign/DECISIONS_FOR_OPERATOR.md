@@ -947,3 +947,23 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
 - **Facts:** DATA-002 (the watchlist drops the picked listing's region) was `partial` in the rc1 round-1 refutation audit and `partial` again at the gate round-2 refutation — two certification failures. In batch-25 the W1 writer reported `could_not`: its fix (region on `SymbolEntry`, the pick, the quote poll, the row click and persistence) is complete with green tests on `worktree-agent-batch-25-W1-data002-wip@b91ddef3`, but the last hop needs `src/store/command-palette.ts` (the `symbolEntry` type and the `symbol:<SYM>` id that collides for two listings) plus `CommandPalette.tsx:207`, which were outside the planner's owned-file set. Nothing was merged; the batch-25 verifier recorded it as not certified for that reason.
 - **Ruling (19:56 IST 26 Sep, Tier 3):** the three-failure rule counts fixes that were certified and refuted, or delivered and not certified. A fix that never reached the integration branch because of a planning boundary was not tested and does not count. DATA-002 stays at TWO. Batch-26 makes ONE targeted attempt from the WIP branch with the missing file in scope; if its fresh verifier does not certify it, that is the third and it stops for you like 4.13 and 4.14.
 - **Why it is recorded here:** you may disagree with the reading; if so, say so and batch-26's result is treated as the third regardless.
+
+## 6. Operator rule changes recorded during the rc1 gate (27 Sep 2026)
+
+Recorded here at the operator's instruction. These are operator decisions already in force, not items awaiting one; the verbatim text is the brief addendum `R15_BRIEF_GATE_RULE_CHANGE_1.md` (kept outside the repo).
+
+### 6.1 Gate rule change 1: the rc1 bar is a fixed regression check
+
+- Why: five rc1 gate rounds ran, each about five hours and seven to ten million tokens, and each widened the register (verifier shards judged the class rather than the entry, `partial` verdicts reopened fixed entries, every round filed new LEAD entries that spawned a batch and another round). That is a re-audit of the audit, which the brief forbids after the census; "a fresh full-surface pass finds nothing" cannot be met on a product this size. The tag depends on a regression check with a fixed bar, not on a discovery engine.
+- rc1 passes when: (1) the deterministic chain is green on the candidate; (2) Gate 8 holds; (3) every register entry marked `fixed` still passes its own stated repro (a regression is that repro failing again, nothing else); (4) open critical and high is zero.
+- Anything a verifier finds beyond an entry's stated repro is a new entry, filed at the severity it earns with file:line and a repro; it does not reopen the original. `partial` is no longer a verdict: it is `fixed` plus a new entry.
+- New criticals and highs get exactly one bounded fix round inside the gate. New mediums and lows are filed, listed in the release notes and CURRENT_STATE as open at 0.9.0, and become the first 0.9.1 batch.
+- The signed-off local-model class (LEAD-030/035/037/038) and the three-failure rule stand.
+- Round 5 is the last round: its result is adjudicated under this bar, at most one fix round runs (new criticals and highs only), the chain and the repro check re-run on that merge, and r15-rc1 is tagged on it. No round 6. A harness failure means fixing the harness and re-running only the lanes that did not complete, never the whole round.
+
+### 6.2 Scope change 3: BL-03 leaves the release line, rc3 is dropped
+
+- BL-03 moves to its own branch with its build-ready spec and the panel verdict attached; it is the first 0.9.1 feature. rc3 is dropped.
+- Order after the rc1 tag: push, hygiene prune, version-branch merge, handover; then lows integration as one combined candidate (all three partitions rebased onto the tag off-lane, conflicts resolved, one chain run and one fresh verifier; bisect by partition only if the chain is red) with the GUI round in parallel on the rig and docs promotion as results land; then the clean-profile production bundle, r15-rc2, exactly one final adversarial pass under the same bar (criticals and highs closed in one round, mediums and lows filed for 0.9.1), and r15-launch on that head.
+- The handover is refreshed at each tag; the operator briefing and the 0.9.1 backlog (the filed mediums and lows, BL-03, BL-18, the tier-4 bucket) are written before the launch tag.
+- Estimates: measured wall-clock is recorded beside each estimate at each tag and the remainder re-derived from measured durations only. The message cites a "pacing change 6" that was not on disk at acknowledgement time; steady mode (pacing change 5B) continues to apply until it arrives.
