@@ -14,6 +14,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Query
 
 from models.indicators import IndicatorResponse
+from routers.history import _label_series_freshness
 from services import indicators as indicator_service
 from services import provider_registry
 from services.correctness_gate import EmptySeriesError
@@ -81,4 +82,9 @@ def get_indicators(
         # The /history downgrade (R15-DATA-063): no bars is an honest empty
         # chart, not a 502 overlay error beside it.
         return IndicatorResponse(symbol=symbol, timeframe=timeframe, provider="none", indicators=[])
+    # R15-DATA-063: the provider registry never labels freshness itself — only
+    # /history's own downgrade path did, so every live /indicators response
+    # carried freshness=null. Label it the same way /history does before
+    # compute() copies series.freshness onto the response.
+    series = _label_series_freshness(series, asset_class, timeframe)
     return indicator_service.compute(series, requested)
