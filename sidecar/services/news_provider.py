@@ -45,6 +45,7 @@ import logging
 import os
 import re
 from datetime import UTC, datetime
+from functools import lru_cache
 from time import struct_time
 from typing import Any
 
@@ -572,19 +573,65 @@ def _company_name(symbol: str) -> str | None:
     return symbol_resolver._strip_corporate_suffix(name.lower()) if name else None
 
 
+@lru_cache(maxsize=1)
+def _company_name_first_words() -> dict[str, set[str]]:
+    """First word of every listed company's name (NSE/BSE/US masters),
+    upper-cased, mapped to the symbols carrying that name.
+
+    Used to find a bare ticker that is also the first word of a DIFFERENT
+    company's name — ``LT`` is Larsen & Toubro's own ticker, but it is also
+    the first word of ``LT Foods Limited`` (symbol ``LTFOODS``); ``ITC`` is
+    likewise the first word of ``ITC Hotels Limited`` (symbol ``ITCHOTELS``).
+    """
+    out: dict[str, set[str]] = {}
+    for master in (
+        symbol_resolver._nse_master(),
+        symbol_resolver._bse_master(),
+        symbol_resolver._us_master(),
+    ):
+        for sym, row in master.items():
+            name = row[0] if isinstance(row, tuple) else row
+            words = name.split() if name else []
+            if words:
+                out.setdefault(words[0].upper(), set()).add(sym)
+    return out
+
+
+def _collides_with_another_companys_name(alias: str) -> bool:
+    """True when ``alias`` — a bare ticker, OR a company name that itself
+    reduces to one bare word (ITC Limited -> "itc") — is the first word of a
+    DIFFERENT listed company's name (R15-DATA-030). A multi-word alias
+    ("larsen & toubro") can never equal a single first word, so it is
+    unaffected."""
+    upper = alias.upper()
+    return any(sym != upper for sym in _company_name_first_words().get(upper, set()))
+
+
 def _aliases(symbol: str) -> list[str]:
     """Text forms that mean ``symbol``: the ticker as requested, its bare
-    exchange/pair-stripped base (2+ characters only, so ``A`` never matches
-    the article "a"), and the company name (the only text alias a one-letter
-    ticker gets)."""
+    exchange/pair-stripped base, and the company name — each dropped when it
+    is a ticker/first-word collision with a DIFFERENT listed company (LT vs
+    "LT Foods", ITC vs "ITC Hotels" — the latter collides even through the
+    name alias, because ITC's own legal name reduces to the bare word "itc").
+    A ticker form under 2 characters is dropped outright, so ``A`` never
+    matches the article "a".
+
+    :func:`_tag_symbols` tells the two kinds apart by case: a ticker alias is
+    always upper-case, the company name is always lower-case.
+
+    A crypto pair is never in the equity resolver masters, so the collision
+    check (an equity-vs-equity namesake class) does not apply to it.
+    """
     tickers = dict.fromkeys(
-        [symbol, strip_exchange_suffix(symbol), _normalize_symbol_for_aliases(symbol)]
+        [symbol.upper(), strip_exchange_suffix(symbol), _normalize_symbol_for_aliases(symbol)]
     )
-    aliases = [t for t in tickers if len(t) >= 2]
+    forms = [t for t in tickers if len(t) >= 2]
     name = _company_name(symbol)
     if name:
-        aliases.append(name)
-    return aliases
+        forms.append(name)
+    if "/" in symbol:
+        return forms
+    return [f for f in forms if not _collides_with_another_companys_name(f)]
 
 
 def build_aliases(symbols: list[str]) -> dict[str, list[str]]:
@@ -596,17 +643,24 @@ def _tag_symbols(item: NewsItem, aliases: dict[str, list[str]]) -> list[str]:
     """Return the symbols (keys of ``aliases``) the item is about.
 
     An item from a symbol's own per-symbol feed is tagged by provenance
-    (``item.symbols``, set by the provider); otherwise any alias of the symbol
-    (:func:`_aliases`) must appear word-boundary-anchored in the title or
-    summary, so ``ETH`` does not match ``ethics``.
+    (``item.symbols``, set by the provider); otherwise a ticker alias
+    (upper-case) must appear word-boundary-anchored, case-SENSITIVELY, so a
+    lower/title-case common word or company-name fragment ("it's", "All eyes
+    on the Fed") never matches a bare ticker ("IT", "ALL"). The company-name
+    alias (lower-case) still matches case-insensitively, so ordinary prose
+    ("Reliance Industries...") still tags.
     """
     haystack = f"{item.title} {item.summary or ''}"
     matched: list[str] = []
     for symbol, forms in aliases.items():
-        if symbol in item.symbols or any(
-            re.search(rf"\b{re.escape(alias)}\b", haystack, flags=re.IGNORECASE) for alias in forms
-        ):
+        if symbol in item.symbols:
             matched.append(symbol)
+            continue
+        for alias in forms:
+            flags = 0 if alias.isupper() else re.IGNORECASE
+            if re.search(rf"\b{re.escape(alias)}\b", haystack, flags=flags):
+                matched.append(symbol)
+                break
     return matched
 
 
@@ -623,6 +677,11 @@ def enrich(
     enriched: list[NewsItem] = []
     for item in items:
         result = sentiment.score_text(f"{item.title}. {item.summary or ''}")
+        # ``item.symbols`` still carries the pre-tag provenance stamp here
+        # (``_fetch_feed`` sets ``[symbol]`` for a per-symbol feed, ``[]`` for
+        # a region-wide market feed) — capture it before ``_tag_symbols``
+        # below overwrites ``symbols`` with the tagged set (R15-RESEARCH-001).
+        via_symbol_feed = bool(item.symbols)
         tagged = _tag_symbols(item, aliases)
         if symbols and not tagged:
             continue
@@ -632,6 +691,7 @@ def enrich(
                     "symbols": tagged,
                     "sentiment": round(result.score, 4),
                     "sentiment_label": result.label,
+                    "via_symbol_feed": via_symbol_feed,
                 }
             )
         )

@@ -18,6 +18,7 @@ from services.budget_guard import BudgetGuard
 from services.research import deep
 from services.research.iter import run_iter_research
 from services.research.models import ResearchBrief, ResearchSource, ResearchStep
+from services.research.target import ResearchTarget
 from services.search.extract import VisitResult
 
 
@@ -585,6 +586,71 @@ def test_ultra_iter_news_leg_drops_off_entity_items() -> None:
         )
     )
     _assert_off_entity_news_never_reaches_the_run(llm, brief)
+
+
+_GARTNER_ON_ENTITY = {
+    "id": "g1",
+    "title": "Analysts lift enterprise software spending outlook for next fiscal year",
+    "summary": "The advisory and research firm topped consensus estimates.",
+    "url": "https://example.com/gartner-guidance",
+    "source": "Gartner Newsroom",
+    "symbols": ["IT"],
+    "via_symbol_feed": True,
+}
+_GARTNER_REGION_OFF_ENTITY = {
+    "id": "r1",
+    "title": "Tax-free bond yields dip as investors seek safety",
+    "summary": "The IT sector led broader market gains on Friday.",
+    "url": "https://example.com/tax-free-bonds",
+    "source": "Markets Desk",
+    "symbols": ["IT"],
+    "via_symbol_feed": False,
+}
+
+
+async def _gartner_tool_call(name: str, _args: dict[str, Any]) -> dict[str, Any]:
+    if name == "news":
+        return {
+            "ok": True,
+            "count": 2,
+            "news": [_GARTNER_ON_ENTITY, _GARTNER_REGION_OFF_ENTITY],
+        }
+    if name == "web_search":
+        return {"ok": False, "message": "no backend"}
+    return {"ok": False, "error": f"unexpected {name}"}
+
+
+def test_run_researcher_drops_off_entity_news_for_a_non_in_equity_target() -> None:
+    """R15-RESEARCH-001: the structured news leg runs the shared relevance
+    gate for a non-IN equity target too. Gartner's own per-symbol-feed item
+    (``via_symbol_feed``) is trusted and kept even though its text alone would
+    score below the relevance floor; the region-wide item merely alias-tagged
+    ``IT`` ("Tax-free bond yields...") is dropped from both the structured
+    pair and the extraction prompt."""
+    target = ResearchTarget("IT", "Gartner, Inc.", "NYSE", "equity", 1.0, "US")
+    recorded: list[list[dict[str, Any]]] = []
+
+    async def llm_call(messages: list[dict[str, Any]]) -> str:
+        recorded.append(messages)
+        return "Gartner's forecast improved."
+
+    _finding, _web, structured_pairs, _visited, _failed = asyncio.run(
+        deep._run_researcher(
+            "What is the latest news?",
+            target=target,
+            query="Gartner outlook",
+            region="US",
+            tool_call=_gartner_tool_call,
+            llm_call=llm_call,
+        )
+    )
+    assert structured_pairs
+    urls = [item["url"] for item in structured_pairs[0]["result"]["news"]]
+    assert _GARTNER_ON_ENTITY["url"] in urls
+    assert _GARTNER_REGION_OFF_ENTITY["url"] not in urls
+    prompt = " ".join(str(m.get("content", "")) for m in recorded[0])
+    assert "enterprise software spending outlook" in prompt
+    assert "Tax-free bond yields" not in prompt
 
 
 def test_reflect_complete_reads_the_leading_token_not_a_substring() -> None:

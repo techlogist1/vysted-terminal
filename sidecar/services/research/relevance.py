@@ -630,16 +630,29 @@ def gate_news(items: list[Any], *, target: ResearchTarget) -> tuple[list[Any], s
     stamped ``ok: True`` with nothing distinguishing on-entity from off-entity.
     For a resolved IN equity every item is scored by :func:`row_relevant` (the
     web-evidence gate — no new scoring) and off-entity items are dropped; when
-    none survives, the note says so. Other targets pass through unchanged.
+    none survives, the note says so.
+
+    A non-IN equity target (R15-RESEARCH-001) gets the same off-entity drop,
+    with one exception: an item tagged ``via_symbol_feed`` (the symbol's own
+    per-symbol feed, by provenance, not by an alias/text match) is trusted
+    without the :func:`row_relevant` check — that gate is tuned for the
+    IN-market evidence shape and would wrongly drop a target's own genuine
+    story. A non-equity target (crypto, index, ...) passes through unchanged.
     The ONE gate for every news leg: FAST's snapshot and the DEEP/ULTRA
     researchers' structured news pull.
     """
-    if not items or not (is_india_target(target) and target.is_equity_like()):
+    if not items or target is None or not target.is_equity_like():
         return items, None
+    india = is_india_target(target)
     kept = [
         item
         for item in items
-        if isinstance(item, dict) and row_relevant(_news_row(item), target=target)
+        if isinstance(item, dict)
+        and (
+            row_relevant(_news_row(item), target=target)
+            if india
+            else item.get("via_symbol_feed") or row_relevant(_news_row(item), target=target)
+        )
     ]
     return kept, None if kept else _no_on_entity_news_note(target.symbol, len(items))
 
