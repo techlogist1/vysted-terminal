@@ -433,6 +433,49 @@ def test_malformed_bse_payload_is_a_lane_error(monkeypatch: pytest.MonkeyPatch) 
     assert "malformed" in response.errors["BSE"]
 
 
+def test_lanes_are_anchored_on_one_company_not_the_ticker() -> None:
+    """R15-LEAD-059: the BSE lane is the NSE company's own dual listing (bundled
+    masters, no mocks). NSE FOCUS (Focus Lighting and Fixtures) has no BSE
+    listing; BSE FOCUS (543312) is Focus Business Solution, a different company.
+    KDDL's BSE name carries BSE's "Ltd-$" marker and is still the same company."""
+    assert corporate_disclosures.listing_lanes("RELIANCE") == (True, "500325")
+    assert corporate_disclosures.listing_lanes("TCS") == (True, "532540")
+    assert corporate_disclosures.listing_lanes("KDDL") == (True, "532054")
+    assert corporate_disclosures.listing_lanes("FOCUS") == (True, None)
+    assert corporate_disclosures.listing_lanes("ICONIKSPEV") == (False, "511260")
+
+
+def test_announcements_never_merge_another_companys_bse_feed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-059: FOCUS merged BSE scrip 543312's filings (Focus Business
+    Solution) with Focus Lighting's NSE items. The same-ticker BSE scrip is never
+    fetched; the NSE-only feed is served and says why."""
+    _patch_nse_announcements(monkeypatch, _NSE_ANNOUNCEMENTS)
+    calls = _patch_bse_payload(monkeypatch, _BSE_ANNOUNCEMENTS)
+
+    response = corporate_disclosures.get_announcements("FOCUS")
+    assert calls == []
+    assert response.sources == ["NSE"] and response.errors == {}
+    assert response.count > 0
+    assert all(item.exchange == "NSE" for item in response.announcements)
+    assert "BSE" not in response.windows
+    assert response.coverage == "covered"
+    assert "different company" in (response.note or "")
+
+
+def test_true_dual_listing_still_merges_without_a_note(monkeypatch: pytest.MonkeyPatch) -> None:
+    """RELIANCE/500325 is one company on both venues: both lanes run, no note."""
+    _patch_nse_announcements(monkeypatch, _NSE_ANNOUNCEMENTS)
+    calls = _patch_bse_payload(monkeypatch, _BSE_ANNOUNCEMENTS)
+
+    response = corporate_disclosures.get_announcements("RELIANCE")
+    assert response.sources == ["NSE", "BSE"]
+    assert calls[0]["params"]["strScrip"] == "500325"
+    assert set(response.windows) == {"NSE", "BSE"}
+    assert response.note is None
+
+
 def _bse_row(newsid: str, subject: str, day: date) -> dict:
     stamp = f"{day.isoformat()}T17:43:00.00"
     return {
@@ -795,6 +838,27 @@ def test_shareholding_never_merges_another_companys_bse_split(
     assert latest.source == "NSE" and latest.promoter_percent == 54.1
     assert latest.split_source is None and latest.split_as_of is None
     assert latest.fii_percent is None and latest.institutions_percent is None
+
+
+def test_shareholding_never_falls_back_to_another_companys_bse_patterns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-059: when FOCUS's NSE lane fails, the BSE FOCUS scrip (another
+    company) is not a fallback — the NSE failure is reported, never masked."""
+    from services import bse_provider
+
+    monkeypatch.setattr(
+        nse_provider,
+        "get_shareholding_master",
+        lambda symbol: (_ for _ in ()).throw(ProviderError("nse_direct: blocked")),
+    )
+
+    def bse_must_not_run(symbol: str) -> list[dict]:
+        raise AssertionError("the other company's BSE patterns must not be fetched")
+
+    monkeypatch.setattr(bse_provider, "get_shareholding", bse_must_not_run)
+    with pytest.raises(ProviderError, match="every shareholding source failed"):
+        corporate_disclosures.get_shareholding("FOCUS")
 
 
 def test_shareholding_bse_only_symbol_routes_to_bse_lane(
