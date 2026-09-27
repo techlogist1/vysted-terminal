@@ -71,6 +71,7 @@ import re
 from collections import Counter
 from datetime import UTC, date, datetime, timedelta
 
+import config
 from models.announcements import (
     Announcement,
     AnnouncementsResponse,
@@ -130,6 +131,19 @@ _BSE_TIMEOUT = 20.0
 
 def _ist():  # noqa: ANN202 - ZoneInfo
     return locale.market_timezone(locale.REGION_IN)
+
+
+def india_listing(symbol: str) -> bool:
+    """True when ``symbol`` is an Indian-exchange instrument (R15-DATA-003).
+
+    A ``.NS``/``.BO`` suffix or an unambiguous NSE/BSE-only master membership
+    decides; a ticker listed in BOTH an India master and another region's
+    master (e.g. AMAL, an ADR that collides with Amal Ltd's NSE/BSE ticker)
+    defers to the active session region — the same precedence as
+    :func:`services.provider_registry._effective_region`. Never calls
+    :func:`services.symbol_resolver.resolve`, which can reach the network.
+    """
+    return (symbol_resolver.region_hint(symbol) or config.get_region()) == locale.REGION_IN
 
 
 # ---------------------------------------------------------------------------
@@ -527,6 +541,10 @@ def get_announcements(
     bare = locale.strip_exchange_suffix(symbol.strip().upper())
     if not bare:
         raise ProviderError("disclosures: empty symbol")
+    if not india_listing(symbol):
+        return AnnouncementsResponse(
+            symbol=bare, exchange=exchange, count=0, **_not_applicable(bare)
+        )
     if exchange is not None and exchange not in EXCHANGES:
         raise ProviderError(f"disclosures: unknown exchange {exchange!r} (use NSE or BSE)")
     limit = max(1, min(int(limit), MAX_LIMIT))
@@ -603,7 +621,9 @@ async def get_announcements_cached(
     cached entry point the router, the agent tool and research share. Raises
     :class:`ProviderError` like the uncached call; a failure is never cached."""
     normalized = symbol.strip().upper()
-    cache_key = f"disclosures:announcements:{normalized}:{exchange or 'ALL'}:{limit}"
+    cache_key = (
+        f"disclosures:announcements:{normalized}:{exchange or 'ALL'}:{limit}:{config.get_region()}"
+    )
     cached = await data_cache.get(cache_key, ANNOUNCEMENTS_TTL_SECONDS)
     if isinstance(cached, dict):
         try:
@@ -693,6 +713,8 @@ def get_results_calendar(symbol: str) -> ResultsCalendarResponse:
     bare = locale.strip_exchange_suffix(symbol.strip().upper())
     if not bare:
         raise ProviderError("disclosures: empty symbol")
+    if not india_listing(symbol):
+        return ResultsCalendarResponse(symbol=bare, count=0, **_not_applicable(bare))
     on_nse = symbol_resolver.is_nse_symbol(bare)
     bse_code = (
         symbol_resolver.dual_listed_bse_code(bare)
@@ -875,6 +897,8 @@ def get_corporate_actions(symbol: str) -> CorporateActionsResponse:
     bare = locale.strip_exchange_suffix(symbol.strip().upper())
     if not bare:
         raise ProviderError("disclosures: empty symbol")
+    if not india_listing(symbol):
+        return CorporateActionsResponse(symbol=bare, count=0, **_not_applicable(bare))
     on_nse = symbol_resolver.is_nse_symbol(bare)
     # A dual-listed name's own BSE scrip only: a same-ticker BSE scrip of another
     # company would merge that company's actions into this one.
@@ -1029,6 +1053,8 @@ def get_deals(symbol: str, kind: str | None = None) -> ExchangeDealsResponse:
     bare = locale.strip_exchange_suffix(symbol.strip().upper())
     if not bare:
         raise ProviderError("disclosures: empty symbol")
+    if not india_listing(symbol):
+        return ExchangeDealsResponse(symbol=bare, kind=kind, count=0, **_not_applicable(bare))
     if kind is not None and kind not in DEAL_KINDS:
         raise ProviderError(f"disclosures: unknown deal kind {kind!r} (use bulk, block or sast)")
     kinds = [kind] if kind else list(DEAL_KINDS)
@@ -1092,6 +1118,9 @@ def get_shareholding(symbol: str) -> ShareholdingResponse:
     bare = locale.strip_exchange_suffix(symbol.strip().upper())
     if not bare:
         raise ProviderError("disclosures: empty symbol")
+    if not india_listing(symbol):
+        # A US-listed ADR's 20-F holders ride on top: sec_ownership.attach_major_shareholders.
+        return ShareholdingResponse(symbol=bare, count=0, **_not_applicable(bare))
     is_bse = symbol_resolver.is_bse_symbol(bare)
     lanes: list[tuple[str, bool, object]] = [
         (EXCHANGE_NSE, symbol_resolver.is_nse_symbol(bare), _nse_shareholding),
