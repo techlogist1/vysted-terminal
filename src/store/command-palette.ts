@@ -161,10 +161,10 @@ export const SYMBOL_CAP = 50;
 
 /** Human label for each menu-bridge payload, matching the native menu's item text. */
 const LAYOUT_MENU_LABELS: Readonly<Record<string, string>> = {
-  "research-cockpit": "Layout: Fundamental",
-  "single-focus": "Layout: Technical",
-  "macro-scan": "Layout: Macro",
-  compare: "Layout: Compare",
+  fundamental: "Layout: Fundamental",
+  technical: "Layout: Technical",
+  macro: "Layout: Macro",
+  "compare-desk": "Layout: Compare Desk",
   default: "Layout: Reset to default",
 };
 
