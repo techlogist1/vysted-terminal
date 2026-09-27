@@ -1924,13 +1924,20 @@ _CLAIM_TERM = re.compile(
 )
 _SOURCE_TERM = re.compile(r"\b(?:ADRs?|ADSs?|American Depositary|depositary|Repr)\b", re.IGNORECASE)
 #: A number (or a range of two) that its own marker says is NOT a share count:
-#: money, a percent, a period, a year, a fiscal tag, an ordinal, a form name
+#: a date (2026-06-26, 06/26/2026, June 26, 26 Jun; R15-AGENT-095), money, a
+#: percent, a period, a year, a fiscal tag, an ordinal, a form name
 #: (20-F, F-6), a clock time, a decimal, a volume (a thousands separator or
 #: four or more digits) and the idioms "one of" / "one-time". Blanked before
 #: the share-count candidates of a depositary sentence are read.
 _RANGE = rf"{_NUM}(?:\s*(?:and|to|-|–|—)\s*{_NUM})?"
+_MONTH = (
+    r"(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|June?|July?|Aug(?:ust)?"
+    r"|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)"
+)
 _MARKED = re.compile(
-    rf"(?:[$₹€£]|\b(?:Rs\.?|USD|INR|EUR|GBP|US\$))\s*{_RANGE}"
+    r"\b(?:19|20)\d{2}[-/.]\d{1,2}[-/.]\d{1,2}(?!\d)|\b\d{1,2}[-/.]\d{1,2}[-/.](?:19|20)?\d{2}\b"
+    rf"|\b{_MONTH}\.?\s+\d{{1,2}}(?!\d)|\b\d{{1,2}}\s+{_MONTH}\b"
+    rf"|(?:[$₹€£]|\b(?:Rs\.?|USD|INR|EUR|GBP|US\$))\s*{_RANGE}"
     rf"|(?:\bbetween\s+)?{_RANGE}\s*(?:%|\b(?:percent|dollars?|cents?|rupees?|cr|crore|lakhs?"
     r"|USD|INR|million|billion|thousand|mn|bn|points?|pts)\b)"
     rf"|{_RANGE}[\s-]*(?:weeks?|months?|days?|years?|quarters?|hours?|minutes?|sessions?)\b"

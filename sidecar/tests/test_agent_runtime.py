@@ -3475,6 +3475,29 @@ def test_a_ratio_a_tool_result_carries_is_traced_and_kept(
     )
 
 
+@pytest.mark.parametrize(
+    "sentence",
+    [
+        "According to the SEC 20-F cover page filed on 2026-06-26, one SIFY ADR represents "
+        "six equity shares. ",
+        "As of June 26, 2026, each SIFY ADS represents 6 equity shares. ",
+        "Per the 20-F filed 06/26/2026, each SIFY ADS represents six equity shares. ",
+        "On 26 June 2026 Sify's 20-F stated that each ADS represents 6 equity shares. ",
+        # Not written against: a slash ISO date plus a short month name.
+        "Filed on 2026/06/26 and confirmed Sep 3, each SIFY ADS represents 6 equity shares. ",
+    ],
+)
+def test_a_dated_sourced_ratio_is_kept(sentence: str) -> None:
+    """R15-AGENT-095: a date's day and month are not share counts. A true, dated
+    ratio is kept against the depositary result and replaced against the bare one."""
+    sourced = json.dumps(_SIFY_FUNDAMENTALS_WITH_DEPOSITARY)
+    replaced = agent_runtime.RATIO_UNAVAILABLE + " "
+    assert agent_runtime._guard_ratio_claims(sentence, [sourced]) == sentence
+    assert agent_runtime._guard_ratio_claims(sentence, [json.dumps(_SIFY_FUNDAMENTALS)]) == replaced
+    fabricated = "As of 2026-06-26 each SIFY ADS represents 5 equity shares. "
+    assert agent_runtime._guard_ratio_claims(fabricated, [sourced]) == replaced
+
+
 # --- R15-LEAD-030 batch-20: figures judged by provenance, not by shape ---------
 
 _SBIN_ERR = {"price_data": {"ok": False, "error": "no data for SBIN.NS"}}
