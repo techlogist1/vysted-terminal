@@ -4,6 +4,68 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 Stage C batch-29 and batch-30: 8 certified, DATA-030 stopped for the operator after three attempts (2026-09-27)
+
+**Stage C batch-29** (base `522c3246`; merge target `worktree-agent-batch-29-int@cee5dc19`; merged
+`--no-ff` as `e1956966`). Adjudicator applied batch-28's verdicts and filed R15-LEAD-048 and
+R15-LEAD-049 from batch-28's "Issues noticed". Planner (Opus) split the 7 open critical/high/medium
+entries across four writers, pairing RESEARCH-001 with DATA-030 as one entity-identity class.
+Integrator: chain green (pytest 3784 passed/1 skipped); one fix `54239c87`, correcting the previous
+CHANGELOG section's `*emphasis*` to `_emphasis_` (prettier rewrites the former, and CI failed on it).
+Reviewer: one fix `cee5dc19` — host-actions' `MENU_PAYLOAD_TO_MODE` lookup now uses `Object.hasOwn`,
+so `constructor` isn't read as a layout mode. Fresh verifier (Opus, sidecar :52310, llama3.1:8b):
+BLOCK on one commit only.
+
+- **Certified (6).** R15-RESEARCH-001: a short or common-word ticker's off-entity relevance score now
+  needs corroboration for a non-IN target (live DEEP `region_feed_items=0` for ON/IT/ALL/AI).
+  R15-DATA-063: `/indicators` now labels freshness through the same `_label_series_freshness` that
+  `/history` uses, instead of leaving it null. R15-LEAD-004: `cadence()` now walks Indian fiscal
+  halves instead of raw trail period lengths, so an unfiled quarter with no half-year context isn't
+  read as half-yearly. R15-LIFECYCLE-020: `_WARM_THROTTLE_WEIGHT` is 0 — background Yahoo 429s no
+  longer advance the user circuit's streak at all. R15-LEAD-048: `arrange_layout` on a Layout-menu
+  mode id now runs `applyLayoutMode` instead of silently falling through to `resetLayout`.
+  R15-LEAD-049: the nifty50 seed's retired `TATAMOTORS.NS` is now `TMPV.NS`, its ISIN continuation.
+- **R15-DATA-030 (high) not certified.** Writer commit `e7d5a628` made the ticker alias
+  case-sensitive and relied on the full multi-word master name, which fixed the ON/IT/ALL/AI
+  over-match but untagged short-name mentions the base tagged (`RELIANCE.NS` "Reliance shares hit
+  record high", `META` "Meta unveils new Llama model", `UBER`, `MARUTI.NS`) — the same
+  remove-the-alias-for-every-headline failure batch-28 was reverted for. Reworked: `e7d5a628`
+  reverted clean (`41b0daaa`), plus guard test `a1d39053` pinning six on-entity headlines, including
+  the live TheStreet "Bank of America backs Meta stock…" case, at base behaviour.
+
+**Stage C batch-30** (base `19a70e80`; merge target `worktree-agent-batch-30-int@67c56430`; merged
+`--no-ff` as `791827d7`). Adjudication `19a70e80` filed R15-LEAD-050 through R15-LEAD-055 from
+batch-29's verifier issues. Planner: writer A (opus) took DATA-030's third and last attempt together
+with LEAD-050 and LEAD-052 as one common-word-ticker class; writer B (sonnet) took LEAD-051 alone.
+
+- **Certified.** R15-LEAD-050: the relevance gate's short-ticker rule is now keyed on a
+  `COMMON_WORD_TICKERS` stoplist instead of ticker length (live titles: GE relevant 50→95, BP 8→98;
+  IT/ON/ALL/AI negatives hold). R15-LEAD-051: `cadence()` now treats any filed 3-month period as
+  disqualifying "half-yearly" outright — JONJUA.BO, which has only ever filed quarters, now reads
+  `quarterly-gap` live instead of "a half-yearly filer".
+- **R15-DATA-030 third attempt, `6ae7a46d`: not certified.** A committed `COMMON_WORD_TICKERS`
+  stoplist plus an `anchored_ticker()` helper fixed the over-match (0 alias-tagged region items live
+  for AI/IT/ON) but lost on-entity tags for companies the press writes by ticker — real Google News
+  titles: KEY 61→9, LOW 82→15, COIN 27→11, ICE 100→85. The commit's news-layer hunks
+  (`news_provider.py` and its `test_news.py` additions) were reverted (`8d77a6cd`); the
+  `relevance.py` stoplist/`anchored_ticker` helpers stayed, since certified LEAD-050 builds on them.
+  Under the three-failure rule, DATA-030 → `blocked_tier4`, written up at
+  `DECISIONS_FOR_OPERATOR.md` §4.21 (adjudicated `02de39d1`, merged `dce6dcb1`).
+- **R15-LEAD-052 (low) not certified.** The ALL-CAPS case is fixed, but the shipped rule also drops
+  every non-anchored mixed-case mention of a stoplisted ticker (ICE 99→84, KEY 95→90 relevant
+  titles); stays open low.
+- Three verifier issues were filed as new lows: R15-LEAD-056 (DOW/NICE's own name alias equals the
+  stoplisted word), R15-LEAD-057 (name-alias artefacts "amazon com" / "keycorp /new/"), R15-LEAD-058
+  (a 2-letter ticker with no brand token never passes the relevance gate on a bare mention).
+- Register commit `9bc600ec` flipped LEAD-050/051 to fixed at the `791827d7` head, taking open
+  critical/high/medium to 0 — the rc1 bar. Chain at `8d77a6cd`: pytest 3780 passed/1 skipped, vitest
+  1879, cargo 19, smoke toolCount=40.
+
+**Tests.** Writer B renamed `test_jonjua_keeps_the_half_yearly_label` to
+`test_jonjua_keeps_yahoos_value_on_a_fresh_listings_quarter_gap` (`a1b87702`) because the old name
+pinned the reported defect itself: JONJUA has only ever filed quarters, and it now reads
+`quarterly-gap`.
+
 ## R15 rc1 gate — round 4 refutation audit and Stage C batch-28: 29 reopened, 25 certified, six entries stopped for the operator (2026-09-27)
 
 Round 4's gate FAIL (below) left seven refuted entries plus an adjacent high unresolved, and a
