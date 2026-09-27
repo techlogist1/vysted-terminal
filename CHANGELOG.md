@@ -4,6 +4,67 @@ Engineering log for Vysted Terminal — build-time decisions, failed approaches,
 and per-phase outcomes. This is the _why_ record. Current-state docs live in
 `CLAUDE.md` and `docs/BLUEPRINT.md`; this file is append-only history.
 
+## R15 rc1 gate round 5, the gate rule change and the bounded fix round (2026-09-27)
+
+Fifth full pre-tag release gate, run against candidate `9bc600ec` (`rc1-gate.js` round 5); measured
+279 min, 56 agents. Fix round 1 closed the one drive-found partial (`38a64fda`, merged as `633f8440`)
+before the fresh verifier's final read.
+
+- **PASSED:** Gate 8 twice over (zero hits on the barred-surface route/tool grep across openapi, the
+  tool catalog and MCP; the live agent probe refused and issued no tool call; the safety-audit table
+  does not exist; tracked portfolio round-trips an add/edit/delete, agent writes stage and never
+  auto-apply); the deterministic chain (`ci-local` EXIT=0 twice at `633f8440` — pytest 3780 passed/1
+  skipped, vitest 1881, cargo 19; smoke EXIT=0, 13 agents, MCP toolCount 40); all 8 owner-drive
+  groups (the one panels-layouts partial — the SEC Insider tab colouring a blank Direction green —
+  fixed in fix round 1 and reproved live on fresh symbols); the 25 battery shards (315 holds, 85
+  ci_pinned, 0 regressed); data packs (24/24 complete, 0 5xx). Agent scenarios and the GUI round
+  deferred operator_attended: skepticism 1/4 (sk3 passed; sk1/sk4 are the DATA-002 class, sk2 the
+  AGENT-090 class, both already operator-pending); no computer-use grant on the built app.
+- **The sheet's raw verdict: FAIL** (`R15_GATE_RC1.md`, `313676e9`) under the old all-or-nothing
+  rubric — the adversarial sample re-ran 24 previously-refuted register entries' own repros at
+  `633f8440`: 4 stood (R15-CODE-PLATFORM-072, R15-LIFECYCLE-024, R15-RESEARCH-022, R15-AGENT-027,
+  all medium regressions), 20 held their own repro but surfaced a different claim (class-refuted,
+  stayed `fixed`, the new claim filed separately), and 5 stayed inconclusive on their last battery
+  raw (Yahoo 429s blocked live reproof this round).
+
+**Gate rule change 1 and scope change 3** (`DECISIONS_FOR_OPERATOR.md` §6.1-6.2, recorded `8d3d9de4`).
+Five gate rounds at roughly 5h/7-10M tokens apiece had each widened the register instead of
+narrowing it — a verifier judging the class instead of the entry, `partial` reopening `fixed`
+entries, every round filing new LEAD entries that spawned another round. Rule change 1 fixes the
+bar: rc1 passes on chain green, Gate 8, every `fixed` entry's OWN stated repro still holding (a
+regression is that repro failing again, nothing else), and open critical/high at zero; anything
+else a verifier finds is a new entry, never a reopen; `partial` is retired (`fixed` plus a new
+entry); new criticals/highs get exactly one bounded fix round inside the gate; round 5 is the last
+round, adjudicated under this bar, then tagged. Scope change 3 moves BL-03 to its own 0.9.1 branch
+with rc3 dropped, and sets the order after the tag (push, hygiene prune, version-branch merge,
+handover, then the lows-integration candidate and rc2).
+
+**Adjudication** (`510e936d`, merged `872382b7`). Under the new bar: 4 regressions reopened to
+`open` for 0.9.1 (R15-CODE-PLATFORM-072, R15-LIFECYCLE-024, R15-RESEARCH-022, R15-AGENT-027); 57
+new entries filed, R15-LEAD-059 through R15-LEAD-115 (1 high, 24 medium, 32 low), deduped against
+the verifier's and the vshard triage's overlapping findings; the 20 class-refuted entries stayed
+`fixed`, their new claims filed as entries above or already covered by an operator decision; R15-
+LIFECYCLE-020 stayed at its existing 2 certification failures (not reproduced this round, so the
+three-failure rule did not trip). Open critical/high after filing: 1 (R15-LEAD-059) — the round's
+one bounded fix-round item.
+
+**Bounded fix round, R15-LEAD-059** (high — the announcements and shareholding lanes gated their
+BSE leg on the same-ticker BSE scrip instead of the resolved company, so FOCUS's NSE feed absorbed
+BSE 543312's unrelated Focus Business Solution rows). Writer `52fd29e9` anchored all five
+disclosure lanes on `symbol_resolver.dual_listed_bse_code` through a shared `listing_lanes()`
+helper, and fixed a `-$` name-key bug that had wrongly refused 6 true dual listings (KDDL, IZMO,
+KSE, LINC, TRF, TTL). Integrated `769b1f31`; a fresh verifier certified it on held-out names
+(KALYANI, MAL, SEL, RAJPUTANA, INFY, HDFCBANK) at `897eb38a`, merged `794bc68f`. The same verifier's
+held-out pass found an explicit `.BO` pin (FOCUS.BO) still serves the NSE company's feed on all five
+lanes — filed as R15-LEAD-116 (high) and R15-LEAD-117 (low, a misleading "not listed on BSE"
+message) — recorded operator-pending at `DECISIONS_FOR_OPERATOR.md` §4.22 with three options (one
+more bounded pass, tag with it open and listed in the 0.9.1 backlog, or re-rate it medium) and no
+decision baked in (`949c3c9f`).
+
+**Re-check launched** on `949c3c9f` (`d96e7d8f`): chain, Gate 8 and battery only, lanes chosen
+through the `rc1-gate.js` lane-selection change (`2dc599f3`, merged `2d43d5c2`). Register going in:
+738 entries — 395 fixed, 277 open (1 high, 28 medium, 248 low), 35 blocked_tier4, 11 needs_gui.
+
 ## R15 Stage C batch-29 and batch-30: 8 certified, DATA-030 stopped for the operator after three attempts (2026-09-27)
 
 **Stage C batch-29** (base `522c3246`; merge target `worktree-agent-batch-29-int@cee5dc19`; merged
