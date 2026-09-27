@@ -871,7 +871,8 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "newest first — who bought or sold a large block, at what price, and "
                 "(SAST) their holding after. Each row: kind, date, party, side, "
                 "quantity, price, value, percent_after, exchange, source_url. NSE "
-                "listings get all three (bulk/block over the last year); a BSE-only "
+                "listings get all three (bulk/block over the last year) plus BSE "
+                "bulk/block when the name is also dual-listed on BSE; a BSE-only "
                 "scrip gets BSE bulk/block. The India counterpart of "
                 "sec_insider_transactions."
             ),

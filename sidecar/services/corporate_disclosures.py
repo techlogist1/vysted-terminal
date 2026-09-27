@@ -1044,11 +1044,13 @@ def get_deals(symbol: str, kind: str | None = None) -> ExchangeDealsResponse:
     """Bulk deals, block deals and SAST (Reg 29) disclosures for ``symbol``,
     newest first (R15-DATA-024).
 
-    An NSE listing is served from NSE's bulk, block and SAST feeds; a BSE-only
-    scrip from BSE's bulk and block feeds (BSE carries no SAST lane here).
-    ``kind`` filters to one of :data:`DEAL_KINDS`. A failing lane is recorded in
-    ``errors`` and the rest is served; every applicable lane failing (or none
-    applying) raises :class:`ProviderError`.
+    An NSE listing is served from NSE's bulk, block and SAST feeds, PLUS BSE's
+    bulk/block feed when the name is also dual-listed on BSE (a same-day bulk
+    deal booked on BSE never showed up for an NSE-primary name before); a
+    BSE-only scrip is served from BSE's bulk and block feeds (BSE carries no
+    SAST lane here). ``kind`` filters to one of :data:`DEAL_KINDS`. A failing
+    lane is recorded in ``errors`` and the rest is served; every applicable
+    lane failing (or none applying) raises :class:`ProviderError`.
     """
     bare = locale.strip_exchange_suffix(symbol.strip().upper())
     if not bare:
@@ -1060,6 +1062,13 @@ def get_deals(symbol: str, kind: str | None = None) -> ExchangeDealsResponse:
     kinds = [kind] if kind else list(DEAL_KINDS)
     if symbol_resolver.is_nse_symbol(bare):
         lanes = [(f"{EXCHANGE_NSE} {k}", lambda k=k: _nse_deals(bare, k)) for k in kinds]
+        dual_code = symbol_resolver.dual_listed_bse_code(bare)
+        if dual_code:
+            lanes += [
+                (f"{EXCHANGE_BSE} {k}", lambda k=k, code=dual_code: _bse_deals(bare, code, k))
+                for k in kinds
+                if k in _BSE_DEAL_TYPE
+            ]
     elif code := symbol_resolver.bse_scrip_code(bare):
         lanes = [
             (f"{EXCHANGE_BSE} {k}", lambda k=k: _bse_deals(bare, code, k))
