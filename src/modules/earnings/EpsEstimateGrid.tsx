@@ -22,9 +22,12 @@ const COLUMNS: DataColumn<EstimateRow>[] = [
   { key: "value", header: "Estimate", numeric: true, width: "40%", format: (r) => r.value },
 ];
 
-/** R15-DATA-031: EPS values carried no currency at all. */
-function eps(value: number | null, currency: string, digits = 2): string | null {
+/** R15-DATA-031: EPS values carried no currency at all. `currency === null`
+ *  means the provider could not determine the EPS currency (R15-DATA-113) —
+ *  render the bare number, never a guessed code. */
+function eps(value: number | null, currency: string | null, digits = 2): string | null {
   if (value === null) return null;
+  if (currency === null) return formatPrice(value, digits);
   const { prefix, suffix } = currencyAffix(currency);
   return `${prefix}${formatPrice(value, digits)}${suffix}`;
 }

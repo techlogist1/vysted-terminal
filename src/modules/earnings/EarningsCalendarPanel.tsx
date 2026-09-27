@@ -38,9 +38,12 @@ const TIME_OF_DAY_LABEL: Record<string, string> = {
 
 /** An EPS / dispersion figure in its row's currency — the event's own
  *  ISO-4217 code (R15-DATA-031: EPS and revenue render unlabelled, and a
- *  mixed-currency watchlist sorts USD against INR by raw magnitude). */
-function fmt(value: number | null, currency: string, digits = 2): string {
+ *  mixed-currency watchlist sorts USD against INR by raw magnitude).
+ *  `currency === null` means the provider could not determine it
+ *  (R15-DATA-113) — render the bare number, never a guessed code. */
+function fmt(value: number | null, currency: string | null, digits = 2): string {
   if (value === null) return "—";
+  if (currency === null) return formatPrice(value, digits);
   const { prefix, suffix } = currencyAffix(currency);
   return `${prefix}${formatPrice(value, digits)}${suffix}`;
 }
@@ -161,6 +164,10 @@ export function EarningsCalendarPanel() {
       // rows), then order within the group by the chosen direction.
       events.sort((a, b) => {
         if (a.currency !== b.currency) {
+          // R15-DATA-113: a null (undetermined) currency groups last, never
+          // interleaved with — or ordered ahead of — a real currency code.
+          if (a.currency === null) return 1;
+          if (b.currency === null) return -1;
           return a.currency < b.currency ? -1 : 1;
         }
         return compare(sortValue(a, sortKey), sortValue(b, sortKey), sortDirection);
