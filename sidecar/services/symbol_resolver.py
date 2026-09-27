@@ -1467,7 +1467,7 @@ def _company_name_key(name: str) -> str:
     """A spelling-insensitive key for comparing one company's NSE and BSE names:
     lowercased, ``&`` read as ``and``, a trailing Ltd/Limited dropped, then only
     letters and digits kept ("D.B.Corp Limited" and "D. B. Corp Ltd" → "dbcorp")."""
-    tokens = name.lower().replace("&", " and ").split()
+    tokens = name.lower().removesuffix("-$").replace("&", " and ").split()
     while len(tokens) > 1 and tokens[-1].strip(_EDGE_PUNCT) in ("ltd", "limited"):
         tokens.pop()
     return "".join(ch for ch in "".join(tokens) if ch.isalnum())

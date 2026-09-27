@@ -146,6 +146,27 @@ def india_listing(symbol: str) -> bool:
     return (symbol_resolver.region_hint(symbol) or config.get_region()) == locale.REGION_IN
 
 
+def listing_lanes(bare: str) -> tuple[bool, str | None]:
+    """``(NSE lane applies, BSE scrip code or None)`` for ONE company (R15-LEAD-059).
+
+    An NSE listing's BSE lane is its verified dual listing
+    (:func:`symbol_resolver.dual_listed_bse_code`), never the BSE scrip that
+    merely shares the ticker: NSE FOCUS is Focus Lighting and Fixtures, BSE
+    FOCUS (543312) is Focus Business Solution, so FOCUS gets no BSE lane. A
+    BSE-only name keeps its own scrip.
+    """
+    if symbol_resolver.is_nse_symbol(bare):
+        return True, symbol_resolver.dual_listed_bse_code(bare)
+    return False, symbol_resolver.bse_scrip_code(bare)
+
+
+def _other_company_note(bare: str, on_nse: bool, bse_code: str | None) -> str | None:
+    """Why the same-ticker BSE feed was withheld (another company's), or ``None``."""
+    if on_nse and bse_code is None and symbol_resolver.is_bse_symbol(bare):
+        return f"BSE {bare} is a different company; only the NSE feed is served"
+    return None
+
+
 # ---------------------------------------------------------------------------
 # BSE announcements lane (the network seam tests monkeypatch).
 # ---------------------------------------------------------------------------
@@ -195,7 +216,9 @@ def _fetch_bse_announcements(
 ) -> tuple[list[Announcement], AnnouncementWindow]:
     """The BSE lane — ``AnnSubCategoryGetData`` rows over the last
     :data:`_BSE_ANN_WINDOW_DAYS`, paged until ``limit`` items are collected or
-    the window's ``ROWCNT`` rows run out, with the window the items cover."""
+    the window's ``ROWCNT`` rows run out, with the window the items cover.
+    Run only for a name :func:`listing_lanes` gives a BSE lane, where the
+    ticker's scrip IS that company's own."""
     code = symbol_resolver.bse_scrip_code(bare)
     if not code:
         raise ProviderError(f"bse announcements: no scrip code for {bare!r} in the master")
@@ -549,9 +572,10 @@ def get_announcements(
         raise ProviderError(f"disclosures: unknown exchange {exchange!r} (use NSE or BSE)")
     limit = max(1, min(int(limit), MAX_LIMIT))
 
+    on_nse, bse_code = listing_lanes(bare)
     lanes: list[tuple[str, bool]] = [
-        (EXCHANGE_NSE, symbol_resolver.is_nse_symbol(bare)),
-        (EXCHANGE_BSE, symbol_resolver.is_bse_symbol(bare)),
+        (EXCHANGE_NSE, on_nse),
+        (EXCHANGE_BSE, bse_code is not None),
     ]
     applicable = [name for name, listed in lanes if listed and exchange in (None, name)]
     if not applicable:
@@ -611,6 +635,7 @@ def get_announcements(
         sources=sources,
         errors=errors,
         windows=windows,
+        note=_other_company_note(bare, on_nse, bse_code),
     )
 
 
@@ -715,12 +740,7 @@ def get_results_calendar(symbol: str) -> ResultsCalendarResponse:
         raise ProviderError("disclosures: empty symbol")
     if not india_listing(symbol):
         return ResultsCalendarResponse(symbol=bare, count=0, **_not_applicable(bare))
-    on_nse = symbol_resolver.is_nse_symbol(bare)
-    bse_code = (
-        symbol_resolver.dual_listed_bse_code(bare)
-        if on_nse
-        else symbol_resolver.bse_scrip_code(bare)
-    )
+    on_nse, bse_code = listing_lanes(bare)
     if not on_nse and not bse_code:
         return ResultsCalendarResponse(symbol=bare, count=0, **_not_applicable(bare))
 
@@ -752,7 +772,12 @@ def get_results_calendar(symbol: str) -> ResultsCalendarResponse:
             events[index] = events[index].model_copy(update={"exchange": "NSE+BSE"})
     events.sort(key=lambda e: e.date or date.min, reverse=True)
     return ResultsCalendarResponse(
-        symbol=bare, count=len(events), events=events, sources=list(by_lane), errors=errors
+        symbol=bare,
+        count=len(events),
+        events=events,
+        sources=list(by_lane),
+        errors=errors,
+        note=_other_company_note(bare, on_nse, bse_code),
     )
 
 
@@ -899,14 +924,9 @@ def get_corporate_actions(symbol: str) -> CorporateActionsResponse:
         raise ProviderError("disclosures: empty symbol")
     if not india_listing(symbol):
         return CorporateActionsResponse(symbol=bare, count=0, **_not_applicable(bare))
-    on_nse = symbol_resolver.is_nse_symbol(bare)
-    # A dual-listed name's own BSE scrip only: a same-ticker BSE scrip of another
-    # company would merge that company's actions into this one.
-    bse_code = (
-        symbol_resolver.dual_listed_bse_code(bare)
-        if on_nse
-        else symbol_resolver.bse_scrip_code(bare)
-    )
+    # One company's lanes only: a same-ticker scrip of another company on the
+    # other exchange would merge that company's actions into this one.
+    on_nse, bse_code = listing_lanes(bare)
     if not on_nse and not bse_code:
         return CorporateActionsResponse(symbol=bare, count=0, **_not_applicable(bare))
 
@@ -932,7 +952,12 @@ def get_corporate_actions(symbol: str) -> CorporateActionsResponse:
     actions = _merge_actions(by_lane.get(EXCHANGE_NSE, []), by_lane.get(EXCHANGE_BSE, []))
     actions.sort(key=lambda a: a.ex_date or date.min, reverse=True)
     return CorporateActionsResponse(
-        symbol=bare, count=len(actions), actions=actions, sources=list(by_lane), errors=errors
+        symbol=bare,
+        count=len(actions),
+        actions=actions,
+        sources=list(by_lane),
+        errors=errors,
+        note=_other_company_note(bare, on_nse, bse_code),
     )
 
 
@@ -1060,16 +1085,16 @@ def get_deals(symbol: str, kind: str | None = None) -> ExchangeDealsResponse:
     if kind is not None and kind not in DEAL_KINDS:
         raise ProviderError(f"disclosures: unknown deal kind {kind!r} (use bulk, block or sast)")
     kinds = [kind] if kind else list(DEAL_KINDS)
-    if symbol_resolver.is_nse_symbol(bare):
+    on_nse, bse_code = listing_lanes(bare)
+    if on_nse:
         lanes = [(f"{EXCHANGE_NSE} {k}", lambda k=k: _nse_deals(bare, k)) for k in kinds]
-        dual_code = symbol_resolver.dual_listed_bse_code(bare)
-        if dual_code:
+        if bse_code:
             lanes += [
-                (f"{EXCHANGE_BSE} {k}", lambda k=k, code=dual_code: _bse_deals(bare, code, k))
+                (f"{EXCHANGE_BSE} {k}", lambda k=k, code=bse_code: _bse_deals(bare, code, k))
                 for k in kinds
                 if k in _BSE_DEAL_TYPE
             ]
-    elif code := symbol_resolver.bse_scrip_code(bare):
+    elif code := bse_code:
         lanes = [
             (f"{EXCHANGE_BSE} {k}", lambda k=k: _bse_deals(bare, code, k))
             for k in kinds
@@ -1098,7 +1123,13 @@ def get_deals(symbol: str, kind: str | None = None) -> ExchangeDealsResponse:
         raise ProviderError(f"disclosures: every deal source failed for {bare!r} ({detail})")
     deals.sort(key=lambda d: d.date or date.min, reverse=True)
     return ExchangeDealsResponse(
-        symbol=bare, kind=kind, count=len(deals), deals=deals, sources=sources, errors=errors
+        symbol=bare,
+        kind=kind,
+        count=len(deals),
+        deals=deals,
+        sources=sources,
+        errors=errors,
+        note=_other_company_note(bare, on_nse, bse_code),
     )
 
 
@@ -1130,10 +1161,10 @@ def get_shareholding(symbol: str) -> ShareholdingResponse:
     if not india_listing(symbol):
         # A US-listed ADR's 20-F holders ride on top: sec_ownership.attach_major_shareholders.
         return ShareholdingResponse(symbol=bare, count=0, **_not_applicable(bare))
-    is_bse = symbol_resolver.is_bse_symbol(bare)
+    on_nse, bse_code = listing_lanes(bare)
     lanes: list[tuple[str, bool, object]] = [
-        (EXCHANGE_NSE, symbol_resolver.is_nse_symbol(bare), _nse_shareholding),
-        (EXCHANGE_BSE, is_bse, _bse_shareholding),
+        (EXCHANGE_NSE, on_nse, _nse_shareholding),
+        (EXCHANGE_BSE, bse_code is not None, _bse_shareholding),
     ]
     applicable = [(name, fetch) for name, listed, fetch in lanes if listed]
     if not applicable:
@@ -1158,7 +1189,12 @@ def get_shareholding(symbol: str) -> ShareholdingResponse:
             if name == EXCHANGE_NSE and symbol_resolver.dual_listed_bse_code(bare):
                 patterns = _merge_bse_split(bare, patterns)
             patterns.sort(key=lambda p: p.quarter_end, reverse=True)
-            return ShareholdingResponse(symbol=bare, count=len(patterns), patterns=patterns)
+            return ShareholdingResponse(
+                symbol=bare,
+                count=len(patterns),
+                patterns=patterns,
+                note=_other_company_note(bare, on_nse, bse_code),
+            )
     if errors:
         detail = "; ".join(f"{name}: {msg}" for name, msg in errors.items())
         raise ProviderError(
