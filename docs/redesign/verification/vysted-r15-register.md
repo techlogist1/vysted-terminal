@@ -2,7 +2,7 @@
 
 887 raw findings -> 679 entries + 76 rejections. critical: 16 . high: 121 . medium: 305 . low: 237
 
-Status: blocked_tier4: 35 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open: 217 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 398 . needs_gui: 11 . not_a_defect: 6 . open: 215 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -291,7 +291,7 @@ Status: blocked_tier4: 35 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-RESEARCH-040** [low] Hosted Tier B research shows its cost estimate only after the run has been billed; nothing shows a per-run estimate before dispatch (FR-073) — _open_
 - **R15-RESEARCH-041** [low] The 'structured data only - no web' brief banner can never fire: briefFromInput counts vysted:// and exchange rows as web availability, so zero-web DEEP/ULTRA briefs never get the promised affordance — _open_
 - **R15-RESEARCH-042** [low] The research cockpit's brief has no floor of >=3 cited sources (SC-016): nothing enforces or measures source count per brief, and with no web backend FAST publishes structured-only with fewer — _open_
-- **R15-LEAD-050** [medium] A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace — _open_
+- **R15-LEAD-050** [medium] A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace — _fixed_
 - **R15-LEAD-052** [low] An ALL-CAPS headline still over-matches a 3-character common-word ticker in the non-IN relevance gate — _open_
 - **R15-LEAD-058** [low] GM and GS (2-letter tickers with no brand token) never pass the non-IN relevance gate on a bare mention — _open_
 
@@ -432,7 +432,7 @@ Status: blocked_tier4: 35 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-025** [low] The fundamentals warmer hits openbb-mcp hard at boot with no observed throttling on the default (non-IN) universe warm path — _open_
 - **R15-LEAD-041** [low] Earnings estimate detail's analyst count and its EPS triple are read from different upstream fields and disagree: TM shows estimate_analyst_count 1 while the EPS triple is null — _open_
 - **R15-LEAD-049** [medium] TATAMOTORS.NS/.BO return not_found in the nifty50 universe sweep and in direct quotes: the post-demerger NSE/BSE masters carry the symbol only as TMPV (with 'Tata Motors Limited' as a former name), while the nifty50 constituent list and any direct TATAMOTORS quote still use the retired ticker — _fixed_
-- **R15-LEAD-051** [medium] A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly — _open_
+- **R15-LEAD-051** [medium] A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly — _fixed_
 - **R15-LEAD-053** [low] Direct GET /quotes/TATAMOTORS.NS and .BO still 404 with no rename hint to TMPV, even though /resolve already lists TMPV first for the same query — _open_
 - **R15-LEAD-054** [low] sp500.json carries ECHO and VMRK, two symbols absent from the current US resolver master, the same stale-universe-seed class R15-LEAD-049 fixed for nifty50 — _open_
 - **R15-LEAD-056** [low] DOW's (and NICE's) own stripped company-name alias is the common word itself, so the DATA-030 stoplist's anchored-ticker rule never applies and 'Dow Jones falls 300 points' still tags DOW — _open_
@@ -1112,8 +1112,8 @@ Status: blocked_tier4: 35 . fixed: 396 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-UI-094 | low | ui | fundamentals-profile | The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) | open | INT-spec-135-174 |
 | R15-LEAD-048 | medium | ui | workspace-layout | arrange_layout silently resets to the default layout for any pattern it does not recognise, including the Layout-menu mode ids (fundamental/technical/macro/compare-desk) typed through chat | fixed |  |
 | R15-LEAD-049 | medium | data | resolver | TATAMOTORS.NS/.BO return not_found in the nifty50 universe sweep and in direct quotes: the post-demerger NSE/BSE masters carry the symbol only as TMPV (with 'Tata Motors Limited' as a former name), while the nifty50 constituent list and any direct TATAMOTORS quote still use the retired ticker | fixed |  |
-| R15-LEAD-050 | medium | research | research-relevance | A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace | open |  |
-| R15-LEAD-051 | medium | data | exchange_financials | A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly | open |  |
+| R15-LEAD-050 | medium | research | research-relevance | A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace | fixed |  |
+| R15-LEAD-051 | medium | data | exchange_financials | A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly | fixed |  |
 | R15-LEAD-052 | low | research | research-relevance | An ALL-CAPS headline still over-matches a 3-character common-word ticker in the non-IN relevance gate | open |  |
 | R15-LEAD-053 | low | data | resolver | Direct GET /quotes/TATAMOTORS.NS and .BO still 404 with no rename hint to TMPV, even though /resolve already lists TMPV first for the same query | open |  |
 | R15-LEAD-054 | low | data | resolver | sp500.json carries ECHO and VMRK, two symbols absent from the current US resolver master, the same stale-universe-seed class R15-LEAD-049 fixed for nifty50 | open |  |
