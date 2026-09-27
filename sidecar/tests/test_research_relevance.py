@@ -427,8 +427,31 @@ def test_short_us_ticker_needs_the_company_or_the_written_ticker(
 ) -> None:
     """The title match is case-folded, so a non-IN short-only signal used to
     score an uncorroborated 0.6; it now needs the company named or the ticker
-    written upper-case (3+ chars). "onsemi" is a brand the name never carries,
+    written as a ticker. "onsemi" is a brand the name never carries,
     so it is no name signal here (ON's own per-symbol feed carries it)."""
     target = _target(symbol=symbol, name=name, exchange="NASDAQ", region="US")
+    row = _row("https://news.example/x", title)
+    assert relevance.row_relevant(row, target=target) is kept
+
+
+# --- R15-LEAD-050/052: only a common-word ticker needs an anchored mention ----
+
+
+@pytest.mark.parametrize(
+    ("symbol", "name", "title", "kept"),
+    [
+        ("GE", "GE Aerospace", "GE beats estimates on jet engine demand", True),
+        ("BP", "BP p.l.c.", "BP beats estimates on refining margins", True),
+        ("ALL", "Allstate Corp", "ALL EYES ON THE FED AS RATE DECISION LOOMS", False),
+        ("ON", _ON_SEMI, "Shares of (NASDAQ: ON) jump", True),
+    ],
+)
+def test_written_ticker_counts_unless_it_is_a_common_word(
+    symbol: str, name: str, title: str, kept: bool
+) -> None:
+    """A ticker written upper-case names the company at any length (GE, BP);
+    a common-word ticker (ALL, ON) only when anchored as a ticker, so an
+    ALL-CAPS headline's prose never passes."""
+    target = _target(symbol=symbol, name=name, exchange="NYSE", region="US")
     row = _row("https://news.example/x", title)
     assert relevance.row_relevant(row, target=target) is kept

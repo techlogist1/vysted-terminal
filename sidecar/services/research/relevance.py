@@ -728,10 +728,12 @@ def _strong_entity_score(
     Moneycontrol" still does for ITC. A NON-Indian short-only signal is gated
     too (R15-RESEARCH-001): the title matching is case-folded, so a ≤3-char
     token is also English prose ("contract on hypersonic", "All eyes on the
-    Fed"). It keeps 0.6 only when the title writes the ticker AS a ticker — an
-    upper-case 3+ char token ("AMD beats estimates"); a 2-letter ticker (AI, IT,
-    ON) never passes alone. Otherwise it falls to the WEAK ceiling, and naming
-    the company is the distinctive signal above.
+    Fed"). It keeps 0.6 only when the title writes the ticker AS a ticker: an
+    upper-case token of any length ("AMD beats estimates", "GE beats
+    estimates"), or, for a :data:`COMMON_WORD_TICKERS` ticker (IT, ON, ALL, AI),
+    only an :func:`anchored_ticker` form ("NASDAQ: ON") — an ALL-CAPS headline
+    writes the word, not the ticker (R15-LEAD-050/052). Otherwise it falls to
+    the WEAK ceiling, and naming the company is the distinctive signal above.
 
     Snippets are consulted ONLY for the India/foreign CONTEXT judgement, never
     for entity identity (a snippet passing-mention is still the leak shape).
@@ -744,10 +746,11 @@ def _strong_entity_score(
     if not short_sig:
         return 0.0
     if not is_india_target(target):
-        # ponytail: an ALL-CAPS headline still writes a 3-char ticker as a token.
         ticker = target.symbol.upper()
+        if ticker in COMMON_WORD_TICKERS:
+            return 0.6 if anchored_ticker(ticker, title) else 0.0
         written = re.search(rf"(?<![A-Za-z0-9]){re.escape(ticker)}(?![A-Za-z0-9])", title)
-        return 0.6 if len(ticker) >= 3 and written else 0.0
+        return 0.6 if written else 0.0
     if _foreign_shadow(text_lc, host):
         return 0.0
     if _india_context(text_lc, host):
