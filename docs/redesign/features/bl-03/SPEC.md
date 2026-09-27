@@ -1,0 +1,362 @@
+# BL-03 build spec: Reasons about you (the position half)
+
+Written 06:54 IST against HEAD `6bc6d378` on `004-r4-experience-rebuild`. Every file:line below was opened at this head. The panel verified its facts at `913235f3`; since then `sidecar/services/agent_runtime.py` and `sidecar/tests/test_agent_runtime.py` changed (`git diff --stat 913235f3 HEAD`: +747/-112 and +1324 lines), so the lines were re-read, and the ones this spec relies on did not move: `_render_terminal_preamble` def at `:404`, the `Portfolio:` append at `:460`, the deixis sentence at `:473-477`. Nothing else the spec cites changed in that range.
+
+Inputs: `PANEL.md` sections 1, 3, 5 and 6 plus the BL-03 row of `PANEL.json` (both judges' objections), the BL-03 row in `BACKLOG.md` and `BACKLOG.json`. No sheet in `ideas/` names BL-03 or OPP-7 (`grep -l` over `ideas/*` returned nothing).
+
+Revised 07:31 IST at HEAD `60675632` after the fresh critic (`BL-03.CRITIC.md`: SMALL at 3.0 days, blocking defects D1 to D3). `git diff --stat 6bc6d378 60675632 -- src sidecar types styles scripts src-tauri package.json` is empty (every commit since is docs-only), so every file:line below still applies. The defects are resolved in place and listed in section 10. Nothing the critic did not dispute was changed.
+
+## 1. Goal and user-visible outcome
+
+When the owner asks about a stock they hold, the answer starts from their position and the research brief shows it. No extra tool call, no tokens beyond two short preamble lines, and it works keyless. Demonstration: the owner opens the Portfolio panel with the owner-drive fixture as the active portfolio (section 5): TANLA in two lots on its two exchange listings, `TANLA.NS` 300 @ 800 and `TANLA.BO` 200 @ 830, plus `KAYNES.NS` 100 @ 4070, all marked to market by the panel. They focus a `TANLA.NS` chart and, on the keyless default (llama3.1:8b via local ollama), type `should I add to TANLA?`. The reply should open with the position: 500 units at an average cost of 812, the position's share of the marked book and its unrealised P&L. The trace shows no `get_portfolio` step, and the figures survive the streaming citation guard because the runtime context grounds them. The owner then runs a FAST research brief on TANLA. The metric grid opens with three cards, `YOUR POSITION 500 @ ₹812.00`, `YOUR P&L` and `YOUR WEIGHT`, followed by the live metric cards as they render today. On a brief for a name the owner does not hold, the grid is byte-identical to today's.
+
+Which figures are fixed and which are live:
+
+- **Fixed.** Quantity (500) and average cost (812) come from the typed lots, so they are the same on every run.
+- **Live.** Market value, P&L and weight come from the Portfolio panel's live quotes (`fetchPositionQuotes`, `src/modules/portfolio/PortfolioPanel.tsx:232`, refetched on a 5 s timer, `:136`, `:262-273`), so they differ on every run. The figures `48.6%` and `-20,750.00` below are the unit-test vector (TANLA at 770.50, KAYNES at 4,070) and appear only in the unit tests. The running-app criteria compare each live cell against the value recomputed from the portfolio bus event captured at the same moment (section 5).
+- **Aggregate, not per row.** The brief's weight covers both TANLA lots. The Portfolio panel shows TANLA as two rows (rows are per position, `src/modules/portfolio/metrics.ts:102-111`), each with its own `Wt` (`PortfolioPanel.tsx:650`, per-row weight at `metrics.ts:156-160`). No panel cell shows the brief's weight; it is the sum of the two rows (AC-11).
+- **Money form.** Below 1,000,000 the `YOUR P&L` card is the full money form, for example `-₹20,750.00`, because `formatCompactMoney` abbreviates only from 1e6 (`src/lib/format.ts:51-60`, `:105-114`).
+
+## 2. Design inside the existing architecture
+
+### 2.1 Data flow (nothing new on the wire)
+
+The renderer already builds the portfolio snapshot and sends it. `captureTerminalState()` (`src/modules/chat/context-provider.ts:330`) takes the active portfolio from the panel-context bus event `portfolio` (`:356-372`). That payload is published by `PortfolioPanel.tsx:455-466` with per-holding `marketValue`/`pnl` (null when no quote resolved) and a `totalValue` that is null when currencies are mixed or no quote resolved (`:416-419`). When the panel is closed it falls back to the store (`portfolioFromStore`, `:187-208`, with `marketValue`/`pnl` null and `totalValue` null). The bus drops the source when the panel unmounts (`PortfolioPanel.tsx:483`). `costBasis` is per unit: `metrics.ts:104` computes `costValue = cost_basis * quantity`. The snapshot rides under `__terminal__`. The sidecar renders it in `_build_context_preamble` (`agent_runtime.py:530-545`) as a system message (`_compose_messages`, `:701-716`).
+
+Grounding comes for free. The streaming citation guard seeds `turn.grounding` from every non-assistant message that is not the agent's system prompt (`agent_runtime.py:3259-3265`; `Grounding.seed`, `figure_grounding.py:187`), and the context preamble is one of those messages. So the figures the new line states ground the model's quotes of them (`Grounding.grounded`, `figure_grounding.py:197-213`, matches on mantissa, scale and percent). This is the answer to the signed-off local-model class: a position figure the model quotes has a source in the runtime context, and it is neither fabricated nor tool-less in the guard's sense.
+
+### 2.2 Sidecar: two preamble lines (writer set S)
+
+In `sidecar/services/agent_runtime.py`, add two private helpers next to `_render_terminal_preamble` (`:404`) and call them from it. Nothing else in the file changes.
+
+1. `_holding_key(symbol: Any) -> str | None`: `str(symbol).strip().upper()` with one trailing `.NS` or `.BO` removed, or `None` when the result is empty or does not match `^[A-Z0-9&._\-/^=]{1,24}$`. The regex is the trust-boundary guard: holdings symbols are typed by the user (`normalizeHolding`, `src/store/portfolios.ts:72-95`, only trims and upper-cases), and this text lands in a system message. Suffix stripping is needed because the snapshot mixes spellings: `focusedSymbol` is `BDL.NS` in `sidecar/tests/test_b5_runtime_focus.py:21`, and holdings are stored as typed, for example `RELIANCE.NS` in `PortfolioPanel.test.tsx:302`. `BRK.B` keeps its suffix because only `.NS`/`.BO` are stripped.
+2. `_render_position_lines(pf: Any, focused: Any) -> tuple[str | None, str | None]` returns `(held_line, position_line)`:
+   - `holdings = [h for h in pf.get("holdings") or [] if isinstance(h, dict)]`. Keep only rows whose `_holding_key` is not None, whose `quantity` is a positive finite number and whose `costBasis` is a finite number >= 0 (bool excluded, the same rule as `normalizeHolding`).
+   - **Held line.** Distinct keys in holdings order, each spelled as its first lot's `symbol.strip().upper()`, capped at 12: `Held (tracked portfolio): TANLA, KAYNES.`. Past 12 it adds ` (+N more)` before the full stop. None when no valid holding exists.
+   - **Position line.** Only when `_holding_key(focused)` matches at least one lot. Lots aggregate: `qty = Σq`; `avg = Σ(q·c)/Σq`; `mv = Σ marketValue` only when every matched lot has a numeric `marketValue`, else None; the same rule for `pnl`; `weight = mv / totalValue` only when `mv` is not None, `totalValue` is numeric and `totalValue > 0`. Numbers go through the existing `_fmt_claim_value` (`:362`), called with `float(...)`. Wording:
+     - marked: `Your position in TANLA (from the user's tracked portfolio; no tool call needed): 500 units, avg cost 812, 48.6% of the marked book, unrealised P&L -20,750.00.`
+     - `mv`/`pnl` marked but weight None: the same line with `weight in book unknown (no marked-to-market total)` in place of the percentage.
+     - `mv`/`pnl` None: `Your position in TANLA (from the user's tracked portfolio; no tool call needed): 500 units, avg cost 812, not marked-to-market (open the Portfolio panel for live values).` This reuses the E3/E6 wording at `:458`, so it never renders 0.
+     - The weight is formatted `f"{weight * 100:.1f}%"`, the same one decimal as the Portfolio panel's weight column (`PortfolioPanel.tsx:650`).
+     - No currency symbol, because holdings carry none (`TerminalHolding`, `context-provider.ts:38-51`).
+3. Placement inside `_render_terminal_preamble`. The held line goes directly after the `Portfolio:` append (`:460`), inside the `if pf:` block. The position line goes directly before the `if focused:` deixis block (`:473`), after the viewport line, so the 8b model reads it immediately before the sentence it already obeys (Judge B's objection). The deixis sentence text is unchanged; the existing assertion `"they mean INFY" in preamble` (`test_b5_runtime_focus.py:40`) keeps passing.
+
+### 2.3 Renderer: the brief card (writer set F)
+
+1. `src/modules/chat/context-provider.ts`, a pure extraction:
+   - `export function portfolioSnapshot(event: PanelContextEvent | undefined, portfolios: Portfolio[], activeId: string): TerminalPortfolio | null`. It is the body of the `source === "portfolio"` branch (`:356-372`) when `event` is present, else the body of `portfolioFromStore` (`:187-208`) over the passed `portfolios`/`activeId` instead of `getState()`.
+   - `captureTerminalState` stops building the portfolio inside the loop. The `portfolio` source is skipped there, so it must still not fall into `otherPanels`. After the loop it calls `portfolioSnapshot(bySource.portfolio, pf.portfolios, pf.activeId)` with `pf = usePortfoliosStore.getState()`.
+   - The behaviour is identical and pinned by the existing `context-provider.test.ts:27-132` (payload extraction, older payload with no holdings, store fallback).
+   - `portfolioFromStore` is deleted (its body moves into `portfolioSnapshot`).
+2. `context-provider.ts`, a new pure helper `export function positionFor(portfolio: TerminalPortfolio | null, symbol: string | null | undefined): HeldPosition | null`, with `export interface HeldPosition { symbol: string; quantity: number; avgCost: number; lots: number; marketValue: number | null; pnl: number | null; weight: number | null; portfolioName?: string }`. The match key, aggregation and weight rules are the same as 2.2 item 2. They are two implementations (`_holding_key`/`_render_position_lines` in Python, `holdingKey`/`positionFor` in TS), kept in agreement only by the same vectors copied into both test files; section 8 names the risk. The TS key helper is `holdingKey(symbol)`, exported for its test only.
+3. `src/modules/research/brief-blocks.tsx`, `deriveMetrics` (`:412`):
+   - The signature becomes `deriveMetrics(structured: BriefStructured | undefined, position?: HeldPosition | null)`.
+   - The early `return null` (`:432-434`) stays before any position logic, so a position never keeps a model alive on its own. The result: `BriefPanel.tsx:641`, which only counts `metrics ? 1 : 0` for its stagger timer (`:647`), needs no change.
+   - When `position` is given, three `MetricItem`s (`:74-79`) are built directly (they carry `title`, which `makeItems` does not set) and placed first: `items = [...positionItems, ...semantic, ...raw]`.
+     - `Your position` = `` `${formatCompactNumber(quantity)} @ ${formatInstrumentMoney(avgCost, currencyCode, false)}` ``, title `Tracked holding: quantity @ average cost` plus ` across <lots> lots` when lots > 1, plus ` — open the Portfolio panel for live P&L` when `pnl` is null.
+     - `Your P&L`, only when `pnl` is not null: `instrumentCurrency(currencyCode) ? formatSignedMoney(pnl, true, currencyCode) : formatInstrumentMoney(pnl, null)`, title `Unrealised, at the Portfolio panel's live quote`.
+     - `Your weight`, only when `weight` is not null: `` `${(weight * 100).toFixed(1)}%` ``, title `Share of the marked-to-market book`.
+   - All formatters are existing imports or siblings in `src/lib/format.ts` (`formatCompactNumber` `:174` is the one import to add).
+   - `MetricsBlock` (`:754`) renders them unchanged: the same cell, `.hud-label` and mono value, with no new primitive and no new token.
+4. `brief-blocks.tsx`, `BriefBody` (`:1047-1094`) gains three subscriptions and one memo:
+   - `const pfEvent = usePanelContextBus((s) => s.lastEventBySource.portfolio)`
+   - `const portfolios = usePortfoliosStore((s) => s.portfolios)`
+   - `const activeId = usePortfoliosStore((s) => s.activeId)`
+   - `const position = useMemo(() => positionFor(portfolioSnapshot(pfEvent, portfolios, activeId), brief.symbol), [pfEvent, portfolios, activeId, brief.symbol])`
+   - `:1061` becomes `useMemo(() => deriveMetrics(brief.structured, position), [brief.structured, position])`.
+   - Every memo input is referenced, so `react-hooks/exhaustive-deps` needs no suppression. `brief.symbol` is `ResearchBriefData.symbol: string` (`types/brief.ts:218`).
+   - An archived brief keeps `dimMetrics` (`:1087`): the position cards dim with the rest. They show today's holding on yesterday's brief, which the dimming already flags as not live.
+5. `src/lib/dev-mcp-bridge.ts`, one dev-only entry so the verifier can capture the bus event the card reads:
+   - `import { usePanelContextBus } from "@/store/panel-context";` and `panelContext: usePanelContextBus,` in the `__vystedStores` object (`:33-57`).
+   - The object is set only in dev builds (the `NODE_ENV === "production"` early return at `:27`). The same seam already exposes the chart-sync bus to the rig (`chartSync`, `:52-56`).
+   - At HEAD the panel-context bus is not reachable from `evaluate_script`: the object lists 11 stores and `usePanelContextBus` (`src/store/panel-context.ts:38`) is not one of them. Without this entry AC-8 and AC-11 could not be checked against live marks. It is a verification seam, not product behaviour.
+
+### 2.4 Where state lives
+
+Nowhere new. Holdings stay in `usePortfoliosStore` (`src/store/portfolios.ts:121`) and persist in the workspace blob as today. Marks stay on the panel-context bus. No new store field, no `SerializedWorkspace` field, no localStorage, no sidecar persistence.
+
+### 2.5 Seams reused
+
+- The `__terminal__` snapshot and its preamble renderer.
+- `_fmt_claim_value`.
+- The E3/E6 not-marked-to-market wording.
+- The figure-grounding seed.
+- The bus-then-store portfolio precedence, now callable.
+- `deriveMetrics`/`MetricItem`/`MetricsBlock`.
+- The `src/lib/format.ts` formatters.
+- The Portfolio panel's 1-decimal weight convention.
+
+### 2.6 Not built
+
+- No agent tool and no catalog entry: `catalog.py` and the roster and parity counts are untouched, and the position is never projected to MCP.
+- No change to `read_notes`, `_render_notes_line` or `_NOTE_EXCERPT_CHARS` (`:480-527`).
+- No change to `gather_fast`, `BriefStructured`, `types/brief.ts`, `types/data.ts` or `sidecar/models`.
+- No portfolio write of any kind.
+- No position line for symbols that are only mentioned in the message (the held line covers the "do I hold it" decision).
+- No per-holding `note` (the `Holding.note` field, `portfolios.ts:28`) in the snapshot.
+- No currency on the preamble figures.
+- No change to `src/store/portfolios.ts`: the panel's `holdingFor` selector is dropped because the store alone has no marks.
+- No change to `BriefPanel.tsx`.
+- The backlog's notes half is not built. `read_notes` exists at HEAD (`catalog.py:1181`, handler `agent_runtime.py:1653`) and the preamble names note scopes and an excerpt (`:507-527`, R15-AGENT-020).
+
+### 2.7 The panel's objections, answered one by one
+
+1. **Judge A: `read_notes` exists and the agent can call `get_portfolio`, so this saves one tool call rather than an hour.** Conceded for the notes half, which this spec does not build. For the position, the saving is not the call; it is that the position is in front of the model when it did not think to ask, and on the keyless 8b lane tool choice is the weak link. The brief has no path to the position at all today (`deriveMetrics` reads only `structured`, `:412-470`). The cost is two short lines and zero tool rounds.
+2. **Judge B: a preamble line is only as good as an 8b model's attention to it.** The position line is the line immediately before the deixis sentence, and the model already obeys that sentence. Its figures are grounded by the context seed (2.1), so a quote of them is never replaced by the guard. Certification does not rest on model behaviour. The preamble and the card are deterministic and pinned by tests (section 5). The keyless transcript is the demonstration, and the verifier records what the model did, whichever way it goes (AC-12). If the 8b model ignores the line, the transcript says so and the build still stands on AC-1 to AC-11.
+3. **Judge B: the `fast.py`/`types/brief.ts` wire variant.** Rejected, as the panel ruled. The card derives on the renderer from the store and bus the renderer already has.
+4. **Backlog lifecycle cost (notes enter the prompt: size cap, secret strip, untrusted fence).** Not triggered, because this build adds no note text. The two new lines carry only numbers and symbols that passed `_holding_key`'s allow-list regex.
+5. **Backlog biggest risk (notes as an injection path).** Out of scope here, and the existing notes excerpt (`:521-526`) is unchanged. Recorded as a follow-up in section 9, question 6; this build is not the place to change it.
+6. **Panel file list.**
+   - `src/store/portfolios.ts` (the `holdingFor` selector) and `BriefPanel.tsx:641` are dropped, with the reasons in 2.3 items 3-4 and 2.6.
+   - The panel's acceptance vector (`marketValue 405000`, `pnl -17500` for 500 @ 812) is internally inconsistent: 405,000 - 406,000 = -1,000. This spec uses a consistent vector (section 5).
+   - Tests go in new files so the build does not collide with rc1-gate fixes in `test_agent_runtime.py` / `brief-blocks.test.ts`.
+
+## 3. Boundaries check
+
+- **Order safety surface untouched: yes.**
+  - `sidecar/models/audit_log.py`, `sidecar/services/kill_switch.py` and `src-tauri/src/kill_switch.rs` no longer exist at HEAD `60675632` (`git ls-files` lists none of them), and nothing here creates them.
+  - The surviving surface is three things, all tracked at HEAD (`git ls-files`): the proposed-changes gate in `sidecar/services/agent_runtime.py` (the auto-publish and host-action paths ride it, `:1249-1272`, `:1620-1636`), `AUTO_APPLIED_KINDS` in `types/proposed-change.ts` (`:38`), and `sidecar/tests/test_no_trading_surface.py` (Gate 8: no order, broker or simulated-account path). `types/proposed-change.ts`, `src/store/agent-autonomy.ts` and `test_no_trading_surface.py` are not touched, and the test passes unchanged (AC-1).
+  - In `agent_runtime.py` the only edits are two new private helpers plus two appends inside `_render_terminal_preamble` (`:404-478`). No proposed-change, host-action, tool-selection or guard code changes.
+  - No broker, no order, no write: the feature only reads the user's hand-kept tracked portfolio.
+- **Locked files untouched: yes.** `types/plugin.ts`, `.github/workflows/`, `src-tauri/tauri.conf.json`, `LICENSE`, `COMMERCIAL_LICENSE.md` and `CLAUDE.md` are not in any writer set. `docs/redesign/verification/vysted-r15-register.json`, `DECISIONS_FOR_OPERATOR.md` and the run-state file are not touched.
+- **Design system respected.** The feature uses the existing `MetricsBlock` cell, `.hud-label` (`src/app/globals.css:184`, `docs/DESIGN_SYSTEM.md:303`) and the existing `src/lib/format.ts` formatters. There is no new primitive, token, color or `styles/` edit, and positive/negative tone is not added to the cells (the grid is neutral today, `brief-blocks.tsx:800`).
+- **Plugin contract respected.** `types/plugin.ts` is not read or changed. There is no new capability and no plugin companion.
+- **Keyless and local-first.** Zero new network calls, no model call, no dependency. The two-tier research lane and the dev keystore are untouched.
+
+## 4. File ownership
+
+Branch: `r15-bl03-position`, cut from the r15-rc2 head the lead names. At this head no `r15*` tag exists (`git tag -l 'r15*'` is empty), so the base commit is the lead's call; see section 9, question 1. Two writer sets with no shared file, merged S then F (either order is conflict-free; S first puts the sidecar line in place for the demo).
+
+**Set S (sidecar), one writer**
+
+- modify `sidecar/services/agent_runtime.py`: `_holding_key`, `_render_position_lines`, and the two appends in `_render_terminal_preamble`
+- create `sidecar/tests/test_runtime_position.py`
+
+**Set F (renderer), one writer**
+
+- modify `src/modules/chat/context-provider.ts`: `portfolioSnapshot` extraction, `holdingKey`, `positionFor`, `HeldPosition`
+- modify `src/modules/research/brief-blocks.tsx`: `deriveMetrics` second arg, `BriefBody` subscriptions and memo, one `formatCompactNumber` import, `usePanelContextBus`/`usePortfoliosStore`/`portfolioSnapshot`/`positionFor` imports
+- create `src/modules/chat/held-position.test.ts`
+- create `src/modules/research/brief-position.test.ts`
+- modify `src/lib/dev-mcp-bridge.ts`: the dev-only `panelContext` entry (2.3 item 5)
+
+**Integrator (after both merge)**
+
+- Rebuild the main sidecar after both merges, so the running app carries the new preamble. `node scripts/ensure-all-sidecars.mjs` is staleness-aware (`scripts/sidecar-staleness.mjs` compares source and binary mtimes): the merge rewrites `agent_runtime.py`, so it is newer than `src-tauri/binaries/vysted-sidecar-aarch64-apple-darwin` and the binary rebuilds. `pnpm sidecars:build` forces it (`package.json:19`), and `pnpm tauri:dev` (`tauri dev --features dev-tools`, `package.json:22-23`) runs the same orchestrator first (`beforeDevCommand`, `src-tauri/tauri.conf.json:9`). Record the binary's modification time and the merge commit's date in the evidence (AC-12).
+- The release-doc refresh and the rc3 evidence folder (the lead names the paths, see section 9, question 5).
+- The screenshots go under `docs/screenshots/v<tag>/` in a new folder; existing shots are never overwritten.
+
+## 5. Tests to add
+
+### `sidecar/tests/test_runtime_position.py`
+
+These call `_render_terminal_preamble` directly, as `test_b5_runtime_focus.py` does. The base fixture is `PF`:
+
+```
+{
+  "positionCount": 3,
+  "totalValue": 792250,
+  "holdings": [
+    {"symbol": "TANLA", "quantity": 300, "costBasis": 800, "marketValue": 231150, "pnl": -8850},
+    {"symbol": "TANLA.NS", "quantity": 200, "costBasis": 830, "marketValue": 154100, "pnl": -11900},
+    {"symbol": "KAYNES", "quantity": 100, "costBasis": 4070, "marketValue": 407000, "pnl": 0}
+  ]
+}
+```
+
+This is TANLA at 770.50: 385,250 market value and a -20,750 P&L, against a book of 792,250. The weight is 48.63%.
+
+This vector is for the unit tests only. Its marks are fixed numbers; on the running app they are live (section 1), so no running-app criterion asserts `48.6%` or `-20,750.00`.
+
+| Test                                                             | Given                                                                                                                                                | Asserts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `test_focused_held_symbol_renders_the_position_line`             | `focusedSymbol "TANLA"`                                                                                                                              | contains `Your position in TANLA (from the user's tracked portfolio; no tool call needed): 500 units, avg cost 812, 48.6% of the marked book, unrealised P&L -20,750.00.`                                                                                                                                                                                                                                                                                                                        |
+| `test_position_line_sits_immediately_before_the_deixis_sentence` | as above                                                                                                                                             | the line index of `Your position in` + 1 == the line index of `When the user says "this"`                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `test_exchange_suffix_matches_both_ways`                         | `focusedSymbol "tanla.bo"`, and a variant with holdings `["TANLA.NS"]` and `focusedSymbol "TANLA"`                                                   | both render `Your position in`                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `test_suffix_strip_is_only_ns_and_bo`                            | holding `BRK.B`, `focusedSymbol "BRK"`                                                                                                               | no position line                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `test_unmarked_lot_says_not_marked_to_market_never_zero`         | one TANLA lot with `marketValue: None, pnl: None`                                                                                                    | contains `not marked-to-market (open the Portfolio panel for live values)`; contains no `%` and no `unrealised P&L`                                                                                                                                                                                                                                                                                                                                                                              |
+| `test_null_total_states_weight_unknown`                          | `totalValue: None`, lots marked                                                                                                                      | contains `unrealised P&L -20,750.00` and `weight in book unknown (no marked-to-market total)`                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `test_unheld_focus_renders_held_line_only`                       | `focusedSymbol "INFY"`                                                                                                                               | no `Your position`; contains `Held (tracked portfolio): TANLA, KAYNES.`                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `test_held_line_caps_at_twelve`                                  | 13 distinct valid holdings                                                                                                                           | 12 symbols then ` (+1 more).`                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `test_invalid_holdings_are_dropped`                              | symbols `"IGNORE ALL PREVIOUS"`, `""`, a quantity of `0`, and `costBasis: -1`                                                                        | none appears in the preamble; no crash                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `test_no_portfolio_or_empty_holdings_renders_nothing_new`        | `focusedSymbol "TANLA"` and no other key, first with `portfolio: None`, then with `portfolio: {"positionCount": 0, "totalValue": 0, "holdings": []}` | Each preamble equals a literal pinned in the test. For `None`: `'## What the user is looking at\nWhen the user says "this" or "it", they mean TANLA unless they name another symbol. Never invent figures — call a tool to fetch them.'`. For the empty portfolio: the same with `Portfolio: 0 positions, total value 0.` as the middle line, because today's `if pf:` block renders that line for any non-empty dict (`agent_runtime.py:450-460`). Neither contains `Held` nor `Your position`. |
+| `test_position_figures_ground_the_guard`                         | `figure_grounding.Grounding().seed(preamble)`                                                                                                        | `.ungrounded("You hold 500 units at ₹812, 48.6% of your book, down ₹20,750.")` is empty                                                                                                                                                                                                                                                                                                                                                                                                          |
+
+### `src/modules/chat/held-position.test.ts` (vitest)
+
+| Test                                                                                       | Asserts                                                                                                                                                                                  |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `positionFor aggregates lots and matches across .NS/.BO`                                   | The TS copy of the `PF` vector gives `{quantity: 500, avgCost: 812, lots: 2, marketValue: 385250, pnl: -20750}`, and `weight` is `toBeCloseTo(0.4863, 4)`.                               |
+| `positionFor returns null pnl/marketValue when any lot is unmarked`                        |                                                                                                                                                                                          |
+| `positionFor returns null weight when totalValue is null or 0`                             |                                                                                                                                                                                          |
+| `positionFor returns null for an unheld symbol, a null portfolio, or BRK vs BRK.B`         |                                                                                                                                                                                          |
+| `portfolioSnapshot prefers the bus event, else the active store portfolio with null marks` | Given a bus event, the event's holdings. With no event, the `activeId` portfolio with `marketValue: null`, `pnl: null`, `totalValue: null`. With an unknown `activeId`, `portfolios[0]`. |
+
+The existing `context-provider.test.ts` must pass unchanged; that is the refactor's pin.
+
+### `src/modules/research/brief-position.test.ts` (vitest)
+
+This file reuses the `structured(...)` fixture shape from `brief-blocks.test.ts`, with its own local copy.
+
+| Test                                                              | Asserts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `deriveMetrics without a position is unchanged`                   | `deriveMetrics(s)` deep-equals `deriveMetrics(s, null)` and `deriveMetrics(s, undefined)` for the equity, crypto, etf and fx fixtures.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `a marked position leads the grid with three cards`               | Run on the local equity fixture with a `derived` leg (the `structured("equity", { derived: derivedLeg({ drawdown_from_high: … }) })` shape at `brief-blocks.test.ts:219-240`), its price leg's `currency` set to `INR`, and the `PF` position. The first three labels are `["Your position", "Your P&L", "Your weight"]` and the fourth is the derived leg's first label (`Below 52-week high`). The values are `500 @ ₹812.00`, `-₹20,750.00` and `48.6%` (the same strings under the `en-US` and `en-IN` locales at these magnitudes). A reorder such as `[...semantic, ...positionItems]` fails it. |
+| `an unmarked position renders one card and says why in its title` | The labels contain `Your position` and neither `Your P&L` nor `Your weight`, and the title contains `open the Portfolio panel`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `a position never keeps a model alive`                            | `deriveMetrics(undefined, pos)` and `deriveMetrics({}, pos)` are `null`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `BriefBody renders the position cards from the bus`               | After `usePanelContextBus.setState` with a portfolio event and `usePortfoliosStore.setState`, `renderToStaticMarkup(createElement(BriefBody, {brief: {symbol: "TANLA.NS", structured, …}, onCite}))` contains `Your position` and `48.6%`. With the bus event removed and the store holding TANLA, the output contains `Your position` and does not contain `Your weight`.                                                                                                                                                                                                                             |
+
+### Certification the fresh verifier runs against the running app
+
+It is run on the rig: a dev build of the rc3 candidate commit through `pnpm tauri:dev`, because `window.__vystedStores` exists only in dev builds (`dev-mcp-bridge.ts:27`). See AC-8 to AC-12. The screenshots are dark theme at 1920x1080 and 2560x1440, captured through the Quartz path the repo notes name.
+
+**Owner-drive fixture.** The verifier enters it by hand as the active portfolio in the Portfolio panel. It is exchange-suffixed, so each lot routes to a named lane without the bare-symbol master lookup.
+
+| Symbol      | Quantity | Cost basis |
+| ----------- | -------- | ---------- |
+| `TANLA.NS`  | 300      | 800        |
+| `TANLA.BO`  | 200      | 830        |
+| `KAYNES.NS` | 100      | 4070       |
+
+`TANLA.NS` and `TANLA.BO` share the key `TANLA` (2.2 item 1), so the brief and the preamble aggregate them to 500 @ 812. `.NS` routes to the NSE lanes. `.BO` routes to the BSE lane: the NSE lanes reject it (`sidecar/services/india_provider.py:136-137`, `sidecar/services/nse_provider.py:368`) and the BSE lane strips it (`sidecar/services/bse_provider.py:464-471`). Every lane quotes in INR (`india_provider.py:167`, `nse_provider.py:590`, `:624`, `bse_provider.py:686`, `:713`), so the book is single-currency and the weight is defined (`metrics.ts:158-160` nulls it for mixed currencies).
+
+**Capture snippet.** The verifier runs this with `evaluate_script`. It reads the portfolio bus event the card reads and the brief's metric grid in one synchronous call, so no live price has to be known in advance:
+
+```js
+(() => {
+  const ev = window.__vystedStores.panelContext.getState().lastEventBySource.portfolio ?? null;
+  const key = (s) =>
+    String(s)
+      .trim()
+      .toUpperCase()
+      .replace(/\.(NS|BO)$/, "");
+  const lots = (ev?.payload?.holdings ?? []).filter((h) => key(h.symbol) === "TANLA");
+  const marked =
+    lots.length > 0 &&
+    lots.every((h) => typeof h.marketValue === "number" && typeof h.pnl === "number");
+  const mv = marked ? lots.reduce((a, h) => a + h.marketValue, 0) : null;
+  const pnl = marked ? lots.reduce((a, h) => a + h.pnl, 0) : null;
+  const tv = ev?.payload?.totalValue ?? null;
+  const weight =
+    mv !== null && typeof tv === "number" && tv > 0 ? `${((mv / tv) * 100).toFixed(1)}%` : null;
+  const first = [...document.querySelectorAll("span.hud-label")].find((l) =>
+    l.textContent.startsWith("Your "),
+  );
+  const cells = first
+    ? [...first.closest("div.grid").children].map((c) => ({
+        label: c.children[0]?.textContent,
+        value: c.children[1]?.textContent,
+        title: c.children[1]?.getAttribute("title"),
+      }))
+    : [];
+  return {
+    emittedAt: ev?.emittedAt ?? null,
+    holdings: ev?.payload?.holdings ?? null,
+    tv,
+    lots,
+    mv,
+    pnl,
+    weight,
+    cells,
+  };
+})();
+```
+
+- **Cells.** Each grid cell is a `div` holding the `.hud-label` span and the value span, which carries the `title`, inside the `div.grid` (`brief-blocks.tsx:792-805`).
+- **Key.** The snippet's `key` is the same `.NS`/`.BO` strip as `holdingKey`.
+- **Two-read rule.** Run the snippet twice, 1 s apart, and judge the second run only when both report the same `emittedAt`. The panel re-publishes when a 5 s quote refresh changes a mark (`PortfolioPanel.tsx:136`, `:455-480`), and equal stamps mean the render has caught up with the event.
+
+## 6. Acceptance criteria
+
+1. **AC-1.** `sidecar/tests/test_runtime_position.py` exists with the 11 tests in section 5 and they pass. The existing `test_agent_runtime.py`, `test_b5_runtime_focus.py`, `test_b5_runtime_notes.py` and `test_no_trading_surface.py` pass unchanged.
+2. **AC-2.** `src/modules/chat/held-position.test.ts` and `src/modules/research/brief-position.test.ts` pass. `src/modules/chat/context-provider.test.ts` and `src/modules/research/brief-blocks.test.ts` pass unchanged.
+3. **AC-3.** `git diff <base>..r15-bl03-position --name-only` lists exactly the seven files in section 4 (six feature files plus `src/lib/dev-mcp-bridge.ts`), plus the integrator's docs and screenshots. The `dev-mcp-bridge.ts` hunk adds only the import and the `panelContext` entry. None of the files is under `types/`, `styles/`, `.github/`, `src-tauri/`, `sidecar/models/` or `sidecar/services/agent_tools/`, and none is `LICENSE*` or `CLAUDE.md`.
+4. **AC-4.** In `agent_runtime.py` the diff touches only the new helpers and lines inside `_render_terminal_preamble`. `git diff -U0` shows no hunk outside that function and the helpers.
+5. **AC-5.** `test_mcp_catalog_parity.py`, `test_capability_catalog.py` and the roster-count assertions pass unchanged (no catalog change).
+6. **AC-6.** The release gates are green on the branch: `pnpm typecheck`, `pnpm lint`, `pnpm format:check`, `pnpm vitest run`, `ruff format --check sidecar && ruff check sidecar`, `pytest`. Where the lead runs `pnpm ci-local`, that stands in for all of them.
+7. **AC-7.** `grep -n "eslint-disable" src/modules/research/brief-blocks.tsx` shows no new suppression.
+8. **AC-8.** Running app, brief card, marked.
+   - Preconditions: the owner-drive fixture is the active portfolio and the Portfolio panel is open. The capture snippet reports a numeric `marketValue` for all three lots and a numeric `tv`. If a lot is unpriced, the run is void: that is a data-lane outage, not this build. Record it and retry later.
+   - A FAST research brief on `TANLA.NS` then satisfies all of the following, judged on a snippet run that meets the two-read rule.
+   - The first three `cells` labels are `Your position`, `Your P&L` and `Your weight` (rendered upper-case by `.hud-label`).
+   - `cells[0].value` is `500 @ ₹812.00`. Quantity and average cost come from the typed lots, so this is literal.
+   - `cells[1].value` is the P&L. With every character other than digits, `.` and `-` removed, it equals the snippet's `pnl` to 2 decimals. At |pnl| of 1,000,000 or more the card switches to the `M` form (`format.ts:51-60`), and the mantissa is compared to the snippet's `pnl / 1e6` at the same precision instead.
+   - `cells[2].value` equals the snippet's `weight` string exactly.
+   - The screenshots are populated (both sizes, AC-13).
+9. **AC-9.** Running app, the honest unmarked state.
+   - Close the Portfolio panel. The bus drops the `portfolio` event on unmount (`PortfolioPanel.tsx:483`), so the snippet's `emittedAt` is null and the card falls back to the store with null marks.
+   - With the same brief shown, the snippet returns exactly one `Your …` cell: `cells[0]` is `Your position`, with value `500 @ ₹812.00`.
+   - Its `title` attribute, read by the snippet rather than from a hover tooltip, contains `open the Portfolio panel`.
+   - No `Your P&L` or `Your weight` cell exists, so no `0` is shown.
+10. **AC-10.** Running app, the unheld name. With the Portfolio panel open, a FAST brief on a symbol not in the fixture (for example `INFY.NS`) shows no `Your …` cell: the snippet's `cells` is empty.
+11. **AC-11.** Running app, per-row against aggregate weight.
+    - The Portfolio panel has no per-symbol weight. Its `Wt` column is per lot (`PortfolioPanel.tsx:650`, `metrics.ts:156-160`), and it shows only when the panel is at least 680 px wide (`DROP_WEIGHT_BELOW`, `PortfolioPanel.tsx:131`, `:563`).
+    - The row denominator is the same resolved total the bus publishes (`metrics.ts:121`, `:158-160`; `PortfolioPanel.tsx:416-419`).
+    - In the same capture as AC-8, the `Wt` cell of the `TANLA.NS` row reads `(marketValue / tv × 100).toFixed(1)` percent for that lot in the snippet's `lots`, and the `TANLA.BO` row does the same. The cells are read from the populated screenshot or the row's DOM text.
+    - The brief's `Your weight` (the aggregate, AC-8) differs from the sum of those two row cells by at most 0.1 percentage points, because each row cell is rounded to one decimal on its own.
+12. **AC-12.** Running app, the keyless transcript. On llama3.1:8b via ollama, with `TANLA.NS` focused and the panel open, the prompt `should I add to TANLA?` is sent once and the verifier records the full reply and the step trace. What is checked:
+    - Before the drive, the evidence records `stat -f '%Sm' src-tauri/binaries/vysted-sidecar-aarch64-apple-darwin` and `git log -1 --format=%cd <merge>`. The binary is newer, so the drive runs the new preamble.
+    - The trace shows no `get_portfolio` step.
+    - No figure of the position is replaced by the citation guard, so no "tool returned no data" note appears on those figures.
+    - Whether the reply quotes the quantity, average cost or weight is recorded as evidence, not certified. The weight and P&L it should quote are the ones the capture snippet reports at the same moment, not the unit-test vector.
+    - A reply that states some other figure with no ok tool call behind it is filed against the signed-off local-model class and is not fixed in this build.
+13. **AC-13.** `docs/screenshots/v<tag>/` holds new AC-8 shots at both sizes, and no existing screenshot file is modified (`git diff --name-status` shows only `A` under `docs/screenshots/`).
+
+## 7. Size estimate
+
+S band, **3.0 build-days** on the one branch. This is the critic's breakdown (`BL-03.CRITIC.md` section 2), which corrects this spec's first estimate of 2.5. It is still inside the panel's 3-day residual (`PANEL.md:15`).
+
+| Work                                                                                                                                    | Days    | Note                                                                                                    |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------- |
+| Set S: two helpers, two appends, 11 pytest cases                                                                                        | 0.5     | About 60 lines of pure code. The tests call `_render_terminal_preamble` directly and share one fixture. |
+| Set F: `portfolioSnapshot` extraction, `positionFor`, `deriveMetrics` argument, `BriefBody` memo, the dev-bridge entry, 10 vitest cases | 1.0     | The extraction is the riskiest edit, and it is pinned. The bridge entry is two lines.                   |
+| Integration and release gates (`ci-local`), including the main sidecar rebuild                                                          | 0.5     |                                                                                                         |
+| Fresh verifier and owner drive: AC-8 to AC-13, both screenshot sizes, the keyless 8b transcript                                         | 0.6     |                                                                                                         |
+| Release-doc refresh and the rc3 tag                                                                                                     | 0.25    | Paths from the lead (section 9, question 5).                                                            |
+| Spec fixes D1 to D4                                                                                                                     | 0.15    | Spent by this revision (section 10). The writers start with none left.                                  |
+| **Total**                                                                                                                               | **3.0** | Days, not weeks.                                                                                        |
+
+Critical path: F (the extraction must keep `context-provider.test.ts` green), then the integration gates and the sidecar rebuild, then the verifier's drive. S runs in parallel with F and is off the critical path.
+
+## 8. Risks and rollback
+
+- **Context-provider refactor regresses the agent's portfolio snapshot.** The existing `context-provider.test.ts:27-132` pins the payload, older-payload and store-fallback behaviour. The new `portfolioSnapshot` test adds the `activeId` fallback. AC-2 requires both unchanged and green.
+- **Symbol matching gives a false negative.** A holding typed `TANLA-EQ`, or a Yahoo symbol other than `.NS`/`.BO`, does not match. The failure mode is honest: no position line or card, the same as today. It is never a wrong position.
+- **Symbol matching gives a false positive.** `.NS` and `.BO` of one company are the same shares, so aggregating them is correct. No other suffix is stripped.
+- **The 8b model ignores the line, or cites `get_portfolio` for figures it did not fetch.** The position line never names a tool. A clause citing a tool that did not run is handled by the existing citation guard (`agent_runtime.py:2408-2440`). AC-12 records the behaviour and does not certify it.
+- **P&L basis mismatch.** The card's P&L is at the Portfolio panel's quote, and the brief header price is the brief's quote, so the two can differ by the time between fetches. The card's title states the basis.
+- **Token cost and privacy.** At most two lines per turn: the held line is capped at 12 symbols and the position line has a fixed shape. Today the preamble carries only the position count and the total (`agent_runtime.py:460`). The held line sends up to 12 held symbols to whichever model serves the turn, cloud BYOK providers included, on every turn, whether or not the user asked about the portfolio. The position line adds quantity, average cost, weight and P&L for a focused held name. This crosses no boundary: the tracked portfolio is the agent's to reason over (`PANEL.md` Boundaries applied), and the same data is one `get_portfolio` call away today.
+- **Two implementations of one rule.** `_holding_key`/`_render_position_lines` and `holdingKey`/`positionFor` are separate code, pinned by the same vectors copied into `test_runtime_position.py` and `held-position.test.ts`. A later change to the regex or the suffix set on one side passes both suites. This is accepted for S: a change to either side must change both test files.
+- **Card currency.** `avgCost` is formatted in the brief's instrument currency (the price leg's code, `brief-blocks.tsx:427`), but holdings carry no currency (`TerminalHolding`, `context-provider.ts:38-51`). A bare-symbol holding whose cost was typed in one currency, matched to a brief quoted in another, would be mislabelled. An example is a bare `BRK.B` lot with an INR cost on the US listing. The `.NS`/`.BO`-only strip makes a match like that unlikely, and this build does not guard it.
+- **Rollback.** All work lands on `r15-bl03-position`. Integration is one merge commit (or a squash) onto the rc line, so the rollback is `git revert -m 1 <merge>` (or `git revert <squash>`), which is one revert. There is no data migration, no persisted field, no wire change and no file outside the branch's own seven, so a revert leaves no residue in user workspaces.
+
+## 9. Open questions the writer must not guess
+
+Each question has a default. The writer applies the default unless the lead overrides it.
+
+1. **Which base commit is rc2?** No `r15*` tag exists at this head. Default: the lead names the base, and both writers start from that exact commit (`git reset --hard <sha>` in their own worktree first, per the worktree-base hazard).
+2. **Should position cards lead the grid or follow the semantic leg?** Default: they lead. The panel's "after the semantic items" is read as a placement beside the live cards, and leading makes the held-name brief read as "about you" in one glance. Order among the three is fixed: position, P&L, weight.
+3. **Should the position key off `researchSpace.symbol` when it differs from `focusedSymbol`?** Default: no. Only `focusedSymbol`, the same subject the deixis sentence names.
+4. **Should the cards and the preamble show a currency?** Default: the card uses the brief's instrument currency (the same one the price line uses). The preamble shows no currency, because holdings carry none.
+5. **Which release docs get refreshed for rc3, and where does rc3 evidence go?** Default: the lead names the paths; the writers touch no doc. `docs/redesign/verification/r15/release/` is empty at this head.
+6. **Should the existing notes excerpt be fenced with `wrap_untrusted`?** Default: no, not in this build. It is out of scope and a behaviour change to a line other code reads. It goes to the backlog as a follow-up against the BL-03 row's biggest risk.
+7. **What is the tag name and who cuts it?** Default: the tail rule's `r15-rc3`, cut by the lead after AC-1 to AC-13 pass. No `v*` tag, release, signing, PR or merge to `main`: those are operator-only.
+
+## 10. Critic defects resolved
+
+Checked at HEAD `60675632` against `BL-03.CRITIC.md`. D1 to D3 were blocking. D4 to D10 were cheap spec edits and are fixed too.
+
+| D   | Blocking | What changed                                                                                                                                                                                                                                                                                                                                                                            | Proof at HEAD                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| --- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | yes      | AC-11 rewritten. Each TANLA row's `Wt` is checked against that lot's share recomputed from the bus event, and the brief's aggregate against the sum of the two rows within 0.1. Section 1 states the panel shows TANLA as two rows.                                                                                                                                                     | `PortfolioPanel.tsx:650` (per-row `Wt`); `metrics.ts:102-111` (a row per position); `metrics.ts:156-160` (row weight over the summed total); `PortfolioPanel.tsx:416-419` (the bus total is that same sum)                                                                                                                                                                                                                                   |
+| D2  | yes      | AC-8 asserts presence and order, the price-independent literal `500 @ ₹812.00`, and the P&L and weight against values recomputed from the bus event in the same `evaluate_script` call. `48.6%` and `-20,750.00` stay in the unit tests only. Section 2.3 item 5 adds the dev-bridge entry that makes the event capturable. Section 1's `-₹20.75K` is corrected to the full money form. | `PortfolioPanel.tsx:232`, `:262-273`, `:136` (live quotes on a 5 s timer); `dev-mcp-bridge.ts:33-57` (no panel-context bus at HEAD), `:27` (dev-only); `format.ts:51-60`, `:105-114` (compact money abbreviates only from 1e6)                                                                                                                                                                                                               |
+| D3  | yes      | The owner-drive fixture uses `TANLA.NS`, `TANLA.BO` and `KAYNES.NS`, and AC-8 gains a priced-lots precondition. The bare `TANLA` would also have routed: both India masters list it and the US master does not, so `region_hint` returns IN and the NSE lanes accept it. The suffixed spellings route without depending on that lookup.                                                 | `symbol_resolver.py:680-690` (the suffix decides; a bare name routes by master membership); `resolver_masters/nse_instruments.json` and `bse_instruments.json` list TANLA and KAYNES, `us_instruments.json` lists neither; `india_provider.py:136-141` and `nse_provider.py:367-372` (the NSE lanes strip `.NS` and reject `.BO`); `bse_provider.py:464-471` (the BSE lane strips `.BO`); `provider_registry.py:312-326` (region precedence) |
+| D4  | no       | The test pins both preambles as literal strings, not a same-build comparison.                                                                                                                                                                                                                                                                                                           | `agent_runtime.py:450-460` (`if pf:` renders `Portfolio:` for any non-empty dict); `:473-477` (the deixis line)                                                                                                                                                                                                                                                                                                                              |
+| D5  | no       | An integrator step rebuilds the main sidecar. AC-12 records the binary's mtime against the merge date.                                                                                                                                                                                                                                                                                  | `src-tauri/tauri.conf.json:40-43` (main sidecar is an `externalBin`); `:9` (`beforeDevCommand` runs the staleness-aware orchestrator); `package.json:19` (`sidecars:build` forces it), `:22-23` (`tauri:dev`)                                                                                                                                                                                                                                |
+| D6  | no       | "Agree by construction" is replaced: two implementations pinned by copied vectors, with the risk named.                                                                                                                                                                                                                                                                                 | Section 2.3 item 2; section 8                                                                                                                                                                                                                                                                                                                                                                                                                |
+| D7  | no       | Section 8 states the token and privacy delta.                                                                                                                                                                                                                                                                                                                                           | `agent_runtime.py:460` (today's preamble carries only the count and the total)                                                                                                                                                                                                                                                                                                                                                               |
+| D8  | no       | AC-9 reads the `title` attribute through the capture snippet.                                                                                                                                                                                                                                                                                                                           | `brief-blocks.tsx:799-802` (the value span carries `title`)                                                                                                                                                                                                                                                                                                                                                                                  |
+| D9  | no       | The lead-order test runs on a bundle with a `derived` leg and asserts the fourth label.                                                                                                                                                                                                                                                                                                 | `brief-blocks.test.ts:219-240`; `brief-blocks.tsx:455` (the semantic items lead the raw grid today)                                                                                                                                                                                                                                                                                                                                          |
+| D10 | no       | Risk line added.                                                                                                                                                                                                                                                                                                                                                                        | `context-provider.ts:38-51` (a holding has no currency); `brief-blocks.tsx:427` (card currency is the price leg's)                                                                                                                                                                                                                                                                                                                           |
+
+Boundaries re-checked: `git ls-files` at `60675632` lists `sidecar/services/agent_runtime.py`, `types/proposed-change.ts` and `sidecar/tests/test_no_trading_surface.py`, and none of `sidecar/models/audit_log.py`, `sidecar/services/kill_switch.py` or `src-tauri/src/kill_switch.rs`.
