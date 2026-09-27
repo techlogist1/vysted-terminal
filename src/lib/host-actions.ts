@@ -25,8 +25,10 @@ import { recordBriefClaims } from "@/lib/brief-claims";
 import {
   applyContentAwareLayout,
   applyCustomLayout,
+  applyLayoutMode,
   fitLayoutTemplate,
   LAYOUT_TEMPLATE_IDS,
+  MENU_PAYLOAD_TO_MODE,
   resolvePanelToken,
   type CustomPanelSpec,
   type LayoutTemplate,
@@ -1265,6 +1267,23 @@ export function describeIntent(intent: HostIntent): {
           after: `Layout: ${label}${scope}`,
         };
       }
+      if (pattern in MENU_PAYLOAD_TO_MODE) {
+        const label = pattern.replace("-", " ");
+        return {
+          kind: "panel",
+          title: `Switch to the ${label} layout`,
+          before,
+          after: `Layout: ${label}`,
+        };
+      }
+      if (pattern !== "default") {
+        return {
+          kind: "panel",
+          title: `Unrecognised layout "${pattern}"`,
+          before,
+          after: `Layout: unchanged — ${CANT_APPLY}`,
+        };
+      }
       return {
         kind: "panel",
         title: "Reset the panel arrangement (drawings and modules kept)",
@@ -1661,9 +1680,30 @@ export function applyIntent(intent: HostIntent): ApplyResult {
           pattern === "research-cockpit" ? "research cockpit" : pattern.replace("-", " ");
         return done(`Arranged the ${label} layout`);
       }
+      // Layout-MENU mode ids (fundamental/technical/macro/compare-desk) reaching
+      // arrange_layout through chat get the SAME layout the native menu produces
+      // (R15-LEAD-048) — never the silent factory reset below.
+      const mode = MENU_PAYLOAD_TO_MODE[pattern];
+      if (mode) {
+        const api = ws.dockviewApi;
+        if (!api) {
+          return fail("the layout has not mounted");
+        }
+        applyLayoutMode(api, mode);
+        if (symbol) {
+          useChartCommandStore.getState().loadSymbol(symbol);
+        } else if (symbols[0]) {
+          useChartCommandStore.getState().loadSymbol(symbols[0]);
+        }
+        return done(`Arranged the ${mode.replace("-", " ")} layout`);
+      }
       // The agent's default/unknown arrange is layout-only: a cosmetic tool must
       // never delete drawings or re-enable modules (R15-AGENT-056); the factory
-      // reset stays the explicit Settings/menu action.
+      // reset stays the explicit Settings/menu action. Anything else is a
+      // genuinely unrecognised pattern — fail loudly instead of resetting.
+      if (pattern !== "default") {
+        return fail(`unrecognised layout "${pattern}"`);
+      }
       ws.resetLayout();
       return done("Reset the panel arrangement to the default (drawings and modules kept)");
     }
