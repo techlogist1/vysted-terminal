@@ -46,7 +46,7 @@ import os
 import re
 from datetime import UTC, datetime
 from time import struct_time
-from typing import Any, NamedTuple
+from typing import Any
 
 import feedparser
 import httpx
@@ -56,7 +56,6 @@ from models.news import NewsItem
 from services import sentiment, symbol_resolver
 from services.errors import ProviderError
 from services.locale import strip_exchange_suffix
-from services.research.relevance import COMMON_WORD_TICKERS, anchored_ticker
 from services.yfinance_provider import _yahoo_symbol
 
 logger = logging.getLogger(__name__)
@@ -573,107 +572,46 @@ def _company_name(symbol: str) -> str | None:
     return symbol_resolver._strip_corporate_suffix(name.lower()) if name else None
 
 
-class _Aliases(NamedTuple):
-    """How :func:`_tag_symbols` recognises one symbol in text."""
-
-    #: alias -> the longer listed names it begins; an occurrence that starts
-    #: one of them ("Reliance Power" for RELIANCE) is that company, not this one.
-    forms: dict[str, list[str]]
-    #: a :data:`COMMON_WORD_TICKERS` base, counted only via :func:`anchored_ticker`.
-    anchored: str | None
-
-
-def _master_names(ticker: str) -> list[str]:
-    """Every master's name row for ``ticker`` (US, NSE, BSE)."""
-    rows = [
-        symbol_resolver._us_master().get(ticker),
-        symbol_resolver._nse_master().get(ticker),
-        symbol_resolver._bse_master().get(ticker),
-    ]
-    return [row[0] if isinstance(row, tuple) else row for row in rows if row]
-
-
-def _aliases(symbol: str, names: set[str]) -> _Aliases:
+def _aliases(symbol: str) -> list[str]:
     """Text forms that mean ``symbol``: the ticker as requested, its bare
     exchange/pair-stripped base (2+ characters only, so ``A`` never matches
     the article "a"), and the company name (the only text alias a one-letter
-    ticker gets). A common-word ticker (IT, ON, AI) gets no bare text alias —
-    only its anchored forms (``$ON``, ``NASDAQ: ON``, ``IT.NS``) and its name.
-
-    ``names`` is every listed company's stripped name; each alias carries the
-    ones that begin with it and belong to a different company (R15-DATA-030).
-    """
-    base = _normalize_symbol_for_aliases(symbol)
-    anchored = base if base in COMMON_WORD_TICKERS else None
-    tickers = [] if anchored else [symbol, strip_exchange_suffix(symbol), base]
-    aliases = [t for t in dict.fromkeys(tickers) if len(t) >= 2]
+    ticker gets)."""
+    tickers = dict.fromkeys(
+        [symbol, strip_exchange_suffix(symbol), _normalize_symbol_for_aliases(symbol)]
+    )
+    aliases = [t for t in tickers if len(t) >= 2]
     name = _company_name(symbol)
     if name:
         aliases.append(name)
-    # A company listed under this very ticker (META on BSE and NASDAQ) is not "different".
-    own = {name} | {symbol_resolver._strip_corporate_suffix(n.lower()) for n in _master_names(base)}
-    forms: dict[str, list[str]] = {}
-    for alias in aliases:
-        lowered = alias.lower()
-        forms[alias] = [
-            n
-            for n in names
-            if n not in own
-            and len(n) > len(lowered)
-            and n.startswith(lowered)
-            and not n[len(lowered)].isalnum()
-        ]
-    return _Aliases(forms, anchored)
+    return aliases
 
 
-def build_aliases(symbols: list[str]) -> dict[str, _Aliases]:
-    """Build the per-symbol alias map :func:`enrich` tags against."""
-    names = {
-        symbol_resolver._strip_corporate_suffix(name.lower())
-        for name in (
-            *symbol_resolver._us_master().values(),
-            *(row[0] for row in symbol_resolver._nse_master().values()),
-            *(row[0] for row in symbol_resolver._bse_master().values()),
-        )
-    }
-    return {symbol: _aliases(symbol, names) for symbol in symbols}
+def build_aliases(symbols: list[str]) -> dict[str, list[str]]:
+    """Build the ``{symbol: [alias, ...]}`` map :func:`enrich` tags against."""
+    return {symbol: _aliases(symbol) for symbol in symbols}
 
 
-def _alias_in(alias: str, longer_names: list[str], text_lc: str) -> bool:
-    """Is ``alias`` in ``text_lc`` word-bounded at a position that does not
-    begin one of ``longer_names`` (another listed company's name)?"""
-    for match in re.finditer(rf"\b{re.escape(alias.lower())}\b", text_lc):
-        rest = text_lc[match.start() :]
-        if not any(re.match(rf"{re.escape(n)}(?!\w)", rest) for n in longer_names):
-            return True
-    return False
-
-
-def _tag_symbols(item: NewsItem, aliases: dict[str, _Aliases]) -> list[str]:
+def _tag_symbols(item: NewsItem, aliases: dict[str, list[str]]) -> list[str]:
     """Return the symbols (keys of ``aliases``) the item is about.
 
     An item from a symbol's own per-symbol feed is tagged by provenance
     (``item.symbols``, set by the provider); otherwise any alias of the symbol
     (:func:`_aliases`) must appear word-boundary-anchored in the title or
-    summary, so ``ETH`` does not match ``ethics`` — and not as the start of
-    another listed company's name ("Reliance Power" is not RELIANCE). A
-    common-word ticker counts only when written as a ticker (``NYSE: AI``).
+    summary, so ``ETH`` does not match ``ethics``.
     """
     haystack = f"{item.title} {item.summary or ''}"
-    text_lc = haystack.lower()
     matched: list[str] = []
-    for symbol, entry in aliases.items():
-        if (
-            symbol in item.symbols
-            or (entry.anchored is not None and anchored_ticker(entry.anchored, haystack))
-            or any(_alias_in(alias, longer, text_lc) for alias, longer in entry.forms.items())
+    for symbol, forms in aliases.items():
+        if symbol in item.symbols or any(
+            re.search(rf"\b{re.escape(alias)}\b", haystack, flags=re.IGNORECASE) for alias in forms
         ):
             matched.append(symbol)
     return matched
 
 
 def enrich(
-    items: list[NewsItem], symbols: list[str], aliases: dict[str, _Aliases]
+    items: list[NewsItem], symbols: list[str], aliases: dict[str, list[str]]
 ) -> list[NewsItem]:
     """Score every item's sentiment and tag it against ``aliases``.
 

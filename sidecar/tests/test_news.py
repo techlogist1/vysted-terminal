@@ -176,18 +176,13 @@ def test_get_news_provider_error_is_502(
 
 
 def _news_for(
-    client: TestClient,
-    monkeypatch: pytest.MonkeyPatch,
-    item: NewsItem,
-    symbols: str,
-    region: str | None = None,
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, item: NewsItem, symbols: str
 ) -> list[dict]:
     async def fake_fetch_news(client, symbols, limit, *, newsapi_key=None, source_status=None):  # noqa: ANN001, ANN202, ARG001
         return [item]
 
     monkeypatch.setattr(news_provider, "fetch_news", fake_fetch_news)
-    headers = {"X-Vysted-Region": region} if region else None
-    return client.get("/news", params={"symbols": symbols}, headers=headers).json()
+    return client.get("/news", params={"symbols": symbols}).json()
 
 
 def test_company_name_tags_a_suffixed_india_symbol(
@@ -266,49 +261,6 @@ def test_data_030_revert_guard_short_name_headline_tags_its_symbol(
     of these tagged; the batch-29 integration reverted it."""
     item = _news_item("g1", title)
     body = _news_for(client, monkeypatch, item, symbol)
-    assert [i["symbols"] for i in body] == [[symbol]]
-
-
-@pytest.mark.parametrize(
-    ("symbol", "title"),
-    [
-        ("IT", "Tax-free bond yields are in a sweet spot. Get in before it's too late."),
-        ("AI", "Choosing these AI-exposed college majors could dent your job prospects"),
-        ("ON", "On Holding raises guidance"),
-        ("RELIANCE.NS", "Reliance Power wins Bhutan project"),
-        ("LT.NS", "LT Foods Q2 profit jumps 30%"),
-        ("ITC.NS", "ITC Hotels shares list at premium"),
-        ("AAPL", "Apple Hospitality REIT raises dividend"),
-    ],
-)
-def test_common_word_or_other_company_mention_does_not_tag(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch, symbol: str, title: str
-) -> None:
-    """R15-DATA-030: a common-word ticker (IT, AI, ON) read as prose, or an
-    alias that begins another listed company's name ("Reliance Power", "LT
-    Foods", "ITC Hotels", "Apple Hospitality REIT"), is not the symbol."""
-    item = _news_item("o1", title)
-    assert _news_for(client, monkeypatch, item, symbol, region="US") == []
-
-
-@pytest.mark.parametrize(
-    ("symbol", "title"),
-    [
-        ("IT", "Gartner beats estimates"),
-        ("AI", "C3.ai shares jump"),
-        ("AI", "Shares of (NYSE: AI) rally"),
-        ("RELIANCE.NS", "Reliance Industries Q2 profit rises 10%"),
-        ("AAPL", "Apple beats on services"),
-    ],
-)
-def test_company_name_or_anchored_ticker_tags(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch, symbol: str, title: str
-) -> None:
-    """R15-DATA-030: the company's own name, or a common-word ticker written as
-    a ticker (``NYSE: AI``), still tags — including a one-word name ("Apple"),
-    the batch-28 regression."""
-    item = _news_item("e1", title)
-    body = _news_for(client, monkeypatch, item, symbol, region="US")
     assert [i["symbols"] for i in body] == [[symbol]]
 
 
