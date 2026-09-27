@@ -81,12 +81,19 @@ export function EarningsSurpriseChart({ surprises, limit = 12 }: Props) {
     }
     const chart = createChart(container, { ...CHART_THEME, autoSize: true });
     chartRef.current = chart;
-    const { prefix, suffix } = currencyAffix(currency);
+    // R15-DATA-113: `currency === null` means the provider could not
+    // determine the EPS currency — the title omits the affix rather than
+    // falling back to `currencyAffix`'s guessed default.
+    let affix = "";
+    if (currency !== null) {
+      const { prefix, suffix } = currencyAffix(currency);
+      affix = ` ${prefix}${suffix}`;
+    }
     const series = chart.addSeries(HistogramSeries, {
       priceFormat: { type: "price", precision: 2, minMove: 0.01 },
       priceLineVisible: false,
       lastValueVisible: false,
-      title: `Surprise (EPS ${prefix}${suffix})`,
+      title: `Surprise (EPS${affix})`,
     });
     seriesRef.current = series;
     return () => {

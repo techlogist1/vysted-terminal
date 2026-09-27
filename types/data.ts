@@ -388,6 +388,9 @@ export interface NewsItem {
   sentiment: number | null;
   sentiment_label: string | null;
   provider: string;
+  /** True when tagged by the symbol's own per-symbol feed (provenance), not by
+   * an alias/text match. Optional: `undefined` on a pre-fix cached envelope. */
+  via_symbol_feed?: boolean;
 }
 
 // --- corporate disclosures (India) ------------------------------------------
@@ -716,4 +719,9 @@ export interface IndicatorResponse {
   provider: string;
   indicators: IndicatorSeries[];
   volume_profile: VolumeProfile | null;
+  /** The underlying OHLCV series' freshness label, mirrored so the indicator
+   * overlay can badge itself the same way the chart does; `null` on the
+   * empty-series downgrade (R15-DATA-063). Optional: `undefined` on a
+   * pre-fix cached envelope. */
+  freshness?: Freshness | null;
 }

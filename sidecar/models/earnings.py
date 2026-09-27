@@ -46,7 +46,10 @@ class EarningsEvent(BaseModel):
     eps_estimate_stddev: float | None = None
     #: None when the provider gives no count (never a 0 standing in for unknown).
     estimate_analyst_count: int | None = Field(default=None, ge=0)
-    currency: str = "USD"
+    #: The EPS estimate's own currency — ``None`` when the filer's true EPS
+    #: currency can't be determined (R15-DATA-113); see
+    #: ``EarningsSurprise.currency``.
+    currency: str | None = "USD"
     provider: str
 
 
@@ -76,7 +79,13 @@ class EarningsSurprise(BaseModel):
     revenue_actual: float | None = None
     revenue_estimate_mean: float | None = None
     revenue_surprise_pct: float | None = None
-    currency: str = "USD"
+    #: The EPS fields' own currency — a foreign reporter's per-share EPS is
+    #: sometimes denominated in the reporting currency, not the trading
+    #: currency the ADR/ADS trades in (PDD/NVO/JD). Scale-checked against
+    #: ``trailingEps`` before trusting Yahoo's ``financialCurrency``; ``None``
+    #: when the scale check can't determine it — never a guessed label
+    #: (R15-DATA-113).
+    currency: str | None = "USD"
     #: The revenue fields' own currency — a foreign reporter's statement-size
     #: revenue is denominated in the reporting currency, not the trading
     #: currency ``currency`` carries. Scale-checked against ``totalRevenue``
@@ -114,7 +123,8 @@ class EarningsEstimateDetail(BaseModel):
     revenue_estimate_low: float | None = None
     #: The revenue frame's own count — never the EPS count (R15-DATA-032).
     revenue_analyst_count: int | None = Field(default=None, ge=0)
-    currency: str = "USD"
+    #: See ``EarningsSurprise.currency`` (R15-DATA-113).
+    currency: str | None = "USD"
     #: See ``EarningsSurprise.revenue_currency`` (R15-DATA-113).
     revenue_currency: str | None = None
     provider: str
@@ -167,7 +177,8 @@ class EarningsHistoryEntry(BaseModel):
     eps_estimate_mean: float | None = None
     revenue_actual: float | None = None
     revenue_estimate_mean: float | None = None
-    currency: str = "USD"
+    #: See ``EarningsSurprise.currency`` (R15-DATA-113).
+    currency: str | None = "USD"
     #: See ``EarningsSurprise.revenue_currency`` (R15-DATA-113).
     revenue_currency: str | None = None
 

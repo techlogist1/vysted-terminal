@@ -110,6 +110,14 @@ _WITNESS_LEG_TIMEOUT_S = 6.0
 #: the metric cards for nothing. 25 s sits well inside their walls (>= 120 s).
 DEEP_SNAPSHOT_LEG_TIMEOUT_S = 25.0
 
+#: The NORMAL web round's own box (R15-RESEARCH-027): every structured leg is
+#: boxed at ``_WITNESS_LEG_TIMEOUT_S`` (6s), but the web round awaited
+#: ``_web_round`` unboxed — a keyless (DDG) backend can take 18-25s, holding
+#: the whole FAST bundle well past its FR-070 <= 15s budget. ``_web_round``
+#: itself (also used by DEEP, which has its own, much larger wall) stays
+#: unchanged; only the NORMAL caller's await is boxed.
+_WEB_ROUND_TIMEOUT_S = 8.0
+
 
 def _suggested_indicators(timeframe: str = "1d", asset_class: str | None = None) -> list[str]:
     """Map an instrument's asset class + timeframe to the cockpit's opening
@@ -680,7 +688,19 @@ async def gather_fast(
             if name and name.upper() != symbol
             else f"{symbol} {query} news outlook"
         )
-        web = await _web_round(tool_call, web_query)
+        try:
+            web = await asyncio.wait_for(_web_round(tool_call, web_query), _WEB_ROUND_TIMEOUT_S)
+        except TimeoutError:
+            web = {
+                "available": False,
+                "citations": [],
+                "results": [],
+                "reason": "timeout",
+                "note": (
+                    f"Web search did not answer within {_WEB_ROUND_TIMEOUT_S:g}s — "
+                    "structured data only"
+                ),
+            }
         web_ok = web["available"]
         _hits = len(web["citations"]) or len(web["results"])
         await _emit(

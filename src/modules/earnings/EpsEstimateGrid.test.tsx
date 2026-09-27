@@ -87,4 +87,17 @@ describe("EpsEstimateGrid", () => {
     const { prefix: epsPrefix, suffix: epsSuffix } = currencyAffix("USD");
     expect(screen.getByText(`${epsPrefix}${formatPrice(1.5)}${epsSuffix}`)).toBeTruthy();
   });
+
+  it("a determined EPS currency (e.g. CNY for a PDD-shaped payload) renders its affix", () => {
+    render(<EpsEstimateGrid estimate={{ ...BASE_ESTIMATE, currency: "CNY" }} />);
+    const { prefix, suffix } = currencyAffix("CNY");
+    expect(screen.getByText(`${prefix}${formatPrice(1.5)}${suffix}`)).toBeTruthy();
+  });
+
+  it("null EPS currency (R15-DATA-113: undetermined) renders the mean as a bare number", () => {
+    render(<EpsEstimateGrid estimate={{ ...BASE_ESTIMATE, currency: null }} />);
+    // The bare price string, byte-identical to formatPrice's own output — no
+    // currency prefix/suffix attached.
+    expect(screen.getByText(formatPrice(1.5))).toBeTruthy();
+  });
 });

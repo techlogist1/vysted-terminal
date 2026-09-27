@@ -242,6 +242,65 @@ def test_items_from_a_symbols_own_feed_are_tagged_by_provenance(
 
 
 # --------------------------------------------------------------------------
+# _tag_symbols case-sensitive tickers + name-collision drop (R15-DATA-030)
+# --------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("symbol", "title", "summary"),
+    [
+        # A lower-case common word never matches an upper-case ticker.
+        ("IT", "Nvidia unveils a new chip", "it's a big leap forward"),
+        ("ON", "The lights stayed on through the outage", None),
+        # A ticker that is also the first word of a DIFFERENT listed
+        # company's name is dropped as a bare-text alias.
+        ("RELIANCE.NS", "Reliance Power posts wider losses", "RPOWER shares fall"),
+        ("LT.NS", "LT Foods reports record basmati exports", None),
+        ("ITC.NS", "ITC Hotels shares list at a premium", None),
+    ],
+)
+def test_tag_symbols_negatives_for_case_and_name_collisions(
+    symbol: str, title: str, summary: str | None
+) -> None:
+    item = _news_item("neg", title, summary)
+    aliases = news_provider.build_aliases([symbol])
+    assert news_provider._tag_symbols(item, aliases) == []
+
+
+@pytest.mark.parametrize(
+    ("symbol", "title", "summary", "expected"),
+    [
+        # Control: an exact-case ticker mention still tags.
+        ("NVDA", "NVDA soars on record data-center demand", None, ["NVDA"]),
+        # Control: the company name (case-insensitive) still tags even though
+        # the bare ticker alias was dropped for the name collision.
+        (
+            "RELIANCE.NS",
+            "Reliance Industries posts record quarterly profit",
+            "RIL beats estimates",
+            ["RELIANCE.NS"],
+        ),
+    ],
+)
+def test_tag_symbols_controls_still_match(
+    symbol: str, title: str, summary: str | None, expected: list[str]
+) -> None:
+    item = _news_item("pos", title, summary)
+    aliases = news_provider.build_aliases([symbol])
+    assert news_provider._tag_symbols(item, aliases) == expected
+
+
+def test_tag_symbols_title_case_common_word_is_not_a_ticker() -> None:
+    """Class case the fix was not written against: a title-case common word
+    that happens to equal a ticker's letters, case-insensitively, still must
+    not tag — ``ALL`` is Allstate's ticker, but "All eyes on the Fed" is
+    ordinary prose, not the ticker."""
+    item = _news_item("all1", "All eyes on the Fed as rate decision looms", None)
+    aliases = news_provider.build_aliases(["ALL"])
+    assert news_provider._tag_symbols(item, aliases) == []
+
+
+# --------------------------------------------------------------------------
 # news_provider.fetch_news — RSS/NewsAPI fetchers mocked at the function level
 # --------------------------------------------------------------------------
 

@@ -588,7 +588,13 @@ async def test_estimate_detail_revenue_currency_in_band_trusts_financial_currenc
         ),
     )
     detail = await earnings_provider.get_estimate_detail("WIT")
-    assert detail.currency == "USD"
+    # R15-DATA-113: this fixture pinned `detail.currency == "USD"` (the OLD,
+    # unconditional trading-currency label). EPS now gets its own scale check
+    # against `trailingEps`, which this revenue-only fixture never sets — so
+    # the correct answer is "undeterminable", not a guessed trading currency.
+    # See `test_eps_currency_*` below for the fixture that supplies
+    # `trailingEps` and exercises the EPS scale check itself.
+    assert detail.currency is None
     assert detail.revenue_currency == "INR"
 
 
@@ -727,3 +733,134 @@ async def test_revenue_currency_none_when_nothing_is_determinable(
     detail = await earnings_provider.get_estimate_detail("AAPL")
     assert detail.currency == "USD"
     assert detail.revenue_currency is None
+
+
+# ---------------------------------------------------------------------------
+# EPS currency (R15-DATA-113): every EPS field was labelled with the trading
+# currency even when Yahoo serves the EPS itself in the filer's reporting
+# currency. `_eps_currency` mirrors `_revenue_currency`'s scale check but
+# against `trailingEps` instead of `totalRevenue` (there is no EPS-shaped
+# equivalent of `totalRevenue` to anchor against).
+# ---------------------------------------------------------------------------
+
+
+def _eps_shaped_ticker(
+    *,
+    currency: str,
+    financial_currency: str | None,
+    trailing_eps: float | None,
+    eps_average: float,
+    history_eps_estimate: float | None = None,
+) -> type[_FakeEarningsTicker]:
+    """Build a fake ticker whose ``info``/calendar carry the R15-DATA-113 EPS
+    fields. ``eps_average`` is the calendar's quarterly EPS estimate sample
+    `_eps_currency`'s scale check annualises; ``history_eps_estimate``
+    optionally overrides the NEWEST ``earnings_history`` row's ``epsEstimate``
+    so the history/surprise rows can be scale-checked against the same
+    sample."""
+
+    class _Ticker(_FakeEarningsTicker):
+        @property
+        def info(self) -> dict:  # type: ignore[override]
+            info: dict[str, Any] = {"longName": "Test Co", "currency": currency}
+            if financial_currency is not None:
+                info["financialCurrency"] = financial_currency
+            if trailing_eps is not None:
+                info["trailingEps"] = trailing_eps
+            return info
+
+        @property
+        def calendar(self) -> dict[str, Any]:  # type: ignore[override]
+            base = dict(_FakeEarningsTicker.calendar.fget(self))
+            base["Earnings Average"] = eps_average
+            return base
+
+        @property
+        def earnings_history(self) -> pd.DataFrame:  # type: ignore[override]
+            frame = _FakeEarningsTicker.earnings_history.fget(self)
+            if history_eps_estimate is not None:
+                frame = frame.copy()
+                frame.loc[frame.index[0], "epsEstimate"] = history_eps_estimate
+            return frame
+
+    return _Ticker
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("label", "currency", "financial_currency", "trailing_eps", "eps_average", "expected"),
+    [
+        # PDD/NVO/JD: ADR trades USD, but the annualised quarterly estimate is
+        # wildly out of scale against `trailingEps` in the reporting
+        # currency — `financialCurrency` is trusted.
+        ("PDD", "USD", "CNY", 34.0, 0.5, "CNY"),
+        ("NVO", "USD", "DKK", 30.0, 0.7, "DKK"),
+        ("JD", "USD", "CNY", 20.0, 0.4, "CNY"),
+        # TSM/WIT: `financialCurrency` differs from the trading currency, but
+        # the annualised estimate lands in-band against `trailingEps` — Yahoo's
+        # `trailingEps` for these ADRs is itself USD-denominated, so the
+        # trading currency is trusted over the mislabelled `financialCurrency`.
+        ("TSM", "USD", "TWD", 7.0, 2.0, "USD"),
+        ("WIT", "USD", "INR", 5.5, 1.5, "USD"),
+        # AAPL / INFY.NS: `financialCurrency` equals the trading currency —
+        # the equality short-circuit, no scale check needed.
+        ("AAPL", "USD", "USD", None, 1.5, "USD"),
+        ("INFY.NS", "INR", "INR", None, 1.5, "INR"),
+        # BIDU: `financialCurrency` differs and there is no `trailingEps` to
+        # scale-check against — undeterminable, never a guessed label.
+        ("BIDU", "USD", "CNY", None, 0.5, None),
+    ],
+)
+async def test_eps_currency_scale_check(
+    monkeypatch: pytest.MonkeyPatch,
+    label: str,
+    currency: str,
+    financial_currency: str | None,
+    trailing_eps: float | None,
+    eps_average: float,
+    expected: str | None,
+) -> None:
+    monkeypatch.setattr(
+        earnings_provider,
+        "_yf_ticker",
+        _eps_shaped_ticker(
+            currency=currency,
+            financial_currency=financial_currency,
+            trailing_eps=trailing_eps,
+            eps_average=eps_average,
+        ),
+    )
+    detail = await earnings_provider.get_estimate_detail(label)
+    assert detail.currency == expected
+    # revenue_currency is untouched by this check — the two currencies are
+    # scale-checked independently.
+    assert detail.revenue_currency is None
+
+
+@pytest.mark.asyncio
+async def test_history_and_surprise_rows_share_the_eps_currency_scale_check(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Class pin (a case the fix was not written against): the EPS scale
+    check applies on the history/surprise row shape too, not just the
+    estimate detail — mirrors
+    ``test_history_row_revenue_currency_scale_checked_too``."""
+    monkeypatch.setattr(
+        earnings_provider,
+        "_yf_ticker",
+        _eps_shaped_ticker(
+            currency="USD",
+            financial_currency="CNY",
+            trailing_eps=34.0,
+            eps_average=0.5,
+            history_eps_estimate=0.5,
+        ),
+    )
+    history = await earnings_provider.get_history("PDD")
+    assert history.history
+    for row in history.history:
+        assert row.currency == "CNY"
+    surprises = await earnings_provider.get_surprises("PDD")
+    assert surprises.surprises
+    for row in surprises.surprises:
+        assert row.currency == "CNY"
