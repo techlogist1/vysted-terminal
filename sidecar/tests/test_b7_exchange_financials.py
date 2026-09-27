@@ -216,6 +216,57 @@ def test_a_quarterly_filer_with_a_six_month_q2_is_not_half_yearly() -> None:
     assert "unfiled or unparsed" in reason
 
 
+def test_an_unfiled_quarter_without_a_half_year_context_is_not_half_yearly() -> None:
+    """Fresh A (R15-LEAD-004 round-4 regression): Oct-Dec 2025 is missing and no
+    6-month period stands in for it — a plain hole, not a half-yearly filing."""
+    periods = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2026, 1, 1), date(2026, 3, 31), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 7, 1), date(2025, 9, 30), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 4, 1), date(2025, 6, 30), 100.0, 10.0, 1.0),
+        ),
+    )
+    assert periods.cadence() == "quarterly-gap"
+    reason = correctness_gate._ttm_basis(None, periods.cadence())
+    assert "half-yearly" not in reason
+
+
+def test_a_half_year_with_its_quarter_filed_inside_is_not_half_yearly() -> None:
+    """Fresh B (R15-LEAD-004 round-4 regression): the trailing chain picks up
+    the Oct-Mar 6-month period, but Oct-Dec 2025 is ALSO filed standalone
+    inside that half — a quarterly filer, not a half-yearly one, even though
+    the greedy trailing walk never needed the standalone quarter."""
+    periods = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 10, 1), date(2026, 3, 31), 200.0, 20.0, 2.0),
+            FiledPeriod(date(2025, 10, 1), date(2025, 12, 31), 100.0, 10.0, 1.0),
+            FiledPeriod(date(2025, 7, 1), date(2025, 9, 30), 100.0, 10.0, 1.0),
+        ),
+    )
+    assert periods.cadence() != "half-yearly"
+
+
+def test_a_pure_half_yearly_filer_is_still_half_yearly() -> None:
+    """Class case the fix was not written against: a filer that files ONLY
+    6-month periods, with no quarter filed anywhere inside either fiscal
+    half, is still labelled half-yearly."""
+    periods = FiledPeriods(
+        venue="bse",
+        basis="standalone",
+        periods=(
+            FiledPeriod(date(2025, 10, 1), date(2026, 3, 31), 200.0, 20.0, 2.0),
+            FiledPeriod(date(2025, 4, 1), date(2025, 9, 30), 180.0, 18.0, 1.8),
+        ),
+    )
+    assert periods.cadence() == "half-yearly"
+
+
 def test_a_quarterly_filer_with_a_yahoo_gap_is_not_half_yearly(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
