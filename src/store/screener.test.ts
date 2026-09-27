@@ -491,6 +491,20 @@ describe("useScreenerStore", () => {
       expect(useScreenerStore.getState().criteria).toHaveLength(1);
     });
 
+    it("applyFilters: a FLAT group supersedes the caller's flat criteria — runScreener must send the group's leaves, not the stale list (R15-AGENT-096)", () => {
+      useScreenerStore.getState().applyFilters({
+        criteria: [{ field: "market_cap", operator: "gt", value: 1000 }],
+        group: {
+          combinator: "and",
+          criteria: [{ field: "pe_ratio", operator: "lt", value: 20 }],
+        },
+      });
+      expect(useScreenerStore.getState().advanced).toBe(false);
+      expect(useScreenerStore.getState().criteria).toEqual([
+        { field: "pe_ratio", operator: "lt", value: 20 },
+      ]);
+    });
+
     it("captures errors and sets status=error", async () => {
       vi.spyOn(globalThis, "fetch").mockResolvedValue(
         new Response(JSON.stringify({ detail: "boom" }), { status: 500 }),
