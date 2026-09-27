@@ -581,12 +581,19 @@ def _quote_from_payload(bare: str, payload: dict) -> Quote | None:
     if change_percent is None:
         change_percent = (change / prev * 100.0) if prev else 0.0
     trading_day = locale.most_recent_session(locale.REGION_IN)
+    high_low = price_info.get("intraDayHighLow")
+    if not isinstance(high_low, dict):
+        high_low = {}
     return Quote(
         symbol=bare,
         price=price,
         change=change,
         change_percent=change_percent,
         volume=None,
+        open=_num(price_info.get("open")),
+        high=_num(high_low.get("max")),
+        low=_num(high_low.get("min")),
+        prev_close=prev,
         currency="INR",
         market_state="REGULAR" if locale.is_market_open(locale.REGION_IN) else "CLOSED",
         timestamp=_bar_timestamp(trading_day),
@@ -621,6 +628,10 @@ def _quote_from_history(bare: str) -> Quote:
         change=change,
         change_percent=change_percent,
         volume=_num(last.get("CH_TOT_TRADED_QTY")),
+        open=_num(last.get("CH_OPENING_PRICE")),
+        high=_num(last.get("CH_TRADE_HIGH_PRICE")),
+        low=_num(last.get("CH_TRADE_LOW_PRICE")),
+        prev_close=prev,
         currency="INR",
         market_state="REGULAR" if locale.is_market_open(locale.REGION_IN) else "CLOSED",
         timestamp=timestamp,

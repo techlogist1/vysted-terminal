@@ -378,6 +378,23 @@ def test_header_quote_carries_session_volume_and_day_range(
         assert (q.open, q.high, q.low, q.prev_close) == ohlc
 
 
+@pytest.mark.parametrize(
+    ("ttq", "unit", "volume"),
+    [("8.12", "(Lakh)", 812_000.0), ("1.26", "(Cr)", 12_600_000.0), ("3", "(Mn)", None)],
+)
+def test_header_quote_volume_is_scaled_by_its_ttq_unit(
+    monkeypatch: pytest.MonkeyPatch, ttq: str, unit: str, volume: float | None
+) -> None:
+    """R15-DATA-053: a liquid scrip's StockTrading TTQ is stated in lakh or crore
+    (INFY: TTQ '8.12', TTQin '(Lakh)'); an unknown unit is null, never a guess."""
+    recorded = json.loads(
+        (_FIXTURES / "bse" / "quote_506597_amal_20260924.json").read_text(encoding="utf-8")
+    )
+    recorded["StockTrading/w"] = {**recorded["StockTrading/w"], "TTQ": ttq, "TTQin": unit}
+    monkeypatch.setattr(bse_provider, "_api_json", lambda path, _params: recorded[path])
+    assert bse_provider.get_quote("AMAL").volume == volume
+
+
 def test_header_quote_without_the_trading_call_has_no_volume_not_zero(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
