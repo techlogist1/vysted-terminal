@@ -222,3 +222,62 @@ def test_no_rename_when_map_empty() -> None:
     assert r.best is not None
     assert r.best.symbol == "GUJGASLTD"
     assert r.best.rename is None
+
+
+def test_every_nifty50_constituent_is_in_the_nse_master() -> None:
+    """R15-LEAD-049: a class pin against any future retired constituent — every
+    bare symbol nifty50.json lists must resolve as a key of the NSE master."""
+    import json
+    from importlib import resources
+
+    payload = json.loads(
+        resources.files("services.screener_universes")
+        .joinpath("nifty50.json")
+        .read_text(encoding="utf-8")
+    )
+    nse = symbol_resolver._nse_master()
+    bare = [sym.removesuffix(".NS") for sym in payload["symbols"]]
+    assert bare, "nifty50.json listed no symbols"
+    missing = [sym for sym in bare if sym not in nse]
+    assert missing == []
+
+
+def test_retired_tatamotors_resolves_to_tmpv() -> None:
+    """R15-LEAD-049: TATAMOTORS was retired by the passenger/commercial-vehicle
+    demerger; TMPV is its ISIN continuation. Seeded in the rename lane (as NSE
+    would publish it), a TATAMOTORS query answers TMPV with a rename
+    annotation — the same shape as the ZOMATO -> ETERNAL fix (R15-DATA-018)."""
+    nse_symbol_change.set_active_map_for_tests(
+        {
+            "TATAMOTORS": nse_symbol_change.SymbolChange(
+                old_symbol="TATAMOTORS",
+                new_symbol="TMPV",
+                effective_date=date(2025, 1, 1),
+                new_name="Tata Motors Passenger Vehicles Limited",
+            ),
+        }
+    )
+    r = symbol_resolver.resolve("TATAMOTORS", "IN")
+    assert r.best is not None
+    assert r.best.symbol == "TMPV"
+    assert r.best.exchange == "NSE"
+    assert r.best.rename is not None
+    assert r.best.rename.renamed_from == "TATAMOTORS"
+    assert r.best.rename.renamed_to == "TMPV"
+
+
+def test_cold_tatamotors_resolve_still_surfaces_tmpv_via_former_name(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-049: even with no rename map hydrated, TMPV is still among the
+    candidates, via the bundled former-name index
+    (former_names.json['in']['TMPV'] carries 'Tata Motors Limited') — the
+    master-name scan (step 3) that populates it runs before any live fallback.
+    A cold app with no network reachable degrades the live rung to `[]`
+    (its own documented behaviour), never a raise, so the fixture's live-lookup
+    guard is relaxed for this one case rather than pinning "no network"."""
+    nse_symbol_change.reset_for_tests()  # empty the injected map — cold app
+    monkeypatch.setattr(symbol_resolver, "_live_lookup", lambda *_a, **_k: [])
+    r = symbol_resolver.resolve("TATAMOTORS", "IN")
+    tmpv_candidates = [c for c in r.candidates if c.symbol == "TMPV"]
+    assert tmpv_candidates and all(c.former_name for c in tmpv_candidates)

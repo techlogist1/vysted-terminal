@@ -296,3 +296,46 @@ async def test_warm_429s_alone_do_not_open_the_user_circuit(
     for sym in ("AAA", "BBB", "CCC"):
         await yb.fetch_quotes_batch([sym])
     assert provider_health.is_open(provider_health.YAHOO)
+
+
+@pytest.mark.asyncio
+async def test_mixed_warm_429s_leave_the_circuit_closed_with_zero_streak(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LIFECYCLE-020: warm 429s never advance the user circuit's streak at
+    all, whatever the mix or the count — 3 fundamentals_warm india sweeps plus
+    15 sp500 ``_warm_once`` cycles, all rate-limited, leave the streak at 0 and
+    a following user fetch still spends an HTTP call."""
+    from services import fundamentals_warm, screener_universe_india
+
+    calls = {"v7": 0}
+
+    async def _no_sleep(_secs: float) -> None:
+        return None
+
+    monkeypatch.setattr(yb.asyncio, "sleep", _no_sleep)
+    monkeypatch.setattr(screener, "_warm_universe", "sp500")
+    monkeypatch.setattr(
+        screener_universe_india,
+        "load_india_universe",
+        lambda _universe_id: ScreenerUniverse(
+            id="india-all",
+            label="India (NSE + BSE)",
+            symbols=["S001.NS", "S002.NS"],
+            asset_class="equity",
+        ),
+    )
+    yb.reset_for_tests(_all_v7_429(calls))
+
+    for _ in range(3):
+        assert await fundamentals_warm._sweep_once() is True
+    for _ in range(15):
+        assert await screener._warm_once() is True
+
+    assert not provider_health.is_open(provider_health.YAHOO)
+    assert provider_health.status(provider_health.YAHOO)["consecutive_throttles"] == 0
+
+    before = calls["v7"]
+    _rows, failures = await yb.fetch_quotes_batch(["RELIANCE.NS"])
+    assert calls["v7"] > before
+    assert failures == {"RELIANCE.NS": "rate_limited"}
