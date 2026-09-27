@@ -281,6 +281,32 @@ def test_all_results_blocked_rotates_onward() -> None:
     assert resp.backend == "keyless:brave"
 
 
+def test_mojeek_200_challenge_page_strikes_its_breaker_through_the_real_adapter() -> None:
+    """R15-RESEARCH-022, through the real Mojeek adapter (not the scripted
+    fake): a 200 CAPTCHA body makes ``MojeekSearchBackend.search`` itself
+    raise, and the keyless rotation counts that as a failure against the
+    mojeek breaker rather than a healthy empty answer."""
+    from services.search.mojeek import MojeekSearchBackend
+    from services.search.transport import FetchResult
+
+    async def _challenge_fetch(url, *, params=None, **kw):  # noqa: ANN001, ANN202
+        return FetchResult(
+            status_code=200,
+            text="<html><body>Please complete this CAPTCHA to continue</body></html>",
+            url=url,
+        )
+
+    mojeek = MojeekSearchBackend(fetch=_challenge_fetch)
+    backend = _backend({"ddg": _Engine([]), "brave": _Engine([]), "mojeek": mojeek})
+
+    with pytest.raises(SearchError) as err:
+        _run(backend.search("q"))
+    assert err.value.reason == SEARCH_REASON_RATE_LIMITED
+    assert "Mojeek" in str(err.value)
+    assert breaker_for("mojeek")._failures == 1
+    assert breaker_for("mojeek").state == "closed"
+
+
 def test_a_200_challenge_page_counts_as_a_failure_not_an_answer() -> None:
     """R15-RESEARCH-022: a block page is not a healthy empty answer — it strikes
     the breaker once, and an all-blocked chain raises rate-limited."""

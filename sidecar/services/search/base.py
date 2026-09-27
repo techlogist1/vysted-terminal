@@ -101,6 +101,35 @@ class SearchError(Exception):
         self.reason = reason
 
 
+#: Anti-bot challenge/interstitial markers. A CAPTCHA or "verify you're
+#: human" wall still answers HTTP 200, so a scraping backend's own parser
+#: sees zero result rows and — without this check — reports that as a
+#: healthy empty answer instead of the block it actually is (R15-RESEARCH-022).
+_CHALLENGE_PAGE_MARKERS: tuple[str, ...] = (
+    "captcha",
+    "complete this challenge",
+    "verify you are a human",
+    "are you a robot",
+    "unusual traffic",
+    "access denied",
+)
+
+
+def raise_if_challenge_page(text: str, engine_label: str) -> None:
+    """Raise :class:`SearchError` when ``text`` (a 200 response body) is an
+    anti-bot challenge page, rather than a page that genuinely has no results.
+
+    Called by a scraping backend only when its own parse of ``text`` already
+    yielded zero rows — a legitimate "found nothing" 200 with no challenge
+    marker still passes through untouched.
+    """
+    low = text.lower()
+    if any(marker in low for marker in _CHALLENGE_PAGE_MARKERS):
+        raise SearchError(
+            f"{engine_label}: blocked (challenge page)", reason=SEARCH_REASON_RATE_LIMITED
+        )
+
+
 @runtime_checkable
 class SearchBackend(Protocol):
     """The interface every search backend implements.
@@ -167,5 +196,6 @@ __all__ = [
     "SearchResult",
     "bare_host",
     "normalize_results_to_citations",
+    "raise_if_challenge_page",
     "result_limit",
 ]
