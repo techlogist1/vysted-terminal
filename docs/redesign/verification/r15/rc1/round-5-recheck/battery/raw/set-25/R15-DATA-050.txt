@@ -1,0 +1,7 @@
+COMMAND: curl http://127.0.0.1:52359/disclosures/results?symbol={JONJUA,DAL,CHTR,ELCIDIN} (own sidecar, candidate 949c3c9f)
+EXIT: 0 all four (HTTP 200; all were 502 pre-fix)
+JONJUA: count=10, includes Results 2026-08-12 (BSE) — matches register's Q1 FY2026-27 filed 2026-08-12.
+DAL: count includes Results 2026-08-12 (BSE) — matches register.
+CHTR: count=4 events, all BSE (SME name previously 502'd).
+ELCIDIN: count=10, includes Results 2026-08-13 (BSE) — matches register's Q1 FY27 filing on 2026-08-13.
+VERDICT: holds.

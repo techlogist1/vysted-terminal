@@ -1,0 +1,5 @@
+CMD: create fundamentals DB missing seed_updated_at/eod_updated_at/provider, then call _connect(), then check PRAGMA table_info + a prefilter with a new numeric field
+before missing seed/eod/provider: True
+after has seed_updated_at: True
+after has eod_updated_at: True
+after has provider: True

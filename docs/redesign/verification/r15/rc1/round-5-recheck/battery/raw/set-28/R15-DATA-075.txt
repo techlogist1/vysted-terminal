@@ -1,0 +1,31 @@
+=== R15-DATA-075: BSE PDF fetch retries AttachHis on AttachLive 404 ===
+cmd: sidecar/.venv/bin/python3 <script> (fetch_bytes stubbed: AttachLive->404, AttachHis->200; _fetch_bse_pdf is real code)
+final_status: 200
+body: b'%PDF-fake'
+calls: ['https://www.bseindia.com/corpfiling/AttachLive/SAKSOFT_result.pdf', 'https://www.bseindia.com/corpfiling/AttachHis/SAKSOFT_result.pdf']
+
+code (services/search/extract.py:599-620):
+    return host == "bseindia.com" or host.endswith(".bseindia.com")
+
+
+async def _fetch_bse_pdf(fetch_bytes, url: str, url_allowed: UrlGuard) -> tuple[int, bytes]:  # noqa: ANN001
+    """A BSE attachment download: up to :data:`_BSE_PDF_ATTEMPTS` tries with
+    exponential backoff on a transport failure or a 5xx/429, then the
+    ``AttachHis`` twin when ``AttachLive`` answers 404."""
+    for attempt in range(_BSE_PDF_ATTEMPTS):
+        last = attempt == _BSE_PDF_ATTEMPTS - 1
+        try:
+            status, body = await fetch_bytes(url, url_allowed=url_allowed)
+        except RedirectBlocked:
+            raise
+        except TransportError:
+            if last:
+                raise
+        else:
+            if last or (status < 500 and status != 429):
+                break
+        await asyncio.sleep(_BSE_PDF_BACKOFF_SECS * 2**attempt)
+    if status == 404 and _BSE_ATTACH_LIVE in url:
+        return await _fetch_bse_pdf(
+
+VERDICT: holds. AttachLive 404 -> automatic AttachHis retry, final_status=200.

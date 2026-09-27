@@ -1,0 +1,16 @@
+Repro attempted: curl / vy.py / in-process python -- none apply. Cost-basis 'per share'
+label + scaling is entirely frontend (PortfolioPanel.tsx form + metrics.ts). Battery
+role may not run vitest or a GUI.
+src/modules/portfolio/PortfolioPanel.test.tsx
+
+Pinned test body at candidate sha 949c3c9fd49d61ecadc9813a8321bcdfd81178bd:
+  it("the cost input and column say per share (R15-UI-037)", async () => {
+    render(<PortfolioPanel />);
+    expect(screen.getByText("Avg cost / share")).toBeInTheDocument();
+    expect(screen.getByLabelText("Avg cost / share")).toHaveAttribute("placeholder", "per share");
+    expect(screen.queryByText("Cost basis")).not.toBeInTheDocument();
+    await addHolding("aapl", "10", "150");
+    expect(screen.getByRole("columnheader", { name: "Avg cost" })).toBeInTheDocument();
+  });
+
+  it("adds a manually entered holding to the active portfolio", async () => {

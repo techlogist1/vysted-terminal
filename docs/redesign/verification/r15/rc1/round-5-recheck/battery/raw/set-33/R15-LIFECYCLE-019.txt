@@ -1,0 +1,5 @@
+nse_symbol_change: refresh failed (Exception)
+attempts: 2
+_refreshed_on after guarded run: 2026-09-27
+_active_map loaded: True
+PASS: failed attempt did not stamp _refreshed_on; retried with backoff; second attempt succeeded and loaded the map

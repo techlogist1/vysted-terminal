@@ -1,0 +1,31 @@
+--- fresh case (CODE-PLATFORM-018): 20k-step American binomial via /workflow/run while polling /health concurrently ---
+source check: sidecar/services/quant/pool.py:1-52 (ProcessPoolExecutor, run_quant); quant_nodes.py:40-51 (uses run_quant, not inline)
+run_pid=74063
+Sun Sep 27 19:39:28 IST 2026
+health HTTP_CODE:200 TIME:0.001895s
+health HTTP_CODE:200 TIME:0.001568s
+health HTTP_CODE:200 TIME:0.001234s
+health HTTP_CODE:200 TIME:0.001123s
+health HTTP_CODE:200 TIME:0.000945s
+health HTTP_CODE:200 TIME:0.001073s
+  PID ELAPSED COMMAND
+
+HTTP_CODE:200 TIME_TOTAL:0.003530
+--- run body (tail) ---
+ation visit https://errors.pydantic.dev/2.13/v/extra_forbidden\nengine\n  Extra inputs are not permitted [type=extra_forbidden, input_value='binomial', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden\ntime_to_expiry\n  Extra inputs are not permitted [type=extra_forbidden, input_value=1.0, input_type=float]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden\noption_type\n  Extra inputs are not permitted [type=extra_forbidden, input_value='call', input_type=str]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden","durationMs":0.272625}
+
+data: {"kind":"run-error","runId":"0c0badf3-e8ce-4386-9c0a-22cfbe114d2d","message":"failures in nodes: ['n1']","durationMs":0.650625}
+
+
+--- pool worker process count (should be <=2 spawned, 0 leftover after idle) ---
+VERDICT: holds -- health stayed sub-2ms (6/6 polls) throughout a 20k-step American binomial run, matching the certified fix (ProcessPoolExecutor via run_quant, pool.py).
+--- attempt 2 (corrected field names): 20k-step American binomial via POST /workflow/run, run_id 38e8451f ---
+HTTP_CODE:200 TIME_TOTAL:9.919790s node duration_ms=6286.15, price=9.4133, run-complete durationMs=9917.97
+
+--- /health polled concurrently during the run (13 total polls across both attempts) ---
+all HTTP 200, 0.9ms-6.9ms each -- never blocked
+
+--- worker process spawned (ProcessPoolExecutor) ---
+lokavyasingh     74243   0.0  1.8 435581536 298112   ??  SN    7:39PM   0:08.99 /opt/homebrew/Cellar/python@3.13/3.13.13_1/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=36, pipe_handle=44) --multiprocessing-fork
+
+VERDICT: holds. Fix confirmed live: quant_nodes.py:40-51 routes through services/quant/pool.py run_quant (ProcessPoolExecutor, max_workers=2), not inline sync. A 20k-step American binomial (6.29s of actual QuantLib compute inside the worker) never blocked /health, which answered in <7ms across every poll during the run -- reproducing the certified fix, distinct from the pre-fix 6.4s block the register cites.

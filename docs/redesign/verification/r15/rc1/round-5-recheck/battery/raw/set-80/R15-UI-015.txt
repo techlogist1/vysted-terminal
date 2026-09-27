@@ -1,0 +1,16 @@
+CMD: grep -n "R15-UI-015" src/store/sec.test.ts src/lib/use-sidecar-retry.test.ts (candidate 949c3c9f)
+Supplementary live probe of the register repro's backend half: curl -m 5 http://127.0.0.1:52357/macro/DGS10?provider=fred
+src/store/sec.test.ts:168:  // R15-CODE-FRONTEND-017 / R15-UI-015 (triage-c rc1-vshard-3:4): loadFilings
+src/store/sec.test.ts:313:  it("keeps the failure reason instead of discarding it (R15-UI-015)", async () => {
+src/lib/use-sidecar-retry.test.ts:25:describe("useRetryOnSidecarReady (R15-UI-015)", () => {
+--- live probe ---
+{"detail":"FRED needs a free API key for macro data. Get one at fred.stlouisfed.org (API Keys), add it to Vysted as your FRED key, and reload — or switch the series provider to ECB, IMF, or World Bank, which need no key.","code":"provider_error","action":"Retry, or try again later."}
+HTTP_STATUS=502
+  it("keeps the failure reason instead of discarding it (R15-UI-015)", async () => {
+    (sidecarGet as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      Object.assign(new Error("sec-edgar-mcp is not available"), { status: 501 }),
+    );
+    await useSecStore.getState().searchCompanies("apple");
+    expect(useSecStore.getState().searchStatus).toBe("error");
+    expect(useSecStore.getState().searchError).toContain("sec-edgar-mcp is not available");
+  });

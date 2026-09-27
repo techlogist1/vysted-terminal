@@ -1,0 +1,7 @@
+=== R15-AGENT-007 supplementary: pinned CI test files present (not run — battery role does not run pytest suites) ===
+.rw-r--r--@ 8.7k lokavyasingh 27 Sep 18:33 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/tests/test_agent_eval.py
+.rw-r--r--@  11k lokavyasingh 27 Sep 18:33 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/tests/test_gemini_multiround.py
+.rw-r--r--@  17k lokavyasingh 27 Sep 18:33 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/tests/test_llm_anthropic.py
+.rw-r--r--@  14k lokavyasingh 27 Sep 18:33 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/tests/test_llm_gemini.py
+-- scenario set size --
+16

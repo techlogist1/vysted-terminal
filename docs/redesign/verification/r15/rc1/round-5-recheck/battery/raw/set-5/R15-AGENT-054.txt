@@ -1,0 +1,14 @@
+=== R15-AGENT-054 repro: chart indicator enum validation ===
+candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+-- in-process: _normalise_tool_args(['rsi','bollinger_bands']) --
+input after normalise: {'__vysted_invalid_args__': "invalid arguments for set_chart_indicators: 'bollinger_bands' is not one of ['rsi', 'macd', 'ma', 'ema', 'sma', 'bollinger', 'volume', 'adx', 'stochastic', 'atr', 'obv', 'mfi', 'ichimoku', 'keltner', 'vwap', 'parabolic_sar', 'cci', 'williams_r', 'roc', 'wma', 'hma', 'dema', 'tema', 'kama', 'tsi', 'kst', 'awesome_oscillator', 'ppo', 'ultimate_oscillator', 'std_dev', 'bollinger_bandwidth', 'donchian', 'chaikin_volatility', 'ad_line', 'chaikin_money_flow', 'force_index', 'ease_of_movement', 'vpt', 'aroon', 'aroon_oscillator', 'vortex', 'mass_index', 'pivot_points', 'supertrend', 'linreg', 'std_error_bands', 'hlc3', 'ohlc4', 'median_price', 'volume_profile']; call again with valid args"}
+SUPPORTED_INDICATORS count: 50
+full sorted list: ad_line,adx,aroon,aroon_oscillator,atr,awesome_oscillator,bollinger,bollinger_bandwidth,cci,chaikin_money_flow,chaikin_volatility,dema,donchian,ease_of_movement,ema,force_index,hlc3,hma,ichimoku,kama,keltner,kst,linreg,ma,macd,mass_index,median_price,mfi,obv,ohlc4,parabolic_sar,pivot_points,ppo,roc,rsi,sma,std_dev,std_error_bands,stochastic,supertrend,tema,tsi,ultimate_oscillator,volume,volume_profile,vortex,vpt,vwap,williams_r,wma
+
+-- frontend layer: src/lib/host-actions.ts splitIndicatorKeys/droppedNote (static confirm) --
+(see src/lib/host-actions.ts:570-591, 1160-1170; independently splits known/dropped and reports 'Indicators: rsi (dropped unknown: bollinger_bands)')
+
+-- class check: all 50 SUPPORTED_INDICATORS fetched together --
+GET /indicators/AAPL?indicators=<all 50 keys>
+HTTP 200 (curl -w), indicators series count = 49, has volume_profile = True (49+1=50, matches register)
+exit: 0

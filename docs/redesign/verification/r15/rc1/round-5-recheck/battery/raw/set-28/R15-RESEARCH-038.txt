@@ -1,0 +1,10 @@
+=== R15-RESEARCH-038: ATTEMPTS_PER_ENGINE == DEFAULT_FAIL_THRESHOLD == 2 -- one fully-failed search (both per-engine attempts) trips the breaker for DEFAULT_COOLDOWN_SECS ===
+cmd: sidecar/.venv/bin/python3 <script> -- CircuitBreaker() + 2x record_failure(), constants check
+ATTEMPTS_PER_ENGINE: 2
+DEFAULT_FAIL_THRESHOLD: 2
+DEFAULT_COOLDOWN_SECS: 45.0
+initial state: closed failures: 0
+after 1 failed attempt: state= closed failures= 1
+after 2 failed attempts (== ATTEMPTS_PER_ENGINE == DEFAULT_FAIL_THRESHOLD): state= open failures= 2
+
+VERDICT: holds. ATTEMPTS_PER_ENGINE=2, DEFAULT_FAIL_THRESHOLD=2, DEFAULT_COOLDOWN_SECS=45.0 -- unchanged design values match the register's own repro; breaker transitions closed->open after exactly 2 record_failure() calls.

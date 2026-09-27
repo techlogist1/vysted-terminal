@@ -1,0 +1,4 @@
+cache dir: /Users/lokavyasingh/Library/Caches/bse-bhavcopy
+== same-day marker honoured?: None
+== after-day marker honoured?: 
+== live download rows: 5060

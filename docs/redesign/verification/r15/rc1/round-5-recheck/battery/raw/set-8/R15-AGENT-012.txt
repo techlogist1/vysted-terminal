@@ -1,0 +1,14 @@
+=== R15-RESEARCH-009 / R15-AGENT-012 repro: DEEP/ULTRA research token+spend metering ===
+candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+
+-- static: sidecar/services/agent_tools/deep_research.py _run_native's llm_call closure --
+now calls oneshot.complete_with_usage() (not the old bare-str oneshot.complete) and feeds budget.add_usage(usage, model, provider) on EVERY research LLM call (plan/distill/reflect/synthesis/citecheck/cross-check) — the ONE metering seam, per its own comment citing this mechanism.
+
+-- in-process: BudgetGuard.add_usage accumulation through that same seam shape --
+cost after 5 metered llm_call()s: {'tokens': 6000, 'spend_usd': 0.0036, 'steps': 0}
+PASS: BudgetGuard.add_usage accumulates real tokens/spend through the llm_call seam
+
+-- live: DEEP research brief, llama3.1:8b, port 52358 --
+cmd: python3 scripts/r15/vy.py invoke researcher "Do a DEEP research brief on Cochin Shipyard (COCHINSHIP, NSE): recent developments and outlook. Use the research tool at depth=deep." --provider ollama --model llama3.1:8b --mode agent --tier tier_a --port 52358 --timeout 600
+Ran to completion in 316.3s: research tool_result ok:true, publish_brief auto-fired (execution.run_id=abd348cfc982492da329a0090aa02626, requested_depth=deep, loop=iter, backend=native), staged for review. vy.py's per-line 400-char event print truncates the publish_brief input before its 'cost' field is visible in the raw log (script limitation, not a probe gap) — the code-level + in-process evidence above is the load-bearing proof; the live run corroborates that the DEEP loop completes and auto-publishes normally on the fixed metering path.
+exit: 0

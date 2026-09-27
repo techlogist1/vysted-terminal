@@ -1,0 +1,23 @@
+Probe: standalone script (not pytest) replaying the documented Anthropic tool-use SSE shape
+(content_block_start tool_use input:{} -> input_json_delta fragments -> content_block_stop)
+through the REAL anthropic SDK (httpx.MockTransport) and AnthropicProvider.stream_chat, exactly
+the register's own repro shape (mirrors sidecar/tests/test_llm_anthropic.py::
+test_stream_chat_tool_use_carries_streamed_input, run directly via python3, not via pytest per
+role instructions never to run pytest/vitest suites).
+
+Command:
+  cd <cand>/sidecar && .venv/bin/python3 /tmp/probe_agent004.py   (script saved alongside as
+  R15-AGENT-004-script.py)
+
+Exit: 0
+
+Output:
+kinds: ['thinking', 'tool_use', 'done']
+tool_call_id: toolu_01 name: get_quote input: {'symbol': 'RELIANCE.NS'}
+PASS: tool_use carries streamed+accumulated input, not {}
+
+Verdict basis: the emitted tool_use event carries the fully-accumulated, streamed-in arguments
+{'symbol': 'RELIANCE.NS'} — not {} as the original defect reported. sidecar/services/llm/
+anthropic.py:271-276 confirms tool_use is now translated at content_block_stop (using the SDK's
+accumulated block), not at content_block_start (input:{}). Matches batch-3's certification
+("now yields tool_use get_quote {'symbol': 'RELIANCE.NS'}. It used to yield {}.").

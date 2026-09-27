@@ -1,0 +1,33 @@
+Probe: in-process replay of the register's leaked-JSON evidence text through
+services.llm.tool_call_rescue.rescue_leaked_tool_call (the shared rescue helper
+ollama.py now calls at end of stream when no native tool_use arrived —
+ollama.py:268-270 `rescued = None if emitted_tool_call else
+rescue_leaked_tool_call(hold.text, offered)`).
+
+Command:
+  cd <cand>/sidecar && .venv/bin/python3 /tmp/probe_agent018.py
+
+Script:
+  from services.llm.tool_call_rescue import rescue_leaked_tool_call
+  leaked_note = '{"name": "write_note", "parameters": {"title": "Meeting notes", "body": "Discussed Q3 targets"}}'
+  r1 = rescue_leaked_tool_call(leaked_note, offered={"write_note","screener_run","price_data"})
+  leaked_screen = 'Let me retry that. {"name": "screener_run", "parameters": {"universe": "nse-all", "criteria": [{"field":"pe_ratio","op":"lt","value":15}]}}'
+  r2 = rescue_leaked_tool_call(leaked_screen, offered={"write_note","screener_run","price_data"})
+  leaked_not_offered = '{"name": "portfolio_delete_position", "parameters": {"position_id": "abc"}}'
+  r3 = rescue_leaked_tool_call(leaked_not_offered, offered={"write_note","screener_run"})
+
+Exit: 0
+
+Output:
+write_note leaked -> kind='tool_use' tool_call_id='leaked_a802dba3a75a4cd2a89be318ed3d5123' name='write_note' input={'title': 'Meeting notes', 'body': 'Discussed Q3 targets'} provider_meta=None
+screener_run leaked -> kind='tool_use' tool_call_id='leaked_323ee7f032ea491bb182c70cf9c92934' name='screener_run' input={'universe': 'nse-all', 'criteria': [{'field': 'pe_ratio', 'op': 'lt', 'value': 15}]} provider_meta=None
+not-offered name -> None
+
+Verdict basis: both leaked-JSON evidence shapes from the register repro (write_note,
+screener_run) are now rescued into a proper tool_use event with a unique leaked_* id
+(previously: rendered as raw prose, tool never invoked). A name not offered this round
+(portfolio_delete_position) correctly stays unrescued (None -> stays text), matching the
+batch-3 certification's stated fresh case ("a name that was not offered stays text").
+ollama.py:268-270 confirms this rescue path is wired into the Ollama adapter's end-of-stream
+handling (same shared helper openai.py uses), closing the gap the register found (ollama.py
+previously had no rescue at all).

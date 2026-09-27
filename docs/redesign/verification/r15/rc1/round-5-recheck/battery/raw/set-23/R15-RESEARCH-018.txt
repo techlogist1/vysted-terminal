@@ -1,0 +1,3 @@
+== 'What do recent SEC filings and insider trades show?' -> structured tool calls (excl web_search): ['corporate_announcements', 'corporate_announcements']
+== 'What is the sector outlook for electronics manufacturing?' -> structured tool calls (excl web_search): ['news']
+== 'Is there a second-quarter guidance change?' -> structured tool calls (excl web_search): ['news', 'corporate_announcements']

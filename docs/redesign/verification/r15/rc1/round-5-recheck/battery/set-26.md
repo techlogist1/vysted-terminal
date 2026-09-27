@@ -1,0 +1,28 @@
+# set-26 — batch-7/W2-delegate-runs-runtime (rc1-battery-0, gate round 5-recheck)
+
+Candidate: `949c3c9fd49d61ecadc9813a8321bcdfd81178bd`. Own sidecar boot on `:52340`, data
+dir `rc1-round-5-recheck-data-rc1-battery-0` (copied from the round's isolated seed).
+All 12 entries re-run via fake-provider in-process scripts against
+`services.run_manager`/`services.agent_runtime` (candidate's own `sidecar/.venv`,
+`agent_runtime.get_provider` monkeypatched to a scripted fake adapter) — never a real
+LLM call, never pytest/vitest. UI-040 is frontend/client-store logic, certified via source
+read + a live `GET /runs` wire-shape check against this shard's sidecar, ci_pinned per the
+committed regression test (vitest is the heavy lane's). Raw: `battery/raw/set-26/`.
+
+| id | repro run | observed | verdict |
+| --- | --- | --- | --- |
+| R15-CODE-AGENT-010 | Launch a one-shot fake-provider run to `done`, then `cancel_run`/`resume_run`/`answer_run` on it; `start_run` on an unknown id | each raises `RunStateError: run '…' is done; it cannot become {cancelled,running}`; unknown id raises `RunNotFound: unknown run: 'unknown-run-id-xyz'`; row status unchanged (`done`) after every rejected op | holds |
+| R15-AGENT-034 | `launch_run(..., budget=RunBudget())` (all-default/empty budget) | stored budget: `max_spend_usd=1.0, max_tokens=120000, max_steps=12, max_wall_seconds=600.0` — an omitted budget gets the documented floor, never unbounded | holds |
+| R15-AGENT-037 | Fake provider emits `tool_use(resolve_symbol)` + `done(100000 tokens)` every round; `RunBudget(max_tokens=1000)` | `status=error`, `detail="token ceiling 1000 reached (100000 used)"`, adapter call-count spy = 1 (round 2 never dispatched — the runtime halts BEFORE the pending tool/next round on a breach) | holds |
+| R15-AGENT-038 | One-shot fake provider (delta "Hello." + done, no tool call), `RunBudget(max_steps=1)` | `status="done"`, `detail="completed (step ceiling 1 reached (1 taken) on the final round)"`, `answer="Hello."` present — a legitimately-completed ceiling round is `done`, not mislabeled `error` | holds |
+| R15-AGENT-074 | `launch_run` with NO `provider` kwarg on `copilot` (`agents/copilot.json` `defaultProvider:"ollama"`, 0 $/M), 100000-token round, `RunBudget(max_spend_usd=0.01)` | `status="done"`, `spend_usd=0.0` across 100000 tokens (vs. an instant breach if still priced at a non-zero buggy default rate) | holds |
+| R15-AGENT-036 | Two full `ask_user`→`answer` cycles on one run (`launch('ORIGINAL PROMPT')` → answer ONE → ask again → answer TWO → final text) | `checkpoint["prompt"]` stays `"ORIGINAL PROMPT"` throughout; `turns` in strict chronological order `[ask→Q1, ANSWER ONE, ask→Q2, ANSWER TWO, Final.]` — no corruption/reversal | holds |
+| R15-AGENT-035 / R15-LIFECYCLE-013 | Launch `provider="openrouter", model="mistral-fake-model"` (spy on `agent_runtime.get_provider`), force a token-ceiling breach via a round-1 tool_use + 2000-token done under `max_tokens=1000`, `resume_run(run_id)` with NO provider/model/api_key re-supplied | spy shows `get_provider` called with `"openrouter"` on BOTH launch and resume; `row.provider`/`row.model` unchanged (`"openrouter"`/`"mistral-fake-model"`) after resume — never falls to the agent default (`resume_run`'s own signature takes no provider/model override at all) | holds |
+| R15-UI-040 | Source read of `src/lib/delegate-runs.ts` `cancelDelegateRun`/`adoptSidecarRuns`, cross-checked against a live `GET /runs` on `:52340` for wire shape; pinned test `src/lib/delegate-runs.test.ts` "delegate-runs — sidecar truth" (both `R15-UI-040` cases) | `cancelDelegateRun` only flips local state after `sidecarRequest` resolves ok (a failed cancel never touches local state); `adoptSidecarRuns` adopts exactly the live-status runs the store hasn't seen (dedup via `bySidecarId`); live `GET /runs` confirms the `RunWire` shape (`id`, `agent_id`/`agentId`, `cost.spend_usd`/`spendUsd`, both snake+camel) the adopter expects | ci_pinned (`src/lib/delegate-runs.test.ts`, "delegate-runs — sidecar truth") |
+| R15-CODE-AGENT-011 | Fake `ask_user` tool_use provider round 1 (pauses with a question); `answer_run(run_id, "MSFT please")`; round 2 dispatches `resolve_symbol`; round 3 final text | `status="paused"`, `question="Which ticker would you like a price for?"`; after answer: `status="done"`, `activity=["resolve_symbol"]` — the FR-028 pause/answer control plane fires and resumes correctly | holds |
+| R15-AGENT-039 | Fake `agent_runtime.decompose` returning a 3-step plan for a compound-cue prompt ("Check the news for RELIANCE, then add it to my watchlist, and then show me the chart.") on `provider="openrouter"` (a `_PLANNER_PROVIDERS` member); `start_run` after | launch parks `status="planned"` with the 3-step plan (`research`, `add_to_watchlist`, `set_chart_symbol`), `detail="plan ready: start or discard it"`; `start_run` executes it to `done` with typed activity (`resolve_symbol`) | holds |
+| R15-LIFECYCLE-012 | A run whose round-1 tool dispatches + checkpoints, then round-2's provider call genuinely hangs (`await asyncio.Event().wait()`, never resolves); drop the task ref WITHOUT `run_manager.shutdown()` (simulated `kill -9`); clear `runs_store._RECONCILED` (simulates the next process's first sqlite connection); read the row; `resume_run` | mid-stall: `status="running"`, checkpoint already carries 2 messages from round 1; after the simulated restart's first connection: `status="error"`, `detail="interrupted by sidecar restart"`; `resume_run` succeeds (`status="running"` again), re-using the checkpoint | holds |
+
+Summary: 11 holds, 1 ci_pinned. No regressions.
+
+COVERAGE: 12/12 ids raw; no raw: none.

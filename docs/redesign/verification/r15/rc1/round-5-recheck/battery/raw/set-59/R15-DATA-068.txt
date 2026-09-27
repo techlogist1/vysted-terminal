@@ -1,0 +1,62 @@
+CMD: curl -s 'http://127.0.0.1:52361/earnings/AAPL/history'
+as_of: 2026-09-27T15:11:18.119019Z
+{
+  "symbol": "AAPL",
+  "history": [
+    {
+      "fiscal_period": null,
+      "period_end": "2026-06-30",
+      "reported_date": "2026-07-30",
+      "eps_actual": 2.02,
+      "eps_estimate_mean": 1.89243,
+      "revenue_actual": null,
+      "revenue_estimate_mean": null,
+      "currency": "USD",
+      "revenue_currency": "USD"
+    },
+    {
+      "fiscal_period": null,
+      "period_end": "2026-03-
+---surprises---
+as_of: 2026-09-27T15:11:18.955074Z
+---estimates---
+as_of: 2026-09-27T15:11:19.924424Z
+---upcoming---
+as_of: 2026-09-27T15:11:20.450466Z
+
+--- frontend source re-check (no vitest run; battery role never runs vitest suites) ---
+CMD: grep -n TTL\|isFresh\|refresh: src/store/analyst-ratings.ts
+24:// fetched at, so a stale entry (older than CACHE_TTL_MS) is treated as a
+28:export const ANALYST_RATINGS_CACHE_TTL_MS = 15 * 60 * 1000;
+42:function isFresh(fetchedAt: number): boolean {
+43:  return Date.now() - fetchedAt < ANALYST_RATINGS_CACHE_TTL_MS;
+67:  refresh: (symbol: string) => Promise<void>;
+86:    if (cached && isFresh(cached.fetchedAt)) {
+117:    if (cached && isFresh(cached.fetchedAt)) {
+148:    if (cached && isFresh(cached.fetchedAt)) {
+173:  refresh: async (symbol) => {
+
+CMD: grep -n TTL\|isFresh\|refresh: src/store/earnings.ts
+33:export const EARNINGS_CACHE_TTL_MS = 15 * 60 * 1000;
+52:  // EARNINGS_CACHE_TTL_MS) is treated as a miss and refetched rather than
+67:  refresh: (symbol: string) => Promise<void>;
+74:function isFresh(fetchedAt: number): boolean {
+75:  return Date.now() - fetchedAt < EARNINGS_CACHE_TTL_MS;
+133:    if (cached && isFresh(cached.fetchedAt)) {
+161:    if (cached && isFresh(cached.fetchedAt)) {
+189:    if (cached && isFresh(cached.fetchedAt)) {
+211:  refresh: async (symbol) => {
+
+CMD: grep -n refreshAnalyst\|tabAsOf\|tabFetchedAt src/modules/analyst-ratings/AnalystRatingsPanel.tsx
+65:  const refreshAnalyst = useAnalystRatingsStore((s) => s.refresh);
+120:  const tabFetchedAt = tabSlice?.fetchedAt;
+124:  const tabAsOf = tabSlice?.asOf ?? null;
+186:              {tabAsOf !== null ? (
+189:                  title={new Date(tabAsOf).toLocaleString()}
+192:                  As of {new Date(tabAsOf).toLocaleString()}
+195:                tabFetchedAt !== undefined && (
+198:                    title={new Date(tabFetchedAt).toLocaleString()}
+201:                    As of {new Date(tabFetchedAt).toLocaleTimeString()}
+209:                onClick={() => symbol && void refreshAnalyst(symbol)}
+
+OBSERVED: both stores now pair each cache entry with fetchedAt (client) + asOf (server, from the new as_of field) and gate on a 15-min TTL (isFresh); a dedicated refresh() bypasses TTL and is what Retry now calls, no longer the same short-circuited accessor. Matches fix_shape (TTL, refresh, displayed timestamp).

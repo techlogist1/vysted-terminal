@@ -1,0 +1,42 @@
+=== R15-UI-014 repro: sidecar-client.ts sidecarFetch transport-failure wrap + lib.rs Terminated handling ===
+-- sidecarFetch (src/lib/sidecar-client.ts) --
+export async function sidecarFetch(url: string, init?: RequestInit): Promise<Response> {
+  let response: Response;
+  try {
+    response = await fetch(url, init);
+  } catch (err) {
+    if (init?.signal?.aborted) {
+      throw err;
+    }
+    readyPromise = null;
+    reportReachability(false, SIDECAR_UNREACHABLE);
+    throw new SidecarError(0, SIDECAR_UNREACHABLE);
+  }
+  reportReachability(true);
+  return response;
+}
+
+-- lib.rs CommandEvent::Terminated handling --
+    app.manage(SidecarProcess(Mutex::new(Some(child))));
+
+    // Drain the sidecar's stdout/stderr so its pipes never block, and log it.
+    // Its exit is recorded and announced (no auto-respawn).
+    let events_app = app.clone();
+    tauri::async_runtime::spawn(async move {
+        while let Some(event) = rx.recv().await {
+            match event {
+                CommandEvent::Stdout(line) => {
+                    diag_println!("[sidecar] {}", String::from_utf8_lossy(&line));
+                }
+                CommandEvent::Stderr(line) => {
+                    diag_eprintln!("[sidecar] {}", String::from_utf8_lossy(&line));
+                }
+                CommandEvent::Terminated(payload) => {
+                    let reason = terminated_reason(payload.code, payload.signal);
+                    events_app.state::<SidecarStatus>().fail(reason.clone());
+                    let _ = events_app.emit("vysted://sidecar-terminated", reason);
+                }
+                _ => {}
+            }
+
+VERDICT: holds. sidecarFetch (sidecar-client.ts) wraps fetch in try/catch, converting a rejected fetch (dead engine, WebKit 'Load failed') into SidecarError(0, SIDECAR_UNREACHABLE) = 'The data engine is not responding — it may have stopped. Restart Vysted.' and drops the cached readyPromise so the next call re-resolves. lib.rs's spawn event loop now matches CommandEvent::Terminated, records terminated_reason() into SidecarStatus (state=Failed) and emits vysted://sidecar-terminated. No 'Load failed' string reaches the UI; the class fix (R15-LIFECYCLE-010's SidecarBootStatus{state,reason}) is the same struct feeding both entries. Cannot exercise a live WKWebView kill-sidecar case without a GUI session; source matches the certified fix shape and the Rust unit tests (a_spawn_failure_reaches_the_renderer_as_failed_with_its_reason) exist under src-tauri/src/lib.rs's #[cfg(test)] module.

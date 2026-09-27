@@ -1,0 +1,1 @@
+{"symbol":"TKOMY","price":53.0099983215332,"change":2.999998321533205,"change_percent":5.998796883689673,"volume":239300.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:00Z","provider":"yfinance","freshness":"eod"}

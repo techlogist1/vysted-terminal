@@ -1,0 +1,7 @@
+=== research/fast.py _filings_leg ===
+459:async def _filings_leg(tool_call: ToolCall, target: ResearchTarget) -> dict[str, Any]:
+486:            value["provider"] = "+".join(str(s).lower() for s in result.get("sources") or [])
+636:    # R13 ledger #10: the filings leg is ROUTED by region (:func:`_filings_leg`)
+651:                "filings", _filings_leg(tool_call, target), on_step, _WITNESS_LEG_TIMEOUT_S
+=== pinned test ===
+580:def test_fast_filings_leg_provider_names_only_the_serving_exchanges(

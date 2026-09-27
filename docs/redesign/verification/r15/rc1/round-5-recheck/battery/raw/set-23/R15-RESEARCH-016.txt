@@ -1,0 +1,88 @@
+LIVE PROBE 1 — full run_deep_brief(depth="ultra") against a free-text query, under the
+Ollama lock (llama3.1:8b), 280s wall budget:
+
+  $ .venv/bin/python3 research016_live_probe.py <sidecar> <datadir>
+  (query: "Research Jonjua Overseas Trading & Finance (BSE-listed micro-cap): recent
+   results, filings, and outlook.", depth="ultra", wall_seconds=280)
+
+  RESULT (332.9s, completed without crash or exception):
+  {
+    "ok": true,
+    "secs": 332.9,
+    "execution_loop": "heavy",
+    "n_sources": 0,
+    "n_filing_sources": 0,
+    "filing_source_titles": [],
+    "top_level_keys": ["backend","cost","depth","execution","execution_loop","markdown",
+      "mode","note","ok","query","source_count","sources","steps","structured","symbol",
+      "web_available"]
+  }
+
+  Interpretation: the heavy/ULTRA loop ran to completion (reinforces R15-RESEARCH-017 —
+  no uncaught exception escaped). n_sources=0 is INCONCLUSIVE for R15-RESEARCH-016
+  specifically: the free-text company name likely failed to resolve to a bound
+  ResearchTarget under the weak local model (falling to web-only mode, where no
+  structured/disclosures-floor path runs at all — a target-resolution artifact of this
+  probe, not evidence against the citation-recording guard).
+
+LIVE PROBE 2 — attempted follow-up to remove the ambiguity: called
+iter_research.run_heavy_research(...) DIRECTLY with a pre-bound ResearchTarget (symbol
+AMAL, exchange BSE, bound=True) to bypass free-text resolution entirely and force the
+disclosures-floor/pre-seed path the register names. Launched under a freshly re-acquired
+Ollama lock; was still in flight (genuine progress — CPU time climbing, no stall) when
+this shard's time budget required finalizing, so it was terminated (SIGTERM, lock
+released cleanly via its own trap) before completion. No output was captured from this
+second run; it is not used as evidence either way.
+
+CODE TRACE (the primary evidence for this entry — the exact guard the register names):
+
+services/research/iter.py:372-391 (run_iter_research):
+        structured.update(snapshot)
+        record_snapshot_sources(findings, target.symbol, structured)
+        # R13 filings floor: pull exchange announcements up front for ANY Indian
+        # listing (wants_disclosures_floor) so a thin-web name still has dated
+        # filings even if planning eats the wall before a researcher fires. Shared
+        # by the heavy panel via the snapshot dict, so guard on absence to pull
+        # once — but ALWAYS cite the floor rows, pre-seeded or pulled here.
+        from services.research import disclosures as _disclosures
+
+        if _disclosures.wants_disclosures_floor(target):
+            if structured.get("disclosures") is None:
+                floor = await _disclosures.gather_floor(tool_call, target=target)
+                structured["disclosures"] = {
+                    "ok": floor["ok"],
+                    "announcements": floor["announcements"],
+                    "rows": floor["rows"],
+                }
+            floor_rows = structured["disclosures"].get("rows")
+            if floor_rows:
+                _record_web(
+                    findings,
+                    {"ok": True, "citations": floor_rows, "results": []},
+                    target=target,
+                    query=query,
+                )
+
+services/research/iter.py:987-994 (heavy-panel prologue, pre-seeds snapshot["disclosures"]
+before any explorer angle runs — the exact ULTRA pre-seed path the register names):
+        from services.research import disclosures as _disclosures
+
+        if _disclosures.wants_disclosures_floor(target):
+            floor = await _disclosures.gather_floor(tool_call, target=target)
+            snapshot["disclosures"] = {
+                "ok": floor["ok"],
+                "announcements": floor["announcements"],
+                "rows": floor["rows"],
+            }
+
+Comment on line 379 explicitly states the fix intent: "guard on absence to pull once —
+but ALWAYS cite the floor rows, pre-seeded or pulled here." The "is None" guard that
+previously gated BOTH the gather_floor fetch and the _record_web citation call together
+is now split so _record_web fires unconditionally whenever floor_rows is present,
+pre-seeded (ULTRA's panel prologue) or freshly pulled (DEEP) alike — this is precisely
+the described bug mechanism, now fixed.
+
+VERDICT BASIS: code trace confirms the fix is present and matches the register's own
+described guard exactly; live probe 1 completed without crash (supportive, non-source-
+count evidence); live probe 2 (the more targeted, unambiguous check) did not finish in
+time and is not counted as evidence either way. holds.

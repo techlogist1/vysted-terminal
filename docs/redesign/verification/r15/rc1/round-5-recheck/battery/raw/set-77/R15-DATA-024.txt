@@ -1,0 +1,87 @@
+COMMAND: grep -rniE 'bulk.?deal|block.?deal|sast' sidecar/ src/ types/
+--- output ---
+sidecar/routers/disclosures.py:15:* deals — 6 hours (bulk/block deals and SAST disclosures)
+sidecar/routers/disclosures.py:125:        Literal["bulk", "block", "sast"] | None,
+sidecar/routers/disclosures.py:126:        Query(description="Optional filter; omit for bulk, block and SAST together."),
+sidecar/routers/disclosures.py:129:    """Bulk deals, block deals and SAST disclosures for ``symbol``, newest first."""
+sidecar/tests/test_b5_india_deals.py:1:"""Bulk deals, block deals and SAST disclosures (R15-DATA-024).
+sidecar/tests/test_b5_india_deals.py:3:Fixtures are verbatim trims of live feeds captured 2026-09-24: NSE bulk deals
+sidecar/tests/test_b5_india_deals.py:4:(KOPRAN), NSE block deals (ADANIENT), NSE SAST Reg 29 (KOPRAN) and BSE bulk deals
+sidecar/tests/test_b5_india_deals.py:35:    ("bulk_deals", "KOPRAN"): _load("nse/deals_bulk_kopran_20260924.json"),
+sidecar/tests/test_b5_india_deals.py:36:    ("block_deals", "ADANIENT"): _load("nse/deals_block_adanient_20260924.json"),
+sidecar/tests/test_b5_india_deals.py:37:    ("sast", "KOPRAN"): _load("nse/deals_sast_kopran_20260924.json"),
+sidecar/tests/test_b5_india_deals.py:49:        option = "sast" if path.endswith("sast-reg29") else params["optionType"]
+sidecar/tests/test_b5_india_deals.py:63:def test_nse_bulk_deals_parse_to_typed_rows() -> None:
+sidecar/tests/test_b5_india_deals.py:75:def test_nse_block_deals_parse_to_typed_rows() -> None:
+sidecar/tests/test_b5_india_deals.py:83:    first = corporate_disclosures.get_deals("KOPRAN", "sast").deals[0]
+sidecar/tests/test_b5_india_deals.py:84:    assert (first.kind, first.party, first.side) == ("sast", "United Shippers Limited", "sell")
+sidecar/tests/test_b5_india_deals.py:96:    assert body["sources"] == ["NSE bulk", "NSE block", "NSE sast", "BSE bulk", "BSE block"]
+sidecar/tests/test_b5_india_deals.py:97:    assert {d["kind"] for d in body["deals"]} == {"bulk", "sast"}  # KOPRAN has no block deal
+sidecar/tests/test_b5_india_deals.py:99:    result = asyncio.run(disclosure_tools._exchange_deals({"symbol": "KOPRAN", "kind": "sast"}))
+sidecar/tests/test_b5_india_deals.py:104:def test_dual_listed_bulk_deals_include_the_bse_lane(monkeypatch: pytest.MonkeyPatch) -> None:
+sidecar/tests/test_b5_india_deals.py:106:    its bulk/block deals — only a BSE-only scrip's feed was served."""
+sidecar/tests/test_b5_india_deals.py:163:def test_a_block_deal_question_admits_the_deals_tool_on_a_small_window() -> None:
+sidecar/tests/test_b5_india_deals.py:165:    block-deal or dividend question must reach exchange_deals / corporate_actions."""
+sidecar/tests/test_b5_india_deals.py:172:        ("who bought the block deal in KOPRAN last week?", "exchange_deals"),
+sidecar/tests/test_nse_provider.py:547:        monkeypatch, _ok_responder({"/api/corporate-sast-reg29": {"data": [], "acqNameList": []}})
+sidecar/tests/test_disclosure_tools.py:257:    monkeypatch.setattr(nse_provider, "get_bulk_block_deals", boom)
+sidecar/tests/test_disclosure_tools.py:272:    monkeypatch.setattr(nse_provider, "get_bulk_block_deals", lambda *a, **k: [])
+sidecar/tests/test_disclosure_tools.py:280:    assert served.coverage == "covered" and served.sources == ["NSE bulk", "NSE block", "NSE sast"]
+sidecar/tests/test_b7_exchange_disclosures.py:219:    resp = client.get("/disclosures/deals", params={"symbol": "JONJUA", "kind": "sast"})
+sidecar/models/announcements.py:10:* :class:`ExchangeDeal` — one bulk deal, block deal or SAST disclosure.
+sidecar/models/announcements.py:274:    """One bulk deal, block deal or SAST (SEBI Reg 29) disclosure of an Indian
+sidecar/models/announcements.py:276:    block deals carry no holding after; a SAST disclosure carries no price."""
+sidecar/models/announcements.py:279:    kind: Literal["bulk", "block", "sast"]
+sidecar/models/announcements.py:280:    #: Deal date (bulk/block) or the acquisition/sale date (SAST).
+sidecar/models/announcements.py:282:    #: The client (bulk/block) or the acquirer/seller (SAST), verbatim.
+sidecar/models/announcements.py:290:    #: The party's holding after the transaction, percent of shares (SAST).
+sidecar/models/announcements.py:293:    #: The filed disclosure (SAST attachment).
+sidecar/models/announcements.py:298:    """``GET /disclosures/deals`` — bulk/block deals and SAST, newest first."""
+sidecar/models/announcements.py:305:    #: The lanes that served ("NSE bulk", "NSE sast", "BSE block", ...).
+sidecar/services/nse_provider.py:96:_SAST_PATH = "/api/corporate-sast-reg29"
+sidecar/services/nse_provider.py:704:def get_bulk_block_deals(symbol: str, option_type: str, start: date, end: date) -> list[dict]:
+sidecar/services/nse_provider.py:705:    """Raw bulk (``option_type="bulk_deals"``) or block (``"block_deals"``) deal
+sidecar/services/nse_provider.py:724:    """Raw SEBI SAST Regulation 29 disclosure rows for ``symbol``.
+sidecar/services/corporate_disclosures.py:43:* **Deals** — bulk and block deals (NSE, or BSE for a BSE-only scrip) and SAST
+sidecar/services/corporate_disclosures.py:965:# Bulk / block deals and SAST disclosures (R15-DATA-024).
+sidecar/services/corporate_disclosures.py:968:DEAL_KINDS = ("bulk", "block", "sast")
+sidecar/services/corporate_disclosures.py:971:#: BSE's per-scrip bulk/block feed (the stock page's "Bulk / Block Deals" tab;
+sidecar/services/corporate_disclosures.py:975:_BSE_DEALS_URL = "https://api.bseindia.com/BseIndiaAPI/api/BulkblockDeal/w"
+sidecar/services/corporate_disclosures.py:981:    """One NSE lane: bulk or block deals over the lookback, or SAST disclosures."""
+sidecar/services/corporate_disclosures.py:982:    if kind == "sast":
+sidecar/services/corporate_disclosures.py:985:    rows = nse_provider.get_bulk_block_deals(
+sidecar/services/corporate_disclosures.py:1057:        kind="sast",
+sidecar/services/corporate_disclosures.py:1069:    """Bulk deals, block deals and SAST (Reg 29) disclosures for ``symbol``,
+sidecar/services/corporate_disclosures.py:1072:    An NSE listing is served from NSE's bulk, block and SAST feeds, PLUS BSE's
+sidecar/services/corporate_disclosures.py:1076:    SAST lane here). ``kind`` filters to one of :data:`DEAL_KINDS`. A failing
+sidecar/services/corporate_disclosures.py:1086:        raise ProviderError(f"disclosures: unknown deal kind {kind!r} (use bulk, block or sast)")
+sidecar/services/corporate_disclosures.py:1104:            note = f"SAST disclosures come from NSE; {bare} is BSE-only"
+sidecar/services/agent_tools/disclosure_tools.py:15:* ``exchange_deals(symbol, kind=None)`` — bulk/block deals and SAST (Reg 29)
+sidecar/services/agent_tools/disclosure_tools.py:143:    """Bulk/block deals and SAST disclosures for ``symbol``, newest first."""
+sidecar/services/agent_tools/disclosure_tools.py:149:        return {"ok": False, "error": f"unknown kind {kind!r} (use bulk, block or sast)"}
+sidecar/services/agent_tools/catalog.py:118:        "bulk deal",
+sidecar/services/agent_tools/catalog.py:119:        "block deal",
+sidecar/services/agent_tools/catalog.py:120:        "sast",
+sidecar/services/agent_tools/catalog.py:869:                "Bulk deals, block deals and SAST (SEBI Reg 29 substantial-"
+sidecar/services/agent_tools/catalog.py:872:                "(SAST) their holding after. Each row: kind, date, party, side, "
+sidecar/services/agent_tools/catalog.py:884:                        "enum": ["bulk", "block", "sast"],
+types/data.ts:549: * One bulk deal, block deal or SAST (SEBI Reg 29) disclosure of an Indian
+types/data.ts:551: * after; SAST carries no price).
+types/data.ts:555:  kind: "bulk" | "block" | "sast";
+types/data.ts:556:  /** ISO date: the deal date, or the SAST acquisition/sale date. */
+types/data.ts:565:  /** The party's holding after the transaction, percent of shares (SAST). */
+types/data.ts:568:  /** The filed disclosure (SAST attachment). */
+types/data.ts:572:/** `GET /disclosures/deals` — bulk/block deals and SAST, newest first. */
+types/data.ts:579:  /** Lanes that served ("NSE bulk", "NSE sast", "BSE block", ...). */
+
+LIVE re-run of the register's own repro (post-fix, endpoint exists):
+COMMAND: curl -sS -m 20 'http://127.0.0.1:52347/disclosures/deals?symbol=KOPRAN'
+--- output (truncated to first 800 chars) ---
+{"symbol":"KOPRAN","kind":null,"count":125,"deals":[{"symbol":"KOPRAN","kind":"bulk","date":"2026-09-17","party":"QE SECURITIES LLP","side":"sell","quantity":257185.0,"price":265.59,"value":68305764.15,"percent_after":null,"exchange":"NSE","source_url":null},{"symbol":"KOPRAN","kind":"bulk","date":"2026-09-17","party":"QE SECURITIES LLP","side":"buy","quantity":250015.0,"price":265.88,"value":66473988.2,"percent_after":null,"exchange":"NSE","source_url":null},{"symbol":"KOPRAN","kind":"bulk","date":"2026-09-16","party":"ALPHAGREP SECURITIES PRIVATE LIMITED","side":"sell","quantity":882407.0,"price":263.91,"value":232876031.37,"percent_after":null,"exchange":"NSE","source_url":null},{"symbol":"KOPRAN","kind":"bulk","date":"2026-09-16","party":"ALPHAGREP SECURITIES PRIVATE LIMITED","side":"buy","quantity":882407.0,"price":263.72,"value":232708374.04,"percent_after":null,"exchange":"NSE","s
+
+FRESH CASE (name not in the certification's own examples): SAKSOFT
+COMMAND: curl -sS -m 20 'http://127.0.0.1:52347/disclosures/deals?symbol=SAKSOFT'
+--- output (truncated to first 900 chars) ---
+{"symbol":"SAKSOFT","kind":null,"count":116,"deals":[{"symbol":"SAKSOFT","kind":"bulk","date":"2026-07-01","party":"IRAGE BROKING SERVICES LLP","side":"buy","quantity":786123.0,"price":209.5,"value":164692768.5,"percent_after":null,"exchange":"BSE","source_url":null},{"symbol":"SAKSOFT","kind":"bulk","date":"2026-07-01","party":"IRAGE BROKING SERVICES LLP","side":"sell","quantity":348242.0,"price":208.02,"value":72441300.84,"percent_after":null,"exchange":"BSE","source_url":null},{"symbol":"SAKSOFT","kind":"bulk","date":"2026-06-30","party":"BLITZQUANT RESEARCH LLP","side":"buy","quantity":1973038.0,"price":204.2,"value":402894359.6,"percent_after":null,"exchange":"NSE","source_url":null},{"symbol":"SAKSOFT","kind":"bulk","date":"2026-06-30","party":"BLITZQUANT RESEARCH LLP","side":"sell","quantity":1973038.0,"price":204.3,"value":403091663.4,"percent_after":null,"exchange":"NSE","source
+EXIT: 0 (all probes returned)
+VERDICT: holds -- the register's own repro grep no longer returns ZERO hits: GET /disclosures/deals exists (sidecar/routers/disclosures.py), typed contract in types/data.ts, a pinned test suite test_b5_india_deals.py. Live GET /disclosures/deals?symbol=KOPRAN returns 125 real bulk-deal rows (NSE, dated, priced). Fresh case SAKSOFT (not in the certification's own examples) returns 116 rows across NSE+BSE.

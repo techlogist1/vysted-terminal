@@ -1,0 +1,11 @@
+CMD: curl -s 'http://127.0.0.1:52361/earnings/INFY/history' -H 'X-Vysted-Region: IN'
+symbol: INFY.NS n_entries: 4
+{"symbol":"INFY.NS","history":[{"fiscal_period":null,"period_end":"2026-06-30","reported_date":"2026-07-23","eps_actual":19.17,"eps_estimate_mean":19.11846,"revenue_actual":null,"revenue_estimate_mean":null,"currency":"INR","revenue_currency":"INR"},{"fiscal_period":null,"period_end":"2026-03-31","reported_date":"2026-04-23","eps_actual":20.98,"eps_estimate_mean":18.38586,"revenue_actual":null,"revenue_estimate_mean":null,"currency":"INR","revenue_currency":"INR"},{"fiscal_period":null,"period_e
+---
+CMD: curl -s 'http://127.0.0.1:52361/earnings/INFY/history' -H 'X-Vysted-Region: US'
+symbol: INFY n_entries: 4
+{"symbol":"INFY","history":[{"fiscal_period":null,"period_end":"2026-06-30","reported_date":"2026-07-23","eps_actual":0.2,"eps_estimate_mean":0.20333,"revenue_actual":null,"revenue_estimate_mean":null,"currency":"USD","revenue_currency":"INR"},{"fiscal_period":null,"period_end":"2026-03-31","reported_date":"2026-04-23","eps_actual":0.23,"eps_estimate_mean":0.2075,"revenue_actual":null,"revenue_estimate_mean":null,"currency":"USD","revenue_currency":"INR"},{"fiscal_period":null,"period_end":"2025
+---diff (symbol field)---
+IN symbol: INFY.NS
+US symbol: INFY
+DIFFERS: True

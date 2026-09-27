@@ -1,0 +1,19 @@
+Per-role rule: never run vitest suites -> ci_pinned when the only evidence
+is a pinned test. Not executed; verified by reading the source.
+
+Pinned test confirmed present at 949c3c9f:
+  src/modules/equity-overview/EquityOverviewPanel.test.tsx:342
+  it("a superseded load never lands: the newest command wins and keeps the
+     spinner until it does (R15-UI-031)", ...) -- loads AAPL then TCS.NS;
+     resolves AAPL's promise first (the superseded one) and asserts
+     "Apple Inc." never renders and the button stays disabled/"Loading";
+     only once TCS.NS resolves does "Tata Consultancy" render and the
+     button re-enable.
+
+Source guard confirmed: EquityOverviewPanel.tsx:572 narrativeSeqRef,
+:681 "const seq = ++narrativeSeqRef.current", :685/:689/:703 gate state
+writes on seq === narrativeSeqRef.current, :730 comment "finally leaves
+the newer load's spinner alone (R15-UI-031)".
+
+VERDICT: ci_pinned (src/modules/equity-overview/EquityOverviewPanel.test.tsx:342
+"a superseded load never lands... (R15-UI-031)").

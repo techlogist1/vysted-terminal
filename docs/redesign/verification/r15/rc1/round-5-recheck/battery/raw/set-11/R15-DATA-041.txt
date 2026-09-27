@@ -1,0 +1,60 @@
+CMD: real providers IN region compare_symbols(RELIANCE.NS vs newly-listed short-window symbol) via candidate sidecar :52345
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'RELIANCE.NS'
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'RENTOMOJO.NS'
+{
+  "ok": true,
+  "timeframe": "1d",
+  "symbols": [
+    {
+      "symbol": "RELIANCE",
+      "provider": "nse_direct",
+      "quote": {
+        "price": 1226.0,
+        "change_percent": 0.5577427821522273,
+        "currency": "INR"
+      },
+      "fundamentals": {
+        "market_cap": 16590810644480.0,
+        "pe_ratio": 22.222223,
+        "forward_pe": 17.169327,
+        "peg_ratio": 0.82,
+        "price_to_book": 1.8352058,
+        "dividend_yield": 0.0049,
+        "eps": 55.17,
+        "beta": 0.152
+      },
+      "return_pct_window": -12.9137661599659,
+      "bars": 127,
+      "window_start": "2026-03-23",
+      "window_end": "2026-09-25"
+    },
+    {
+      "symbol": "RENTOMOJO",
+      "provider": "nse_direct",
+      "quote": {
+        "price": 507.75,
+        "change_percent": 1.1655708308428019,
+        "currency": "INR"
+      },
+      "fundamentals": {
+        "market_cap": null,
+        "pe_ratio": 50.775,
+        "forward_pe": null,
+        "peg_ratio": null,
+        "price_to_book": null,
+        "dividend_yield": null,
+        "eps": 10.0,
+        "beta": null
+      },
+      "return_pct_window": -4.960224613944786,
+      "bars": 7,
+      "window_start": "2026-09-17",
+      "window_end": "2026-09-25"
+    }
+  ],
+  "relative": {
+    "best": null,
+    "worst": null,
+    "note": "windows not comparable: RENTOMOJO has 7 bars since 2026-09-17"
+  }
+}

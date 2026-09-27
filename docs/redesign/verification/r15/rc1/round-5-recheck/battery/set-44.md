@@ -1,0 +1,14 @@
+# batch-10/W5-chat-search-workflow (rc1-battery-23, shard 23)
+
+Candidate `949c3c9fd49d61ecadc9813a8321bcdfd81178bd`, own sidecar `:52363`.
+
+| id | repro run | observed | verdict |
+|---|---|---|---|
+| R15-AGENT-082 | Live `vy.py invoke copilot` through ollama llama3.1:8b (under the Ollama lock) + source check of `ChatSidebar.tsx` | `done` frame carries `"spend_usd": 0.0` (present, not omitted, as certified); `onDone(usage, finishReason, contextWindow, spendUsd)` pipes the real value into `cost.spendUsd` (`spendUsd ?? 0`, not a hard-coded `0`); footer renders `cost.spendUsd.toFixed(4)` | holds |
+| R15-AGENT-088 | Node regex probe of `BARE_TICKER_SHAPE` against the previously-failing 11-13 char NSE symbols + source trace of the bare-ticker dispatch path | `RELIANCE.NS`/`HDFCBANK.NS`/`BAJFINANCE.NS`/`M&M.NS`/`BAJAJ-AUTO.NS` all match the `{0,19}` cap (was too short before); `parseSlashCommand` returns `{kind:"bare-ticker"}` for a resolved lone ticker, and `ChatSidebar.tsx` dispatches `dispatchSlashAction("chart", result.symbol)` and returns before any LLM call | holds |
+| R15-UI-027 | Source trace of `resolveChord`/`conflicts()` in `keybindings.ts` (pure client store, no sidecar route, no GUI this run) | `resolveChord` (docstring tagged "R15-UI-027 residual") collapses `mod` to the platform's physical modifier; `conflicts()` groups by `resolveChord(...)`, not the raw combo string, matching the certified fix exactly | ci_pinned (`src/store/keybindings.test.ts`: "mod+p and meta+p conflict on macOS", "shift+mod+p beside mod+p does NOT conflict") |
+| R15-RESEARCH-028 | GET /search/searxng/status | `{"state":"degraded","detail":"SearXNG is running but its search engines are blocked","reason":"brave: Suspended: too many requests; duckduckgo: CAPTCHA; startpage: Suspended: CAPTCHA", ...}` — byte-identical reason string to the certification | holds |
+| R15-AGENT-063 | GET /news?symbols=BTC%2FUSDT; GET /news?symbols=AAPL | BTC/USDT crypto alias tags the Bitcoin headline `symbols:["BTC/USDT"]`, sentiment 0.802 positive; AAPL returns 14 items, all scored + tagged | holds |
+| R15-CODE-RESEARCH-004 | grep for `locale_domains`/`preferredDomains`/`detect_searxng`/`KNOWN_BACKENDS`/`breaker_status`/`untrusted_context_message` under `sidecar/`; grep for the production SearXNG resolution path | No production callers remain (only test docstrings recording the deletion and one doc-comment); `web_search.py` still resolves via `config.get_searxng_url()` / `searxng_manager.manager.ready_base_url_detected()` | holds |
+
+COVERAGE: 6/6 ids raw; no raw: none. (UI-027 verdict is ci_pinned — no sidecar route or GUI exists for this client-only keybinding-conflict logic in this shard's environment; source evidence corroborates but the harness forbids running the vitest suite that is the entry's only executable repro.)

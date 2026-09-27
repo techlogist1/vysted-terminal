@@ -1,0 +1,72 @@
+=== R15-AGENT-024 repro: stringified criteria coercion ===
+-- live llama3.1:8b x3, port 52358 --
+cmd: python3 scripts/r15/vy.py invoke copilot "Set up a screener on the NSE full market: P/E below 20, ROE above 15% and debt to equity under 0.5, then run it." --provider ollama --model llama3.1:8b --mode agent --autonomy auto --port 52358 (x3)
+=== AGENT-024 run 1 ===
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  52.6s] tool_use: {"kind": "tool_use", "tool_call_id": "call_31b0b01b9e20487f9f73d4a8607a6637", "name": "write_screener_filters", "input": {"criteria": [{"field": "pe_ratio", "operator": "lt", "value": 20}, {"field": "roe", "operator": "gt", "value": 0.15}, {"field": "debt_to_equity", "operator": "lt", "value": 0.5}], "universe": "nse-all", "limit": 200, "run": true}}
+[  52.7s] tool_result: {"kind": "tool_result", "tool_call_id": "call_31b0b01b9e20487f9f73d4a8607a6637", "name": "write_screener_filters", "ok": true, "error": null}
+[  57.8s] done: {"kind": "done", "usage": {"input_tokens": 2950, "output_tokens": 59, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+The screener has been configured for review. To run the screen, please accept the proposal in the proposal bar.
+
+Note: The user can also choose to reject the proposed filters and modify them before running the screen. 
+
+Once accepted, I will provide the results of the screener run.
+
+=== ok · 57.8s · events {'heartbeat': 5, 'tool_use': 1, 'tool_result': 1, 'delta': 59, 'done': 1} · usage in=2950 out=59 · est $0.00000 · llama3.1:8b
+=== AGENT-024 run 2 ===
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  46.9s] tool_result: {"kind": "tool_result", "tool_call_id": "call_72df764680ee4e23b4c39db8976cee18", "name": "write_screener_filters", "ok": false, "error": "invalid arguments for write_screener_filters: missing criteria \u2014 ask the user for it; do not guess"}
+[  51.9s] done: {"kind": "done", "usage": {"input_tokens": 2890, "output_tokens": 76, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+To set up a screener on the NSE full market with P/E below 20, ROE above 15%, and debt to equity under 0.5, I need to know what type of criteria you would like me to apply.
+
+Do you want to filter companies by sector, industry, or another characteristic? Let me know so I can assist you further.
+
+=== ok · 52.0s · events {'heartbeat': 4, 'tool_result': 1, 'delta': 76, 'done': 1} · usage in=2890 out=76 · est $0.00000 · llama3.1:8b
+=== AGENT-024 run 3 ===
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  47.2s] tool_result: {"kind": "tool_result", "tool_call_id": "call_9df061eb1a164722a93ca6695db9eaec", "name": "write_screener_filters", "ok": false, "error": "invalid arguments for write_screener_filters: missing criteria \u2014 ask the user for it; do not guess"}
+[  56.9s] done: {"kind": "done", "usage": {"input_tokens": 2890, "output_tokens": 166, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+Let's revise our request. To set up a screener on the NSE full market with the specified filters, we need to define the criteria first.
+
+To create the screener, I will call `write_screener_filters` again and this time provide the necessary parameters.
+
+Please confirm the following parameters for the screener:
+
+* Market: NSE Full Market
+* P/E Ratio: Below 20
+* Return on Equity (ROE): Above 15%
+* Debt to Equity: Under 0.5
+
+Here is how you can respond with the criteria:
+
+"yes, that's correct"
+
+Alternatively, if there are any changes or additions needed, please let me know and I'll assist further.
+
+Once we have the confirmed parameters, I will proceed with writing the screener filters and running the screen.
+
+=== ok · 56.9s · events {'heartbeat': 4, 'tool_result': 1, 'delta': 166, 'done': 1} · usage in=2890 out=166 · est $0.00000 · llama3.1:8b
+
+NOTE: none of the 3 live runs happened to emit a STRINGIFIED criteria arg (run1 sent a real array and applied cleanly; runs 2-3 sent no criteria at all, a separate model-emission issue, not this mechanism).
+-- direct in-process re-proof of the runtime mechanism (_normalise_tool_args / _coerce), candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd --
+before: criteria type = str value = [{"field": "pe_ratio", "operator": "lt", "value": 20}, {"field": "roe", "operator": "gt", "value": 0.15}, {"field": "debt_to_equity", "operator": "lt", "value": 0.5}]
+after: criteria type = list
+after: full input = {'criteria': [{'field': 'pe_ratio', 'operator': 'lt', 'value': 20}, {'field': 'roe', 'operator': 'gt', 'value': 0.15}, {'field': 'debt_to_equity', 'operator': 'lt', 'value': 0.5}], 'universe': 'nse-all'}
+PASS: stringified criteria coerced to 3-element list
+exit: 0

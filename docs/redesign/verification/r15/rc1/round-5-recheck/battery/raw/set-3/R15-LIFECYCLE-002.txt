@@ -1,0 +1,16 @@
+CMD: grep -n "R15-LIFECYCLE-002" src/lib/workspace.test.ts (candidate 949c3c9f)
+Not a live probe: restore-path store-registration logic; certified via pinned vitest per batch-2 VERDICTS.md.
+1001:  it("restores holdings, notes and watchlist even when the saved layout has an unregistered panel (R15-LIFECYCLE-002)", async () => {
+1084:  it("strips an unregistered panel from the saved layout and restores the rest, with every data slice and no autosave (R15-LIFECYCLE-002)", async () => {
+  it("restores holdings, notes and watchlist even when the saved layout has an unregistered panel (R15-LIFECYCLE-002)", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    usePortfoliosStore.getState().setAll([], undefined);
+    useNotesStore.getState().fromBundle(null);
+    useSymbolsStore.setState({ entries: [{ symbol: "SPY", assetClass: "equity" }] });
+  it("strips an unregistered panel from the saved layout and restores the rest, with every data slice and no autosave (R15-LIFECYCLE-002)", async () => {
+    vi.useFakeTimers();
+    resetWorkspacePersistenceForTests();
+    const unwire = wireAutosaveTriggers();
+    try {
+      const api = createFakeDockviewApi(LAYOUT_A);

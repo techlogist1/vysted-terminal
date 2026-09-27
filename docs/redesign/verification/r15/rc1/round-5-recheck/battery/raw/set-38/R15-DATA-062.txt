@@ -1,0 +1,10 @@
+=== R15-DATA-062: symbol join with requested spelling + failed symbol handling ===
+-- GET /quotes?symbols=RELIANCE.NS --
+[{"symbol":"RELIANCE.NS","price":1226.0,"change":6.7999999999999545,"change_percent":0.5577427821522273,"volume":13138735.0,"open":1210.5,"high":1227.4,"low":1210.5,"prev_close":1219.2,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}]
+HTTP:200
+-- GET /quotes?symbols=COCHINSHIP.NS,MAZAGONDOCK.NS (one likely to fail) --
+[{"symbol":"COCHINSHIP.NS","price":1377.0,"change":7.0,"change_percent":0.5109489051094891,"volume":421803.0,"open":1370.0,"high":1385.0,"low":1365.0,"prev_close":1370.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}]
+HTTP:200
+-- GET /quotes?symbols=ZZZNOTREAL.NS,RELIANCE.NS (fresh case: unknown symbol) --
+[{"symbol":"RELIANCE.NS","price":1226.0,"change":6.7999999999999545,"change_percent":0.5577427821522273,"volume":13138735.0,"open":1210.5,"high":1227.4,"low":1210.5,"prev_close":1219.2,"currency":"INR","market_state":"CLOSED","timestamp":"2026-09-25T00:00:00Z","provider":"nse_direct","freshness":"eod"}]
+HTTP:200

@@ -1,0 +1,50 @@
+CMD: sed -n '80,120p' src/store/llm-providers.ts
+   * is a keyless lane that is not ready (R15-UI-049) — never over a keyed
+   * default the user chose. Resolves `true` when the default moved.
+   */
+  promoteKeyedProvider: (id: LLMProviderId) => Promise<boolean>;
+  /** Refresh from the sidecar (no-op fallback to defaults on error). */
+  refresh: () => Promise<void>;
+}
+
+export const useLLMProvidersStore = create<LLMProvidersState>((set, get) => ({
+  providers: DEFAULT_PROVIDERS,
+  defaultProviderId: "ollama",
+  setDefaultProviderId: (id) => set({ defaultProviderId: id }),
+  promoteKeyedProvider: async (id) => {
+    const { defaultProviderId, providers } = get();
+    const current = providers.find((p) => p.id === defaultProviderId);
+    if (id === defaultProviderId || current?.requiresKey !== false) {
+      return false;
+    }
+    const readiness = await probeReadiness(defaultProviderId, modelForProvider(defaultProviderId));
+    // Re-read: the user may have picked a default while the probe ran.
+    if (readiness.ok || get().defaultProviderId !== defaultProviderId) {
+      return false;
+    }
+    set({ defaultProviderId: id });
+    return true;
+  },
+  refresh: async () => {
+    try {
+      const rows = await sidecarGet<SidecarProviderRow[]>("/llm/providers");
+      const providers: LLMProviderInfo[] = rows.map((row) => ({
+        id: row.id,
+        label: row.label,
+        requiresKey: row.requires_key,
+        defaultBaseUrl: row.default_base_url ?? undefined,
+        defaultModel: row.default_model ?? undefined,
+        knownModels: row.known_models ?? undefined,
+      }));
+      set({ providers });
+    } catch {
+      // Stay on the static defaults — the dropdown is never empty.
+    }
+
+CMD: grep -n describe|it( src/store/llm-providers.test.ts
+10:describe("promoteKeyedProvider (R15-UI-049)", () => {
+16:  it("a key saved while the keyless default is not ready becomes the default", async () => {
+25:  it("a keyless default that is ready is kept", async () => {
+31:  it("never replaces a keyed default the user chose", async () => {
+42:describe("orderedProviders (R15-UI-087)", () => {
+43:  it("puts the preference order first and keeps unnamed providers in catalog order", () => {

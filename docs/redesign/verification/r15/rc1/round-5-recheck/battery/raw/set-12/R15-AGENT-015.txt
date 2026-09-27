@@ -1,0 +1,25 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+method: live POST /workflow/run against rc1-battery-11's own sidecar (:52351)
+with a single ai.agent_invoke node built from the palette's own config keys
+(agent_id, prompt_template). Ollama lane held under the shared local-model
+lock (mkdir/rmdir /tmp/vysted-r15-ollama.lock) for the duration of the call.
+
+node config: {"agent_id": "copilot", "prompt_template": "Reply with exactly
+the two words: BATTERY ELEVEN. Nothing else."}
+
+cmd: curl -s -m 100 -N -X POST http://127.0.0.1:52351/workflow/run -d @wf_agent_ok.json
+  (agent copilot defaults to a keyless local ollama path per sidecar/agents/copilot.json)
+
+raw SSE output:
+data: {"kind":"node-output","nodeId":"ai","outputs":{"content":"BATTERY ELEVEN","agent_id":"copilot"},"durationMs":30500.999209}
+data: {"kind":"run-complete",...}
+
+observed: the agent's reply is exactly the typed prompt's requested text
+("BATTERY ELEVEN"), proving the typed prompt_template reached the agent
+(not the hardcoded "{context}" fallback the entry originally reported).
+Static confirmation: node-registry.ts's BUILT_IN_NODE_CONFIG_FIELDS
+"ai.agent_invoke" field key is "prompt_template" (matches
+sidecar/services/workflow_nodes/builtin.py:170 config.get("prompt_template")
+exactly — the two hand-typed keys no longer drift).
+
+verdict: holds

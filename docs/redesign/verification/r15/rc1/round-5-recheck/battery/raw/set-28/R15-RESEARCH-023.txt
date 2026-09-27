@@ -1,0 +1,25 @@
+=== R15-RESEARCH-023: _filter_results keeps a row whose SNIPPET carries boilerplate ('All rights reserved'), interstitial filter is TITLE+SNIPPET marker-only at INTERSTITIAL_MARKERS, not the broader LOW_QUALITY_MARKERS ===
+cmd: sidecar/.venv/bin/python3 <script> -- _filter_results([Route Mobile SearchResult with 'All rights reserved' snippet], set())
+kept: 1 blocked: 0
+
+code (services/search/keyless.py:118-135):
+def _filter_results(
+    results: list[SearchResult], seen_urls: set[str]
+) -> tuple[list[SearchResult], int]:
+    """Apply the per-run URL dedup + the interstitial (block-page) filter.
+
+    Returns ``(kept, blocked)`` where ``blocked`` counts rows dropped as a
+    challenge page — the caller treats an all-blocked answer as a failure.
+    """
+    out: list[SearchResult] = []
+    blocked = 0
+    for result in results:
+        if result.url in seen_urls:
+            continue
+        if _has_marker(f"{result.title} {result.snippet}", INTERSTITIAL_MARKERS):
+            blocked += 1
+            continue
+        seen_urls.add(result.url)
+        out.append(result)
+
+VERDICT: holds. kept=1 blocked=0 -- the Route Mobile row survives (LOW_QUALITY_MARKERS incl. 'all rights reserved' is applied per extracted-page PARAGRAPH only, per the module docstring at :86-89; _filter_results checks only INTERSTITIAL_MARKERS on SERP rows).

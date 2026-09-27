@@ -1,0 +1,14 @@
+CMD: in-process python (candidate .venv) call to sidecar/services/workflow_nodes/code_node.py evaluate_code(),
+exercising the exact register repro cases (round(2.5), 2^3, ternary) plus the batch-28 fresh cases
+(log() disallowed, division by zero, x**2+1).
+round(x) x=2.5 -> {'value': 3.0}
+2^3 -> {'value': 8}
+a>1?1:0 a=2 -> {'value': 1}
+a>1?1:0 a=0 -> {'value': 0}
+log(x,10) x=1000 -> ERROR: disallowed syntax: Call
+x/0 -> ERROR: division by zero
+x^2+1 x=3 -> {'value': 10}
+--- pinned vitest also present: ---
+src/modules/node-editor/code-node-run.test.ts:33:describe("validateWorkflow (R15-CODE-PLATFORM-017)", () => {
+src/modules/node-editor/code-node-inspector.test.tsx:5:// `NodeEditorPanel.test.tsx`. R15-CODE-PLATFORM-017: the live preview now
+src/modules/node-editor/code-node-inspector.test.tsx:145:describe("CodeNodeInspector preview — server-evaluated, never mathjs (R15-CODE-PLATFORM-017)", () => {

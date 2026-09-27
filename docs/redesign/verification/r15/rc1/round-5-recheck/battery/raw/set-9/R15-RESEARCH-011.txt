@@ -1,0 +1,14 @@
+=== ownership_check.py _fetch_latest ===
+33:source, institutions_source, institutions_as_of}`` (percentages 0-100, the
+69:    ``institutions_source``/``institutions_as_of`` name where the institutions
+79:    institutions_source: str | None = None
+80:    institutions_as_of: str | None = None
+123:        institutions_source=latest.split_source or source,
+124:        institutions_as_of=(latest.split_as_of or latest.quarter_end).isoformat(),
+=== research/semantics.py _ownership_leg ===
+570:def _ownership_leg(
+595:    raw_inst_source = exchange.get("institutions_source")
+597:    raw_inst_as_of = exchange.get("institutions_as_of")
+1137:    ownership_facts, ownership_conflicts = _ownership_leg(fund, provider)
+=== pinned test ===
+134:def test_merged_bse_split_keeps_its_own_provenance_in_the_brief(

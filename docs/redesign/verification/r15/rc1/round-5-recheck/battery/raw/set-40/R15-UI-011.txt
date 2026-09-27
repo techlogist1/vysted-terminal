@@ -1,0 +1,22 @@
+=== R15-UI-011 repro: register's exact scenario is GUI-only (rail control state during a running backtest) ===
+Cannot start/observe a live 5-year 8-symbol BacktestPanel run without a GUI
+session (No GUI in this role). Source-level check performed instead:
+
+  BacktestPanel.tsx:117-128 — controllerRef holds one AbortController per run,
+  shared by Run and Retry; handleStop = () => controllerRef.current?.abort()
+  BacktestPanel.tsx:279-286 — a Stop button (aria-label="Stop backtest") wired
+  to handleStop replaces the old always-disabled "Running..." state.
+
+  Pinned tests present and named by batch-10's own certification:
+  BacktestPanel.test.tsx:244 "swaps Run for Stop while a backtest is streaming"
+  BacktestPanel.test.tsx:482 "Stop aborts the live stream, idles the run, and
+    Retry runs on a fresh controller"
+
+VERDICT: ci_pinned (BacktestPanel.test.tsx: "swaps Run for Stop while a
+backtest is streaming", "Stop aborts the live stream, idles the run, and Retry
+runs on a fresh controller"). The register's own repro is a live UI
+interaction (rail control state while a run streams) with no curl-able or
+in-process-python equivalent; batch-10 certified it purely via these two
+vitest cases, not a live curl/engine probe, and this shard does not run
+vitest. Source (BacktestPanel.tsx) confirms the AbortController + Stop button
+wiring described in the fix_shape is present and unchanged.

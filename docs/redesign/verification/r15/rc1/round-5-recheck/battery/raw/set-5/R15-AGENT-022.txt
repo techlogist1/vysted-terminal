@@ -1,0 +1,32 @@
+=== R15-AGENT-022 repro: missing cost_basis validation, live llama3.1:8b x3, port 52358 ===
+cmd: python3 scripts/r15/vy.py invoke copilot "I bought 40 shares of Sumax Enterprises last month. Add them to my portfolio." --provider ollama --model llama3.1:8b --mode agent --autonomy ask --port 52358 (x3)
+=== AGENT-022 run 1 ===
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  40.0s] heartbeat: {"kind": "heartbeat"}
+[  50.0s] heartbeat: {"kind": "heartbeat"}
+[  59.0s] done: {"kind": "done", "usage": {"input_tokens": 7476, "output_tokens": 59, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+{"name": "portfolio_add_position", "parameters": {"asset_class": "equity", "cost_basis": None, "note": "", "purchased_at": "2026-08-27", "quantity": 40, "symbol": "SUMAXENT.NS"}}
+
+=== ok · 59.0s · events {'heartbeat': 5, 'delta': 1, 'done': 1} · usage in=7476 out=59 · est $0.00000 · llama3.1:8b
+=== AGENT-022 run 2 ===
+[   4.5s] done: {"kind": "done", "usage": {"input_tokens": 7476, "output_tokens": 59, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+{"name": "portfolio_add_position", "parameters": {"asset_class": "equity", "symbol": "SUMAXENT.NS", "quantity": 40, "cost_basis": None, "note": "", "purchased_at": "2023-08-27"}}
+
+=== ok · 4.5s · events {'delta': 1, 'done': 1} · usage in=7476 out=59 · est $0.00000 · llama3.1:8b
+=== AGENT-022 run 3 ===
+[   3.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_f08cd540686e4f7a8cadd1468fb609aa", "name": "portfolio_add_position", "ok": false, "error": "invalid arguments for portfolio_add_position: missing cost_basis \u2014 ask the user for it; do not guess"}
+[   6.3s] done: {"kind": "done", "usage": {"input_tokens": 2866, "output_tokens": 34, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+To add your shares of Sumax Enterprises to your portfolio, I'll need the cost basis per share. Can you please tell me what you paid for each share?
+
+=== ok · 6.3s · events {'tool_result': 1, 'delta': 34, 'done': 1} · usage in=2866 out=34 · est $0.00000 · llama3.1:8b
+
+NOTE: runs 1-2 are model prose (no real tool_use emitted — text imitates a call), not a probe of the validation mechanism.
+Run 3 IS a real tool_use dispatch: portfolio_add_position missing cost_basis -> ok:false, error verbatim matches register text 'missing cost_basis — ask the user for it; do not guess', and the model then asks for the price ('Can you please tell me what you paid for each share?'). Mechanism holds.

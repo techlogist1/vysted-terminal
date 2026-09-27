@@ -1,0 +1,3 @@
+CMD: grep -n "R15-CODE-FRONTEND-005\|round-trips chart drawings" src/lib/workspace.test.ts (candidate 949c3c9f)
+Not a live probe: chart-drawings/keybindings autosave-trigger wiring; certified via pinned vitest per batch-2 VERDICTS.md.
+660:  it("round-trips chart drawings through workspace JSON (Phase 2)", () => {

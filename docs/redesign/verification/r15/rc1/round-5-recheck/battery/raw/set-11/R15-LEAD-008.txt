@@ -1,0 +1,6 @@
+CMD: native_search_available('xai', None, 'grok-4') + check search_parameters absent / web_search present in a fake copilot request build
+native_search_available(xai, grok-4): False
+native_search_available(xai, grok-4, with_function_tools=True): False
+---grep search_parameters gating in xai adapter---
+services/llm/native_search.py:7:explicit tool). xAI retired Live Search (``search_parameters`` now answers 410,
+services/llm/openai.py:615:        # ``search_parameters``, R15-LEAD-008), so they are left untouched

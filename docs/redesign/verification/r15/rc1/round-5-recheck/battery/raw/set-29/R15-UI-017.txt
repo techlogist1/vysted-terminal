@@ -1,0 +1,36 @@
+Repro attempted: curl / vy.py / in-process python -- none apply. The orphaned-user-turn
+on a missing-key send is entirely frontend (ChatSidebar.tsx keychain-key check before
+appendUser). Battery role may not run vitest or a GUI.
+
+src/modules/chat/ChatSidebar.test.tsx
+
+Pinned test body at candidate sha 949c3c9fd49d61ecadc9813a8321bcdfd81178bd:
+  it("surfaces an error when no API key is set for the default provider", async () => {
+    // Persistent null: the mount-time key-probe (provider-keys refresh) AND the
+    // per-send getSecret both resolve to "no key", so the no-key path fires.
+    getSecretMock.mockResolvedValue(null as unknown as string);
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "/ask hi" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText(/No API key for anthropic/i)).toBeInTheDocument());
+    expect(streamChatMock).not.toHaveBeenCalled();
+  });
+
+  it("a send with no key leaves no orphaned user turn and keeps the prompt (R15-UI-017)", async () => {
+    getSecretMock.mockResolvedValue(null as unknown as string);
+    render(<ChatSidebar />);
+    const input = screen.getByLabelText("Chat input") as HTMLInputElement;
+    fireEvent.change(input, { target: { value: "how is NVDA doing?" } });
+    fireEvent.submit(input.closest("form")!);
+    await waitFor(() => expect(screen.getByText(/No API key for anthropic/i)).toBeInTheDocument());
+    expect(useChatHistoryStore.getState().messages).toEqual([]);
+    expect(input.value).toBe("how is NVDA doing?");
+  });
+
+  it("a keyless provider whose model is not pulled opens setup at the download step (R15-AGENT-028)", async () => {
+    // The ratified onboarding rule: a keyless local provider must be usable
+    // before the call fires. Ollama is up but the model is not downloaded, so the
+    // send opens the guided setup at its local-model download step.
+    vi.stubGlobal(
+      "fetch",

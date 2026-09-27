@@ -1,0 +1,22 @@
+COMMAND: grep -n "R15-CODE-FRONTEND-011" src/lib/host-actions.test.ts
+CONTEXT: R15-CODE-FRONTEND-007 shares the same fix commit (124b316) and the
+same test block as R15-CODE-FRONTEND-011 (the bound-intent mechanism directly
+fixes the stale-target-at-accept-time defect this id names -- batch-6/
+VERDICTS.md: "Same commit 124b316 ... the bound-intent mechanism above is the
+direct fix"). Re-checked the same committed pinned test exists on the
+candidate. Not executed, per the no-vitest-suite rule.
+1557:// ── R15-CODE-FRONTEND-011/007: one parsed intent, targets bound at enqueue ──
+1559:describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)", () => {
+
+describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)", () => {
+  const screenerPanel = {
+    api: { component: "screener-panel", close: vi.fn(), setActive: vi.fn() },
+  };
+  const chartPanel = {
+    id: "chart",
+    api: { component: "chart-panel", close: vi.fn(), setActive: vi.fn() },
+  };
+
+
+EXIT: 0 (grep confirmed the named describe block exists; test not run)
+VERDICT: ci_pinned -- src/lib/host-actions.test.ts:1559 describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)"), covers 007 via the shared bound-intent mechanism (commit 124b316)

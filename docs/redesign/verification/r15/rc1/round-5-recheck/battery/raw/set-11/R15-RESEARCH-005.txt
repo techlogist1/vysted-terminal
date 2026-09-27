@@ -1,0 +1,26 @@
+NOT A LIVE PROBE (ci_pinned): the register's own repro forces the local LLM call timeout down to 3s (a test-only patch) to make a 60s-cap DEEP/ULTRA run fail fast; reproducing that live would need the same non-default monkeypatch this repo's own pinned tests already apply, and a real un-forced DEEP+ULTRA run is 168-262s+ per the original cert. Per battery rule: an entry certified only through a pinned test -> ci_pinned naming the test, no pytest run from this lane.
+
+Pinned tests (sidecar/tests/test_research_synthesis_timeout.py), all named for R15-RESEARCH-005 in the file's own docstring:
+  - test_synthesis_timeout_with_web_sources_is_stated_not_called_thin  (asserts degraded_reason == SYNTHESIS_TIMEOUT_REASON, not the false 'thin coverage' copy)
+  - test_synthesis_timeout_reaches_the_execution_record  (asserts execution.degraded_reason == SYNTHESIS_TIMEOUT_REASON, was null at base)
+  - test_local_lane_raises_the_per_call_cap_for_adapter_and_loop
+
+--- code confirms the fix is present at candidate 949c3c9f ---
+72:_LLM_CALL_TIMEOUT_SECS = 60.0
+79:_LOCAL_LLM_CALL_TIMEOUT_SECS = 150.0
+    if isinstance(brief, dict):
+        # R10 (D37): needs-disambiguation pass-through — zero web spend.
+        brief.setdefault("execution_loop", loop_label)
+        return brief
+    out = brief.to_dict()
+    out["ok"] = True
+    out["execution_loop"] = loop_label
+    # Re-read AFTER the loop: the ULTRA cross-check round runs after the panel
+    # stamped its cost, and its calls are metered into the same guard.
+    out["cost"] = _brief_cost(budget)
+    if deep.SYNTHESIS_TIMEOUT_NOTE in (out.get("note") or ""):
+        # For the execution record's degraded_reason (stamped at the tool boundary).
+        out["degraded_reason"] = deep.SYNTHESIS_TIMEOUT_REASON
+    # The honest backend id: "native" names the chat-model engine; when ANY
+    # retrieval in the run was served by the keyless floor the brief carries
+    # "keyless-fallback" instead — the UI's setup-Unlimited nudge keys on it.

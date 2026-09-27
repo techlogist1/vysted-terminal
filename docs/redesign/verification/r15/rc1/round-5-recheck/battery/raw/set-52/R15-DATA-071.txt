@@ -1,0 +1,11 @@
+CMD: curl /history/KARNAVATI.BO?range=1y (cold cache, register repro)
+provider: bse
+bars: 255
+partial: False
+first bar date: 2025-09-12T00:00:00Z
+last bar date: 2026-09-25T00:00:00Z
+
+CMD: curl /history/TRADEWELL.BO?range=1y
+provider: bse
+bars: 144
+partial: False

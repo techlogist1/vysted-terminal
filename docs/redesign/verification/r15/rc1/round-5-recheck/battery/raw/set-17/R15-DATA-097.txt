@@ -1,0 +1,54 @@
+Repro is 'design' (register: negative-cache LRU never expires). Never-run-pytest-suites rule applies (battery role); source-level re-verification + pinned-test citation.
+
+CMD: sed -n '1701,1730p' sidecar/services/symbol_resolver.py
+def _live_lookup(query: str, region: str) -> list[Instrument]:
+    """Guarded ``yfinance.Search`` fallback for symbols not in the masters.
+
+    Collects ALL hits (up to 5) as candidates at :data:`_DISAMBIGUATE_SCORE` —
+    a live row is never master-deterministic, so the policy maps it to
+    "disambiguate", never "bound". Under an IN session the ``.NS``/``.BO``
+    rows rank first. Network/parse failures degrade to ``[]`` (the caller
+    surfaces an honest "unresolved" — never raw JSON, never a guess).
+
+    Budgeted (R11, D58d): results are LRU-cached per ``(query, region)`` so
+    repeated unresolved queries never re-hit the network; a successful EMPTY
+    search expires after :data:`_LIVE_EMPTY_TTL_SECONDS` (a stock listed after
+    the first miss becomes findable); ANY failure opens a short module-level cooldown during
+    which the live rung returns ``[]`` immediately. Rate-limit-shaped failures
+    (``YFRateLimitError``) are reported to :mod:`services.provider_health`
+    (the Yahoo family shares one IP reputation across every yfinance path);
+    a healthy round-trip reports success.
+    """
+    global _live_cooldown_until
+    key = (query, region)
+    with _live_cache_lock:
+        cached = _live_cache.get(key)
+        if cached is not None and (
+            cached[1] or time.monotonic() - cached[0] < _LIVE_EMPTY_TTL_SECONDS
+        ):
+            _live_cache.move_to_end(key)
+            return list(cached[1])
+        if time.monotonic() < _live_cooldown_until:
+            return []
+
+
+CMD: grep -n _LIVE_EMPTY_TTL_SECONDS sidecar/services/symbol_resolver.py
+163:_LIVE_EMPTY_TTL_SECONDS = 300.0
+1712:    search expires after :data:`_LIVE_EMPTY_TTL_SECONDS` (a stock listed after
+1724:            cached[1] or time.monotonic() - cached[0] < _LIVE_EMPTY_TTL_SECONDS
+
+CMD: grep -n 'def test_live_lookup' sidecar/tests/test_symbol_resolver.py
+188:def test_live_lookup_bo_suffix_maps_to_bse_exchange(monkeypatch) -> None:  # noqa: ANN001
+210:def test_live_lookup_collects_all_quotes_india_first_and_never_binds(monkeypatch) -> None:  # noqa: ANN001
+486:def test_live_lookup_caches_repeated_queries(monkeypatch) -> None:  # noqa: ANN001
+500:def test_live_lookup_caches_successful_empty_results(monkeypatch) -> None:  # noqa: ANN001
+513:def test_live_lookup_empty_result_expires_and_a_hit_does_not(monkeypatch) -> None:  # noqa: ANN001
+540:def test_live_lookup_failure_opens_cooldown_and_skips_network(monkeypatch) -> None:  # noqa: ANN001
+563:def test_live_lookup_reports_rate_limit_to_provider_health(monkeypatch) -> None:  # noqa: ANN001
+588:def test_live_lookup_non_rate_limit_failure_does_not_count_as_throttle(monkeypatch) -> None:  # noqa: ANN001
+603:def test_live_lookup_passes_an_explicit_short_search_timeout(monkeypatch) -> None:  # noqa: ANN001
+624:def test_live_lookup_is_wall_clock_bounded_when_search_hangs(monkeypatch) -> None:  # noqa: ANN001
+661:def test_live_lookup_hung_misses_do_not_serialize_behind_each_other(monkeypatch) -> None:  # noqa: ANN001
+806:def test_live_lookup_cache_is_bounded_lru(monkeypatch) -> None:  # noqa: ANN001
+
+OBSERVED: cached[1] (non-empty rows) is retained indefinitely; an empty result ([]) is retained only while time.monotonic() - cached[0] < _LIVE_EMPTY_TTL_SECONDS (=300.0s). Matches fix_shape 'expire negatives after minutes'. Pinned test: test_live_lookup_empty_result_expires_and_a_hit_does_not (sidecar/tests/test_symbol_resolver.py:513).

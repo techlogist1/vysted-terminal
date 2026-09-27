@@ -1,0 +1,14 @@
+=== /disclosures/shareholding?symbol=AMAL ===
+http-level-ok, keys: ['symbol', 'count', 'patterns', 'coverage', 'note', 'provider', 'major_shareholders', 'source_url']
+count/len patterns: 104
+=== /disclosures/shareholding?symbol=NAPEROL ===
+http_code=200
+['symbol', 'count', 'patterns', 'coverage', 'note', 'provider', 'major_shareholders', 'source_url']
+=== /disclosures/shareholding?symbol=ELCIDIN ===
+http_code=200
+['symbol', 'count', 'patterns', 'coverage', 'note', 'provider', 'major_shareholders', 'source_url']
+counts:
+NAPEROL 104
+ELCIDIN 118
+=== sidecar log 403 count ===
+0

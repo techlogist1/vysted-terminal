@@ -1,0 +1,15 @@
+=== R15-UI-024: Notes TaskList/wikilink click-to-chart fixes ===
+cmd: no live/in-process path (TS/tiptap logic; vitest is the heavy lane's). grep for the extension import + pinned tests + dependency.
+33:import { TaskList, TaskItem } from "@tiptap/extension-list";
+129:      TaskList,
+130:      TaskItem.configure({ nested: true }),
+
+31:    "@tiptap/extension-list": "3.25.0",
+
+84:  it("the Task list button toggles a task list (extension is registered)", async () => {
+95:  it("Insert [[wikilink]] WRAPS a selection instead of deleting it (repro e)", async () => {
+102:    fireEvent.click(screen.getByRole("button", { name: "Insert [[wikilink]]" }));
+109:  it("Insert [[wikilink]] with no selection still opens the picker (falls back to '[[')", async () => {
+111:    fireEvent.click(screen.getByRole("button", { name: "Insert [[wikilink]]" }));
+
+VERDICT: ci_pinned. TaskList/TaskItem imported from @tiptap/extension-list (registered NotesPanel.tsx:33,129-130); package.json carries @tiptap/extension-list 3.25.0; certified only via NotesToolbar.test.tsx "the Task list button toggles a task list (extension is registered)" + wikilink-picker cases -- tests present, mechanism unchanged, not re-run.

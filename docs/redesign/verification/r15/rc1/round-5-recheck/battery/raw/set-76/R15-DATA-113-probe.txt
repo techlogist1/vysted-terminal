@@ -1,0 +1,8 @@
+=== KPIT earnings estimates ===
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+=== INFY earnings estimates ===
+{"symbol":"INFY.NS","fiscal_period":null,"eps_estimate_mean":19.61527,"eps_estimate_median":null,"eps_estimate_high":20.33,"eps_estimate_low":19.2,"eps_estimate_stddev":null,"estimate_analyst_count":8,"revenue_estimate_mean":491654926200.0,"revenue_estimate_median":null,"revenue_estimate_high":510007656000.0,"revenue_estimate_low":472000000000.0,"revenue_analyst_count":16,"currency":"INR","revenue_currency":"INR","provider":"yfinance","as_of":"2026-09-27T14:51:23.026908Z"}
+=== WIT (original repro) ===
+{"symbol":"WIT","fiscal_period":null,"eps_estimate_mean":0.035,"eps_estimate_median":null,"eps_estimate_high":0.035,"eps_estimate_low":0.035,"eps_estimate_stddev":null,"estimate_analyst_count":1,"revenue_estimate_mean":244747656810.0,"revenue_estimate_median":null,"revenue_estimate_high":251000000000.0,"revenue_estimate_low":235455000000.0,"revenue_analyst_count":8,"currency":"USD","revenue_currency":"INR","provider":"yfinance","as_of":"2026-09-27T14:51:30.180306Z"}
+=== BABA (batch-28 fresh case) ===
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}

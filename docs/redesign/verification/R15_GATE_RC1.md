@@ -105,3 +105,7 @@ LIFECYCLE-024 has no operator area.
 | R15-CODE-PLATFORM-001, R15-UI-042, R15-UI-043 | removed_with_feature | ui-panels | D81 `a122dbf6` | same file :18-20 |
 | R15-DATA-091 | removed_with_feature | - | D81 `a122dbf6` | **fresh, this round**: at 633f844 `sidecar/models/audit_log.py`, `services/kill_switch.py` and `src-tauri/src/kill_switch.rs` do not exist, no non-test file names `audit_orders`/`AUDIT_LOG_DDL`, and no `/safety/*` route is served (`verifier/gate8/openapi-paths.txt`). The unreadable-audit-log defect has no surface left. Concur. |
 | other 10 removed_with_feature (CODE-PLATFORM-006..009/031..033, DOCS-001, LIFECYCLE-016, CROSS-PLATFORM-005) | removed_with_feature | - | D81 `a122dbf6` | stage-c batch `VERDICTS.json`; Gate 8 evidence shows the trading surface absent |
+
+## Round 5-recheck (lead reading under gate rule change 1, 27 Sep 2026)
+
+Run `wf_da354223-f11` on candidate `949c3c9f` (round-5 adjudication + the bounded fix round for R15-LEAD-059 merged at `794bc68f`): chain green (ci-local EXIT=0: vitest 1881, cargo 19, pytest 3784/1 skipped; smoke EXIT=0), Gate 8 PASS with 0 findings, battery 395 fixed ids = 316 holds + 79 ci_pinned, 0 regressed, raw for all 395. Open critical 0, open high 1 (R15-LEAD-116, DECISIONS 4.22, operator-pending). The tag waits on that answer. Full reading: `r15/rc1/round-5-recheck/RECHECK_READING.md`. Measured 167 min, 30 agents, hosted spend USD 0.00.

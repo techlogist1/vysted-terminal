@@ -1,0 +1,7 @@
+=== R15-RESEARCH-021: entity_match no longer scores a ticker+DMA-number title as 0.0 ===
+cmd: sidecar/.venv/bin/python3 <script> -- entity_match on BAJFINANCE/KPITTECH '200 DMA' titles
+r1 (BAJFINANCE 200 DMA): 1.0
+r2 (BAJFINANCE 52-week high): 1.0
+r3 (KPITTECH 200 DMA test): 1.0
+
+VERDICT: holds. all three cases score 1.0 (was 0.0 pre-fix for the ticker+number-only title).

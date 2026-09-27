@@ -1,0 +1,64 @@
+=== R15-AGENT-007: bounded live re-run of scripts/agent_eval/run.py ===
+SCOPE NOTE: the certification ran the FULL harness (k=3, all 16 scenarios, 45-min cap,
+ollama + openrouter-free lanes). This shard re-runs a BOUNDED subset — k=1, 5 of the 16
+scenarios (price-aapl, fundamentals-aapl, ask-chart-indicator, missing-param-portfolio,
+macro-us-10y), ollama only, --max-minutes 14 — because a full re-run does not fit a
+single regression-battery shard alongside 14 other entries under the shared Ollama lock.
+The scenario mix was chosen to include 2 known-PASS classes (price/fundamentals lookups,
+tool-arg-heavy chart command) and the 2 scenarios the batch-11 certification itself
+recorded as failing (missing-param-portfolio, macro-us-10y), so a regression in the
+grader or the harness itself would be visible.
+
+-- cmd: sidecar/.venv/bin/python3 scripts/agent_eval/run.py --lane ollama --k 1 --port 52363 --out-dir <dir> --only price-aapl,fundamentals-aapl,ask-chart-indicator,missing-param-portfolio,macro-us-10y --max-minutes 14 --
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/scripts/agent_eval/run.py", line 152, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/scripts/agent_eval/run.py", line 130, in main
+    row = run_trial(args, scenario, provider, model, trial)
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/scripts/agent_eval/run.py", line 82, in run_trial
+    failures = grader.grade(scenario, _read_events(events_path), before, after)
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/scripts/agent_eval/grader.py", line 83, in grade
+    required = required_args()
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/scripts/agent_eval/grader.py", line 45, in required_args
+    from services.agent_tools.catalog import CAPABILITY_CATALOG
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/services/agent_tools/__init__.py", line 103, in <module>
+    from services.agent_tools import backtest_summary as _backtest_summary_mod  # noqa: E402, F401
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/services/agent_tools/backtest_summary.py", line 13, in <module>
+    from services import backtest_store
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/sidecar/services/backtest_store.py", line 19, in <module>
+    from pydantic import ValidationError
+ModuleNotFoundError: No module named 'pydantic'
+--- (first attempt: system python3 lacked pydantic outside the sidecar venv -- harness/env
+    mistake on my part, not a product defect; re-ran with sidecar/.venv/bin/python3) ---
+
+-- second attempt (sidecar venv) --
+price-aapl #0 64.2s PASS
+fundamentals-aapl #0 66.5s PASS
+ask-chart-indicator #0 41.4s PASS
+missing-param-portfolio #0 42.0s FAIL forbidden tool called: portfolio_add_position; answer does not match '(?i)\\?|\\bwhich\\b|please (provide|tell|share|specify|confirm|let me know)'
+macro-us-10y #0 24.9s FAIL no macro_series|macro_search call with input ~ '(?i)DGS10|10.?year|treasury'; answer matches forbidden '\\{\\s*"name"\\s*:\\s*"\\w+"\\s*,\\s*"(parameters|arguments)"\\s*:'
+{"lane": "ollama", "model": "llama3.1:8b", "k": 1, "scenarios": 5, "pass_hat_k": 0.6, "pass_hat_1": 0.6, "incomplete": []}
+
+-- per-trial event streams --
+--- /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-battery-23-logs/agent007-out/ollama/ask-chart-indicator.0.jsonl ---
+{"kind": "delta", "text": "."}
+{"kind": "research_step", "tool_call_id": "call_9726f61303d84f6aa594ef5c0e762e29", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: set_chart_indicators RELIANCE. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 2920, "output_tokens": 52, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+--- /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-battery-23-logs/agent007-out/ollama/fundamentals-aapl.0.jsonl ---
+{"kind": "delta", "text": "L"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 5884, "output_tokens": 78, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+--- /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-battery-23-logs/agent007-out/ollama/macro-us-10y.0.jsonl ---
+{"kind": "heartbeat"}
+{"kind": "delta", "text": "{\"name\": \"macro_series\", \"parameters\": {\"series_id\": \"FRED:DGS10\", \"region\": \"US\"}}"}
+{"kind": "done", "usage": {"input_tokens": 6027, "output_tokens": 28, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+--- /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-battery-23-logs/agent007-out/ollama/missing-param-portfolio.0.jsonl ---
+{"kind": "delta", "text": "."}
+{"kind": "research_step", "tool_call_id": "call_96c730cb5c2a4240a864080594245723", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: portfolio_add_position AAPL. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+{"kind": "done", "usage": {"input_tokens": 2953, "output_tokens": 46, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+--- /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-battery-23-logs/agent007-out/ollama/price-aapl.0.jsonl ---
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 6493, "output_tokens": 178, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

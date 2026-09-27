@@ -1,0 +1,10 @@
+=== R15-DATA-006 live repro: GET /quotes/DAL?asset_class=equity on candidate sidecar :52364 ===
+curl -s -m 25 'http://127.0.0.1:52364/quotes/DAL?asset_class=equity' -> HTTP 200
+{
+  "timestamp": "2025-03-12T00:00:00Z",
+  "freshness": "stale",
+  "market_state": "CLOSED",
+  "change": 0.0,
+  "price": 49.88
+}
+GET /fundamentals/DAL field_meta.pe_ratio.as_of confirms same 2025-03-12 as_of (see R15-DATA-013.txt)

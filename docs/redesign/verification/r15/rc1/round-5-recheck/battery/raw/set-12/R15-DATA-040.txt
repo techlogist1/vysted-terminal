@@ -1,0 +1,18 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+method: live POST /backtest/run against rc1-battery-11's own sidecar (:52351)
+with the entry's own repro universe.
+
+request: {"strategyId":"mean_reversion","symbols":["AAPL","MSFT","ZZZZNOTREAL"],
+"startDate":"2025-01-01","endDate":"2026-09-01","initialCapital":100000.0}
+
+cmd: curl -s -m 30 -N -X POST http://127.0.0.1:52351/backtest/run -d @wf_backtest.json
+
+observed (from the response JSON):
+  "symbols":["AAPL","MSFT","ZZZZNOTREAL"]   (request echoed, all 3, as before)
+  "warnings":["No price history loaded for ZZZZNOTREAL in 2025-01-01..2026-09-01
+    (provider error or empty series); metrics cover 2 of 3 symbols."]
+
+Matches batch-4 VERDICTS.md certification verbatim: warnings is populated
+(was null) and names the excluded symbol + coverage count.
+
+verdict: holds

@@ -1,0 +1,28 @@
+Probe: live GET requests against own sidecar (:52352) for the 30m timeframe, register's own
+repro symbols plus batch-25 fresh cases.
+
+Commands + output:
+
+curl -s http://127.0.0.1:52352/history/RELIANCE.NS?timeframe=30m&range=1y
+-> bars: 767, reason: None, partial: True, coverage_start: 2026-07-06
+
+curl -s http://127.0.0.1:52352/history/SPY?timeframe=30m
+-> bars: 286, reason: None, partial: False
+
+curl -s http://127.0.0.1:52352/history/AAPL?timeframe=30m
+-> bars: 286, reason: None, partial: False
+
+curl -s "http://127.0.0.1:52352/indicators/SPY?indicators=rsi,sma&timeframe=30m"
+-> HTTP 200, real RSI/SMA series (not 502 "correctness gate: empty series")
+
+curl -s http://127.0.0.1:52352/history/TCS.NS?timeframe=1m&range=1mo
+-> bars: 2526, partial: True (fresh case)
+
+Exit: 0 (all)
+
+Verdict basis: 30m timeframe now returns real bars for every symbol tested (was 200 bars:[]
+provider:'none' before the fix — the lookback map used to request '3mo' beyond Yahoo's 60-day
+intraday cap). Matches batch-25's certification verbatim: "/history/RELIANCE.NS?timeframe=30m&
+range=1y returns 767 bars, reason null, partial true, coverage_start 2026-07-06. Default SPY 30m
+returns 286 bars. /indicators/SPY?…&timeframe=30m returns 200." and fresh case "TCS.NS
+1m&range=1mo returns 2526 bars, partial."

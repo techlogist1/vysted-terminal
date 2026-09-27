@@ -1,0 +1,37 @@
+Probe: in-process, the register's own repro — a stub openbb-mcp client whose first call_tool
+returns {isError:False,...} and second returns {isError:True, content:[{type:text,
+text:'upstream 500'}]}, driven through the real services.openbb_mcp_provider._call_tool and
+.status().
+
+Note: an earlier attempt used a lambda that constructed a *fresh* stub client per call (its
+internal call counter never advanced past 1), which produced a false "still True/None" reading —
+a probe bug, not a product bug. Corrected script (persisted single stub instance, printed proof
+the stub itself was invoked with n=2 on the second call) below.
+
+Command:
+  cd <cand>/sidecar && .venv/bin/python3 /tmp/probe_data083b.py
+
+Exit: 0
+Output:
+fake_get_client called
+STUB call_tool invoked, n= 1
+call1 result: {'results': []}
+after ok call: {'lastToolCallOk': True, 'lastError': None}
+fake_get_client called
+STUB call_tool invoked, n= 2
+call 2 raised: ProviderError openbb-mcp tool 'x' reported error: [{'type': 'text', 'text': 'upstream 500'}]
+after isError call: {'lastToolCallOk': False, 'lastError': "ProviderError: openbb-mcp tool 'x' reported error: [{'type': 'text', 'text': 'upstream 500'}]"}
+
+Source check: sidecar/services/openbb_mcp_provider.py:241-256 (_call_tool) — one try now wraps
+BOTH `client.call_tool` and `_decode_tool_result` (comment at :247-248: "One try over the call
+AND the decode: an isError / undecodable payload is a failed call too, so the health flags
+record it (R15-DATA-083)."). status():157 also now factors `_last_tool_call_ok is not False`
+into `available`.
+
+Verdict basis: after the isError call, lastToolCallOk flips to False and lastError carries the
+real error text — reversing the pre-fix behaviour (stayed True/None). Matches batch-4's
+certification ("target status flips to available: false, lastToolCallOk: false, lastError:
+'…upstream 500…' for both openbb-mcp and sec-edgar-mcp; base stays true / null for both.").
+sec_filings_provider.py was not independently re-probed this shard (same shape per the register
+and batch-4 cert; source at sidecar/services/sec_filings_provider.py:158 mirrors the same
+one-try pattern).

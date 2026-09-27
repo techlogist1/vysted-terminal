@@ -1,0 +1,20 @@
+COMMAND: python3 probe_lead051.py (in-process, candidate venv) — FiledPeriods.cadence() on: (1) IPO with only 2 quarters ever filed [entry's literal repro], (2) single quarter ever filed [fresh case], (3) former-SME migrant [held-back case, expect quarterly], (4) pure half-yearly filer [control]
+EXIT: 0
+OUTPUT:
+=== R15-LEAD-051: IPO with only 2 quarters ever filed (literal repro) ===
+  cadence() = 'quarterly-gap'  (must NOT be 'half-yearly')
+
+=== fresh case: single quarter ever filed (Jul-Sep 26) ===
+  cadence() = 'quarterly-gap'  (must NOT be 'half-yearly')
+
+=== held-back case: former-SME migrant (Oct-Mar half + Apr-Jun + Jul-Sep) -> quarterly ===
+  cadence() = 'quarterly'
+
+=== control: pure half-yearly filer (no quarter ever filed) -> half-yearly unchanged ===
+  cadence() = 'half-yearly'
+
+PASS: a filer with only 1-2 quarters ever filed is never labelled half-yearly; pure half-yearly filers are unchanged
+
+COMMAND: curl -s http://127.0.0.1:52355/fundamentals/JONJUA (live BSE filings, real-world instance named in the entry's certification)
+EXIT: 0 (HTTP 200)
+revenue_ttm.reason: 'TTM basis: the exchange filings leave a quarter of the trailing year unfiled or unparsed; kept, flagged' (quarterly-gap reading, not the pre-fix 'a half-yearly filer')

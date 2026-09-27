@@ -1,0 +1,21 @@
+=== R15-CODE-DATA-006: pinned vitest (finish() helper, run-superseded guard) ===
+CMD: grep -n "R15-CODE-DATA-006" -A 15 src/store/screener.test.ts
+310:    it("R15-CODE-DATA-006: run A's late unary fallback does not touch run B's result or status", async () => {
+311-      const RESULT_A: ScreenerResult = { ...RESULT_SAMPLE, universe: "nifty50", rows: [] };
+312-      let resolveUnaryA!: (r: Response) => void;
+313-      const unaryA = new Promise<Response>((r) => {
+314-        resolveUnaryA = r;
+315-      });
+316-      let calls = 0;
+317-      vi.spyOn(globalThis, "fetch").mockImplementation(async () => {
+318-        calls++;
+319-        if (calls === 1) return new Response(null, { status: 404 }); // A: older sidecar
+320-        if (calls === 2) return unaryA; // A: unary fallback, answered late
+321-        return makeStreamResponse(RESULT_SAMPLE); // B
+322-      });
+323-
+324-      const runA = useScreenerStore.getState().runScreener();
+325-      await vi.waitFor(() => expect(calls).toBe(2));
+
+CMD: grep -n "function finish\|const finish\|isCurrent" src/store/screener.ts
+408:    function finish(patch: Partial<ScreenerState>): boolean {

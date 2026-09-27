@@ -1,0 +1,33 @@
+CMD: source read of the R15-AGENT-025-tagged fix sites (backend planner timeout + frontend stall watchdog); junk_provider.py hang stub confirmed present but the full ~200s live hang harness (separate sidecar boot pointed at OPENAI_BASE_URL=stub) was not re-run in this shard for time-budget reasons -- source-level confirmation only
+--- backend: agent_runtime.py planner timeout ---
+_HEARTBEAT_SECONDS = 10.0
+#: The planner pre-pass runs before the turn's first frame; past this it is
+#: skipped and the turn proceeds without a visible plan (R15-AGENT-025).
+_PLANNER_TIMEOUT_SECONDS = 20.0
+
+    try:
+
+        async def _plan_llm_call(p: str) -> str:
+            return await oneshot.complete(
+                provider_id,
+                resolved_model,
+                api_key,
+                [{"role": "user", "content": p}],
+                timeout=_PLANNER_TIMEOUT_SECONDS,
+            )
+--- frontend: streaming.ts stall watchdog ---
+/**
+ * Stall watchdog budgets (R15-AGENT-025): the longest the stream may go without
+ * a single byte. The agent runtime sends a heartbeat every 10 s while it waits,
+ * so a longer silence means the sidecar or the connection is gone. The raw chat
+ * has no heartbeat; its budget sits above the adapters' own idle timeouts (180 s
+ * hosted, 300 s local), so it only catches a stream that outlived them.
+ */
+export const AGENT_STREAM_IDLE_MS = 45_000;
+export const CHAT_STREAM_IDLE_MS = 330_000;
+
+/**
+ * Map the camelCase frontend `options` onto the wire body. `researchDepth` (the
+ * composer's three-stop depth slider) crosses as snake_case `research_depth` so
+--- junk_provider.py stub present ---
+.rw-r--r--@ 7.4k lokavyasingh 27 Sep 18:33 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-recheck-cand/docs/redesign/verification/r15/surface/failure-inducer/harness/junk_provider.py

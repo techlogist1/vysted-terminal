@@ -1,0 +1,13 @@
+=== R15-UI-012 repro ===
+curl -sS -X POST http://127.0.0.1:52152/agents/nope/invoke -H 'Content-Type: application/json' -d '{"prompt":"hi","provider":"ollama"}'
+{"detail":"unknown agent: 'nope'"}
+curl -sS -X POST http://127.0.0.1:52152/agents/nope/invoke -H 'Content-Type: application/json' -d '{}'
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{}}]}
+
+=== source check: src/modules/chat/streaming.ts consumeSseStream !ok branch ===
+14:  extractSidecarDetail,
+345:      // or a 422 field-error array) — never the raw JSON body (R15-UI-012).
+346:      const fallback = `sidecar returned ${response.status}`;
+348:      throw new SidecarError(response.status, extractSidecarDetail(parsed, fallback));
+
+VERDICT: holds. Sidecar returns the exact detail shapes from the register repro; consumeSseStream's !response.ok branch (streaming.ts:341-349) now parses the body and calls extractSidecarDetail(parsed, fallback) explicitly citing R15-UI-012 in a comment, matching the fix_shape (JSON.parse + extractSidecarDetail instead of response.text().slice(0,500)).

@@ -1,0 +1,5 @@
+COMMAND: curl http://127.0.0.1:52359/fundamentals/TCS ; curl http://127.0.0.1:52359/fundamentals/AAPL (own sidecar, candidate 949c3c9f)
+EXIT: 0 (HTTP 200 both)
+TCS: revenue_ttm=2,758,590,000,000.0 (2,758.59 Cr... actually INR, provider nse), field_meta.revenue_ttm={status:ok, provider:nse, label:"consolidated, sum of 4 filed quarters to 2026-06-30"}
+AAPL: revenue_ttm provider=yfinance (control unchanged; the IN exchange lane is not tried outside India)
+VERDICT: holds. Matches batch-7 cert (TCS provider nse, consolidated, sum of 4 filed quarters; AAPL stays yfinance).

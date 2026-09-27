@@ -1,0 +1,66 @@
+--- save workflow ---
+{"id":"b8-agent023-wf","name":"b8-agent023","description":null,"version":1,"nodes":[{"id":"n1","type":"data.fetch_quote","position":{"x":0.0,"y":0.0},"config":{"symbol":"AAPL"}},{"id":"n2","type":"action.webhook","position":{"x":200.0,"y":0.0},"config":{"ref":"b8-hook"}}],"edges":[{"id":"e1","sourceNode":"n1","sourcePort":"out","targetNode":"n2","targetPort":"in"}],"updatedAt":1790518141911}
+--- register webhook ref ---
+HTTP/1.1 400 Bad Request
+date: Sun, 27 Sep 2026 14:09:01 GMT
+server: uvicorn
+content-length: 63
+content-type: application/json
+vary: Origin
+
+{"detail":"webhook URL must be https:// (or http://localhost)"}--- list webhooks (confirm URL never leaks) ---
+{"refs":[]}--- register webhook ref (localhost) ---
+HTTP/1.1 200 OK
+date: Sun, 27 Sep 2026 14:09:06 GMT
+server: uvicorn
+content-length: 20
+content-type: application/json
+vary: Origin
+
+{"refs":["b8-hook"]}--- list webhooks (confirm URL never leaks) ---
+{"refs":["b8-hook"]}--- create schedule at 1 minute (expect 422) ---
+HTTP/1.1 422 Unprocessable Content
+date: Sun, 27 Sep 2026 14:09:06 GMT
+server: uvicorn
+content-length: 169
+content-type: application/json
+vary: Origin
+
+{"detail":[{"type":"greater_than_equal","loc":["body","trigger","interval","everyMinutes"],"msg":"Input should be greater than or equal to 5","input":1,"ctx":{"ge":5}}]}--- create schedule at 5 minutes ---
+Sun Sep 27 19:39:07 IST 2026
+{"id":"sch-78b6226d106c","workflowId":"b8-agent023-wf","trigger":{"kind":"interval","everyMinutes":5},"enabled":true,"createdAt":1790518147863,"lastFiredAt":null,"lastSeen":null,"lastStatus":null,"lastDetail":null}
+--- first attempt failed: 'ref' is not the config key (it's 'secret_ref' per builtin.py:399), source check ---
+sidecar/services/workflow_nodes/builtin.py:399 'ref = str(config.get("secret_ref") or "")'; :406 'inputs.get("value")'
+-- corrected workflow: node config key secret_ref (not ref), edge sourcePort quote -> targetPort value
+{"deleted":true}
+{"id":"b8-agent023-wf2","name":"b8-agent023-2","description":null,"version":1,"nodes":[{"id":"n1","type":"data.fetch_quote","position":{"x":0.0,"y":0.0},"config":{"symbol":"AAPL"}},{"id":"n2","type":"action.webhook","position":{"x":200.0,"y":0.0},"config":{"secret_ref":"b8-hook"}}],"edges":[{"id":"e1","sourceNode":"n1","sourcePort":"quote","targetNode":"n2","targetPort":"value"}],"updatedAt":1790518503719}
+
+--- validate via one-off POST /workflow/run before scheduling ---
+data: {"kind":"run-start","runId":"b79b2af8-f84c-4f95-8252-d042c3894a05","startedAt":1790518503739}
+
+data: {"kind":"node-start","runId":"b79b2af8-f84c-4f95-8252-d042c3894a05","nodeId":"n1","nodeType":"data.fetch_quote","startedAt":1790518503739}
+
+data: {"kind":"node-output","runId":"b79b2af8-f84c-4f95-8252-d042c3894a05","nodeId":"n1","outputs":{"quote":{"symbol":"AAPL","price":341.07000732421875,"change":5.160007324218725,"change_percent":1.536127928379246,"volume":29950100.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:01Z","provider":"yfinance","freshness":null}},"durationMs":818.557792}
+
+data: {"kind":"node-start","runId":"b79b2af8-f84c-4f95-8252-d042c3894a05","nodeId":"n2","nodeType":"action.webhook","startedAt":1790518504558}
+
+data: {"kind":"node-output","runId":"b79b2af8-f84c-4f95-8252-d042c3894a05","nodeId":"n2","outputs":{"status_code":200},"durationMs":20.4095}
+
+data: {"kind":"run-complete","runId":"b79b2af8-f84c-4f95-8252-d042c3894a05","durationMs":839.537}
+
+
+2026-09-27T19:38:55.222298 {"test":1}
+2026-09-27T19:45:04.577282 {"workflow":"b8-agent023-2","node":"n2","value":{"symbol":"AAPL","price":341.07000732421875,"change":5.160007324218725,"change_percent":1.536127928379246,"volume":29950100.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:01Z","provider":"yfinance","freshness":null}}
+--- create schedule (5 min) ---
+Sun Sep 27 19:45:08 IST 2026
+{"id":"sch-2458cd68d7d9","workflowId":"b8-agent023-wf2","trigger":{"kind":"interval","everyMinutes":5},"enabled":true,"createdAt":1790518508536,"lastFiredAt":null,"lastSeen":null,"lastStatus":null,"lastDetail":null}
+
+--- first unattended fire: 19:50:18, ~5min11s after schedule creation (19:45:08) ---
+[{"id":"sch-2458cd68d7d9","workflowId":"b8-agent023-wf2","trigger":{"kind":"interval","everyMinutes":5},"enabled":true,"createdAt":1790518508536,"lastFiredAt":1790518817611,"lastSeen":null,"lastStatus":"ok","lastDetail":null}]--- GET /workflow/webhooks (URL never leaked) ---
+{"refs":["b8-hook"]}--- URL persistence check: 0 occurrences of 52349/localhost:52349 in sidecar.log and workflows.db (in-process memory only, matching register repro 'The URL does not appear in workflows.db or the sidecar log') ---
+
+--- second unattended fire: 19:55:18, exactly 5min0s after the first (19:50:18) -- matches the register cadence claim ('fired unattended... and again... never in between') ---
+[{"id":"sch-2458cd68d7d9","workflowId":"b8-agent023-wf2","trigger":{"kind":"interval","everyMinutes":5},"enabled":true,"createdAt":1790518508536,"lastFiredAt":1790519117653,"lastSeen":null,"lastStatus":"ok","lastDetail":null}]
+--- cleanup: delete schedule ---
+{"deleted":true}
+VERDICT: holds. A saved data.fetch_quote(AAPL)->action.webhook workflow, scheduled interval everyMinutes:5, fired unattended TWICE with no receiver attention required: 19:50:18 and 19:55:18 IST, exactly 5:00 apart, both lastStatus=ok, each delivering {workflow,node,value:<AAPL quote>} to the receiver. everyMinutes:1 correctly rejected with 422 (ge=5, MIN_INTERVAL_MINUTES). GET /workflow/webhooks lists only the ref (['b8-hook']), never the URL. The webhook URL (localhost:52349) appears 0 times in the sidecar log and 0 times in workflows.db across the whole run -- confirmed in-process-memory-only, matching the register repro exactly.

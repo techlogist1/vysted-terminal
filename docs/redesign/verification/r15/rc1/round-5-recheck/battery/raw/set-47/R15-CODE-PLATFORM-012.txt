@@ -1,0 +1,74 @@
+Repro attempted: curl / vy.py / in-process python -- none apply. This entry's behavior
+(Plugin Manager toggle -> plugins.db enabled + runtime unload/detach persistence across
+a restart) lives entirely in the frontend React component + Zustand-adjacent runtime
+(src/components/PluginManagerPanel.tsx, src/lib/plugin-runtime.ts), driven by DOM
+fireEvent, not a sidecar route. Battery role may not run vitest or use a GUI, so no
+live probe of this entry's own repro is possible from this role. Certification
+mechanism per batch-10/VERDICTS.md line 59: 'vitest PluginManagerPanel.test toggling
+an active plugin off persists enabled:false and detaches it; plugin-runtime.test
+disablePlugin persists enabled:false and detaches the plugin's contributions.'
+
+Verified those are REAL, COMMITTED, PERMANENT tests at candidate sha 949c3c9fd49d61ecadc9813a8321bcdfd81178bd,
+not scratch files (repo path, git-tracked):
+src/components/PluginManagerPanel.test.tsx
+src/lib/plugin-runtime.test.ts
+
+Exact pinned test bodies at this sha:
+--- src/components/PluginManagerPanel.test.tsx (search hit) ---
+118:  it("toggling an active plugin off persists enabled:false and detaches it (R15-CODE-PLATFORM-012)", async () => {
+  it("toggling an active plugin off persists enabled:false and detaches it (R15-CODE-PLATFORM-012)", async () => {
+    const detach = vi.fn(async () => {});
+    const runtime = new PluginRuntime({ host: { attach: async () => {}, detach } });
+    await runtime.loadPlugin(discovered(fakePlugin("toggleable")));
+    usePluginsStore.getState().attachRuntime(runtime);
+
+    render(<PluginManagerPanel />);
+    const toggle = screen.getByRole("switch", { name: "toggleable enabled" });
+    expect(toggle).toBeChecked();
+
+    fireEvent.click(toggle);
+    await waitFor(() => {
+      expect(runtime.getPlugin("toggleable")?.state).toBe("stopped");
+      expect(detach).toHaveBeenCalledWith("toggleable");
+    });
+    expect((await runtime.readConfig("toggleable"))?.enabled).toBe(false);
+  });
+
+  it("renders the health-history strip after a healthCheck has run", async () => {
+    const runtime = new PluginRuntime();
+    await runtime.loadPlugin(discovered(fakePlugin("ticker")));
+    await runtime.healthCheckAll();
+    usePluginsStore.getState().attachRuntime(runtime);
+
+    render(<PluginManagerPanel />);
+    expect(screen.getByTestId("plugin-health-history")).toBeInTheDocument();
+  });
+});
+--- src/lib/plugin-runtime.test.ts (search hit) ---
+  it("disablePlugin persists enabled:false and detaches the plugin's contributions", async () => {
+    const host = hostSpy();
+    const runtime = new PluginRuntime({ host });
+    await runtime.enablePlugin(discovered(fakePlugin("a")));
+    expect(host.attach).toHaveBeenCalledWith("a");
+
+    await runtime.disablePlugin("a");
+    expect((await runtime.readConfig("a"))?.enabled).toBe(false);
+    expect(runtime.getPlugin("a")?.state).toBe("stopped");
+    expect(host.detach).toHaveBeenCalledWith("a");
+  });
+});
+
+describe("PluginRuntime — the one never-persisted default (R15-CODE-PLATFORM-013)", () => {
+  it("a patch or load of a never-seen plugin uses defaultEnabled, never a hard-coded true", async () => {
+    const initialize = vi.fn();
+    const runtime = new PluginRuntime({ defaultEnabled: () => false });
+    expect(await runtime.readConfig("p")).toMatchObject({ installed: false, enabled: false });
+
+    // configure() grants a secret to a plugin the user never enabled; it stays off.
+    await runtime.updateConfig("p", { grantedSecretIds: ["k"], installed: true });
+    expect((await runtime.readConfig("p")).enabled).toBe(false);
+    const snapshot = await runtime.loadPlugin(discovered(fakePlugin("p", { initialize })));
+    expect(snapshot.state).toBe("stopped");
+    expect(initialize).not.toHaveBeenCalled();
+  });
+});

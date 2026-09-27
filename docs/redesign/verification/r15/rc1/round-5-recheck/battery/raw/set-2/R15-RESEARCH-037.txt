@@ -1,0 +1,31 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+run at: 2026-09-27 (this gate round, rc1-battery-11)
+method: fresh in-process python call against sidecar/.venv on the candidate worktree, importing and calling the actual fixed function(s) with sample input matching the register entry's own stated repro figures/text (no live LLM call; deterministic function-level probe of the exact code path the fix touches)
+cmd: sidecar/.venv/bin/python3 battery11_set2_research.py (run from candidate worktree root, sidecar on sys.path)
+
+--- R15-RESEARCH-037 ---
+PASS note='Citation preference — when several sources support a claim, cite the most authoritative: primary record (exchange/regulator/filings/IR): [2]; tier-1 press: [3].' (want primary->'[2]', press->'[3]' matching actual unranked positions)
+
+===JSON===
+{
+  "R15-RESEARCH-034": {
+    "ok": true,
+    "detail": "_reflect_says_complete('Price action is not covered yet')=False (want False); _reflect_says_complete('COMPLETE')=True (want True); _reflect_says_complete('No gaps remain')=True (want True)"
+  },
+  "R15-RESEARCH-004": {
+    "ok": true,
+    "detail": "claims=['Revenue growth +40.5% year over year', '-0.4% earnings growth quarter over quarter', 'P/E ratio stands at 67.13953', 'Gross Margin 51.70%'] checks={'has_40.5': True, 'has_neg0.4': True, 'has_67.13953': True, 'has_51.70': True, 'no_mangled_5pct': True, 'no_mangled_13953': True}"
+  },
+  "R15-RESEARCH-003": {
+    "ok": true,
+    "detail": "round1 numbered_round1=['https://example-general-news.com/article1'] pos_round1=1; after round2 numbered_round2=['https://example-general-news.com/article1', 'https://www.bseindia.com/filing/xyz'] pos_round1_after=1 pos_round2=2 (want round1 source to KEEP position 1 even though round2's primary source would outrank it if fully re-ranked)"
+  },
+  "R15-RESEARCH-029": {
+    "ok": true,
+    "detail": "removed_bib=3 removed_markers=1 checks={'no_n_literal': True, 'no_merged_sources_heading': True, 'no_references_heading': True, 'valid_marker_kept': True, 'out_of_range_marker_stripped': True, 'removed_bib_gt_0': True}\ncleaned_final='Earnings growth: -0.4% \\n\\n## Some real section\\n\\nBody text with a valid marker [1] and an out-of-range marker.'"
+  },
+  "R15-RESEARCH-037": {
+    "ok": true,
+    "detail": "note='Citation preference \u2014 when several sources support a claim, cite the most authoritative: primary record (exchange/regulator/filings/IR): [2]; tier-1 press: [3].' (want primary->'[2]', press->'[3]' matching actual unranked positions)"
+  }
+}

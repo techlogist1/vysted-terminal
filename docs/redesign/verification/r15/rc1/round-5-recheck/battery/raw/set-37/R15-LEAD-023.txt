@@ -1,0 +1,1 @@
+ProviderError raised (expected): Yahoo returned a price with no trade time

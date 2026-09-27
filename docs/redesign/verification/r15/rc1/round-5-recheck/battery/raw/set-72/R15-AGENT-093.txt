@@ -1,0 +1,40 @@
+candidate sha: 949c3c9fd49d61ecadc9813a8321bcdfd81178bd
+method: in-process Python call against sidecar/.venv on the candidate
+worktree, importing services.agent_runtime and models.llm.LLMToolUseEvent
+directly and exercising _normalise_tool_args with the exact scenarios the
+register entry (and its round-2 correction) names. This is a live function
+call, not a pytest run — the equivalent pinned test is
+sidecar/tests/test_b3_runtime_tool_args.py::test_nested_numeric_string_is_coerced,
+named here for cross-reference only.
+
+cmd: cd <candidate>; ./sidecar/.venv/bin/python3 battery11_agent093.py
+
+case 1 — nested numeric string inside an array-of-objects param
+  (add_chart_drawing points=[{"price": "185.5"}]):
+  -> points[0].price == 185.5 (float, coerced), no __vysted_invalid_args__
+
+case 2 — the whole array sent as a stringified JSON string
+  (points = '[{"price": "185.5"}]'):
+  -> points == [{"price": 185.5}], no __vysted_invalid_args__
+
+case 3 — integral float string for a declared integer param
+  (option_chain max_strikes="5.0"):
+  -> max_strikes == 5, type is int, no __vysted_invalid_args__
+
+case 4 (negative control) — a genuinely non-numeric string
+  (option_chain max_strikes="ten"):
+  -> __vysted_invalid_args__ present: "invalid arguments for option_chain:
+     'ten' is not of type 'integer'; call again with valid args"
+
+ALL_OK: True
+
+observed: the schema gate now coerces a numeric-looking JSON-literal string
+to its declared type at EVERY depth (top-level, nested object properties,
+array items, and inside a just-parsed stringified array), including an
+integral float ("5.0") to int, while a truly non-numeric string ("ten")
+still correctly fails validation. This matches the round-2 fix
+(services/agent_runtime.py _coerce, recursive) exactly and resolves the
+round-1 partial-fix gap (top-level-only coercion, no integral-float
+handling) the register's own correction note describes.
+
+verdict: holds

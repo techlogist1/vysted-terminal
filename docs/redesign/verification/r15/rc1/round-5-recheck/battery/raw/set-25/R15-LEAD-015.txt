@@ -1,0 +1,6 @@
+COMMAND: curl http://127.0.0.1:52359/fundamentals/DHANBANK/income?period=quarterly ; ?period=annual (own sidecar, candidate 949c3c9f)
+EXIT: 0 (HTTP 200 both)
+quarterly: gaps=["2025-09-30"], matching the register's missing quarter exactly; every line carries a null for that period (per the response's "lines" values keyed by period).
+annual: periods=["2026-03-31","2025-03-31","2024-03-31","2023-03-31"] (ISO dates), provider=openbb-mcp.
+SOURCE CHECK: sidecar/services/provider_registry.py:577-602 _mark_gaps() (comment explicitly cites R15-LEAD-015) inserts a null-valued row for each missing expected quarter and returns it in a 'gaps' list; periods are normalized to ISO date strings.
+VERDICT: holds.

@@ -1,0 +1,38 @@
+command: grep -n R15-UI-005 -A15 src/modules/portfolio/PortfolioPanel.test.tsx
+exit: 0
+output:
+141:  it("R15-UI-005: no live quote resolves -> null total with a note, never a fabricated 0", async () => {
+142-    // Case the fix was not written against (per PLAN.md): one holding priced,
+143-    // one holding whose quote fails — a PARTIAL total, not the all-unresolved
+144-    // case above; the note must name the excluded holding.
+145-    mockFetchQuotes.mockResolvedValue({
+146-      quotes: new Map([["AAPL", quote("AAPL", 200)]]),
+147-      failed: 1,
+148-    });
+149-    render(<PortfolioPanel />);
+150-    await addHolding("aapl", "10", "150");
+151-    await addHolding("zzznotreal", "10", "100");
+152-
+153-    expect((await screen.findAllByText("$2,000.00")).length).toBeGreaterThanOrEqual(1);
+154-    const payload = usePanelContextBus.getState().lastEventBySource["portfolio"]?.payload as {
+155-      totalValue: number | null;
+156-      totalValueNote?: string | null;
+--
+175:  it("R15-UI-005: an all-unresolved portfolio publishes totalValue null, never 0, and never fakes concentration/P&L", async () => {
+176-    mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 1 });
+177-    render(<PortfolioPanel />);
+178-    await addHolding("zzznotreal", "10", "100");
+179-
+180-    expect(await screen.findByText("— (no live quotes)")).toBeInTheDocument();
+181-    expect(screen.getByText("—", { selector: ".text-charcoal-400" })).toBeInTheDocument();
+182-    expect(screen.queryByText(/Concentration:/)).toBeInTheDocument();
+183-    expect(screen.queryByText("0.0%")).not.toBeInTheDocument();
+184-
+185-    const payload = usePanelContextBus.getState().lastEventBySource["portfolio"]?.payload as {
+186-      totalValue: number | null;
+187-      totalValueNote?: string | null;
+188-    };
+189-    expect(payload.totalValue).toBeNull();
+190-    expect(payload.totalValueNote).toBe("no live quotes resolved");
+
+verdict: ci_pinned -- src/modules/portfolio/PortfolioPanel.test.tsx:138 'R15-UI-005: no live quote resolves -> null total with a note, never a fabricated 0' (partial: 1 priced + 1 failed -> totalValue 2000, note names ZZZNOTREAL) and :180 'R15-UI-005: an all-unresolved portfolio publishes totalValue null, never 0...' (totalValue null, no 0.0% fabricated).

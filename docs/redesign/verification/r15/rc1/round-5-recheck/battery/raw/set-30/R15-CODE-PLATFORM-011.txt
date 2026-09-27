@@ -1,0 +1,86 @@
+=== R15-CODE-PLATFORM-011 repro (own sidecar :52362, register's exact 422) ===
+curl -sS -X POST http://127.0.0.1:52362/agents/buffett/runs -H 'Content-Type: application/json' -d '{"prompt":"x","budget":{"max_tokens":"abc"}}'
+{"detail":[{"type":"int_parsing","loc":["body","budget","max_tokens"],"msg":"Input should be a valid integer, unable to parse string as an integer","input":"abc"}]}
+curl -sS -X POST http://127.0.0.1:52362/runs/run-does-not-exist-b8v/cancel
+{"detail":"unknown run: 'run-does-not-exist-b8v'"}
+
+-- delegate-runs.ts: sidecarRequest is the sole verb, reasonOf() passes SidecarError.message through unchanged --
+    provider: launch.provider,
+    threadId: launch.threadId,
+  });
+  try {
+    const body = await sidecarRequest<{ runId?: string; run_id?: string }>(
+      "POST",
+      `/agents/${encodeURIComponent(launch.agentId)}/runs`,
+      {
+        body: {
+          prompt: launch.prompt,
+          context_snapshot: launch.contextSnapshot
+        agentId: launch.agentId,
+        agentName: launch.agentName,
+        messageId: `delegate-${sidecarRunId}`,
+      });
+    }
+    ensurePolling();
+  } catch (err) {
+    useAgentRunsStore.getState().endRun(localId, "error", `Could not start: ${reasonOf(err)}`);
+  }
+}
+
+
+/**
+ * Cancel a durable run. The mirror flips to `cancelled` only once the sidecar
+ * confirmed; a refused or failed cancel leaves it running and returns the
+ * reason for the rail's retry note (R15-UI-040 — the run may still be spending).
+ */
+export async function cancelDelegateRun(sidecarRunId: string): Promise<RunActionResult> {
+  try {
+    await sidecarRequest("POST", `/runs/${encodeURIComponent(sidecarRunId)}/cancel`);
+  } catch (err) {
+    return { ok: false, error: `Cancel failed (${reasonOf(err)}) — retry.` };
+  }
+  const local = useAgentRunsStore.getState().bySidecarId(sidecarRunId);
+
+-- sidecar-client.ts sidecarRequest --
+export async function sidecarRequest<T>(
+  method: "GET" | "POST" | "PUT" | "DELETE",
+  path: string,
+  opts: SidecarRequestOptions = {},
+): Promise<T> {
+  const base = await getSidecarBaseUrl();
+  const url = new URL(path, base);
+  if (opts.params) {
+    for (const [key, value] of Object.entries(opts.params)) {
+      if (value !== undefined) {
+        url.searchParams.set(key, String(value));
+      }
+    }
+  }
+  // The active region rides every sidecar request (Pass B B1 locale-native
+  // contract): the sidecar reads `X-Vysted-Region` to pick region-first data
+  // providers/feeds. Read at call time so a region change reflects immediately;
+  // `getState()` is SSR/static-export safe (no window/navigator at module load).
+  const requestHeaders: Record<string, string> = {
+    "X-Vysted-Region": useSettingsStore.getState().region,
+  };
+  // The three-tier web-search contract (FR-080/083/084): the active tier, the
+  // BYOK Exa key (keychain), and the local SearXNG URL ride every request so the
+  // sidecar dispatches search to the right backend. Undefined values are dropped
+  // below (never an empty header). Merged FIRST so a per-call header arg still
+  // wins if it ever sets the same key.
+  const searchHeaders = await buildSearchHeaders();
+  for (const [key, value] of Object.entries({ ...searchHeaders, ...opts.headers })) {
+    if (value !== undefined) {
+      requestHeaders[key] = value;
+    }
+  }
+  const init: RequestInit = { method, headers: requestHeaders, signal: opts.signal };
+  if (opts.body !== undefined) {
+    requestHeaders["Content-Type"] = "application/json";
+    init.body = JSON.stringify(opts.body);
+  }
+  const response = await sidecarFetch(url.toString(), init);
+  if (!response.ok) {
+    // A body with no `detail` (and a blank status text) still names the status.
+
+VERDICT: holds. Own sidecar returns exactly the register's 422 shape (int_parsing on budget.max_tokens) and the unknown-run cancel error. delegate-runs.ts now calls the single sidecarRequest<T> verb (sidecar-client.ts), which parses non-2xx bodies through extractSidecarDetail and throws SidecarError(status, <human detail>); reasonOf(err) returns err.message verbatim, so 'Could not start: ${reasonOf(err)}' renders 'Could not start: max_tokens: Input should be a valid integer, unable to parse string as an integer', never '[object Object]'. AgentBuilderPanel.tsx and 3 census sites (host-actions.ts order POST, BrokerOrderEntry.tsx) were folded into the D81 trading removal per the register's own correction note, consistent with candidate 949c3c9f having no trading surfaces.

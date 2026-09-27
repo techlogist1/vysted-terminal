@@ -1,0 +1,30 @@
+CMD: in-process _screener_run(universe=india-all, criteria=[roe>0.25]) via candidate venv, checking skip_details is replaced by skip_summary+skip_examples
+
+--- IN-PROCESS CONFIRMATION: _screener_run(universe='india-all', criteria=[roe>0.25]) via candidate venv ---
+provider yfinance failed for fundamentals, falling through: Yahoo has no company record for 'KHERIAAUTO-SM.NS'
+provider yfinance failed for fundamentals, falling through: Yahoo has no company record for 'SPECTRAA-SM.NS'
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'TECHERA.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'UNILEX.NS': Too Many Requests. Rate limited. Try after a while.
+provider health: yahoo circuit OPEN for 56s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'RAPPID.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'WOL3D.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'AVIANSH.NS': Too Many Requests. Rate limited. Try after a while.
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'SDREAMS.NS'
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'KALANA.NS'
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'BIKEWO.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'KALANA.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'SDREAMS.NS': Too Many Requests. Rate limited. Try after a while.
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'PSFL.NS'
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'ENVIRO.NS'
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'PSFL.NS': Too Many Requests. Rate limited. Try after a while.
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'PHOGLOBAL.NS'
+provider openbb-mcp failed for fundamentals, falling through: openbb-mcp fundamentals returned no rows for 'DECCANTRAN.NS'
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'ENVIRO.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'DECCANTRAN.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'PHOGLOBAL.NS': Too Many Requests. Rate limited. Try after a while.
+ok: True
+top-level keys: ['universe', 'evaluated_count', 'skipped_count', 'result_count', 'matched_count', 'rows', 'duration_ms', 'partial', 'coverage', 'freshness', 'basis_counts', 'throttled', 'skip_summary', 'skip_examples']
+has skip_details key: False
+skip_summary: {'missing_field:roe': 1135, 'not_found': 194, 'rate_limited': 164}
+skip_examples count: 5
+total tool-result payload bytes: 26266

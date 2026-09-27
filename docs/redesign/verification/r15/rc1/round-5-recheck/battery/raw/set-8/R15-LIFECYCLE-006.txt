@@ -1,0 +1,27 @@
+=== R15-LIFECYCLE-006 repro: retired research model surfaces an honest error ===
+candidate 949c3c9fd49d61ecadc9813a8321bcdfd81178bd, live, own sidecar :52358
+cmd: python3 scripts/r15/vy.py invoke researcher "Research Reliance Industries (RELIANCE, NSE): latest quarter results and outlook. Use only the research tool." --provider openrouter --model nvidia/nemotron-3-super-120b-a12b:free --tier tier_b --port 52358 --header "X-Vysted-Research-Models=normal=openai/o3-deep-research,fast=openai/o3-deep-research,heavy=openai/o3-deep-research"
+[   3.4s] tool_use: {"kind": "tool_use", "tool_call_id": "call_3163ce2355a940d890c09264fd1aa215", "name": "research", "input": {"query": "Reliance Industries", "depth": "quick"}}
+[   3.4s] research_step: {"kind": "research_step", "tool_call_id": "call_3163ce2355a940d890c09264fd1aa215", "tool": "research", "step_kind": "engine", "detail": "research:begin 5b0595f08b2e4640a1b13c64f572d64a depth=normal query=Reliance Industries", "latency_ms": null, "status": "ok", "index": 1}
+[   3.9s] research_step: {"kind": "research_step", "tool_call_id": "call_3163ce2355a940d890c09264fd1aa215", "tool": "research", "step_kind": "engine", "detail": "research-model:openai/o3-deep-research \u2014 hosted research model (normal stop, via OpenRouter)", "latency_ms": null, "status": "ok", "index": 2}
+[   4.1s] research_step: {"kind": "research_step", "tool_call_id": "call_3163ce2355a940d890c09264fd1aa215", "tool": "research", "step_kind": "engine", "detail": "The research model openai/o3-deep-research is no longer available on OpenRouter; pick another in Settings > Research.", "latency_ms": null, "status": "error", "index": 3}
+[   4.1s] tool_result: {"kind": "tool_result", "tool_call_id": "call_3163ce2355a940d890c09264fd1aa215", "name": "research", "ok": false, "error": "The research model openai/o3-deep-research is no longer available on OpenRouter; pick another in Settings > Research."}
+[   4.8s] error: {"kind": "error", "message": "OpenRouter returned a server error \u2014 it may be a temporary outage.", "action": "Try again in a few minutes.", "detail": "Upstream error from Nvidia: Service temporarily overloaded", "code": "provider_5xx"}
+[   4.8s] done: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+
+=== THINKING (streamed as kind=thinking) ===
+We need to research Reliance Industries (RELIANCE) on NSE. Use only the research tool. We must call the research tool with depth appropriate. The user wants latest quarter results and outlook. Use only the research tool. We'll call research with query "Reliance Industries" and maybe depth quick or deep? Since they want latest quarter results and outlook, we can do a quick research. We'll need to then produce answer. We must not use other tools. Only research tool. Let's call research.
+
+
+=== ASSISTANT TEXT ===
+
+
+=== ok · 4.8s · events {'thinking': 41, 'tool_use': 1, 'research_step': 3, 'tool_result': 1, 'error': 1, 'done': 1} · usage in=0 out=0 · est $0.00000 · nvidia/nemotron-3-super-120b-a12b:free
+
+MATCH: research_step status 'error' with the exact register-cited message 'The research model openai/o3-deep-research is no longer available on OpenRouter; pick another in Settings > Research.' — this IS the certified fix (was: all-ok steps + a raw HTTP 404 + zero assistant text + no error frame).
+The later 'OpenRouter returned a server error' / Nvidia 5xx is an unrelated free-model upstream hiccup for the ANSWERING model (nvidia/nemotron), not the research-model-retirement mechanism under test.
+
+-- static confirm: live catalog absence (already probed for set-8 context) --
+GET https://openrouter.ai/api/v1/models -> 458 models; openai/o3-deep-research, openai/o4-mini-deep-research, perplexity/sonar-reasoning all ABSENT
+GET /llm/models?provider=openrouter (own sidecar) -> source: live, count 458, o3-deep-research absent
+exit: 0

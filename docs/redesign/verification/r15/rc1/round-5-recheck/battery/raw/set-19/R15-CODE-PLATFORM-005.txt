@@ -1,0 +1,6 @@
+COMMAND: python3 probe_platform005.py — in-process concurrent options.price(reqA)/options.price(reqB) [2 diff valuation dates] x1500, plus bonds.price_bond vs options.price x1500, using candidate venv
+EXIT: 0
+OUTPUT:
+reference single-threaded price for reqA: 10.450584
+concurrent runs: 1500, mismatches vs reference: 0
+bond-vs-option concurrent runs: 1500, bond mismatches vs reference: 0

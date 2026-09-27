@@ -1,0 +1,20 @@
+Per-role rule: never run vitest suites -> ci_pinned when the only evidence
+is a pinned test. Not executed; verified by reading the source.
+
+Two pinned tests confirmed present at 949c3c9f:
+  src/modules/chart/ChartPanel.test.tsx:423
+  it("a failed /indicators after a symbol change leaves no overlay of the
+     old symbol (R15-UI-023)", ...) -- asserts every series drawn before the
+     failed reload is removed via chartApi.removeSeries.
+
+  src/modules/chart/ChartPanel.test.tsx:444
+  it("does not draw indicators before their own symbol's candles land
+     (R15-UI-023)", ...) -- asserts 0 Line series added while history is
+     still pending, then 2 once it resolves.
+
+Matches batch-7 certification ("A rejected /indicators after a symbol
+change removes every old overlay series... Indicators do not draw before
+their own symbol's candles land").
+
+VERDICT: ci_pinned (src/modules/chart/ChartPanel.test.tsx:423 and :444,
+both named "(R15-UI-023)").

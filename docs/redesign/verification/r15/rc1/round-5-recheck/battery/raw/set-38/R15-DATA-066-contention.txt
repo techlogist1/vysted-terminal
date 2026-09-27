@@ -1,0 +1,6 @@
+=== R15-DATA-066: contention test (cold batch in-flight vs SPY quote) ===
+-- SPY quote fired 0.5s after batch start --
+SPY-contended HTTP:200 time_total=10.429987
+batch HTTP:200 time_total=22.691909
+-- SPY quote idle after batch done --
+SPY-idle HTTP:200 time_total=0.490093

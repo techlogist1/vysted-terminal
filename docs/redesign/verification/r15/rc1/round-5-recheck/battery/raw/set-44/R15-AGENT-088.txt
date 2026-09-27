@@ -1,0 +1,156 @@
+=== R15-AGENT-088: bare-ticker fast path (no LLM round trip) ===
+NOTE: pure client-side (chat composer); no sidecar route, GUI unavailable this run.
+Certified in batch-10 via vitest slash-commands.test only:
+  'a bare base with one suffixed known match resolves to the suffixed symbol'
+  'M&M.NS and BAJAJ-AUTO.NS resolve'
+  'ambiguous bare base stays raw'
+  ChatSidebar.tsx:731 takes the bare-ticker result without an LLM round trip
+-- source check: slash-commands.ts bare-ticker resolver + length cap --
+47:const BARE_TICKER_SHAPE = /^@?([A-Za-z][A-Za-z0-9.&-]{0,19})$/;
+69:  const match = BARE_TICKER_SHAPE.exec(trimmed);
+95:export function parseSlashCommand(
+170: * `parseSlashCommand` verbs above: those drive raw plumbing (`/ask`, `/agent`,
+216: * list — they live in `parseSlashCommand` and aren't part of the curated UX.
+-- BARE_TICKER_SHAPE test against the previously-failing symbols (regex match, node) --
+AAPL -> true
+@AAPL -> true
+RELIANCE.NS -> true
+HDFCBANK.NS -> true
+BAJFINANCE.NS -> true
+M&M.NS -> true
+BAJAJ-AUTO.NS -> true
+-- ChatSidebar.tsx bare-ticker dispatch (grep for resolveBareTicker call site) --
+-- functions exported from slash-commands.ts around bare-ticker --
+export type SlashParseResult = SlashCommand | SlashParseError;
+
+/** A lone token shape a ticker can take: an optional `@`, then a letter
+ *  followed by up to 19 more letters/digits/dots/ampersands/hyphens (covers
+ *  `AAPL`, `BRK.B`, `RELIANCE.NS`, `M&M.NS`, `BAJAJ-AUTO.NS`,
+ *  `HDFCBANK.NS`). Anchored to the WHOLE trimmed input — anything with a
+ *  space or other punctuation (a question, a sentence) never matches. */
+const BARE_TICKER_SHAPE = /^@?([A-Za-z][A-Za-z0-9.&-]{0,19})$/;
+
+/** The part of a known symbol before its exchange suffix (`RELIANCE.NS` ->
+ *  `RELIANCE`; `AAPL` has none, so it is its own base). */
+function baseOf(symbol: string): string {
+  const dot = symbol.indexOf(".");
+  return dot === -1 ? symbol : symbol.slice(0, dot);
+}
+
+/**
+ * A lone `@?TICKER` token resolved against the known symbol set (R15-AGENT-088
+ * / FR-112). An exact known match wins; otherwise a bare base (`RELIANCE`
+ * against a known `RELIANCE.NS`) resolves IF it names exactly one known
+ * symbol — two or more (`INFY` with both `INFY.NS` and `INFY.BO` known) is
+ * ambiguous. Returns `null` for anything multi-word, unresolved, or
+ * ambiguous — those stay a raw LLM prompt, matching the spec's "ambiguous or
+ * unresolved tokens still go to the LLM."
+ */
+function matchBareTicker(trimmed: string, knownSymbols?: ReadonlySet<string>): string | null {
+  if (!knownSymbols || knownSymbols.size === 0) {
+    return null;
+  }
+  const match = BARE_TICKER_SHAPE.exec(trimmed);
+  if (!match) {
+    return null;
+  }
+  const candidate = match[1].toUpperCase();
+  if (knownSymbols.has(candidate)) {
+    return candidate;
+  }
+  let uniqueMatch: string | null = null;
+  for (const symbol of knownSymbols) {
+    if (baseOf(symbol).toUpperCase() === candidate) {
+      if (uniqueMatch !== null) {
+        return null;
+      }
+      uniqueMatch = symbol;
+    }
+  }
+  return uniqueMatch;
+}
+
+/**
+ * Parse a single composer input line into a typed command. `knownSymbols` (the
+ * resolver/watchlist-backed set the composer already tracks) enables the
+ * bare-ticker fast path — omit it and every non-slash input stays a raw
+ * prompt, as before.
+ */
+export function parseSlashCommand(
+-- ChatSidebar.tsx usage of parseSlashCommand kind bareTicker --
+export function parseSlashCommand(
+  input: string,
+  knownSymbols?: ReadonlySet<string>,
+): SlashParseResult {
+  const trimmed = input.trim();
+  if (trimmed.length === 0) {
+    return { kind: "error", message: "empty input" };
+  }
+  if (!trimmed.startsWith("/")) {
+    const bareTicker = matchBareTicker(trimmed, knownSymbols);
+    if (bareTicker) {
+      return { kind: "bare-ticker", symbol: bareTicker };
+    }
+    return { kind: "raw", prompt: trimmed };
+  }
+  const [head, ...rest] = trimmed.slice(1).split(/\s+/);
+  const args = rest.join(" ").trim();
+  switch (head.toLowerCase()) {
+    case "ask":
+      if (!args) {
+        return { kind: "error", message: "usage: /ask <prompt>" };
+      }
+      return { kind: "ask", prompt: args };
+    case "agent": {
+      const split = args.split(/\s+/);
+      const agentId = split.shift() ?? "";
+      const prompt = split.join(" ").trim();
+      if (!agentId) {
+        return { kind: "error", message: "usage: /agent <id> <prompt>" };
+      }
+      if (!prompt) {
+        return { kind: "error", message: "usage: /agent <id> <prompt>" };
+      }
+      return { kind: "agent", agentId, prompt };
+    }
+    case "provider":
+      if (!args) {
+        return { kind: "error", message: "usage: /provider <id>" };
+      }
+      return { kind: "provider", providerId: args };
+    case "key": {
+      // ``/key set <provider>`` — only the ``set`` sub-verb is wired today.
+      const split = args.split(/\s+/);
+      const sub = split.shift() ?? "";
+      const providerId = split.join(" ").trim();
+      if (sub !== "set" || !providerId) {
+        return { kind: "error", message: "usage: /key set <provider>" };
+      }
+      return { kind: "key-set", providerId };
+    }
+    case "clear":
+659:  const dispatchSlashAction = useCallback(
+725:          dispatchSlashAction(invocation.cmd.dispatch.action, invocation.args);
+739:        dispatchSlashAction("chart", result.symbol);
+1172:      dispatchSlashAction,
+          dispatchSlashAction(invocation.cmd.dispatch.action, invocation.args);
+          return;
+        }
+        result = { kind: "raw", prompt: invocation.cmd.dispatch.template(invocation.args) };
+      } else {
+        result = parseSlashCommand(rawInput, composerKnownSymbolSet);
+      }
+      if (result.kind === "error") {
+        setStatusLine(result.message);
+        return;
+      }
+      if (result.kind === "bare-ticker") {
+        // FR-112 fast path: a lone resolved ticker loads the chart instantly,
+        // no LLM round-trip — the same gate/dispatch `/chart` uses.
+        dispatchSlashAction("chart", result.symbol);
+        return;
+      }
+      if (result.kind === "help") {
+        setStatusLine(SLASH_HELP_LINES.join("\n"));
+        return;
+      }

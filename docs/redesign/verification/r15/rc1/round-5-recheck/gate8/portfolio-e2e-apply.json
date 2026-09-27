@@ -1,0 +1,122 @@
+{
+  "steps": [
+    {
+      "step": "A agent emitted portfolio_add_position as a tool_use (ask)",
+      "pass": true,
+      "detail": {
+        "kind": "tool_use",
+        "tool_call_id": "call_1d1a84c55f084242ad642f29c99ffd79",
+        "name": "portfolio_add_position",
+        "input": {
+          "symbol": "NVDA",
+          "quantity": 4,
+          "cost_basis": 120,
+          "note": ""
+        }
+      }
+    },
+    {
+      "step": "B isHostActionMutation(portfolio_add_position) routes it to the gate",
+      "pass": true,
+      "detail": true
+    },
+    {
+      "step": "C staged under ask: pending, store + persisted ledger unchanged",
+      "pass": true,
+      "detail": {
+        "staged": "staged",
+        "status": "pending",
+        "kind": "data-write",
+        "title": "Add 4 NVDA @ ₹120 to the portfolio",
+        "before": "Portfolio: 2 positions",
+        "after": "Portfolio: +NVDA ×4 @ ₹120 (3 total)",
+        "ledger": "AAPL:7:175,MSFT:3:400"
+      }
+    },
+    {
+      "step": "D accept (as ProposedChangesReview does) applies it to the store",
+      "pass": true,
+      "detail": {
+        "res": "applied",
+        "input": {
+          "symbol": "NVDA",
+          "quantity": 4,
+          "cost_basis": 120,
+          "note": ""
+        },
+        "holdings": [
+          {
+            "id": "h-e201407a-8562-4dde-bfc3-f895ed16d378",
+            "symbol": "AAPL",
+            "quantity": 7,
+            "costBasis": 175,
+            "assetClass": "equity",
+            "note": "core, long-term — gate8 note (edited)"
+          },
+          {
+            "id": "h-a023b310-6e3a-4f5e-8e6e-af342c3d1c2f",
+            "symbol": "MSFT",
+            "quantity": 3,
+            "costBasis": 400,
+            "assetClass": "equity"
+          },
+          {
+            "id": "h-22b1692a-1b69-40cd-91b1-14c8a177dcfb",
+            "symbol": "NVDA",
+            "quantity": 4,
+            "costBasis": 120,
+            "assetClass": "equity"
+          }
+        ]
+      }
+    },
+    {
+      "step": "E persist + read back shows the applied holding",
+      "pass": true,
+      "detail": {
+        "list": [
+          {
+            "id": "default",
+            "name": "Portfolio",
+            "holdings": [
+              {
+                "id": "h-e201407a-8562-4dde-bfc3-f895ed16d378",
+                "symbol": "AAPL",
+                "quantity": 7,
+                "costBasis": 175,
+                "assetClass": "equity",
+                "note": "core, long-term — gate8 note (edited)"
+              },
+              {
+                "id": "h-a023b310-6e3a-4f5e-8e6e-af342c3d1c2f",
+                "symbol": "MSFT",
+                "quantity": 3,
+                "costBasis": 400,
+                "assetClass": "equity"
+              },
+              {
+                "id": "h-22b1692a-1b69-40cd-91b1-14c8a177dcfb",
+                "symbol": "NVDA",
+                "quantity": 4,
+                "costBasis": 120,
+                "assetClass": "equity"
+              }
+            ]
+          }
+        ],
+        "activeId": "default"
+      }
+    },
+    {
+      "step": "F forged propose_order: not a host-action mutation; accept fails closed; ledger unchanged",
+      "pass": true,
+      "detail": {
+        "isHostActionMutation": false,
+        "acceptResult": "failed",
+        "status": "pending",
+        "kind": "panel",
+        "detail": "unknown action \"propose_order\""
+      }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+COMMAND: pnpm exec vitest run src/lib/host-actions.test.ts -t "write_note honours the catalog-documented args|save_layout" (candidate 949c3c9f)
+EXIT: 0
+OUTPUT (relevant):
+ ✓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > write_note honours the catalog-documented args: 'global' is General, mode defaults to append 0ms
+ ✓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > save_layout without a name updates the active saved layout 1ms
+ ✓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > save_layout {"name":"My desk"}: the diff promises what apply does 0ms
+
+VERDICT: holds. scope:'global' resolves to the General bucket, and save_layout with no name updates the active layout (falls back to "Agent layout" literal name only when the active layout name is literally "default", per batch-3 cert) rather than always forking a new layout.

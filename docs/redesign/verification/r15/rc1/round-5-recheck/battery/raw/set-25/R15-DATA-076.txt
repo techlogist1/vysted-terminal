@@ -1,0 +1,4 @@
+COMMAND: curl http://127.0.0.1:52359/fundamentals/DAL (own sidecar, candidate 949c3c9f)
+EXIT: 0 (HTTP 200)
+revenue_growth=0.452, field_meta.revenue_growth={status:ok, provider:bse, label:"standalone, period to 2026-06-30 vs the same period to 2025-06-30"}. 7.26/5.00-1 = 0.452, matching screener's growth figure cited in the register/cert.
+VERDICT: holds.
