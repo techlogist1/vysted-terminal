@@ -1,0 +1,9 @@
+Command: grep -n "runWorkflow\|appendEvent" src/store/workflow.ts ; grep -n "workflow/run\|runWorkflow" src/modules/node-editor/NodeEditorPanel.tsx (candidate worktree /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand)
+Exit: 0
+Observed:
+- src/modules/node-editor/NodeEditorPanel.tsx:415 handleRun now calls useWorkflowStore.getState().runWorkflow(spec, undefined, {onEvent: setRunState...}) instead of its own private SSE parser.
+- src/store/workflow.ts:271-299 runWorkflow() is the sole SSE client and calls get().appendEvent(event) for every server event (line 299).
+- src/store/workflow.ts:234-249 appendEvent() extracts a desktop-notification intent into pendingNotifications.
+- src/lib/desktop-notification.ts:110 subscribes to useWorkflowStore and fires on pendingNotifications.length > 0.
+- Code comment at NodeEditorPanel.tsx:372-379: "The store is the one client for this wire: every server event lands in useWorkflowStore (so a notify_desktop intent reaches the desktop bridge)".
+Verdict basis: the duplicate SSE consumer (private parser feeding nothing) is gone; NodeEditorPanel now drives the same store the bridge listens to. HOLDS.

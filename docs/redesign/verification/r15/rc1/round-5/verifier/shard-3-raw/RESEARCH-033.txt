@@ -1,0 +1,39 @@
+# RESEARCH-033 fresh pytest (file outside the worktree), cwd worktree/sidecar HEAD 633f8440: PYTHONPATH=. .venv/bin/python -m pytest -p no:cacheprovider -q -s test_vs3_r033.py
+ERROR STEPS: ['explorer angle 1 (Fundamentals, valuation, and financial health fo) failed: TimeoutError: angle one timed out', "explorer angle 3 (Risks, catalysts, and recent news for Infosys th) failed: KeyError: 'missing_leg'"]
+LOG: ['heavy research explorer 1 (Fundamentals, valuation, and financial health for Infosys thesis) crashed', 'heavy research explorer 3 (Risks, catalysts, and recent news for Infosys thesis) crashed']
+.
+1 passed in 1.67s
+
+import asyncio, logging
+from typing import Any
+from services.budget_guard import BudgetGuard
+from services.research import iter as iter_research
+from services.research.models import ResearchBrief
+from services.research.target import ResearchTarget
+
+def test_vs3_fresh_two_of_three_explorers_crash(monkeypatch, caplog) -> None:
+    calls: list[str] = []
+    async def explorer(task: str, **_kw: Any) -> ResearchBrief:
+        calls.append(task)
+        n = len(calls)
+        if n == 1:
+            raise TimeoutError("angle one timed out")
+        if n == 3:
+            raise KeyError("missing_leg")
+        return ResearchBrief(query=task, symbol="INFY.NS", mode="deep", markdown="## angle")
+    monkeypatch.setattr(iter_research, "run_iter_research", explorer)
+    async def tool_call(_n: str, _a: dict[str, Any]) -> dict[str, Any]:
+        return {"ok": False, "error": "stub"}
+    async def silent(_m: list[dict[str, Any]]) -> str:
+        return ""
+    emitted: list[Any] = []
+    t = ResearchTarget(symbol="INFY.NS", name="Infosys Limited", exchange="NSE", asset_class="equity", confidence=1.0, region="IN")
+    with caplog.at_level(logging.WARNING):
+        brief = asyncio.run(iter_research.run_heavy_research("Infosys thesis", angles=3, tool_call=tool_call, llm_call=silent, budget=BudgetGuard(max_steps=30), on_step=emitted.append, target=t, bound=True))
+    errs = [s.detail for s in brief.steps if s.status == "error" and "explorer angle" in s.detail]
+    print("ERROR STEPS:", errs)
+    print("LOG:", [r.getMessage() for r in caplog.records if "explorer" in r.getMessage()])
+    assert len(errs) == 2
+    assert any("angle 1" in e and "TimeoutError: angle one timed out" in e for e in errs)
+    assert any("angle 3" in e and "KeyError" in e for e in errs)
+    assert sum("explorer" in r.getMessage() and "crashed" in r.getMessage() for r in caplog.records) == 2

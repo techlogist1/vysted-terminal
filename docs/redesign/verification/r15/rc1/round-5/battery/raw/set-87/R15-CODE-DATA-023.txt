@@ -1,0 +1,37 @@
+=== R15-CODE-DATA-023: source read screener_universe_india.py:1-15 module docstring ===
+"""Full-market India screener universes from the bundled resolver masters (R10, D40).
+
+Resolves the three India universe ids the contracts commit added to
+``models/screener.py``:
+
+  - ``nse-all``   — every NSE master row (EQ + ETF + SM/NSE Emerge) as
+    ``SYMBOL.NS``.
+  - ``bse-all``   — BSE master rows with STATUS == "Active" as ``SYMBOL.BO``
+    (the liquidity ``group`` is retained in the per-symbol meta).
+  - ``india-all`` — the union, NSE listing preferred: a BSE row whose SYMBOL
+    also appears in the NSE master is skipped (dual-listings screen once,
+    on the deeper-liquidity venue).
+
+The masters are the same bundled JSON snapshots the symbol resolver reads
+(``services.resolver_masters`` via :mod:`importlib.resources` — offline,
+
+=== models/screener.py:25-40 comment ===
+# Universe
+# ---------------------------------------------------------------------------
+
+ScreenerUniverseId = Literal[
+    "sp500",
+    "nifty50",
+    "crypto-top50",
+    "custom",
+    # R10 (D40): full-market India universes resolved from the bundled resolver
+    # masters — nse-all (EQ + ETF + SM/NSE Emerge rows), bse-all (Active
+    # scrips), india-all (union, NSE listing preferred on dual-listings).
+    "nse-all",
+    "bse-all",
+    "india-all",
+]
+ScreenerAssetClass = Literal["equity", "crypto"]
+
+=== grep for stale hardcoded counts (2,675 / 2.7k / 4.9k / bare ~2 prefix) in both files ===
+grep exit code: 1  (1 = no matches found, i.e. stale counts gone)

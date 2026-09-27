@@ -1,0 +1,33 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98, sidecar/.venv (in-process python call).
+Script (probe_033.py):
+  from services.agent_runtime import _without_step_trailers, _history_tools
+  from services.llm.base import LLMMessage
+  history = [
+    LLMMessage(role="user", content="What is AAPL's market cap?"),
+    LLMMessage(role="assistant", content="The market cap of AAPL is $4.90T.\n\n[tool steps: Using fundamentals]"),
+    LLMMessage(role="user", content="Which tool gave you that market cap figure? Show exactly what it returned."),
+  ]
+  cited = _history_tools(history[:2], {"fundamentals","price_data"})
+  stripped = _without_step_trailers(history)
+
+Exit: 0
+Output:
+cited tools: {'fundamentals'}
+[user] 'What is AAPL's market cap?'
+[assistant] 'The market cap of AAPL is $4.90T.'
+[user] 'Which tool gave you that market cap figure? Show exactly what it returned.'
+PASS: trailer stripped from history sent to model
+
+Source: sidecar/services/agent_runtime.py:2673-2676 — `_history_tools` reads the `[tool steps:
+...]` trailer BEFORE `_without_step_trailers` strips it from every assistant turn in the history
+actually sent to the provider; the stripped tool names surface instead as `_EARLIER_TOOLS_NOTE`
+("Earlier turns of this chat called these tools: fundamentals. Their results are not shown here;
+call a tool again before quoting its output.").
+
+Note: src/store/chat-history.ts's `withTrailer`/`historyForSend` still embeds `[tool steps: ...]`
+in the CLIENT-sent history payload (unchanged, cosmetic for the user-visible transcript) — the
+fix is server-side: the sidecar strips it before it ever reaches the model, so the model cannot
+echo it regardless of what the client sends.
+
+VERDICT: holds. The trailer can no longer reach the model's input; matches batch-18's live cert
+(turn-2 text contains no "[tool steps", citation streamed correctly).

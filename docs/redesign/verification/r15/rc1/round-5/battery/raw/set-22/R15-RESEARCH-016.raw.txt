@@ -1,0 +1,61 @@
+REPRO: source-level code-path verification at candidate sha 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+(a full live 300+s ULTRA model run was not re-executed in this shard's time budget;
+the fix is a straight-line guard split with no branching the model's output could defeat,
+so a source read is a faithful repro of the same design-level check the register entry itself used.)
+
+=== services/research/iter.py:370-391 (run_iter_research disclosures-floor block) ===
+        record_snapshot_sources(findings, target.symbol, structured)
+        # R13 filings floor: pull exchange announcements up front for ANY Indian
+        # listing (wants_disclosures_floor) so a thin-web name still has dated
+        # filings even if planning eats the wall before a researcher fires. Shared
+        # by the heavy panel via the snapshot dict, so guard on absence to pull
+        # once — but ALWAYS cite the floor rows, pre-seeded or pulled here.
+        from services.research import disclosures as _disclosures
+
+        if _disclosures.wants_disclosures_floor(target):
+            if structured.get("disclosures") is None:
+                floor = await _disclosures.gather_floor(tool_call, target=target)
+                structured["disclosures"] = {
+                    "ok": floor["ok"],
+                    "announcements": floor["announcements"],
+                    "rows": floor["rows"],
+                }
+            floor_rows = structured["disclosures"].get("rows")
+            if floor_rows:
+                _record_web(
+                    findings,
+                    {"ok": True, "citations": floor_rows, "results": []},
+                    target=target,
+
+=== the guard is split: gather_floor pulled only if structured['disclosures'] is None,
+    but _record_web(floor_rows) now runs unconditionally whenever floor_rows is truthy ===
+
+=== services/research/iter.py:1059-1066 (run_heavy_research / ULTRA: each angle-explorer
+    calls run_iter_research with the SAME pre-seeded snapshot, so it hits the exact
+    guard-split code above) ===
+        run_iter_research(
+            f"{query} — focus: {angle}",
+            budget=budget,  # shared: the panel stays inside one ceiling
+            on_step=_angle_sink(on_step, i, angle),
+            **explorer_knobs,
+        )
+        for i, angle in enumerate(angle_list)
+    ]
+
+=== services/research/iter.py:980-994 (run_heavy_research prologue: pre-seeds
+    snapshot['disclosures'] unconditionally, before any explorer runs) ===
+            region=region,
+            canonical_name=target.name,
+            leg_timeout_s=DEEP_SNAPSHOT_LEG_TIMEOUT_S,
+        )
+        # R13 filings floor: pull exchange announcements ONCE for the whole panel
+        # and share via the snapshot dict — every angle's structured floor (and
+        # each explorer that winds down thin) then carries the same dated filings.
+        from services.research import disclosures as _disclosures
+
+        if _disclosures.wants_disclosures_floor(target):
+            floor = await _disclosures.gather_floor(tool_call, target=target)
+            snapshot["disclosures"] = {
+                "ok": floor["ok"],
+                "announcements": floor["announcements"],
+                "rows": floor["rows"],

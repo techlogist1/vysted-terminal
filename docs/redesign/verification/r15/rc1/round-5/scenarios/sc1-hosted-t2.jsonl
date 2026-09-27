@@ -1,0 +1,27 @@
+{"kind": "tool_use", "tool_call_id": "call_e863489d93184fea986e96b4bf2d4582", "name": "fundamentals", "input": {"symbol": "TCS.NS"}}
+{"kind": "tool_result", "tool_call_id": "call_e863489d93184fea986e96b4bf2d4582", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "ata"}
+{"kind": "delta", "text": " Consultancy"}
+{"kind": "delta", "text": " Services"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "CS"}
+{"kind": "delta", "text": ".N"}
+{"kind": "delta", "text": "S"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "15"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 11925, "output_tokens": 25, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.012374}

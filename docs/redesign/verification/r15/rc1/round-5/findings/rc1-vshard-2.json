@@ -1,0 +1,89 @@
+[
+ {
+  "key": "rc1-vshard-2:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-AGENT-040",
+  "title": "NOT CERTIFIED: long threads still lose their opening turns — the client FIFO-drops history past 60k chars before the runtime can fold it, so the summary starts mid-thread",
+  "repro": "Candidate 633f8440. Chat with 6 exchanges whose answers are ~12k chars each (research-length). historyForSend (src/store/chat-history.ts:316-337, HISTORY_CHAR_BUDGET=60_000) sends 8 of 12 turns, and turn 1 is absent. agent_runtime._coerce_history folds 6, so the UI says 'Older turns summarised' but the summary begins at question 3. Second case: 20 exchanges of 3.5k chars sends 32 of 40, and turn 1 is again lost. The summary also carries no figures or sources, which the fix_shape required. The literal 7-turn short-thread acceptance case passes.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/vt/a040.vs2.test.ts (+ a040.json, a040.py)",
+  "suspected_files": [
+   "src/store/chat-history.ts",
+   "sidecar/services/agent_runtime.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:2",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-LEAD-009",
+  "title": "A Yahoo rate-limit on earnings history is swallowed as an empty history and cached for 24h",
+  "repro": "On a throttled IP, ticker.earnings_history raises YFRateLimitError (INFY.NS, INFY and MSFT confirmed by eh.py). earnings_provider._fetch_history_sync:265-268 catches it, so history is None. GET /earnings/INFY/history then returns 200 history:[], which is cached under _TTL_HISTORY=24h, and the user sees 'no earnings history' for a day. /earnings/INFY/surprises and /fundamentals/INFY/ratings/history also came back empty under the same throttle.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/eh.py",
+  "suspected_files": [
+   "sidecar/services/earnings_provider.py",
+   "sidecar/routers/earnings.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:3",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-UI-055",
+  "title": "A partially throttled screen shows 'No rows matched — loosen a threshold / Reset filters' although most symbols were never evaluated",
+  "repro": "Live :52602, custom universe of 12 symbols, genuinely Yahoo-throttled: evaluated_count 3, 9 rate_limited, partial true. ScreenerResultsTable (:535) only shows the throttle message when evaluated_count===0. Otherwise rows.length===0 renders 'No rows matched the criteria / No stocks in this universe passed every filter. Loosen a threshold… / Reset filters', which blames the user's filters for a provider throttle.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/u055-custom.json (+ vt/u055.vs2.test.tsx, vt/u055.json)",
+  "suspected_files": [
+   "src/modules/screener/ScreenerResultsTable.tsx"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:4",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "R15-CODE-FRONTEND-015",
+  "title": "A focused SEC Filings panel publishes 'identifier', not 'symbol', so the agent is told the chart's symbol is 'this'",
+  "repro": "Setup: chart SPY; SEC Filings on AAPL, focused. SecFilingsPanel.tsx:170-178 publishes {identifier, formFilter, tab, filingCount}, and focusedSymbolFromBus (context-provider.ts:243) reads only symbol/ticker. Result: the snapshot's focusedSymbol is SPY (chart fallback), there are no symbol chips, and the badge reads 'Context: sec-filings'. The preamble renders 'When the user says \"this\"… they mean SPY'.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/vt/f015.vs2.test.tsx (+ vt/f015.json, a051.out)",
+  "suspected_files": [
+   "src/modules/sec/SecFilingsPanel.tsx",
+   "src/modules/chat/context-provider.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:5",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-CODE-FRONTEND-009",
+  "title": "Agent save_screen overwrites the user's live screener draft (criteria, group, formula) without saying so, and Undo does not restore it",
+  "repro": "Setup: the user's on-screen draft is dividend_yield>0.03 with formula 'roe > 0.2'. Accepting save_screen {name, group, formula} writes the agent's recipe into the draft before saving (host-actions.ts save_screen apply). The diff mentions only saved screens. Undo restores the replaced saved screen, but the draft stays the agent's recipe (pe<9, formula ''), so the user's unsaved filters and formula are silently lost.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/vt/hx.vs2.test.ts (+ vt/hx.json f009)",
+  "suspected_files": [
+   "src/lib/host-actions.ts"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:6",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-DATA-097",
+  "title": "_us_isin caches a definite ISIN miss for the life of the process (same stale-negative class DATA-097 fixed for live lookup)",
+  "repro": "symbol_resolver._us_isin (:672) stores a negative result with no TTL. A US listing whose ISIN becomes resolvable after the first miss keeps resolving without an ISIN until the sidecar restarts. By contrast, _live_lookup now expires empty results after _LIVE_EMPTY_TTL_SECONDS=300.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/d097.py",
+  "suspected_files": [
+   "sidecar/services/symbol_resolver.py"
+  ]
+ },
+ {
+  "key": "rc1-vshard-2:7",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-LEAD-012",
+  "title": "CONTRIBUTING.md still says 'Python 3.13+' while the build now requires exactly 3.13",
+  "repro": "CONTRIBUTING.md:26 lists 'Python 3.13+'. build-python.mjs refuses any other minor version, so a contributor with only 3.14 follows the doc and then hits 'No Python 3.13 found'.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-5/logs/rc1-vshard-2-evidence/l012/l012.out",
+  "suspected_files": [
+   "CONTRIBUTING.md"
+  ]
+ }
+]

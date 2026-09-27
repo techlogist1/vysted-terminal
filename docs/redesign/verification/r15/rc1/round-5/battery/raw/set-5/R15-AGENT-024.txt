@@ -1,0 +1,7 @@
+cmd: sidecar/.venv/bin/python3 b18-agent024.py (in-process _normalise_tool_args on write_screener_filters{criteria: <JSON-stringified 3-element array>})
+write_screener_filters criteria type: <class 'list'>
+write_screener_filters criteria len: 3
+full input: {'criteria': [{'field': 'pe_ratio', 'op': 'lt', 'value': 20}, {'field': 'roe', 'op': 'gt', 'value': 15}, {'field': 'debt_to_equity', 'op': 'lt', 'value': 0.5}], 'universe': 'nse-all'}
+
+--- static check: src/lib/host-actions.ts:504-513 ---
+parseScreenerCriteria: Array.isArray(input.criteria) ? input.criteria : [] -- since the runtime already coerces the stringified criteria to a real array before the tool_use event reaches the frontend (confirmed above), Array.isArray passes and all 3 criteria are applied (not the pre-fix null/[]).

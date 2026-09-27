@@ -1,0 +1,3 @@
+CMD: curl -sS -w 'HTTP %{http_code}' -X POST http://127.0.0.1:52325/llm/keys/validate -H 'Content-Type: application/json' -d '{"provider":"openrouter","api_key":"sk-or-v1-R15CANARY-round5"}'
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+HTTP 200

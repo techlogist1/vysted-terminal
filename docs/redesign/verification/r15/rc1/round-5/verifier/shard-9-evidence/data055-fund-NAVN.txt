@@ -1,0 +1,3 @@
+### 16:35:47 curl http://127.0.0.1:52609/fundamentals/NAVN
+{"detail":"The data provider is throttled right now — try again shortly.","code":"rate_limited","action":"Wait a minute, then retry."}
+HTTP 429 0.317597s

@@ -1,0 +1,4 @@
+CMD: grep for committed pinned tests naming R15-UI-031.
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+342:  it("a superseded load never lands: the newest command wins and keeps the spinner until it does (R15-UI-031)", async () => {
+VERDICT: ci_pinned

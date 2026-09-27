@@ -1,0 +1,11 @@
+Commands:
+1) in-process: services.correctness_gate.symbols_match('INSPIRE','INSPIRE-SM.NS') -> True
+   symbols_match('IPHL','IPHL-SM.NS') -> True; symbols_match('ISHAN','ISHAN-SM.NS') -> True
+   (sanity: symbols_match('RELIANCE','INFY.NS') -> False, unrelated symbols still rejected)
+2) curl http://127.0.0.1:52352/fundamentals/INSPIRE -> HTTP 404 "no provider returned usable
+   'fundamentals' data for the request" (a genuine no-data-from-provider case, NOT a
+   CorrectnessError/"symbol mismatch" -- grep of the whole sidecar boot log for "SM.NS" or
+   "mismatch" during this session's background india-all fundamentals warming returns nothing).
+Verdict: HOLDS. The exact pinned assertion the fix_shape names
+(symbols_match("INSPIRE","INSPIRE-SM.NS") is True) passes on the candidate; the 404 above is a
+provider-data-availability gap unrelated to the correctness-gate symbol-mismatch defect class.

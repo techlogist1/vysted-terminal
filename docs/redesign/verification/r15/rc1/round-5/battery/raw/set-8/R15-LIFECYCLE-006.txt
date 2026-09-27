@@ -1,0 +1,11 @@
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+probe: pinned-test citation (no vitest/pytest suite execution per harness rule)
+
+=== sidecar/tests/test_research_model_lane.py ===
+278:def test_retired_model_404_is_an_error_step_naming_the_model(stub_openrouter) -> None:
+279:    """R15-LIFECYCLE-006: a retired slug no longer yields a blank turn — the
+
+=== sidecar/tests/test_sonar_lane.py ===
+57:def test_retired_sonar_reasoning_is_not_pinned() -> None:
+58:    """R15-LIFECYCLE-006: perplexity/sonar-reasoning left OpenRouter's catalog."""
+

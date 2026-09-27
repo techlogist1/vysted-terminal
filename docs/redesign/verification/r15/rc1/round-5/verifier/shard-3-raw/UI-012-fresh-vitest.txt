@@ -1,0 +1,67 @@
+# UI-012 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/modules/chat/vs3-ui012.test.ts
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+stdout | src/modules/chat/vs3-ui012.test.ts > vs3 fresh UI-012 > raw-chat 422 array -> field: msg sentences, no JSON
+422 -> provider: Field required; model: Field required; messages: Field required
+stdout | src/modules/chat/vs3-ui012.test.ts > vs3 fresh UI-012 > agent 404 string detail
+404 -> unknown agent: 'nope'
+stdout | src/modules/chat/vs3-ui012.test.ts > vs3 fresh UI-012 > non-JSON 500 (proxy HTML) -> fallback sentence, no HTML
+500 -> sidecar returned 500
+stdout | src/modules/chat/vs3-ui012.test.ts > vs3 fresh UI-012 > engine dies mid-stream -> unreachable sentence
+midstream -> The data engine is not responding — it may have stopped. Restart Vysted.
+ ✓ src/modules/chat/vs3-ui012.test.ts > vs3 fresh UI-012 > raw-chat 422 array -> field: msg sentences, no JSON 3ms
+ ✓ src/modules/chat/vs3-ui012.test.ts > vs3 fresh UI-012 > agent 404 string detail 0ms
+ ✓ src/modules/chat/vs3-ui012.test.ts > vs3 fresh UI-012 > non-JSON 500 (proxy HTML) -> fallback sentence, no HTML 0ms
+ ✓ src/modules/chat/vs3-ui012.test.ts > vs3 fresh UI-012 > engine dies mid-stream -> unreachable sentence 4ms
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  16:59:12
+   Duration  597ms (transform 74ms, setup 52ms, import 80ms, tests 9ms, environment 362ms)
+
+## test source (appended part)
+// vs3 fresh: UI-012 — live /llm/chat 422 body (3 missing fields), live 404 string, non-JSON 500, mid-stream death
+import { beforeEach, describe, expect, it, vi } from "vitest";
+vi.mock("@/lib/sidecar-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/sidecar-client")>()),
+  getSidecarBaseUrl: vi.fn(async () => "http://127.0.0.1:8787"),
+}));
+vi.mock("@/lib/search-headers", () => ({ buildSearchHeaders: vi.fn(async () => ({})) }));
+import { streamAgentInvocation, streamChat } from "./streaming";
+
+const live422 = '{"detail":[{"type":"missing","loc":["body","provider"],"msg":"Field required","input":{}},{"type":"missing","loc":["body","model"],"msg":"Field required","input":{}},{"type":"missing","loc":["body","messages"],"msg":"Field required","input":{}}]}';
+async function errOf(fn: (h: { onEvent: () => void; onError: (e: Error) => void }) => Promise<void>) {
+  let got: Error | undefined;
+  await fn({ onEvent: () => undefined, onError: (e) => { got = e; } });
+  return got;
+}
+describe("vs3 fresh UI-012", () => {
+  beforeEach(() => vi.unstubAllGlobals());
+  it("raw-chat 422 array -> field: msg sentences, no JSON", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(live422, { status: 422 })));
+    const e = await errOf((h) => streamChat({ provider: "x", model: "y", messages: [] } as never, h));
+    console.log("422 ->", e?.message);
+    expect(e?.message).toBe("provider: Field required; model: Field required; messages: Field required");
+    expect(e?.message).not.toContain("{");
+  });
+  it("agent 404 string detail", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response('{"detail":"unknown agent: \'nope\'"}', { status: 404 })));
+    const e = await errOf((h) => streamAgentInvocation("nope", { prompt: "hi" }, h));
+    console.log("404 ->", e?.message);
+    expect(e?.message).toBe("unknown agent: 'nope'");
+  });
+  it("non-JSON 500 (proxy HTML) -> fallback sentence, no HTML", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("<html><body>Internal Server Error</body></html>", { status: 500 })));
+    const e = await errOf((h) => streamAgentInvocation("copilot", { prompt: "hi" }, h));
+    console.log("500 ->", e?.message);
+    expect(e?.message).not.toContain("<html>");
+  });
+  it("engine dies mid-stream -> unreachable sentence", async () => {
+    const body = new ReadableStream<Uint8Array>({
+      start(c) { c.enqueue(new TextEncoder().encode('data: {"kind":"token","text":"hel"}\n\n')); },
+      pull() { return Promise.reject(new TypeError("Load failed")); },
+    });
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(body, { status: 200 })));
+    const e = await errOf((h) => streamAgentInvocation("copilot", { prompt: "hi" }, h));
+    console.log("midstream ->", e?.message);
+    expect(e?.message).toContain("not responding");
+  });
+});

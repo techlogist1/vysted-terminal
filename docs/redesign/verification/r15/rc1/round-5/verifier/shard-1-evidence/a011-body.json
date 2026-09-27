@@ -1,0 +1,1 @@
+{"prompt": "Run a custom backtest on INFY: entry rsi(14) < 30, exit rsi(14) > 70.", "provider": "ollama", "model": "llama3.1:8b", "mode": "agent", "autonomy": "auto"}

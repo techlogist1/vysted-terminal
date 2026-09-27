@@ -1,0 +1,42 @@
+CMD: in-process ./.venv/bin/python3 -c '...agent_tools._compare_symbols({symbols:[COCHINSHIP,MAZAGONDOCK]})...' at candidate 9bc600ec, own sidecar :52342 data battery-2
+provider nse_direct failed for quote, falling through: nse_direct: 'MAZAGONDOCK' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: 'MAZAGONDOCK' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: 'MAZAGONDOCK' is not a known BSE instrument
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: MAZAGONDOCK.NS"}}}
+$MAZAGONDOCK.NS: possibly delisted; no price data found  (period=1y) (Yahoo error = "No data found, symbol may be delisted")
+$MAZAGONDOCK.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+provider yfinance failed for quote, falling through: yfinance quote failed for 'MAZAGONDOCK': $MAZAGONDOCK.NS: possibly delisted; no price data found  (period=5d) (Yahoo error = "No data found, symbol may be delisted")
+{
+  "ok": false,
+  "symbols": [
+    {
+      "symbol": "COCHINSHIP",
+      "provider": "nse_direct",
+      "quote": {
+        "price": 1377.0,
+        "change_percent": 0.5109489051094891,
+        "currency": "INR"
+      },
+      "fundamentals": {
+        "market_cap": 362262233088.0,
+        "pe_ratio": 53.18656,
+        "forward_pe": 30.805368,
+        "peg_ratio": null,
+        "price_to_book": 6.168222,
+        "dividend_yield": 0.008199999999999999,
+        "eps": 25.89,
+        "beta": 0.582
+      },
+      "return_pct_window": 8.49353923731484,
+      "bars": 127,
+      "window_start": "2026-03-23",
+      "window_end": "2026-09-25"
+    },
+    {
+      "symbol": "MAZAGONDOCK",
+      "error": "unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker",
+      "note": "unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker"
+    }
+  ],
+  "message": "fewer than two symbols resolved \u2014 1 of 2 returned a quote. MAZAGONDOCK: unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker"
+}

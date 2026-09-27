@@ -1,0 +1,4 @@
+CMD: source-confirm fallback tried on primary 404 + holiday-marker gated on _is_trading_day (excerpt above); live repro: mock primary 404, fallback 200 CSV -> _fetch_day returns ok
+status: ok
+rows: {'RELIANCE': BhavRow(close=1234.5, prev_close=None, volume=None, high=None, low=None, series='EQ')}
+urls tried: ['https://nsearchives.nseindia.com/content/cm/BhavCopy_NSE_CM_0_0_0_20260922_F_0000.csv.zip', 'https://archives.nseindia.com/products/content/sec_bhavdata_full_22092026.csv']

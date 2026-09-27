@@ -1,0 +1,3 @@
+CMD: curl POST /workspace name='../evil5'
+{"status":"saved","name":"../evil5"}
+HTTP 200

@@ -1,0 +1,31 @@
+== Live harness re-run, candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98, own sidecar :52345 ==
+
+Attempt 1 (both scenarios price-reliance + price-aapl via run.py's own subprocess.run of vy.py):
+  price-reliance #0 0.4s FAIL vy exit 4: urlopen error [Errno 61] Connection refused>
+  price-aapl #0 0.1s FAIL vy exit 4: urlopen error [Errno 61] Connection refused>
+  {"lane": "ollama", "model": "llama3.1:8b", "k": 1, "scenarios": 2, "pass_hat_k": 0.0, "pass_hat_1": 0.0, "incomplete": []}
+
+Investigated: sidecar /health was up throughout; a bare python urllib POST to
+/agents/copilot/invoke succeeded (200, real SSE heartbeats); a traced call through
+vy.py's own _http() in-process (same code path) succeeded end to end — real
+market_overview + price_data tool calls, real RELIANCE price (Rs 1226.0), a
+coherent final answer, 107.4s. This points to a transient connection race from
+running several concurrent curl/probe processes against the same :52345 port in
+this shard at the same moment (a harness/environment artifact of my own parallel
+probing), not a product regression: the exact same request succeeds when nothing
+else is hammering the port.
+
+Attempt 2 (single scenario, no concurrent traffic on :52345, run.py unmodified):
+  price-reliance #0 81.7s PASS
+  {"lane": "ollama", "model": "llama3.1:8b", "k": 1, "scenarios": 1, "pass_hat_k": 1.0, "pass_hat_1": 1.0, "incomplete": []}
+
+jsonl record: {"lane": "ollama", "model": "llama3.1:8b", "scenario": "price-reliance",
+"trial": 0, "pass": true, "failures": [], "secs": 81.7}
+
+== Pinned regression suites the batch-11 certification also cites (not re-run here;
+   the heavy lane owns pytest) ==
+test_agent_eval.py test_llm_anthropic.py test_llm_gemini.py test_gemini_multiround.py all present at candidate sha:
+test_agent_eval.py
+test_gemini_multiround.py
+test_llm_anthropic.py
+test_llm_gemini.py

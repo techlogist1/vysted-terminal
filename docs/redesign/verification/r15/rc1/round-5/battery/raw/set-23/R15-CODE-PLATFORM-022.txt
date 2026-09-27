@@ -1,0 +1,7 @@
+CMD: grep -n "addPosition\|updatePosition\|deletePosition" src/store/portfolios.ts
+-> 0 matches (file is 236 lines total, down from the 68-line dead-client block the register named)
+CMD: grep -rln "from \"@/store/portfolios\"" src | xargs grep -l "addPosition\|updatePosition\|deletePosition"
+-> no output (no importer anywhere)
+
+OBSERVED: the unused 68-line typed client (addPosition/updatePosition/deletePosition/refresh) the register found with zero production importers has been deleted from portfolios.ts entirely, not merely left dead.
+VERDICT: holds

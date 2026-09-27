@@ -1,0 +1,76 @@
+worktree sha 633f844071d972b337f4c3526d86555c80df0568; own sidecar :52607; shared sec-edgar-mcp :52154
+=== entry repro
+== list AAPL form=10-K
+ n= 10
+   0000320193-25-000079 10-K 2025-10-31
+   0000320193-24-000123 10-K 2024-11-01
+   0000320193-23-000106 10-K 2023-11-03
+   0000320193-22-000108 10-K 2022-10-28
+   0000320193-21-000105 10-K 2021-10-29
+   0000320193-20-000096 10-K 2020-10-30
+   0000320193-19-000119 10-K 2019-10-31
+   0000320193-18-000145 10-K 2018-11-05
+   0000320193-17-000070 10-K 2017-11-03
+   0001628280-16-020309 10-K 2016-10-26
+open 0000320193-25-000079 id=AAPL form=10-K -> HTTP 200 ('10-K', '2025-10-31', 'Apple Inc.') sections= 2
+open 0000320193-24-000123 id=AAPL form=10-K -> HTTP 200 ('10-K', '2024-11-01', 'Apple Inc.') sections= 2
+open 0000320193-25-000079 id=AAPL form= -> HTTP 200 ('10-K', '2025-10-31', 'Apple Inc.') sections= 2
+EXIT=0
+=== fresh cases (script l010b; NOTE: the JPM lists 503'd on transient sec-edgar-mcp 60 s timeouts while data.sec.gov answered directly in 0.5 s; the MSFT case word-split 'DEF 14A' in my script and the JPM unfiltered list sent form_type='' (422) - both are script bugs, rerun below)
+== list JPM form=10-Q limit=40 -> open the OLDEST listed row with the panel's form hint
+   listed: 0 - - -
+   open - form=- -> HTTP 000 
+== list JPM form=8-K limit=40 -> open the OLDEST listed row with the panel's form hint
+   listed: 0 - - -
+   open - form=- -> HTTP 404 {"detail": "The data provider has no data for this symbol or series \u2014 check the symbol.", "code": "not_found", "action": "Check the symbol or series id."}
+== list GS form=10-K limit=40 -> open the OLDEST listed row with the panel's form hint
+   listed: 28 0000950123-00-001143 10-K 2000-02-14
+   open 0000950123-00-001143 form=10-K -> HTTP 200 ('10-K', '2000-02-14', 'GOLDMAN SACHS GROUP INC')
+== list MSFT form=DEF%2014A limit=40 -> open the OLDEST listed row with the panel's form hint
+   listed: 33 0000891020-94-000176 DEF 14A 1994-09-27
+   open 0000891020-94-000176 form=DEF -> HTTP 404 {"detail": "The data provider has no data for this symbol or series \u2014 check the symbol.", "code": "not_found", "action": "Check the symbol or series id."}
+== list JPM form= limit=40 -> open the OLDEST listed row with the panel's form hint
+   listed: 0 - - -
+   open - form=- -> HTTP 404 {"detail": "The data provider has no data for this symbol or series \u2014 check the symbol.", "code": "not_found", "action": "Check the symbol or series id."}
+EXIT=0
+=== sidecar log SEC lines
+2026-09-27 16:43:52,165 INFO uvicorn.access: 127.0.0.1:53410 - "GET /sec/filings?symbol=AAPL&form_type=10-K&limit=10 HTTP/1.1" 200
+2026-09-27 16:43:52,186 INFO uvicorn.access: 127.0.0.1:53435 - "GET /sec/filings/0000320193-25-000079?identifier=AAPL&form_type=10-K HTTP/1.1" 200
+2026-09-27 16:43:54,330 INFO uvicorn.access: 127.0.0.1:53439 - "GET /sec/filings/0000320193-24-000123?identifier=AAPL&form_type=10-K HTTP/1.1" 200
+2026-09-27 16:43:54,345 INFO uvicorn.access: 127.0.0.1:53449 - "GET /sec/filings/0000320193-25-000079?identifier=AAPL HTTP/1.1" 200
+2026-09-27 16:46:29,706 WARNING app: /sec/filings -> 503 network: MCP server 'sec-edgar-mcp' call_tool(get_recent_filings) failed: McpError('Timed out while waiting for response to ClientRequest. Waited 60.0 seconds.')
+2026-09-27 16:46:29,706 INFO uvicorn.access: 127.0.0.1:54271 - "GET /sec/filings?symbol=JPM&form_type=10-Q&limit=40 HTTP/1.1" 503
+2026-09-27 16:48:42,524 WARNING app: /sec/filings/- -> 503 network: MCP server 'sec-edgar-mcp' call_tool(get_recent_filings) failed: McpError('Timed out while waiting for response to ClientRequest. Waited 60.0 seconds.')
+2026-09-27 16:49:19,781 WARNING app: /sec/filings -> 503 network: MCP server 'sec-edgar-mcp' call_tool(get_recent_filings) failed: McpError('Timed out while waiting for response to ClientRequest. Waited 60.0 seconds.')
+2026-09-27 16:49:19,782 INFO uvicorn.access: 127.0.0.1:56431 - "GET /sec/filings?symbol=JPM&form_type=8-K&limit=40 HTTP/1.1" 503
+2026-09-27 16:49:50,674 WARNING app: /sec/filings/- -> 404 not_found: filing metadata unavailable for '-'
+2026-09-27 16:49:50,674 INFO uvicorn.access: 127.0.0.1:57062 - "GET /sec/filings/-?identifier=JPM&form_type=- HTTP/1.1" 404
+2026-09-27 16:50:36,973 INFO uvicorn.access: 127.0.0.1:57347 - "GET /sec/filings?symbol=GS&form_type=10-K&limit=40 HTTP/1.1" 200
+2026-09-27 16:50:59,099 INFO uvicorn.access: 127.0.0.1:57853 - "GET /sec/filings/0000950123-00-001143?identifier=GS&form_type=10-K HTTP/1.1" 200
+2026-09-27 16:51:26,047 INFO uvicorn.access: 127.0.0.1:57988 - "GET /sec/filings?symbol=MSFT&form_type=DEF%2014A&limit=40 HTTP/1.1" 200
+2026-09-27 16:51:26,792 WARNING app: /sec/filings/0000891020-94-000176 -> 404 not_found: filing metadata unavailable for '0000891020-94-000176'
+2026-09-27 16:51:26,792 INFO uvicorn.access: 127.0.0.1:58173 - "GET /sec/filings/0000891020-94-000176?identifier=MSFT&form_type=DEF HTTP/1.1" 404
+2026-09-27 16:51:26,807 INFO uvicorn.access: 127.0.0.1:58180 - "GET /sec/filings?symbol=JPM&form_type=&limit=40 HTTP/1.1" 422
+2026-09-27 16:52:00,420 WARNING app: /sec/filings/- -> 404 not_found: filing metadata unavailable for '-'
+2026-09-27 16:52:00,420 INFO uvicorn.access: 127.0.0.1:58183 - "GET /sec/filings/-?identifier=JPM&form_type=- HTTP/1.1" 404
+2026-09-27 16:52:00,503 INFO uvicorn.access: 127.0.0.1:58283 - "GET /sec/filings/0000891020-94-000176?identifier=MSFT&form_type=DEF%2014A HTTP/1.1" 200
+2026-09-27 16:52:00,520 INFO uvicorn.access: 127.0.0.1:58500 - "GET /sec/filings/0000891020-94-000176?identifier=MSFT HTTP/1.1" 200
+2026-09-27 16:52:23,962 INFO uvicorn.access: 127.0.0.1:58557 - "GET /sec/filings?symbol=JPM&form_type=10-K&limit=5 HTTP/1.1" 200
+=== MSFT DEF 14A rerun
+== rerun (script word-split 'DEF 14A'): MSFT oldest listed DEF 14A 0000891020-94-000176 with form_type='DEF 14A'
+{"filing":{"accession":"0000891020-94-000176","cik":"0000789019","company_name":"MICROSOFT CORP","symbol":null,"form_type":"DEF 14A","filed_date":"1994-09-27","period_of_report":"1994-10-28","edgar_url":"https://www.sec.gov/Archives/edgar/data/789019/000089102094000176/"},"sections":[{"id":"content"
+== same with no hint
+{"filing":{"accession":"0000891020-94-000176","cik":"0000789019","company_name":"MICROSOFT CORP","symbol":null,"form_type":"DEF 14A","filed_date":"1994-09-27","period_of_report":"1994-10-28","edgar_url":"https://www.sec.gov/Archives/edgar/data/789019/000089102094000176/"},"sections":[{"id":"content"
+
+=== JPM fresh (after the transient MCP timeouts cleared: JPM 10-K limit 5 list 200 in 16 s)
+== JPM (heavy 424B2/Form-4 filer) 10-K list limit 40, open the oldest listed with form hint
+listed: 37 0000950123-94-000607 1994-03-25
+ HTTP307 0.001429s
+ ...  HTTP307 0.001429s
+
+== rerun: open 0000950123-94-000607 (row 37 of 37 listed JPM 10-Ks) with form hint
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."} HTTP502 36.667939s
+ ... n later."} HTTP502 36.667939s
+
+2026-09-27 16:53:42,498 WARNING app: /sec/filings/0000950123-94-000607 -> 502 provider_error: sec-edgar-mcp tool 'get_filing_sections' failed: Failed to get filing sections: expected string or bytes-like object, got 'NoneType'
+2026-09-27 16:53:42,498 INFO uvicorn.access: 127.0.0.1:59012 - "GET /sec/filings/0000950123-94-000607?identifier=JPM&form_type=10-K HTTP/1.1" 502

@@ -1,0 +1,3 @@
+cmd: cd <wt>/sidecar && PYTHONDONTWRITEBYTECODE=1 ./.venv/bin/python -m pytest tests/test_yahoo_batch_provider.py -q -p no:cacheprovider -k "production_session or crumb_and_v7_429 or mints_the_crumb"
+3 passed
+LIVE fetch_quotes_batch([AAPL,MSFT,RELIANCE.NS]) via curl_cffi: ok all 3, fail {}, crumb minted, 1.4s (checkout 633f8440)

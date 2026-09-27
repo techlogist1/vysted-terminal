@@ -1,0 +1,13 @@
+R15-RESEARCH-004: in-process probe (see probe_set2.py, probe_set2_output.json), key 'RESEARCH-004'
+{
+  "claims1": [
+    "revenue growth +40.5%",
+    "P/E 67.13953",
+    "-0.4% YoY margin",
+    "40.5% growth again"
+  ],
+  "claims2": [
+    "P/E 34.42",
+    "Gross Margin 51.70%"
+  ]
+}

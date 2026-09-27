@@ -1,0 +1,3 @@
+agent_invoke raised RuntimeError as expected: ai.agent_invoke (researcher): 401 invalid api key for provider
+api_key seen by invoke_agent: sk-test-123
+provider seen by invoke_agent: anthropic

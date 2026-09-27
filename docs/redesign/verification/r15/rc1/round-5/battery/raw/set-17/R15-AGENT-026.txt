@@ -1,0 +1,8 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check.
+sidecar/services/agent_runtime.py:2987-3007 (_finish_turn):
+    if is_length_finish(done.finish_reason):
+        yield LLMResearchStepEvent(tool_call_id="", tool="runtime", step_kind=NOTICE_STEP_KIND,
+                                    detail=_LENGTH_NOTICE, status="error")
+is_length_finish() defined sidecar/services/llm/base.py:79 (covers "max_tokens"/"length" style finishes across providers).
+
+VERDICT: holds. A max_tokens/length finish now yields an explicit notice step before the turn closes; it no longer settles as an unmarked success.

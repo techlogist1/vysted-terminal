@@ -1,0 +1,33 @@
+{
+  "invoke_agent": {
+    "additionalProperties": false,
+    "properties": {
+      "agent_id": {
+        "type": "string"
+      },
+      "prompt": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "agent_id",
+      "prompt"
+    ],
+    "type": "object"
+  },
+  "list_agents": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+  },
+  "list_workflows": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+  },
+  "list_runs": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+  }
+}

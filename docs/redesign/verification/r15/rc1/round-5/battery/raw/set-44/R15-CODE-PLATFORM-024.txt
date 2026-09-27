@@ -1,0 +1,16 @@
+R15-CODE-PLATFORM-024 -- fs export claim
+391:fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+416:/// strategy as `write_text_atomic`). The WKWebView/Chromium webview blocks the
+422:fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
+513:            write_text_atomic,
+514:            write_bytes_atomic,
+
+
+**Rust layer (Tauri 2.x core):**
+- Desktop shell (windowing, system tray, OS integration)
+- File system access — custom atomic-write commands (`write_text_atomic`,
+  `write_bytes_atomic`), not the `tauri-plugin-fs` capability (R15-CODE-PLATFORM-024:
+  no `fs:*` permission is granted in `src-tauri/capabilities/default.json`, but notes
+  persistence and CSV/PNG/PDF exports both write real files through these commands, a
+  webview Blob download is only the non-Tauri dev fallback)
+- Secure key storage (OS keychain integration on each platform)

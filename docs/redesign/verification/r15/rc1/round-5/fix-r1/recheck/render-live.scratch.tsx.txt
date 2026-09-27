@@ -1,0 +1,47 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import fs from "node:fs";
+import * as sidecarClient from "@/lib/sidecar-client";
+import { useSecStore } from "@/store/sec";
+import { InsiderTradingTable } from "./InsiderTradingTable";
+
+const DIR = "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/rc1/round-5/fix-r1/recheck";
+const OUT: Record<string, unknown> = {};
+
+beforeEach(() => {
+  vi.spyOn(sidecarClient, "getSidecarBaseUrl").mockResolvedValue("http://127.0.0.1:52336");
+  useSecStore.getState().__resetForTests();
+});
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+
+const cases: [string, string][] = [
+  ["AAPL", "insider-AAPL.json"],
+  ["MSFT", "insider-MSFT.json"],
+  ["NVDA", "insider-NVDA.json"],
+  ["TSLA", "insider-TSLA_form_4.json"],
+];
+
+describe("recheck live payloads", () => {
+  for (const [sym, file] of cases) {
+    it(sym, async () => {
+      const payload = JSON.parse(fs.readFileSync(`${DIR}/${file}`, "utf8"));
+      vi.spyOn(sidecarClient, "sidecarGet").mockResolvedValue(payload);
+      const errs: string[] = [];
+      vi.spyOn(console, "error").mockImplementation((...a) => { errs.push(String(a[0]).slice(0, 200)); });
+      const { container } = render(<InsiderTradingTable identifier={sym} />);
+      await waitFor(() => expect(container.querySelectorAll("tbody tr").length).toBe(payload.transactions.length));
+      const headers = Array.from(container.querySelectorAll("thead th")).map((th) => th.textContent?.trim());
+      const rows = Array.from(container.querySelectorAll("tbody tr")).map((tr) => ({
+        cells: Array.from(tr.querySelectorAll("td")).map((td) => td.textContent),
+        positive: tr.querySelectorAll(".text-positive").length,
+        negative: tr.querySelectorAll(".text-negative").length,
+        blankCells: Array.from(tr.querySelectorAll("td")).filter((td) => (td.textContent ?? "").trim() === "").length,
+      }));
+      const note = screen.queryByTestId("insider-filing-level-note")?.textContent ?? null;
+      OUT[sym] = { rowCount: rows.length, headers, note, consoleErrors: errs, firstRows: rows.slice(0, 3),
+        rowsWithColour: rows.filter((r) => r.positive + r.negative > 0).length,
+        rowsWithBlankCell: rows.filter((r) => r.blankCells > 0).length };
+      fs.writeFileSync(`${DIR}/render-live.json`, JSON.stringify(OUT, null, 2));
+    });
+  }
+});

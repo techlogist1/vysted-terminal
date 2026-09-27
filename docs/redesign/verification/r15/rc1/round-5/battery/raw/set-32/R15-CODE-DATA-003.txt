@@ -1,0 +1,87 @@
+CMD: grep for instrument_payload call sites in routers/resolve.py + agent_tools/resolve_symbol.py; then curl /resolve?q=GUJENERGY (renamed symbol) + in-process resolve_symbol tool call, compare payload shape
+-- router call sites --
+80:            "candidates": [symbol_resolver.instrument_payload(c) for c in decision.candidates],
+89:            symbol_resolver.instrument_payload(decision.instrument)
+94:        "candidates": [symbol_resolver.instrument_payload(c) for c in decision.candidates],
+118:        "candidates": [symbol_resolver.instrument_payload(c) for c in candidates],
+-- agent tool call sites --
+68:    candidates = [symbol_resolver.instrument_payload(c) for c in decision.candidates]
+77:            "resolved": symbol_resolver.instrument_payload(decision.instrument),
+-- live curl router --
+{"ok":true,"query":"GUJENERGY","region":"IN","resolved":{"symbol":"GUJENERGY","name":"GUJARAT ENERGY LIMITED","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"GUJENERGY.NS","confidence":1.0,"isin":"INE844O01030","bse_code":"539336","industry":null,"former_name":"GUJGASLTD","board":"mainboard","exchange_group":"A","face_value":2.0},"needs_disambiguation":false,"candidates":[{"symbol":"GUJENERGY","name":"GUJARAT ENERGY LIMITED","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"GUJENERGY.NS","confidence":1.0,"isin":"INE844O01030","bse_code":"539336","industry":null,"former_name":"GUJGASLTD","board":"mainboard","exchange_group":"A","face_value":2.0},{"symbol":"GUJENERGY","name":"Gujarat Energy Ltd","exchange":"BSE","region":"IN","asset_class":"equity","yahoo_symbol":"GUJENERGY.BO","confidence":1.0,"isin":"INE844O01030","bse_code":"539336","industry":null,"former_name":"GUJGASLTD","board":"mainboard","exchange_group":"A","face_value":2.0}],"rename_lane":"available"}
+-- in-process agent tool --
+{
+  "ok": true,
+  "query": "GUJENERGY",
+  "region": "IN",
+  "status": "bound",
+  "reason": "score 1.00 >= accept at band 6",
+  "resolved": {
+    "symbol": "GUJENERGY",
+    "name": "GUJARAT ENERGY LIMITED",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "GUJENERGY.NS",
+    "confidence": 1.0,
+    "isin": "INE844O01030",
+    "bse_code": "539336",
+    "industry": null,
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "A",
+    "face_value": 2.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+    {
+      "symbol": "GUJENERGY",
+      "name": "GUJARAT ENERGY LIMITED",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "GUJENERGY.NS",
+      "confidence": 1.0,
+      "isin": "INE844O01030",
+      "bse_code": "539336",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 2.0
+    },
+    {
+      "symbol": "GUJENERGY",
+      "name": "Gujarat Energy Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "GUJENERGY.BO",
+      "confidence": 1.0,
+      "isin": "INE844O01030",
+      "bse_code": "539336",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "A",
+      "face_value": 2.0
+    }
+  ]
+}
+-- retest: warm nse_symbol_change.schedule_refresh() first (matches app.py lifespan, line 138) then call agent tool, to rule out cold-cache artifact from bypassing the FastAPI lifespan --
+{
+  "symbol": "GUJENERGY",
+  "name": "GUJARAT ENERGY LIMITED",
+  "exchange": "NSE",
+  "region": "IN",
+  "asset_class": "equity",
+  "yahoo_symbol": "GUJENERGY.NS",
+  "confidence": 1.0,
+  "isin": "INE844O01030",
+  "bse_code": "539336",
+  "industry": null,
+  "former_name": "GUJGASLTD",
+  "board": "mainboard",
+  "exchange_group": "A",
+  "face_value": 2.0
+}

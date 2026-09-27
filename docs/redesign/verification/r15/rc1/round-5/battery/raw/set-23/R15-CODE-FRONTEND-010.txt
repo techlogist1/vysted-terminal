@@ -1,0 +1,9 @@
+NO GUI in this run. Source inspection of src/lib/host-actions.ts write_screener_filters apply case (~line 1806-1826):
+
+  useScreenerStore.getState().applyFilters({...});
+  if (run) {
+    void useScreenerStore.getState().runScreener();
+  }
+
+OBSERVED: `run:true` now actually invokes `runScreener()` (previously narrated "running" with a runScreener call count of 0, per the register's proof P4). The done() label still conditions on `run` for its "running" vs "review and Run" wording, but the call now actually fires.
+VERDICT: holds

@@ -1,0 +1,156 @@
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_068405dd724a4591b8043003675296f7", "name": "compute_greeks", "input": {"spot": 220, "strike": 220, "risk_free_rate": 0.05, "dividend_yield": 0.005, "volatility": 0.28, "valuation_date": "2026-09-27", "expiry_date": "2027-09-27", "payoff": "call"}}
+
+data: {"kind": "tool_result", "tool_call_id": "call_068405dd724a4591b8043003675296f7", "name": "compute_greeks", "ok": true, "error": null}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "delta", "text": "Based"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " tool"}
+
+data: {"kind": "delta", "text": " result"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " v"}
+
+data: {"kind": "delta", "text": "ega"}
+
+data: {"kind": "delta", "text": " of"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " European"}
+
+data: {"kind": "delta", "text": " call"}
+
+data: {"kind": "delta", "text": " is"}
+
+data: {"kind": "delta", "text": " approximately"}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "83"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": "47"}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " theta"}
+
+data: {"kind": "delta", "text": " is"}
+
+data: {"kind": "delta", "text": " approximately"}
+
+data: {"kind": "delta", "text": " -"}
+
+data: {"kind": "delta", "text": "16"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": "33"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "(Note"}
+
+data: {"kind": "delta", "text": ":"}
+
+data: {"kind": "delta", "text": " I"}
+
+data: {"kind": "delta", "text": " will"}
+
+data: {"kind": "delta", "text": " not"}
+
+data: {"kind": "delta", "text": " provide"}
+
+data: {"kind": "delta", "text": " any"}
+
+data: {"kind": "delta", "text": " further"}
+
+data: {"kind": "delta", "text": " explanation"}
+
+data: {"kind": "delta", "text": " or"}
+
+data: {"kind": "delta", "text": " calculations"}
+
+data: {"kind": "delta", "text": " for"}
+
+data: {"kind": "delta", "text": " this"}
+
+data: {"kind": "delta", "text": " problem"}
+
+data: {"kind": "delta", "text": " as"}
+
+data: {"kind": "delta", "text": " it"}
+
+data: {"kind": "delta", "text": " involves"}
+
+data: {"kind": "delta", "text": " a"}
+
+data: {"kind": "delta", "text": " specific"}
+
+data: {"kind": "delta", "text": " mathematical"}
+
+data: {"kind": "delta", "text": " computation"}
+
+data: {"kind": "delta", "text": " that"}
+
+data: {"kind": "delta", "text": " can"}
+
+data: {"kind": "delta", "text": " be"}
+
+data: {"kind": "delta", "text": " easily"}
+
+data: {"kind": "delta", "text": " done"}
+
+data: {"kind": "delta", "text": " with"}
+
+data: {"kind": "delta", "text": " tools"}
+
+data: {"kind": "delta", "text": " like"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " one"}
+
+data: {"kind": "delta", "text": " used"}
+
+data: {"kind": "delta", "text": " in"}
+
+data: {"kind": "delta", "text": " this"}
+
+data: {"kind": "delta", "text": " response"}
+
+data: {"kind": "delta", "text": ".)"}
+
+data: {"kind": "done", "usage": {"input_tokens": 3002, "output_tokens": 66, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

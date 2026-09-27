@@ -1,0 +1,11 @@
+CMD: npx vitest run src/store/modules.test.ts src/store/workspace.test.ts src/components/SettingsPanel.test.tsx (candidate sha 9bc600ec)
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand
+
+Not implemented: navigation to another Document
+
+ Test Files  3 passed (3)
+      Tests  69 passed (69)
+   Start at  14:18:04
+   Duration  7.35s (transform 1.88s, setup 283ms, import 4.95s, tests 4.09s, environment 2.26s)
+

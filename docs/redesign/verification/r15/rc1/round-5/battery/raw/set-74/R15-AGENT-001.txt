@@ -1,0 +1,34 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98, sidecar/.venv (in-process python call).
+Command: sidecar/.venv/bin/python3 <probe importing services.agent_tools.research.model_view>
+
+Script (probe_001b.py):
+  from services.agent_tools.research import model_view
+  payload = {"structured": {"fundamentals": {"data": {
+    "dividend_yield": 0.0082, "revenue_growth": 0.024, "earnings_growth": -0.1937,
+    "roe": 0.1645, "operating_margin": 0.1225, "profit_margin": 0.0884,
+    "currency": "INR", "market_cap": 12345678900.0 }}}}
+  out = model_view(payload)
+  print(json.dumps(out["structured"]["fundamentals"]["data"], indent=2))
+
+Exit: 0
+Output:
+{
+  "dividend_yield": "0.82%",
+  "revenue_growth": "2.40%",
+  "earnings_growth": "-19.37%",
+  "roe": "16.45%",
+  "operating_margin": "12.25%",
+  "profit_margin": "8.84%",
+  "currency": "INR",
+  "market_cap": 12345678900.0
+}
+
+VERDICT: holds. Fraction-unit fields (dividend_yield, revenue_growth, earnings_growth, roe,
+operating_margin, profit_margin) are rewritten by model_view()/_fractions_as_percent() into
+correctly-scaled percent-display strings before the model ever sees them — exact match to the
+figures batch-28's live cert captured for COCHINSHIP (0.82% / 2.40% / -19.37%) and KPITTECH
+(16.45% / 12.25% / 8.84%). Source: sidecar/services/agent_tools/research.py:400-456
+(_FRACTION_FIELDS, _fractions_as_percent, model_view), sidecar/services/research/semantics.py
+_value()/unit="fraction" labeling (dividend_yield line ~932, revenue/earnings_growth ~1107-1122;
+no field is mislabeled unit:"percent" anywhere in semantics.py — grep '"unit"' returns only the
+generic variable-driven line 178 and the two literal "fraction"/"currency" kwargs).

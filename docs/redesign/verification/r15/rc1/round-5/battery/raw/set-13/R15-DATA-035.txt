@@ -1,0 +1,4 @@
+A) HTML-200 download result: None | cached after: None
+B) 404 marker written; same-day _bhavcopy_for -> '' (None=not honoured, correct)
+C) marker mtime set to same day, _bhavcopy_for -> None
+exit=0

@@ -1,0 +1,5 @@
+full catalog size 55
+full schema chars 41643 ~tokens 10410
+subset size 32
+screener_run in subset: True
+subset schema chars 27163 ~tokens 6790

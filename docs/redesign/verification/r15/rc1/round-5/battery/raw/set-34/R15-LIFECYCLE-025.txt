@@ -1,0 +1,7 @@
+CMD: DB-inserted legacy custom agent (tools=['price_data','macro','news'], id custom:b9v-macro-hawk) mirroring the v0.8.0-tag row -> GET /custom-agents/{id} -> PUT same tools -> check resolution
+--- GET /custom-agents/custom:b9v-macro-hawk ---
+{"id":"custom:b9v-macro-hawk","name":"Macro Hawk","philosophy":"Watches macro","system_prompt":"Always check the macro series first","tools":["price_data","macro","news"],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1790501621695,"updated_at":1790501621695} HTTP:200
+--- PUT /custom-agents/custom:b9v-macro-hawk with same tools ---
+{"id":"custom:b9v-macro-hawk","name":"Macro Hawk","philosophy":"Watches macro","system_prompt":"Always check the macro series first","tools":["price_data","macro_series","news"],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1790501621695,"updated_at":1790501633} HTTP:200
+--- GET again to confirm persisted resolved tools ---
+{"id":"custom:b9v-macro-hawk","name":"Macro Hawk","philosophy":"Watches macro","system_prompt":"Always check the macro series first","tools":["price_data","macro_series","news"],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1790501621695,"updated_at":1790501633} HTTP:200

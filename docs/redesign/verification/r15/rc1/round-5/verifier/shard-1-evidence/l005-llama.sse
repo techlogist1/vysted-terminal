@@ -1,0 +1,518 @@
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "tool_use", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "name": "research", "input": {"query": "MAZDOCK", "depth": "quick"}}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "tool": "research", "step_kind": "engine", "detail": "research:begin 586685d9cc314bec9f7d8576816c2ea0 depth=normal query=MAZDOCK", "latency_ms": null, "status": "ok", "index": 1}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "tool": "research", "step_kind": "plan", "detail": "resolving \"MAZDOCK\"", "latency_ms": null, "status": "ok", "index": 2}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "tool": "research", "step_kind": "plan", "detail": "resolved \u2192 MAZDOCK", "latency_ms": 48, "status": "ok", "index": 3}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "tool": "research", "step_kind": "tool", "detail": "pulling market data for MAZDOCK", "latency_ms": null, "status": "ok", "index": 4}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "tool": "research", "step_kind": "search", "detail": "searching the web for Mazagon Dock Shipbuilders Limited", "latency_ms": null, "status": "ok", "index": 5}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "tool": "research", "step_kind": "tool", "detail": "price timed out after 6s \u2014 dropped", "latency_ms": 6002, "status": "error", "index": 6}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "tool": "research", "step_kind": "tool", "detail": "fundamentals timed out after 6s \u2014 dropped", "latency_ms": 6002, "status": "error", "index": 7}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "tool": "research", "step_kind": "tool", "detail": "pulled 2/4 data sources", "latency_ms": 6021, "status": "ok", "index": 8}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "tool": "research", "step_kind": "search", "detail": "no web backend \u2014 structured only", "latency_ms": 8002, "status": "skipped", "index": 9}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "tool": "research", "step_kind": "synthesize", "detail": "assembling the research bundle", "latency_ms": null, "status": "ok", "index": 10}
+
+data: {"kind": "tool_result", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d", "name": "research", "ok": true, "error": null}
+
+data: {"kind": "tool_use", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d__autobrief", "name": "publish_brief", "input": {"query": "MAZDOCK", "symbol": "MAZDOCK", "mode": "fast", "depth": "quick", "execution": {"run_id": "586685d9cc314bec9f7d8576816c2ea0", "requested_depth": "normal", "loop": "fast", "backend": null, "started_at": 1790508173.031049, "finished_at": 1790508181.090763, "degraded_reason": null}, "markdown": "", "sources": [], "structured": {"price": {"ok": false, "provider": null, "error": "price timed out after 6s \u2014 dropped", "reason": "provider_error"}, "fundamentals": {"ok": false, "provider": null, "error": "fundamentals timed out after 6s \u2014 dropped", "reason": "provider_error"}, "derived": {"ok": true, "provider": "derived", "data": {"drawdown_from_high": {"value": null, "label": "Below 52-week high", "basis": "vs 52w high", "formula": "(52w high - price) / 52w high", "unit": "fraction"}, "fifty_two_week_change": {"value": null, "label": "52-week price change (Yahoo)", "basis": "trailing 52 weeks", "unit": "fraction"}, "dividend_yield": {"value": null, "label": "Dividend yield", "basis": "fraction of price", "unit": "fraction"}, "dividend_per_share": {"value": null, "label": "Dividend per share", "basis": "per share, listing currency", "unit": "currency"}, "revenue_growth": {"value": null, "label": "Revenue growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction"}, "earnings_growth": {"value": null, "label": "Earnings growth", "basis": "quarterly YoY (MRQ)", "unit": "fraction"}, "market_cap": {"value": null, "label": "Market cap", "basis": "provider market cap", "unit": "currency"}, "conflicts": []}}, "news": {"ok": true, "provider": null, "data": []}, "filings": {"ok": true, "provider": "nse+bse", "data": {"symbol": "MAZDOCK", "exchange": null, "coverage": "covered", "sources": ["NSE", "BSE"], "errors": {}, "count": 20, "announcements": [{"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015", "category": "Trading Window", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_24092026111743_SE_Disclosure_Closure_of_Trading_Window_30092026.pdf", "ts": "2026-09-24T11:18:13+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange about Investor Presentation", "category": "Investor Presentation", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_23092026141617_SE_Disc_Investor_Meet_Presentation.pdf", "ts": "2026-09-23T14:16:25+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding Change in Director(s) of the company.", "category": "Change in Director(s)", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_23092026115747_SE_Disc_Extension_of_tenure_of_Biju_George.PDF", "ts": "2026-09-23T11:57:57+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange about Schedule of Investors meet", "category": "Analysts/Institutional Investor Meet/Con. Call Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_21092026164724_Investor_Meet_Intimation.PDF", "ts": "2026-09-21T16:47:57+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding 'Signing of MoU with National Shipbuilding & Heavy Industries Park Andhra Pradesh (NSHIPAP)'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_18092026163914_SE_Discl_Durgarajapatnam_MOU.pdf", "ts": "2026-09-18T16:39:58+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding 'Signing of MoU with National Shipbuilding & Heavy Industries Park Maharashtra Limited (NSHIPML) '.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_16092026184919_SE_Disclosure_Reg_30_Update.PDF", "ts": "2026-09-16T18:50:21+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding Change in Auditors of the company.", "category": "Change in Auditors", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_08092026141917_SE_Discl_Appointment_of_Stat_Auditor.pdf", "ts": "2026-09-08T14:19:24+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding Appointment of Mr K M Ravikumar as Non- Executive Independent Director of the company w.e.f. September 07, 2026.", "category": "Appointment", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_07092026182441_SE_Discl_Assumption_of_Charge_K_M_Ravikumar.pdf", "ts": "2026-09-07T18:25:07+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange about receipt of an Order from MSETCL for Al based comprehensive Infrasecure Project", "category": "Bagging/Receiving of orders/contracts", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_04092026193821_Purchase_Order_from_MSETCL.PDF", "ts": "2026-09-04T19:38:40+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has submitted the Exchange a copy of Srutinizers report of  93rd Annual General Meeting held on August 27, 2026. Further, the company has informed the Exchange regarding voting results.", "category": "Shareholders meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_28082026174729_SE_Discl_Voting_Results_and_Scrutinisers_Report.pdf", "ts": "2026-08-28T17:48:22+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM", "category": "AGM/EGM", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0159f16a-9020-4276-a49b-766150f4bd5b.pdf", "ts": "2026-08-27T16:18:22.273000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding Proceedings of Annual General Meeting held on August 27, 2026", "category": "Shareholders meeting", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_27082026160446_SE_Discl_93RD_AGM_Proceedings.pdf", "ts": "2026-08-27T16:08:00+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange about Appointment of Part-time Non-official (Independent) Director.", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_24082026161722_SE_Disclosure_Appointment_of_K_M_Ravikumar_ID.PDF", "ts": "2026-08-24T16:25:36+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Appointment Of Part-Time Non-Official (Independent) Director.", "category": "Company Update", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f45d3e7c-d66f-40c2-8d26-4836af7bc202.pdf", "ts": "2026-08-24T16:14:06.310000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange regarding 'Board comments on fine levied by the Exchange'.", "category": "Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_12082026124441_NSE_board_comments.PDF", "ts": "2026-08-12T12:46:31+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Record Date For Final Dividend For The Financial Year 2025-26.", "category": "Corp. Action", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/953dff18-d47b-4433-b43d-d85decfc689c.pdf", "ts": "2026-08-11T16:56:15.637000+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange that Record date for the purpose of Dividend  is 20-Aug-2026.", "category": "Record Date", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_11082026163407_SEDisclRecorddate.PDF", "ts": "2026-08-11T16:38:47+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange about web-link letter dispatched to the Members, for accessing the Annual Report and Notice of the 93rd AGM for the FY 2025-26.", "category": "General Updates", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_05082026174314_SE_Disclosure_Web-link_letter_of_AGM_notice_signed.pdf", "ts": "2026-08-05T17:43:24+05:30"}, {"symbol": "MAZDOCK", "exchange": "NSE", "headline": "Mazagon Dock Shipbuilders Limited has informed the Exchange about Copy of Newspaper Publication w.r.t 93rd Annual General Meeting scheduled to be held on Thursday, 27 August 2026.", "category": "Copy of Newspaper Publication", "attachment_url": "https://nsearchives.nseindia.com/corporate/MAZDOCK_05082026170656_SE_Disclosure_AGM_Notice_Newspaper_Advertisement_signed.pdf", "ts": "2026-08-05T17:14:11+05:30"}, {"symbol": "MAZDOCK", "exchange": "BSE", "headline": "Business Responsibility and Sustainability Reporting (BRSR)", "category": "Others", "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/a3e22494-e14a-4d43-933c-80fdb0ce42e3.pdf", "ts": "2026-08-04T23:40:43.520000+05:30"}]}}}, "cost": null, "web_available": false, "note": "Web search did not answer within 8s \u2014 structured data only", "web_reason": "timeout", "backend": null}}
+
+data: {"kind": "heartbeat"}
+
+data: {"kind": "delta", "text": "I"}
+
+data: {"kind": "delta", "text": "'ve"}
+
+data: {"kind": "delta", "text": " pulled"}
+
+data: {"kind": "delta", "text": " up"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " research"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " MA"}
+
+data: {"kind": "delta", "text": "Z"}
+
+data: {"kind": "delta", "text": "DO"}
+
+data: {"kind": "delta", "text": "CK"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " but"}
+
+data: {"kind": "delta", "text": " unfortunately"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " it"}
+
+data: {"kind": "delta", "text": " seems"}
+
+data: {"kind": "delta", "text": " that"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " data"}
+
+data: {"kind": "delta", "text": " is"}
+
+data: {"kind": "delta", "text": " incomplete"}
+
+data: {"kind": "delta", "text": " due"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " a"}
+
+data: {"kind": "delta", "text": " provider"}
+
+data: {"kind": "delta", "text": " error"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "However"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " I"}
+
+data: {"kind": "delta", "text": " can"}
+
+data: {"kind": "delta", "text": " provide"}
+
+data: {"kind": "delta", "text": " you"}
+
+data: {"kind": "delta", "text": " with"}
+
+data: {"kind": "delta", "text": " some"}
+
+data: {"kind": "delta", "text": " information"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " company"}
+
+data: {"kind": "delta", "text": "'s"}
+
+data: {"kind": "delta", "text": " news"}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " filings"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "Here"}
+
+data: {"kind": "delta", "text": " are"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " headlines"}
+
+data: {"kind": "delta", "text": " from"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " last"}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "20"}
+
+data: {"kind": "delta", "text": " days"}
+
+data: {"kind": "delta", "text": ":\n\n"}
+
+data: {"kind": "delta", "text": "*"}
+
+data: {"kind": "delta", "text": " Maz"}
+
+data: {"kind": "delta", "text": "agon"}
+
+data: {"kind": "delta", "text": " Dock"}
+
+data: {"kind": "delta", "text": " Ship"}
+
+data: {"kind": "delta", "text": "builders"}
+
+data: {"kind": "delta", "text": " Limited"}
+
+data: {"kind": "delta", "text": " has"}
+
+data: {"kind": "delta", "text": " informed"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " Exchange"}
+
+data: {"kind": "delta", "text": " regarding"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " Trading"}
+
+data: {"kind": "delta", "text": " Window"}
+
+data: {"kind": "delta", "text": " closure"}
+
+data: {"kind": "delta", "text": " pursuant"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " SE"}
+
+data: {"kind": "delta", "text": "BI"}
+
+data: {"kind": "delta", "text": " ("}
+
+data: {"kind": "delta", "text": "Pro"}
+
+data: {"kind": "delta", "text": "hibition"}
+
+data: {"kind": "delta", "text": " of"}
+
+data: {"kind": "delta", "text": " Insider"}
+
+data: {"kind": "delta", "text": " Trading"}
+
+data: {"kind": "delta", "text": ")"}
+
+data: {"kind": "delta", "text": " Regulations"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "201"}
+
+data: {"kind": "delta", "text": "5"}
+
+data: {"kind": "delta", "text": "\n"}
+
+data: {"kind": "delta", "text": "*"}
+
+data: {"kind": "delta", "text": " Maz"}
+
+data: {"kind": "delta", "text": "agon"}
+
+data: {"kind": "delta", "text": " Dock"}
+
+data: {"kind": "delta", "text": " Ship"}
+
+data: {"kind": "delta", "text": "builders"}
+
+data: {"kind": "delta", "text": " Limited"}
+
+data: {"kind": "delta", "text": " has"}
+
+data: {"kind": "delta", "text": " informed"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " Exchange"}
+
+data: {"kind": "delta", "text": " about"}
+
+data: {"kind": "delta", "text": " Investor"}
+
+data: {"kind": "delta", "text": " Presentation"}
+
+data: {"kind": "delta", "text": "\n"}
+
+data: {"kind": "delta", "text": "*"}
+
+data: {"kind": "delta", "text": " Maz"}
+
+data: {"kind": "delta", "text": "agon"}
+
+data: {"kind": "delta", "text": " Dock"}
+
+data: {"kind": "delta", "text": " Ship"}
+
+data: {"kind": "delta", "text": "builders"}
+
+data: {"kind": "delta", "text": " Limited"}
+
+data: {"kind": "delta", "text": " has"}
+
+data: {"kind": "delta", "text": " informed"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " Exchange"}
+
+data: {"kind": "delta", "text": " regarding"}
+
+data: {"kind": "delta", "text": " Change"}
+
+data: {"kind": "delta", "text": " in"}
+
+data: {"kind": "delta", "text": " Director"}
+
+data: {"kind": "delta", "text": "(s"}
+
+data: {"kind": "delta", "text": ")"}
+
+data: {"kind": "delta", "text": " of"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " company"}
+
+data: {"kind": "delta", "text": ".\n"}
+
+data: {"kind": "delta", "text": "*"}
+
+data: {"kind": "delta", "text": " ...\n\n"}
+
+data: {"kind": "delta", "text": "You"}
+
+data: {"kind": "delta", "text": " can"}
+
+data: {"kind": "delta", "text": " find"}
+
+data: {"kind": "delta", "text": " more"}
+
+data: {"kind": "delta", "text": " information"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " these"}
+
+data: {"kind": "delta", "text": " filings"}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " news"}
+
+data: {"kind": "delta", "text": " by"}
+
+data: {"kind": "delta", "text": " clicking"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " attachments"}
+
+data: {"kind": "delta", "text": " provided"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "As"}
+
+data: {"kind": "delta", "text": " for"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " valuation"}
+
+data: {"kind": "delta", "text": " brief"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " I"}
+
+data: {"kind": "delta", "text": " proposed"}
+
+data: {"kind": "delta", "text": " it"}
+
+data: {"kind": "delta", "text": " for"}
+
+data: {"kind": "delta", "text": " your"}
+
+data: {"kind": "delta", "text": " review"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "You"}
+
+data: {"kind": "delta", "text": " can"}
+
+data: {"kind": "delta", "text": " access"}
+
+data: {"kind": "delta", "text": " it"}
+
+data: {"kind": "delta", "text": " at"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " top"}
+
+data: {"kind": "delta", "text": " of"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " cockpit"}
+
+data: {"kind": "delta", "text": "."}
+
+data: {"kind": "delta", "text": " "}
+
+data: {"kind": "delta", "text": "Click"}
+
+data: {"kind": "delta", "text": " any"}
+
+data: {"kind": "delta", "text": " ticker"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " dig"}
+
+data: {"kind": "delta", "text": " in"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "Please"}
+
+data: {"kind": "delta", "text": " note"}
+
+data: {"kind": "delta", "text": " that"}
+
+data: {"kind": "delta", "text": " due"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " provider"}
+
+data: {"kind": "delta", "text": " error"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " some"}
+
+data: {"kind": "delta", "text": " data"}
+
+data: {"kind": "delta", "text": " is"}
+
+data: {"kind": "delta", "text": " missing"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " including"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " company"}
+
+data: {"kind": "delta", "text": "'s"}
+
+data: {"kind": "delta", "text": " price"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " fundamentals"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " derived"}
+
+data: {"kind": "delta", "text": " metrics"}
+
+data: {"kind": "delta", "text": " such"}
+
+data: {"kind": "delta", "text": " as"}
+
+data: {"kind": "delta", "text": " dividend"}
+
+data: {"kind": "delta", "text": " yield"}
+
+data: {"kind": "delta", "text": " and"}
+
+data: {"kind": "delta", "text": " market"}
+
+data: {"kind": "delta", "text": " cap"}
+
+data: {"kind": "delta", "text": ".\n\n"}
+
+data: {"kind": "delta", "text": "If"}
+
+data: {"kind": "delta", "text": " you"}
+
+data: {"kind": "delta", "text": "'d"}
+
+data: {"kind": "delta", "text": " like"}
+
+data: {"kind": "delta", "text": " me"}
+
+data: {"kind": "delta", "text": " to"}
+
+data: {"kind": "delta", "text": " retry"}
+
+data: {"kind": "delta", "text": " fetching"}
+
+data: {"kind": "delta", "text": " the"}
+
+data: {"kind": "delta", "text": " data"}
+
+data: {"kind": "delta", "text": " or"}
+
+data: {"kind": "delta", "text": " provide"}
+
+data: {"kind": "delta", "text": " more"}
+
+data: {"kind": "delta", "text": " information"}
+
+data: {"kind": "delta", "text": " on"}
+
+data: {"kind": "delta", "text": " a"}
+
+data: {"kind": "delta", "text": " specific"}
+
+data: {"kind": "delta", "text": " aspect"}
+
+data: {"kind": "delta", "text": " of"}
+
+data: {"kind": "delta", "text": " MA"}
+
+data: {"kind": "delta", "text": "Z"}
+
+data: {"kind": "delta", "text": "DO"}
+
+data: {"kind": "delta", "text": "CK"}
+
+data: {"kind": "delta", "text": ","}
+
+data: {"kind": "delta", "text": " please"}
+
+data: {"kind": "delta", "text": " let"}
+
+data: {"kind": "delta", "text": " me"}
+
+data: {"kind": "delta", "text": " know"}
+
+data: {"kind": "delta", "text": "!"}
+
+data: {"kind": "research_step", "tool_call_id": "call_9224883c75834518a9e79717dccdb90d__autobrief", "tool": "host_action", "step_kind": "notice", "detail": "Staged for your review, not applied yet: publish_brief MAZDOCK. Accept it below to apply.", "latency_ms": null, "status": "ok", "index": 0}
+
+data: {"kind": "done", "usage": {"input_tokens": 5548, "output_tokens": 238, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+

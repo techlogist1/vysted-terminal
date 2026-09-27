@@ -1,0 +1,8 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check (live instance of R15-AGENT-031).
+Same fix inspected: src/modules/chat/message-notices.ts isRuntimeNotice(stepKind) === "notice",
+sidecar/services/agent_runtime.py NOTICE_STEP_KIND="notice" applied to the "kept_previous" /
+"failed" / no-ack publish-divergence notices (lines 1440-1487).
+
+VERDICT: holds. The "kept previous brief" notice (and the other two divergence variants) is now
+recognised by kind, not by a prose regex, so it renders as a transcript chip instead of being
+buried in the collapsed trace.

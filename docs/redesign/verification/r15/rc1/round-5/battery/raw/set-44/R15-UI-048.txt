@@ -1,0 +1,43 @@
+R15-UI-048 -- chart default preferences
+settings.ts chartDefaults slice:
+91:  chartDefaults: ChartDefaults;
+118:  chartDefaults: {
+152:    chartDefaults: {
+153:      ...DEFAULT_SETTINGS.chartDefaults,
+154:      indicators: [...DEFAULT_SETTINGS.chartDefaults.indicators],
+174:/** Parse a persisted/imported `chartDefaults` field; anything malformed (an
+238:      chartDefaults: {
+288:    const chartDefaults =
+289:      "chartDefaults" in bundle
+290:        ? parseChartDefaults(bundle.chartDefaults, current.chartDefaults)
+291:        : current.chartDefaults;
+315:      chartDefaults,
+335:      chartDefaults: { ...s.chartDefaults, indicators: [...s.chartDefaults.indicators] },
+
+Pinned vitest ChartPanel.test.tsx:278 'a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048)'
+  it("a fresh panel (no persisted view) opens on the settings chart default (R15-UI-048)", async () => {
+    useSettingsStore
+      .getState()
+      .setChartDefaults({ symbol: "TCS.NS", timeframe: "1h", indicators: ["ema"] });
+    historyMock.mockResolvedValue(makeSeries("TCS.NS"));
+    render(<ChartPanel />);
+    await waitFor(() => {
+      expect(historyMock).toHaveBeenCalledWith("TCS.NS", "1h", undefined, "equity", undefined);
+    });
+  });
+
+  it("a persisted per-panel view still wins over the settings default (R15-UI-020)", async () => {
+
+ChartPanel.test.tsx:311 '"Make default" persists the current symbol/timeframe/indicators to settings'
+  it('"Make default" persists the current symbol/timeframe/indicators to settings', async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "Make default" }));
+    expect(useSettingsStore.getState().chartDefaults).toEqual({
+      symbol: "SPY",
+      timeframe: "1d",
+      indicators: [],
+    });
+  });
+
+  it("does not request indicators until one is selected", async () => {

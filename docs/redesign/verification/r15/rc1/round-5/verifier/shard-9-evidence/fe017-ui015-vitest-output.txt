@@ -1,0 +1,36 @@
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/v9-fe
+stdout | src/store/V9_FE.test.tsx > FE-017 > P1 filings: late AAPL success then late AAPL error after MSFT ready
+V9 P1 => {"active":"MSFT","status":"ready","err":null}
+stdout | src/store/V9_FE.test.tsx > FE-017 > acc1-3 detail: late A-1 success/reject after B-2
+V9 acc1 => {"active":"B-2","status":"ready"}
+stdout | src/store/V9_FE.test.tsx > FE-017 > acc1-3 detail: late A-1 success/reject after B-2
+V9 acc3 => {"status":"ready","err":null}
+stdout | src/store/V9_FE.test.tsx > FE-017 > acc2 detail after setActiveAccession(null) stays null
+V9 acc2 => null
+stdout | src/store/V9_FE.test.tsx > FE-017 > acc4 insider late AAPL reject after MSFT ready
+V9 acc4 => {"status":"ready","err":null}
+stdout | src/store/V9_FE.test.tsx > FE-017 > FRESH detail: late A success after newer B error keeps B's error
+V9 fresh-detail => {"status":"error","err":"B failed"}
+stdout | src/store/V9_FE.test.tsx > FE-017 > FRESH earnings: late 7-day success and late 7-day reject after 30-day
+V9 earn => {"upcoming":{"days":30,"events":[]},"status":"ready","lastDays":30}
+stdout | src/store/V9_FE.test.tsx > FE-017 > FRESH earnings: late 7-day success and late 7-day reject after 30-day
+V9 earn-rej => {"status":"ready","err":null}
+stdout | src/store/V9_FE.test.tsx > UI-015 > search keeps the 501 reason
+V9 search501 => {"status":"error","err":"sec-edgar-mcp is not available"}
+stdout | src/store/V9_FE.test.tsx > UI-015 > RESIDUAL: clearSearch then a late rejection for the cleared query
+V9 clear-race => {"status":"error","err":"sec-edgar-mcp is not available"}
+stdout | src/store/V9_FE.test.tsx > UI-015 > hook: attempts per error class
+V9 hook => {"s502":1,"s404":1,"s422":1,"s503":13,"typeErr":13}
+ ✓ src/store/V9_FE.test.tsx > FE-017 > P1 filings: late AAPL success then late AAPL error after MSFT ready 3ms
+ ✓ src/store/V9_FE.test.tsx > FE-017 > acc1-3 detail: late A-1 success/reject after B-2 0ms
+ ✓ src/store/V9_FE.test.tsx > FE-017 > acc2 detail after setActiveAccession(null) stays null 0ms
+ ✓ src/store/V9_FE.test.tsx > FE-017 > acc4 insider late AAPL reject after MSFT ready 0ms
+ ✓ src/store/V9_FE.test.tsx > FE-017 > FRESH detail: late A success after newer B error keeps B's error 0ms
+ ✓ src/store/V9_FE.test.tsx > FE-017 > FRESH earnings: late 7-day success and late 7-day reject after 30-day 0ms
+ ✓ src/store/V9_FE.test.tsx > UI-015 > search keeps the 501 reason 0ms
+ ✓ src/store/V9_FE.test.tsx > UI-015 > RESIDUAL: clearSearch then a late rejection for the cleared query 0ms
+ ✓ src/store/V9_FE.test.tsx > UI-015 > hook: attempts per error class 14ms
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  16:38:24
+   Duration  1.03s (transform 76ms, setup 79ms, import 142ms, tests 22ms, environment 594ms)

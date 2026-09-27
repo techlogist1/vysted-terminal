@@ -1,0 +1,29 @@
+=== DOCS-018: CURRENT_STATE.md 3.3 vs provider_registry.py ranks ===
+60:> - **§4 "shipped default routes to absent Ollama" → GATED**: a keyless provider
+88:>   pre-installed (yfinance + news keyless); the broker entries that shipped here
+213:`register_unavailable` (port 0) and degrade gracefully (openbb→yfinance,
+324:`ProviderDeclaration` table — id, model-keys served, preference rank,
+327:hand-maintained). `get_quote`/`get_history` stay **synchronous** (ccxt/yfinance
+331:outrank the broad default on `quote`/`ohlcv`: `nse_direct` (rank 15,
+332:exchange-direct EOD, the anti-bot curl_cffi lane), `nse` (rank 20,
+333:jugaad-data), `bse` (rank 25, the micro-cap EOD default for groups NSE never
+334:listed) — IN fundamentals still fall through to yfinance (no region-scoped
+337:- **`yfinance_provider.py`** — the no-key default for equities, region-gated:
+338:  for `IN` requests `nse_direct`/`nse`/`bse` (ranks 15/20/25) all rank ahead
+341:  `BRK-B` rewrite; **dividend-yield divided by 100** (yfinance 1.3.0 returns a
+357:- **`earnings_provider.py`** — yfinance calendar/estimates/surprises. Fiscal
+360:- **`analyst_ratings_extended.py`** — yfinance has **no individual-analyst
+372:  `bse-all` (BSE master rows with STATUS == "Active" as `SYMBOL.BO` — 5,042
+464:`sec_filings_provider` expose the same surface a yfinance provider would, so the
+534:fuzzy, no ranking, no recents.
+865:  dispatch seam, yfinance/ccxt/news/VADER/macro/QuantLib/49-indicators, the
+--- provider_registry.py ranks ---
+106:    rank: int = 100
+129:        rank=10,
+141:        rank=10,
+167:        rank=15,
+184:        rank=20,
+196:    # never listed), region-scoped to IN and ranked BETWEEN nse (20) and yfinance
+203:        rank=25,
+219:        rank=50,
+758:        ranked = sorted((p for p in _PROVIDERS if model_key in p.serves), key=lambda p: p.rank)

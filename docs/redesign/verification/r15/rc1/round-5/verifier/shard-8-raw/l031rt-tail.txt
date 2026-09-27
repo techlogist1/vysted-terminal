@@ -1,0 +1,12 @@
+== tail: one chunk
+ tool_calls=[('fundamentals', {'symbol': 'SIFY'})]
+ streamed_text="The ADR-to-ordinary-share ratio is not available from this session's sources."
+
+== tail: word chunks
+ tool_calls=[('fundamentals', {'symbol': 'SIFY'})]
+ streamed_text="The ADR-to-ordinary-share ratio is not available from this session's sources."
+
+== tail: no tool mention
+ tool_calls=[('fundamentals', {'symbol': 'SIFY'})]
+ streamed_text="The ADR-to-ordinary-share ratio is not available from this session's sources."
+

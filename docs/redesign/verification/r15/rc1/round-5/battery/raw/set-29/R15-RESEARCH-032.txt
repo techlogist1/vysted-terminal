@@ -1,0 +1,3 @@
+CMD: node_modules/.bin/vitest run src/components/SettingsPanel.test.tsx (targeted)
+1749: ✓ src/components/SettingsPanel.test.tsx > SettingsPanel > a status 500 shows the sidecar's reason, not 'not connected' 56ms
+VERDICT: ci_pinned (test: src/components/SettingsPanel.test.tsx > SettingsPanel > a status 500 shows the sidecar's reason, not 'not connected')

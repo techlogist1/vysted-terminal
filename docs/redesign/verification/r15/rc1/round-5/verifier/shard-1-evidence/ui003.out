@@ -1,0 +1,8 @@
+POST
+{"id":"custom:vshard1-ui003","name":"UI003 probe","philosophy":"probe","system_prompt":"You are a probe agent for verification only.","tools":["research","web_search","price_data","publish_brief"],"default_provider":"openrouter","default_model":"minimax/minimax-m3","icon":null,"created_at":179050859
+PUT-form-shape
+{"id":"custom:vshard1-ui003","name":"UI003 probe renamed","philosophy":"probe","system_prompt":"You are a probe agent for verification only.","tools":["research","web_search","price_data","publish_brief"],"default_provider":"openrouter","default_model":"minimax/minimax-m3","icon":null,"created_at":1
+GET
+UI003 probe renamed ['research', 'web_search', 'price_data', 'publish_brief'] openrouter
+DELETE
+204

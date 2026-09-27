@@ -1,0 +1,124 @@
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand
+
+ ↓ src/lib/host-actions.test.ts > host-actions > classifies the catalog host actions as mutations to gate
+ ↓ src/lib/host-actions.test.ts > host-actions > panel-control actions describe + apply (gated, no auto-apply)
+ ↓ src/lib/host-actions.test.ts > host-actions > open/close/focus on an UNKNOWN panel id return null — never a fake success
+ ✓ src/lib/host-actions.test.ts > host-actions > open_panel('screener') opens the REGISTERED id (kills the screener id drift) 2ms
+ ↓ src/lib/host-actions.test.ts > host-actions > open_panel returns null when the panel did not actually open (disabled module)
+ ↓ src/lib/host-actions.test.ts > host-actions > close_panel closes an OPEN panel and says so; focus_panel focuses it
+ ↓ src/lib/host-actions.test.ts > host-actions > focus_panel returns null when the panel can neither be found nor opened
+ ↓ src/lib/host-actions.test.ts > host-actions > applyHostAction(set_chart_symbol) commands the chart to load the symbol
+ ↓ src/lib/host-actions.test.ts > host-actions > add_to_watchlist tracks the symbol once it resolves to a listing
+ ↓ src/lib/host-actions.test.ts > host-actions > add_to_watchlist resolves a company name or fails with candidates, never a blank row (R15-AGENT-044)
+ ↓ src/lib/host-actions.test.ts > host-actions > an agent add of another listing of a tracked ticker adds it, and undo removes only it (R15-DATA-002)
+ ↓ src/lib/host-actions.test.ts > host-actions > an agent add by name of the listing a region-less entry already binds to is a no-op (R15-DATA-002)
+ ↓ src/lib/host-actions.test.ts > host-actions > remove_from_watchlist removes the found listing only, and undo puts it back (R15-DATA-002)
+ ✓ src/lib/host-actions.test.ts > host-actions > write_screener_filters describes + writes a nested AND/OR tree into the panel 1ms
+ ✓ src/lib/host-actions.test.ts > host-actions > write_screener_filters with no well-formed criteria can't apply (re-pends) 0ms
+ ✓ src/lib/host-actions.test.ts > host-actions > write_screener_filters says which malformed criterion it dropped, in label and ack (R15-AGENT-043) 0ms
+ ↓ src/lib/host-actions.test.ts > host-actions > save_screen whose every criterion is malformed refuses instead of saving the current filters (R15-AGENT-043)
+ ↓ src/lib/host-actions.test.ts > host-actions > set_chart_indicators describes + applies the indicator selection (B2)
+ ↓ src/lib/host-actions.test.ts > host-actions > set_chart_indicators applies only known keys and reports the dropped ones
+ ↓ src/lib/host-actions.test.ts > host-actions > set_chart_indicators keeps a base:param spec like ema:9 — never dropped (R15-UI-091)
+ ↓ src/lib/host-actions.test.ts > host-actions > arrange_layout describes the named templates (B2)
+ ↓ src/lib/host-actions.test.ts > host-actions > set_chart_symbol opens a chart when none is open (AUTO 'no panels' fix)
+ ↓ src/lib/host-actions.test.ts > host-actions > describeHostAction(open_panel) renders the symbol for a symbol-aware panel
+ ↓ src/lib/host-actions.test.ts > host-actions > open_panel(equity-overview, symbol) opens the panel AND routes the symbol via the equity-command channel
+ ↓ src/lib/host-actions.test.ts > host-actions > openCompanyOverview carries the picked listing's region to the equity command (R15-DATA-002)
+ ↓ src/lib/host-actions.test.ts > host-actions > open_panel resolves aliases — 'overview' routes the symbol like 'equity-overview'
+ ↓ src/lib/host-actions.test.ts > host-actions > open_panel(chart, symbol) routes through the chart-command channel
+ ↓ src/lib/host-actions.test.ts > host-actions > open_panel ignores a stray symbol on a non-symbol-aware panel
+ ↓ src/lib/host-actions.test.ts > host-actions > publish_brief never default-trues a true outage (web_available:false, no sources)
+ ↓ src/lib/host-actions.test.ts > host-actions > publish_brief never false-flags a sourced brief (symptom #2 fix)
+ ↓ src/lib/host-actions.test.ts > host-actions > publish_brief keeps a source's date and provenance from the wire (R15-RESEARCH-024)
+ ↓ src/lib/host-actions.test.ts > host-actions > publish_brief: omitted web_available does not default-true a sourceless run
+ ↓ src/lib/host-actions.test.ts > host-actions > publish_brief forwards web_reason for the honest transient banner copy
+ ↓ src/lib/host-actions.test.ts > host-actions > describeHostAction(publish_brief) only tags structured-only with zero sources
+ ↓ src/lib/host-actions.test.ts > host-actions > a depth-less re-publish preserves the prior run's depth tier (fixes #5)
+ ↓ src/lib/host-actions.test.ts > host-actions > heavy survives a mode='DEEP' re-publish (MAX tier, never shallowed)
+ ↓ src/lib/host-actions.test.ts > host-actions > an explicit deeper re-publish on the SAME symbol escalates the tier
+ ↓ src/lib/host-actions.test.ts > host-actions > a DIFFERENT symbol does not inherit the prior brief's depth
+ ↓ src/lib/host-actions.test.ts > host-actions > Copy-markdown is composeBriefMarkdown output including the ## Sources appendix
+ ↓ src/lib/host-actions.test.ts > host-actions > applyHostAction has no order path (propose_order is not a host action)
+ ↓ src/lib/host-actions.test.ts > host-actions > describeHostAction renders a reviewable old→new diff per kind
+ ↓ src/lib/host-actions.test.ts > briefFromInput backend carry (R9 gate 2, R10 run-scoped) > keeps the engine's backend id when the model's SAME-RUN re-publish omits it
+ ↓ src/lib/host-actions.test.ts > briefFromInput backend carry (R9 gate 2, R10 run-scoped) > a DIFFERENT run never inherits the prior backend (the 20s clock is dead)
+ ↓ src/lib/host-actions.test.ts > briefFromInput backend carry (R9 gate 2, R10 run-scoped) > a cross-symbol publish does NOT inherit the prior backend
+ ↓ src/lib/host-actions.test.ts > briefFromInput backend carry — symbol-less Tier B predecessor > carries the research-model id across a same-run publish that gains a symbol
+ ↓ src/lib/host-actions.test.ts > publish_brief same-run shrink guard (R9 D33, R10 run_id-scoped) > keeps the engine's richer brief when the model's SAME-RUN re-publish strictly shrinks it
+ ↓ src/lib/host-actions.test.ts > publish_brief same-run shrink guard (R9 D33, R10 run_id-scoped) > a genuinely richer re-publish still replaces (more sources)
+ ↓ src/lib/host-actions.test.ts > same-run matching is exchange-suffix-insensitive (R9) > SAKSOFT.NS re-publish cannot shrink the engine's SAKSOFT brief
+ ↓ src/lib/host-actions.test.ts > shrink guard blocks source-less prose re-publishes > a 0-source long-prose SAME-RUN re-publish never replaces a sourced brief
+ ↓ src/lib/host-actions.test.ts > briefFromInput execution truth (R10 D38/E2) > derives mode/depth from the loop that RAN — the wire mode is ignored
+ ↓ src/lib/host-actions.test.ts > briefFromInput execution truth (R10 D38/E2) > research-model lane is stop-based: ultra requested → heavy tier
+ ↓ src/lib/host-actions.test.ts > briefFromInput execution truth (R10 D38/E2) > a disambiguation-only publish is accepted and rides the brief
+ ↓ src/lib/host-actions.test.ts > briefFromInput execution truth (R10 D38/E2) > a publish from a DIFFERENT run never replaces the run in flight (E3.2)
+ ↓ src/lib/host-actions.test.ts > briefFromInput execution truth (R10 D38/E2) > publishAckStatus maps the apply label onto the ack vocabulary (D39 §4)
+ ↓ src/lib/host-actions.test.ts > portfolio host actions (E6 — tracked portfolio writes) > describe renders the human diff with kind data-write
+ ↓ src/lib/host-actions.test.ts > portfolio host actions (E6 — tracked portfolio writes) > add: lands the holding in the store
+ ↓ src/lib/host-actions.test.ts > portfolio host actions (E6 — tracked portfolio writes) > add/update/delete write only the store — no sidecar ledger call (R15-CODE-FRONTEND-012)
+ ↓ src/lib/host-actions.test.ts > portfolio host actions (E6 — tracked portfolio writes) > update: resolves the holding by id-then-symbol
+ ↓ src/lib/host-actions.test.ts > portfolio host actions (E6 — tracked portfolio writes) > delete: removes the matched holding; an unmatched target is an honest null
+ ↓ src/lib/host-actions.test.ts > portfolio host actions (E6 — tracked portfolio writes) > add with no cost basis writes nothing, and the review card says no price was given
+ ↓ src/lib/host-actions.test.ts > portfolio host actions (E6 — tracked portfolio writes) > add with a negative cost basis is an honest null, not a stored holding (R15-DATA-088)
+ ↓ src/lib/host-actions.test.ts > portfolio host actions (E6 — tracked portfolio writes) > add with no symbol / non-positive quantity is an honest null
+ ↓ src/lib/host-actions.test.ts > portfolio host actions (E6 — tracked portfolio writes) > two lots of one symbol: an id picks its lot; the symbol alone refuses, naming both (R15-AGENT-042)
+ ↓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > write_note replaces or appends, scoped to General or a ticker
+ ↓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > write_note honours the catalog-documented args: 'global' is General, mode defaults to append
+ ↓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > save_layout without a name updates the active saved layout
+ ↓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > remove_from_watchlist removes a tracked symbol and is idempotent-honest
+ ↓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > set_region drives the ONE agent-drivable setting (D45) and rejects junk
+ ↓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > save_screen saves the agent's recipe, not the on-screen draft, and says when it replaces (R15-CODE-FRONTEND-009)
+ ↓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > save_layout is an honest null when the layout has not mounted
+ ✓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > write_screener_filters writes the recipe and run:true runs it once (R15-CODE-FRONTEND-010) 1ms
+ ✓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > write_screener_filters / save_screen: a flat group's leaves are what actually runs (R15-AGENT-096) > a flat AND group's leaves run, not the caller's flat criteria 53ms
+ ✓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > write_screener_filters / save_screen: a flat group's leaves are what actually runs (R15-AGENT-096) > a flat OR group's leaves run, in the group 51ms
+ ✓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > write_screener_filters / save_screen: a flat group's leaves are what actually runs (R15-AGENT-096) > the rc1-vshard-3:3 input: a dropped flat leaf beside a well-formed flat group — the group's leaves still run 53ms
+ ✓ src/lib/host-actions.test.ts > write_note / remove_from_watchlist / set_region / save_screen (R10) > write_screener_filters / save_screen: a flat group's leaves are what actually runs (R15-AGENT-096) > save_screen, then loadScreen, then run: the saved group's leaves are what runs 1ms
+ ↓ src/lib/host-actions.test.ts > open_panel backtest run_id (R15-AGENT-011) > loads the agent's run as complete and makes it the active run
+ ↓ src/lib/host-actions.test.ts > open_panel backtest run_id (R15-AGENT-011) > a run the sidecar does not hold is an honest failure, not an empty panel
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > the table covers every host action
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > set_chart_symbol {"symbol":"NVDA"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > set_chart_indicators {"indicators":["rsi","bogus"]}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > open_panel {"panel":"chart","symbol":"NVDA"}: the diff promises what apply does
+ ✓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > close_panel {"panel":"screener"}: the diff promises what apply does 1ms
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > focus_panel {"panel":"chart"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > arrange_layout {"pattern":"default"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > open_company_overview {"symbol":"AAPL"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > publish_brief {"markdown":"## x","mode":"fast","sources":[{"url":"https://a.example","title":"a"}]}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > add_to_watchlist {"symbol":"tsla"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > remove_from_watchlist {"symbol":"tsla"}: the diff promises what apply does
+ ✓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > write_screener_filters {"criteria":[{"field":"roe","operator":"gt","value":0.18}]}: the diff promises what apply does 0ms
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > save_screen {"name":"IT value"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > portfolio_add_position {"symbol":"INFY","quantity":2,"cost_basis":1500}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > portfolio_update_position {"position_id":"h-a","cost_basis":3100}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > portfolio_delete_position {"position_id":"h-a"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > write_note {"scope":"NVDA","text":"hello","mode":"replace"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > save_layout {"name":"My desk"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > set_region {"region":"in"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > add_chart_drawing {"kind":"horizontal-line","points":[{"price":3400}]}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > set_region {"region":"MARS"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > close_panel {"panel":"flux-capacitor"}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > portfolio_update_position {"position_id":"h-a","quantity":0}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > write_note {"scope":"NVDA","text":"  "}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > add_chart_drawing {"kind":"trendline","points":[{"time":"2026-07-01","price":3400}]}: the diff promises what apply does
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > P5: accept changes the lot the diff showed in portfolio A, not portfolio B's
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > a bound lot that is gone by accept fails honestly instead of hitting another lot
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > an applied holding delete can be undone: the holding is back with its id (R15-AGENT-041)
+ ↓ src/lib/host-actions.test.ts > describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011) > an applied note replace can be undone: the prior text is restored (R15-AGENT-041)
+ ↓ src/lib/host-actions.test.ts > arrange_layout's default is a layout-only reset (R15-AGENT-056) > keeps drawings and module choices for {}
+ ↓ src/lib/host-actions.test.ts > arrange_layout's default is a layout-only reset (R15-AGENT-056) > keeps drawings and module choices for { pattern: 'default' }
+ ↓ src/lib/host-actions.test.ts > arrange_layout routes Layout-menu mode ids instead of resetting (R15-LEAD-048) > a recognised Layout-menu mode id (e.g. 'fundamental') applies that mode, never resetLayout
+ ↓ src/lib/host-actions.test.ts > arrange_layout routes Layout-menu mode ids instead of resetting (R15-LEAD-048) > an unrecognised pattern (banana) fails, names it, and does not reset
+ ↓ src/lib/host-actions.test.ts > arrange_layout routes Layout-menu mode ids instead of resetting (R15-LEAD-048) > an unrecognised pattern (constructor) fails, names it, and does not reset
+ ↓ src/lib/host-actions.test.ts > arrange_layout routes Layout-menu mode ids instead of resetting (R15-LEAD-048) > 'default' still resets
+ ↓ src/lib/host-actions.test.ts > arrange_layout routes Layout-menu mode ids instead of resetting (R15-LEAD-048) > class case: 'compare-desk' routes to the mode, 'compare' still takes the template path
+ ↓ src/lib/host-actions.test.ts > open_company_overview's highlight is truthful (R15-AGENT-081) > a metric the panel shows is spotlit and named by its row label
+ ↓ src/lib/host-actions.test.ts > open_company_overview's highlight is truthful (R15-AGENT-081) > a metric the panel does not show is reported as absent, and not sent
+
+ Test Files  1 passed (1)
+      Tests  11 passed | 104 skipped (115)
+   Start at  13:53:15
+   Duration  1.03s (transform 278ms, setup 55ms, import 314ms, tests 164ms, environment 358ms)
+

@@ -1,0 +1,45 @@
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand
+
+ ✓ src/store/screener.test.ts > useScreenerStore > setters > setUniverse updates the universe 1ms
+ ✓ src/store/screener.test.ts > useScreenerStore > setters > setCustomSymbols updates the raw text 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > setters > addCriterion / removeCriterion / updateCriterion manage the list 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > falls back to /screener/run when /screener/run/stream returns 404 (older sidecar) 4ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > consumes the streaming SSE endpoint: progress frame populates state, result frame finalizes 5ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > streaming result exposes partial, coverage, and freshness on lastResult 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > cancelRun aborts the in-flight stream and sets status to idle 13ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > run B starting while run A is in flight does not let A clobber B's loading state 13ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > R15-CODE-DATA-006: run A's late unary fallback does not touch run B's result or status 53ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > R15-UI-056: the stream's error frame puts the server's reason in store.error 1ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > for the custom universe, serialises custom_symbols from the raw text 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > combinator='and' (default) sends no group; criteria stay flat 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > combinator='or' sends a flat OR group over the same criteria 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > advanced mode sends the NESTED group tree verbatim 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > advanced mode with NO nesting falls back to the flat path (no group) 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > a custom formula rides the request — evaluated SERVER-SIDE (R7 Pillar 3) 1ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > a blank formula is stripped from the request (no-op filter) 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > an unparseable formula fails the run inline with the caret column — no request fires 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > applyFilters writes a nested group + flips to advanced mode 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > applyFilters: a FLAT group supersedes the caller's flat criteria — runScreener must send the group's leaves, not the stale list (R15-AGENT-096) 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > runScreener > captures errors and sets status=error 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > savedScreens (R10 §2) > saveScreen persists the current draft under a name 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > savedScreens (R10 §2) > saveScreen replaces an existing screen with the same name 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > savedScreens (R10 §2) > deleteScreen removes the named screen 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > savedScreens (R10 §2) > deleteScreen on a missing name is a no-op 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > savedScreens (R10 §2) > loadScreen restores universe, criteria, formula, and combinator 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > savedScreens (R10 §2) > loadScreen on a missing name is a no-op 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > adoptRegionDefaultUniverse (R15-CODE-DATA-004) > adopts the sidecar's IN default (nifty50) on first mount 2ms
+ ✓ src/store/screener.test.ts > useScreenerStore > adoptRegionDefaultUniverse (R15-CODE-DATA-004) > keeps sp500 for a US session 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > adoptRegionDefaultUniverse (R15-CODE-DATA-004) > never overrides a restored saved screen's universe 0ms
+ ✓ src/store/screener.test.ts > useScreenerStore > loadUniverse > loads + caches the universe metadata 1ms
+ ✓ src/store/screener.test.ts > useScreenerStore > loadUniverse > returns null for the custom universe 0ms
+ ✓ src/store/screener.test.ts > serializeSavedScreens / deserializeSavedScreens (R10 workspace.ts seam) > round-trips cleanly through JSON 0ms
+ ✓ src/store/screener.test.ts > serializeSavedScreens / deserializeSavedScreens (R10 workspace.ts seam) > deserializeSavedScreens returns [] for null/undefined/empty 0ms
+ ✓ src/store/screener.test.ts > serializeSavedScreens / deserializeSavedScreens (R10 workspace.ts seam) > deserializeSavedScreens drops entries missing name or universe 0ms
+ ✓ src/store/screener.test.ts > serializeSavedScreens / deserializeSavedScreens (R10 workspace.ts seam) > deserializeSavedScreens returns [] on malformed JSON 0ms
+
+ Test Files  1 passed (1)
+      Tests  36 passed (36)
+   Start at  13:53:13
+   Duration  760ms (transform 75ms, setup 47ms, import 88ms, tests 100ms, environment 376ms)
+

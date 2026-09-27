@@ -1,0 +1,20 @@
+CMD: grep -n 'appliedAny\|Imported settings\|Could not read that file\|searchSettings\|enabledModules' src/components/SettingsPanel.tsx
+1983:  searchSettings: SearchSettingsBundle;
+1989:  enabledModules: Record<string, boolean>;
+1999:    searchSettings: useSearchSettingsStore.getState().toBundle(),
+2002:    enabledModules: { ...useModulesStore.getState().enabled },
+2039:      // old unconditional "Imported settings." told the user their file
+2042:      let appliedAny = false;
+2046:        appliedAny = true;
+2050:        appliedAny = true;
+2052:      if (parsed.searchSettings && typeof parsed.searchSettings === "object") {
+2053:        setSearchSettingsAll(parsed.searchSettings as SearchSettingsInput);
+2054:        appliedAny = true;
+2069:        appliedAny = true;
+2071:      if (parsed.enabledModules && typeof parsed.enabledModules === "object") {
+2074:        for (const [id, value] of Object.entries(parsed.enabledModules)) {
+2080:        appliedAny = true;
+2084:        appliedAny
+2085:          ? { kind: "ok", message: "Imported settings. Secrets re-enter via the keychain." }
+2086:          : { kind: "error", message: "Could not read that file — expected a Vysted export." },
+2089:      setStatus({ kind: "error", message: "Could not read that file — expected a Vysted export." });

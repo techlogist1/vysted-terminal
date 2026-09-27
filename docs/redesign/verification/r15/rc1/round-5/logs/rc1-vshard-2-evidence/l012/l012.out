@@ -1,0 +1,23 @@
+[build-python] /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vshard2-r5/l012/venv is Python 3.14, recreating on 3.13.
+{
+ "default_path_python3_is_3.14": {
+  "ok": "python3.13"
+ },
+ "override_3.14": {
+  "err": "VYSTED_PYTHON=/opt/homebrew/bin/python3.14 is Python 3.14, need 3.13."
+ },
+ "override_3.13": {
+  "ok": "\"/opt/homebrew/bin/python3.13\""
+ },
+ "override_missing": {
+  "err": "VYSTED_PYTHON=/nonexistent/python is Python (not runnable), need 3.13."
+ },
+ "path_only_3.14": {
+  "err": "No Python 3.13 found (tried python3.13, python3). Install Python 3.13 (e.g. `brew install python@3.13`) or set VYSTED_PYTHON to its path."
+ },
+ "ensureBuildVenv_on_3.14_venv": {
+  "ok": "ran"
+ },
+ "venv_before": "3.14.5",
+ "venv_after": "3.13.13"
+}

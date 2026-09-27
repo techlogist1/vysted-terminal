@@ -1,0 +1,14 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check (same defect class as R15-UI-054).
+src/modules/chat/message-notices.ts:66-69:
+  export function isRuntimeNotice(stepKind: string): boolean {
+    return stepKind === "notice";
+  }
+  (comment: "Matching the copy drifted twice (R15-AGENT-031 / R15-UI-054)")
+
+sidecar/services/agent_runtime.py: NOTICE_STEP_KIND = "notice" (line 1341); every divergence notice
+(kept_previous / failed / no-ack at lines 1440-1487) is yielded as an LLMResearchStepEvent with
+step_kind=NOTICE_STEP_KIND.
+
+VERDICT: holds. The frontend no longer matches divergence-notice prose with a regex that can drift
+from the sidecar's copy; it matches structurally on step_kind=="notice", which the runtime sets on
+every one of the three notice variants.

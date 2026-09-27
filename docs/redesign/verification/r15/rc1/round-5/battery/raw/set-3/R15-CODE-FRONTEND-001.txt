@@ -1,0 +1,61 @@
+CMD: grep -n "loading a named workspace never rolls back" /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/src/lib/workspace.test.ts
+603:  it("loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001)", async () => {
+--- test body (lines 603-660) ---
+  it("loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001)", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+    usePortfoliosStore.getState().setAll([], undefined);
+    useNotesStore.getState().fromBundle({ general: "week 1", bySymbol: {} });
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+    await saveWorkspace("Swing");
+    const saved = JSON.parse(String(fetchMock.mock.calls[0]![1]?.body)) as {
+      workspace: SerializedWorkspace;
+    };
+
+    // Week 2: new holdings, new notes, a different layout.
+    usePortfoliosStore.getState().addHolding("default", {
+      symbol: "TCS",
+      quantity: 5,
+      costBasis: 3600,
+      assetClass: "equity",
+    });
+    useNotesStore.getState().setGeneral("week 2");
+    fakeApi.fromJSON(LAYOUT_B);
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(saved.workspace), { status: 200 }));
+
+    await loadWorkspace("Swing");
+
+    expect(fakeApi.current).toEqual(LAYOUT_A);
+    expect(usePortfoliosStore.getState().portfolios[0].holdings.map((h) => h.symbol)).toEqual([
+      "TCS",
+    ]);
+    expect(useNotesStore.getState().general).toBe("week 2");
+  });
+
+  it("loadWorkspace fetches from the sidecar and applies the workspace", async () => {
+    const fakeApi = createFakeDockviewApi(LAYOUT_B);
+    useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
+
+    const stored: SerializedWorkspace = {
+      name: "research",
+      layout: LAYOUT_A,
+      enabledModules: { chart: true, news: false, platform: true },
+    };
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify(stored), { status: 200 }),
+    );
+
+    await loadWorkspace("research");
+
+    expect(fakeApi.current).toEqual(LAYOUT_A);
+    expect(useModulesStore.getState().enabled).toEqual(stored.enabledModules);
+    expect(useWorkspaceStore.getState().name).toBe("research");
+  });
+
+  it("saveWorkspace rejects an empty name", async () => {
+    await expect(saveWorkspace("   ")).rejects.toThrow(/name is required/);
+  });
+
+  it("round-trips chart drawings through workspace JSON (Phase 2)", () => {

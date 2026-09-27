@@ -1,0 +1,11 @@
+Commands: curl http://127.0.0.1:52352/resolve?q=FOCUS ; curl http://127.0.0.1:52352/disclosures/shareholding?symbol=FOCUS
+Exit: 0, HTTP 200 both.
+Observed: /resolve?q=FOCUS now returns needs_disambiguation:true with two distinct candidates:
+NSE "Focus Lighting and Fixtures Limited" (isin:null, bse_code:null) and BSE "Focus Business
+Solution Ltd" (isin:INE0DXR01010, bse_code:543312). Focus Lighting no longer carries Focus
+Business Solution's ISIN/BSE code (previously cross-stamped). /disclosures/shareholding?symbol=FOCUS
+returns 21 NSE patterns, every one with split_source:null, split_as_of:null (the BSE split is no
+longer merged onto this instrument).
+See R15-CODE-DATA-001-resolve.json and R15-CODE-DATA-001-shareholding.json for full raw bodies.
+Verdict: HOLDS. The bare-ticker cross-stamp (ISIN/BSE-code and the BSE shareholding split) onto a
+different company is gone for the register's own FOCUS repro.

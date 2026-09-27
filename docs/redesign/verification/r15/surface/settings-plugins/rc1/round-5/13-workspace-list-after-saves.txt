@@ -1,0 +1,3 @@
+CMD: curl GET /workspace
+["../evil5","__autosave__","मेरा लेआउट राउंड5"]
+HTTP 200

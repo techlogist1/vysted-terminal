@@ -1,0 +1,20 @@
+=== /macro/BOGUS_SERIES_ID_XYZ (DATA-061 residual check) ===
+{"detail":"provider is required for a series id"}
+HTTP 422
+
+=== /quotes/AAPL (typed equity route, contrast) ===
+{"symbol":"AAPL","price":341.07000732421875,"change":5.160007324218725,"change_percent":1.536127928379246,"volume":29950100.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-09-25T20:00:01Z","provider":"yfinance","freshness":"eod"}
+HTTP 200
+
+=== /macro/BOGUS_SERIES_ID_XYZ?provider=ecb ===
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+
+=== /macro/BOGUS_SERIES_ID_XYZ?provider=world-bank ===
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+
+=== /macro/BOGUS?provider=bogus-provider-string ===
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP 502
+

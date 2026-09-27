@@ -1,0 +1,32 @@
+=== AGENT-094
+OK {"pattern": "custom", "panels": ["chart", "news"]} -> {"pattern": "custom", "panels": ["chart", "news"]}
+OK {"pattern": "custom", "panels": [{"panel": "news", "direction": "right", "reference": "cha -> {"pattern": "custom", "panels": [{"panel": "news", "direction": "right", "reference": "chart"}]}
+OK {"pattern": "custom", "panels": "[\"chart\",\"news\"]"} -> {"pattern": "custom", "panels": ["chart", "news"]}
+OK {"pattern": "custom", "panels": ["watchlist", {"panel": "chart", "direction": "below", "re -> {"pattern": "custom", "panels": ["watchlist", {"panel": "chart", "direction": "below", "reference": "watchlist"}, "news"]}
+OK {"pattern": "custom", "panels": "[{\"panel\":\"brief\",\"direction\":\"right\",\"reference -> {"pattern": "custom", "panels": [{"panel": "brief", "direction": "right", "reference": "chart"}, "chart"]}
+list-typed schema paths: ['arrange_layout.input_schema.properties.panels.items']
+=== AGENT-095
+KEPT | dep | According to the SEC 20-F cover page filed on 2026-06-26, one SIFY ADR represents six equity shares. | counts ['1', '6']
+   bare: replaced
+KEPT | dep | As of June 26, 2026, each SIFY ADS represents 6 equity shares. | counts ['6']
+   bare: replaced
+KEPT | dep | Per the 20-F filed 06/26/2026, each SIFY ADS represents six equity shares. | counts ['6']
+   bare: replaced
+KEPT | dep | On 26 June 2026 Sify's 20-F stated that each ADS represents 6 equity shares. | counts ['6']
+   bare: replaced
+REPLACED | dep | Per the 20-F filed 26-Jun-2026, each SIFY ADS represents six equity shares. | counts ['26', '6']
+   bare: replaced
+REPLACED | dep | Per the filing dated 26-JUN-2026, each SIFY ADS represents 6 equity shares. | counts ['26', '6']
+   bare: replaced
+KEPT | dep | Per the 20-F filed Jun. 26th 2026, each SIFY ADS represents six equity shares. | counts ['6']
+   bare: replaced
+KEPT | dep | The 20-F (26.06.2026) says each SIFY ADS represents six equity shares. | counts ['6']
+   bare: replaced
+KEPT | dep | Filed 2026/6/26: one SIFY ADS = 6 equity shares. | counts ['1', '6']
+   bare: replaced
+KEPT | dep | On Friday, June 26 each SIFY ADS represented six equity shares. | counts ['6']
+   bare: replaced
+KEPT | dep | Filed 26 Jun, each SIFY ADS represents six equity shares. | counts ['6']
+   bare: replaced
+still replaced | fabrication | As of 2026-06-26 each SIFY ADS represents 5 equity shares.
+still replaced | fabrication | Per the 20-F filed 26-Jun-2026, each SIFY ADS represents 4 equity shares.

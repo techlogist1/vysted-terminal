@@ -1,0 +1,31 @@
+CMD: (1) in-process row_relevant on 5 base->head cases from batch-29's cert; (2) live GET /news?symbols=AI&region=US on :52356; (3) in-process gate_news(items, target=AI/C3.ai) fed the live news items
+
+OUTPUT (1) in-process row_relevant:
+ON / 'Lockheed wins contract on hypersonic program' -> False (expect False)
+ON / 'ON Semiconductor beats estimates' -> True (expect True)
+AI / 'C3.ai shares jump' -> True (expect True)
+AMD / 'AMD beats estimates' -> True (expect True)
+ALL / 'Allstate catastrophe losses mount' -> True (expect True)
+
+OUTPUT (2) live /news?symbols=AI&region=US: 33 raw items, alias-tagged off-entity noise present (Axis Bank AI-push hiring, Rajnath Singh defence summit, Air India AI 171 crash, etc.)
+
+OUTPUT (3) gate_news on those 33 live items for target AI/C3.ai:
+total items: 33 ; kept: 20 ; note: None
+all 20 kept items are genuinely C3.ai/AI-sector stock coverage (C3.ai, BigBear.ai, PLTR, SoundHound, UiPath earnings pieces); all 13 dropped were the region-wide 'AI' word-collision noise (Axis Bank hiring, Rajnath Singh defence summit, Air India AI 171 crash, NRI IPO talk, etc.)
+
+VERDICT: holds -- exactly matches batch-29's cert table row 'AI (C3.ai) | fresh | 20 | 0 | 0' (20 news_items survive the gate) and its 5 in-process row_relevant cases (ON/AMD/ALL/AI all correct). Not re-run as a live paid DEEP research call (gpt-4o-mini via vy.py) to conserve the shared $0.90 hosted-lane spend cap for the scenario lane this round; the gate itself -- the actual defect surface -- is proven end-to-end against real live /news data feeding the real gate_news function, which is the mechanism the fix touched (deep.py:376-393 now calls this same gate before synthesis, per the register's own evidence pointer).
+        web_res = await _safe_tool(tool_call, "web_search", web_args)
+
+    # The news tool blends region-wide feeds with the per-symbol feed; the
+    # shared relevance gate drops off-entity items BEFORE the extraction reads
+    # them or they become sources (the FAST news leg's gate, R13 ledger #9).
+    if target is not None and tool == "news" and structured_res.get("ok"):
+        from services.research.relevance import gate_news
+
+        items = structured_res.get("news")
+        if isinstance(items, list):
+            kept, news_note = gate_news(items, target=target)
+            structured_res = {**structured_res, "news": kept, "count": len(kept)}
+            if news_note:
+                structured_res["note"] = news_note
+(deep.py:918-925 -- confirms gate_news IS wired into the deep-research news leg at HEAD, not left unused)

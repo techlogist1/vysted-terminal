@@ -1,0 +1,5 @@
+2026-09-27 14:56:41,513 INFO services.fundamentals_warm: fundamentals warm: seeded 5891 india rows
+2026-09-27 14:56:41,593 INFO services.fundamentals_warm: fundamentals warm: seeded 5891 india rows
+2026-09-27 14:56:41,644 INFO services.fundamentals_warm: fundamentals warm: bhavcopy EOD applied to 2924 NSE rows (trade date 2026-09-25)
+2026-09-27 14:56:41,791 INFO services.fundamentals_warm: fundamentals warm: seed pack applied to 5050 rows (2026-07-08)
+2026-09-27 14:56:41,937 INFO services.fundamentals_warm: fundamentals warm: seed pack applied to 5050 rows (2026-07-08)

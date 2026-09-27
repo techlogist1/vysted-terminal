@@ -1,0 +1,29 @@
+import asyncio, httpx
+from services.search.base import SearchResponse, SearchResult, SearchError
+from services.search.keyless import KeylessSearchBackend
+from services.search.breaker import breaker_for
+from services.search.ddg import DdgSearchBackend
+class Stub:
+    async def search(self, q, *, options=None):
+        r=[SearchResult(url='https://duckduckgo.com/x', title='Unusual traffic from your computer network', snippet='verify you are a human')]
+        return SearchResponse(results=r, citations=[], backend='ddg', query=q)
+async def own():
+    kb=KeylessSearchBackend(engines={'ddg':Stub()})
+    try:
+        r=await kb.search('x'); print('OWN result ok, rows',len(r.results),'backend',r.backend)
+    except SearchError as e: print('OWN SearchError', getattr(e,'reason',None), str(e)[:160])
+    b=breaker_for('ddg'); print('OWN ddg breaker state',getattr(b,'state',None),'failures',getattr(b,'_failures',None))
+async def fresh():
+    page='<html><body><h1>Unusual traffic from your computer network</h1><p>Please verify you are a human.</p></body></html>'
+    client=httpx.AsyncClient(transport=httpx.MockTransport(lambda req: httpx.Response(200,text=page)))
+    ddg=DdgSearchBackend(client=client)
+    try:
+        r=await ddg.search('x'); print('FRESH DdgSearchBackend 200 block page -> ok rows',len(r.results))
+    except SearchError as e: print('FRESH DdgSearchBackend SearchError', getattr(e,'reason',None), str(e)[:120])
+    b0=breaker_for('ddg'); f0=getattr(b0,'_failures',None)
+    kb=KeylessSearchBackend(engines={'ddg':DdgSearchBackend(client=client)})
+    try:
+        r=await kb.search('y'); print('FRESH keyless(ddg real parser) ok rows',len(r.results),'backend',r.backend)
+    except SearchError as e: print('FRESH keyless SearchError', getattr(e,'reason',None), str(e)[:160])
+    print('FRESH ddg breaker failures before',f0,'after',getattr(breaker_for('ddg'),'_failures',None))
+asyncio.run(own()); asyncio.run(fresh())

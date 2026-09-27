@@ -1,0 +1,3 @@
+max NSE holiday: 2026-12-25 max US: 2027-12-24
+2027-01-26 (Republic Day) trading day IN: True
+sessions 2027-01-25..27 IN: 2

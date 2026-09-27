@@ -1,0 +1,3 @@
+CMD: curl /news/sources/status -H 'X-Vysted-Newsapi-Key: R15CANARY-round5-fake'
+{"newsapi":"unauthorized"}
+HTTP 200

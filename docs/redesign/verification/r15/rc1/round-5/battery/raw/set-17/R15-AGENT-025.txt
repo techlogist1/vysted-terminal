@@ -1,0 +1,11 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check.
+grep -n "idle\|heartbeat\|PLANNER_TIMEOUT" sidecar/services/agent_runtime.py:
+1125: #: A heartbeat frame goes out after this much silence while the runtime waits on
+1128: _HEARTBEAT_SECONDS = 10.0
+1131: _PLANNER_TIMEOUT_SECONDS = 20.0
+1134: async def _relay_provider(stream, idle):
+1157-1164: heartbeat every _HEARTBEAT_SECONDS; error frame ("provider_idle") at `idle` seconds of silence
+1757: await asyncio.wait_for(..., timeout=_PLANNER_TIMEOUT_SECONDS)
+3318: idle = LOCAL_IDLE_TIMEOUT_S if run.provider_id == "ollama" else IDLE_TIMEOUT_S (imported constants, lines 63-64)
+
+VERDICT: holds. A planner timeout (20s) and a provider-idle watchdog (heartbeats every 10s, error frame after `idle` seconds) are both present and wired into the SSE relay — a hung stream no longer spins silently for 600s.

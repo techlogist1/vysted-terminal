@@ -1,0 +1,15 @@
+# batch-11/W8-frontend-visual (rc1-battery-2, round 5)
+
+Candidate `9bc600ece2ce6343a6aa48f130d7620b1466bb98`. Own sidecar `:52342`, data dir
+`rc1-round-5-data-battery-2`. Raw output: `raw/set-54/`.
+
+| id | repro run | observed | verdict |
+| --- | --- | --- | --- |
+| R15-CODE-PLATFORM-023 | grep `src/modules/portfolio/metrics.ts` for the 7 exported risk functions; independent Python re-implementation of the same formulas (sharpe/sortino/maxDD/calmar/VaR95/corr/beta) run against LIVE `TCS.NS` + `^NSEI` 1y history from this shard's own sidecar (not the vitest fixture); grep `PortfolioPanel.tsx` for the render call sites | all 7 functions exist and are exported (`sharpeRatio`, `sortinoRatio`, `calmarRatio`, `historicalVaR95`, `correlation`, `beta`, `maxDrawdown`); independent Python run on 247 live aligned days: vol 0.28435, Sharpe -1.12108, Sortino -1.47959, maxDD -0.40371 (exact match to the batch-11 cert's -0.40371 despite a different "as of" window), Calmar -0.78962, VaR95 0.02778, corr 0.36681, beta 0.78528 — all finite, all in the same ballpark as the batch-11 certification's numbers (small drift is the different 1y window's end-date, not a formula change); `PortfolioPanel.tsx:1098-1160` renders `metrics.sharpeRatio`/`sortinoRatio`/`calmarRatio`/`correlation` in the Risk section | holds |
+| R15-CODE-PLATFORM-025 | grep `docs/BLUEPRINT.md` for the multi-window/pop-out scoping language; `python3 -c` parse of `tauri.conf.json` `app.windows`; grep for a `WebviewWindowBuilder`/pop-out spawn path | `BLUEPRINT.md:249` "Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)"; `:322` scopes pop-out the same way — both cite the entry directly; `tauri.conf.json.app.windows` is still exactly 1 entry (§2 untouched, as the cert notes); no `WebviewWindowBuilder`/pop-out spawn code exists anywhere (expected — the fix is a doc correction, not a feature build) | holds |
+| R15-UI-085 | `find` confirms `src/lib/design-contrast.test.ts` exists, citing `R15-UI-085` in both its `describe()` blocks; grep `text-charcoal-600\|700` over `src/**/*.tsx` outside test files | every remaining hit (`SettingsPanel.tsx:531,540`, `ChatSidebar.tsx:2158`) is `disabled:text-charcoal-600` — gated behind the disabled pseudo-class, never a readable-text default; the WCAG ratio math itself lives only inside the vitest file (`TEXT_TOKENS` array, floors 3:1/4.5:1 per `R4_DESIGN_LANGUAGE.md:271-277`) — a live-probe role does not execute vitest | ci_pinned (`src/lib/design-contrast.test.ts`, both `R15-UI-085` `describe` blocks) |
+| R15-UI-091 | live curl `/indicators/suggested?timeframe=5m&asset_class=equity`, `?timeframe=1d&asset_class=crypto`, `?timeframe=1d&asset_class=equity`; `/indicators/AAPL?indicators=ema:9,ema:21` | (5m,equity) → `["ema:9","ema:21","vwap","rsi"]`; (1d,crypto) → `["ema:50","ema:200","vwap:week","rsi"]`; (1d,equity) → `["ma","volume","rsi","macd"]` — all match the FR-092 sets exactly; `/indicators/AAPL?indicators=ema:9,ema:21` returns both `EMA(9)` and `EMA(21)` lines with real values | holds |
+
+Summary: 3 holds, 1 ci_pinned. No regressions.
+
+COVERAGE: 4/4 ids raw; no raw: none.

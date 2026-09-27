@@ -1,0 +1,2 @@
+{"symbol":"BTC/USDT","price":84755.44,"change":470.66,"change_percent":0.558,"volume":8369.61077,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USDT","market_state":"open","timestamp":"2026-09-27T08:45:17.006000Z","provider":"ccxt:binance","freshness":"live"}
+HTTP 200

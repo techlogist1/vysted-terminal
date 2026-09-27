@@ -1,0 +1,39 @@
+candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98 -- live GET http://127.0.0.1:52341/fundamentals/AAPL/income and /ratings, cold then warm repeat
+=== income cold ===
+http_200 time_0.260635
+real 0.27
+user 0.00
+sys 0.00
+=== income warm (repeat) ===
+http_200 time_0.001153
+=== ratings cold ===
+http_200 time_0.406747
+=== ratings warm (repeat) ===
+http_200 time_0.001174
+DONE
+---
+services/data_cache.py MAX_ROWS eviction (upsert() DELETE ... LIMIT -1 OFFSET MAX_ROWS):
+MAX_ROWS = 20_000
+
+
+    def upsert(conn: sqlite3.Connection) -> None:
+        conn.execute(
+            "INSERT INTO cache(key, value, updated_at) VALUES(?, ?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value = excluded.value, "
+            "updated_at = excluded.updated_at",
+            (key, payload, now),
+        )
+        conn.execute(
+            "DELETE FROM cache WHERE key IN "
+            "(SELECT key FROM cache ORDER BY updated_at DESC LIMIT -1 OFFSET ?)",
+            (MAX_ROWS,),
+        )
+---
+routers/fundamentals.py: income/balance/cashflow/ratings all now call _cached() into data_cache (grep):
+213:    statement, _ = await _cached(
+226:    statement, _ = await _cached(
+239:    statement, _ = await _cached(
+250:    rating, as_of = await _cached(
+268:    response, as_of = await _cached(
+281:    response, as_of = await _cached(
+294:    response, as_of = await _cached(

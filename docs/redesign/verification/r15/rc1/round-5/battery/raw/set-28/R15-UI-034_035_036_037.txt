@@ -1,0 +1,11 @@
+ENTRY: R15-UI-034 -- ci_pinned
+394:  it("an edit ends when the portfolio switches; Save then writes nothing silently (R15-UI-034)", async () => {
+ENTRY: R15-UI-035 -- ci_pinned
+430:  it("Delete works in a portfolio switched to after mount (R15-UI-035)", async () => {
+ENTRY: R15-UI-036 -- ci_pinned
+213:  it("refreshes quotes on the Watchlist interval and dates the totals by the oldest quote (R15-UI-036)", async () => {
+ENTRY: R15-UI-037 -- ci_pinned
+93:  it("the cost input and column say per share (R15-UI-037)", async () => {
+--- source spot-check: label text still present ---
+896:          <span className="text-charcoal-400 text-micro">Avg cost / share</span>
+898:            aria-label="Avg cost / share"

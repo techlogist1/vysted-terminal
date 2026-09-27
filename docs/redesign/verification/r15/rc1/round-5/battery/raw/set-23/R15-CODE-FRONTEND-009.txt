@@ -1,0 +1,10 @@
+NO GUI in this run. Source inspection of src/lib/host-actions.ts save_screen apply case (~line 1853-1880):
+
+  if (intent.count > 0 || recipe.formula) {
+    screener.applyFilters({ criteria: recipe.criteria, group: recipe.group, universe: recipe.universe, formula: recipe.formula });
+  } else if (recipe.universe) { screener.setUniverse(recipe.universe); }
+  ...
+  useScreenerStore.getState().saveScreen(screenName);
+
+OBSERVED: save_screen now writes the agent's OWN recipe (criteria/group/formula/universe) into the screener draft via applyFilters BEFORE calling saveScreen -- the saved screen is the agent's criteria, not whatever was on screen. Also refuses (fail(...)) when the agent's own criteria are all malformed with no formula, rather than silently saving the on-screen filters under the agent's name.
+VERDICT: holds

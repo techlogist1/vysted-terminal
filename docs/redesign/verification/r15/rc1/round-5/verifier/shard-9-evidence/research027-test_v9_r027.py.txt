@@ -1,0 +1,37 @@
+import asyncio, sys, time
+from typing import Any
+sys.path.insert(0, "tests")
+from test_research_fast import _FakeToolCall, _stub_offline_crosschecks
+from services.research.fast import gather_fast
+
+class _Slow(_FakeToolCall):
+    def __init__(self, slow, secs=20, **kw):
+        super().__init__(**kw); self.slow = set(slow); self.secs = secs
+    async def __call__(self, name, args):
+        if name in self.slow:
+            await asyncio.sleep(self.secs)
+        return await super().__call__(name, args)
+
+def _run(tc, q="Apple"):
+    steps = []; t0 = time.perf_counter()
+    b = asyncio.run(gather_fast(q, region="US", tool_call=tc, on_step=steps.append))
+    el = time.perf_counter() - t0
+    web = b.get("web") or {}
+    print(f"\nV9 elapsed={el:.2f}s web.available={web.get('available')} web.reason={web.get('reason')} note={web.get('note')!r}")
+    return el, b
+
+def test_register_shape_web_stall(monkeypatch):
+    _stub_offline_crosschecks(monkeypatch)
+    el, b = _run(_Slow(["web_search"]))
+    assert el < 10
+
+def test_fresh_web_only_path_web_stall(monkeypatch):
+    """No instrument resolves -> the web-only branch; web_search stalls 20 s."""
+    _stub_offline_crosschecks(monkeypatch)
+    el, b = _run(_Slow(["web_search"], resolve_ok=False), q="some unlisted startup outlook")
+    assert el < 15, f"web-only NORMAL path held {el:.1f}s by an un-boxed web round"
+
+def test_fresh_fund_and_web_and_news_stall(monkeypatch):
+    _stub_offline_crosschecks(monkeypatch)
+    el, b = _run(_Slow(["web_search", "fundamentals", "news", "price_data"]))
+    assert el < 10

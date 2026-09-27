@@ -1,0 +1,9 @@
+CMD: curl -s -X POST http://127.0.0.1:52363/agents/nope/invoke -d '{"prompt":"hi","provider":"ollama"}'
+{"detail":"unknown agent: 'nope'"}
+CMD: curl -s -X POST http://127.0.0.1:52363/agents/nope/invoke -d '{}' (expect 422 array)
+{"detail":[{"type":"missing","loc":["body","prompt"],"msg":"Field required","input":{}}]}
+CMD: curl -s -X POST http://127.0.0.1:52363/agents/nope/invoke -d '{"prompt":"hi","mode":"bogus-mode"}'
+{"detail":[{"type":"literal_error","loc":["body","mode"],"msg":"Input should be 'agent', 'ask', 'edit', 'build' or 'delegate'","input":"bogus-mode","ctx":{"expected":"'agent', 'ask', 'edit', 'build' or 'delegate'"}}]}
+--- frontend check: streaming.ts must call extractSidecarDetail, not raw JSON ---
+14:  extractSidecarDetail,
+348:      throw new SidecarError(response.status, extractSidecarDetail(parsed, fallback));

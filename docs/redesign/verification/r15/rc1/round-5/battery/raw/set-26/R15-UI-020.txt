@@ -1,0 +1,6 @@
+CMD: grep for committed pinned tests naming R15-UI-020 in the candidate source (never running the vitest suite; the heavy lane owns full runs).
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+/Users/lokavyasingh/Documents/dev/vysted-terminal/src/store/chart-drawings.test.ts:62:  it("returns a panel's drawings only for the symbol/timeframe they were made on (R15-UI-020)", () => {
+/Users/lokavyasingh/Documents/dev/vysted-terminal/src/modules/chart/ChartPanel.test.tsx:289:  it("a persisted per-panel view still wins over the settings default (R15-UI-020)", async () => {
+/Users/lokavyasingh/Documents/dev/vysted-terminal/src/modules/chart/ChartPanel.test.tsx:936:  it("opens on its persisted view and shows only that chart's drawings (R15-UI-020)", async () => {
+VERDICT: ci_pinned

@@ -1,0 +1,1 @@
+R15-DATA-083: pytest tests/test_openbb_mcp_provider.py -k status, tests/test_sec_filings_provider.py -k status -> included in the combined 86-passed run. See pytest-mcp-sec.txt (grep status).

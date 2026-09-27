@@ -1,0 +1,4 @@
+workflow_store: saved workflow '184d592a-aeeb-4125-b1ec-427223b08494' is unreadable: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+db path attr: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-data-rc1-battery-15/workflows.db
+workflows count: 0
+unreadable: [{"id": "184d592a-aeeb-4125-b1ec-427223b08494", "name": "corrupt-test-row", "reason": "Expecting property name enclosed in double quotes: line 1 column 2 (char 1)"}]

@@ -1,0 +1,37 @@
+CMD: live re-run of the underlying probe (POST /llm/keys/validate on :52356, reused from R15-AGENT-028) + source read of llm-providers.ts promoteKeyedProvider and llm-providers.test.ts:10-42
+OUTPUT: unpulled gemma3:4b -> {ok:false}; pulled llama3.1:8b -> {ok:true}. promoteKeyedProvider (llm-providers.ts) promotes id over defaultProviderId only when current.requiresKey===false AND readiness.ok is false.
+describe("promoteKeyedProvider (R15-UI-049)", () => {
+  beforeEach(() => {
+    probeMock.mockReset();
+    useLLMProvidersStore.setState({ providers: DEFAULT_PROVIDERS, defaultProviderId: "ollama" });
+  });
+
+  it("a key saved while the keyless default is not ready becomes the default", async () => {
+    probeMock.mockResolvedValue(NOT_RUNNING);
+    await expect(useLLMProvidersStore.getState().promoteKeyedProvider("openrouter")).resolves.toBe(
+      true,
+    );
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("openrouter");
+    expect(probeMock).toHaveBeenCalledWith("ollama", "qwen2.5:7b");
+  });
+
+  it("a keyless default that is ready is kept", async () => {
+    probeMock.mockResolvedValue({ ok: true, reason: null, detail: null });
+    await useLLMProvidersStore.getState().promoteKeyedProvider("openrouter");
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("ollama");
+  });
+
+  it("never replaces a keyed default the user chose", async () => {
+    useLLMProvidersStore.setState({ defaultProviderId: "anthropic" });
+    probeMock.mockResolvedValue(NOT_RUNNING);
+    await expect(useLLMProvidersStore.getState().promoteKeyedProvider("openrouter")).resolves.toBe(
+      false,
+    );
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("anthropic");
+    expect(probeMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("orderedProviders (R15-UI-087)", () => {
+
+VERDICT: ci_pinned -- llm-providers.test.ts describe 'promoteKeyedProvider (R15-UI-049)': 'a key saved while the keyless default is not ready becomes the default' / 'a keyless default that is ready is kept' / 'never replaces a keyed default the user chose', all three pinned and matching the live readiness split confirmed above.

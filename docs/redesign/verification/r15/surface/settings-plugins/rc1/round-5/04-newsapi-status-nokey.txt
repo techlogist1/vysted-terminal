@@ -1,0 +1,3 @@
+CMD: curl /news/sources/status (no key header)
+{"newsapi":"absent"}
+HTTP 200

@@ -1,0 +1,4 @@
+cmd: static source check (no live/GUI repro possible for this role): src/modules/backtest/BacktestPanel.tsx and src/store/backtest.ts
+BacktestPanel.tsx:117-128 -- one AbortController per run (controllerRef), shared by Run and Retry; handleStop() aborts it; a "Stop" button (aria-label "Stop backtest") wired to handleStop at :279-286.
+src/store/backtest.ts:91,281,283,380,389 -- startRun accepts {signal}, consumeBacktestStream is called WITH that signal (options.signal), and options.signal.aborted is checked -- the dead-parameter defect (no caller supplying a signal) is gone.
+Pinned vitest present on candidate: BacktestPanel.test.tsx:244 "swaps Run for Stop while a backtest is streaming", :482 "Stop aborts the live stream, idles the run, and Retry runs on a fresh controller" -- ci_pinned, not re-run (frontend-only, heavy lane owns vitest per role instructions).

@@ -1,0 +1,15 @@
+CMD: node_modules/.bin/vitest run src/components/PanelHost.test.tsx (targeted)
+
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand
+
+ ✓ src/components/PanelHost.test.tsx > panel error boundaries > a throwing panel shows the crash card; a sibling panel still renders; Reload remounts it 80ms
+ ✓ src/components/PanelHost.test.tsx > start layout > last session (the default) loads nothing over the restored session 0ms
+ ✓ src/components/PanelHost.test.tsx > start layout > a named start layout loads that layout 1ms
+ ✓ src/components/PanelHost.test.tsx > start layout > a missing start layout keeps the last session and does not throw 1ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  15:46:59
+   Duration  968ms (transform 185ms, setup 51ms, import 378ms, tests 84ms, environment 360ms)
+
+VERDICT: ci_pinned (test: src/components/PanelHost.test.tsx > panel error boundaries > a throwing panel shows the crash card; a sibling panel still renders; Reload remounts it)

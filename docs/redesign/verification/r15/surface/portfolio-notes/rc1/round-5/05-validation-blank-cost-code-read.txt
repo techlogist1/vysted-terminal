@@ -1,0 +1,14 @@
+CMD: sed -n '493,505p' src/modules/portfolio/PortfolioPanel.tsx (R15-UI-078: blank cost -> Number('')===0 passes isFinite; no upper bound on quantity/cost)
+    event.preventDefault();
+    const quantity = Number(form.quantity);
+    const costBasis = Number(form.costBasis);
+    if (form.symbol.trim() === "" || !Number.isFinite(quantity) || !Number.isFinite(costBasis)) {
+      setError("Symbol, quantity, and avg cost per share are required");
+      return;
+    }
+    if (quantity <= 0) {
+      setError("Quantity must be greater than 0");
+      return;
+    }
+    if (costBasis < 0) {
+      setError("Avg cost cannot be negative");

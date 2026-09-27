@@ -1,0 +1,2 @@
+ultra openrouter/anthropic/claude-sonnet-4: ok=True mode=heavy calls=161 crosscheck_calls=1 cost={'tokens': 305900, 'spend_usd': 2.7531, 'steps': 33, 'estimate': True} note=None
+ultra openrouter/anthropic/claude-sonnet-4: ok=True mode=heavy calls=6 crosscheck_calls=1 cost={'tokens': 11400, 'spend_usd': 0.1026, 'steps': 2, 'estimate': True} note=None

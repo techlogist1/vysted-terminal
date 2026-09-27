@@ -1,0 +1,32 @@
+CMD: source-confirm _refreshed_on stamped only on success + backoff retry (grep excerpt above) + mock-transport test: first attempt ConnectTimeout, second succeeds -> attempts==2 and map loaded
+async def _refresh_guarded() -> None:
+    """Load the map, retrying a failed load with backoff (R15-LIFECYCLE-019).
+
+    The day is stamped as refreshed only after a load (today's download or a
+    recent cached as-of); a failure is retried after each
+    :data:`_RETRY_BACKOFF_SECONDS` wait, and when every attempt fails the lane
+    is left unavailable until the next IST day."""
+    global _refreshed_on, _gave_up_on
+    for delay in (*_RETRY_BACKOFF_SECONDS, None):
+        try:
+            loaded = await fetch_latest()
+        except Exception as exc:  # noqa: BLE001 - a refresh failure must never surface
+            logger.warning("nse_symbol_change: refresh failed (%s)", type(exc).__name__)
+            loaded = None
+        if loaded is not None:
+            _refreshed_on = _ist_today()
+            return
+        if delay is None:
+---mock-transport repro---
+attempts: 0
+refreshed_on: 2026-09-27
+rename_lane_available: True
+---retry: patch fetch_latest directly (first call -> None [simulated failed load], second -> real dict), confirm attempts==2 and _refreshed_on stamped only after success---
+nse_symbol_change: refresh failed (TypeError)
+nse_symbol_change: every refresh attempt failed; retrying tomorrow (IST)
+attempts: 2
+refreshed_on: None
+---retry corrected: SymbolChange positional fields (old_symbol,new_symbol,effective_date,new_name)---
+attempts: 2
+refreshed_on: 2026-09-27
+gave_up_on: None

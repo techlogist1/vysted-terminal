@@ -1,0 +1,1223 @@
+{
+ "slot": "P11",
+ "symbol": "FUSION",
+ "manifest_name": "Fusion Finance Ltd",
+ "exchange": "NSE+BSE",
+ "bse_code": "543652",
+ "collected_at": "2026-09-27T13:50:16+0530",
+ "sidecar": "http://127.0.0.1:52313",
+ "complete": true,
+ "calls": {
+  "resolve_bare_symbol": {
+   "url": "http://127.0.0.1:52313/resolve?q=FUSION",
+   "status": 200,
+   "elapsed_ms": 2,
+   "body": {
+    "ok": true,
+    "query": "FUSION",
+    "region": "IN",
+    "resolved": {
+     "symbol": "FUSION",
+     "name": "Fusion Finance Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "FUSION.NS",
+     "confidence": 1.0,
+     "isin": "INE139R01012",
+     "bse_code": "543652",
+     "industry": "Credit Services",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "FUSION",
+      "name": "Fusion Finance Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "FUSION.NS",
+      "confidence": 1.0,
+      "isin": "INE139R01012",
+      "bse_code": "543652",
+      "industry": "Credit Services",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "FUSION",
+      "name": "Fusion Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "FUSION.BO",
+      "confidence": 1.0,
+      "isin": "INE139R01012",
+      "bse_code": "543652",
+      "industry": "Credit Services",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_company_name": {
+   "url": "http://127.0.0.1:52313/resolve?q=Fusion+Finance+Ltd",
+   "status": 200,
+   "elapsed_ms": 556,
+   "body": {
+    "ok": true,
+    "query": "Fusion Finance Ltd",
+    "region": "IN",
+    "resolved": {
+     "symbol": "FUSION",
+     "name": "Fusion Finance Limited",
+     "exchange": "NSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "FUSION.NS",
+     "confidence": 1.0,
+     "isin": "INE139R01012",
+     "bse_code": "543652",
+     "industry": "Credit Services",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "FUSION",
+      "name": "Fusion Finance Limited",
+      "exchange": "NSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "FUSION.NS",
+      "confidence": 1.0,
+      "isin": "INE139R01012",
+      "bse_code": "543652",
+      "industry": "Credit Services",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "SSPNFIN",
+      "name": "SSPN Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "SSPNFIN.BO",
+      "confidence": 0.8235,
+      "isin": "INE820R01017",
+      "bse_code": "539026",
+      "industry": null,
+      "former_name": null,
+      "board": "SME",
+      "exchange_group": "M",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "USHAKIRA",
+      "name": "Ushakiran Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "USHAKIRA.BO",
+      "confidence": 0.8205,
+      "isin": "INE697C01011",
+      "bse_code": "511507",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "X",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "INDUSFINL",
+      "name": "Indus Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "INDUSFINL.BO",
+      "confidence": 0.8,
+      "isin": "INE935D01013",
+      "bse_code": "531841",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "HASTIFIN",
+      "name": "Hasti Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "HASTIFIN.BO",
+      "confidence": 0.8,
+      "isin": "INE671D01014",
+      "bse_code": "531387",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     },
+     {
+      "symbol": "JUMBFNL",
+      "name": "Jumbo Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "JUMBFNL.BO",
+      "confidence": 0.8,
+      "isin": "INE122N01017",
+      "bse_code": "511060",
+      "industry": null,
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "XT",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "resolve_bse_code": {
+   "url": "http://127.0.0.1:52313/resolve?q=543652",
+   "status": 200,
+   "elapsed_ms": 1,
+   "body": {
+    "ok": true,
+    "query": "543652",
+    "region": "IN",
+    "resolved": {
+     "symbol": "FUSION",
+     "name": "Fusion Finance Ltd",
+     "exchange": "BSE",
+     "region": "IN",
+     "asset_class": "equity",
+     "yahoo_symbol": "FUSION.BO",
+     "confidence": 1.0,
+     "isin": "INE139R01012",
+     "bse_code": "543652",
+     "industry": "Credit Services",
+     "former_name": null,
+     "board": "mainboard",
+     "exchange_group": "B",
+     "face_value": 10.0
+    },
+    "needs_disambiguation": false,
+    "candidates": [
+     {
+      "symbol": "FUSION",
+      "name": "Fusion Finance Ltd",
+      "exchange": "BSE",
+      "region": "IN",
+      "asset_class": "equity",
+      "yahoo_symbol": "FUSION.BO",
+      "confidence": 1.0,
+      "isin": "INE139R01012",
+      "bse_code": "543652",
+      "industry": "Credit Services",
+      "former_name": null,
+      "board": "mainboard",
+      "exchange_group": "B",
+      "face_value": 10.0
+     }
+    ],
+    "rename_lane": "available"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "quote": {
+   "url": "http://127.0.0.1:52313/quotes/FUSION?asset_class=equity",
+   "status": 200,
+   "elapsed_ms": 113,
+   "body": {
+    "symbol": "FUSION",
+    "price": 177.14,
+    "change": 0.339999999999975,
+    "change_percent": 0.19230769230767816,
+    "volume": 397315.0,
+    "open": 177.78,
+    "high": 181.9,
+    "low": 173.01,
+    "prev_close": 176.8,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-09-25T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": "eod"
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "fundamentals": {
+   "url": "http://127.0.0.1:52313/fundamentals/FUSION",
+   "status": 429,
+   "elapsed_ms": 187,
+   "body": {
+    "detail": "The data provider is throttled right now \u2014 try again shortly.",
+    "code": "rate_limited",
+    "action": "Wait a minute, then retry."
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "income": {
+   "url": "http://127.0.0.1:52313/fundamentals/FUSION/income",
+   "status": 200,
+   "elapsed_ms": 182,
+   "body": {
+    "symbol": "FUSION.NS",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "balance": {
+   "url": "http://127.0.0.1:52313/fundamentals/FUSION/balance",
+   "status": 200,
+   "elapsed_ms": 169,
+   "body": {
+    "symbol": "FUSION.NS",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "cashflow": {
+   "url": "http://127.0.0.1:52313/fundamentals/FUSION/cashflow",
+   "status": 200,
+   "elapsed_ms": 161,
+   "body": {
+    "symbol": "FUSION.NS",
+    "periods": [],
+    "lines": [],
+    "provider": "yfinance",
+    "gaps": []
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "ratings": {
+   "url": "http://127.0.0.1:52313/fundamentals/FUSION/ratings",
+   "status": 429,
+   "elapsed_ms": 81,
+   "body": {
+    "detail": "The data provider is throttled right now \u2014 try again shortly.",
+    "code": "rate_limited",
+    "action": "Wait a minute, then retry."
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "shareholding": {
+   "url": "http://127.0.0.1:52313/disclosures/shareholding?symbol=FUSION",
+   "status": 200,
+   "elapsed_ms": 1244,
+   "body": {
+    "symbol": "FUSION",
+    "count": 17,
+    "patterns": [
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2026-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 53.96,
+      "fii_percent": 4.77,
+      "dii_percent": 15.25,
+      "institutions_percent": 20.02,
+      "public_percent": 45.81,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 25.79,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2026-07-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1696464_20072026115011_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2026-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 1.15,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2026-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 54.55,
+      "fii_percent": 4.74,
+      "dii_percent": 14.42,
+      "institutions_percent": 19.16,
+      "public_percent": 45.23,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 26.43,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2026-04-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1681928_16062026105301_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2026-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.85,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2025-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 54.92,
+      "fii_percent": 4.89,
+      "dii_percent": 11.93,
+      "institutions_percent": 16.82,
+      "public_percent": 44.85,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 28.03,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2026-01-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1606109_20012026063004_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 4.49,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2025-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 54.95,
+      "fii_percent": 3.93,
+      "dii_percent": 11.88,
+      "institutions_percent": 15.81,
+      "public_percent": 44.82,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.02,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2025-10-21",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1555087_21102025093923_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-09-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 4.49,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2025-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 55.01,
+      "fii_percent": 2.99,
+      "dii_percent": 12.58,
+      "institutions_percent": 15.57,
+      "public_percent": 44.76,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 29.19,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2025-07-21",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1576697_15112025055857_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 4.49,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2025-05-02",
+      "quarter_basis": null,
+      "promoter_percent": 55.2,
+      "fii_percent": 2.58,
+      "dii_percent": 16.15,
+      "institutions_percent": 18.73,
+      "public_percent": 44.57,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 25.83,
+      "employee_trusts_percent": 0.23,
+      "submission_date": "2025-05-08",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_198974_1433995_08052025050205_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-05-02",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 4.16,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2025-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 57.71,
+      "fii_percent": 1.69,
+      "dii_percent": 16.91,
+      "institutions_percent": 18.6,
+      "public_percent": 41.92,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 23.33,
+      "employee_trusts_percent": 0.37,
+      "submission_date": "2025-04-16",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_197338_1415368_16042025104928_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2025-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 6.38,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2024-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 57.71,
+      "fii_percent": 0.56,
+      "dii_percent": 18.13,
+      "institutions_percent": 18.69,
+      "public_percent": 41.92,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 23.24,
+      "employee_trusts_percent": 0.37,
+      "submission_date": "2025-01-13",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_194424_1343390_13012025011630_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 5.34,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2024-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 57.71,
+      "fii_percent": 2.83,
+      "dii_percent": 19.19,
+      "institutions_percent": 22.02,
+      "public_percent": 41.92,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 19.9,
+      "employee_trusts_percent": 0.37,
+      "submission_date": "2024-10-19",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_193157_1280038_19102024030909_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-09-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 4.48,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2024-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 57.71,
+      "fii_percent": 3.96,
+      "dii_percent": 22.79,
+      "institutions_percent": 26.75,
+      "public_percent": 41.92,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 15.17,
+      "employee_trusts_percent": 0.37,
+      "submission_date": "2024-07-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_190551_1196562_20072024105129_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.78,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2024-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 57.71,
+      "fii_percent": 5.97,
+      "dii_percent": 23.28,
+      "institutions_percent": 29.25,
+      "public_percent": 41.89,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 12.64,
+      "employee_trusts_percent": 0.4,
+      "submission_date": "2024-04-12",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_186454_1089204_12042024021923_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2024-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.78,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2023-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 57.7,
+      "fii_percent": 6.74,
+      "dii_percent": 22.81,
+      "institutions_percent": 29.55,
+      "public_percent": 41.82,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 12.26,
+      "employee_trusts_percent": 0.48,
+      "submission_date": "2024-01-15",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_184151_1020576_15012024120522_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.78,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2023-09-30",
+      "quarter_basis": null,
+      "promoter_percent": 67.92,
+      "fii_percent": 5.15,
+      "dii_percent": 15.36,
+      "institutions_percent": 20.51,
+      "public_percent": 31.54,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 11.03,
+      "employee_trusts_percent": 0.54,
+      "submission_date": "2023-10-20",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_182641_962469_20102023020814_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-09-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.36,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2023-06-30",
+      "quarter_basis": null,
+      "promoter_percent": 68.18,
+      "fii_percent": 5.44,
+      "dii_percent": 16.51,
+      "institutions_percent": 21.95,
+      "public_percent": 31.57,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 9.62,
+      "employee_trusts_percent": 0.25,
+      "submission_date": "2023-07-19",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_179570_891392_19072023100726_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-06-30",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.36,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2023-03-31",
+      "quarter_basis": null,
+      "promoter_percent": 68.18,
+      "fii_percent": 5.98,
+      "dii_percent": 13.55,
+      "institutions_percent": 19.53,
+      "public_percent": 31.54,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 12.0,
+      "employee_trusts_percent": 0.28,
+      "submission_date": "2023-04-15",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_176726_820142_15042023125220_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2023-03-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.36,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2022-12-31",
+      "quarter_basis": null,
+      "promoter_percent": 68.18,
+      "fii_percent": 5.32,
+      "dii_percent": 12.77,
+      "institutions_percent": 18.09,
+      "public_percent": 31.48,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 13.39,
+      "employee_trusts_percent": 0.34,
+      "submission_date": "2023-01-19",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_174975_773095_19012023032910_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2022-12-31",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 2.36,
+      "promoter_pledge_basis": "filed"
+     },
+     {
+      "symbol": "FUSION",
+      "quarter_end": "2022-11-10",
+      "quarter_basis": null,
+      "promoter_percent": 68.18,
+      "fii_percent": 9.71,
+      "dii_percent": 10.21,
+      "institutions_percent": 19.92,
+      "public_percent": 31.41,
+      "public_basis": "incl. institutions",
+      "public_non_institutional_percent": 11.49,
+      "employee_trusts_percent": 0.41,
+      "submission_date": "2022-11-17",
+      "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_173282_746482_17112022063038_WEB.xml",
+      "source": "NSE",
+      "split_source": "BSE",
+      "split_as_of": "2022-11-10",
+      "split_basis": "filed",
+      "promoter_pledged_percent": 0.0,
+      "promoter_pledge_basis": "filed"
+     }
+    ],
+    "coverage": "covered",
+    "note": null,
+    "provider": null,
+    "major_shareholders": [],
+    "source_url": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "announcements": {
+   "url": "http://127.0.0.1:52313/disclosures/announcements?symbol=FUSION&limit=25",
+   "status": 200,
+   "elapsed_ms": 1414,
+   "body": {
+    "symbol": "FUSION",
+    "exchange": null,
+    "count": 25,
+    "announcements": [
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/9725f172-f548-4bd5-ab51-624771903b3b.pdf",
+      "ts": "2026-09-25T18:20:27.490000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding Cessation of Mrs Priyanka Seth Wadhera as Chief Strategy Officer of the company w.e.f. September 25, 2026.",
+      "category": "Cessation",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_25092026181925_ChangeinManagement_25Sep2026.pdf",
+      "ts": "2026-09-25T18:19:33+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+      "category": "Trading Window",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_25092026145813_Closure_TradingWindow_Sep26_Sign.pdf",
+      "ts": "2026-09-25T14:58:24+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/de426752-0ada-4eff-94fd-ef9824e0f07a.pdf",
+      "ts": "2026-09-25T14:39:44.817000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_17092026125507_InvestorMeetingIntimation_17092026_SIGN.pdf",
+      "ts": "2026-09-17T12:55:23+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Analyst / Investor Meet - Intimation",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4e92ce5c-421d-49b3-9abd-4a5556efe120.pdf",
+      "ts": "2026-09-17T12:39:37.693000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about Resignation of Director/KMP/SMP",
+      "category": "Resignation of Director/KMP/SMP",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSION_ROID_98443_KMP_Doc.zip",
+      "ts": "2026-09-16T11:55:59+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding 'Grant of ESOP - Disclosure under Regulation 30 and 51 of SEBI (Listing Obligations & Disclosure Requirements) Regulations, 2015'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_15092026203306_GrantofESOPIntimation_15092026SIGN.pdf",
+      "ts": "2026-09-15T20:33:17+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding Cessation of Mrs Pooja Mehta as CHRO of the company w.e.f. September 15, 2026.",
+      "category": "Cessation",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_15092026203008_OutcomeofBoardMeeting_15092026_SIGN.pdf",
+      "ts": "2026-09-15T20:30:20+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding Appointment of Ms Chinmayi Trivedi as Chief Human Resource Officer of the company w.e.f. September 15, 2026.",
+      "category": "Appointment",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_15092026202621_OutcomeofBoardMeeting_15092026_SIGN.pdf",
+      "ts": "2026-09-15T20:28:16+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d06eb108-0676-431b-8165-0c1a1a174dcc.pdf",
+      "ts": "2026-09-15T20:15:44.620000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding Outcome of Board Meeting held on September 15, 2026.",
+      "category": "Outcome of Board Meeting",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_15092026201134_OutcomeofBoardMeeting_15092026_SIGN.pdf",
+      "ts": "2026-09-15T20:12:36+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange regarding 'Disclosure under Regulation 30 of the Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015   Transfer of stressed loan portfolio to Asset Reconstruction Company'.",
+      "category": "Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_08092026213506_Intimation_ARCSale080926VS3.pdf",
+      "ts": "2026-09-08T21:35:19+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about General Updates",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_03092026223557_Trading_approval_intimation_letter_STX.pdf",
+      "ts": "2026-09-03T22:36:13+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Intimation Of Record Date Under Regulation 60(2) Of SEBI (Listing Obligation And Disclosure Requirements) Regulations, 2015",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0a65bf65-6eb9-4560-b387-365aec793257.pdf",
+      "ts": "2026-09-03T14:45:24.957000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about Schedule of meet",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_31082026130646_InvestorMeetingIntimation_31082026_SIGN.pdf",
+      "ts": "2026-08-31T13:07:16+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Certificate For Payment Of Interest On Non-Convertible Debentures Under Regulation 57 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b2cb258b-5b50-4ef4-8c7c-ac2bbb704cf1.pdf",
+      "ts": "2026-08-29T12:53:07.670000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Earnings Call Transcript",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/23c5aa5c-672b-486d-9367-e1128df46885.pdf",
+      "ts": "2026-08-17T21:22:03.100000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about Transcript",
+      "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_17082026210844_Transcript_EarningsConferenceCall_10Aug26SIGN.pdf",
+      "ts": "2026-08-17T21:09:39+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about General Updates",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_15082026152504_Reg30_Penalty_15Aug26_SIGN.pdf",
+      "ts": "2026-08-15T15:25:13+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "BSE",
+      "headline": "Rumour verification - Regulation 30(11)",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/57fe9b5d-cc43-48ed-a2a0-4c59a67a6619.pdf",
+      "ts": "2026-08-13T10:54:40.320000+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "The Exchange has sought clarification from Fusion Finance Limited with respect to recent news item captioned Fusion Finance aims to cut microfin share, offer larger retail loans.  The response from the Company is attached.",
+      "category": "News Verification",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_13082026104312_NSERESPONSE13082026.pdf",
+      "ts": "2026-08-13T10:43:28+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "The Exchange has sought clarification from Fusion Finance Limited with respect to recent news item captioned Fusion Finance aims to cut microfin share, offer larger retail loans.  The response from the Company is awaited.",
+      "category": "News Verification",
+      "attachment_url": "-",
+      "ts": "2026-08-12T16:47:31+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about Copy of Newspaper Publication",
+      "category": "Copy of Newspaper Publication",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_11082026165910_NewspaperAdv_11AugSIGN.pdf",
+      "ts": "2026-08-11T16:59:33+05:30"
+     },
+     {
+      "symbol": "FUSION",
+      "exchange": "NSE",
+      "headline": "Fusion Finance Limited has informed the Exchange about General Updates",
+      "category": "General Updates",
+      "attachment_url": "https://nsearchives.nseindia.com/corporate/FUSIONHO_11082026163723_Letter-Reclassification_of_PromotorSIGN.pdf",
+      "ts": "2026-08-11T16:37:36+05:30"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "windows": {
+     "NSE": {
+      "window_start": "2026-08-11",
+      "window_end": "2026-09-27"
+     },
+     "BSE": {
+      "window_start": "2026-08-11",
+      "window_end": "2026-09-27"
+     }
+    },
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  },
+  "results_calendar": {
+   "url": "http://127.0.0.1:52313/disclosures/results?symbol=FUSION",
+   "status": 200,
+   "elapsed_ms": 748,
+   "body": {
+    "symbol": "FUSION",
+    "count": 29,
+    "events": [
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2026",
+      "date": "2026-08-10",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Other business matters",
+      "description": "To consider and approve the financial results for the quarter and financial year ended March 31, 2026.",
+      "date": "2026-05-15",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "FUSION FINANCE LIMITED",
+      "purpose": "General",
+      "description": null,
+      "date": "2026-05-15",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2025",
+      "date": "2026-02-06",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising",
+      "date": "2025-12-29",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "FUSION FINANCE LIMITED",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-12-29",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising by issuance of non-convertible debentures on a private placement basis.",
+      "date": "2025-12-16",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "FUSION FINANCE LIMITED",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-12-16",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Fund Raising",
+      "description": "To consider and approve the financial results for the period ended September 30, 2025 and Fund Raising",
+      "date": "2025-11-04",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Fund Raising",
+      "description": "To consider and approve the financial results for the period ended September 30, 2025 and Fund Raising",
+      "date": "2025-11-04",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "FUSION FINANCE LIMITED",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-11-04",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2025",
+      "date": "2025-08-08",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "Prior intimation of the Board Meeting scheduled to beheld on Friday, August 08, 2025  inter-alia to consider and approve the financial results for the period ended June 30, 2025.",
+      "date": "2025-08-08",
+      "exchange": "NSE+BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "FUSION FINANCE LIMITED",
+      "purpose": "General",
+      "description": null,
+      "date": "2025-06-10",
+      "exchange": "BSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "The Board Meeting of the Company is scheduled to be held on Friday, May 23, 2025, inter-alia to consider and approve the Audited Financial Results of the Company for the Quarter and Year ended on March 31, 2025.",
+      "date": "2025-05-23",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Fund Raising",
+      "description": "To consider Fund Raising and discuss and decide various matters in connection with the Rights Issue, such as the determination of the Rights Issue price, related payment mechanism, rights entitlement ratio and other incidental matters thereto.",
+      "date": "2025-03-29",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2024",
+      "date": "2025-02-12",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Fund Raising/Other business matters",
+      "description": "To consider Fund Raising and other business matters",
+      "date": "2024-12-04",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "FUSION : 14-Nov-2024 :  The Company has informed the Exchange that a Board meeting to be held on November 11, 2024 has been re-scheduled. Further, the Company has informed the Exchange that the meeting of the Board of Directors of the Company will be held on November 14, 2024,  To consider and approve the financial results for the period ended September 30, 2024",
+      "date": "2024-11-14",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Other business matters",
+      "description": "To consider and approve the financial results for the period ended September 30, 2024 and other business matters",
+      "date": "2024-11-11",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Other business matters",
+      "description": "Prior intimation of the Board Meeting under Regulation 29 and other applicable provisions ofSecurities and Exchange Board of India (Listing Obligations and Disclosure Requirements)Regulations, 2015.",
+      "date": "2024-10-05",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2024",
+      "date": "2024-08-06",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Other business matters",
+      "description": "To consider and approve the financial results for the period ended March 31, 2024 and other business matters",
+      "date": "2024-05-06",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended December 31, 2023",
+      "date": "2024-02-05",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended September 30, 2023",
+      "date": "2023-11-06",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended Jun 30, 2023",
+      "date": "2023-08-02",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "To consider and approve the financial results for the period ended March 31, 2023",
+      "date": "2023-05-22",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results/Other business matters",
+      "description": "To consider and approve the financial results for the period ended December 31, 2022 and other business matters",
+      "date": "2023-02-11",
+      "exchange": "NSE"
+     },
+     {
+      "symbol": "FUSION",
+      "company": "Fusion Finance Limited",
+      "purpose": "Financial Results",
+      "description": "Fusion Micro Finance Limited  has informed the Exchange about Board Meeting to be held on 28-Nov-2022 to consider and approve the Standalone Unaudited Financial Results of the Company for the Quarter and Six Months ended on September 30, 2022. Further, it is also being informed that the trading window shall open on Thursday, December 1, 2022, in accordance with the \"Code of Conduct for Prevention of Insider Trading\" as adopted by the Company in compliance of Securities and Exchange Board of India (Prohibition of Insider Trading) Regulations, 2015.",
+      "date": "2022-11-28",
+      "exchange": "NSE"
+     }
+    ],
+    "sources": [
+     "NSE",
+     "BSE"
+    ],
+    "errors": {},
+    "coverage": "covered",
+    "note": null
+   },
+   "polite": {
+    "yahoo_open": false,
+    "parked_s": 0.0
+   }
+  }
+ }
+}

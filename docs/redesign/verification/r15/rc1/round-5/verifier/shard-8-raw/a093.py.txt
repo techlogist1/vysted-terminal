@@ -1,0 +1,26 @@
+import sys; sys.path.insert(0,'.')
+from models.llm import LLMToolUseEvent
+from services import agent_runtime as ar
+cases=[
+ ("repro option_chain", "option_chain", {"symbol":"NIFTY","max_strikes":"5"}),
+ ("repro sec_filings_list", "sec_filings_list", {"symbol":"AAPL","limit":"10"}),
+ ("repro sec_insider", "sec_insider_transactions", {"symbol":"AAPL","limit":"100"}),
+ ("repro corporate_announcements", "corporate_announcements", {"symbol":"TCS","limit":"10"}),
+ ("fresh price_option numbers", "price_option", {"spot":"185.5","strike":"190","risk_free_rate":"0.05","dividend_yield":"0","volatility":"0.25","monte_carlo_paths":"10000"}),
+ ("fresh price_bond enum int", "price_bond", {"face_value":"1000","coupon_rate":"0.07","coupons_per_year":"2","yield_to_maturity":"0.065"}),
+ ("fresh walk_forward '3.0'", "run_custom_backtest", {"walk_forward_slices":"3.0"}),
+ ("fresh boolean publish_brief", "publish_brief", {"web_available":"true"}),
+ ("fresh negative number", "compute_greeks", {"spot":"100","strike":"95","risk_free_rate":"-0.005","volatility":"0.3"}),
+ ("fresh padded ' 25 '", "news", {"symbol":"AAPL","limit":" 25 "}),
+ ("fresh exp form '1e2'", "screener_run", {"limit":"1e2"}),
+ ("fresh stringified instruments", "yield_curve_value", {"instruments":"[{\"tenor\": \"2\", \"rate\": \"0.041\"}, {\"tenor\": \"10\", \"rate\": \"0.045\"}]"}),
+ ("neg control 'ten'", "earnings_upcoming", {"days":"ten"}),
+ ("neg control '7.5' int", "earnings_upcoming", {"days":"7.5"}),
+ ("neg control 'NaN'", "price_option", {"spot":"NaN"}),
+]
+for label,tool,args in cases:
+    ev=LLMToolUseEvent(tool_call_id="c",name=tool,input=dict(args))
+    ar._normalise_tool_args(ev)
+    inv=ev.input.get(ar.INVALID_ARGS_SENTINEL)
+    shown={k:(v,type(v).__name__) for k,v in ev.input.items() if k!=ar.INVALID_ARGS_SENTINEL}
+    print(label,"|",("INVALID: "+inv) if inv else shown)

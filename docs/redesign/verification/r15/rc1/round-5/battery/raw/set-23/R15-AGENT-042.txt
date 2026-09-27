@@ -1,0 +1,8 @@
+NO GUI in this run. Mechanism is in src/lib/host-actions.ts resolveHolding/applyIntent; verified by source inspection of the candidate (9bc600ece2ce6343a6aa48f130d7620b1466bb98):
+
+src/lib/host-actions.ts:683-706 resolveHolding(): matches an EXACT holding.id first (agent echoes get_portfolio's snapshot id back as position_id); when the symbol has >1 lots and no id disambiguates, returns {target:null, problem:"<symbol> has N lots; name one by position_id: <id> (<lot text>), ..."} -- a REFUSAL, not a first-lot guess.
+src/lib/host-actions.ts:1917-1927 (portfolio_update_position/delete case in applyIntent): re-checks `portfolio.holdings.findIndex(h => h.id === target.id)` against the CURRENTLY bound portfolio, fails honestly ("that <symbol> lot is no longer in the portfolio") if target.id is gone -- never falls back to "first lot of that symbol".
+sidecar/routers/portfolio.py (whole file, 21 lines): GET /positions only; no PUT/POST/DELETE at all. src/lib/host-actions.ts has NO syncPositionToSidecar / portfolioUrl / sidecarPositionId (grep: 0 hits) -- the numeric-id sidecar-ledger write path the register describes (PUT /portfolio/positions/<n> landing on an unrelated row) has been removed entirely; holdings are frontend-store-only.
+
+OBSERVED: the exact mechanism named in the register (ambiguous position_id -> first-lot guess, plus a stray sidecar PUT) no longer exists.
+VERDICT: holds

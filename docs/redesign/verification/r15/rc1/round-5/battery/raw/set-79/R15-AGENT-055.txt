@@ -1,0 +1,7 @@
+candidate sha: 9bc600ece2ce6343a6aa48f130d7620b1466bb98
+probe: pinned-test citation (no vitest/pytest suite execution per harness rule)
+
+=== src/lib/layout-templates.test.ts ===
+537:describe("one plan per template id (R15-AGENT-055)", () => {
+552:  // R15-AGENT-055: the menu modes used to be keyed by the AGENT template ids
+

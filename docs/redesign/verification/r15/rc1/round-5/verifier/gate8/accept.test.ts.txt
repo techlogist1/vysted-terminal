@@ -1,0 +1,50 @@
+// SCRATCH rc1-verifier round 5: accept of the staged agent proposal, and fail-closed accept of order-shaped actions.
+import { describe, expect, it } from "vitest";
+import { writeFileSync, readFileSync } from "fs";
+import { applyHostActionAsync, describeHostAction } from "@/lib/host-actions";
+import { usePortfoliosStore } from "@/store/portfolios";
+import { serializeWorkspace } from "@/lib/workspace";
+import { AUTOSAVE_LAYOUT_NAME, useWorkspaceStore } from "@/store/workspace";
+const BASE = "http://127.0.0.1:52312";
+const out: Record<string, unknown> = {};
+async function persist() {
+  const r = await fetch(`${BASE}/workspace`, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: AUTOSAVE_LAYOUT_NAME, workspace: serializeWorkspace(AUTOSAVE_LAYOUT_NAME) }) });
+  return r.status;
+}
+async function readBack() {
+  const ws = (await (await fetch(`${BASE}/workspace/${AUTOSAVE_LAYOUT_NAME}`)).json()) as any;
+  const w = ws.workspace ?? ws;
+  return w.portfolios.list.find((p: any) => p.id === w.portfolios.activeId).holdings.map((h: any) => [h.symbol, h.quantity, h.costBasis]);
+}
+describe("verifier accept", () => {
+  it("order-shaped actions fail closed; staged portfolio add applies only on accept", async () => {
+    window.history.replaceState(null, "", "/?sidecar-port=52312");
+    usePortfoliosStore.setState({ portfolios: [{ id: "default", name: "Portfolio", holdings: [] }], activeId: "default" });
+    useWorkspaceStore.setState({ dockviewApi: { toJSON: () => ({ grid: {}, panels: {} }) } as never });
+    const orders: Record<string, unknown> = {};
+    for (const name of ["place_order", "submit_order", "buy", "execute_trade", "broker_place_order", "paper_trade"]) {
+      const inp = { symbol: "AAPL", quantity: 10, side: "buy" };
+      let label: string | null | undefined; let err: string | null = null;
+      try { label = await applyHostActionAsync(name, inp); } catch (e) { err = String(e); }
+      let desc: unknown; try { desc = describeHostAction(name, inp); } catch (e) { desc = "throws: " + String(e); }
+      orders[name] = { label: label ?? null, err, desc, holdings: usePortfoliosStore.getState().portfolios[0].holdings.length };
+    }
+    out.orders = orders;
+    const events = readFileSync(process.env.V_JSONL!, "utf8").trim().split("\n").map((l) => JSON.parse(l));
+    const tu = events.find((e: any) => (e.kind ?? e.event?.kind) === "tool_use") as any;
+    const ev = tu.event ?? tu;
+    out.stagedCall = { name: ev.name, input: ev.input };
+    out.beforeAccept = await readBack();
+    out.label = await applyHostActionAsync(ev.name, ev.input);
+    out.persist = await persist();
+    out.afterAccept = await readBack();
+    usePortfoliosStore.getState().removeHolding("default", usePortfoliosStore.getState().portfolios[0].holdings[0].id);
+    out.persistCleanup = await persist();
+    out.afterCleanup = await readBack();
+    writeFileSync(process.env.V_OUT!, JSON.stringify(out, null, 1));
+    for (const o of Object.values(orders) as any[]) { expect(o.label).toBeNull(); expect(o.holdings).toBe(0); }
+    expect(out.beforeAccept).toEqual([]);
+    expect(out.afterAccept).toEqual([["AAPL", 5, 180]]);
+  });
+});

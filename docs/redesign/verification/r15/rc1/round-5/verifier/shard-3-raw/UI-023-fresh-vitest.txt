@@ -1,0 +1,101 @@
+# UI-023 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/modules/chart/vs3-fresh.test.tsx
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+ ✓ src/modules/chart/vs3-fresh.test.tsx > vs3 fresh UI-023 > A: a TIMEFRAME change whose /indicators fails removes the old overlays 236ms
+ ✓ src/modules/chart/vs3-fresh.test.tsx > vs3 fresh UI-023 > B: during a slow symbol load the previous symbol's overlays are already gone 139ms
+ ✓ src/modules/chart/vs3-fresh.test.tsx > vs3 fresh UI-023 > C: SAR resolving before history is placed against the NEW symbol's closes 131ms
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  16:48:07
+   Duration  1.88s (transform 197ms, setup 85ms, import 506ms, tests 508ms, environment 646ms)
+
+## test source (appended part)
+describe("vs3 fresh UI-023", () => {
+  it("A: a TIMEFRAME change whose /indicators fails removes the old overlays", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    toggleIndicatorByName("Relative Strength Index");
+    await waitFor(() => expect(lines()).toHaveLength(2));
+    const drawn = lines();
+    fetchIndicatorsMock.mockRejectedValueOnce(new SidecarError(502, "ind down tf"));
+    fireEvent.click(screen.getByRole("button", { name: "1h", pressed: false }));
+    expect(await screen.findByText(/ind down tf \(502\)/)).toBeInTheDocument();
+    const removed = chartApi.removeSeries.mock.calls.map(([s]) => s as unknown);
+    for (const s of drawn) expect(removed).toContain(s);
+  });
+
+  it("B: during a slow symbol load the previous symbol's overlays are already gone", async () => {
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    toggleIndicatorByName("Relative Strength Index");
+    await waitFor(() => expect(lines()).toHaveLength(2));
+    const drawn = lines();
+    historyMock.mockReturnValueOnce(new Promise(() => {}));
+    fetchIndicatorsMock.mockReturnValueOnce(new Promise(() => {}));
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "INFY.NS" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    await waitFor(() =>
+      expect(historyMock).toHaveBeenCalledWith("INFY.NS", "1d", undefined, "equity", undefined),
+    );
+    await waitFor(() => {
+      const removed = chartApi.removeSeries.mock.calls.map(([s]) => s as unknown);
+      for (const s of drawn) expect(removed).toContain(s);
+    });
+  });
+
+  it("C: SAR resolving before history is placed against the NEW symbol's closes", async () => {
+    const sar = (sym: string, a: number, b: number): IndicatorResponse => ({
+      symbol: sym,
+      timeframe: "1d",
+      provider: "yfinance",
+      indicators: [
+        {
+          name: "parabolic_sar",
+          panel: "price",
+          lines: [
+            {
+              label: "Parabolic SAR",
+              points: [
+                { time: "2026-01-01T00:00:00Z", value: a },
+                { time: "2026-01-02T00:00:00Z", value: b },
+              ],
+            },
+          ],
+        },
+      ],
+      volume_profile: null,
+    });
+    fetchIndicatorsMock.mockResolvedValueOnce(sar("SPY", 0.8, 3.0));
+    render(<ChartPanel />);
+    await waitFor(() => expect(historyMock).toHaveBeenCalled());
+    toggleIndicatorByName("Parabolic SAR");
+    await waitFor(() => expect(createSeriesMarkersMock).toHaveBeenCalled());
+    let resolveHistory: (s: OHLCVSeries) => void = () => {};
+    historyMock.mockReturnValueOnce(new Promise((r) => (resolveHistory = r)));
+    fetchIndicatorsMock.mockResolvedValueOnce(sar("BIG", 5, 25));
+    fireEvent.change(screen.getByLabelText("Symbol"), { target: { value: "BIG" } });
+    fireEvent.click(screen.getByRole("button", { name: "Load" }));
+    await waitFor(() =>
+      expect(fetchIndicatorsMock).toHaveBeenCalledWith("BIG", ["parabolic_sar"], "1d", "equity", undefined),
+    );
+    await Promise.resolve();
+    const big: OHLCVSeries = {
+      symbol: "BIG",
+      timeframe: "1d",
+      provider: "yfinance",
+      bars: [
+        { timestamp: "2026-01-01T00:00:00Z", open: 10, high: 11, low: 9, close: 10, volume: 1 },
+        { timestamp: "2026-01-02T00:00:00Z", open: 20, high: 21, low: 19, close: 20, volume: 1 },
+      ],
+    };
+    resolveHistory(big);
+    await waitFor(() => {
+      const all = [
+        ...createSeriesMarkersMock.mock.calls.map((c) => (c as unknown[])[1]),
+        ...sarMarkersHandle.setMarkers.mock.calls.map((c) => c[0]),
+      ] as Array<Array<{ position: string }>>;
+      const last = all[all.length - 1];
+      // Against BIG's closes (10, 20): SAR 5 < 10 -> belowBar, 25 > 20 -> aboveBar.
+      expect(last.map((m) => m.position)).toEqual(["belowBar", "aboveBar"]);
+    });
+  });
+});

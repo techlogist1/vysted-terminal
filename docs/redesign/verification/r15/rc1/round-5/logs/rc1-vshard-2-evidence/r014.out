@@ -1,0 +1,5 @@
+adapter done finish_reason: length
+NOTICE: The answer hit the model's output limit and was cut off. Ask me to continue for the rest.
+done None length
+TEXT: A price-to-earnings (P/E) ratio is a fundamental metric used to evaluate the relative value of a company
+rmdir: /tmp/vysted-r15-ollama.lock: No such file or directory

@@ -1,0 +1,5 @@
+CMD: ./sidecar/.venv/bin/python3 -c "...budget_guard.price_per_million('openrouter','nvidia/nemotron-3-super-120b-a12b:free')..."
+rate_for_unlisted_free_slug= 0.0
+spend_usd_for_64895_tokens= 0.0
+a_paid_unlisted_slug_still_meters= 0.12979
+VERDICT: holds (0.0 spend for the unlisted OpenRouter :free slug, vs batch-7's phantom 0.12979 for the same 64,895 tokens before the fix; an unlisted PAID slug still falls through to DEFAULT_RATE_PER_M and meters, so the fix is scoped to :free only)

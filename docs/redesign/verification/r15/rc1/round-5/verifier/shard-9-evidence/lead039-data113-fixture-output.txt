@@ -1,0 +1,9 @@
+RDY {"eps_estimate_mean": null, "eps_estimate_high": null, "eps_estimate_low": null, "revenue_estimate_mean": 89000000000.0, "currency": null, "revenue_currency": "INR"}
+TM {"eps_estimate_mean": null, "eps_estimate_high": null, "eps_estimate_low": null, "revenue_estimate_mean": null, "currency": null, "revenue_currency": null}
+SONY {"eps_estimate_mean": null, "eps_estimate_high": 0.4, "eps_estimate_low": null, "revenue_estimate_mean": null, "currency": null, "revenue_currency": null}
+UMC {"eps_estimate_mean": 0.14, "eps_estimate_high": null, "eps_estimate_low": null, "revenue_estimate_mean": null, "currency": "USD", "revenue_currency": "TWD"}
+WIT {"eps_estimate_mean": 0.035, "eps_estimate_high": null, "eps_estimate_low": null, "revenue_estimate_mean": 244246846490.0, "currency": "USD", "revenue_currency": "INR"}
+INFY {"eps_estimate_mean": 0.2, "eps_estimate_high": null, "eps_estimate_low": null, "revenue_estimate_mean": 450000000000.0, "currency": "USD", "revenue_currency": "INR"}
+TSM {"eps_estimate_mean": 2.9, "eps_estimate_high": null, "eps_estimate_low": null, "revenue_estimate_mean": 990000000000.0, "currency": "USD", "revenue_currency": "TWD"}
+NVO {"eps_estimate_mean": 5.9, "eps_estimate_high": null, "eps_estimate_low": null, "revenue_estimate_mean": 78000000000.0, "currency": "USD", "revenue_currency": null}
+AAPL {"eps_estimate_mean": 1.75, "eps_estimate_high": null, "eps_estimate_low": null, "revenue_estimate_mean": 102000000000.0, "currency": "USD", "revenue_currency": "USD"}

@@ -1,0 +1,20 @@
+CMD: node scripts/audit-design-tokens.mjs (empty scan dir + real run)
+design-token audit clean (373 files)
+EXIT:0
+-- fixture with a violation --
+design-token audit clean (373 files)
+(above uses default SCAN if SCAN_ROOT unsupported; checking script args)
+26:const args = process.argv.slice(2);
+29:const SCAN = targets.length ? targets : ["src", "plugins"];
+-- fixture violation, passed as scan arg --
+../../../../../../../tmp/audit-fixture-check/src/fixture.tsx:1  off-grid step  gap-1.5
+../../../../../../../tmp/audit-fixture-check/src/fixture.tsx:1  arbitrary value  text-[12px]
+
+— per-file —
+   2  ../../../../../../../tmp/audit-fixture-check/src/fixture.tsx
+
+2 violation(s) of R9_DESIGN_SYSTEM.md
+EXIT:1
+-- empty dir scan --
+design-token audit scanned 0 files under /tmp/audit-empty-dir; refusing to report clean
+EXIT:1

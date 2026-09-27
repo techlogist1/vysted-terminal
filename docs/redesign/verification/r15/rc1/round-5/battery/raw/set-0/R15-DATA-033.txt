@@ -1,0 +1,4 @@
+$ in-process: correctness_gate.validate_quote / validate_series on NaN/inf price
+nan price quote -> CorrectnessError: correctness gate: non-positive price nan for 'TEST' from 'nse'
+inf price quote -> CorrectnessError: correctness gate: non-positive price inf for 'TEST' from 'nse'
+series last-bar-nan-close -> CorrectnessError: correctness gate: non-positive last close nan for 'TEST' from 'nse'

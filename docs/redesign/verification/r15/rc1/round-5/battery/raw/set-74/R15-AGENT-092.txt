@@ -1,0 +1,14 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check of the exact mechanism.
+sidecar/services/run_manager.py:180-221:
+  - `undispatched: dict[str, dict]` holds a proposed host action keyed by tool_call_id from the
+    moment the runtime yields the tool_use event (line 321: `undispatched[event.tool_call_id] = action`)
+    until it is actually dispatched.
+  - `_on_tool_result` (called only on a REAL dispatch) pops the id out of `undispatched` and calls
+    `_deliver(action)`, which is the ONLY path that appends to `host_actions` / sets `brief`.
+  - A budget halt (breach_reason/halted set at line ~322-327) stops BEFORE `_on_tool_result` runs
+    for the halted round's tool_use, so that action is never popped/delivered: `_output()`
+    (`host_actions`) stays empty of it.
+
+VERDICT: holds. A halted round's undispatched host action can no longer reach `_output()`'s
+`host_actions` list (and so can no longer reach delegate-runs.ts's proposed-changes enqueue) —
+matches batch-28's cert ("CASE1: brief None before dispatch").

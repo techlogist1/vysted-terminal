@@ -1,0 +1,40 @@
+{
+ "in_bse_noregion_10k": [
+  "corporate_announcements",
+  "web_search",
+  "corporate_announcements"
+ ],
+ "in_region_only_sec_period": [
+  "corporate_announcements",
+  "web_search",
+  "corporate_announcements"
+ ],
+ "in_lowercase_region_insider": [
+  "corporate_announcements",
+  "web_search"
+ ],
+ "in_8k": [
+  "corporate_announcements",
+  "web_search"
+ ],
+ "us_secular": [
+  "price_data",
+  "web_search"
+ ],
+ "us_secondary": [
+  "news",
+  "web_search"
+ ],
+ "us_sectoral": [
+  "news",
+  "web_search"
+ ],
+ "us_secs_13f": [
+  "sec_filings_list",
+  "web_search"
+ ],
+ "us_adr_infy": [
+  "sec_filings_list",
+  "web_search"
+ ]
+}

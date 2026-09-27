@@ -1,0 +1,49 @@
+# UI-049 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/store/vs3-ui049.test.ts
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+ ✓ src/store/vs3-ui049.test.ts > vs3 fresh UI-049 > dead ollama + anthropic key -> anthropic 2ms
+ ✓ src/store/vs3-ui049.test.ts > vs3 fresh UI-049 > ready ollama -> kept 0ms
+ ✓ src/store/vs3-ui049.test.ts > vs3 fresh UI-049 > user picks deepseek while the probe runs -> not overwritten 0ms
+ ✓ src/store/vs3-ui049.test.ts > vs3 fresh UI-049 > second key after first promotion (keyed default) -> unchanged 0ms
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  17:01:47
+   Duration  603ms (transform 92ms, setup 70ms, import 82ms, tests 4ms, environment 358ms)
+
+## test source (appended part)
+// vs3 fresh: UI-049 — promotion matrix not in the pinned test: anthropic over dead ollama; ready ollama kept; race (user picks during probe) kept; keyless target never promoted over keyless
+import { beforeEach, describe, expect, it, vi } from "vitest";
+vi.mock("@/lib/sidecar-client", async (o) => ({
+  ...(await o<typeof import("@/lib/sidecar-client")>()),
+  getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
+}));
+import { __resetProviderProbeCacheForTests } from "@/lib/provider-validation";
+import { DEFAULT_PROVIDERS, useLLMProvidersStore } from "@/store/llm-providers";
+let ok = false; let onProbe: (() => void) | null = null;
+const fetchMock = vi.fn(async () => { onProbe?.(); return new Response(JSON.stringify({ ok, reason: ok ? null : "unreachable", detail: null }), { status: 200 }); });
+describe("vs3 fresh UI-049", () => {
+  beforeEach(() => {
+    ok = false; onProbe = null; fetchMock.mockClear();
+    vi.stubGlobal("fetch", fetchMock);
+    __resetProviderProbeCacheForTests();
+    useLLMProvidersStore.setState({ providers: DEFAULT_PROVIDERS, defaultProviderId: "ollama" });
+  });
+  it("dead ollama + anthropic key -> anthropic", async () => {
+    expect(await useLLMProvidersStore.getState().promoteKeyedProvider("anthropic")).toBe(true);
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("anthropic");
+  });
+  it("ready ollama -> kept", async () => {
+    ok = true;
+    expect(await useLLMProvidersStore.getState().promoteKeyedProvider("groq")).toBe(false);
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("ollama");
+  });
+  it("user picks deepseek while the probe runs -> not overwritten", async () => {
+    onProbe = () => useLLMProvidersStore.getState().setDefaultProviderId("deepseek");
+    expect(await useLLMProvidersStore.getState().promoteKeyedProvider("openai")).toBe(false);
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("deepseek");
+  });
+  it("second key after first promotion (keyed default) -> unchanged", async () => {
+    await useLLMProvidersStore.getState().promoteKeyedProvider("openrouter");
+    expect(await useLLMProvidersStore.getState().promoteKeyedProvider("gemini")).toBe(false);
+    expect(useLLMProvidersStore.getState().defaultProviderId).toBe("openrouter");
+  });
+});

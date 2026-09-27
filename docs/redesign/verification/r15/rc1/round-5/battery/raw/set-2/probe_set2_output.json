@@ -1,0 +1,48 @@
+{
+  "RESEARCH-001": {
+    "kept_urls": [
+      "https://x.example/2"
+    ],
+    "note": null
+  },
+  "RESEARCH-034": {
+    "not_covered_yet": false,
+    "COMPLETE": true,
+    "no_gaps": true
+  },
+  "RESEARCH-004": {
+    "claims1": [
+      "revenue growth +40.5%",
+      "P/E 67.13953",
+      "-0.4% YoY margin",
+      "40.5% growth again"
+    ],
+    "claims2": [
+      "P/E 34.42",
+      "Gross Margin 51.70%"
+    ]
+  },
+  "RESEARCH-003": {
+    "round1_urls": [
+      "vysted://price/BDL",
+      "vysted://fundamentals/BDL"
+    ],
+    "round2_urls": [
+      "vysted://price/BDL",
+      "vysted://fundamentals/BDL",
+      "https://nsearchives.nseindia.com/f1.pdf",
+      "https://nsearchives.nseindia.com/f2.pdf"
+    ],
+    "round1_prefix_stable": true
+  },
+  "RESEARCH-029": {
+    "removed": 3,
+    "has_n_marker": false,
+    "has_merged_sources": false,
+    "has_references": false,
+    "cleaned": "Earnings growth: -0.4% "
+  },
+  "RESEARCH-037": {
+    "note": "Citation preference \u2014 when several sources support a claim, cite the most authoritative: primary record (exchange/regulator/filings/IR): [2]; tier-1 press: [3]."
+  }
+}

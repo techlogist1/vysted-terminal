@@ -1,0 +1,6 @@
+CMD: three consecutive GET http://127.0.0.1:52348/quant/option/chain/NIFTY (1s apart)
+Request 1: HTTP 200, underlying_price 23140.5, expiry 2026-09-29, 18 expiries listed
+Request 2: HTTP 200, same underlying_price 23140.5, same contracts (consistent cache hit)
+Request 3: HTTP 200, same underlying_price 23140.5, same contracts (consistent cache hit)
+OBSERVED: 3/3 requests returned 200 with consistent cached data; no 502 across the run (register bug was a 502 on a re-probe despite a good cached day sitting in cache).
+VERDICT: holds

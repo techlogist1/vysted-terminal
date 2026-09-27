@@ -1,0 +1,9 @@
+$ curl -s 'http://127.0.0.1:52353/history/KARNAVATI.BO?range=1y'
+cold cache confirmed: sqlite3 data_cache.db 'SELECT key FROM cache WHERE key LIKE %KARNAVATI%'' -> 0 rows before this call
+response summary: provider=bse partial=False bars=255 (2025-09-12 .. 2026-09-25, a full year)
+
+Register base repro (round-3 census) described a <=8-bar cold result with no partial/coverage field;
+batch-11 fix (4097dac) added the partial field and made the registry fall through on a partial result.
+Live re-proof on candidate: 255 bars, partial:false, single lane (bse) served the complete year — no fall-through needed since bse itself returned complete history this time; the partial field exists and is populated on the response, which is what batch-11's fix delivered (test_provider_registry pins the fall-through path itself).
+
+VERDICT: holds

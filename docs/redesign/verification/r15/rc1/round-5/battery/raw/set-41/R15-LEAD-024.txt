@@ -1,0 +1,23 @@
+candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98 -- live GET http://127.0.0.1:52341/macro/WEO%2FUSA.NGDP_RPCH.A?provider=imf
+2023 2.934535 False
+2024 2.793116 False
+2025 2.11733 True
+2026 2.323695 True
+2027 2.1 True
+2028 2.1 True
+2029 1.880588 True
+2030 1.753132 True
+2031 1.755 True
+---
+src/modules/macro/MacroChart.tsx dashed/is_projection wiring (lines 60-90, 170):
+60: * Projected observations (`is_projection`, e.g. IMF WEO forecast years) are
+61: * drawn as a dashed continuation of the actuals, with a legend note.
+72:  const { lineData, projectedData, projectedCount } = useMemo(() => {
+78:      points.push({ time: ts as UTCTimestamp, value: obs.value, projected: !!obs.is_projection });
+85:    for (const { projected: isProjection, ...p } of points) {
+87:      (isProjection ? projected : actual).push(p);
+90:    // The dashed line starts from the last actual point so the two join.
+97:      projectedCount: projected.length,
+167:        {lineData.length + projectedCount} observations
+168:        {projectedCount > 0 ? (
+170:            {` • dashed = projected (${projectedCount})`}

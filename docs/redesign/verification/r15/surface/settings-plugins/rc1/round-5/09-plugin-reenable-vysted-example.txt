@@ -1,0 +1,3 @@
+CMD: curl POST /plugins/vysted-example/config -d '{"installed":true,"enabled":true,"settings":{},"granted_secret_ids":[]}'
+{"plugin_id":"vysted-example","enabled":true,"installed":true,"settings":{},"granted_secret_ids":[]}
+HTTP 200

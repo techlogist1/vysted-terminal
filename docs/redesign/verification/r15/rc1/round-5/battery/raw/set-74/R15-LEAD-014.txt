@@ -1,0 +1,13 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check.
+sidecar/services/llm/openai.py:139-148:
+  _SCHEMA_KEYWORDS = frozenset({"type","properties","required","additionalProperties","$schema","description"})
+  "#: JSON-Schema keywords: a repair reply keyed by these (and not by the tool's own property
+   names) is the schema echoed back, not filled-in args (R15-LEAD-014)."
+Line 569: "# A schema echo validates for any tool with no required keys; it is not args." (guard
+against the degenerate case where an echoed schema would otherwise pass an empty-required-keys
+validator).
+
+VERDICT: holds. A model reply whose top-level keys are JSON-Schema keywords (a schema echo) is
+now detected by _SCHEMA_KEYWORDS and rejected/retried rather than accepted as valid tool args —
+matches batch-5's certified probe (0/54 tools accept a type-name placeholder echo; sentinel path
+taken instead).

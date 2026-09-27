@@ -1,0 +1,33 @@
+-- test file mocked-response test + pytest catalog-route pin --
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+    });
+    await waitFor(() => expect(screen.queryByText("Updated.")).toBeInTheDocument());
+  });
+
+  it("case not written against: a tool id the sidecar lists but the fallback array lacks is selectable", async () => {
+    fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.endsWith("/custom-agents/tool-ids")) {
+        return new Response(JSON.stringify(["brand_new_tool"]), { status: 200 });
+      }
+      return new Response(JSON.stringify([]), { status: 200 });
+    });
+    render(<AgentBuilderPanel />);
+    await screen.findByText("New custom agent");
+
+    const button = await screen.findByRole("button", { name: "brand_new_tool" });
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(button);
+    expect(button).toHaveAttribute("aria-pressed", "true");
+  });
+});
+--- pytest pin for route<->catalog ---
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/tests/test_capability_catalog.py:27:    agent_selectable_tool_ids,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/tests/test_capability_catalog.py:92:    assert KNOWN_TOOL_IDS == agent_selectable_tool_ids()
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/tests/test_custom_agents_router.py:77:def test_tool_ids_equals_agent_selectable_tool_ids(client: TestClient) -> None:
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/tests/test_custom_agents_router.py:81:    from services.agent_tools.catalog import agent_selectable_tool_ids
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/tests/test_custom_agents_router.py:83:    response = client.get("/custom-agents/tool-ids")
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/tests/test_custom_agents_router.py:85:    assert response.json() == sorted(agent_selectable_tool_ids())
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/tests/test_custom_agents_router.py:89:    """`/tool-ids` must resolve to the dedicated route, not `/{agent_id:path}`
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/rc1-round-5-cand/sidecar/tests/test_custom_agents_router.py:91:    response = client.get("/custom-agents/tool-ids")

@@ -1,0 +1,52 @@
+{"kind": "tool_use", "tool_call_id": "call_312ea300d70d473a8bcb04ba88493c87", "name": "resolve_symbol", "input": {"query": "AMAL", "region": "IN"}}
+{"kind": "tool_result", "tool_call_id": "call_312ea300d70d473a8bcb04ba88493c87", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " ticker"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "AM"}
+{"kind": "delta", "text": "AL"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " corresponds"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Am"}
+{"kind": "delta", "text": "al"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " listed"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "N"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "National"}
+{"kind": "delta", "text": " Stock"}
+{"kind": "delta", "text": " Exchange"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " India"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " also"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "B"}
+{"kind": "delta", "text": "SE"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "Bomb"}
+{"kind": "delta", "text": "ay"}
+{"kind": "delta", "text": " Stock"}
+{"kind": "delta", "text": " Exchange"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " under"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " code"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "506"}
+{"kind": "delta", "text": "597"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 9157, "output_tokens": 50, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.010728}

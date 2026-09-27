@@ -1,0 +1,326 @@
+broker	false positive (legacy keychain key name for TOS ack)	src-tauri/src/keychain.rs:491:                "broker:_meta:first-launch-tos".to_string(),
+broker	false positive (legacy keychain key name for TOS ack)	src-tauri/src/keychain.rs:506:                    "broker:_meta:first-launch-tos" => Some("2026-06-11".to_string()),
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/regenerate_india_sectors.py:140:    "stock/ commodity brokers": "Financial Services",
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/us_instruments.json:1:{"exchange":"US","instruments":[["NVDA","NVIDIA CORP"],["GOOGL","Alphabet Inc."],["AAPL","Apple Inc."],["MSFT","MICROSOFT CORP"],["AMZN","AMAZON COM INC"],["AVGO","
+broker	product surface: negative statement (no trading)	sidecar/services/agent_runtime.py:173:    "no brokerage connection: you cannot place, stage or simulate trades. If "
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/nse_instruments.json:1027:    ["ARSSBL", "Anand Rathi Share and Stock Brokers Limited", "EQ"],
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/nse_instruments.json:2217:    ["DBSTOCKBRO", "DB (International) Stock Brokers Limited", "EQ"],
+broker	product surface: negative statement (no trading)	src/store/agent-autonomy.ts:15: * Vysted has no brokerage connection, so no host action can place, stage or
+broker	false positive (LLM broker / live model catalog)	sidecar/services/llm/native_search.py:53:#: ``openrouter`` is a broker, so native search is a PER-MODEL property — the
+broker	false positive (LLM broker / live model catalog)	sidecar/services/llm/native_search.py:62:#: (a broker), **openai** (chat-completions search is ``*-search-preview`` only,
+broker	false positive (LLM broker / live model catalog)	sidecar/services/llm/native_search.py:208:    * ``openrouter`` is a broker, so native search is a per-MODEL property:
+broker	false positive (LLM broker / live model catalog)	sidecar/services/llm/native_search.py:333:    broker (OpenRouter) counts one search when the round came back cited.
+broker	false positive (data: company names / PSL)	sidecar/services/research/psl/public_suffix_list.dat:66:broker.aero
+broker	false positive (data: company names / PSL)	sidecar/services/research/psl/public_suffix_list.dat:7346:// broker : Dog Beach, LLC
+broker	false positive (data: company names / PSL)	sidecar/services/research/psl/public_suffix_list.dat:7347:// https://www.iana.org/domains/root/db/broker.html
+broker	false positive (data: company names / PSL)	sidecar/services/research/psl/public_suffix_list.dat:7348:broker
+broker	false positive (data: company names / PSL)	sidecar/services/research/psl/public_suffix_list.dat:8106:// fidelity : Fidelity Brokerage Services LLC
+broker	false positive (LLM broker / live model catalog)	sidecar/services/llm/__init__.py:39:# names stay as the import-time view. OpenRouter is a unified BROKER (one key,
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/bse_instruments.json:1040:    ["544530", "ARSSBL", "Anand Rathi Share And Stock Brokers Ltd", "B", "INE549H01021", "Active"],
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/bse_instruments.json:2835:    ["530393", "DBSTOCKBRO", "DB International Stock Brokers Ltd", "T", "INE921B01025", "Active"],
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/bse_instruments.json:3479:    ["511654", "SUGALDAM", "Sugal & Damani Share Brokers Ltd", "X", "INE309D01011", "Active"],
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/bse_instruments.json:4105:    ["511501", "BHARAT", "Bharat Bhushan Finance & Commodity Brokers Ltd", "X", "INE900A01013", "Active"],
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/bse_instruments.json:4344:    ["509760", "MODRNSH", "Modern Shares & Stockbrokers Ltd", "XT", "INE370A01019", "Active"],
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/bse_instruments.json:4570:    ["542176", "ARYAN", "Aryan Share and Stock Brokers Ltd", "X", "INE016X01010", "Active"],
+broker	false positive (LLM broker / live model catalog)	sidecar/services/llm/openrouter_catalog.py:3:OpenRouter is a BROKER with hundreds of constantly-changing models, so a static
+broker	false positive (data: company names / PSL)	sidecar/services/resolver_masters/former_names.json:2494:        "Emkay Share and Stock Brokers Limited"
+broker	product surface: negative statement (no trading)	sidecar/services/planner.py:79:    # holding). Vysted has no brokerage connection (D81).
+broker	false positive (LLM broker / live model catalog)	sidecar/models/llm.py:25:#: is a unified BROKER — one key, all upstreams — that rides the OpenAI-shaped
+broker	product surface: negative statement (no trading)	src/modules/portfolio/index.ts:7: * (frontend store, persisted in the workspace blob; no broker sync), with P&L,
+broker	product surface: negative statement (no trading)	sidecar/agents/copilot.json:5:  "systemPrompt": "You are Vysted's terminal copilot. The user talks to you in plain language — there are no commands to memorize. You can read what they are currently looking at and you can
+broker	product surface: negative statement (no trading)	src/modules/portfolio/PortfolioPanel.tsx:154: * the workspace blob; there is no broker sync. P&L, weight, and concentration
+broker	false positive (LLM broker / live model catalog)	src/store/model-selection.ts:55:  // OpenRouter is a BROKER with a live, open-ended catalog (hundreds of models
+broker	test (asserts absence / fixture)	sidecar/tests/test_llm_router.py:78:    # OpenRouter is a model-routing aggregator, NOT a broker. The frontend
+broker	test (asserts absence / fixture)	sidecar/tests/test_llm_router.py:81:    # that can resurface the "(broker)" walkthrough defect — pin it here.
+broker	product surface: negative statement (no trading)	sidecar/services/agent_tools/market_overview.py:12:Read-only by design (no broker / order side effects — the §6.5 registry grep
+broker	product surface: negative statement (no trading)	sidecar/services/agent_tools/news_tool.py:8:Read-only by design — no broker / order / safety-surface side effects (the §6.5
+broker	test (asserts absence / fixture)	src/modules/safety/DisclaimerFlow.test.tsx:63:    expect(text).toMatch(/no brokerage connection/i);
+broker	test (asserts absence / fixture)	src/modules/safety/DisclaimerFlow.test.tsx:67:    expect(text).not.toMatch(/connecting a broker/i);
+broker	product surface: negative statement (no trading)	sidecar/services/agent_tools/catalog.py:19:SAFETY (§6.5): Vysted has no brokerage connection and no trading path (D81). No
+broker	product surface: negative statement (no trading)	sidecar/services/agent_tools/catalog.py:22:pins that no order, broker or simulated-account capability exists.
+broker	product surface: negative statement (no trading)	sidecar/services/agent_tools/catalog.py:1593:                "tracked portfolio (manual holdings). Vysted has no brokerage "
+broker	product surface: negative statement (no trading)	sidecar/services/agent_tools/catalog.py:1625:                "tracked portfolio (manual holdings). Vysted has no brokerage "
+broker	product surface: negative statement (no trading)	sidecar/services/agent_tools/catalog.py:1653:                "has no brokerage connection."
+broker	product surface: negative statement (no trading)	src/modules/safety/DisclaimerFlow.tsx:28:const TOS_BODY = `Vysted Terminal is a data and analysis tool. It does not provide investment advice and is not a registered broker-dealer or investment adviser.
+broker	product surface: negative statement (no trading)	src/modules/safety/DisclaimerFlow.tsx:32:- Vysted has no brokerage connection. It cannot place, route or simulate orders.
+broker	test (asserts absence / fixture)	src/lib/marketplace-lifecycle.test.ts:88:  it("a not-installed persisted plugin is never initialized at load (FR-051 broker-at-boot guard)", async () => {
+broker	test (asserts absence / fixture)	src/lib/marketplace-lifecycle.test.ts:89:    persistence.configs.set("broker", {
+broker	test (asserts absence / fixture)	src/lib/marketplace-lifecycle.test.ts:90:      pluginId: "broker",
+broker	test (asserts absence / fixture)	src/lib/marketplace-lifecycle.test.ts:96:    const plugin = fakePlugin("broker");
+broker	test (asserts absence / fixture)	src/lib/workspace.test.ts:1013:            // A removed panel (the broker connect panel) is docked in the blob.
+broker	test (asserts absence / fixture)	src/lib/workspace.test.ts:1016:              panels: { broker: { contentComponent: "broker-connect-panel" } },
+broker	test (asserts absence / fixture)	src/lib/workspace.test.ts:1117:                        data: { id: "g1", views: ["chart", "broker"], activeView: "broker" },
+broker	test (asserts absence / fixture)	src/lib/workspace.test.ts:1132:                  broker: { id: "broker", contentComponent: "broker-connect-panel" },
+broker	test (asserts absence / fixture)	src/lib/workspace.test.ts:1133:                  orders: { id: "orders", contentComponent: "broker-order-entry-panel" },
+broker	test (asserts absence / fixture)	src/components/EmptyState.test.tsx:35:      <EmptyState icon={Inbox} headline="No brokers" cta={{ label: "Connect broker", onClick }} />,
+broker	test (asserts absence / fixture)	src/components/EmptyState.test.tsx:38:    expect(cta).toHaveTextContent("Connect broker");
+broker	test (asserts absence / fixture)	src/components/EmptyState.test.tsx:47:        headline="No brokers"
+broker	test (asserts absence / fixture)	src/components/EmptyState.test.tsx:48:        cta={{ label: "Connect broker", onClick: () => {}, primary: true }}
+broker	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/components/OnboardingFlow.tsx:9: *     broker for every model — guided, with rough cost shown.
+broker	test (asserts absence / fixture)	sidecar/tests/test_llm_openai.py:374:# OpenRouter dispatch (JARVIS sprint — broker)
+broker	test (asserts absence / fixture)	sidecar/tests/test_native_search.py:64:    # OpenRouter is a broker: native search is per-MODEL, so it is NOT in the
+broker	test (asserts absence / fixture)	src/components/SettingsPanel.test.tsx:501:  it("labels OpenRouter plainly — never as a broker", () => {
+broker	test (asserts absence / fixture)	src/components/SettingsPanel.test.tsx:503:    expect(screen.queryByText(/OpenRouter \(broker\)/)).toBeNull();
+broker	test (asserts absence / fixture)	sidecar/tests/test_toolbelt_integrity.py:15:  - NO capability exists for autonomy/keychain/broker-config/kill-switch —
+broker	test (asserts absence / fixture)	sidecar/tests/test_toolbelt_integrity.py:169:#: its own autonomy/trust gate, the OS keychain / credentials, broker
+broker	test (asserts absence / fixture)	sidecar/tests/test_toolbelt_integrity.py:177:    "broker_config",
+broker	test (asserts absence / fixture)	sidecar/tests/test_toolbelt_integrity.py:178:    "configure_broker",
+broker	test (asserts absence / fixture)	sidecar/tests/test_toolbelt_integrity.py:184:def test_no_capability_over_autonomy_keys_broker_config_or_kill_switch() -> None:
+broker	test (asserts absence / fixture)	sidecar/tests/test_toolbelt_integrity.py:191:        f"capabilities over the agent's own leash (autonomy/keys/broker-config/"
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:1:"""Gate 8 (D81): no order, broker or simulated-account path exists anywhere,
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:47:    r"/(brokers?|orders?|margins|safety|kill-switch|audit-log|disclaimer-[a-z-]+|static-ip[a-z-]*)(/|$)"
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:51:    r"(^|_)(orders?|brokers?|margins?|trades?|trading|paper|kill_?switch|audit)(_|$)"
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:59:    "services.brokers",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:60:    "services.broker_base",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:65:    "services.agent_tools.broker_portfolio",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:67:    "models.broker",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:68:    "models.broker_reads",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:71:    "routers.brokers",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:76:    "plugins/brokers",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:77:    "src/modules/broker-connect",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:81:    "src/store/brokers.ts",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:82:    "types/broker.ts",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:83:    "types/broker-reads.ts",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:114:    "BrokerAdapter",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:115:    "BrokerOrder",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:116:    "BrokerState",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:117:    "BrokerId",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:118:    "BrokerConnect",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:119:    "BrokerFirstConnect",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:120:    "broker_portfolio",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:121:    "brokers_registry",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:122:    "useBrokersStore",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:142:    "/brokers/",
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:211:    assert "brokers" not in typing.get_args(catalog.Domain)
+broker	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:212:    assert "brokers" not in catalog.TIMEOUT_HINTS
+broker	test (asserts absence / fixture)	sidecar/tests/test_sec_tools.py:228:    """§6.5 audit grep — none of our tool ids touch broker execution."""
+broker	test (asserts absence / fixture)	sidecar/tests/test_macro_tools.py:128:    """§6.5 hygiene — no broker / order-placement tool ids."""
+demat	test (asserts absence / fixture)	sidecar/tests/fixtures/nse/shareholding_master_qualiance_sme_20260924.json:16:  "promoterDematNotes": "",
+demat	test (asserts absence / fixture)	sidecar/tests/fixtures/bse/announcements_hdfcbank_tcs_20260924.json:639:   "NEWSSUB": "Newspaper Publication Regarding Special Window For Transfer And Dematerialisation Of Physical Shares Of HDFC Bank Limited",
+demat	test (asserts absence / fixture)	sidecar/tests/fixtures/bse/announcements_hdfcbank_tcs_20260924.json:648:   "HEADLINE": "Newspaper publication regarding special window for transfer and dematerialisation of physical shares of HDFC Bank Limited",
+leverage	false positive (financial ratio / CSS / prose)	sidecar/services/corporate_disclosures.py:1153:            # SEBI XBRL (the NSE master carries none) — the highest-leverage fix.
+leverage	false positive (financial ratio / CSS / prose)	sidecar/services/agent_runtime.py:409:    bounded. The deixis sentence is the highest-leverage line: it lets "is this
+leverage	false positive (financial ratio / CSS / prose)	sidecar/services/agent_runtime.py:686:    prepended as a system message so it leads every turn — the highest-leverage
+leverage	false positive (financial ratio / CSS / prose)	sidecar/agents/researcher.json:5:  "systemPrompt": "You are an AI equity research analyst. Your role is to produce structured, defensible research notes on the company, sector, or macro question put to you. You write in 
+leverage	false positive (financial ratio / CSS / prose)	sidecar/agents/klarman.json:5:  "systemPrompt": "You are an AI analyst trained on Seth Klarman's investment framework — the framework that built the Baupost Group's three-decade record of double-digit returns with single
+leverage	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:39:    description: "Low P/E, profitable (ROE > 12%), low leverage",
+leverage	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:63:    description: "Yield > 3%, low leverage, profitable",
+live_mode	false positive (LLM broker / live model catalog)	sidecar/services/llm/base.py:178:        """Return the provider's LIVE model catalog (``GET /llm/models``).
+live_mode	false positive (LLM broker / live model catalog)	sidecar/services/llm/openai.py:844:        """Live model catalog.
+live_mode	false positive (LLM broker / live model catalog)	sidecar/services/llm/openrouter_catalog.py:1:"""OpenRouter live model catalog.
+live_mode	false positive (LLM broker / live model catalog)	src/store/model-catalog.ts:2: * Live model-catalog store.
+live_mode	false positive (LLM broker / live model catalog)	src/store/model-catalog.ts:4: * Fetches a provider's LIVE model list from the sidecar's `GET /llm/models`
+live_mode	false positive (LLM broker / live model catalog)	sidecar/services/workflow_nodes/builtin.py:119:    # snake_case) or a live model — handle both for test ergonomics.
+live_mode	test (asserts absence / fixture)	sidecar/tests/test_company_narrative.py:3:The LLM is ALWAYS mocked — no test makes a live model call. The focus is the
+live_mode	false positive (LLM broker / live model catalog)	src/app/page.tsx:73:    // Warm the default provider's LIVE model catalog up front so the model pickers
+live_mode	test (asserts absence / fixture)	sidecar/tests/test_openrouter_catalog.py:1:"""Tests for the OpenRouter live model catalog fetcher.
+live_mode	false positive (LLM broker / live model catalog)	src/modules/chat/ChatSidebar.tsx:553:  // Live model catalog for the active provider — auto-fetched, TTL-cached.
+live_mode	false positive (LLM broker / live model catalog)	sidecar/routers/llm.py:59:    """Return a provider's LIVE model catalog, with a registry fallback.
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src-tauri/src/lib.rs:129:/// Phase-9 UC1 fix: the prior flat 15s budget was marginal for a COLD
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/provider_registry.py:265:    "profit_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/provider_registry.py:266:    "operating_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/provider_registry.py:267:    "gross_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/provider_registry.py:547:    with no screener-grade fields (roe/margins/debt/growth) — see
+margin	test (asserts absence / fixture)	src/store/notes.test.ts:10:    useNotesStore.getState().setSymbolNote("aapl", "services margin story");
+margin	test (asserts absence / fixture)	src/store/notes.test.ts:12:    expect(useNotesStore.getState().noteFor("AAPL")).toBe("services margin story");
+margin	test (asserts absence / fixture)	src/store/notes.test.ts:13:    expect(useNotesStore.getState().noteFor("aapl")).toBe("services margin story");
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/yfinance_provider.py:953:        gross_margin=_num(info.get("grossMargins")),
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/yfinance_provider.py:954:        operating_margin=_num(info.get("operatingMargins")),
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/yfinance_provider.py:955:        profit_margin=_num(info.get("profitMargins")),
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/macro/ecb_provider.py:58:        title="Marginal Lending Facility Rate — daily",
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/action_ledger.py:24:#: turn with margin.
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/fundamentals_store.py:13:    margins, growth, …). TTL 7 d.
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/fundamentals_store.py:70:#: Deep ``.info`` tier (sector, ROE, margins, growth, ownership, …).
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/search/extract.py:99:    "margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/yahoo_batch_provider.py:564:        "gross_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/yahoo_batch_provider.py:565:        "operating_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/yahoo_batch_provider.py:566:        "profit_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/research/deep.py:864:    if any(k in low for k in ("valuation", "fundamental", "earnings", "margin", "revenue", "debt")):
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/research/verify.py:8:     (price, growth, margin, ratio, valuation, dated figure), verbatim;
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/research/verify.py:189:                    "(a price, growth rate, margin, ratio, valuation, or any "
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/research/finance.py:128:    "margin",
+margin	false positive (financial ratio / CSS / prose)	src/modules/equity-overview/metrics.ts:53:      { label: "Gross margin", key: "gross_margin", kind: "fraction" },
+margin	false positive (financial ratio / CSS / prose)	src/modules/equity-overview/metrics.ts:54:      { label: "Operating margin", key: "operating_margin", kind: "fraction" },
+margin	false positive (financial ratio / CSS / prose)	src/modules/equity-overview/metrics.ts:55:      { label: "Net margin", key: "profit_margin", kind: "fraction", headline: true },
+margin	test (asserts absence / fixture)	src/modules/equity-overview/EquityOverviewPanel.test.tsx:62:    gross_margin: 0.46,
+margin	test (asserts absence / fixture)	src/modules/equity-overview/EquityOverviewPanel.test.tsx:63:    operating_margin: 0.3,
+margin	test (asserts absence / fixture)	src/modules/equity-overview/EquityOverviewPanel.test.tsx:64:    profit_margin: 0.25,
+margin	false positive (financial ratio / CSS / prose)	sidecar/models/screener.py:74:    "gross_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/models/screener.py:75:    "operating_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/models/screener.py:76:    "profit_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/agent_tools/research.py:410:        "gross_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/agent_tools/research.py:411:        "operating_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/agent_tools/research.py:412:        "profit_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/agent_tools/catalog.py:294:                "(P/E, market cap, margins), and recent relative performance. Use "
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/agent_tools/catalog.py:319:                "Valuation ratios (P/E, P/B, market cap, margins) + a company "
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/agent_tools/catalog.py:337:                "(periods_available says how many exist). Use for revenue, margin, "
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/models/fundamentals.py:61:    Units are documented per field: ``*_margin``/``roe``/``roa``/``*_growth``/
+margin	false positive (financial ratio / CSS / prose)	sidecar/models/fundamentals.py:132:    gross_margin: float | None = None
+margin	false positive (financial ratio / CSS / prose)	sidecar/models/fundamentals.py:133:    operating_margin: float | None = None
+margin	false positive (financial ratio / CSS / prose)	sidecar/models/fundamentals.py:134:    profit_margin: float | None = None
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/correctness_gate.py:548:#: ``profit_margin`` above which the revenue is flagged: the two sizes and the
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/correctness_gate.py:549:#: margin come from different periods.
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/correctness_gate.py:550:_MARGIN_GAP = 0.02
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/correctness_gate.py:621:      * net income / revenue against the provider's own ``profit_margin``,
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/correctness_gate.py:622:        beyond :data:`_MARGIN_GAP`;
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/correctness_gate.py:644:    margin, net_income = f.profit_margin, f.net_income_ttm
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/correctness_gate.py:645:    if margin is not None and net_income is not None:
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/correctness_gate.py:646:        implied_margin = net_income / revenue
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/correctness_gate.py:647:        if abs(implied_margin - margin) > _MARGIN_GAP:
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/correctness_gate.py:649:                f"net income / revenue ({implied_margin:.1%}) disagrees with the "
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/correctness_gate.py:650:                f"provider's own profit margin ({margin:.1%}) — revenue and net income "
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/data_cache.py:15:  the bundle, so the marginal cost is one new ``.db`` file.
+margin	false positive (financial ratio / CSS / prose)	sidecar/agents/researcher.json:5:  "systemPrompt": "You are an AI equity research analyst. Your role is to produce structured, defensible research notes on the company, sector, or macro question put to you. You write in 
+margin	false positive (financial ratio / CSS / prose)	sidecar/agents/klarman.json:4:  "philosophy": "Contrarian deep value — distressed and overlooked, with a margin of safety.",
+margin	false positive (financial ratio / CSS / prose)	sidecar/agents/klarman.json:5:  "systemPrompt": "You are an AI analyst trained on Seth Klarman's investment framework — the framework that built the Baupost Group's three-decade record of double-digit returns with single
+margin	false positive (financial ratio / CSS / prose)	sidecar/agents/soros.json:5:  "systemPrompt": "You are an AI analyst trained on George Soros's investment framework — the framework formalised in The Alchemy of Finance (1987) and refined across five decades of macro spe
+margin	false positive (financial ratio / CSS / prose)	sidecar/agents/README.md:32:1. `buffett` — Warren Buffett (value, margin of safety)
+margin	false positive (financial ratio / CSS / prose)	sidecar/agents/graham.json:4:  "philosophy": "Deep value — quantitative margin of safety, Mr. Market as a manic-depressive counterparty.",
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/agents/graham.json:5:  "systemPrompt": "You are an AI analyst trained on Benjamin Graham's investment framework — the framework laid out in Security Analysis (1934) and The Intelligent Investor (1949). You write 
+margin	false positive (financial ratio / CSS / prose)	sidecar/agents/buffett.json:5:  "systemPrompt": "You are an AI analyst trained on Warren Buffett's investment framework, distilled from sixty years of Berkshire Hathaway shareholder letters. You think and write the way B
+margin	false positive (financial ratio / CSS / prose)	sidecar/agents/marks.json:5:  "systemPrompt": "You are an AI analyst trained on Howard Marks's investment framework — the framework that built Oaktree Capital into the world's largest distressed-debt manager. You write i
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/company_narrative.py:120:    * for fractions (margins, yields, growth, ownership) BOTH the fraction
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/company_narrative.py:186:            "gross_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/company_narrative.py:187:            "operating_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/company_narrative.py:188:            "profit_margin",
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/company_narrative.py:315:            ("Gross margin", _fmt(_served(f, "gross_margin"), pct=True)),
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/company_narrative.py:316:            ("Operating margin", _fmt(_served(f, "operating_margin"), pct=True)),
+margin	false positive (financial ratio / CSS / prose)	sidecar/services/company_narrative.py:317:            ("Net margin", _fmt(_served(f, "profit_margin"), pct=True)),
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/hardware_fit.py:7:``green`` / ``marginal`` / ``red`` verdict (FINDINGS §2.5).
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/hardware_fit.py:64:VERDICT_MARGINAL = "marginal"
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/hardware_fit.py:363:    - MARGINAL: gpu_fit ≤ 1.00 AND ram_fit ≤ 0.92 — fits but tight (downgrade ctx).
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/hardware_fit.py:399:        verdict = VERDICT_MARGINAL
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/hardware_fit.py:438:    """Gate helper: True iff the device earns the local path (GREEN or MARGINAL).
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/hardware_fit.py:441:    return score(candidate, device).verdict in (VERDICT_GREEN, VERDICT_MARGINAL)
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/services/hardware_fit.py:449:    "VERDICT_MARGINAL",
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_deep.py:460:    q = deep._researcher_web_query("revenue growth and margin trend", target=rel, query="Reliance")
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_deep.py:462:        '"Reliance Industries Limited" RELIANCE NSE Refineries revenue growth and margin trend'
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_r8_regressions.py:54:                "Analyze revenue growth trajectory, margin trends, and valuation "
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_r8_regressions.py:266:                return "# Brief\nRevenue grew [1]. Margin claim [47]. Cash flow [99]."
+margin	test (asserts absence / fixture)	sidecar/tests/test_company_narrative.py:53:        gross_margin=0.46,
+margin	test (asserts absence / fixture)	sidecar/tests/test_company_narrative.py:54:        operating_margin=0.31,
+margin	test (asserts absence / fixture)	sidecar/tests/test_company_narrative.py:55:        profit_margin=0.25,
+margin	test (asserts absence / fixture)	sidecar/tests/test_company_narrative.py:195:    # 64.2% gross margin is INVENTED (source is 46%); P/E 31.5 is real.
+margin	test (asserts absence / fixture)	sidecar/tests/test_company_narrative.py:196:    text = "With a P/E of 31.5 and a gross margin of 64.2%, the firm looks rich."
+margin	test (asserts absence / fixture)	sidecar/tests/test_company_narrative.py:259:    # The model invents a 64.2% gross margin and a $4.2T market cap; P/E 31.5 is real.
+margin	test (asserts absence / fixture)	sidecar/tests/test_company_narrative.py:263:        "with a gross margin of 64.2%.\n"
+margin	test (asserts absence / fixture)	sidecar/tests/test_company_narrative.py:266:        "- Margins around 64.2%",
+margin	test (asserts absence / fixture)	sidecar/tests/test_fundamentals.py:670:    fields["profit_margin"] = 0.19635
+margin	test (asserts absence / fixture)	sidecar/tests/test_fundamentals.py:682:    band) and a matching margin, so no Yahoo witness can see it; the BSE-filed
+margin	test (asserts absence / fixture)	sidecar/tests/test_fundamentals.py:704:    fields = {"revenue_ttm": 27_600_000, "net_income_ttm": 10_200_000, "profit_margin": 0.36957}
+margin	test (asserts absence / fixture)	sidecar/tests/test_fundamentals.py:715:    fields = {"revenue_ttm": 239_033_504, "net_income_ttm": 87_482_000, "profit_margin": 0.36598}
+margin	test (asserts absence / fixture)	sidecar/tests/test_fundamentals.py:728:    fields["profit_margin"] = 0.19635
+margin	false positive (financial ratio / CSS / prose)	src/modules/chat/ChatSidebar.tsx:260:          negative margin pulled the caret up OVER the message eyebrow
+margin	false positive (financial ratio / CSS / prose)	src/modules/chat/ChatSidebar.tsx:262:          negative margin may only cancel a real gap — never reach into the
+margin	false positive (financial ratio / CSS / prose)	src/modules/chat/ProposedChangesReview.tsx:109:      exit={{ opacity: 0, x: 8, height: 0, marginBottom: 0 }}
+margin	false positive (financial ratio / CSS / prose)	src/modules/chat/ProposedChangesReview.tsx:151:      exit={{ opacity: 0, x: 8, height: 0, marginBottom: 0 }}
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_r9_regressions.py:76:    "YoY; PAT Rs 359.31 Mn (Rs 3,593.09 lakh), up 19.7% YoY, margin 14.44%; "
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_r9_regressions.py:584:            return "Dividends and payouts\nGrowth and margins"
+margin	false positive (financial ratio / CSS / prose)	src/modules/chat/SuggestionChips.tsx:34:    prompt: "Compare $AAPL vs $MSFT on growth, margins, and valuation.",
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_citecheck.py:42:    md = "Revenue grew 23% [2]. Margin contracted [47]. Both held [1][9]."
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_citecheck.py:49:    assert "Margin contracted." in cleaned
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_citecheck.py:192:    md = "Revenue grew 23% [1]. Margin reached 21% [1].\n"
+margin	test (asserts absence / fixture)	sidecar/tests/test_fundamentals_store.py:136:    await store.upsert_info("AAA", _fund("AAA", roe=0.3, profit_margin=0.1))
+margin	test (asserts absence / fixture)	sidecar/tests/test_fundamentals_store.py:137:    # Re-enrich: roe rides along, profit_margin vanished upstream.
+margin	test (asserts absence / fixture)	sidecar/tests/test_fundamentals_store.py:141:    assert row["profit_margin"] is None  # vanished value cleared, not served stale
+margin	test (asserts absence / fixture)	src/modules/chat/ChatSidebar.test.tsx:1090:    // No preceding body block → the gap-cancelling negative margin must be OFF
+margin	test (asserts absence / fixture)	src/modules/chat/ChatSidebar.test.tsx:1095:  it("E10: with rendered content the caret keeps its gap-cancelling margin", () => {
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_relevance.py:444:        ("BP", "BP p.l.c.", "BP beats estimates on refining margins", True),
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:19: * cockpit). Fraction fields (roe / margins / growth / yield) use fractions
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:26:    description: "High ROE + net margin + revenue growth (MRQ YoY), low debt, large cap",
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:30:      { field: "profit_margin", operator: "gt", value: 0.12 },
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:68:      { field: "profit_margin", operator: "gt", value: 0.08 },
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:72:    id: "margins",
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/modules/screener/ScreenerPresets.tsx:73:    label: "High-margin leaders",
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:74:    description: "Fat gross + operating margins, strong returns",
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:77:      { field: "gross_margin", operator: "gt", value: 0.5 },
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:78:      { field: "operating_margin", operator: "gt", value: 0.25 },
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:98:    description: "Giants ($200B+) with elite returns + margins",
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPresets.tsx:103:      { field: "profit_margin", operator: "gt", value: 0.15 },
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerPanel.tsx:142:  //   deep_as_of     → "deep fields"  (7d .info deep tier — ROE, margins, growth)
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/CriterionGroupEditor.tsx:64:    { value: "gross_margin", label: "Gross margin (frac)" },
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/CriterionGroupEditor.tsx:65:    { value: "operating_margin", label: "Operating margin (frac)" },
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/CriterionGroupEditor.tsx:66:    { value: "profit_margin", label: "Net margin (frac)" },
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerCriteriaBuilder.tsx:55:    { value: "gross_margin", label: "Gross margin (frac)" },
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerCriteriaBuilder.tsx:56:    { value: "operating_margin", label: "Operating margin (frac)" },
+margin	false positive (financial ratio / CSS / prose)	src/modules/screener/ScreenerCriteriaBuilder.tsx:57:    { value: "profit_margin", label: "Net margin (frac)" },
+margin	test (asserts absence / fixture)	sidecar/tests/fixtures/sec/20f_index_sify_20260924.htm:10:<body style="margin: 0; font-size: 16px; ">
+margin	test (asserts absence / fixture)	sidecar/tests/fixtures/sec/20f_index_sify_20260924.htm:92:   <div style="padding: 4px 0px 4px 0px; font-size: 12px; margin: 0px 2px 0px 5px; width: 100%; overflow:hidden" id="seriesDiv">
+margin	test (asserts absence / fixture)	sidecar/tests/fixtures/sec/20f_index_sify_20260924.htm:98:   <div style="padding: 0px 0px 4px 0px; font-size: 12px; margin: 0px 2px 0px 5px; width: 100%; overflow:hidden">
+margin	test (asserts absence / fixture)	sidecar/tests/fixtures/sec/20f_index_sify_20260924.htm:224:   <div style="padding: 0px 0px 4px 0px; font-size: 12px; margin: 0px 2px 0px 5px; width: 100%; overflow:hidden">
+margin	test (asserts absence / fixture)	sidecar/tests/test_b7_exchange_financials.py:111:    fields = {"revenue_ttm": 27_600_000, "net_income_ttm": 10_200_000, "profit_margin": 0.36957}
+margin	test (asserts absence / fixture)	sidecar/tests/test_b7_exchange_financials.py:194:    fields = {"revenue_ttm": 239_033_504, "net_income_ttm": 87_482_000, "profit_margin": 0.36598}
+margin	test (asserts absence / fixture)	sidecar/tests/test_indicators.py:772:    margin = (cmax - cmin) * 0.05
+margin	test (asserts absence / fixture)	sidecar/tests/test_indicators.py:773:    assert all(cmin - margin <= v <= cmax + margin for v in values)
+margin	test (asserts absence / fixture)	sidecar/tests/test_yahoo_batch_provider.py:187:        "gross_margin",
+margin	test (asserts absence / fixture)	sidecar/tests/test_yahoo_batch_provider.py:188:        "operating_margin",
+margin	test (asserts absence / fixture)	sidecar/tests/test_yahoo_batch_provider.py:189:        "profit_margin",
+margin	test (asserts absence / fixture)	src/modules/research/brief-blocks.test.ts:55:    gross_margin: null,
+margin	test (asserts absence / fixture)	src/modules/research/brief-blocks.test.ts:56:    operating_margin: null,
+margin	test (asserts absence / fixture)	src/modules/research/brief-blocks.test.ts:57:    profit_margin: 0.25,
+margin	false positive (financial ratio / CSS / prose)	src/modules/research/brief-blocks.tsx:329:    push("Net margin", formatFractionPercent(num(fund.profit_margin)));
+margin	test (asserts absence / fixture)	sidecar/tests/test_run_manager.py:735:            note = {"scope": "NVDA", "text": "Watch the margin"}
+margin	test (asserts absence / fixture)	sidecar/tests/test_run_manager.py:764:            "input": {"scope": "NVDA", "text": "Watch the margin"},
+margin	test (asserts absence / fixture)	sidecar/tests/test_run_manager.py:800:        note = {"scope": "NVDA", "text": "Watch the margin"}
+margin	test (asserts absence / fixture)	sidecar/tests/test_run_manager.py:843:                else {"scope": "NVDA", "text": "Watch the margin"}
+margin	test (asserts absence / fixture)	sidecar/tests/test_screener_india.py:105:    loop runs in ~tens of ms; 1 s is a wide CI margin that still fails the
+margin	test (asserts absence / fixture)	sidecar/tests/test_system_diagnostics.py:20:    '1727200001.000 [sidecar] INFO agent: prompt "compare CANARYSYM margins against its three '
+margin	test (asserts absence / fixture)	sidecar/tests/test_search_extract.py:24:      <p>Gross margin expanded to 76%, driven by the Blackwell ramp.</p>
+margin	test (asserts absence / fixture)	sidecar/tests/test_search_extract.py:117:    assert "Gross margin expanded to 76%" in out["content"]
+margin	test (asserts absence / fixture)	sidecar/tests/test_search_extract.py:350:        "EBITDA margin 21.5%, dividend Rs 7 per share for the quarter."
+margin	test (asserts absence / fixture)	sidecar/tests/test_hardware_fit.py:19:    VERDICT_MARGINAL,
+margin	test (asserts absence / fixture)	sidecar/tests/test_hardware_fit.py:91:    assert v.verdict in (VERDICT_GREEN, VERDICT_MARGINAL)
+margin	test (asserts absence / fixture)	sidecar/tests/test_hardware_fit.py:109:    assert v.verdict in (VERDICT_GREEN, VERDICT_MARGINAL)
+margin	test (asserts absence / fixture)	sidecar/tests/test_provider_registry.py:135:        lambda symbol: _fundamentals("yfinance", roe=0.18, profit_margin=0.25),
+margin	test (asserts absence / fixture)	sidecar/tests/test_provider_registry.py:141:    assert result.profit_margin == 0.25
+margin	false positive (financial ratio / CSS / prose)	src/lib/format.ts:153: *  (yields, margins, holdings) where a "+" would read as a change. Non-finite
+margin	false positive (financial ratio / CSS / prose)	src/lib/screener-expr.ts:54:  "gross_margin",
+margin	false positive (financial ratio / CSS / prose)	src/lib/screener-expr.ts:55:  "operating_margin",
+margin	false positive (financial ratio / CSS / prose)	src/lib/screener-expr.ts:56:  "profit_margin",
+margin	false positive (financial ratio / CSS / prose)	src/lib/screener-expr.ts:459:  gross_margin: "Gross margin (frac)",
+margin	false positive (financial ratio / CSS / prose)	src/lib/screener-expr.ts:460:  operating_margin: "Operating margin (frac)",
+margin	false positive (financial ratio / CSS / prose)	src/lib/screener-expr.ts:461:  profit_margin: "Net margin (frac)",
+margin	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:47:    r"/(brokers?|orders?|margins|safety|kill-switch|audit-log|disclaimer-[a-z-]+|static-ip[a-z-]*)(/|$)"
+margin	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:51:    r"(^|_)(orders?|brokers?|margins?|trades?|trading|paper|kill_?switch|audit)(_|$)"
+margin	test (asserts absence / fixture)	sidecar/tests/test_no_trading_surface.py:126:    "margins_info",
+margin	test (asserts absence / fixture)	src/lib/workspace.test.ts:1038:            notes: { general: "thesis notes", bySymbol: { INFY: "margin watch" } },
+margin	test (asserts absence / fixture)	src/lib/workspace.test.ts:1055:    expect(useNotesStore.getState().bySymbol.INFY).toBe("margin watch");
+margin	test (asserts absence / fixture)	src/lib/workspace.test.ts:1156:              notes: { general: "thesis notes", bySymbol: { INFY: "margin watch" } },
+margin	test (asserts absence / fixture)	src/lib/workspace.test.ts:1180:      expect(useNotesStore.getState().bySymbol.INFY).toBe("margin watch");
+margin	test (asserts absence / fixture)	src/lib/workspace.test.ts:1432:            transcript: [{ role: "user", content: "what is TCS margin", createdAt: 1 }],
+margin	test (asserts absence / fixture)	src/lib/workspace.test.ts:1545:        () => useNotesStore.getState().setSymbolNote("NVDA", "watch margins"),
+margin	test (asserts absence / fixture)	src/lib/brief-ingest.test.ts:267:    const md = "Revenue grew 23% [2]. Margin contracted [47]. Both held [1] [9].";
+margin	test (asserts absence / fixture)	src/lib/brief-ingest.test.ts:269:    expect(out).toBe("Revenue grew 23% [2]. Margin contracted [?]. Both held [1] [?].");
+margin	test (asserts absence / fixture)	src/lib/brief-ingest.test.ts:301:    expect(bodyCitesWeb("Revenue grew 23.5% on margins of 12.1%.")).toBe(false);
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_disclosures.py:101:    assert not disclosures.is_earnings_date_question("How did margins trend this quarter?")
+margin	test (asserts absence / fixture)	sidecar/tests/test_system_router.py:47:        assert c["verdict"] in ("green", "marginal", "red")
+margin	test (asserts absence / fixture)	sidecar/tests/test_system_router.py:92:    assert models[0]["verdict"] in ("green", "marginal", "red")
+margin	test (asserts absence / fixture)	sidecar/tests/test_system_router.py:129:        assert c["verdict"] in ("green", "marginal", "red")
+margin	test (asserts absence / fixture)	sidecar/tests/test_system_router.py:130:    # recommended is a green/marginal candidate or null (device can't host any).
+margin	test (asserts absence / fixture)	sidecar/tests/test_system_router.py:132:    assert rec is None or (rec["verdict"] in ("green", "marginal") and rec["name"] in names)
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_fast.py:925:    assert elapsed < 0.5 + 0.4 - 0.1  # max(fan-out, web) + margin, never their sum
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_verify.py:207:        "UNVERIFIED - no source confirms the 23% operating margin.",
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_verify.py:220:        "Verdict: UNVERIFIED - no source confirms the 23% operating margin.",
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_verify.py:224:        "The claim is UNVERIFIED; nothing I found confirms the 23% margin.",
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_verify.py:236:    reply = "Unverified: the sources agree on revenue but not the 23% margin"
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_verify.py:238:    assert _reflect_says_complete("Complete: all four sourced, margins not covered in depth")
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_verify.py:245:    assert _reflect_says_complete("[GAPS] revenue covered but margins are not") is False
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/lib/hardware-fit.ts:11:export type FitVerdict = "green" | "marginal" | "red";
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/lib/hardware-fit.ts:58:  /** First green (best tool-caller), else first marginal, else null (use cloud). */
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/lib/hardware-fit.ts:168:    case "marginal":
+margin	test (asserts absence / fixture)	src/lib/delegate-runs.test.ts:332:        { tool_call_id: "c-note", name: "write_note", input: { scope: "NVDA", text: "margin" } },
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/app/globals.css:220:    margin-left: 2px;
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/app/globals.css:246:    margin: 16px 0 8px;
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/app/globals.css:252:    margin: 16px 0 8px;
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/app/globals.css:258:    margin: 12px 0 4px;
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/app/globals.css:261:    margin: 0 0 8px;
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/app/globals.css:265:    margin: 0 0 8px;
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/app/globals.css:275:    margin: 2px 0;
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/app/globals.css:290:    margin: 0 0 8px;
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/app/globals.css:306:    margin: 0 0 8px;
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	src/app/globals.css:321:    margin: 16px 0;
+margin	test (asserts absence / fixture)	sidecar/tests/test_research_target.py:100:        "Saksoft Limited — focus: Analyze revenue growth trajectory, margin "
+margin	test (asserts absence / fixture)	sidecar/tests/test_agent_runtime.py:2433:                "fundamentals": {"roe": 0.5189, "profit_margin": 0.1912},
+margin	test (asserts absence / fixture)	sidecar/tests/test_agent_runtime.py:2439:    assert row == {"roe": "51.89%", "profit_margin": "19.12%"}
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/routers/system.py:126:    MARGINAL, else ``null`` (the device can't comfortably host any small model, so
+margin	false positive (hand-reviewed: CSS margin, hardware "marginal" verdict, profit-margin math, OpenRouter "broker for every model")	sidecar/routers/system.py:133:        (v for v in scored if v.verdict == "marginal"), None

@@ -1,0 +1,8 @@
+cmd: GET /history/AMAL.BO?range=1y, /history/AMAL.NS?range=1y, /quotes/RELIANCE.BO on own sidecar (:52358)
+provider: bse
+bar count: 255
+first bar: {'timestamp': '2025-09-12T00:00:00Z', 'open': 896.0, 'high': 899.0, 'low': 875.0, 'close': 884.3, 'volume': 9226.0}
+provider: nse_direct
+bar count: 29
+=== class pin: RELIANCE.BO ===
+provider: bse

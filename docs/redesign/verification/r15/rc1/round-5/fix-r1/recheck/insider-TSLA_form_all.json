@@ -1,0 +1,1 @@
+{"detail":[{"type":"literal_error","loc":["query","form"],"msg":"Input should be '3', '4' or '5'","input":"all","ctx":{"expected":"'3', '4' or '5'"}}]}

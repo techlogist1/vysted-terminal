@@ -1,0 +1,83 @@
+{"kind": "tool_use", "tool_call_id": "call_695977905f194f69a4c798358bfce97f", "name": "resolve_symbol", "input": {"query": "Amalgamated Financial"}}
+{"kind": "tool_result", "tool_call_id": "call_695977905f194f69a4c798358bfce97f", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_1e729f2a8eb84d17907082e4aff3f00d", "name": "price_data", "input": {"symbol": "AMAL"}}
+{"kind": "tool_result", "tool_call_id": "call_1e729f2a8eb84d17907082e4aff3f00d", "name": "price_data", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " Am"}
+{"kind": "delta", "text": "alg"}
+{"kind": "delta", "text": "am"}
+{"kind": "delta", "text": "ated"}
+{"kind": "delta", "text": " Financial"}
+{"kind": "delta", "text": " Corp"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "("}
+{"kind": "delta", "text": "AM"}
+{"kind": "delta", "text": "AL"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "674"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "4"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " stock"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " decreased"}
+{"kind": "delta", "text": " by"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " change"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " -"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "93"}
+{"kind": "delta", "text": "%."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " currently"}
+{"kind": "delta", "text": " closed"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " last"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " trading"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " September"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "25"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "202"}
+{"kind": "delta", "text": "6"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " explore"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " AM"}
+{"kind": "delta", "text": "AL"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 11423, "output_tokens": 76, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.017763}

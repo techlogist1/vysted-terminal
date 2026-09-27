@@ -1,0 +1,22 @@
+HEAD=633f844071d972b337f4c3526d86555c80df0568 sidecar :52313 booted 17:31:07 VYSTED_REGION=IN clean data dir
+== 17:42:08 POST /screener/run universe=sp500
+wall_s=0.8 duration_ms= 746.0870409850031 coverage= "screened 503 of 503 \u2014 0 unavailable"
+Traceback (most recent call last):
+  File "<stdin>", line 6, in <module>
+AttributeError: 'str' object has no attribute 'get'
+-- health 17:42:09
+{"open": false, "cooldown_remaining": 0.0, "consecutive_throttles": 0.0, "consecutive_opens": 0, "opens_total": 0, "throttles_total": 1.0}
+== 17:42:09 POST /screener/run universe=nifty50
+wall_s=0.0 duration_ms= 6.217750022187829 coverage= "screened 50 of 50 \u2014 0 unavailable"
+Traceback (most recent call last):
+  File "<stdin>", line 6, in <module>
+AttributeError: 'str' object has no attribute 'get'
+-- health 17:42:09
+{"open": false, "cooldown_remaining": 0.0, "consecutive_throttles": 0.0, "consecutive_opens": 0, "opens_total": 0, "throttles_total": 1.0}
+DONE
+## sp500: rows=200 coverage='screened 503 of 503 — 0 unavailable' keys=['basis_counts', 'coverage', 'duration_ms', 'evaluated_count', 'freshness', 'matched_count', 'partial', 'result_count', 'rows', 'skip_details', 'skipped_count', 'throttled', 'universe']
+   sample [('NVDA', 225.07), ('AAPL', 341.07), ('GOOGL', 343.92), ('GOOG', 341.08)]
+## nifty50: rows=50 coverage='screened 50 of 50 — 0 unavailable' keys=['basis_counts', 'coverage', 'duration_ms', 'evaluated_count', 'freshness', 'matched_count', 'partial', 'result_count', 'rows', 'skip_details', 'skipped_count', 'throttled', 'universe']
+   sample [('RELIANCE.NS', 1226.0), ('HDFCBANK.NS', 735.6), ('BHARTIARTL.NS', 1785.4), ('ICICIBANK.NS', 1326.8)]
+## sp500: evaluated_count=503 skipped_count=0 throttled=False partial=False skip_details=[]
+## nifty50: evaluated_count=50 skipped_count=0 throttled=False partial=False skip_details=[]

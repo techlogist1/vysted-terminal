@@ -1,0 +1,27 @@
+# rc1-vshard-0 working log (gate round 5)
+
+- 2026-09-27 16:35:03 IST candidate worktree HEAD = 633f844071d972b337f4c3526d86555c80df0568 (checked).
+- Own sidecar: port 52600, data dir scratchpad/rc1-round-5-data-rc1-vshard-0 (copy of rc1-round-5-seed-data), sleep pid 87920, python pid 87921, log scratchpad/rc1-round-5-vshard-0-sidecar.log.
+- DATA-033: gate rejects NaN/inf quote+series; NaN lane falls through to next (in-process _resolve_sync). HOLDS.
+- DATA-070: fetch_news with undated + malformed-date RSS items -> published_at None, sorted last. HOLDS.
+- DATA-004: live /fundamentals DHANBANK/JONJUA/NAPEROL flagged vs exchange filing; fresh ICICIBANK/TCS flag correctly. HOLDS (first attempts hit Yahoo 429, retried).
+- CODE-DATA-001: literal repro holds (resolve FOCUS no cross-stamped ISIN; shareholding split_source None). FRESH: /disclosures/announcements?symbol=FOCUS merges 16 BSE items from scrip 543312 (Focus Business Solution) via bse_scrip_code(bare) -> NOT CERTIFIED.
+- CODE-DATA-005: firing predicates shared (witness.py, identity assignment). _row_value twin (growth_check vs earnings_quality 'Mirrors') remains -> judged below.
+- DATA-001: DAL/CHTR -> .BO yfinance; fresh HAL/IEX -> .NS INR. SUMAX name = SUMAX ENGINEERING. HOLDS.
+- RESEARCH-034: repro False; fresh 'Complete coverage is not yet achieved' -> True (leading token) -> adjacent low.
+- RESEARCH-037: unranked list names the right [n]. HOLDS.
+- RESEARCH-029: Kaynes shape stripped; fresh '## Citations' / 'Sources cited' / 'Source List' bibliographies survive ensure_citation_integrity; min_web_domains brief.note not implemented -> NOT CERTIFIED.
+- Frontend probes run from a scratch COPY of the candidate src (scratchpad/r5vs0/fe, node_modules symlinked, own cacheDir) so the candidate worktree stays untouched.
+- LIFECYCLE-002 fresh (fromJSON throws on a registered layout), LIFECYCLE-003 fresh (pre-restore change + 5-change burst -> 0 POSTs during restore, 1 coalesced POST with researchSymbol+archive), FRONTEND-018 fresh (screen survives relaunch and a named load): 3/3 pass. HOLD.
+- DATA-100: panel defaults to region currency HOLDS; fresh region switch IN while open keeps "$998.10"/USD (useState initializer, BondPricerPanel.tsx:127) -> adjacent low.
+- CODE-PLATFORM-053: fresh JPY+EUR -> concentration/weights null. HOLDS.
+- AGENT-022: null/omitted cost_basis -> "missing cost_basis — ask the user"; "about 1500" -> type error; card shows no price. HOLDS.
+- AGENT-024: stringified criteria parse (3 items), screener_run string parses. HOLDS. Fresh: write_screener_filters group-only (documented OR form) rejected "missing criteria" (schema required ['criteria']) -> adjacent medium new_defect.
+- AGENT-047: truncated ollama/groq fragments + array -> sentinel kept by runtime. HOLDS.
+- CODE-FRONTEND-008 / CODE-FRONTEND-014 / UI-001: whitelist + hint single-sourced; 'GLOBAL '/'General' -> general; notes replace/clear/unmount-flush pass. HOLD.
+- CODE-AGENT-003: /llm/keys/validate fake keys openrouter/gemini/xai/groq/openai -> ok:false invalid; Gemini 400 humanizes auth. HOLDS.
+- UI-008: OnboardingFlow validates before setSecret; OpenRouter fake key invalid. HOLDS.
+- 2026-09-27 16:56:17 IST AGENT-018: in-process OllamaProvider.stream_chat with mocked stream -> repro JSON, split-chunk-after-prose, fenced stringified args, call syntax all -> LLMToolUseEvent leaked_<uuid>; non-offered name stays text. HOLDS. No live Ollama run (no lock taken).
+- DATA-007: AAPL 10-Q 0000320193-23-000077 -> 10-Q 2023-08-04 Apple Inc., CIK edgar_url; fresh MSFT accession under identifier=AAPL -> 404 not_found; MSFT own -> 10-K 2023-07-27. HOLDS.
+- CODE-DATA-005 final: not_certified (strict) — earnings_quality._row_value still a byte-level twin of growth_check._row_value (title names the _row_value twins; evidence cites earnings_quality.py:134).
+- 2026-09-27 16:56:17 IST sidecar stopped (kill sleep pid 87920; :52600 down). Evidence copied to verifier/shard-0/.

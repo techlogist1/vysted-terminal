@@ -1,0 +1,12 @@
+Candidate 9bc600ece2ce6343a6aa48f130d7620b1466bb98. Source re-check.
+sidecar/services/llm/openai.py:
+  139-142: "(R15-AGENT-048): five bad calls used to cost five serial, untimed completions whose
+   usage was never counted. Calls past the cap get the error turn at once."
+  142: _MAX_REPAIRS_PER_ROUND = 2
+  143: _REPAIR_TIMEOUT_S = 30.0
+  402-449 (_resolve_tool_events): at most _MAX_REPAIRS_PER_ROUND repairs run per round, each is
+  timed (_REPAIR_TIMEOUT_S) and metered into the round's usage ledger (`repairs` list); calls past
+  the cap get INVALID_ARGS_SENTINEL with no call.
+
+VERDICT: holds. Matches batch-5's certified live capture exactly (2 of 5 repaired, timed+metered;
+3 sentineled with no call).

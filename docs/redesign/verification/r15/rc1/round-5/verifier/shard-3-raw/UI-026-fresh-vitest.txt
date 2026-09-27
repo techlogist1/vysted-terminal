@@ -1,0 +1,95 @@
+# UI-026 fresh-case scratch vitest; src copied from worktree HEAD 633f844071d972b337f4c3526d86555c80df0568; cmd: vitest run --reporter=verbose src/modules/watchlist/vs3-fresh.test.tsx
+ RUN  v4.1.6 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/3e7ae14d-d48a-4882-8a75-f7608754c23f/scratchpad/vs3-vitest
+ ✓ src/modules/watchlist/vs3-fresh.test.tsx > vs3 fresh UI-026 > A: a symbol added during an in-flight poll survives that poll landing without it 91ms
+stderr | src/modules/watchlist/vs3-fresh.test.tsx > vs3 fresh UI-026 > B: 'INF' candidates still showing when 'INFY' + Enter adds INFY, not INF's top pick
+An update to WatchlistPanel inside a test was not wrapped in act(...).
+When testing, code that causes React state updates should be wrapped into act(...):
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to WatchlistPanel inside a test was not wrapped in act(...).
+When testing, code that causes React state updates should be wrapped into act(...):
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to WatchlistPanel inside a test was not wrapped in act(...).
+When testing, code that causes React state updates should be wrapped into act(...):
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+ ✓ src/modules/watchlist/vs3-fresh.test.tsx > vs3 fresh UI-026 > B: 'INF' candidates still showing when 'INFY' + Enter adds INFY, not INF's top pick 187ms
+ ✓ src/modules/watchlist/vs3-fresh.test.tsx > vs3 fresh UI-026 > C: backoff doubles on repeated failures and resets after a success 20ms
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  16:48:35
+   Duration  1.86s (transform 332ms, setup 66ms, import 778ms, tests 299ms, environment 592ms)
+
+## test source (appended part)
+describe("vs3 fresh UI-026", () => {
+  it("A: a symbol added during an in-flight poll survives that poll landing without it", async () => {
+    vi.useFakeTimers();
+    mockFetch.mockResolvedValue(rowsFor(DEFAULT_SYMBOLS, "live", "REGULAR"));
+    render(<WatchlistPanel />);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    let resolvePoll: (rows: WatchlistRow[]) => void = () => {};
+    mockFetch.mockReturnValueOnce(new Promise((r) => (resolvePoll = r)));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+    });
+    act(() => useSymbolsStore.getState().addSymbol("AMZN", "equity"));
+    await act(async () => resolvePoll(rowsFor(DEFAULT_SYMBOLS, "live", "REGULAR")));
+    expect(screen.getByText("AMZN")).toBeInTheDocument();
+  });
+
+  it("B: 'INF' candidates still showing when 'INFY' + Enter adds INFY, not INF's top pick", async () => {
+    autocompleteMock.mockImplementation(async (_p: string, params: { q: string }) =>
+      params.q === "INF"
+        ? {
+            query: "INF",
+            region: "IN",
+            candidates: [
+              { symbol: "INFIBEAM", name: "Infibeam Avenues", exchange: "NSE", region: "IN", asset_class: "equity", yahoo_symbol: "INFIBEAM.NS", confidence: 0.8 },
+            ],
+          }
+        : new Promise(() => {}),
+    );
+    render(<WatchlistPanel />);
+    const input = screen.getByLabelText("Add symbol");
+    fireEvent.change(input, { target: { value: "INF" } });
+    expect(await screen.findByRole("option", { name: /Infibeam/ })).toBeInTheDocument();
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    fireEvent.change(input, { target: { value: "INFY" } });
+    fireEvent.submit(input.closest("form")!);
+    const symbols = useSymbolsStore.getState().entries.map((e) => e.symbol);
+    expect(symbols).toContain("INFY");
+    expect(symbols).not.toContain("INFIBEAM");
+  });
+
+  it("C: backoff doubles on repeated failures and resets after a success", async () => {
+    vi.useFakeTimers();
+    mockFetch.mockReset();
+    mockFetch
+      .mockRejectedValueOnce(new SidecarError(502, "d1"))
+      .mockRejectedValueOnce(new SidecarError(502, "d2"))
+      .mockResolvedValue(rowsFor(DEFAULT_SYMBOLS, "live", "REGULAR"));
+    render(<WatchlistPanel />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(0); });
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    await act(async () => { await vi.advanceTimersByTimeAsync(10_000); });
+    expect(mockFetch).toHaveBeenCalledTimes(2); // 10 s after 1 failure
+    await act(async () => { await vi.advanceTimersByTimeAsync(19_000); });
+    expect(mockFetch).toHaveBeenCalledTimes(2); // 20 s after 2 failures
+    await act(async () => { await vi.advanceTimersByTimeAsync(1_000); });
+    expect(mockFetch).toHaveBeenCalledTimes(3); // success
+    await act(async () => { await vi.advanceTimersByTimeAsync(5_000); });
+    expect(mockFetch).toHaveBeenCalledTimes(4); // back to 5 s
+  });
+});
