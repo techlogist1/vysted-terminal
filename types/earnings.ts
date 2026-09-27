@@ -40,8 +40,10 @@ export interface EarningsEvent {
   eps_estimate_stddev: number | null;
   /** Number of contributing analysts; null when the provider gives no count. */
   estimate_analyst_count: number | null;
-  /** Currency for the estimates (e.g. ``"USD"``). */
-  currency: string;
+  /** The EPS estimate's own currency — null when the filer's true EPS
+   * currency can't be determined (R15-DATA-113); see
+   * {@link EarningsSurprise.currency}. */
+  currency: string | null;
   provider: string;
 }
 
@@ -76,7 +78,12 @@ export interface EarningsSurprise {
   revenue_actual: number | null;
   revenue_estimate_mean: number | null;
   revenue_surprise_pct: number | null;
-  currency: string;
+  /** The EPS fields' own currency — a foreign reporter's per-share EPS is
+   * sometimes denominated in the reporting currency, not the trading
+   * currency the ADR/ADS trades in (PDD/NVO/JD). Scale-checked against
+   * `trailingEps` before trusting Yahoo's `financialCurrency`; null when the
+   * scale check can't determine it — never a guessed label (R15-DATA-113). */
+  currency: string | null;
   /** The revenue fields' own currency — a foreign reporter's statement-size
    * revenue is denominated in the reporting currency, not the trading
    * currency `currency` carries. Scale-checked against `totalRevenue` before
@@ -114,7 +121,8 @@ export interface EarningsEstimateDetail {
   revenue_estimate_high: number | null;
   revenue_estimate_low: number | null;
   revenue_analyst_count: number | null;
-  currency: string;
+  /** See {@link EarningsSurprise.currency} (R15-DATA-113). */
+  currency: string | null;
   /** See {@link EarningsSurprise.revenue_currency} (R15-DATA-113). */
   revenue_currency?: string | null;
   provider: string;
@@ -162,7 +170,8 @@ export interface EarningsHistoryEntry {
   eps_estimate_mean: number | null;
   revenue_actual: number | null;
   revenue_estimate_mean: number | null;
-  currency: string;
+  /** See {@link EarningsSurprise.currency} (R15-DATA-113). */
+  currency: string | null;
   /** See {@link EarningsSurprise.revenue_currency} (R15-DATA-113). */
   revenue_currency?: string | null;
 }

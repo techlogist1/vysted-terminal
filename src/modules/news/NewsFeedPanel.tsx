@@ -203,6 +203,15 @@ export function NewsFeedPanel() {
   const publishPanelContext = usePanelContextBus((s) => s.publish);
   const unregisterPanelContext = usePanelContextBus((s) => s.unregisterSource);
 
+  // R15-AGENT-053: give the agent an actual headline, not just an opaque
+  // sha1 id — the hovered/focused item's title, and the top-of-feed headline
+  // once the feed is ready.
+  const focusedHeadline =
+    state.status === "ready"
+      ? (state.items.find((item) => item.id === focusedArticleId)?.title ?? null)
+      : null;
+  const topHeadline = state.status === "ready" ? (state.items[0]?.title ?? null) : null;
+
   useEffect(() => {
     publishPanelContext({
       source: "news",
@@ -210,14 +219,17 @@ export function NewsFeedPanel() {
       payload: {
         watchedSymbols: newsSymbols,
         focusedArticleId,
+        focusedHeadline,
+        topHeadline,
       },
       emittedAt: Date.now(),
     });
     // Effect deps:
     //   - `newsSymbols` is memoised from `entries` so it's stable per list
     //   - `focusedArticleId` is a primitive
+    //   - `focusedHeadline`/`topHeadline` are derived primitives (or null)
     //   - `publishPanelContext` is a stable Zustand action ref
-  }, [publishPanelContext, newsSymbols, focusedArticleId]);
+  }, [publishPanelContext, newsSymbols, focusedArticleId, focusedHeadline, topHeadline]);
 
   useEffect(() => {
     return () => {

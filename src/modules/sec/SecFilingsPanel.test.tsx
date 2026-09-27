@@ -129,6 +129,26 @@ describe("SecFilingsPanel", () => {
     expect(screen.queryByTestId("sec-symbol-suggestions")).toBeNull();
   });
 
+  it("R15-UI-015: a failed company search shows the reason instead of nothing", async () => {
+    render(<SecFilingsPanel />);
+    await waitFor(() => screen.getByTestId("filings-list-table"));
+
+    (sidecarClient.sidecarGet as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      Object.assign(new Error("sec-edgar-mcp is not available"), { status: 501 }),
+    );
+
+    const input = screen.getByTestId("sec-symbol-input") as HTMLInputElement;
+    input.focus();
+    fireEvent.change(input, { target: { value: "Apple" } });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("sec-search-error")).toHaveTextContent(
+        "Company search unavailable: sec-edgar-mcp is not available",
+      );
+    });
+    expect(screen.queryByTestId("sec-symbol-suggestions")).toBeNull();
+  });
+
   it("switches to the insider tab", async () => {
     render(<SecFilingsPanel />);
     await waitFor(() => screen.getByTestId("filings-list-table"));

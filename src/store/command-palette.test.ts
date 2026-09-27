@@ -375,6 +375,6 @@ describe("dispatchLayoutMenuCommand", () => {
   });
 
   it("a known mode payload returns false when there is no live dockview api yet", () => {
-    expect(dispatchLayoutMenuCommand("research-cockpit")).toBe(false);
+    expect(dispatchLayoutMenuCommand("fundamental")).toBe(false);
   });
 });

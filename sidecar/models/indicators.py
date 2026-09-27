@@ -72,3 +72,8 @@ class IndicatorResponse(BaseModel):
     provider: str
     indicators: list[IndicatorSeries]
     volume_profile: VolumeProfile | None = None
+    #: The underlying OHLCV series' freshness label (``series.freshness``,
+    #: e.g. "eod"), mirrored so the indicator overlay can badge itself the
+    #: same way the chart does. ``None`` on the empty-series downgrade
+    #: (R15-DATA-063).
+    freshness: str | None = None

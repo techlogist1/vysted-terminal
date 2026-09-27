@@ -7,10 +7,10 @@ fraction of the universe silently drops and the cold run takes ~205 s.
 
 This module replaces that fan-out for the curated equity universes with Yahoo's
 ``/v7/finance/quote`` BATCH endpoint: up to 50 symbols per request, so the 506
-S&P 500 symbols collapse into ~11 calls. One shared :class:`httpx.AsyncClient`,
-an ``asyncio.Semaphore(8)`` cap, ``asyncio.gather(return_exceptions=True)`` so a
-single chunk failure never aborts the batch, a 15 s read timeout, and a
-realistic User-Agent.
+S&P 500 symbols collapse into ~11 calls. One shared Chrome-impersonated
+``curl_cffi`` session, an ``asyncio.Semaphore(8)`` cap,
+``asyncio.gather(return_exceptions=True)`` so a single chunk failure never
+aborts the batch, and a 15 s read timeout.
 
 Cookie + crumb
 ~~~~~~~~~~~~~~
@@ -35,9 +35,13 @@ ratios, or price-to-sales / EV-EBITDA — those still need the per-symbol
 ``.info`` enrichment, but ONLY when a screen's criteria actually reference such
 a field (see :func:`field_needs_enrichment`).
 
-Pure ``httpx`` — no new dependency (the ``--onefile`` binary must still
-build + boot; only the lead verifies that, so this stays on the existing
-``httpx`` already shipped).
+Transport (R15-LEAD-045): Yahoo fingerprint-blocks plain ``httpx`` — the crumb
+mint and the v7 call both 429 on every chunk while the same calls through
+``curl_cffi.requests.AsyncSession(impersonate="chrome")`` return 200. The one
+session owns the cookie jar, so the crumb stays paired with the cookie that
+minted it. ``curl_cffi`` is already pinned for the NSE lanes (no new
+dependency) and is imported at call time: a broken native wheel degrades the
+batch (every chunk itemized ``no_data``), never the module import.
 """
 
 from __future__ import annotations
@@ -45,6 +49,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
+from collections.abc import Callable
 from datetime import UTC, datetime
 from typing import Any
 
@@ -93,11 +98,9 @@ _RETRY_BACKOFF_CAP_SECONDS = 4.0
 #: ± fraction of jitter applied to each in-fetch retry sleep.
 _RETRY_JITTER_FRACTION = 0.2
 
-#: A real desktop UA — Yahoo serves an empty / non-ok payload to obvious bots.
-_USER_AGENT = (
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-)
+#: A request failure that is a timeout, matched by class name across curl_cffi
+#: (``Timeout``) and the httpx test seam (``TimeoutException``).
+_TIMEOUT_ERRORS = frozenset({"Timeout", "TimeoutException"})
 
 _QUOTE_URL = "https://query1.finance.yahoo.com/v7/finance/quote"
 _CRUMB_URL = "https://query2.finance.yahoo.com/v1/test/getcrumb"
@@ -110,33 +113,39 @@ _COOKIE_BOOTSTRAP_FALLBACK = "https://finance.yahoo.com"
 # ---------------------------------------------------------------------------
 
 
+def _impersonated_session() -> Any:
+    """The production HTTP session: curl_cffi with a Chrome TLS fingerprint.
+
+    Imported here, not at module load (the PyInstaller onefile rule): a broken
+    wheel raises out of the chunk, which :func:`fetch_quotes_batch` itemizes."""
+    from curl_cffi.requests import AsyncSession
+
+    return AsyncSession(
+        impersonate="chrome",
+        timeout=(_CONNECT_TIMEOUT_SECONDS, _READ_TIMEOUT_SECONDS),
+    )
+
+
 class _Session:
     """Process-lifetime cookie jar + crumb, guarded by an asyncio lock.
 
-    A single shared :class:`httpx.AsyncClient` owns the cookie jar so the crumb
-    stays paired with the cookie that minted it. ``crumb`` is ``None`` until the
+    A single shared HTTP session (built by ``factory`` — the Chrome-impersonated
+    curl_cffi session in production) owns the cookie jar so the crumb stays
+    paired with the cookie that minted it. ``crumb`` is ``None`` until the
     first successful bootstrap; :meth:`invalidate` drops it so a rejected request
     re-bootstraps on the next call. The lock serialises the bootstrap so a
     concurrent batch fans out a SINGLE crumb mint, not eight.
     """
 
-    def __init__(self, transport: httpx.BaseTransport | None = None) -> None:
-        self._client: httpx.AsyncClient | None = None
-        self._transport = transport
+    def __init__(self, factory: Callable[[], Any] = _impersonated_session) -> None:
+        self._client: Any = None
+        self._factory = factory
         self.crumb: str | None = None
         self._lock = asyncio.Lock()
 
-    async def client(self) -> httpx.AsyncClient:
+    async def client(self) -> Any:
         if self._client is None:
-            self._client = httpx.AsyncClient(
-                follow_redirects=True,
-                timeout=httpx.Timeout(
-                    _READ_TIMEOUT_SECONDS,
-                    connect=_CONNECT_TIMEOUT_SECONDS,
-                ),
-                headers={"User-Agent": _USER_AGENT, "Accept": "application/json"},
-                transport=self._transport,
-            )
+            self._client = self._factory()
         return self._client
 
     async def ensure_crumb(self) -> str | None:
@@ -160,7 +169,7 @@ class _Session:
                     await client.get(url)
                     if client.cookies:
                         break
-                except httpx.HTTPError as exc:
+                except Exception as exc:  # noqa: BLE001 — curl_cffi raises its own zoo
                     logger.debug("yahoo batch: cookie bootstrap %s failed: %s", url, exc)
             # 2) Mint the crumb against the now-seeded cookie jar.
             try:
@@ -171,7 +180,7 @@ class _Session:
                     # means the cookie didn't take — leave crumb None.
                     if crumb and "<" not in crumb and len(crumb) < 64:
                         self.crumb = crumb
-            except httpx.HTTPError as exc:
+            except Exception as exc:  # noqa: BLE001 — curl_cffi raises its own zoo
                 logger.debug("yahoo batch: crumb fetch failed: %s", exc)
             return self.crumb
 
@@ -181,8 +190,10 @@ class _Session:
 
     async def aclose(self) -> None:
         if self._client is not None:
+            # curl_cffi's AsyncSession closes with ``close()``; httpx's with ``aclose()``.
+            close = getattr(self._client, "aclose", None) or self._client.close
             try:
-                await self._client.aclose()
+                await close()
             except Exception as exc:  # noqa: BLE001 — shutdown best-effort
                 logger.debug("yahoo batch: client aclose raised: %s", exc)
             self._client = None
@@ -197,14 +208,19 @@ async def aclose() -> None:
     await _session.aclose()
 
 
-def reset_for_tests(transport: httpx.BaseTransport | None = None) -> None:
+def reset_for_tests(transport: httpx.AsyncBaseTransport | None = None) -> None:
     """Drop the cached session (crumb + client) so a test starts cold.
 
-    An optional ``transport`` (e.g. ``httpx.MockTransport``) is installed on the
-    fresh session so a test can mock the v7 endpoint deterministically without a
-    real network round-trip."""
+    An optional ``transport`` (e.g. ``httpx.MockTransport``) backs the fresh
+    session with an ``httpx.AsyncClient`` over it — the same ``get`` /
+    ``cookies`` / ``status_code`` surface the curl_cffi session has — so a test
+    can mock the v7 endpoint deterministically without a real network
+    round-trip. Without one the production (impersonated) factory is used."""
     global _session
-    _session = _Session(transport=transport)
+    if transport is None:
+        _session = _Session()
+    else:
+        _session = _Session(lambda: httpx.AsyncClient(transport=transport, follow_redirects=True))
 
 
 def _chunk(symbols: list[str], size: int = _CHUNK_SIZE) -> list[list[str]]:
@@ -258,6 +274,7 @@ def _retry_sleep_seconds(attempt: int, retry_after: float | None = None) -> floa
 async def _fetch_chunk(
     chunk: list[str],
     sem: asyncio.Semaphore,
+    throttle_weight: float,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
     """Fetch one ≤50-symbol chunk; return (results_by_symbol, failures_by_symbol).
 
@@ -289,14 +306,12 @@ async def _fetch_chunk(
                 params["crumb"] = crumb
             try:
                 resp = await client.get(_QUOTE_URL, params=params)
-            except httpx.TimeoutException:
+            except Exception as exc:  # noqa: BLE001 — curl_cffi raises its own zoo
+                timed_out = yfinance_provider._has_class_named(exc, _TIMEOUT_ERRORS)
+                if not timed_out:
+                    logger.debug("yahoo batch: chunk request failed: %s", exc)
                 for sym in chunk:
-                    failures[sym] = "timeout"
-                return results, failures
-            except httpx.HTTPError as exc:
-                logger.debug("yahoo batch: chunk request failed: %s", exc)
-                for sym in chunk:
-                    failures[sym] = "no_data"
+                    failures[sym] = "timeout" if timed_out else "no_data"
                 return results, failures
 
             if resp.status_code in (401, 403) and not attempted_refresh:
@@ -319,7 +334,7 @@ async def _fetch_chunk(
                     )
                     await asyncio.sleep(sleep_s)
                     continue
-                provider_health.record_rate_limited(provider_health.YAHOO)
+                provider_health.record_rate_limited(provider_health.YAHOO, weight=throttle_weight)
                 for sym in chunk:
                     failures[sym] = "rate_limited"
                 return results, failures
@@ -358,6 +373,8 @@ async def _fetch_chunk(
 
 async def fetch_quotes_batch(
     symbols: list[str],
+    *,
+    throttle_weight: float = 1.0,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
     """Batch-fetch raw v7 quote rows for ``symbols`` (chunked, concurrent).
 
@@ -365,14 +382,19 @@ async def fetch_quotes_batch(
     maps each unreturned input symbol to a skip-ledger reason. Never raises:
     every per-chunk error is captured as a failure reason so the screener can
     itemize it (SC-034 — zero silent drops). A total wipeout (every chunk fails)
-    leaves ``rows`` empty so the caller can degrade to the per-symbol path."""
+    leaves ``rows`` empty so the caller can degrade to the per-symbol path.
+
+    ``throttle_weight`` is what each chunk that ends rate-limited records on
+    the shared Yahoo circuit: 1.0 for a user-facing fetch; the background warm
+    loops pass less, so their 429s alone never open the circuit user screens
+    read (R15-LIFECYCLE-020)."""
     cleaned = [s.strip() for s in symbols if s and s.strip()]
     if not cleaned:
         return {}, {}
     chunks = _chunk(cleaned)
     sem = asyncio.Semaphore(_BATCH_CONCURRENCY)
     chunk_results = await asyncio.gather(
-        *(_fetch_chunk(chunk, sem) for chunk in chunks),
+        *(_fetch_chunk(chunk, sem, throttle_weight) for chunk in chunks),
         return_exceptions=True,
     )
     rows: dict[str, dict[str, Any]] = {}

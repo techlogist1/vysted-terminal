@@ -62,7 +62,9 @@ def _isolate(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Any:
 
 def test_nse_bulk_deals_parse_to_typed_rows() -> None:
     response = corporate_disclosures.get_deals("KOPRAN", "bulk")
-    assert response.sources == ["NSE bulk"]
+    # KOPRAN is dual-listed on BSE (524280, R15-DATA-024); the BSE bulk lane is
+    # attempted too, and this fixture's BSE stub carries no matching row for it.
+    assert response.sources == ["NSE bulk", "BSE bulk"]
     first = response.deals[0]
     assert (first.kind, first.date, first.party) == ("bulk", date(2026, 9, 17), "QE SECURITIES LLP")
     assert (first.side, first.quantity, first.price) == ("sell", 257185.0, 265.59)
@@ -89,12 +91,58 @@ def test_route_and_tool_serve_every_kind() -> None:
     app = FastAPI()
     app.include_router(disclosures.router)
     body = TestClient(app).get("/disclosures/deals", params={"symbol": "kopran"}).json()
-    assert body["sources"] == ["NSE bulk", "NSE block", "NSE sast"]
+    # KOPRAN is dual-listed on BSE (524280, R15-DATA-024); its bulk/block lanes
+    # are attempted too, and this fixture's BSE stub carries no matching row.
+    assert body["sources"] == ["NSE bulk", "NSE block", "NSE sast", "BSE bulk", "BSE block"]
     assert {d["kind"] for d in body["deals"]} == {"bulk", "sast"}  # KOPRAN has no block deal
 
     result = asyncio.run(disclosure_tools._exchange_deals({"symbol": "KOPRAN", "kind": "sast"}))
     assert result["ok"] is True and result["count"] == 4
     assert result["deals"][0]["percent_after"] == 2.07
+
+
+def test_dual_listed_bulk_deals_include_the_bse_lane(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-024: KOPRAN's own BSE dual code (524280) was never asked for
+    its bulk/block deals — only a BSE-only scrip's feed was served."""
+    assert symbol_resolver.dual_listed_bse_code("KOPRAN") == "524280"
+
+    def nse(path: str, params: dict[str, str], referer: str) -> object:
+        return {
+            "data": [
+                {
+                    "BD_DT_DATE": "17-SEP-2026",
+                    "BD_SYMBOL": "KOPRAN",
+                    "BD_CLIENT_NAME": "NSE PARTY",
+                    "BD_BUY_SELL": "BUY",
+                    "BD_QTY_TRD": 500000,
+                    "BD_TP_WATP": 100.0,
+                }
+            ]
+        }
+
+    def bse(url: str, params: dict[str, str]) -> object:
+        assert params["scripcode"] == "524280" and params["type"] == "1"
+        return {
+            "Table": [
+                {
+                    "DEAL_DATE": "23 Sep 2026",
+                    "CLIENT_NAME": "BSE PARTY",
+                    "TRANSACTION_TYPE": "B",
+                    "QUANTITY": 700000,
+                    "PRICE": 100.0,
+                }
+            ],
+            "Table1": [],
+        }
+
+    monkeypatch.setattr(nse_provider, "_get_json", nse)
+    monkeypatch.setattr(corporate_disclosures, "_bse_get_json", bse)
+
+    response = corporate_disclosures.get_deals("KOPRAN", "bulk")
+    assert {d.exchange for d in response.deals} == {"NSE", "BSE"}
+    assert "BSE bulk" in response.sources
+    by_exchange = {d.exchange: d.quantity for d in response.deals}
+    assert by_exchange == {"NSE": 500000.0, "BSE": 700000.0}
 
 
 def test_bse_only_scrip_goes_through_the_bse_feed() -> None:

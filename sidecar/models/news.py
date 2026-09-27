@@ -27,3 +27,8 @@ class NewsItem(BaseModel):
     sentiment: float | None = None
     sentiment_label: str | None = None
     provider: str
+    #: True when this item was tagged by per-symbol-feed provenance (the
+    #: symbol's own Yahoo feed), not by an alias match in the title/summary
+    #: text — R15-RESEARCH-001: DEEP/ULTRA trust an own-feed item without
+    #: running it through the news relevance gate.
+    via_symbol_feed: bool = False

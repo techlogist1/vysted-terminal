@@ -571,6 +571,14 @@ class OpenAIProvider(LLMProvider):
             schema.get("properties") or {}
         ):
             return None
+        # A placeholder echo keys the real properties but fills each with its own
+        # declared type name ({"symbol": "string"}); it validates, but is not args.
+        props = schema.get("properties") or {}
+        if any(
+            isinstance(value, str) and value == (props.get(key) or {}).get("type")
+            for key, value in parsed.items()
+        ):
+            return None
         if _validate_tool_args(tool_name, parsed) is not None:
             return None
         return parsed

@@ -977,6 +977,43 @@ def test_a_stalled_leading_leg_is_time_boxed_and_the_rest_publish(
     assert timed_out.latency_ms >= fast._WITNESS_LEG_TIMEOUT_S * 1000
 
 
+def test_a_stalled_web_round_is_time_boxed_and_structured_still_publishes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-RESEARCH-027: a 20 s NORMAL web round (a keyless backend rate-limited
+    into a long wait) no longer holds the FAST bundle past its own 8 s box —
+    fundamentals still publish, and the honest timeout note names the box.
+    Distinct shape from the structured-leg test above: the web round has no
+    ``structured`` slot of its own, so it needs its own bundle-shape
+    assertions rather than a shared parametrize row."""
+    from services.research import fast
+
+    _stub_offline_crosschecks(monkeypatch)
+    steps: list[Any] = []
+
+    t0 = time.perf_counter()
+    bundle = asyncio.run(
+        gather_fast(
+            "Apple",
+            region="US",
+            tool_call=_SlowLegToolCall("web_search"),
+            on_step=steps.append,
+        )
+    )
+    elapsed = time.perf_counter() - t0
+
+    assert elapsed < 10.0
+    web = bundle["web"]
+    assert web["available"] is False
+    assert web["reason"] == "timeout"
+    assert "8" in web["note"]
+    structured = bundle["structured"]
+    assert structured["fundamentals"]["ok"] is True
+    assert structured["fundamentals"]["data"]["pe_ratio"] == 30.0
+    (search_step,) = [s for s in steps if s.kind == "search" and s.status == "skipped"]
+    assert search_step.latency_ms >= fast._WEB_ROUND_TIMEOUT_S * 1000
+
+
 @pytest.mark.parametrize(("leg_timeout_s", "price_ok"), [(None, False), (1.0, True)])
 def test_snapshot_leg_box_comes_from_the_caller(
     monkeypatch: pytest.MonkeyPatch, leg_timeout_s: float | None, price_ok: bool

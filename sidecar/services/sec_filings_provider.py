@@ -358,10 +358,12 @@ def _sections_from_payload(payload: Any) -> list[FilingSection]:
 
     sec-edgar-mcp 1.0.8 emits ``sections`` as a dict of ``name -> text``
     (plus non-text flags such as ``has_financials``); a list of dicts
-    (id / title / text) is also accepted. A bare-text shape for filings the
-    parser cannot section (older 8-K filings, exhibits) is wrapped in one
-    synthetic section. An empty ``sections`` is a real empty (the upstream
-    sections only 10-K/10-Q); any other shape raises, uncached.
+    (id / title / text) is also accepted. A bare-text shape (the raw
+    ``get_filing_content`` fallback for a filing ``get_filing_sections``
+    could not section — every form but a 10-K, and often a 10-Q too,
+    R15-DATA-038) is wrapped in one synthetic "Filing Content" section. An
+    empty ``sections`` here is a real empty (the caller decides whether to
+    fall back); any other shape raises, uncached.
     """
     sections: list[FilingSection] = []
     rows: list[dict[str, Any]] = []
@@ -655,6 +657,23 @@ async def get_filing(
         {"identifier": identifier, "accession_number": accession, "form_type": match.form_type},
     )
     sections = _sections_from_payload(sections_payload)
+    if not sections:
+        # sec-edgar-mcp 1.0.8's ``get_filing_sections`` only extracts
+        # business/risk_factors/mda when the filing object exposes them
+        # (10-K, and rarely 10-Q); every other form (8-K, and most 10-Qs)
+        # comes back with an empty (or ``has_financials``-only) sections
+        # dict — a real filing with zero parsed sections, not a real empty
+        # (R15-DATA-038). Fall back to the raw filing text.
+        content_payload = await _call_tool(
+            "get_filing_content", {"identifier": identifier, "accession_number": accession}
+        )
+        content = content_payload.get("content") if isinstance(content_payload, dict) else None
+        if isinstance(content, str) and content.strip():
+            sections = _sections_from_payload(content)
+        if not sections:
+            raise ProviderError(
+                f"sec-edgar-mcp: {accession!r} has no sectioned or raw content to read"
+            )
 
     total_chars = sum(len(s.text) for s in sections)
     detail = FilingDetail(filing=match, sections=sections, total_chars=total_chars)

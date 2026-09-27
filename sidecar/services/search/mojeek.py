@@ -9,8 +9,11 @@ httpx lane (no impersonation needed).
 
 Parsing is bs4 with layered selectors (``ul.results-standard li`` first, then
 looser fallbacks) so markup drift degrades to fewer fields, never a crash.
-Zero parsed rows → empty successful response; transport failure / block →
-typed :class:`~services.search.base.SearchError` for the rotation layer.
+Zero parsed rows → empty successful response, UNLESS the page body is an
+anti-bot challenge/CAPTCHA wall (still HTTP 200) — that raises a typed
+:class:`~services.search.base.SearchError` (R15-RESEARCH-022) same as a
+transport failure or a 403/429 block, so the rotation layer never reads a
+challenge page as a healthy "found nothing".
 """
 
 from __future__ import annotations
@@ -26,6 +29,7 @@ from .base import (
     SearchResponse,
     SearchResult,
     normalize_results_to_citations,
+    raise_if_challenge_page,
     result_limit,
 )
 from .transport import TransportError, httpx_fetch
@@ -121,6 +125,8 @@ class MojeekSearchBackend(SearchBackend):
             raise SearchError(f"Mojeek search failed (HTTP {fetched.status_code})")
 
         results = _parse(fetched.text, limit=limit)
+        if not results:
+            raise_if_challenge_page(fetched.text, "Mojeek")
         return SearchResponse(
             results=results,
             citations=normalize_results_to_citations(results, limit=limit),

@@ -1,9 +1,11 @@
 """Tests for the Yahoo v7 batch quote provider — the screener fast path (FR-126).
 
-No test makes a live Yahoo call: ``httpx`` is mocked at the transport level
-(:class:`httpx.MockTransport`) installed on a cold session via
-:func:`yahoo_batch_provider.reset_for_tests`, so the v7 endpoint, the cookie
-bootstrap, and the crumb mint are all deterministic.
+No test makes a live Yahoo call. Production rides a Chrome-impersonated
+curl_cffi session (R15-LEAD-045); tests inject the session instead — an
+``httpx.AsyncClient`` over a :class:`httpx.MockTransport` via
+:func:`yahoo_batch_provider.reset_for_tests`, or a duck-typed fake session
+through ``_Session(factory)`` — so the v7 endpoint, the cookie bootstrap, and
+the crumb mint are all deterministic.
 
 Surfaces under test:
   - the v7 row → ``Quote`` / ``Fundamentals`` field mapping (incl. the dividend
@@ -18,13 +20,18 @@ Surfaces under test:
 from __future__ import annotations
 
 import asyncio
+import time
+from pathlib import Path
 
 import httpx
 import pytest
 
 from models.fundamentals import Fundamentals
 from models.market import Quote
+from models.screener import ScreenerRequest, ScreenerUniverse
+from services import data_cache, fundamentals_store, provider_health, screener
 from services import yahoo_batch_provider as yb
+from services.errors import ProviderError
 
 
 def _v7_row(symbol: str, **overrides: object) -> dict[str, object]:
@@ -581,3 +588,137 @@ async def test_concurrent_chunks_respect_semaphore() -> None:
     finally:
         await yb.aclose()
         yb.reset_for_tests()
+
+
+# ---------------------------------------------------------------------------
+# R15-LEAD-045 — the impersonated transport + the injectable session seam
+# ---------------------------------------------------------------------------
+
+
+class _FakeResponse:
+    def __init__(self, status_code: int, text: str = "", payload: object = None) -> None:
+        self.status_code = status_code
+        self.text = text
+        self.headers: dict[str, str] = {}
+        self._payload = payload
+
+    def json(self) -> object:
+        return self._payload
+
+
+class _FakeSession:
+    """Duck-types curl_cffi's ``AsyncSession``: async ``get`` + a cookie jar."""
+
+    def __init__(self, crumb_status: int, quote_status: int, rows: dict[str, dict]) -> None:
+        self.cookies: dict[str, str] = {}
+        self.crumb_status = crumb_status
+        self.quote_status = quote_status
+        self.rows = rows
+        self.crumb_mints = 0
+        self.quote_crumbs: list[str | None] = []
+
+    async def get(self, url: str, params: dict[str, str] | None = None) -> _FakeResponse:
+        if "getcrumb" in url:
+            self.crumb_mints += 1
+            return _FakeResponse(self.crumb_status, text="crumb-aa")
+        if url.endswith("/v7/finance/quote"):
+            self.quote_crumbs.append((params or {}).get("crumb"))
+            if self.quote_status != 200:
+                return _FakeResponse(self.quote_status, text="Too Many Requests")
+            requested = (params or {}).get("symbols", "").split(",")
+            result = [self.rows[s] for s in requested if s in self.rows]
+            return _FakeResponse(200, payload={"quoteResponse": {"result": result}})
+        # fc.yahoo.com answers 404 but still sets the cookie (the live shape).
+        self.cookies["A3"] = "cookie"
+        return _FakeResponse(404)
+
+    async def close(self) -> None:
+        return None
+
+
+def test_production_session_is_a_chrome_impersonated_curl_cffi_session() -> None:
+    """Plain httpx is TLS-fingerprint-blocked by Yahoo (crumb + v7 both 429);
+    the batch path must build curl_cffi's AsyncSession impersonating Chrome."""
+    from curl_cffi.requests import AsyncSession
+
+    session = yb._impersonated_session()
+    try:
+        assert isinstance(session, AsyncSession)
+        assert session.impersonate == "chrome"
+    finally:
+        asyncio.run(session.close())
+
+
+@pytest.mark.asyncio
+async def test_one_session_mints_the_crumb_once_for_two_chunks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    symbols = [f"S{i:03d}" for i in range(60)]  # two chunks
+    fake = _FakeSession(200, 200, {s: _v7_row(s) for s in symbols})
+    factory_calls = 0
+
+    def factory() -> _FakeSession:
+        nonlocal factory_calls
+        factory_calls += 1
+        return fake
+
+    monkeypatch.setattr(yb, "_session", yb._Session(factory))
+    rows, failures = await yb.fetch_quotes_batch(symbols)
+
+    assert set(rows) == set(symbols)
+    assert failures == {}
+    assert fake.crumb_mints == 1
+    # Both chunks rode the one session whose cookie minted the crumb.
+    assert factory_calls == 1
+    assert fake.quote_crumbs == ["crumb-aa", "crumb-aa"]
+
+
+@pytest.mark.asyncio
+async def test_crumb_and_v7_429_are_rate_limited_and_the_screen_is_labelled_throttled(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    async def _no_sleep(_secs: float) -> None:
+        return None
+
+    monkeypatch.setattr(yb.asyncio, "sleep", _no_sleep)
+    fake = _FakeSession(429, 429, {})
+    monkeypatch.setattr(yb, "_session", yb._Session(lambda: fake))
+
+    rows, failures = await yb.fetch_quotes_batch(["AAA"])
+    assert rows == {}
+    assert failures == {"AAA": "rate_limited"}
+
+    # The screen over the same throttled path serves AAA's older store row with
+    # a stale label and the run as throttled — never as a fresh payload.
+    data_cache.reset_for_tests(tmp_path / "cache.db")
+    fundamentals_store.reset_for_tests(tmp_path / "fundamentals.db")
+    provider_health.reset_for_tests()
+    try:
+        real_time = time.time
+        with monkeypatch.context() as m:
+            m.setattr(time, "time", lambda: real_time() - fundamentals_store.TTL_V7_SECONDS - 60)
+            row = _v7_row("AAA")
+            await fundamentals_store.upsert_v7(
+                "AAA", yb.fundamentals_from_v7(row), yb.quote_from_v7(row)
+            )
+
+        async def _universe(_universe_id: str, _custom: object = None) -> ScreenerUniverse:
+            return ScreenerUniverse(
+                id="sp500", label="S&P 500", symbols=["AAA"], asset_class="equity"
+            )
+
+        async def _throttled(symbol: str, region: str | None = None) -> Fundamentals:
+            raise ProviderError(f"throttled {symbol}", kind="rate_limited")
+
+        monkeypatch.setattr(screener, "resolve_universe", _universe)
+        monkeypatch.setattr("services.provider_registry.get_fundamentals", _throttled)
+        result = await screener.run_screener(ScreenerRequest(universe="sp500", criteria=[]))
+
+        assert result.throttled is True
+        assert [r.symbol for r in result.rows] == ["AAA"]
+        assert result.rows[0].data_basis != "live"
+        assert result.rows[0].data_as_of is not None
+    finally:
+        data_cache.reset_for_tests(None)
+        fundamentals_store.reset_for_tests(None)
+        provider_health.reset_for_tests()

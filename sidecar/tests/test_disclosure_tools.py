@@ -13,10 +13,17 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+import config
 from config import DATA_DIR_ENV
 from models.announcements import AnnouncementWindow, ShareholdingPattern, ShareholdingResponse
 from routers import disclosures
-from services import corporate_disclosures, data_cache, nse_provider, symbol_resolver
+from services import (
+    corporate_disclosures,
+    data_cache,
+    nse_provider,
+    sec_filings_provider,
+    symbol_resolver,
+)
 from services.agent_tools import disclosure_tools
 from services.agent_tools.catalog import CAPABILITY_CATALOG
 from services.search import extract
@@ -172,3 +179,102 @@ def test_earnings_call_transcript_for_a_us_symbol_is_honestly_unavailable() -> N
 
     assert result["ok"] is True and result["available"] is False
     assert "not an NSE/BSE instrument" in result["reason"]
+
+
+# ---------------------------------------------------------------------------
+# R15-DATA-003: a US session must never resolve AMAL (both an NSE/BSE ticker
+# and a US ADR) to Amal Ltd's Indian disclosures.
+# ---------------------------------------------------------------------------
+
+
+def test_a_us_session_never_reaches_an_india_lane_for_amal(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sec_filings_provider, "is_available", lambda: False)
+
+    def boom(*args: object, **kwargs: object) -> None:
+        raise AssertionError("an India exchange lane must not be reached under a US session")
+
+    monkeypatch.setattr(nse_provider, "get_corporate_announcements", boom)
+    monkeypatch.setattr(nse_provider, "get_shareholding_master", boom)
+    monkeypatch.setattr(corporate_disclosures, "_bse_get_json", boom)
+
+    token = config.set_request_region("US")
+    try:
+        ann = asyncio.run(disclosure_tools._corporate_announcements({"symbol": "AMAL"}))
+        sh = asyncio.run(disclosure_tools._shareholding_pattern({"symbol": "AMAL"}))
+    finally:
+        config.reset_request_region(token)
+
+    assert (ann["ok"], ann["coverage"], ann["count"]) == (True, "not_applicable", 0)
+    assert (sh["ok"], sh["coverage"], sh["count"]) == (True, "not_applicable", 0)
+
+
+def test_an_in_session_still_serves_amal_ltds_indian_disclosures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sec_filings_provider, "is_available", lambda: False)
+    monkeypatch.setattr(symbol_resolver, "is_nse_symbol", lambda s: True)
+    monkeypatch.setattr(symbol_resolver, "is_bse_symbol", lambda s: False)
+    monkeypatch.setattr(symbol_resolver, "dual_listed_bse_code", lambda s: None)
+    monkeypatch.setattr(
+        corporate_disclosures,
+        "_fetch_nse_announcements",
+        lambda bare, limit: (
+            [],
+            AnnouncementWindow(window_start=None, window_end=date(2026, 9, 23)),
+        ),
+    )
+    monkeypatch.setattr(
+        nse_provider,
+        "get_shareholding_master",
+        lambda bare: [
+            {"date": "31-Mar-2026", "symbol": bare, "pr_and_prgrp": "50.0", "public_val": "50.0"}
+        ],
+    )
+
+    token = config.set_request_region("IN")
+    try:
+        ann = asyncio.run(disclosure_tools._corporate_announcements({"symbol": "AMAL"}))
+        sh = asyncio.run(disclosure_tools._shareholding_pattern({"symbol": "AMAL"}))
+    finally:
+        config.reset_request_region(token)
+
+    assert ann["ok"] is True and ann.get("coverage") != "not_applicable"
+    assert sh["ok"] is True and sh["count"] == 1
+
+
+def test_class_case_deals_and_actions_gate_the_same_way_amal_bo_still_served(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Case the fix was not written against: exchange_deals and
+    corporate_actions gate identically, and an explicit ``.BO`` suffix still
+    resolves to India regardless of the session (R15-DATA-003)."""
+
+    def boom(*args: object, **kwargs: object) -> None:
+        raise AssertionError("an India exchange lane must not be reached under a US session")
+
+    monkeypatch.setattr(nse_provider, "get_bulk_block_deals", boom)
+    monkeypatch.setattr(nse_provider, "get_sast_disclosures", boom)
+    monkeypatch.setattr(nse_provider, "get_corporate_actions", boom)
+    monkeypatch.setattr(corporate_disclosures, "_bse_get_json", boom)
+
+    token = config.set_request_region("US")
+    try:
+        deals = corporate_disclosures.get_deals("AMAL")
+        actions = corporate_disclosures.get_corporate_actions("AMAL")
+    finally:
+        config.reset_request_region(token)
+    assert deals.coverage == "not_applicable" and deals.count == 0
+    assert actions.coverage == "not_applicable" and actions.count == 0
+
+    monkeypatch.setattr(symbol_resolver, "dual_listed_bse_code", lambda s: None)
+    monkeypatch.setattr(nse_provider, "get_bulk_block_deals", lambda *a, **k: [])
+    monkeypatch.setattr(nse_provider, "get_sast_disclosures", lambda *a, **k: [])
+
+    token = config.set_request_region("US")
+    try:
+        served = corporate_disclosures.get_deals("AMAL.BO")
+    finally:
+        config.reset_request_region(token)
+    assert served.coverage == "covered" and served.sources == ["NSE bulk", "NSE block", "NSE sast"]

@@ -395,9 +395,40 @@ _STATEMENT_MONEY_FIELDS = frozenset(
     }
 )
 
+#: The ``Fundamentals`` fields that are fractions (0.0082 = 0.82%): a model read
+#: the bare float as a percent ("0.0082%"), so it only ever sees the display.
+_FRACTION_FIELDS = frozenset(
+    {
+        "dividend_yield",
+        "revenue_growth",
+        "earnings_growth",
+        "revenue_growth_computed",
+        "earnings_growth_computed",
+        "roe",
+        "roa",
+        "roce",
+        "gross_margin",
+        "operating_margin",
+        "profit_margin",
+        "held_percent_insiders",
+        "held_percent_institutions",
+        "fifty_two_week_change",
+    }
+)
+
 
 def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _fractions_as_percent(fund: dict[str, Any]) -> bool:
+    """Rewrite ``fund``'s numeric fraction fields to percent displays; True if any."""
+    from services.research.semantics import display_value
+
+    keys = [key for key in _FRACTION_FIELDS if _is_number(fund.get(key))]
+    for key in keys:
+        fund[key] = display_value(fund[key], "fraction", None)
+    return bool(keys)
 
 
 def model_view(payload: Any) -> Any:
@@ -410,7 +441,8 @@ def model_view(payload: Any) -> Any:
     scaled figure. Money fields are the semantics ``derived`` values whose
     ``unit`` is ``currency`` (by key, wherever they recur in the bundle, and in
     the ``sources`` of a conflict on that field) plus the statement sizes.
-    Non-money numbers are kept. The panel and auto-publish keep the raw payload.
+    The fundamentals leg's :data:`_FRACTION_FIELDS` become percent displays.
+    Other numbers are kept. The panel and auto-publish keep the raw payload.
     """
     if not isinstance(payload, dict) or not isinstance(payload.get("structured"), dict):
         return payload
@@ -421,6 +453,7 @@ def model_view(payload: Any) -> Any:
     fund_leg = structured.get("fundamentals")
     fund = fund_leg.get("data") if isinstance(fund_leg, dict) else None
     fund = fund if isinstance(fund, dict) else {}
+    _fractions_as_percent(fund)
     currency = fund.get("currency") if isinstance(fund.get("currency"), str) else None
     statement_currency = fund.get("financial_currency") or currency
     derived_leg = structured.get("derived")
@@ -501,7 +534,8 @@ def fundamentals_content(result_str: str) -> str:
     ``currency`` (a compare row's ``quote.currency`` when the dump names none).
     A statement's money lines render in its reporting ``currency``; per-share,
     share-count and rate lines, and every line of a statement whose currency is
-    unknown, stay raw. Every other field is kept.
+    unknown, stay raw. The :data:`_FRACTION_FIELDS` become percent displays
+    ("0.82%"). Every other field is kept.
     """
     from services.research.semantics import display_value
 
@@ -538,6 +572,7 @@ def fundamentals_content(result_str: str) -> str:
                 code = statement_currency if key in _STATEMENT_MONEY_FIELDS else currency
                 fund[key] = display_value(fund[key], "currency", code)
                 changed = True
+        changed = _fractions_as_percent(fund) or changed
     return json.dumps(payload, default=str, ensure_ascii=False) if changed else result_str
 
 

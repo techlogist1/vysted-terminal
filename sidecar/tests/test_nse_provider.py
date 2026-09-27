@@ -291,6 +291,45 @@ def test_quote_blocked_falls_back_to_observed_eod(monkeypatch: pytest.MonkeyPatc
     assert q.timestamp.date().isoformat() == newest["CH_TIMESTAMP"]
 
 
+def test_quote_fallback_carries_the_rows_session_range(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-053: the historicalOR fallback quote carries the newest row's
+    open/high/low and official previous close, not nulls."""
+
+    def responder(session: _FakeSession, url: str, params: dict) -> _FakeResponse:
+        if url == "https://www.nseindia.com/":
+            return _FakeResponse(200, text="home")
+        if url.endswith("/api/quote-equity"):
+            return _FakeResponse(403, text=_ACCESS_DENIED)
+        if url.endswith("/api/historicalOR/cm/equity"):
+            return _FakeResponse(200, payload=_HISTORICAL)
+        raise AssertionError(f"unexpected URL: {url}")
+
+    _install(monkeypatch, responder)
+    q = nse_provider.get_quote("RELIANCE")
+    newest = _HISTORICAL["data"][0]
+    assert q.open == newest["CH_OPENING_PRICE"]
+    assert q.high == newest["CH_TRADE_HIGH_PRICE"]
+    assert q.low == newest["CH_TRADE_LOW_PRICE"]
+    assert q.prev_close == newest["CH_PREVIOUS_CLS_PRICE"]
+    assert q.low <= q.price <= q.high
+
+
+def test_quote_priceinfo_carries_open_high_low_prev_close(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = {
+        "priceInfo": {
+            "lastPrice": 1272.3,
+            "previousClose": 1263.3,
+            "open": 1265.0,
+            "intraDayHighLow": {"min": 1260.1, "max": 1280.4, "value": 1272.3},
+        },
+    }
+    _install(monkeypatch, _ok_responder({"/api/quote-equity": payload}))
+    q = nse_provider.get_quote("RELIANCE")
+    assert (q.open, q.high, q.low, q.prev_close) == (1265.0, 1280.4, 1260.1, 1263.3)
+
+
 # ---------------------------------------------------------------------------
 # Session rotation + per-path circuit breaker.
 # ---------------------------------------------------------------------------

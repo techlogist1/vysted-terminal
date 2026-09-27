@@ -461,20 +461,20 @@ fn install_layout_menu(app: &tauri::App) -> tauri::Result<()> {
         &[
             &MenuItem::with_id(
                 h,
-                "layout:research-cockpit",
+                "layout:fundamental",
                 "Fundamental Analysis",
                 true,
                 None::<&str>,
             )?,
             &MenuItem::with_id(
                 h,
-                "layout:single-focus",
+                "layout:technical",
                 "Technical Analysis",
                 true,
                 None::<&str>,
             )?,
-            &MenuItem::with_id(h, "layout:macro-scan", "Macro Scan", true, None::<&str>)?,
-            &MenuItem::with_id(h, "layout:compare", "Compare", true, None::<&str>)?,
+            &MenuItem::with_id(h, "layout:macro", "Macro Scan", true, None::<&str>)?,
+            &MenuItem::with_id(h, "layout:compare-desk", "Compare Desk", true, None::<&str>)?,
             &MenuItem::with_id(h, "layout:default", "Reset Layout", true, None::<&str>)?,
         ],
     )?;

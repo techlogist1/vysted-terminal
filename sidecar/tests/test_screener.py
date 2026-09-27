@@ -29,11 +29,16 @@ from models.screener import (
     NumericRange,
     NumericThresholdCriterion,
     ScreenerRequest,
+    ScreenerUniverse,
     SetInCriterion,
     StringEqCriterion,
 )
-from services import data_cache, fundamentals_store, screener
+from services import data_cache, fundamentals_store, provider_health, screener
 from services.errors import ProviderError
+
+#: The real region reader, captured before the autouse fixture pins "US" — the
+#: R15-LEAD-044 tests need the request-region ContextVar to be live.
+_REAL_GET_REGION = config.get_region
 
 
 @pytest.fixture(autouse=True)
@@ -872,3 +877,139 @@ async def test_run_screener_top_k_cut_is_round_robin_per_currency(
     assert result.result_count == 2
     assert "ranked within each currency" in result.coverage
     assert any(row.currency == "USD" for row in result.rows)
+
+
+# ---------------------------------------------------------------------------
+# R15-LEAD-044 — a universe's symbols resolve under the universe's region
+# ---------------------------------------------------------------------------
+
+
+def _namesake_registry(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """Registry fakes for a bare ticker in both masters: the region the call
+    resolves under (explicit arg, else the request region, as the registry's
+    ``_effective_region`` does for an ambiguous ticker) picks the company.
+    Returns the list of regions each call resolved under."""
+    seen: list[str] = []
+
+    def _region(region: str | None) -> str:
+        eff = region or config.get_region()
+        seen.append(eff)
+        return eff
+
+    async def fake_fund(symbol: str, region: str | None = None) -> Fundamentals:
+        if _region(region) == "US":
+            return _make_fundamentals(
+                symbol, name="Halliburton Company", currency="USD", market_cap=2.4e10, roe=0.2
+            )
+        return _make_fundamentals(
+            symbol, name="Hindustan Aeronautics Limited", currency="INR", market_cap=3.2e12, roe=0.2
+        )
+
+    def fake_quote(symbol: str, asset_class: str = "equity", region: str | None = None) -> Quote:
+        quote = _make_quote(symbol)
+        if _region(region) != "US":
+            quote.currency = "INR"
+        return quote
+
+    monkeypatch.setattr(config, "get_region", _REAL_GET_REGION)
+    monkeypatch.setattr("services.provider_registry.get_fundamentals", fake_fund)
+    monkeypatch.setattr("services.provider_registry.get_quote", fake_quote)
+    provider_health.reset_for_tests()
+    return seen
+
+
+def _one_symbol_universe(monkeypatch: pytest.MonkeyPatch, universe_id: str, symbol: str) -> None:
+    async def resolve(_universe_id: str, _custom: object = None) -> ScreenerUniverse:
+        return ScreenerUniverse(
+            id=universe_id, label=universe_id, symbols=[symbol], asset_class="equity"
+        )
+
+    monkeypatch.setattr(screener, "resolve_universe", resolve)
+
+
+def _v7_serves(monkeypatch: pytest.MonkeyPatch, rows: dict[str, dict[str, Any]]) -> None:
+    async def fake_batch(
+        symbols: list[str], **_kwargs: Any
+    ) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+        return (
+            {s: rows[s] for s in symbols if s in rows},
+            {s: "not_found" for s in symbols if s not in rows},
+        )
+
+    monkeypatch.setattr(screener.yahoo_batch_provider, "fetch_quotes_batch", fake_batch)
+
+
+@pytest.mark.asyncio
+async def test_sp500_fallback_resolves_a_namesake_under_us_in_an_in_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen = _namesake_registry(monkeypatch)
+    _one_symbol_universe(monkeypatch, "sp500", "HAL")
+    _v7_serves(monkeypatch, {})  # the v7 miss sends HAL to the per-symbol fallback
+    token = config.set_request_region("IN")
+    try:
+        result = await screener.run_screener(ScreenerRequest(universe="sp500", criteria=[]))
+    finally:
+        config.reset_request_region(token)
+
+    assert seen == ["US", "US"]  # fundamentals + quote
+    assert [(r.symbol, r.name, r.currency) for r in result.rows] == [
+        ("HAL", "Halliburton Company", "USD")
+    ]
+
+
+@pytest.mark.asyncio
+async def test_sp500_enrichment_resolves_a_namesake_under_us_in_an_in_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen = _namesake_registry(monkeypatch)
+    _one_symbol_universe(monkeypatch, "sp500", "HAL")
+
+    async def no_seed(_region: str) -> None:  # the bundled pack already carries HAL's roe
+        return None
+
+    monkeypatch.setattr(fundamentals_store, "ensure_seed_pack", no_seed)
+    _v7_serves(
+        monkeypatch,
+        {
+            "HAL": {
+                "symbol": "HAL",
+                "longName": "Halliburton Company",
+                "regularMarketPrice": 32.0,
+                "regularMarketTime": 1_700_000_000,
+                "currency": "USD",
+                "marketCap": 2.4e10,
+            }
+        },
+    )
+    token = config.set_request_region("IN")
+    try:
+        result = await screener.run_screener(
+            ScreenerRequest(
+                universe="sp500",
+                criteria=[NumericThresholdCriterion(field="roe", operator="gt", value=0.1)],
+            )
+        )
+    finally:
+        config.reset_request_region(token)
+
+    assert seen == ["US"]  # the one .info enrichment call
+    assert [(r.symbol, r.name, r.currency) for r in result.rows] == [
+        ("HAL", "Halliburton Company", "USD")
+    ]
+
+
+@pytest.mark.asyncio
+async def test_nifty50_fallback_resolves_under_in_in_a_us_session(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen = _namesake_registry(monkeypatch)
+    _one_symbol_universe(monkeypatch, "nifty50", "RELIANCE.NS")
+    _v7_serves(monkeypatch, {})
+    token = config.set_request_region("US")
+    try:
+        await screener.run_screener(ScreenerRequest(universe="nifty50", criteria=[]))
+    finally:
+        config.reset_request_region(token)
+
+    assert seen == ["IN", "IN"]

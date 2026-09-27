@@ -613,8 +613,8 @@ export function applyContentAwareLayout(
 // then tiles exactly the mode's panel set — so a click always opens that mode's
 // FULL multi-panel layout and never fit-downgrades (Bug-4). The modes have their
 // OWN role ids, distinct from the agent templates (R15-AGENT-055: one id, one
-// layout); the Rust payload still carries historical template ids, mapped once
-// in `MENU_PAYLOAD_TO_MODE`.
+// layout); the Rust payload emits those same mode ids directly (`layout:fundamental`
+// etc.), and `MENU_PAYLOAD_TO_MODE` is now the identity map for them.
 
 /** Build a planned panel from an ARRANGEABLE id, optionally placed beside/below a ref. */
 function modePanel(key: string, position?: PlannedPanelPosition): PlannedPanel {
@@ -666,14 +666,14 @@ const MODE_PLANS: Record<LayoutMode, LayoutPlan> = {
   },
 };
 
-/** The native menu's payload ids (historical template names, `lib.rs`) → the
+/** The native menu's payload ids (`lib.rs`, mode ids — R15-AGENT-055) → the
  *  mode each one means. "default" is not here: the bridge routes it to the
  *  factory reset. */
 export const MENU_PAYLOAD_TO_MODE: Readonly<Record<string, LayoutMode>> = {
-  "research-cockpit": "fundamental",
-  "single-focus": "technical",
-  "macro-scan": "macro",
-  compare: "compare-desk",
+  fundamental: "fundamental",
+  technical: "technical",
+  macro: "macro",
+  "compare-desk": "compare-desk",
 };
 
 /**

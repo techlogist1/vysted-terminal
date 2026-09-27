@@ -233,7 +233,27 @@ describe("captureTerminalState — otherPanels generic summary (R15-AGENT-053)",
     expect(bySource.backtest.summary).toContain("strategy=sma-cross");
     expect(bySource.news).toMatchObject({ source: "news" });
     expect(bySource.news.symbol).toBeUndefined();
-    expect(bySource.news.summary).toContain("watchedSymbols=2 items");
+    // R15-AGENT-053: a primitive array inlines its values instead of
+    // collapsing to a bare count — "2 items" told the agent nothing.
+    expect(bySource.news.summary).toContain("watchedSymbols=AAPL,MSFT");
+  });
+
+  it("inlines a headline so the agent sees actual news content, not an opaque id (R15-AGENT-053)", () => {
+    usePanelContextBus.getState().publish({
+      source: "news",
+      kind: "snapshot",
+      payload: {
+        watchedSymbols: ["AAPL", "MSFT"],
+        focusedHeadline: "Apple beats on services",
+      },
+      emittedAt: Date.now(),
+    });
+
+    const { otherPanels } = captureTerminalState();
+    const news = otherPanels.find((p) => p.source === "news");
+
+    expect(news?.summary).toContain("Apple beats on services");
+    expect(news?.summary).toContain("AAPL");
   });
 
   it("caps a generic summary to 200 characters", () => {

@@ -149,6 +149,35 @@ def _revenue_currency(payload: dict[str, Any], sample_estimate: float | None) ->
     return None
 
 
+def _eps_currency(payload: dict[str, Any], sample_eps: float | None) -> str | None:
+    """The EPS fields' own currency (mirrors :func:`_revenue_currency`).
+
+    Every EPS field was labelled with the trading ``currency`` even when Yahoo
+    serves the EPS itself in the filer's reporting currency (PDD/NVO/JD report
+    CNY/DKK/CNY per-share EPS while trading in USD) — R15-DATA-113. Unlike
+    revenue there is no ``totalRevenue``-shaped anchor to scale against, so the
+    self-consistency check instead annualises ``sample_eps`` (x4, a quarterly
+    figure) against ``trailing_eps`` (``info['trailingEps']``, already in the
+    filer's true EPS currency by construction): within ``_REVENUE_SCALE_BAND``
+    the trading currency and ``trailingEps`` agree in scale, so ``financialCurrency``
+    is a mislabel and the trading currency is trusted; outside the band
+    ``financialCurrency`` is trusted instead. No trailing EPS to check against
+    (or it is non-positive) on a foreign reporter yields ``None`` — never a
+    guessed label.
+    """
+    trading_currency = payload.get("currency")
+    financial_currency = payload.get("financial_currency")
+    if not financial_currency or financial_currency == trading_currency:
+        return trading_currency
+    trailing_eps = payload.get("trailing_eps")
+    if sample_eps is None or not trailing_eps or trailing_eps <= 0:
+        return None
+    ratio = (sample_eps * 4) / trailing_eps
+    if _REVENUE_SCALE_BAND[0] <= ratio <= _REVENUE_SCALE_BAND[1]:
+        return trading_currency
+    return str(financial_currency)
+
+
 def _analyst_count(frame: Any) -> int | None:
     """The current-quarter ``numberOfAnalysts`` of a yfinance estimate frame
     (``earnings_estimate`` / ``revenue_estimate``), or ``None`` when absent —
@@ -219,6 +248,7 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
         "currency": info.get("currency") or "USD",
         "financial_currency": info.get("financialCurrency"),
         "total_revenue": _num(info.get("totalRevenue")),
+        "trailing_eps": _num(info.get("trailingEps")),
         "country": info.get("country"),
         "name": info.get("longName") or info.get("shortName"),
     }
@@ -253,6 +283,7 @@ def _fetch_history_sync(symbol: str) -> dict[str, Any]:
         "currency": info.get("currency") or "USD",
         "financial_currency": info.get("financialCurrency"),
         "total_revenue": _num(info.get("totalRevenue")),
+        "trailing_eps": _num(info.get("trailingEps")),
         "country": info.get("country"),
     }
 
@@ -333,6 +364,7 @@ def _event_from_calendar(
 
     # R15-DATA-032: yfinance surfaces no dispersion, so ``eps_estimate_stddev``
     # stays None (the field is for a provider that measures it).
+    eps_mean = _num(cal.get("Earnings Average"))
     return EarningsEvent(
         symbol=payload["symbol"],
         company_name=payload.get("name"),
@@ -340,9 +372,9 @@ def _event_from_calendar(
         time_of_day="unknown",
         # R15-DATA-067: yfinance names no fiscal period; the report month does
         # not determine one (JPM's October report is its Q3), so none is stamped.
-        eps_estimate_mean=_num(cal.get("Earnings Average")),
+        eps_estimate_mean=eps_mean,
         estimate_analyst_count=_analyst_count(payload.get("earnings_estimate")),
-        currency=str(payload.get("currency") or "USD"),
+        currency=_eps_currency(payload, eps_mean),
         provider=PROVIDER,
     )
 
@@ -464,6 +496,7 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
     entries: list[EarningsHistoryEntry] = []
     newest_period_end: date | None = None
     newest_revenue_estimate: float | None = None
+    newest_eps_estimate: float | None = None
     if isinstance(history_frame, pd.DataFrame) and not history_frame.empty:
         for raw_idx, row in history_frame.iterrows():
             period_end = _as_date(raw_idx)
@@ -477,6 +510,7 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
             if newest_period_end is None or period_end > newest_period_end:
                 newest_period_end = period_end
                 newest_revenue_estimate = revenue_estimate_mean
+                newest_eps_estimate = eps_estimate
             entries.append(
                 EarningsHistoryEntry(
                     period_end=period_end,
@@ -488,10 +522,14 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
                     currency=currency,
                 )
             )
-    # The whole response shares one revenue_currency, scale-checked against
-    # the NEWEST quarter's estimate (R15-DATA-113).
+    # The whole response shares one revenue_currency / eps currency, each
+    # scale-checked against the NEWEST quarter's estimate (R15-DATA-113).
     revenue_currency = _revenue_currency(payload, newest_revenue_estimate)
-    entries = [entry.model_copy(update={"revenue_currency": revenue_currency}) for entry in entries]
+    eps_currency = _eps_currency(payload, newest_eps_estimate)
+    entries = [
+        entry.model_copy(update={"revenue_currency": revenue_currency, "currency": eps_currency})
+        for entry in entries
+    ]
     entries.sort(key=lambda entry: entry.period_end, reverse=True)
     return EarningsHistoryResponse(symbol=normalized, history=entries)
 
@@ -573,7 +611,7 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
         revenue_estimate_high=rev_high,
         revenue_estimate_low=rev_low,
         revenue_analyst_count=_analyst_count(payload.get("revenue_estimate")),
-        currency=str(payload.get("currency") or "USD"),
+        currency=_eps_currency(payload, eps_mean),
         revenue_currency=_revenue_currency(payload, rev_mean),
         provider=PROVIDER,
         as_of=datetime.now(tz=UTC),

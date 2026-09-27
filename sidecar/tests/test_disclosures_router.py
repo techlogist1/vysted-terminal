@@ -16,6 +16,7 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
+import config
 from app import create_app
 from config import DATA_DIR_ENV
 from models.announcements import (
@@ -28,7 +29,7 @@ from models.announcements import (
     ShareholdingPattern,
     ShareholdingResponse,
 )
-from services import corporate_disclosures, data_cache
+from services import corporate_disclosures, data_cache, sec_filings_provider
 from services.errors import ProviderError
 
 
@@ -255,6 +256,55 @@ def test_shareholding_caches_within_ttl(
     assert client.get("/disclosures/shareholding", params={"symbol": "RELIANCE"}).status_code == 200
     assert client.get("/disclosures/shareholding", params={"symbol": "RELIANCE"}).status_code == 200
     assert calls == ["RELIANCE"]
+
+
+def test_shareholding_cache_is_region_keyed_for_amal(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-DATA-003: an IN session's AMAL answer (Amal Ltd) must never be
+    served, from cache, to a later US session asking about the AMAL ADR."""
+    monkeypatch.setattr(sec_filings_provider, "is_available", lambda: False)
+    calls: list[str] = []
+
+    def stub(symbol: str) -> ShareholdingResponse:
+        calls.append(config.get_region())
+        if config.get_region() == "US":
+            return ShareholdingResponse(
+                symbol=symbol,
+                count=0,
+                coverage="not_applicable",
+                note=f"{symbol} is not an NSE/BSE instrument",
+            )
+        return ShareholdingResponse(
+            symbol=symbol,
+            count=1,
+            patterns=[
+                ShareholdingPattern(
+                    symbol=symbol, quarter_end=date(2026, 3, 31), promoter_percent=50.0
+                )
+            ],
+        )
+
+    monkeypatch.setattr(corporate_disclosures, "get_shareholding", stub)
+
+    in_resp = client.get(
+        "/disclosures/shareholding", params={"symbol": "AMAL"}, headers={"X-Vysted-Region": "IN"}
+    ).json()
+    us_resp = client.get(
+        "/disclosures/shareholding", params={"symbol": "AMAL"}, headers={"X-Vysted-Region": "US"}
+    ).json()
+    assert in_resp["count"] == 1 and in_resp["coverage"] == "covered"
+    assert us_resp["count"] == 0 and us_resp["coverage"] == "not_applicable"
+    assert calls == ["IN", "US"]  # each region warmed its own row, not one shared key
+
+    # Repeating each within TTL is served from the region-keyed cache row.
+    client.get(
+        "/disclosures/shareholding", params={"symbol": "AMAL"}, headers={"X-Vysted-Region": "IN"}
+    )
+    client.get(
+        "/disclosures/shareholding", params={"symbol": "AMAL"}, headers={"X-Vysted-Region": "US"}
+    )
+    assert calls == ["IN", "US"]
 
 
 def test_corporate_actions_wire_shape(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

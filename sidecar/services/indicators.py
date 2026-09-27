@@ -1393,4 +1393,5 @@ def compute(series: OHLCVSeries, keys: list[str]) -> IndicatorResponse:
         provider=series.provider,
         indicators=results,
         volume_profile=volume_profile,
+        freshness=series.freshness,
     )

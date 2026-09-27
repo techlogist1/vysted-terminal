@@ -623,6 +623,11 @@ def enrich(
     enriched: list[NewsItem] = []
     for item in items:
         result = sentiment.score_text(f"{item.title}. {item.summary or ''}")
+        # ``item.symbols`` still carries the pre-tag provenance stamp here
+        # (``_fetch_feed`` sets ``[symbol]`` for a per-symbol feed, ``[]`` for
+        # a region-wide market feed) — capture it before ``_tag_symbols``
+        # below overwrites ``symbols`` with the tagged set (R15-RESEARCH-001).
+        via_symbol_feed = bool(item.symbols)
         tagged = _tag_symbols(item, aliases)
         if symbols and not tagged:
             continue
@@ -632,6 +637,7 @@ def enrich(
                     "symbols": tagged,
                     "sentiment": round(result.score, 4),
                     "sentiment_label": result.label,
+                    "via_symbol_feed": via_symbol_feed,
                 }
             )
         )

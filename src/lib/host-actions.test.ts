@@ -1355,6 +1355,11 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
   it("write_screener_filters writes the recipe and run:true runs it once (R15-CODE-FRONTEND-010)", () => {
     useScreenerStore.getState().__resetForTests();
     // Only the network-backed run is stubbed; applyFilters is the real store's.
+    // `__resetForTests` only resets data fields (a plain `set()` merge), so a
+    // `setState({ runScreener })` override here would otherwise leak into every
+    // later test in this file (R15-AGENT-096's own tests need the REAL
+    // runScreener to see their fetch calls) — restore it below.
+    const realRunScreener = useScreenerStore.getState().runScreener;
     const runScreener = vi.fn(async () => null);
     useScreenerStore.setState({ runScreener });
     useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
@@ -1373,6 +1378,131 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(s.universe).toBe("india-all");
     expect(s.formula).toBe("roe > 0.18 and pe_ratio < 30");
     useScreenerStore.getState().__resetForTests();
+    useScreenerStore.setState({ runScreener: realRunScreener });
+  });
+
+  // R15-AGENT-096: a flat group (AND or OR) supersedes the flat `criteria`
+  // list — the label/ack/review diff all describe the group, so the run
+  // that actually fires must send the group's leaves, not the stale list.
+  describe("write_screener_filters / save_screen: a flat group's leaves are what actually runs (R15-AGENT-096)", () => {
+    /** Stub fetch exactly as `runScreener` expects it: 404 on the streaming
+     *  endpoint (falls back to unary), 200 JSON on the unary /screener/run.
+     *  A prior test in this file's spy on `globalThis.fetch` is REUSED (not
+     *  replaced) by `vi.spyOn` once already installed — its recorded calls
+     *  carry over even across `vi.restoreAllMocks()` boundaries — so clear
+     *  the call history explicitly; a positional `calls[1]` assertion
+     *  otherwise reads a leftover call from the previous test's run. */
+    function mockRunFetch() {
+      const spy = vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+        if (String(url).includes("/stream")) {
+          return new Response(null, { status: 404 });
+        }
+        return new Response(
+          JSON.stringify({
+            universe: "custom",
+            evaluated_count: 0,
+            skipped_count: 0,
+            result_count: 0,
+            rows: [],
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      });
+      spy.mockClear();
+      return spy;
+    }
+
+    beforeEach(() => {
+      useScreenerStore.getState().__resetForTests();
+      useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    });
+
+    afterEach(() => {
+      useScreenerStore.getState().__resetForTests();
+    });
+
+    it("a flat AND group's leaves run, not the caller's flat criteria", async () => {
+      const fetchMock = mockRunFetch();
+      const input = {
+        criteria: [{ field: "market_cap", operator: "gt", value: 1000 }],
+        group: {
+          combinator: "and",
+          criteria: [{ field: "pe_ratio", operator: "lt", value: 20 }],
+        },
+        run: true,
+      };
+      applyHostAction("write_screener_filters", input);
+      await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      const body = JSON.parse(String(fetchMock.mock.calls[1]![1]!.body));
+      expect(body.criteria).toEqual([{ field: "pe_ratio", operator: "lt", value: 20 }]);
+      expect(body.criteria).not.toContainEqual(expect.objectContaining({ field: "market_cap" }));
+    });
+
+    it("a flat OR group's leaves run, in the group", async () => {
+      const fetchMock = mockRunFetch();
+      const input = {
+        criteria: [{ field: "market_cap", operator: "gt", value: 1e11 }],
+        group: {
+          combinator: "or",
+          criteria: [
+            { field: "pe_ratio", operator: "lt", value: 15 },
+            { field: "dividend_yield", operator: "gt", value: 0.03 },
+          ],
+        },
+        run: true,
+      };
+      applyHostAction("write_screener_filters", input);
+      await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      const body = JSON.parse(String(fetchMock.mock.calls[1]![1]!.body));
+      expect(body.group).toEqual({
+        combinator: "or",
+        criteria: [
+          { field: "pe_ratio", operator: "lt", value: 15 },
+          { field: "dividend_yield", operator: "gt", value: 0.03 },
+        ],
+      });
+    });
+
+    it("the rc1-vshard-3:3 input: a dropped flat leaf beside a well-formed flat group — the group's leaves still run", async () => {
+      const fetchMock = mockRunFetch();
+      const input = {
+        criteria: [
+          { field: "roe", operator: "gt", value: "15" },
+          { field: "market_cap", operator: "gt", value: 1000 },
+        ],
+        group: {
+          combinator: "and",
+          criteria: [{ field: "pe_ratio", operator: "lt", value: 20 }],
+        },
+        run: true,
+      };
+      applyHostAction("write_screener_filters", input);
+      await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      const body = JSON.parse(String(fetchMock.mock.calls[1]![1]!.body));
+      expect(body.criteria).toEqual([{ field: "pe_ratio", operator: "lt", value: 20 }]);
+    });
+
+    it("save_screen, then loadScreen, then run: the saved group's leaves are what runs", async () => {
+      const input = {
+        name: "Value",
+        criteria: [{ field: "market_cap", operator: "gt", value: 1000 }],
+        group: {
+          combinator: "and",
+          criteria: [{ field: "pe_ratio", operator: "lt", value: 20 }],
+        },
+      };
+      applyHostAction("save_screen", input);
+      // Poison the live draft so loadScreen must restore the saved recipe,
+      // not just happen to already hold it.
+      useScreenerStore.getState().setCriteria([{ field: "market_cap", operator: "gt", value: 1 }]);
+      useScreenerStore.getState().setGroup(null);
+      useScreenerStore.getState().loadScreen("Value");
+
+      const fetchMock = mockRunFetch();
+      await useScreenerStore.getState().runScreener();
+      const body = JSON.parse(String(fetchMock.mock.calls[1]![1]!.body));
+      expect(body.criteria).toEqual([{ field: "pe_ratio", operator: "lt", value: 20 }]);
+    });
   });
 });
 

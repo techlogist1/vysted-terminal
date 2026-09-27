@@ -27,6 +27,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Query
 
+import config
 from models.announcements import (
     AnnouncementsResponse,
     CorporateActionsResponse,
@@ -67,7 +68,7 @@ async def get_results(
 ) -> ResultsCalendarResponse:
     """Results-calendar / board-meeting events for ``symbol``, newest first."""
     normalized = symbol.strip().upper()
-    cache_key = f"disclosures:results:{normalized}"
+    cache_key = f"disclosures:results:{normalized}:{config.get_region()}"
     cached = await data_cache.get(cache_key, _TTL_RESULTS)
     if isinstance(cached, dict):
         try:
@@ -86,7 +87,7 @@ async def get_shareholding(
     """Quarterly shareholding patterns for ``symbol``, newest quarter first; a
     US-listed ADR answers its 20-F major holders instead (R15-DATA-060)."""
     normalized = symbol.strip().upper()
-    cache_key = f"disclosures:shareholding:{normalized}"
+    cache_key = f"disclosures:shareholding:{normalized}:{config.get_region()}"
     cached = await data_cache.get(cache_key, _TTL_SHAREHOLDING)
     if isinstance(cached, dict):
         try:
@@ -105,7 +106,7 @@ async def get_corporate_actions(
 ) -> CorporateActionsResponse:
     """Dividends, bonuses, splits, rights and buybacks (NSE+BSE), newest first."""
     normalized = symbol.strip().upper()
-    cache_key = f"disclosures:corporate-actions:{normalized}"
+    cache_key = f"disclosures:corporate-actions:{normalized}:{config.get_region()}"
     cached = await data_cache.get(cache_key, _TTL_CORPORATE_ACTIONS)
     if isinstance(cached, dict):
         try:
@@ -127,7 +128,7 @@ async def get_deals(
 ) -> ExchangeDealsResponse:
     """Bulk deals, block deals and SAST disclosures for ``symbol``, newest first."""
     normalized = symbol.strip().upper()
-    cache_key = f"disclosures:deals:{normalized}:{kind or 'ALL'}"
+    cache_key = f"disclosures:deals:{normalized}:{kind or 'ALL'}:{config.get_region()}"
     cached = await data_cache.get(cache_key, _TTL_DEALS)
     if isinstance(cached, dict):
         try:

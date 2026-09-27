@@ -47,6 +47,8 @@ export function SecFilingsPanel() {
   const activeAccession = useSecStore((s) => s.activeAccession);
   const setActiveAccession = useSecStore((s) => s.setActiveAccession);
   const searchResults = useSecStore((s) => s.searchResults);
+  const searchStatus = useSecStore((s) => s.searchStatus);
+  const searchError = useSecStore((s) => s.searchError);
   const searchCompanies = useSecStore((s) => s.searchCompanies);
   const clearSearch = useSecStore((s) => s.clearSearch);
 
@@ -237,6 +239,14 @@ export function SecFilingsPanel() {
             Load
           </Button>
         </form>
+
+        {/* R15-UI-015: a failed company search used to leave the dropdown
+            simply not opening, indistinguishable from "no match" — say why. */}
+        {searchStatus === "error" && searchError ? (
+          <p className="text-negative text-micro w-full basis-full" data-testid="sec-search-error">
+            Company search unavailable: {searchError}
+          </p>
+        ) : null}
 
         <label className="flex flex-col gap-1">
           <span className="text-charcoal-500 text-micro">Form</span>

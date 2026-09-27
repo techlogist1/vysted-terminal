@@ -8,23 +8,31 @@
  *      node AND a variable in the expression scope. Rename commits on
  *      blur/Enter (identifier-validated); add proposes the next free
  *      letter; remove prunes the binding (the panel prunes its edges).
- *   2. Expression — a monospaced textarea evaluated by the sandboxed
- *      mathjs instance; parse errors render inline as you type.
- *   3. Preview — sample values per binding, evaluated live so the author
- *      sees the output (or the honest eval error) before running.
+ *   2. Expression — a monospaced textarea; the sandboxed mathjs instance
+ *      gives an inline "does this parse" hint as you type, but is never
+ *      the answer for a real run.
+ *   3. Preview — sample values per binding, evaluated by a debounced
+ *      (~300ms) POST to the sidecar's `/workflow/run` (a one-node
+ *      `transform.code` spec), so the preview matches the SAME server
+ *      evaluator every real run uses (R15-CODE-PLATFORM-017) — never a
+ *      second, client-side answer that can silently disagree with it.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { cn } from "@/lib/utils";
 
+import type { WorkflowSpec } from "../../../types/workflow";
 import {
+  CODE_NODE_ID,
+  CODE_NODE_OUTPUT_PORT,
   codeNodeBindings,
   codeNodeExpression,
   compileCodeExpression,
-  evaluateCodeExpression,
   isValidBindingName,
   nextBindingName,
+  type CodeEvalResult,
 } from "./code-node";
 
 interface CodeNodeInspectorProps {
@@ -41,9 +49,18 @@ export function CodeNodeInspector({ config, onPatch }: CodeNodeInspectorProps) {
   // Sample values for the live preview — inspector-local, never persisted.
   const [samples, setSamples] = useState<Record<string, string>>({});
 
-  const preview = useMemo(() => {
-    if (!compile.ok) {
-      return null;
+  // Preview runs on the SAME server evaluator as a real run — a debounced
+  // POST to `/workflow/run` with a throwaway one-node spec. Local, not the
+  // shared `useWorkflowStore` (that store's `runs`/`activeRun` are the
+  // real run log; routing every preview keystroke through it would hijack
+  // whatever run the run-overlay is showing elsewhere).
+  const [preview, setPreview] = useState<CodeEvalResult | null>(null);
+  const previewSeq = useRef(0);
+  const isBlank = expression.trim() === "";
+
+  useEffect(() => {
+    if (isBlank) {
+      return;
     }
     const scope: Record<string, unknown> = {};
     for (const name of bindings) {
@@ -53,8 +70,20 @@ export function CodeNodeInspector({ config, onPatch }: CodeNodeInspectorProps) {
         scope[name] = Number.isFinite(parsed) ? parsed : raw;
       }
     }
-    return evaluateCodeExpression(expression, scope);
-  }, [bindings, compile.ok, expression, samples]);
+    const seq = (previewSeq.current += 1);
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      void runCodeNodePreview(expression, bindings, scope, controller.signal).then((result) => {
+        if (seq === previewSeq.current) {
+          setPreview(result);
+        }
+      });
+    }, 300);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [bindings, expression, samples, isBlank]);
 
   const setBindings = (next: string[]) => {
     onPatch({ inputs: next });
@@ -130,7 +159,7 @@ export function CodeNodeInspector({ config, onPatch }: CodeNodeInspectorProps) {
             />
           </label>
         ))}
-        {preview !== null && (
+        {!isBlank && preview !== null && (
           <p
             data-testid="code-node-preview"
             className={cn(
@@ -213,4 +242,108 @@ function formatPreview(value: unknown): string {
   } catch {
     return String(value);
   }
+}
+
+const PREVIEW_NODE_ID = "preview";
+
+/**
+ * Run one `transform.code` node on the sidecar and return its result — the
+ * inspector's live preview. Talks to `/workflow/run` directly (not
+ * `useWorkflowStore.runWorkflow`): that store's `runs`/`activeRun` are the
+ * real run log the run-overlay renders, and a debounced preview firing on
+ * every keystroke would spam it with throwaway runs and hijack whatever
+ * run is currently shown. Reads only the one event this node needs
+ * (`node-output`/`node-error` for `PREVIEW_NODE_ID`) and stops.
+ */
+async function runCodeNodePreview(
+  expression: string,
+  bindings: readonly string[],
+  scope: Record<string, unknown>,
+  signal: AbortSignal,
+): Promise<CodeEvalResult> {
+  const spec: WorkflowSpec = {
+    id: "preview",
+    name: "preview",
+    version: 1,
+    nodes: [
+      {
+        id: PREVIEW_NODE_ID,
+        type: CODE_NODE_ID,
+        position: { x: 0, y: 0 },
+        config: { expression, inputs: [...bindings] },
+      },
+    ],
+    edges: [],
+    updatedAt: Date.now(),
+  };
+  try {
+    const base = await getSidecarBaseUrl();
+    const url = new URL("/workflow/run", base);
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+      body: JSON.stringify({ spec, inputs: scope }),
+      signal,
+    });
+    if (!response.ok || !response.body) {
+      return { ok: false, error: `sidecar returned ${response.status}` };
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        let sep = buffer.indexOf("\n\n");
+        while (sep !== -1) {
+          const frame = buffer.slice(0, sep);
+          buffer = buffer.slice(sep + 2);
+          const result = parsePreviewFrame(frame);
+          if (result !== null) {
+            return result;
+          }
+          sep = buffer.indexOf("\n\n");
+        }
+      }
+      const tail = buffer.trim() !== "" ? parsePreviewFrame(buffer) : null;
+      return tail ?? { ok: false, error: "preview stream ended with no result" };
+    } finally {
+      reader.releaseLock();
+    }
+  } catch (err: unknown) {
+    if (signal.aborted) {
+      return { ok: false, error: "aborted" };
+    }
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+/** Parse one SSE frame, returning the preview node's terminal result or `null`. */
+function parsePreviewFrame(frame: string): CodeEvalResult | null {
+  const dataLines = frame
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.slice(5).trim());
+  if (dataLines.length === 0) {
+    return null;
+  }
+  try {
+    const raw = JSON.parse(dataLines.join("\n")) as Record<string, unknown>;
+    if (raw.kind === "node-output" && raw.nodeId === PREVIEW_NODE_ID) {
+      const outputs = raw.outputs as Record<string, unknown> | undefined;
+      return { ok: true, value: outputs?.[CODE_NODE_OUTPUT_PORT] };
+    }
+    if (raw.kind === "node-error" && raw.nodeId === PREVIEW_NODE_ID) {
+      return { ok: false, error: String(raw.message ?? "node error") };
+    }
+    if (raw.kind === "run-error") {
+      return { ok: false, error: String(raw.message ?? "run error") };
+    }
+  } catch {
+    // Malformed frame — keep reading; the next frame may carry the result.
+  }
+  return null;
 }

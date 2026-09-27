@@ -699,19 +699,34 @@ def test_yahoo_symbol_passes_caret_index_through_in_an_in_session(index: str) ->
 
 @pytest.mark.parametrize(
     "raw",
-    ["BHP.AX", "0700.HK", "7203.T", "VOD.L", "SHOP.TO"],  # SHOP.TO is the class pin
+    [
+        "BHP.AX",
+        "0700.HK",
+        "7203.T",
+        "VOD.L",
+        "SHOP.TO",  # SHOP.TO is the class pin
+        "2222.SR",
+        "SAP.F",
+        "GGAL.BA",
+        "BMW.BE",
+        "EQB.NE",
+        "CEZ.PR",
+        "QNBK.QA",
+    ],
 )
 def test_yahoo_symbol_passes_foreign_exchange_suffixes_through(raw: str) -> None:
-    """A known non-Indian Yahoo exchange suffix is already Yahoo's own dot form —
-    dash-rewriting it (the old universal rule) makes Yahoo report "possibly
-    delisted" for every such listing."""
+    """A dotted symbol whose dashed form is not a known US ticker is already
+    Yahoo's own dot form — dash-rewriting it (the old exchange-suffix-allowlist
+    rule) makes Yahoo report "possibly delisted" for every listing on an
+    exchange the allowlist omitted."""
     assert yfinance_provider._yahoo_symbol(raw) == raw
 
 
-def test_yahoo_symbol_still_dashes_the_us_share_class_quirk() -> None:
-    """A genuine US share-class dot (not a recognised exchange suffix) still
-    takes the dash rewrite yfinance's API expects."""
-    assert yfinance_provider._yahoo_symbol("BRK.B") == "BRK-B"
+@pytest.mark.parametrize("raw, expected", [("BRK.B", "BRK-B"), ("BF.B", "BF-B")])
+def test_yahoo_symbol_still_dashes_the_us_share_class_quirk(raw: str, expected: str) -> None:
+    """A genuine US share-class dot IS a known US ticker in its dashed form,
+    so it still takes the dash rewrite yfinance's API expects."""
+    assert yfinance_provider._yahoo_symbol(raw) == expected
 
 
 def test_30m_history_asks_within_yahoos_60_day_intraday_window(

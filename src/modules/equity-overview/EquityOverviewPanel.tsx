@@ -221,10 +221,13 @@ function fundamentalsAsOf(fundamentals: Fundamentals | null): string | null {
   return null;
 }
 
-/** A listing whose exchange listing date is under 52 weeks old (R15-DATA-055):
- *  its "52w" range only spans the time since listing and it has no 1Y change. */
+/** A listing whose exchange listing date (or, absent that, the earliest bar
+ *  the provider holds) is under 52 weeks old (R15-DATA-055): its "52w" range
+ *  only spans the time since listing and it has no 1Y change. `listing_date`
+ *  is set only for a `.NS` listing; `first_trade_date` covers every other
+ *  young listing (e.g. a US name younger than a year). */
 function listedUnderAYear(fundamentals: Fundamentals | null): boolean {
-  const listed = fundamentals?.listing_date;
+  const listed = fundamentals?.listing_date ?? fundamentals?.first_trade_date;
   return listed != null && Date.now() - Date.parse(listed) < 364 * 24 * 60 * 60 * 1000;
 }
 

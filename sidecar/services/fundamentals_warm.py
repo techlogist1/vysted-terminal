@@ -175,7 +175,9 @@ async def _sweep_once() -> bool:
     )
     if not stale:
         return False
-    rows, failures = await yahoo_batch_provider.fetch_quotes_batch(stale)
+    rows, failures = await yahoo_batch_provider.fetch_quotes_batch(
+        stale, throttle_weight=screener._warm_chunk_weight(len(stale))
+    )
     rate_limited = sum(1 for reason in failures.values() if reason == "rate_limited")
     items = []
     for _sym, row in rows.items():

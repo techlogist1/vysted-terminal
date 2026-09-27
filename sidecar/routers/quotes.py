@@ -21,7 +21,7 @@ from fastapi import APIRouter, Query
 
 from models.market import Quote
 from services import provider_registry
-from services.locale import freshness_for, instrument_region
+from services.locale import REGION_FOREIGN, REGION_US, freshness_for, instrument_region
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
 
@@ -34,14 +34,20 @@ def _label_freshness(quote: Quote, asset_class: str) -> Quote:
     weekend/holiday close is not mistaken for a live tick and a genuinely stale
     value is shown as stale, never as live. Crypto trades 24/7, so a fresh fetch
     is always ``live``; equity/ETF freshness is read against the trading calendar
-    of the instrument's own exchange, not the session region (R15-UI-090).
+    of the instrument's own exchange, not the session region (R15-UI-090). A
+    listing that is not positively US or IN (:data:`REGION_FOREIGN`) has no
+    exchange-timezone table here, so it is dated against the US calendar with
+    ``intraday=False`` — eod or stale, never live, even mid-session.
     """
     if asset_class == "crypto":
         quote.freshness = "live"
         return quote
     try:
         region = instrument_region(quote.symbol, quote.provider)
-        quote.freshness = freshness_for(region, quote.timestamp.date(), intraday=True).state
+        is_foreign = region == REGION_FOREIGN
+        calendar_region = REGION_US if is_foreign else region
+        freshness = freshness_for(calendar_region, quote.timestamp.date(), intraday=not is_foreign)
+        quote.freshness = freshness.state
     except Exception:  # noqa: BLE001 — a label failure must never drop the quote
         quote.freshness = None
     return quote

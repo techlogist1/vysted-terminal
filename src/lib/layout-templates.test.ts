@@ -1,5 +1,11 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import type { DockviewApi } from "dockview";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { dispatchLayoutMenuCommand } from "@/store/command-palette";
+import { useWorkspaceStore } from "@/store/workspace";
 
 import templateCatalog from "../../sidecar/config/layout_templates.json";
 import {
@@ -543,12 +549,19 @@ describe("one plan per template id (R15-AGENT-055)", () => {
     }
   });
 
+  // R15-AGENT-055: the menu modes used to be keyed by the AGENT template ids
+  // (research-cockpit, single-focus, macro-scan, compare) even though their
+  // panel sets differ from `planLayout` of the same id — one id, two
+  // different layouts. The menu payloads are now the mode's OWN ids
+  // (fundamental/technical/macro/compare-desk), disjoint from
+  // `LAYOUT_TEMPLATE_IDS`, so this test uses the new ids and the reason is
+  // the mechanism above.
   it("every native-menu payload maps to exactly one mode plan, cleared then tiled", () => {
     const expected: Record<string, string[]> = {
-      "research-cockpit": ["chart", "equity-overview", "brief"],
-      "single-focus": ["chart", "watchlist", "news"],
-      "macro-scan": ["macro", "chart", "screener-panel"],
-      compare: ["chart", "equity-overview"],
+      fundamental: ["chart", "equity-overview", "brief"],
+      technical: ["chart", "watchlist", "news"],
+      macro: ["macro", "chart", "screener-panel"],
+      "compare-desk": ["chart", "equity-overview"],
     };
     expect(Object.keys(MENU_PAYLOAD_TO_MODE).sort()).toEqual(Object.keys(expected).sort());
     expect(new Set(Object.values(MENU_PAYLOAD_TO_MODE)).size).toBe(4);
@@ -564,6 +577,35 @@ describe("one plan per template id (R15-AGENT-055)", () => {
       applyLayoutMode(api as unknown as DockviewApi, MENU_PAYLOAD_TO_MODE[payload]);
       expect(api.clear).toHaveBeenCalledTimes(1);
       expect(added).toEqual(ids);
+    }
+  });
+
+  it("never conflates an agent template id with a menu mode: dispatchLayoutMenuCommand(templateId) is either false or exactly planLayout(templateId)'s set", () => {
+    for (const id of LAYOUT_TEMPLATE_IDS) {
+      const added: string[] = [];
+      const api = {
+        panels: [],
+        clear: vi.fn(),
+        getPanel: () => undefined,
+        addPanel: vi.fn(({ id: panelId }: { id: string }) => added.push(panelId)),
+        hasMaximizedGroup: () => false,
+      };
+      useWorkspaceStore.setState({ dockviewApi: api as unknown as DockviewApi });
+      const result = dispatchLayoutMenuCommand(id);
+      if (result) {
+        expect(added).toEqual(planLayout(id as LayoutTemplate).panels.map((p) => p.id));
+      } else {
+        expect(result).toBe(false);
+      }
+    }
+  });
+
+  it("every layout:<x> menu id installed in lib.rs is a MENU_PAYLOAD_TO_MODE key, or 'default'", () => {
+    const rust = readFileSync(join(__dirname, "../../src-tauri/src/lib.rs"), "utf8");
+    const ids = [...rust.matchAll(/"layout:([a-z-]+)"/g)].map((m) => m[1]);
+    expect(ids.length).toBeGreaterThan(0);
+    for (const id of ids) {
+      expect(id === "default" || id in MENU_PAYLOAD_TO_MODE).toBe(true);
     }
   });
 });
