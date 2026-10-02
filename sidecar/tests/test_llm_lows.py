@@ -31,7 +31,7 @@ def test_validate_key_has_no_reraise_only_clause() -> None:
     like no clause, so no adapter's validate_key may carry one."""
     offenders = []
     for path in sorted(_LLM_DIR.glob("*.py")):
-        for node in ast.walk(ast.parse(path.read_text())):
+        for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
             if not (isinstance(node, ast.AsyncFunctionDef) and node.name == "validate_key"):
                 continue
             for handler in ast.walk(node):

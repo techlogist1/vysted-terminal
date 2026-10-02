@@ -143,6 +143,6 @@ def test_no_dead_backtest_scaffolding() -> None:
         "no longer reachable",
     ]
     for path in targets:
-        text = path.read_text()
+        text = path.read_text(encoding="utf-8")
         for phrase in banned_phrases:
             assert phrase not in text, f"{phrase!r} still present in {path}"

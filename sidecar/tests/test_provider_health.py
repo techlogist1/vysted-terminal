@@ -132,6 +132,6 @@ def test_is_rate_limit_union() -> None:
         "earnings_quality",
         "symbol_resolver",
     ):
-        source = (services / f"{module}.py").read_text("utf-8")
+        source = (services / f"{module}.py").read_text(encoding="utf-8")
         assert "provider_health.is_rate_limit(" in source, module
         assert "def _is_rate_limited" not in source, module

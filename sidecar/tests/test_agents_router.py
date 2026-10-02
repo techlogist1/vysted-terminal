@@ -81,7 +81,7 @@ def test_agents_expose_effective_grant_separately_from_specialty_tools(
 
     # Cross-check "tools" against the raw JSON on disk, not the loaded/merged
     # spec — a case the fix was not written against (a different agent id).
-    raw = json.loads((agent_runtime.AGENTS_DIR / "strategy_critic.json").read_text())
+    raw = json.loads((agent_runtime.AGENTS_DIR / "strategy_critic.json").read_text(encoding="utf-8"))
     assert set(by_id["strategy_critic"]["tools"]) == set(raw["tools"])
 
 

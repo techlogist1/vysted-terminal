@@ -127,7 +127,7 @@ def test_enrichment_writes_canonical_seven_keys(
         "coverage": {"records": 1, "with_sector": 0, "sector_sources": {}},
     }
     map_path = tmp_path / "india_sector_map.json"
-    map_path.write_text(json.dumps(doc))
+    map_path.write_text(json.dumps(doc), encoding="utf-8")
 
     monkeypatch.setattr(enrich_nse_sectors, "_map_path", lambda: map_path)
     monkeypatch.setattr(enrich_nse_sectors, "_nse_symbols", lambda: ["EXISTING", "NEWSYM"])
@@ -145,7 +145,7 @@ def test_enrichment_writes_canonical_seven_keys(
 
     assert enrich_nse_sectors.main() == 0
 
-    written = json.loads(map_path.read_text())
+    written = json.loads(map_path.read_text(encoding="utf-8"))
     records = written["records"]
     assert len(records) == 2
     for rec in records:
