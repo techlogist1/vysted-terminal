@@ -817,7 +817,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   is tooling work, not Tier-4.
 - **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator. (acknowledge only)
 
-### 5.4 `CLAUDE.md` still states AGPL-3.0: fixed on the unmerged version branch
+### 5.4 `CLAUDE.md` still states AGPL-3.0: fixed, landed as `a9e0e094`
 
 - **What:** the only `LICENCE_CHECK.md` mismatch is `CLAUDE.md:57-58` ("AGPL-3.0 +
   commercial dual license"), which was stale after the relicense
@@ -834,6 +834,14 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   verdict valid. Review the `CLAUDE.md` diff in `1dfda1f3` before the merge, because it is a
   Tier-1 file.
 - **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator.
+- **Update, docs promotion pass 1 (3 Oct 2026):** the single CLAUDE.md commit landed directly
+  on `004-r4-experience-rebuild` as `a9e0e094` — not via `1dfda1f3`/`c1e9164c` on
+  `origin/worktree-agent-r15-version-0.9.0-rc1`, which this commit supersedes for `CLAUDE.md`.
+  Confirmed: `git show a9e0e094 -- CLAUDE.md` carries both the PolyForm Strict wording fix
+  this item tracks and the R15-DOCS-026 capture-path correction (§5.11). The version-bump
+  branch's remaining unmerged content is the version bump itself (§1); its own `CLAUDE.md`
+  commits are redundant and merge as a no-op diff. **Status: RESOLVED** — no further operator
+  action needed on this item.
 
 ### 5.5 Windows stays unverified for 0.9.0 (runbook §10, NEEDS-MANUAL-CHECK)
 
