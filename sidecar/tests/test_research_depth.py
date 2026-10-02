@@ -21,7 +21,7 @@ from typing import Any
 from services.budget_guard import BudgetGuard
 from services.research import depth as depth_mod
 from services.research.deep import (
-    _Findings,
+    Findings,
     coverage_floor_met,
     structured_feeds_available,
 )
@@ -70,6 +70,27 @@ def test_profiles_scale_monotonically_with_depth() -> None:
     assert (normal.site_bias, deep.site_bias, ultra.site_bias) == (False, True, True)
 
 
+def test_panel_threshold_single_source() -> None:
+    """R15-CODE-RESEARCH-006: the panel threshold lives once, in depth.py — the
+    tool routes on ``DepthProfile.is_panel`` and the heavy loop clamps to
+    ``PANEL_MIN_ANGLES``; neither keeps its own lockstep copy of the 2."""
+    import dataclasses
+    import inspect
+
+    from services.agent_tools import deep_research
+    from services.research import iter as iter_mod
+
+    p = depth_mod.PROFILES
+    assert [p[d].is_panel for d in depth_mod.DEPTHS] == [False, False, True]
+    at = dataclasses.replace(p["deep"], angles=depth_mod.PANEL_MIN_ANGLES)
+    below = dataclasses.replace(p["ultra"], angles=depth_mod.PANEL_MIN_ANGLES - 1)
+    assert at.is_panel and not below.is_panel
+    for module in (deep_research, iter_mod):
+        assert not [n for n in vars(module) if n in ("_MIN_HEAVY_ANGLES", "_MIN_ANGLES")]
+    assert "profile.angles >=" not in inspect.getsource(deep_research)
+    assert iter_mod.PANEL_MIN_ANGLES is depth_mod.PANEL_MIN_ANGLES
+
+
 def test_profile_for_tolerates_any_spelling() -> None:
     assert depth_mod.profile_for("HEAVY ").depth == "ultra"
     assert depth_mod.profile_for(42).depth == "normal"
@@ -78,8 +99,8 @@ def test_profile_for_tolerates_any_spelling() -> None:
 # --- coverage floor unit behaviour --------------------------------------------
 
 
-def _findings_with_web(urls: list[str]) -> _Findings:
-    f = _Findings()
+def _findings_with_web(urls: list[str]) -> Findings:
+    f = Findings()
     for url in urls:
         f.web_sources.append(ResearchSource(url=url, title=url, excerpt="x"))
     if urls:
@@ -109,7 +130,7 @@ def test_floor_strictness_counts_distinct_domains_not_rows() -> None:
 
 
 def test_floor_with_no_web_is_never_met_even_loosened() -> None:
-    assert coverage_floor_met(_Findings(), structured=_FEEDS_NONE, min_web_domains=1) is False
+    assert coverage_floor_met(Findings(), structured=_FEEDS_NONE, min_web_domains=1) is False
 
 
 # --- the REAL iter loop with the depth knobs -----------------------------------
@@ -435,20 +456,20 @@ def test_round_wall_limit_adapts_to_observed_latency() -> None:
     from services.research.deep import (
         _PER_ROUND_WALL_SECS,
         ROUND_SLICE_LATENCY_MULT,
-        _round_wall_limit,
+        round_wall_limit,
     )
 
     # No observation → the flat per-round cap (backward compatible).
     unbounded = _FakeBudget(max_wall_seconds=None, elapsed=0.0)
-    assert _round_wall_limit(unbounded) == _PER_ROUND_WALL_SECS
-    assert _round_wall_limit(unbounded, observed_latency=0.0) == _PER_ROUND_WALL_SECS
+    assert round_wall_limit(unbounded) == _PER_ROUND_WALL_SECS
+    assert round_wall_limit(unbounded, observed_latency=0.0) == _PER_ROUND_WALL_SECS
     # A slow lane (60s turn) → 2.5× = 150s when the wall has room.
-    assert _round_wall_limit(unbounded, observed_latency=60.0) == ROUND_SLICE_LATENCY_MULT * 60.0
+    assert round_wall_limit(unbounded, observed_latency=60.0) == ROUND_SLICE_LATENCY_MULT * 60.0
     # A fast lane (10s) → still floored at the flat per-round cap.
-    assert _round_wall_limit(unbounded, observed_latency=10.0) == _PER_ROUND_WALL_SECS
+    assert round_wall_limit(unbounded, observed_latency=10.0) == _PER_ROUND_WALL_SECS
     # Bounded by remaining wall: 200s budget, 120s elapsed → 80s left caps the slice.
     tight = _FakeBudget(max_wall_seconds=200.0, elapsed=120.0)
-    assert _round_wall_limit(tight, observed_latency=60.0) == 80.0
+    assert round_wall_limit(tight, observed_latency=60.0) == 80.0
     # Never negative (over-budget).
     spent = _FakeBudget(max_wall_seconds=100.0, elapsed=150.0)
-    assert _round_wall_limit(spent, observed_latency=60.0) == 0.0
+    assert round_wall_limit(spent, observed_latency=60.0) == 0.0

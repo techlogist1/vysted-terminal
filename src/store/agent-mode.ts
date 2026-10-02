@@ -1,11 +1,14 @@
 /**
- * Agent-mode store — the current four-mode intent (FR-003).
+ * Agent-mode store — the current two-mode intent + autonomy-axis model
+ * (FR-003; see REBUILD_SPEC.md:179 for the collapse from the old four modes).
  *
- * Holds the active mode (Ask / Edit / Build / Delegate). The mode is shown in
- * the agent surface and switchable by keyboard (⌥1–⌥4). It rides the workspace
- * blob so a cockpit reopens in the mode the user left it in. The read-only vs
- * mutating enforcement is server-side (the sidecar filters Ask to read-only
- * tools); this store is the frontend's display + dispatch state.
+ * Holds the active mode (Agent / Delegate, `types/agent-modes.ts`). Mode is
+ * shown in the agent surface and switchable by keyboard (⌥1–⌥2). It rides the
+ * workspace blob so a cockpit reopens in the mode the user left it in. Read vs
+ * edit vs build is an inferred intent within "Agent" mode, classified and
+ * gated server-side (`classify_intent` in the sidecar); autonomy (ask/auto) is
+ * the orthogonal "how much confirmation" axis. This store is the frontend's
+ * display + dispatch state for mode only.
  */
 
 import { create } from "zustand";

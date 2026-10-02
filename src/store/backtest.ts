@@ -59,7 +59,7 @@ export interface BacktestRunState {
   /** Most recent progress event. */
   barsProcessed: number;
   totalBars: number;
-  /** Live trade log — appended on each ``trade`` event. */
+  /** Trade log — populated from the final result on ``run-complete``. */
   trades: BacktestTrade[];
   /** Final result, populated on ``run-complete``. */
   result: BacktestResult | null;
@@ -205,25 +205,6 @@ export const useBacktestStore = create<BacktestStoreState>((set) => ({
               [id]: {
                 ...slot,
                 barsProcessed: event.barsProcessed,
-              },
-            },
-          };
-        });
-        return;
-      }
-      if (event.kind === "trade") {
-        set((state) => {
-          const slot = state.runs[event.runId] ?? state.runs[resolvedRunId];
-          if (!slot) {
-            return state;
-          }
-          const id = slot.runId;
-          return {
-            runs: {
-              ...state.runs,
-              [id]: {
-                ...slot,
-                trades: [...slot.trades, event.trade],
               },
             },
           };

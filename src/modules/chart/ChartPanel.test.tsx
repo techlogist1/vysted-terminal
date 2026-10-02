@@ -116,7 +116,7 @@ vi.mock("./api", () => ({
 }));
 
 import { resetChartCommandStoreForTests, useChartCommandStore } from "@/store/chart-command";
-import { useChartDrawingsStore } from "@/store/chart-drawings";
+import { defaultChartSymbolForRegion, useChartDrawingsStore } from "@/store/chart-drawings";
 import { useChartSyncBus } from "@/store/chart-sync";
 import { resetSettingsStoreForTests, useSettingsStore } from "@/store/settings";
 
@@ -207,6 +207,13 @@ beforeEach(() => {
   suggestedIndicatorsMock.mockResolvedValue({ indicators: [] });
   useChartDrawingsStore.setState({ byPanel: {}, views: {} });
   resetSettingsStoreForTests();
+  // The fixtures are written against the US chart default; the app default is
+  // IN (R15-UI-076), so seed the US symbol explicitly.
+  useSettingsStore.getState().setChartDefaults({
+    symbol: defaultChartSymbolForRegion("US"),
+    timeframe: "1d",
+    indicators: [],
+  });
   useChartSyncBus.setState({
     crosshair: null,
     visibleRange: null,

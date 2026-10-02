@@ -229,14 +229,16 @@ def brief_for(payload: dict[str, Any]) -> dict[str, Any] | None:
         ]
     sources = sources or []
     # web_available: the top-level flag (DEEP) or ``web.available`` (FAST),
-    # RECONCILED with the source count. A brief that surfaced ANY source (web OR
-    # structured provenance) must NOT also claim the web was unavailable — that is
-    # symptom #2 ("N sources" + a "web unavailable" banner firing together). The
-    # honest structured-only banner survives only when ZERO sources were gathered.
+    # RECONCILED with the web-search sources: a brief citing a web source never
+    # claims the web was unavailable (symptom #2), while structured pulls and
+    # exchange filings alone keep the honest structured-only banner
+    # (R15-RESEARCH-041).
+    from services.research.deep import is_web_search_source
+
     web_available = payload.get("web_available")
     if web_available is None and web is not None:
         web_available = web.get("available")
-    if not web_available and sources:
+    if not web_available and any(isinstance(s, dict) and is_web_search_source(s) for s in sources):
         web_available = True
     # Forward the FAST web round's honest note/detail/reason onto the brief: the
     # top-level ``note`` carries a DEEP run's breach reason, but a FAST bundle

@@ -46,8 +46,8 @@ def test_a_dated_searxng_row_reaches_the_web_rows_and_the_brief_source() -> None
         assert row["domain"] == "reuters.com"
         assert row["published_at"] == "2026-02-26T21:05:00"
 
-    findings = deep._Findings()
-    deep._record_web(findings, out, query="nvidia q4 revenue")
+    findings = deep.Findings()
+    deep.record_web(findings, out, query="nvidia q4 revenue")
     (source,) = findings.web_sources
     assert source.domain == "reuters.com"
     assert source.published_at == "2026-02-26T21:05:00"

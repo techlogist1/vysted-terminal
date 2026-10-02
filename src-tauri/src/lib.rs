@@ -124,6 +124,38 @@ pub(crate) fn wait_for_port_timeout(port: u16, timeout_secs: u64) -> bool {
     false
 }
 
+/// Whether `127.0.0.1:port` answers `GET /health` as the Vysted sidecar. A bare
+/// TCP connect only proves *something* listens there (R15-LIFECYCLE-038).
+fn sidecar_healthy(port: u16) -> bool {
+    use std::io::{Read, Write};
+    let timeout = Duration::from_secs(5);
+    let Ok(mut stream) =
+        TcpStream::connect_timeout(&std::net::SocketAddr::from(([127, 0, 0, 1], port)), timeout)
+    else {
+        return false;
+    };
+    let _ = stream.set_read_timeout(Some(timeout));
+    let _ = stream.set_write_timeout(Some(timeout));
+    let request = "GET /health HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n";
+    let mut response = String::new();
+    stream.write_all(request.as_bytes()).is_ok()
+        && stream.read_to_string(&mut response).is_ok()
+        && response.starts_with("HTTP/1.1 200")
+        && response.contains(r#""service":"vysted-sidecar""#)
+}
+
+/// Poll [`sidecar_healthy`] until it answers or `timeout_secs` pass.
+fn wait_for_sidecar_health(port: u16, timeout_secs: u64) -> bool {
+    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
+    while Instant::now() < deadline {
+        if sidecar_healthy(port) {
+            return true;
+        }
+        thread::sleep(Duration::from_millis(200));
+    }
+    false
+}
+
 /// Per-attempt budget (seconds) for a cold MCP subprocess to bind its port.
 ///
 /// Phase-9 UC1 fix: the prior flat 15s budget was marginal for a COLD
@@ -179,11 +211,11 @@ pub(crate) fn wait_for_port_with_retries(
     false
 }
 
-/// Resolve the per-OS application data directory, falling back to a temp dir on
-/// failure so a resolution/creation error degrades gracefully instead of
-/// panicking the app at boot. The sidecar owns the SQLite stores + saved
-/// workspaces beneath this directory.
-fn resolve_data_dir(app: &AppHandle) -> String {
+/// Resolve (and create) the per-OS application data directory, falling back to a
+/// temp dir on failure so a resolution/creation error degrades gracefully instead
+/// of panicking the app at boot. The one data-dir policy: the sidecar's
+/// `--data-dir`, the renderer's export/notes root and the dev keystore all use it.
+pub(crate) fn app_data_dir(app: &AppHandle) -> PathBuf {
     let dir = match app.path().app_data_dir() {
         Ok(dir) => dir,
         Err(err) => {
@@ -200,24 +232,17 @@ fn resolve_data_dir(app: &AppHandle) -> String {
              sidecar persistence may be degraded"
         );
     }
-    dir.to_string_lossy().to_string()
+    dir
 }
 
 /// Return the per-OS application data directory to the frontend — the
 /// authoritative source the Rust core also passes to the sidecar as
 /// `--data-dir`. Used by the export helpers (notes/brief MD/PNG/PDF) to resolve
 /// `{dataDir}/exports/...`; the sidecar `/health` does NOT expose this, so the
-/// renderer must ask the core directly. Mirrors `resolve_data_dir`'s resolution
-/// (app_data_dir with a temp-dir fallback).
+/// renderer must ask the core directly.
 #[tauri::command]
 fn get_app_data_dir(app: tauri::AppHandle) -> String {
-    match app.path().app_data_dir() {
-        Ok(dir) => dir.to_string_lossy().to_string(),
-        Err(_) => std::env::temp_dir()
-            .join("vysted-terminal")
-            .to_string_lossy()
-            .to_string(),
-    }
+    app_data_dir(&app).to_string_lossy().to_string()
 }
 
 /// The MCP protocol revision the sidecar's FastMCP transport speaks. Mirrors
@@ -247,6 +272,13 @@ fn mcp_endpoint_path(data_dir: &str) -> PathBuf {
     Path::new(data_dir).join(MCP_ENDPOINT_FILENAME)
 }
 
+/// Remove the discovery file under `data_dir`: a new boot, a sidecar exit and
+/// app exit each clear it, so it never outlives the port it names
+/// (R15-LIFECYCLE-037). A missing file is the normal case.
+fn clear_mcp_endpoint_file(data_dir: &str) {
+    let _ = std::fs::remove_file(mcp_endpoint_path(data_dir));
+}
+
 /// Write the MCP-endpoint discovery file under `data_dir` for a healthy
 /// sidecar on `port`. Best-effort: a write failure is logged, never fatal
 /// (consistent with the rest of the boot path's graceful degradation). A
@@ -262,19 +294,49 @@ fn write_mcp_endpoint_file(data_dir: &str, port: u16) {
     }
 }
 
+/// The env the main sidecar learns the MCP children's ports from, set on its own
+/// `Command` (never the process-wide env: `set_var` while GTK/WebKit threads
+/// may call `getenv` is UB on POSIX, R15-CROSS-PLATFORM-008). An unavailable
+/// child gets an empty port, which the Python providers read as "not running"
+/// and which masks any value inherited from the launching shell.
+fn mcp_port_env(openbb: Option<u16>, sec_edgar: Option<u16>) -> Vec<(&'static str, String)> {
+    let mut env = Vec::new();
+    for (port_var, host_var, port) in [
+        ("VYSTED_OPENBB_MCP_PORT", "VYSTED_OPENBB_MCP_HOST", openbb),
+        (
+            "VYSTED_SEC_EDGAR_MCP_PORT",
+            "VYSTED_SEC_EDGAR_MCP_HOST",
+            sec_edgar,
+        ),
+    ] {
+        match port {
+            Some(port) => {
+                env.push((port_var, port.to_string()));
+                env.push((host_var, "127.0.0.1".to_string()));
+            }
+            None => env.push((port_var, String::new())),
+        }
+    }
+    env
+}
+
 /// Spawn + supervise the main Python sidecar. NEVER panics: every failure arm
 /// records its reason in `SidecarStatus` (the renderer shows it at once) and
 /// returns, leaving the UI open in a disconnected state — the boot path
 /// previously `.expect()`-panicked here (no window, no error).
-fn start_main_sidecar(app: &AppHandle, port: u16) {
+fn start_main_sidecar(app: &AppHandle, port: u16, openbb: Option<u16>, sec_edgar: Option<u16>) {
     let status = app.state::<SidecarStatus>();
+    let data_dir = app_data_dir(app).to_string_lossy().to_string();
+    // A previous run's file names a port this boot does not own.
+    clear_mcp_endpoint_file(&data_dir);
     if port == 0 {
         status.fail("The data engine could not start: no free local port.".to_string());
         return;
     }
-    let data_dir = resolve_data_dir(app);
     let command = match app.shell().sidecar("vysted-sidecar") {
-        Ok(command) => command.args(["--port", &port.to_string(), "--data-dir", &data_dir]),
+        Ok(command) => command
+            .args(["--port", &port.to_string(), "--data-dir", &data_dir])
+            .envs(mcp_port_env(openbb, sec_edgar)),
         Err(err) => {
             status.fail(format!("The data engine could not start ({err})."));
             return;
@@ -292,6 +354,7 @@ fn start_main_sidecar(app: &AppHandle, port: u16) {
     // Drain the sidecar's stdout/stderr so its pipes never block, and log it.
     // Its exit is recorded and announced (no auto-respawn).
     let events_app = app.clone();
+    let events_data_dir = data_dir.clone();
     tauri::async_runtime::spawn(async move {
         while let Some(event) = rx.recv().await {
             match event {
@@ -303,6 +366,7 @@ fn start_main_sidecar(app: &AppHandle, port: u16) {
                 }
                 CommandEvent::Terminated(payload) => {
                     let reason = terminated_reason(payload.code, payload.signal);
+                    clear_mcp_endpoint_file(&events_data_dir);
                     events_app.state::<SidecarStatus>().fail(reason.clone());
                     let _ = events_app.emit("vysted://sidecar-terminated", reason);
                 }
@@ -331,6 +395,16 @@ fn start_main_sidecar(app: &AppHandle, port: u16) {
                 );
             },
         );
+        // The bind proves a listener, not that it is ours: confirm `/health`
+        // before announcing Ready or publishing the discovery file.
+        let healthy = bound && wait_for_sidecar_health(port, 15);
+        if bound && !healthy {
+            diag_eprintln!(
+                "[vysted] port {port} accepted a connection but did not answer /health \
+                 as the Vysted sidecar"
+            );
+        }
+        let bound = healthy;
         wait_app.state::<SidecarStatus>().settle_boot(bound);
         if bound {
             diag_println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
@@ -345,20 +419,20 @@ fn start_main_sidecar(app: &AppHandle, port: u16) {
 }
 
 /// Run the boot on one background thread and return at once: start both MCP
-/// children (each `start_*` returns its bind-wait step), then the main
-/// sidecar, then both bind waits concurrently.
+/// children (each `start_*` returns its port and its bind-wait step), then the
+/// main sidecar with both ports, then both bind waits concurrently.
 fn spawn_boot<A, SA, B, SB, M>(start_a: A, start_b: B, start_main: M) -> thread::JoinHandle<()>
 where
-    A: FnOnce() -> SA + Send + 'static,
+    A: FnOnce() -> (Option<u16>, SA) + Send + 'static,
     SA: FnOnce() + Send,
-    B: FnOnce() -> SB + Send + 'static,
+    B: FnOnce() -> (Option<u16>, SB) + Send + 'static,
     SB: FnOnce() + Send,
-    M: FnOnce() + Send + 'static,
+    M: FnOnce(Option<u16>, Option<u16>) + Send + 'static,
 {
     thread::spawn(move || {
-        let supervise_a = start_a();
-        let supervise_b = start_b();
-        start_main();
+        let (port_a, supervise_a) = start_a();
+        let (port_b, supervise_b) = start_b();
+        start_main(port_a, port_b);
         thread::scope(|scope| {
             scope.spawn(supervise_a);
             supervise_b();
@@ -381,48 +455,52 @@ fn diag_log_line(line: String) {
     diag_eprintln!("{line}");
 }
 
-/// Atomically write `contents` to `path` by writing to a sibling temp file in the
-/// same directory and then renaming it over the destination. Because the temp file
-/// and the final path live on the same filesystem, the kernel `rename(2)` is atomic
-/// (SC-032: "survives a crash mid-save"). Used by the notes panel to persist each
-/// note as a canonical `.md` file. The temp suffix `.tmp.<pid>` avoids collisions
-/// when multiple windows write concurrently.
-#[tauri::command]
-fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
-    use std::io::Write as _;
+/// Filename of the non-secret app-meta flags (onboarding seen, banner dismissed)
+/// under the data directory. They carry no secret, so they live here rather than
+/// in the OS keychain, which Linux without a Secret Service provider cannot open
+/// (R15-CROSS-PLATFORM-011).
+const APP_META_FILENAME: &str = "app-meta.json";
 
-    let dest = std::path::Path::new(&path);
-    let parent = dest
-        .parent()
-        .ok_or_else(|| format!("no parent directory for path: {path}"))?;
-    std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-
-    let tmp_name = format!(
-        "{}.tmp.{}",
-        dest.file_name().and_then(|n| n.to_str()).unwrap_or("note"),
-        std::process::id(),
-    );
-    let tmp_path = parent.join(&tmp_name);
-    {
-        let mut f = std::fs::File::create(&tmp_path).map_err(|e| e.to_string())?;
-        f.write_all(contents.as_bytes())
-            .map_err(|e| e.to_string())?;
-        f.flush().map_err(|e| e.to_string())?;
-    }
-    std::fs::rename(&tmp_path, dest).map_err(|e| e.to_string())
+/// The app-meta flags stored in `file` (empty when absent or unreadable).
+fn read_app_meta(file: &Path) -> serde_json::Map<String, serde_json::Value> {
+    std::fs::read(file)
+        .ok()
+        .and_then(|bytes| serde_json::from_slice(&bytes).ok())
+        .unwrap_or_default()
 }
 
-/// Atomically write raw `contents` bytes to `path` (same sibling-temp + rename
-/// strategy as `write_text_atomic`). The WKWebView/Chromium webview blocks the
-/// browser `<a download>` / Blob-save path, so binary exports (notes/brief PNG +
-/// PDF) flow through this command instead. `contents` arrives as a JSON number
-/// array (`Array.from(new Uint8Array(buf))`) which serde decodes to `Vec<u8>` —
-/// no extra crate, no base64 round-trip.
+/// Set one app-meta flag in `file`, keeping the others.
+fn write_app_meta(file: &Path, key: &str, value: &str) -> Result<(), String> {
+    let mut meta = read_app_meta(file);
+    meta.insert(key.to_string(), value.into());
+    let bytes = serde_json::to_vec_pretty(&meta).map_err(|e| e.to_string())?;
+    write_atomic(&file.to_string_lossy(), &bytes)
+}
+
+/// Read one non-secret app-meta flag (`None` when never set).
 #[tauri::command]
-fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
+fn app_meta_get(app: tauri::AppHandle, key: String) -> Option<String> {
+    let meta = read_app_meta(&app_data_dir(&app).join(APP_META_FILENAME));
+    meta.get(&key).and_then(|v| v.as_str()).map(str::to_string)
+}
+
+/// Persist one non-secret app-meta flag.
+#[tauri::command]
+fn app_meta_set(app: tauri::AppHandle, key: String, value: String) -> Result<(), String> {
+    write_app_meta(&app_data_dir(&app).join(APP_META_FILENAME), &key, &value)
+}
+
+/// Atomically write `bytes` to `path` by writing to a sibling temp file in the
+/// same directory and then renaming it over the destination. The temp file is
+/// fsynced before the rename and (unix) the directory after it: `rename(2)` is
+/// atomic for the directory entry only, so without the syncs a power loss can
+/// leave the renamed file empty or partial (SC-032: "survives a crash mid-save").
+/// The temp suffix `.tmp.<pid>` avoids collisions when multiple windows write
+/// concurrently.
+fn write_atomic(path: &str, bytes: &[u8]) -> Result<(), String> {
     use std::io::Write as _;
 
-    let dest = std::path::Path::new(&path);
+    let dest = Path::new(path);
     let parent = dest
         .parent()
         .ok_or_else(|| format!("no parent directory for path: {path}"))?;
@@ -430,18 +508,54 @@ fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
 
     let tmp_name = format!(
         "{}.tmp.{}",
-        dest.file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or("export"),
+        dest.file_name().and_then(|n| n.to_str()).unwrap_or("file"),
         std::process::id(),
     );
     let tmp_path = parent.join(&tmp_name);
     {
         let mut f = std::fs::File::create(&tmp_path).map_err(|e| e.to_string())?;
-        f.write_all(&contents).map_err(|e| e.to_string())?;
-        f.flush().map_err(|e| e.to_string())?;
+        f.write_all(bytes).map_err(|e| e.to_string())?;
+        f.sync_all().map_err(|e| e.to_string())?;
     }
-    std::fs::rename(&tmp_path, dest).map_err(|e| e.to_string())
+    // A Windows rename fails with ERROR_ACCESS_DENIED / ERROR_SHARING_VIOLATION
+    // while an AV scanner or the indexer holds the destination; that handle is
+    // released within milliseconds, so retry a few times. On a final failure
+    // remove the temp file rather than leak it beside the destination.
+    let mut attempt = 1;
+    while let Err(err) = std::fs::rename(&tmp_path, dest) {
+        let transient = err.kind() == std::io::ErrorKind::PermissionDenied
+            || (cfg!(windows) && err.raw_os_error() == Some(32));
+        if !transient || attempt == 5 {
+            let _ = std::fs::remove_file(&tmp_path);
+            return Err(err.to_string());
+        }
+        thread::sleep(Duration::from_millis(50 * attempt));
+        attempt += 1;
+    }
+    // Persist the rename itself. Best-effort: the new file is already in place,
+    // so a directory-sync failure must not report the write as failed.
+    #[cfg(unix)]
+    if let Ok(dir) = std::fs::File::open(parent) {
+        let _ = dir.sync_all();
+    }
+    Ok(())
+}
+
+/// Atomically write `contents` to `path` (see `write_atomic`). Used by the notes
+/// panel to persist each note as a canonical `.md` file.
+#[tauri::command]
+fn write_text_atomic(path: String, contents: String) -> Result<(), String> {
+    write_atomic(&path, contents.as_bytes())
+}
+
+/// Atomically write raw `contents` bytes to `path` (see `write_atomic`). The
+/// WKWebView/Chromium webview blocks the browser `<a download>` / Blob-save path,
+/// so binary exports (notes/brief PNG + PDF) flow through this command instead.
+/// `contents` arrives as a JSON number array (`Array.from(new Uint8Array(buf))`)
+/// which serde decodes to `Vec<u8>` — no extra crate, no base64 round-trip.
+#[tauri::command]
+fn write_bytes_atomic(path: String, contents: Vec<u8>) -> Result<(), String> {
+    write_atomic(&path, &contents)
 }
 
 /// Install the macOS "Layout" menu (modes-as-tools, Cursor-menu-bar style): the
@@ -510,6 +624,8 @@ pub fn run() {
             get_sidecar_port,
             get_app_data_dir,
             diag_log_line,
+            app_meta_get,
+            app_meta_set,
             write_text_atomic,
             write_bytes_atomic,
             keychain::keychain_set,
@@ -538,16 +654,16 @@ pub fn run() {
         })
         .setup(|app| {
             // Persist every console line from here on (R15-LIFECYCLE-008).
-            diag_log::init(&resolve_data_dir(app.handle()));
+            diag_log::init(&app_data_dir(app.handle()).to_string_lossy());
             // `0` = no free port (extremely rare); the UI still opens and
             // shows disconnected rather than panicking at boot.
             let port = pick_free_port().unwrap_or(0);
             app.manage(SidecarStatus::new(port));
 
             // Boot the three children off the main thread so the window paints
-            // at once (R15-LIFECYCLE-001): the MCP starts pick their ports and
-            // set the ``VYSTED_*_MCP_PORT`` env vars the main sidecar inherits,
-            // the main sidecar spawns straight after, and only then do the two
+            // at once (R15-LIFECYCLE-001): the MCP starts pick their ports, the
+            // main sidecar spawns straight after with them in its own env, and
+            // only then do the two
             // MCP bind waits run (concurrently). Every step is non-fatal (an
             // MCP registers port=0; the main sidecar records Failed(reason)).
             let (openbb, sec, main) = (
@@ -558,21 +674,21 @@ pub fn run() {
             spawn_boot(
                 move || {
                     let port = openbb_mcp::start(&openbb);
-                    move || {
+                    (port, move || {
                         if let Some(port) = port {
                             openbb_mcp::supervise(&openbb, port);
                         }
-                    }
+                    })
                 },
                 move || {
                     let port = sec_edgar_mcp::start(&sec);
-                    move || {
+                    (port, move || {
                         if let Some(port) = port {
                             sec_edgar_mcp::supervise(&sec, port);
                         }
-                    }
+                    })
                 },
-                move || start_main_sidecar(&main, port),
+                move |openbb_port, sec_port| start_main_sidecar(&main, port, openbb_port, sec_port),
             );
 
             // macOS modes-as-tools menu (Layout → Fundamental / Technical / Macro /
@@ -590,7 +706,9 @@ pub fn run() {
     app.run(|app_handle, event| {
         if let RunEvent::Exit = event {
             if let Some(state) = app_handle.try_state::<SidecarProcess>() {
-                if let Some(child) = state.0.lock().unwrap().take() {
+                // Take the child in its own statement so the guard drops before kill().
+                let child = state.0.lock().unwrap().take();
+                if let Some(child) = child {
                     let _ = child.kill();
                 }
             }
@@ -598,6 +716,7 @@ pub fn run() {
             openbb_mcp::kill(app_handle);
             // Reap the sec-edgar-mcp subprocess alongside the main sidecar.
             sec_edgar_mcp::kill(app_handle);
+            clear_mcp_endpoint_file(&app_data_dir(app_handle).to_string_lossy());
         }
     });
 }
@@ -605,9 +724,10 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::{
-        mcp_endpoint_json, mcp_endpoint_path, pick_free_port, terminated_reason,
-        wait_for_port_timeout, wait_for_port_with_retries, SidecarPhase, SidecarStatus,
-        MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
+        clear_mcp_endpoint_file, mcp_endpoint_json, mcp_endpoint_path, pick_free_port,
+        sidecar_healthy, terminated_reason, wait_for_port_timeout, wait_for_port_with_retries,
+        write_bytes_atomic, write_text_atomic, SidecarPhase, SidecarStatus, MCP_ENDPOINT_FILENAME,
+        MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
     };
     use std::net::TcpListener;
     use std::sync::atomic::{AtomicU32, Ordering};
@@ -636,13 +756,20 @@ mod tests {
         let boot = super::spawn_boot(
             move || {
                 start_a();
-                sup_a
+                (Some(1), sup_a)
             },
             move || {
                 start_b();
-                sup_b
+                (None, sup_b)
             },
-            main,
+            move |a, b| {
+                assert_eq!(
+                    (a, b),
+                    (Some(1), None),
+                    "the main start gets both MCP ports"
+                );
+                main();
+            },
         );
         assert!(
             began.elapsed().as_millis() < 200,
@@ -658,6 +785,157 @@ mod tests {
         let order = log.lock().unwrap().clone();
         assert_eq!(&order[..3], ["start_a", "start_b", "main"]);
         assert_eq!(order.len(), 5);
+    }
+
+    /// A fresh, empty directory under the OS temp dir for one test.
+    fn temp_dir(tag: &str) -> std::path::PathBuf {
+        let dir = std::env::temp_dir().join(format!(
+            "vysted-lib-test-{}-{tag}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn write_atomic_text_and_bytes() {
+        // R15-CODE-PLATFORM-055: both commands route through the one helper and
+        // create the missing parent directory.
+        let dir = temp_dir("text-bytes");
+        let text = dir.join("notes").join("AAPL.md");
+        let bytes = dir.join("exports").join("brief.png");
+        write_text_atomic(text.to_string_lossy().into(), "# AAPL".into()).unwrap();
+        write_bytes_atomic(bytes.to_string_lossy().into(), vec![0x89, b'P', 0]).unwrap();
+        assert_eq!(std::fs::read_to_string(&text).unwrap(), "# AAPL");
+        assert_eq!(std::fs::read(&bytes).unwrap(), vec![0x89, b'P', 0]);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn write_atomic_round_trip_leaves_no_tmp() {
+        // R15-CODE-PLATFORM-054: the synced write overwrites in place and leaves
+        // only the destination behind (no `<name>.tmp.<pid>`).
+        let dir = temp_dir("round-trip");
+        let dest = dir.join("MSFT.md");
+        let path = dest.to_string_lossy().to_string();
+        super::write_atomic(&path, b"first").unwrap();
+        super::write_atomic(&path, b"second").unwrap();
+        assert_eq!(std::fs::read(&dest).unwrap(), b"second");
+        let names: Vec<_> = std::fs::read_dir(&dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        assert_eq!(names, vec![std::ffi::OsString::from("MSFT.md")]);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn rename_failure_removes_tmp() {
+        // R15-CROSS-PLATFORM-007: a rename that fails for good (here the
+        // destination is a non-empty directory) reports the error and leaves no
+        // `<name>.tmp.<pid>` behind.
+        let dir = temp_dir("rename-fail");
+        let dest = dir.join("AAPL.md");
+        std::fs::create_dir_all(dest.join("occupied")).unwrap();
+        assert!(super::write_atomic(&dest.to_string_lossy(), b"body").is_err());
+        let names: Vec<_> = std::fs::read_dir(&dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        assert_eq!(names, vec![std::ffi::OsString::from("AAPL.md")]);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn app_meta_round_trips_and_keeps_other_keys() {
+        // R15-CROSS-PLATFORM-011: the onboarding flags live in a data-dir file,
+        // not the secret store; setting one flag keeps the rest.
+        let dir = temp_dir("app-meta");
+        let file = dir.join(super::APP_META_FILENAME);
+        assert!(super::read_app_meta(&file).is_empty());
+        super::write_app_meta(&file, "onboarding-complete", "cloud").unwrap();
+        super::write_app_meta(&file, "onboarding-banner-dismissed", "dismissed").unwrap();
+        let meta = super::read_app_meta(&file);
+        assert_eq!(meta["onboarding-complete"], "cloud");
+        assert_eq!(meta["onboarding-banner-dismissed"], "dismissed");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn clear_mcp_endpoint_file_removes_existing() {
+        // R15-LIFECYCLE-037: a stale discovery file is removed; a missing one is fine.
+        let dir = temp_dir("clear-endpoint");
+        let data_dir = dir.to_string_lossy().to_string();
+        std::fs::write(mcp_endpoint_path(&data_dir), mcp_endpoint_json(50001)).unwrap();
+        clear_mcp_endpoint_file(&data_dir);
+        assert!(!mcp_endpoint_path(&data_dir).exists());
+        clear_mcp_endpoint_file(&data_dir);
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    /// Serve one connection on a fresh loopback port with `reply` (None = accept,
+    /// read the request and close without answering).
+    fn one_shot_server(reply: Option<&'static str>) -> u16 {
+        use std::io::{Read, Write};
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut buf = [0u8; 1024];
+            let _ = stream.read(&mut buf);
+            if let Some(reply) = reply {
+                let _ = stream.write_all(reply.as_bytes());
+            }
+        });
+        port
+    }
+
+    #[test]
+    fn plain_tcp_listener_is_not_healthy() {
+        // R15-LIFECYCLE-038: a listener that is not the sidecar never reads as healthy.
+        assert!(!sidecar_healthy(one_shot_server(None)));
+        assert!(!sidecar_healthy(one_shot_server(Some(
+            "HTTP/1.1 200 OK\r\nContent-Length: 15\r\n\r\n{\"status\":\"ok\"}"
+        ))));
+        assert!(sidecar_healthy(one_shot_server(Some(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n\
+             {\"status\":\"ok\",\"service\":\"vysted-sidecar\"}"
+        ))));
+    }
+
+    #[test]
+    fn sidecar_command_env_carries_mcp_ports() {
+        // R15-CROSS-PLATFORM-008: the ports ride the main sidecar's own env; an
+        // unavailable child gets an empty port (read as "not running").
+        let env = super::mcp_port_env(Some(50001), None);
+        let get = |k: &str| {
+            env.iter()
+                .find(|(key, _)| *key == k)
+                .map(|(_, v)| v.as_str())
+        };
+        assert_eq!(get("VYSTED_OPENBB_MCP_PORT"), Some("50001"));
+        assert_eq!(get("VYSTED_OPENBB_MCP_HOST"), Some("127.0.0.1"));
+        assert_eq!(get("VYSTED_SEC_EDGAR_MCP_PORT"), Some(""));
+        assert_eq!(get("VYSTED_SEC_EDGAR_MCP_HOST"), None);
+    }
+
+    #[test]
+    fn no_env_mutation_in_src() {
+        // R15-CROSS-PLATFORM-008: nothing in the core mutates the process env.
+        let needles = [["set", "_var("].concat(), ["remove", "_var("].concat()];
+        let src = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        for entry in std::fs::read_dir(src).unwrap() {
+            let path = entry.unwrap().path();
+            let text = std::fs::read_to_string(&path).unwrap();
+            for needle in &needles {
+                assert!(!text.contains(needle.as_str()), "{path:?} calls {needle}");
+            }
+        }
     }
 
     #[test]
@@ -764,6 +1042,25 @@ mod tests {
         });
         assert!(!ok);
         assert_eq!(retries.load(Ordering::SeqCst), 2);
+    }
+
+    #[test]
+    fn smoke_bind_budget_matches_supervisor() {
+        // R15-RELEASE-009: the smoke test's MCP bind budget is the supervisor's
+        // whole retry budget, so neither drifts from the other unnoticed.
+        let smoke = include_str!("../../scripts/smoke-test-sidecars.mjs");
+        let ms: u64 = smoke
+            .lines()
+            .find_map(|l| l.strip_prefix("const MCP_BIND_TIMEOUT_MS = "))
+            .expect("smoke test declares MCP_BIND_TIMEOUT_MS")
+            .trim_end_matches(';')
+            .replace('_', "")
+            .parse()
+            .unwrap();
+        assert_eq!(
+            ms,
+            MCP_PORT_WAIT_SECS * u64::from(MCP_PORT_WAIT_ATTEMPTS) * 1000
+        );
     }
 
     #[test]

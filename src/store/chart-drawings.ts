@@ -13,6 +13,8 @@
 
 import { create } from "zustand";
 
+import { DEFAULT_REGION, type Region } from "@/lib/region";
+
 import type { ChartView, DrawingSpec, WorkspaceDrawings } from "../../types/drawings";
 
 interface ChartDrawingsState {
@@ -46,8 +48,14 @@ interface ChartDrawingsState {
 
 const EMPTY: readonly DrawingSpec[] = Object.freeze([]);
 
+/** What a chart panel opens on for a region (R15-UI-076): `IN` (the app
+ *  default) opens on the NIFTY 50 index, not a US ticker. */
+export function defaultChartSymbolForRegion(region: Region): string {
+  return region === "IN" ? "^NSEI" : "SPY";
+}
+
 /** What a chart panel opens on when it has no persisted view. */
-export const DEFAULT_CHART_SYMBOL = "SPY";
+export const DEFAULT_CHART_SYMBOL = defaultChartSymbolForRegion(DEFAULT_REGION);
 export const DEFAULT_CHART_TIMEFRAME = "1d";
 
 export const useChartDrawingsStore = create<ChartDrawingsState>((set, get) => ({

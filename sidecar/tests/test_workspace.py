@@ -239,3 +239,32 @@ def test_a_disk_failure_on_save_is_a_detailed_507(
 
     assert response.status_code == 507
     assert response.json()["detail"] == "Could not write the workspace: Permission denied"
+
+
+def test_replace_retries_permission_error_then_succeeds(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-CROSS-PLATFORM-007: a transient Windows sharing violation on the
+    rename (an AV scan or indexer holding the file) is retried, not a lost save."""
+    import os
+
+    from services import workspace_store
+
+    real_replace = os.replace
+    failures = {"left": 2}
+
+    def _flaky_replace(src: object, dst: object) -> None:
+        if failures["left"]:
+            failures["left"] -= 1
+            raise PermissionError(13, "The process cannot access the file")
+        real_replace(src, dst)
+
+    monkeypatch.setattr(workspace_store.os, "replace", _flaky_replace)
+    monkeypatch.setattr(workspace_store, "_REPLACE_BACKOFF_SECS", 0)
+    body = _sample_workspace("contended")
+
+    response = client.post("/workspace", json={"name": "contended", "workspace": body})
+
+    assert response.status_code == 200
+    assert failures["left"] == 0
+    assert client.get("/workspace/contended").json() == body

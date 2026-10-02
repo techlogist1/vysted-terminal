@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { REGIONS } from "@/lib/region";
+import { DEFAULT_REGION, REGIONS, type Region } from "@/lib/region";
 
 /**
  * Shared symbol-list store.
@@ -10,7 +10,8 @@ import { REGIONS } from "@/lib/region";
  * subscribe read-only so they react when the watchlist changes. Only the
  * symbol list and its asset class live here — quote data is fetched live by
  * each panel and never persisted. The default symbols match the first-launch
- * watchlist from BLUEPRINT §5.1.
+ * watchlist from BLUEPRINT §5.1, region-seeded (R15-UI-076): a clean IN profile
+ * (the app default) opens on NSE names, not a US watchlist.
  */
 
 /** A tracked symbol plus the asset class the sidecar should resolve it under. */
@@ -36,8 +37,7 @@ export function assetClassOf(symbol: string): SymbolEntry["assetClass"] {
   return symbol.includes("/") ? "crypto" : "equity";
 }
 
-/** The pre-loaded first-launch symbol list (BLUEPRINT §5.1). */
-export const DEFAULT_SYMBOLS: SymbolEntry[] = [
+const US_DEFAULT_SYMBOLS: SymbolEntry[] = [
   { symbol: "SPY", assetClass: "equity" },
   { symbol: "QQQ", assetClass: "equity" },
   { symbol: "BTC/USDT", assetClass: "crypto" },
@@ -45,6 +45,22 @@ export const DEFAULT_SYMBOLS: SymbolEntry[] = [
   { symbol: "NVDA", assetClass: "equity" },
   { symbol: "AAPL", assetClass: "equity" },
 ];
+
+const IN_DEFAULT_SYMBOLS: SymbolEntry[] = [
+  { symbol: "^NSEI", assetClass: "equity" }, // NIFTY 50
+  { symbol: "RELIANCE.NS", assetClass: "equity" },
+  { symbol: "TCS.NS", assetClass: "equity" },
+  { symbol: "HDFCBANK.NS", assetClass: "equity" },
+];
+
+/** The first-launch watchlist for a region (BLUEPRINT §5.1, R15-UI-076): `IN`
+ *  (the app default) seeds NSE names instead of the US list. */
+export function defaultSymbolsForRegion(region: Region): SymbolEntry[] {
+  return region === "IN" ? IN_DEFAULT_SYMBOLS : US_DEFAULT_SYMBOLS;
+}
+
+/** The pre-loaded first-launch symbol list for the app's default region. */
+export const DEFAULT_SYMBOLS: SymbolEntry[] = defaultSymbolsForRegion(DEFAULT_REGION);
 
 interface SymbolsState {
   /** Tracked entries, in display order. */

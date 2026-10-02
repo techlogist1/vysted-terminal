@@ -50,8 +50,12 @@ Its contents:
 }
 ```
 
-A failed/disconnected boot (no free port) writes **no** file, so a stale
-file never points at a dead port. From inside the running app the
+Each boot removes the previous file before spawning the sidecar, and the
+file is removed again when the sidecar exits and when the app quits, so it
+only exists while the sidecar it names is up. A failed boot (no free port,
+sidecar never healthy) leaves **no** file. After a hard kill of the app the
+file can outlive the process; treat a refused connection as "not running".
+From inside the running app the
 frontend instead resolves the port via the `get_sidecar_port` Tauri
 command. Falling back to OS tooling if needed:
 

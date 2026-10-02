@@ -59,9 +59,11 @@ def _seed_legacy_row(symbol: str, quantity: float, cost_basis: float, asset_clas
 # --------------------------------------------------------------------------
 
 
-def test_ensure_schema_is_idempotent(temp_data_dir: object) -> None:
-    portfolio_db._ensure_schema()
-    portfolio_db._ensure_schema()
+def test_connect_is_idempotent(temp_data_dir: object) -> None:
+    with portfolio_db._connect():
+        pass
+    with portfolio_db._connect():
+        pass
     assert portfolio_db.list_positions() == []
 
 

@@ -221,6 +221,96 @@ describe("resolveMention", () => {
     expect(out.some((m) => m.token === "@portfolio")).toBe(true);
     expect(out.every((m) => m.kind !== "instrument")).toBe(true);
   });
+
+  it("R15-UI-093: a quoted candidate renders description '[NMS: 227.1 +0.8%]'", async () => {
+    sidecarGet
+      .mockResolvedValueOnce({
+        ok: true,
+        query: "AAPL",
+        region: "US",
+        resolved: {
+          symbol: "AAPL",
+          name: "Apple Inc.",
+          exchange: "NMS",
+          region: "US",
+          asset_class: "equity",
+          yahoo_symbol: "AAPL",
+          confidence: 1,
+        },
+        needs_disambiguation: false,
+        candidates: [],
+      })
+      .mockResolvedValueOnce([{ symbol: "AAPL", price: 227.1, change_percent: 0.8 }]);
+
+    const out = await resolveMention("AAPL", "US");
+
+    expect(sidecarGet).toHaveBeenNthCalledWith(2, "/quotes", {
+      symbols: "AAPL",
+      asset_class: "equity",
+    });
+    const instrument = out.find((m) => m.kind === "instrument");
+    expect(instrument?.description).toContain("[NMS: 227.1 +0.8%]");
+  });
+
+  it("degrades to symbol/exchange/name (no bracket) when the quote fetch fails", async () => {
+    sidecarGet
+      .mockResolvedValueOnce({
+        ok: true,
+        query: "AAPL",
+        region: "US",
+        resolved: {
+          symbol: "AAPL",
+          name: "Apple Inc.",
+          exchange: "NMS",
+          region: "US",
+          asset_class: "equity",
+          yahoo_symbol: "AAPL",
+          confidence: 1,
+        },
+        needs_disambiguation: false,
+        candidates: [],
+      })
+      .mockRejectedValueOnce(new Error("quotes down"));
+
+    const out = await resolveMention("AAPL", "US");
+    const instrument = out.find((m) => m.kind === "instrument");
+    expect(instrument?.description).toBe("Apple Inc.");
+  });
+
+  it("debounces the batch quote fetch: a rapid second call collapses to one /quotes request", async () => {
+    const resolveResponse = (symbol: string) => ({
+      ok: true,
+      query: symbol,
+      region: "US",
+      resolved: {
+        symbol,
+        name: `${symbol} Inc.`,
+        exchange: "NMS",
+        region: "US",
+        asset_class: "equity",
+        yahoo_symbol: symbol,
+        confidence: 1,
+      },
+      needs_disambiguation: false,
+      candidates: [],
+    });
+    sidecarGet
+      .mockResolvedValueOnce(resolveResponse("AAP"))
+      .mockResolvedValueOnce(resolveResponse("AAPL"))
+      .mockResolvedValueOnce([{ symbol: "AAPL", price: 227.1, change_percent: 0.8 }]);
+
+    const first = resolveMention("AAP", "US");
+    const second = resolveMention("AAPL", "US");
+    const [firstOut, secondOut] = await Promise.all([first, second]);
+
+    // The superseded first call resolves without hanging and without a quote.
+    expect(firstOut.find((m) => m.kind === "instrument")?.description).toBe("AAP Inc.");
+    // Only ONE /quotes call was made — for the winning (latest) call.
+    expect(sidecarGet.mock.calls.filter((c) => c[0] === "/quotes")).toHaveLength(1);
+    expect(secondOut.find((m) => m.kind === "instrument")?.description).toContain(
+      "[NMS: 227.1 +0.8%]",
+    );
+  });
 });
 
 describe("applyMentionPrefixes", () => {

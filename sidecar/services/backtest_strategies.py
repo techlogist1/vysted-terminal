@@ -1,4 +1,4 @@
-"""Concrete backtest strategy archetypes — Teammate K v0.5.0 deliverable.
+"""Concrete backtest strategy archetypes.
 
 The Phase-4 foundation ships an event-driven engine + abstract
 :class:`BacktestStrategy` + a strategy registry in

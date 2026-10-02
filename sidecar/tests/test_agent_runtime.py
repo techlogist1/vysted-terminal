@@ -238,6 +238,42 @@ def test_loader_appends_terminal_capabilities_preamble_to_every_first_party_prom
         assert not spec.system_prompt.startswith("## Terminal capabilities")
 
 
+def test_agent_system_prompts_within_byte_budget() -> None:
+    """R15-CODE-PLATFORM-076: every agent JSON prompt stays within a byte budget
+    (copilot runs on a small local model by default; tool usage belongs in the
+    tool schemas, and the loader appends the shared preamble on top)."""
+    budget = 4608
+    for path in sorted(agent_runtime.AGENTS_DIR.glob("*.json")):
+        if path.name.startswith("_"):
+            continue
+        prompt = json.loads(path.read_text(encoding="utf-8"))["systemPrompt"]
+        size = len(prompt.encode("utf-8"))
+        assert size <= budget, f"{path.name}: systemPrompt is {size} bytes (budget {budget})"
+
+
+def test_every_tool_named_in_prompts_resolves_in_catalog() -> None:
+    """R15-AGENT-071: the preamble lists the catalog's host actions (generated,
+    not prose), and every snake_case name in any agent's effective prompt is a
+    catalog tool or a status word a tool result carries, so a renamed tool
+    cannot linger in a prompt."""
+    import re
+
+    from services.agent_tools import catalog
+
+    result_words = {"awaiting_user_review", "provider_error", "rate_limited", "not_published"}
+    host_actions = [
+        t
+        for t in catalog.default_grant_tool_ids()
+        if catalog.CAPABILITY_CATALOG[t].kind == "host_action"
+    ]
+    assert ", ".join(host_actions) in agent_runtime.TERMINAL_CAPABILITIES_PREAMBLE
+    agent_runtime.reload()
+    for spec in agent_runtime.list_agents():
+        names = set(re.findall(r"\b[a-z][a-z0-9]*(?:_[a-z0-9]+)+\b", spec.system_prompt))
+        unknown = names - set(catalog.CAPABILITY_CATALOG) - result_words
+        assert unknown == set(), f"{spec.id}: prompt names unknown tools {sorted(unknown)}"
+
+
 def test_capabilities_preamble_is_loader_level_not_in_the_json_files() -> None:
     """The persona JSON files keep their voice — the preamble never leaks onto
     disk (per-JSON edits are exactly what D21 forbids)."""
@@ -355,6 +391,32 @@ async def test_invoke_agent_composes_system_and_context(monkeypatch: pytest.Monk
     assert msgs[3].content == "is AAPL cheap?"
     assert provider.captured_kwargs is not None
     assert provider.captured_kwargs["api_key"] == "sk-test"
+
+
+@pytest.mark.asyncio
+async def test_provider_override_without_model_uses_provider_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-073: a caller that overrides only the provider gets that
+    provider's registry default, never the agent's own (ollama) model."""
+    from services import model_registry
+
+    agent_runtime.reload()
+    spec = agent_runtime.get_agent("copilot")
+    assert spec is not None and spec.default_provider == "ollama"
+
+    async def _model_sent(provider: str | None) -> str:
+        fake = _FakeProvider()
+        _patch_provider(monkeypatch, fake)
+        async for _ in agent_runtime.invoke_agent(
+            agent_id="copilot", prompt="hi", api_key="k", provider=provider, model=None
+        ):
+            pass
+        assert fake.captured_kwargs is not None
+        return fake.captured_kwargs["model"]
+
+    assert await _model_sent("anthropic") == model_registry.default_model_for("anthropic")
+    assert await _model_sent(None) == spec.default_model
 
 
 def test_terminal_preamble_anchors_to_active_research_space() -> None:
@@ -2035,10 +2097,40 @@ def test_host_actions_and_per_invocation_tools_have_no_timeout() -> None:
     for cap in catalog.CAPABILITY_CATALOG.values():
         if cap.kind in ("host_action", "per_invocation"):
             assert cap.timeout_seconds is None, f"{cap.id}: locals must be exempt"
-        elif cap.kind == "read_handler" and cap.id != "research":
+        elif cap.kind == "read_handler" and not cap.timeout_from_args:
             assert cap.timeout_seconds is not None, f"{cap.id}: registry tool needs a budget"
     # research's guard is computed from args, not the catalog.
     assert catalog.timeout_for("research") is None
+
+
+def test_timeout_from_args_flag_not_name_selects_guard(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-070: the catalog flag, not the literal name "research", picks the
+    args-derived guard, and a fixed budget beside the flag is rejected loudly."""
+    from dataclasses import replace
+
+    from services.agent_tools import catalog
+
+    research_cap = catalog.CAPABILITY_CATALOG["research"]
+    assert research_cap.timeout_from_args is True
+    probe = replace(
+        catalog.CAPABILITY_CATALOG["news"], id="probe", timeout_seconds=None, timeout_from_args=True
+    )
+    monkeypatch.setitem(catalog.CAPABILITY_CATALOG, "probe", probe)
+    monkeypatch.setitem(
+        catalog.CAPABILITY_CATALOG,
+        "research",
+        replace(research_cap, timeout_from_args=False, timeout_seconds=60.0),
+    )
+
+    def _timeout(name: str) -> float | None:
+        return agent_runtime._tool_timeout_seconds(
+            LLMToolUseEvent(tool_call_id="c", name=name, input={"query": "x"})
+        )
+
+    assert _timeout("probe") == 210.0
+    assert _timeout("research") == 60.0
+    with pytest.raises(ValueError, match="timeout_from_args"):
+        replace(research_cap, timeout_seconds=60.0)
 
 
 @pytest.mark.asyncio

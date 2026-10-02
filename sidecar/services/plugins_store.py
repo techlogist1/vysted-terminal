@@ -96,12 +96,6 @@ def _connect() -> Iterator[sqlite3.Connection]:
         conn.close()
 
 
-def _ensure_schema() -> None:
-    """Create the ``plugin_configs`` table if it does not yet exist (idempotent)."""
-    with _connect():
-        pass
-
-
 def _row_to_payload(row: sqlite3.Row) -> PluginConfigPayload:
     """Map a database row to the ``PluginConfigPayload`` Pydantic model."""
     settings_raw: Any = json.loads(row["settings_json"])

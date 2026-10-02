@@ -55,6 +55,9 @@ pub struct MigrateReport {
     /// True when migration had already run before (a no-op that never touches
     /// the keychain), or when running in release (nothing to migrate).
     pub already_done: bool,
+    /// Accounts whose keychain read errored on THIS call. Non-empty leaves the
+    /// migration unfinished, so the next boot retries them.
+    pub failed: Vec<String>,
 }
 
 // --- OS keychain backend (always compiled — the release path, and the source
@@ -64,26 +67,40 @@ mod os_keychain {
     use super::SERVICE;
     use keyring::Entry;
 
+    /// Prefix on an error the OS secret store itself raised (no Secret Service
+    /// provider on Linux, a locked or refused store) so the renderer shows a
+    /// typed "secret store unavailable" state (`src/lib/keychain.ts`).
+    const STORE_UNAVAILABLE: &str = "secret-store-unavailable";
+
+    fn describe(e: keyring::Error) -> String {
+        match e {
+            keyring::Error::PlatformFailure(_) | keyring::Error::NoStorageAccess(_) => {
+                format!("{STORE_UNAVAILABLE}: {e}")
+            }
+            e => e.to_string(),
+        }
+    }
+
     pub fn set(account: &str, secret: &str) -> Result<(), String> {
-        let entry = Entry::new(SERVICE, account).map_err(|e| e.to_string())?;
-        entry.set_password(secret).map_err(|e| e.to_string())
+        let entry = Entry::new(SERVICE, account).map_err(describe)?;
+        entry.set_password(secret).map_err(describe)
     }
 
     pub fn get(account: &str) -> Result<Option<String>, String> {
-        let entry = Entry::new(SERVICE, account).map_err(|e| e.to_string())?;
+        let entry = Entry::new(SERVICE, account).map_err(describe)?;
         match entry.get_password() {
             Ok(p) => Ok(Some(p)),
             Err(keyring::Error::NoEntry) => Ok(None),
-            Err(e) => Err(e.to_string()),
+            Err(e) => Err(describe(e)),
         }
     }
 
     pub fn delete(account: &str) -> Result<(), String> {
-        let entry = Entry::new(SERVICE, account).map_err(|e| e.to_string())?;
+        let entry = Entry::new(SERVICE, account).map_err(describe)?;
         match entry.delete_credential() {
             Ok(()) => Ok(()),
             Err(keyring::Error::NoEntry) => Ok(()),
-            Err(e) => Err(e.to_string()),
+            Err(e) => Err(describe(e)),
         }
     }
 }
@@ -95,7 +112,6 @@ mod dev_keystore {
     use serde::{Deserialize, Serialize};
     use std::collections::BTreeMap;
     use std::path::{Path, PathBuf};
-    use tauri::Manager;
 
     /// Filename under the app data dir. Git-ignored; never in the repo.
     pub const FILENAME: &str = "dev-keystore.json";
@@ -111,16 +127,11 @@ mod dev_keystore {
         migrated: bool,
     }
 
-    /// Resolve `<app-data-dir>/dev-keystore.json`, creating the dir. Falls back
-    /// to a temp dir (mirrors `resolve_data_dir` in `lib.rs`) so a path failure
-    /// can never panic a key read.
+    /// Resolve `<app-data-dir>/dev-keystore.json` (the one data-dir policy in
+    /// `lib.rs`: created, temp-dir fallback) so a path failure can never panic a
+    /// key read.
     pub fn file_path(app: &tauri::AppHandle) -> PathBuf {
-        let dir = app
-            .path()
-            .app_data_dir()
-            .unwrap_or_else(|_| std::env::temp_dir().join("vysted-terminal"));
-        let _ = std::fs::create_dir_all(&dir);
-        dir.join(FILENAME)
+        crate::app_data_dir(app).join(FILENAME)
     }
 
     fn load(file: &Path) -> Store {
@@ -167,7 +178,9 @@ mod dev_keystore {
     /// `reader` is injected (production passes the real keyring read; tests pass
     /// a stub) so the migration logic is unit-testable without the OS keychain.
     /// Idempotent: once `migrated` is set, returns immediately without calling
-    /// `reader` — the keychain is never touched again.
+    /// `reader` — the keychain is never touched again. `migrated` is set only
+    /// when no read errored; an errored account is reported in `failed` and the
+    /// whole sweep is retried on the next call (copied values are kept).
     pub fn migrate_at<R>(
         file: &Path,
         accounts: &[String],
@@ -182,24 +195,31 @@ mod dev_keystore {
                 backend: "dev-keystore",
                 migrated: 0,
                 already_done: true,
+                failed: Vec::new(),
             });
         }
         let mut migrated = 0u32;
+        let mut failed = Vec::new();
         for account in accounts {
-            // A keychain read failure (denied dialog / no store) is non-fatal:
-            // skip that account — the user re-adds it via Settings.
-            if let Ok(Some(value)) = reader(account) {
-                // Never clobber a value already set in the dev keystore.
-                store.secrets.entry(account.clone()).or_insert(value);
-                migrated += 1;
+            match reader(account) {
+                Ok(Some(value)) => {
+                    // Never clobber a value already set in the dev keystore.
+                    store.secrets.entry(account.clone()).or_insert(value);
+                    migrated += 1;
+                }
+                Ok(None) => {}
+                // A read failure (denied dialog / locked keychain) is non-fatal
+                // but not final: the flag stays unset so the next boot retries.
+                Err(_) => failed.push(account.clone()),
             }
         }
-        store.migrated = true;
+        store.migrated = failed.is_empty();
         save(file, &store)?;
         Ok(MigrateReport {
             backend: "dev-keystore",
             migrated,
             already_done: false,
+            failed,
         })
     }
 
@@ -223,8 +243,13 @@ mod dev_keystore {
     /// "read → idle → read succeeds" pattern).
     const MIGRATE_SELF_DISMISS_WAIT_SECS: u64 = 140;
 
+    /// Event the renderer hears before the idle wait, carrying the seconds left,
+    /// so a dev first boot that blocks `keychain_migrate` does not look hung.
+    pub const WAITING_EVENT: &str = "keychain-migrate:waiting";
+
     pub fn migrate(app: &tauri::AppHandle, accounts: &[String]) -> Result<MigrateReport, String> {
-        migrate_collecting(&file_path(app), accounts, |account| {
+        use tauri::Emitter;
+        let read = |account: &str| {
             let r = super::os_keychain::get(account);
             let class = match &r {
                 Ok(Some(_)) => "found",
@@ -233,6 +258,15 @@ mod dev_keystore {
             };
             eprintln!("[keychain-migrate] {account} -> {class}");
             r
+        };
+        migrate_collecting(&file_path(app), accounts, read, |secs| {
+            // Only the macOS keychain has an ACL evaluation that settles while
+            // idle; elsewhere a failed read is re-tried at once (and on the next
+            // boot), never after a 140 s block (R15-CROSS-PLATFORM-011).
+            if cfg!(target_os = "macos") {
+                let _ = app.emit(WAITING_EVENT, secs);
+                std::thread::sleep(std::time::Duration::from_secs(secs));
+            }
         })
     }
 
@@ -240,16 +274,18 @@ mod dev_keystore {
     /// (`read`), with the once-only guard checked BEFORE the first read. Split
     /// out so the guard + pass logic are unit-testable without the OS keychain.
     /// `read` is called AT MOST `accounts.len() + errored.len()` times on the
-    /// first migration, and ZERO times once `migrated` is set.
-    pub fn migrate_collecting<R>(
+    /// first migration, and ZERO times once `migrated` is set. `wait` is the idle
+    /// settle between the passes (production: announce it, then sleep).
+    pub fn migrate_collecting<R, W>(
         file: &Path,
         accounts: &[String],
         read: R,
+        wait: W,
     ) -> Result<MigrateReport, String>
     where
         R: Fn(&str) -> Result<Option<String>, String>,
+        W: FnOnce(u64),
     {
-        use std::time::Duration;
         // SHORT-CIRCUIT BEFORE ANY KEYCHAIN READ: once migrated, the keychain is
         // never touched again — every boot after the first does zero reads (so
         // zero SecurityAgent dialogs). The check MUST precede the pass-1 reads;
@@ -260,20 +296,20 @@ mod dev_keystore {
                 backend: "dev-keystore",
                 migrated: 0,
                 already_done: true,
+                failed: Vec::new(),
             });
         }
         // Pass 1 (trigger): read each account once. An existing item errors while
         // its ACL evaluation is in flight; absent items return at once.
-        let mut resolved: std::collections::BTreeMap<String, Option<String>> =
+        let mut resolved: std::collections::BTreeMap<String, Result<Option<String>, String>> =
             std::collections::BTreeMap::new();
         let mut errored: Vec<String> = Vec::new();
         for account in accounts {
-            match read(account) {
-                Ok(v) => {
-                    resolved.insert(account.clone(), v);
-                }
-                Err(_) => errored.push(account.clone()),
+            let value = read(account);
+            if value.is_err() {
+                errored.push(account.clone());
             }
+            resolved.insert(account.clone(), value);
         }
         // Pass 2 (re-read after the idle settle), only if something errored — by
         // then the one cdhash ACL evaluation has self-dismissed-as-allow.
@@ -283,13 +319,15 @@ mod dev_keystore {
                 errored.len(),
                 MIGRATE_SELF_DISMISS_WAIT_SECS
             );
-            std::thread::sleep(Duration::from_secs(MIGRATE_SELF_DISMISS_WAIT_SECS));
+            wait(MIGRATE_SELF_DISMISS_WAIT_SECS);
             for account in &errored {
-                resolved.insert(account.clone(), read(account).unwrap_or(None));
+                resolved.insert(account.clone(), read(account));
             }
         }
-        // Record the resolved values + set `migrated` (no further keychain touch).
-        migrate_at(file, accounts, |a| Ok(resolved.get(a).cloned().flatten()))
+        // Record the resolved values; `migrated` is set only if nothing errored.
+        migrate_at(file, accounts, |a| {
+            resolved.get(a).cloned().unwrap_or(Ok(None))
+        })
     }
 }
 
@@ -365,6 +403,7 @@ pub async fn keychain_migrate(
             backend: "os-keychain",
             migrated: 0,
             already_done: true,
+            failed: Vec::new(),
         })
     }
 }
@@ -424,7 +463,8 @@ mod tests {
                 reads_c.fetch_add(1, Ordering::SeqCst);
                 Ok(Some(format!("v-{a}")))
             };
-            let r1 = dev_keystore::migrate_collecting(&f, &accounts, &read).unwrap();
+            let no_wait = |_| panic!("no read errored, so there is nothing to wait for");
+            let r1 = dev_keystore::migrate_collecting(&f, &accounts, &read, no_wait).unwrap();
             assert_eq!(r1.migrated, 2);
             assert_eq!(
                 reads.load(Ordering::SeqCst),
@@ -433,13 +473,81 @@ mod tests {
             );
             // Second call: migrated flag set → guard short-circuits → ZERO reads.
             let before = reads.load(Ordering::SeqCst);
-            let r2 = dev_keystore::migrate_collecting(&f, &accounts, &read).unwrap();
+            let r2 = dev_keystore::migrate_collecting(&f, &accounts, &read, no_wait).unwrap();
             assert!(r2.already_done);
             assert_eq!(
                 reads.load(Ordering::SeqCst),
                 before,
                 "a migrated keystore must read the keychain ZERO more times (no dialog ever again)"
             );
+            let _ = std::fs::remove_file(&f);
+        }
+
+        #[test]
+        fn migrate_with_erroring_reader_leaves_unmigrated_and_retries() {
+            // R15-CODE-PLATFORM-056: a read that errors must not mark the keystore
+            // migrated, or that secret is never retried.
+            let f = temp_file("erroring");
+            let accounts = vec![
+                "llm-provider:deepseek".to_string(),
+                "llm-provider:openrouter".to_string(),
+            ];
+            let r1 = dev_keystore::migrate_at(&f, &accounts, |a| match a {
+                "llm-provider:deepseek" => Ok(Some("sk-ds".to_string())),
+                _ => Err("user denied the keychain dialog".to_string()),
+            })
+            .unwrap();
+            assert_eq!(r1.migrated, 1);
+            assert_eq!(r1.failed, vec!["llm-provider:openrouter".to_string()]);
+
+            // Next boot: not already_done, the errored account is read again.
+            let r2 =
+                dev_keystore::migrate_at(&f, &accounts, |a| Ok(Some(format!("v-{a}")))).unwrap();
+            assert!(!r2.already_done);
+            assert!(r2.failed.is_empty());
+            assert_eq!(
+                dev_keystore::get_at(&f, "llm-provider:openrouter").unwrap(),
+                Some("v-llm-provider:openrouter".to_string())
+            );
+            assert_eq!(
+                dev_keystore::get_at(&f, "llm-provider:deepseek").unwrap(),
+                Some("sk-ds".to_string()),
+                "the value copied on the first pass is kept"
+            );
+            let r3 = dev_keystore::migrate_at(&f, &accounts, |_| {
+                panic!("a completed migration must never re-read the keychain")
+            })
+            .unwrap();
+            assert!(r3.already_done);
+            let _ = std::fs::remove_file(&f);
+        }
+
+        #[test]
+        fn on_wait_called_before_sleep() {
+            // R15-CODE-PLATFORM-057: the idle settle is announced (with its
+            // seconds) after the trigger pass and before any re-read.
+            use std::sync::atomic::{AtomicU32, Ordering};
+            let f = temp_file("on-wait");
+            let accounts = vec!["llm-provider:deepseek".to_string()];
+            let reads = AtomicU32::new(0);
+            let read = |_: &str| -> Result<Option<String>, String> {
+                match reads.fetch_add(1, Ordering::SeqCst) {
+                    0 => Err("ACL evaluation in flight".to_string()),
+                    _ => Ok(Some("sk-ds".to_string())),
+                }
+            };
+            let mut waited = Vec::new();
+            let report = dev_keystore::migrate_collecting(&f, &accounts, read, |secs| {
+                waited.push((secs, reads.load(Ordering::SeqCst)));
+            })
+            .unwrap();
+            assert_eq!(
+                waited,
+                vec![(140, 1)],
+                "one wait, after pass 1, before pass 2"
+            );
+            assert_eq!(reads.load(Ordering::SeqCst), 2);
+            assert_eq!(report.migrated, 1);
             let _ = std::fs::remove_file(&f);
         }
 

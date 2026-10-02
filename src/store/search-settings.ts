@@ -146,6 +146,50 @@ export const RESEARCH_MODEL_OPTIONS: readonly ResearchModelOption[] = [
   },
 ];
 
+/**
+ * Typical per-run token/search volume used ONLY for the pre-dispatch cost
+ * estimate shown beside the composer's depth control (FR-073) — a
+ * representative planning figure, never a billed amount. The authoritative
+ * charge is OpenRouter's pass-through of the provider's real metering,
+ * surfaced post-run as `cost_estimate_usd` (`sidecar/services/research/sonar.py`).
+ */
+const TYPICAL_RUN_VOLUME = { inputTokens: 1200, outputTokens: 1500, searches: 3 };
+
+/** Pull one `$<rate><suffix>` figure out of a {@link ResearchModelOption}
+ *  `priceHint` string (e.g. `"/M in"`, `"/1k searches"`); absent → 0. */
+function priceRate(hint: string, suffix: string): number {
+  const match = hint.match(new RegExp(`\\$([\\d.]+)${suffix}`));
+  return match ? Number(match[1]) : 0;
+}
+
+/**
+ * A representative pre-dispatch USD estimate for one Tier B research model,
+ * derived from its {@link RESEARCH_MODEL_OPTIONS} `priceHint` (FR-073).
+ * `null` for a model id absent from the table (a custom/unlisted slug) —
+ * nothing to estimate from.
+ */
+export function estimateResearchRunUsd(modelId: string): number | null {
+  const option = RESEARCH_MODEL_OPTIONS.find((o) => o.id === modelId);
+  if (!option) {
+    return null;
+  }
+  const inRate = priceRate(option.priceHint, "/M in");
+  const outRate = priceRate(option.priceHint, "/M out");
+  const searchRate = priceRate(option.priceHint, "/1k searches");
+  return (
+    (inRate / 1_000_000) * TYPICAL_RUN_VOLUME.inputTokens +
+    (outRate / 1_000_000) * TYPICAL_RUN_VOLUME.outputTokens +
+    (searchRate / 1_000) * TYPICAL_RUN_VOLUME.searches
+  );
+}
+
+/** "~$0.03 est." beside the depth stop when Tier B is active (FR-073);
+ *  `null` when nothing can be estimated for this model. */
+export function formatResearchCostEstimate(modelId: string): string | null {
+  const usd = estimateResearchRunUsd(modelId);
+  return usd === null ? null : `~$${usd.toFixed(2)} est.`;
+}
+
 /** Accepts any plausible OpenRouter slug — routing stays model-agnostic. */
 const MODEL_SLUG_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$/;
 

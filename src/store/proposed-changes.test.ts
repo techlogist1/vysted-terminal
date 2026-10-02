@@ -1,13 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { HostIntent } from "@/lib/host-actions";
+import type { ApplyResult, HostIntent } from "@/lib/host-actions";
 
 // The diff gate's apply side effects live in `@/lib/host-actions`; mock them so
 // this suite tests the gate's state machine (stage → accept/reject →
 // apply-once) in isolation. `host-actions.test.ts` covers the real apply. The
 // real parse runs, so the gate stores (and applies) the one parsed intent.
 const { applyHostActionMock, describeHostActionMock, ackHostActionMock } = vi.hoisted(() => ({
-  applyHostActionMock: vi.fn<(intent: HostIntent) => Promise<string | null>>(async () => "applied"),
+  // A bare label (or null) is shorthand for a plain applied/failed result; a
+  // test that needs another outcome resolves a whole ApplyResult.
+  applyHostActionMock: vi.fn<(intent: HostIntent) => Promise<string | null | ApplyResult>>(
+    async () => "applied",
+  ),
   describeHostActionMock: vi.fn((name: string) => ({
     title: `do ${name}`,
     before: "before",
@@ -21,7 +25,12 @@ vi.mock("@/lib/host-actions", async (importOriginal) => {
   return {
     parseHostAction: actual.parseHostAction,
     // The gate applies through the ASYNC seam (network-backed cases await).
-    applyIntentAsync: async (intent: HostIntent) => ({ label: await applyHostActionMock(intent) }),
+    applyIntentAsync: async (intent: HostIntent): Promise<ApplyResult> => {
+      const r = await applyHostActionMock(intent);
+      return typeof r === "string" || r === null
+        ? { status: r === null ? "failed" : "applied", label: r }
+        : r;
+    },
     // The AUTO gate branches on the change KIND, so the kind is the real
     // catalog classification; only the diff copy is stubbed.
     describeIntent: (intent: HostIntent) => ({
@@ -34,8 +43,6 @@ vi.mock("@/lib/host-actions", async (importOriginal) => {
       ...(typeof input.symbol === "string" && input.symbol ? { symbol: input.symbol } : {}),
       ...(typeof input.panel === "string" && input.panel ? { panel: input.panel } : {}),
     }),
-    publishAckStatus: (label: string | null) =>
-      label === null ? "failed" : label.startsWith("Kept") ? "kept_previous" : "applied",
   };
 });
 
@@ -184,11 +191,37 @@ describe("proposed-changes store — the diff/accept trust gate (FR-010)", () =>
 
   it("acks kept_previous when the apply kept the richer brief", async () => {
     ackHostActionMock.mockClear();
-    applyHostActionMock.mockResolvedValueOnce("Kept the richer research brief already on screen");
+    applyHostActionMock.mockResolvedValueOnce({
+      status: "kept_previous",
+      label: "Kept the richer research brief already on screen",
+    });
     const id = enqueue("publish_brief", { markdown: "## x" });
     await useProposedChangesStore.getState().accept(id);
     expect(ackHostActionMock).toHaveBeenCalledWith("tc-publish_brief", "kept_previous", {
       action: "publish_brief",
+    });
+  });
+
+  it("a reworded Kept label still acks kept_previous", async () => {
+    // The ack reads the apply's status, never the label's wording (R15-CODE-FRONTEND-034):
+    // a label that no longer starts with "Kept" still acks kept_previous, and a
+    // label that happens to start with "Kept" but applied still acks applied.
+    ackHostActionMock.mockClear();
+    applyHostActionMock.mockResolvedValueOnce({
+      status: "kept_previous",
+      label: "Left the richer research brief on screen",
+    });
+    const kept = enqueue("publish_brief", { markdown: "## x" });
+    expect(await useProposedChangesStore.getState().accept(kept)).toBe("applied");
+    expect(ackHostActionMock).toHaveBeenLastCalledWith("tc-publish_brief", "kept_previous", {
+      action: "publish_brief",
+    });
+    applyHostActionMock.mockResolvedValueOnce({ status: "applied", label: "Kept NVDA pinned" });
+    const pinned = enqueue("set_chart_symbol", { symbol: "NVDA" });
+    await useProposedChangesStore.getState().accept(pinned);
+    expect(ackHostActionMock).toHaveBeenLastCalledWith("tc-set_chart_symbol", "applied", {
+      action: "set_chart_symbol",
+      symbol: "NVDA",
     });
   });
 

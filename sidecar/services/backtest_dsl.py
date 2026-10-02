@@ -234,7 +234,7 @@ class _Parser:
 
     def _accept_keyword(self, word: str) -> _Token | None:
         token = self._peek()
-        if token is not None and token.kind == "ident" and token.text == word:
+        if token is not None and token.kind == "ident" and token.text.lower() == word:
             self.index += 1
             return token
         return None
@@ -626,7 +626,10 @@ def validate_definition(definition: Mapping[str, Any]) -> dict[str, Any]:
     """Validate a ``{entry, exit, position_size?}`` definition.
 
     Returns ``{ok, errors: [{rule, message, position}], indicators,
-    requiredBars}``. Never raises — this is the inline-validation surface.
+    requiredBars, compiled}`` where ``compiled`` is ``{"entry": CompiledRule,
+    "exit": CompiledRule}`` on success (omitted on failure). Never raises —
+    this is the inline-validation surface; ``compiled`` lets callers that
+    already validated reuse the parse instead of compiling again.
     """
     errors: list[dict[str, Any]] = []
     compiled: dict[str, CompiledRule] = {}
@@ -662,7 +665,13 @@ def validate_definition(definition: Mapping[str, Any]) -> dict[str, Any]:
         {f"{name}({period})" for rule in compiled.values() for name, period in rule.indicators}
     )
     required = max(rule.required_bars for rule in compiled.values())
-    return {"ok": True, "errors": [], "indicators": indicators, "requiredBars": required}
+    return {
+        "ok": True,
+        "errors": [],
+        "indicators": indicators,
+        "requiredBars": required,
+        "compiled": compiled,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -690,8 +699,8 @@ class CustomDslStrategy(BacktestStrategy):
                 f"custom strategy {first['rule']} rule: {first['message']}{suffix}",
                 first["position"],
             )
-        self.entry = compile_rule(str(params["entry"]))
-        self.exit = compile_rule(str(params["exit"]))
+        self.entry = report["compiled"]["entry"]
+        self.exit = report["compiled"]["exit"]
         self.position_size = float(params.get("position_size", 100))
         self._indicators = self.entry.indicators | self.exit.indicators
         self._states: dict[str, SymbolState] = {}

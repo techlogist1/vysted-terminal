@@ -8,15 +8,13 @@ Routes:
   - ``GET  /backtest/runs``        — list cached run ids
   - ``GET  /backtest/runs/{run_id}`` — load cached BacktestResult
 
-The ``run`` route consumes ``services.bar_loader.load_bars`` (Teammate K,
-v0.5.0) for production OHLCV loading via the Phase 1 ``provider_registry``
-(yfinance / ccxt / openbb-mcp). The v0.5.0-era 503-stub fallback is no
-longer reachable — the loader is unconditionally wired.
+The ``run`` route consumes ``services.bar_loader.load_bars`` for production
+OHLCV loading via the Phase 1 ``provider_registry`` (yfinance / ccxt /
+openbb-mcp).
 """
 
 from __future__ import annotations
 
-import json
 import logging
 from collections.abc import AsyncIterator
 
@@ -63,17 +61,6 @@ async def run_backtest(request: BacktestRequest) -> StreamingResponse:
                     on_event=_on_event,
                 )
                 backtest_store.put(result)
-            except NotImplementedError as exc:
-                # Foundation has no default bar_loader; v0.5.0 production
-                # wiring lives in Teammate K's branch. Surface a clean
-                # error event.
-                await queue.put(
-                    BacktestRunEvent(
-                        kind="run-error",
-                        runId="_no_loader",
-                        message=str(exc),
-                    )
-                )
             except Exception as exc:  # noqa: BLE001
                 logger.exception("backtest run crashed: %s", exc)
                 await queue.put(
@@ -110,11 +97,11 @@ def list_strategies() -> dict[str, list[dict]]:
     """List registered strategies with their metadata + paramsSchema.
 
     The frontend's strategy picker renders a form from each spec's
-    ``paramsSchema`` — returning the full Teammate K shape (id + name +
-    description + paramsSchema) is strictly more useful than ids alone.
-    Filtered to the intersection of (registered with engine) and
-    (Teammate K spec catalogued) so plugin-contributed strategies in
-    future phases that skip the catalogue surface as ids elsewhere.
+    ``paramsSchema`` — returning the full shape (id + name + description +
+    paramsSchema) is strictly more useful than ids alone. Filtered to the
+    intersection of (registered with engine) and (spec catalogued) so
+    plugin-contributed strategies in future phases that skip the catalogue
+    surface as ids elsewhere.
     """
     engine_ids = set(backtest_engine.registered_strategies())
     specs = [spec for spec in list_strategy_specs() if spec["id"] in engine_ids]
@@ -197,7 +184,3 @@ def get_run(run_id: str) -> BacktestResult:
 
 def _encode_event(event: BacktestRunEvent) -> bytes:
     return f"data: {event.model_dump_json(by_alias=True, exclude_none=True)}\n\n".encode()
-
-
-def _encode_event_dict(payload: dict) -> bytes:  # pragma: no cover - kept for parity
-    return f"data: {json.dumps(payload)}\n\n".encode()

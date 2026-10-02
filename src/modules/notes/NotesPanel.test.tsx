@@ -4,10 +4,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { applyHostAction } from "@/lib/host-actions";
 import { useNotesStore } from "@/store/notes";
-import { useSymbolsStore, DEFAULT_SYMBOLS } from "@/store/symbols";
+import { defaultSymbolsForRegion, useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
 import { NotesPanel } from "./NotesPanel";
+
+// The fixtures below are written against the US watchlist; the app default is
+// IN (R15-UI-076), so seed the US list explicitly.
+const US_SYMBOLS = defaultSymbolsForRegion("US");
 
 /** The Tiptap editor behind the rendered ProseMirror view. */
 function editorOf(): Editor {
@@ -40,7 +44,7 @@ describe("NotesPanel — the notes store is authoritative", () => {
     cleanup();
     vi.useRealTimers();
     useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
-    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    useSymbolsStore.setState({ entries: [...US_SYMBOLS] });
   });
 
   it("shows an agent write_note into the open note, and the next keystroke keeps it", async () => {
@@ -116,7 +120,7 @@ describe("NotesPanel — the notes store is authoritative", () => {
   // live on every open.
   it("R15-UI-024: the [[ picker offers a symbol added to the watchlist AFTER mount", async () => {
     useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
-    useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+    useSymbolsStore.setState({ entries: [...US_SYMBOLS] });
     await renderPanel();
 
     act(() => {

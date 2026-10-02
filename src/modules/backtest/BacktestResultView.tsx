@@ -566,7 +566,8 @@ export function BacktestResultView({ run, onOpenInCritic, onRetry }: BacktestRes
       {/* Trade log */}
       <div className="border-charcoal-700 border-t">
         <div className="text-charcoal-500 text-micro px-3 pt-2 font-mono tracking-widest uppercase">
-          Trades ({run.trades.length})
+          Trades ({run.trades.filter((t) => t.exitedAt != null).length} closed,{" "}
+          {run.trades.filter((t) => t.exitedAt == null).length} open)
         </div>
         <TradeTable trades={run.trades} />
       </div>

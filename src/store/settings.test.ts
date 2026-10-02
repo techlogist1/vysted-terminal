@@ -156,7 +156,8 @@ describe("settings store", () => {
 
   it("seeds chartDefaults from the default bundle", () => {
     const s = useSettingsStore.getState();
-    expect(s.chartDefaults).toEqual({ symbol: "SPY", timeframe: "1d", indicators: [] });
+    // The app default region is IN (R15-UI-076): the chart opens on the NIFTY 50.
+    expect(s.chartDefaults).toEqual({ symbol: "^NSEI", timeframe: "1d", indicators: [] });
   });
 
   it("setChartDefaults updates state and round-trips through toBundle/setAll", () => {

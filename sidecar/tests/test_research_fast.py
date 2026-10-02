@@ -139,7 +139,15 @@ def test_fast_bundle_shape_and_provenance() -> None:
 
     structured = bundle["structured"]
     # R10 (E8): the derived metric-semantics leg rides every bundle.
-    assert set(structured) == {"price", "fundamentals", "news", "filings", "derived"}
+    # R15-RESEARCH-042: so does the cited-source count against SC-016's floor.
+    assert set(structured) == {
+        "price",
+        "fundamentals",
+        "news",
+        "filings",
+        "derived",
+        "source_floor",
+    }
     for slot in structured.values():
         assert slot["ok"] is True
 
@@ -155,6 +163,66 @@ def test_fast_bundle_shape_and_provenance() -> None:
     assert bundle["web"]["available"] is True
     assert bundle["web"]["citations"]
     assert "note" not in bundle["web"]
+
+
+def test_below_floor_marker() -> None:
+    """R15-RESEARCH-042: a brief citing fewer than SC-016's 3 distinct sources
+    says so ("N sources (below 3)") in structured and, on the deep lanes, in
+    the markdown; an unbound run (no structured bundle) gains no bundle."""
+    from services.agent_tools.deep_research import _stamp_source_floor
+
+    none = asyncio.run(gather_fast("Apple", region="US", tool_call=_FakeToolCall(web_ok=False)))
+    assert none["structured"]["source_floor"]["data"] == {"cited": 0, "floor": 3}
+    assert none["structured"]["source_floor"]["note"] == "0 sources (below 3)"
+    one = asyncio.run(gather_fast("Apple", region="US", tool_call=_FakeToolCall()))
+    assert one["structured"]["source_floor"]["note"] == "1 source (below 3)"
+
+    two = [{"url": "https://a.com/1"}, {"url": "https://b.com/2"}, {"url": "https://a.com/1"}]
+    bound = {"sources": two, "markdown": "# Brief\n\nBody.", "structured": {"price": {}}}
+    _stamp_source_floor(bound)
+    assert bound["structured"]["source_floor"]["note"] == "2 sources (below 3)"
+    assert bound["markdown"].endswith("_Cited: 2 sources (below 3)._")
+    unbound = {"sources": two, "markdown": "Body.", "structured": {}}
+    _stamp_source_floor(unbound)
+    assert unbound["structured"] == {}
+    assert unbound["markdown"].endswith("_Cited: 2 sources (below 3)._")
+    met = {"sources": [*two, {"url": "https://c.com/3"}], "markdown": "Body."}
+    _stamp_source_floor(met)
+    assert met["markdown"] == "Body."
+
+
+class _BasketToolCall(_FakeToolCall):
+    """A recorded web backend: each basket query answers with its own cited rows."""
+
+    RECORDED: dict[str, list[str]] = {
+        "AAPL": ["https://reuters.com/a1", "https://sec.gov/a2", "https://ft.com/a3"],
+        "NVDA": [
+            "https://bloomberg.com/n1",
+            "https://nvidianews.com/n2",
+            "https://wsj.com/n3",
+            "https://reuters.com/n4",
+        ],
+        "RELIANCE": ["https://ril.com/r1", "https://nseindia.com/r2", "https://livemint.com/r3"],
+    }
+
+    def __init__(self, ticker: str) -> None:
+        super().__init__()
+        self.ticker = ticker
+
+    def _dispatch(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
+        if name != "web_search":
+            return super()._dispatch(name, args)
+        rows = [{"url": u, "title": u, "excerpt": "e"} for u in self.RECORDED[self.ticker]]
+        return {"ok": True, "backend": "exa", "query": args.get("query"), "citations": rows}
+
+
+@pytest.mark.parametrize("ticker", sorted(_BasketToolCall.RECORDED))
+def test_recorded_basket_meets_source_floor(ticker: str) -> None:
+    fake = _BasketToolCall(ticker)
+    bundle = asyncio.run(gather_fast(f"{ticker} outlook", region="US", tool_call=fake))
+    leg = bundle["structured"]["source_floor"]
+    assert leg["data"]["cited"] >= 3
+    assert "note" not in leg
 
 
 def test_fast_pulls_four_legs_in_parallel() -> None:

@@ -178,6 +178,32 @@ def test_iter_report_render_is_capped() -> None:
     assert len(llm.plan_prompts[0]) < _REPORT_CHAR_CAP * 2
 
 
+def test_over_cap_report_keeps_facts_established() -> None:
+    """R15-RESEARCH-035: an over-cap four-section report trims the working
+    notes (Dead ends / Planned next / Open questions) before any cited fact,
+    so the evidence survives into the next round and synthesis."""
+    facts = "\n".join(f"- Fact {i}: revenue grew {i}% [{i}]" for i in range(1, 30))
+    body = (
+        f"## Facts established\n{facts}\n"
+        "## Open questions\n" + "- still open?\n" * 150 + "## Dead ends\n"
+        "" + "- BSE search empty, do not retry\n" * 150 + "## Planned next\n"
+        "" + "- look up the latest concall transcript\n" * 150
+    )
+    assert len(body) > _REPORT_CHAR_CAP
+    rendered = iter_research._Report(task="q", body=body).render()
+    assert len(rendered) <= _REPORT_CHAR_CAP
+    assert facts in rendered  # every cited fact, whole
+    for heading in ("## Open questions", "## Dead ends", "## Planned next"):
+        assert heading in rendered
+    # Dead ends go first: Planned next still has lines while Dead ends has none.
+    assert "concall transcript" in rendered
+    assert "do not retry" not in rendered
+    # A headingless body keeps the newest content (the tail), as before.
+    free = "old line\n" * 1000 + "NEWEST"
+    tail = iter_research._Report(task="q", body=free).render()
+    assert tail.endswith("NEWEST") and len(tail) <= _REPORT_CHAR_CAP + 2
+
+
 def test_iter_distill_empty_keeps_shipping() -> None:
     """An empty distill (dead/echoing model) keeps the prior report and still ships."""
     brief = _run(
@@ -253,10 +279,9 @@ def test_heavy_spawns_angles_and_synthesizes_merged_sources() -> None:
     web_urls = [s.url for s in brief.sources if s.url == "https://ex.com/a"]
     assert len(web_urls) == 1
     assert brief.markdown.strip()
-    # WS3: the heavy/panel path reconciles web_available with the merged source
-    # count (= any(angle.web_available) or bool(merged_sources)). A panel brief
-    # that cites N merged sources must report web_available True so it never fires
-    # the "web unavailable" banner alongside its sources (symptom #2).
+    # WS3: a panel brief that cites a merged WEB source reports web_available
+    # True so it never fires the "web unavailable" banner alongside its sources
+    # (symptom #2).
     assert brief.web_available is True
 
 
@@ -674,6 +699,38 @@ def test_ultra_cites_the_preseeded_filings_floor() -> None:
     )
     assert isinstance(brief, ResearchBrief)
     assert "https://www.bseindia.com/xml/kse_bm.pdf" in [s.url for s in brief.sources]
+
+
+def test_structured_only_sources_are_not_web_available() -> None:
+    """R15-RESEARCH-041: vysted:// structured pulls and exchange-filing rows are
+    cited sources but not the web — a DEEP or ULTRA run whose web search found
+    nothing keeps web_available False so the structured-only banner can fire."""
+    for brief in (
+        _run(
+            run_iter_research(
+                "KSE outlook",
+                region="IN",
+                tool_call=_kse_floor_tool_factory(),
+                llm_call=FakeLLM(reflect="complete"),
+                budget=BudgetGuard(max_steps=6),
+            )
+        ),
+        _run(
+            run_heavy_research(
+                "KSE outlook",
+                angles=2,
+                region="IN",
+                tool_call=_kse_floor_tool_factory(),
+                llm_call=FakeLLM(reflect="complete"),
+                budget=BudgetGuard(max_steps=20),
+            )
+        ),
+    ):
+        assert isinstance(brief, ResearchBrief)
+        urls = [s.url for s in brief.sources]
+        assert "https://www.bseindia.com/xml/kse_bm.pdf" in urls
+        assert any(u.startswith("vysted://") for u in urls)
+        assert brief.web_available is False
 
 
 # --- R13 depth integrity: round-1 planning skip -------------------------------

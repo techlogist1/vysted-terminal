@@ -62,4 +62,16 @@ describe("KeyEntryDialog", () => {
     await waitFor(() => expect(signal?.aborted).toBe(true));
     expect(setSecretMock).not.toHaveBeenCalled();
   });
+
+  it("a missing OS secret store shows the typed unavailable state (R15-CROSS-PLATFORM-011)", async () => {
+    validateMock.mockResolvedValue({ ok: true, reason: null, detail: null });
+    setSecretMock.mockRejectedValueOnce(
+      "secret-store-unavailable: Platform secure storage failure: no provider" as never,
+    );
+    render(<KeyEntryDialog open providerId="openai" onOpenChange={() => {}} />);
+    fireEvent.change(screen.getByLabelText("API key"), { target: { value: "sk-test" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText(/Secret store unavailable/)).toBeInTheDocument();
+  });
 });
