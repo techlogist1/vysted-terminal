@@ -77,13 +77,12 @@ def should_cross_check(fund: dict[str, Any]) -> bool:
     """Whether the fundamentals payload warrants the quarterly cross-check.
 
     True only when the provider actually carries a numeric growth scalar to
-    reconcile AND its claimed basis is MRQ-YoY (``growth_basis`` absent means
-    the D55 default, which is ``mrq_yoy``). A provider on a different basis is
-    never compared against quarterly YoY — that would manufacture false
-    conflicts out of a basis mismatch.
+    reconcile AND states its basis as MRQ-YoY. A provider on a different basis —
+    or one that stated none (R15-DATA-102: there is no inherited default) — is
+    never compared against quarterly YoY: that would manufacture a conflict out
+    of a basis mismatch, or claim an MRQ basis nobody stated.
     """
-    basis = fund.get("growth_basis")
-    if basis is not None and basis != "mrq_yoy":
+    if fund.get("growth_basis") != "mrq_yoy":
         return False
     return any(
         isinstance(fund.get(key), (int, float)) and not isinstance(fund.get(key), bool)
@@ -166,24 +165,6 @@ def compute_quarterly_yoy(frame: pd.DataFrame | None) -> QuarterlyYoY | None:
     )
 
 
-def _is_rate_limited(exc: BaseException) -> bool:
-    """True when ``exc`` (or a chained cause) is a yfinance rate-limit.
-
-    Matched by type NAME — same rationale as
-    ``services.dividend_history._is_rate_limited``: importing
-    ``yfinance.exceptions`` would couple this module to a drifting submodule.
-    """
-    seen: set[int] = set()
-    cur: BaseException | None = exc
-    while cur is not None and id(cur) not in seen:
-        seen.add(id(cur))
-        name = type(cur).__name__
-        if name == "YFRateLimitError" or "ratelimit" in name.lower():
-            return True
-        cur = cur.__cause__ or cur.__context__
-    return False
-
-
 def _fetch_quarterly_income(symbol: str) -> pd.DataFrame | None:
     """The quarterly income statement (BLOCKING; runs under ``to_thread``)."""
     return yf.Ticker(symbol).quarterly_income_stmt
@@ -230,7 +211,7 @@ async def get_quarterly_yoy(symbol: str) -> QuarterlyYoY | None:
     try:
         frame = await asyncio.to_thread(_fetch_quarterly_income, symbol)
     except Exception as exc:  # noqa: BLE001 — a cross-check must never break research
-        if _is_rate_limited(exc):
+        if provider_health.is_rate_limit(exc):
             provider_health.record_rate_limited()
         else:
             logger.debug("quarterly income statement unavailable for %s: %s", symbol, exc)

@@ -213,20 +213,6 @@ export function AnalystRatingsPanel() {
             </div>
           </nav>
 
-          {/* A failed slice that still has cached data keeps the table below
-              and flags the staleness inline; the no-data error case renders
-              the composed error state in the body instead. */}
-          {tabError && tabData !== null && (
-            <div className="border-charcoal-700 flex items-center justify-between gap-3 border-b px-3 py-2">
-              <p className="text-negative text-caption min-w-0 truncate" title={tabError}>
-                {tabError}
-              </p>
-              <Button type="button" size="xs" variant="ghost" onClick={retryTab}>
-                Retry
-              </Button>
-            </div>
-          )}
-
           <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto p-3">
             <header className="text-charcoal-100 text-body mb-3">
               <button
@@ -259,6 +245,7 @@ export function AnalystRatingsPanel() {
             ) : tabError && tabData === null ? (
               <EmptyState
                 icon={Search}
+                variant="error"
                 headline={`Could not load ${symbol}`}
                 hint={tabError}
                 cta={{ label: "Retry", onClick: retryTab, primary: true }}

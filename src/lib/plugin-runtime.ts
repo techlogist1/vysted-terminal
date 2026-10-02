@@ -129,10 +129,14 @@ function defaultContext(context?: PluginRuntimeContext): Required<PluginRuntimeC
 }
 
 /** Parse a `major.minor.patch` semver into a numeric triple (pre-release/build ignored).
- *  Strips a leading range operator (`>=`, `>`, `^`, `~`, `=`, `<`) first so a manifest
- *  written as `">=0.8.0"` parses to its floor `[0,8,0]` instead of `[0,0,0]`. */
+ *  Strips a leading `>=`/`>`/`^`/`~`/`=` first so a manifest written as `">=0.8.0"`
+ *  parses to its floor `[0,8,0]` instead of `[0,0,0]`. `<` is deliberately NOT
+ *  stripped (R15-CODE-PLATFORM-048): every comparison this feeds
+ *  ({@link hostSatisfies}) is `>=`, so silently stripping `<` would parse
+ *  `"<0.9.0"` as `0.9.0` and then apply `>=`, inverting the manifest's actual
+ *  constraint — an unsupported operator must fail loudly instead. */
 function parseSemver(version: string): [number, number, number] {
-  const cleaned = version.trim().replace(/^[\^~>=<\s]+/, "");
+  const cleaned = version.trim().replace(/^[\^~>=\s]+/, "");
   const core = cleaned.split("+")[0].split("-")[0];
   const parts = core.split(".").map((p) => Number.parseInt(p, 10));
   return [
@@ -146,9 +150,14 @@ function parseSemver(version: string): [number, number, number] {
  * True iff `host` >= `required` by major.minor.patch comparison. The host
  * (Vysted Terminal) satisfies a plugin's `requiredHostVersion` only when it is
  * at least that version. Deliberately simple — Vysted versions are plain
- * `x.y.z`; ranges/caret/tilde are not part of the manifest contract.
+ * `x.y.z`; ranges/caret/tilde are not part of the manifest contract. A `<`
+ * prefix is an unsupported range operator, not a satisfiable requirement —
+ * always false, regardless of the host version.
  */
 export function hostSatisfies(host: string, required: string): boolean {
+  if (required.trim().startsWith("<")) {
+    return false;
+  }
   const [h0, h1, h2] = parseSemver(host);
   const [r0, r1, r2] = parseSemver(required);
   if (h0 !== r0) return h0 > r0;
@@ -207,10 +216,22 @@ export class PluginRuntime {
    * accessors (`getDataSources` / `getPanels` / `getCommands` / etc.) — the
    * runtime calls them only when the matching `capabilities` flag is set.
    *
+   * `preloadedConfig` (R15-LIFECYCLE-027): pass the persisted config the
+   * caller already fetched (or `null` when it fetched and found none) so this
+   * call skips its own `persistence.load` round-trip — the boot loop reads
+   * every plugin's config once to decide whether to load it, and previously
+   * loaded it again here, serially, for every installed+enabled plugin. Omit
+   * the argument to have this call fetch it itself (the default, and what
+   * `installPlugin`/`enablePlugin`/`reloadPlugin` still do after their own
+   * config write).
+   *
    * On success, transitions the record to `active`; on failure, to `error`
    * with the captured message.
    */
-  async loadPlugin(plugin: DiscoveredPlugin): Promise<LoadedPluginSnapshot> {
+  async loadPlugin(
+    plugin: DiscoveredPlugin,
+    preloadedConfig?: PluginPersistedConfig | null,
+  ): Promise<LoadedPluginSnapshot> {
     let record = this.plugins.get(plugin.manifest.id);
     if (!record) {
       record = this.discover(plugin) as LoadedPlugin;
@@ -235,7 +256,10 @@ export class PluginRuntime {
 
     let persisted: PluginPersistedConfig;
     try {
-      const stored = await this.context.persistence.load(plugin.manifest.id);
+      const stored =
+        preloadedConfig !== undefined
+          ? preloadedConfig
+          : await this.context.persistence.load(plugin.manifest.id);
       persisted = stored ?? this.defaultConfig(plugin.manifest.id);
       // Persist the default the first time we see this plugin so a second
       // launch finds an explicit row (not falling back through the default).
@@ -409,7 +433,14 @@ export class PluginRuntime {
       return `manifest version "${manifest.version}" does not match plugin instance version "${instance.version}"`;
     }
     if (!hostSatisfies(this.context.hostVersion, manifest.requiredHostVersion)) {
-      return `plugin requires host version >= ${manifest.requiredHostVersion} but host is ${this.context.hostVersion}`;
+      // Name the real operator (R15-CODE-PLATFORM-048): hardcoding ">=" here
+      // read as if a "<0.9.0" manifest asked for ">= <0.9.0" — nonsense that
+      // hid the fact that "<" is simply unsupported.
+      const required = manifest.requiredHostVersion.trim();
+      const detail = required.startsWith("<")
+        ? `"${required}" (an unsupported range operator — only a floor, ">=", is supported)`
+        : `>= ${required}`;
+      return `plugin requires host version ${detail} but host is ${this.context.hostVersion}`;
     }
     return null;
   }
@@ -523,19 +554,28 @@ export class PluginRuntime {
       this.transitionToError(record.manifest.id, error, "healthCheck");
       return;
     }
+    // R15-CODE-PLATFORM-047: re-read the CURRENT record post-await rather than
+    // writing back the pre-await `record` — a disable/error transition that
+    // landed while `healthCheck()` was in flight must not be reverted to
+    // `active` by this stale-record overwrite. Bail if the plugin is gone or
+    // no longer active; only `healthHistory` is mutated otherwise.
+    const current = this.plugins.get(record.manifest.id);
+    if (!current || current.state !== "active") {
+      return;
+    }
     const sample: HealthSample = {
       status: status.status,
       message: status.message,
       recordedAt: this.context.now(),
     };
-    const previous = record.healthHistory[record.healthHistory.length - 1];
-    const newHistory = [...record.healthHistory, sample].slice(-HEALTH_HISTORY_LIMIT);
-    this.plugins.set(record.manifest.id, {
-      ...record,
+    const previous = current.healthHistory[current.healthHistory.length - 1];
+    const newHistory = [...current.healthHistory, sample].slice(-HEALTH_HISTORY_LIMIT);
+    this.plugins.set(current.manifest.id, {
+      ...current,
       healthHistory: newHistory,
     });
     if (!previous || previous.status !== sample.status) {
-      this.emit("health-changed", record.manifest.id, status.message);
+      this.emit("health-changed", current.manifest.id, status.message);
     }
   }
 

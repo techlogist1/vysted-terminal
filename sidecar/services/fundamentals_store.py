@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Any, get_args
 
 from config import get_data_dir
-from models.fundamentals import Fundamentals
+from models.fundamentals import FieldMeta, Fundamentals
 from models.market import Quote
 from models.screener import (
     NumericBetweenCriterion,
@@ -151,6 +151,9 @@ _ALL_COLUMNS: tuple[tuple[str, str], ...] = (
     ("seed_updated_at", "REAL"),
     ("eod_updated_at", "REAL"),
     ("provider", "TEXT"),
+    # The info tier's stated growth basis (Fundamentals.growth_basis) — NULL on
+    # seed-only rows, whose pack never recorded one (R15-DATA-102).
+    ("growth_basis", "TEXT"),
 )
 
 #: Every SQL identifier ``_criterion_fails_sql`` is allowed to interpolate —
@@ -442,6 +445,7 @@ async def upsert_info(symbol: str, fundamentals: Fundamentals) -> None:
         "name": fundamentals.name,
         "currency": fundamentals.currency,
         "provider": fundamentals.provider,
+        "growth_basis": fundamentals.growth_basis,
         "info_updated_at": now,
         "v7_updated_at": now,
         "info_failed_at": None,
@@ -583,15 +587,45 @@ async def fetch_rows(symbols: list[str]) -> dict[str, dict[str, Any]]:
         return await asyncio.to_thread(_work)
 
 
+def _epoch_iso(stamp: float | None) -> str | None:
+    return datetime.fromtimestamp(stamp, tz=UTC).isoformat() if stamp is not None else None
+
+
+def _row_field_meta(row: dict[str, Any], provider: str) -> dict[str, FieldMeta]:
+    """Per-field provenance for every non-null numeric value, from the row's tier
+    stamps (R15-DATA-102): a value is dated by the tier that wrote it (v7 /
+    ``.info``, or the bhavcopy EOD for a fresher ``market_cap``); a value no live
+    tier wrote is the bundled snapshot's and says so."""
+    meta: dict[str, FieldMeta] = {}
+    for field in _NUMERIC_FIELDS:
+        if row.get(field) is None:
+            continue
+        stamp = row.get("v7_updated_at" if field in _V7_NUMERIC_FIELDS else "info_updated_at")
+        eod_at = row.get("eod_updated_at")
+        if field == "market_cap" and eod_at is not None and eod_at > (stamp or 0.0):
+            stamp = eod_at
+        if stamp is None:
+            meta[field] = FieldMeta(
+                status="ok", provider="seed", as_of=_epoch_iso(row.get("seed_updated_at"))
+            )
+        else:
+            meta[field] = FieldMeta(status="ok", provider=provider, as_of=_epoch_iso(stamp))
+    return meta
+
+
 def row_to_pair(row: dict[str, Any]) -> tuple[Fundamentals, Quote | None]:
     """Materialize one store row as the engine's ``(Fundamentals, Quote|None)``."""
+    provider = row.get("provider") or "fundamentals-store"
+    has_growth = row.get("revenue_growth") is not None or row.get("earnings_growth") is not None
     fundamentals = Fundamentals(
         symbol=row["symbol"],
         name=row.get("name"),
         sector=row.get("sector"),
         industry=row.get("industry"),
         currency=row.get("currency"),
-        provider=row.get("provider") or "fundamentals-store",
+        provider=provider,
+        growth_basis=row.get("growth_basis") if has_growth else None,
+        field_meta=_row_field_meta(row, provider),
         **{f: row.get(f) for f in _NUMERIC_FIELDS},
     )
     quote: Quote | None = None
@@ -604,13 +638,13 @@ def row_to_pair(row: dict[str, Any]) -> tuple[Fundamentals, Quote | None]:
         quote = Quote(
             symbol=row["symbol"],
             price=row["quote_price"],
-            change=row.get("quote_change") or 0.0,
-            change_percent=row.get("quote_change_percent") or 0.0,
+            change=row.get("quote_change"),
+            change_percent=row.get("quote_change_percent"),
             volume=row.get("quote_volume"),
-            currency=row.get("quote_currency") or "USD",
+            currency=row.get("quote_currency") or row.get("currency") or "USD",
             market_state=row.get("quote_market_state"),
             timestamp=timestamp,
-            provider=row.get("provider") or "fundamentals-store",
+            provider=provider,
         )
     return fundamentals, quote
 

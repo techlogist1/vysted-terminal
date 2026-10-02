@@ -333,6 +333,7 @@ export function NewsFeedPanel() {
         <div className="min-h-0 flex-1 overflow-y-auto">
           <EmptyState
             icon={Newspaper}
+            variant="error"
             headline="Could not load the news feed"
             hint={state.message}
             cta={{ label: "Retry", primary: true, onClick: refresh }}

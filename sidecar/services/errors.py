@@ -21,7 +21,10 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
+
+if TYPE_CHECKING:
+    from models.llm import LLMErrorEvent
 
 ProviderErrorKind = Literal["rate_limited", "not_found", "network"]
 
@@ -196,6 +199,14 @@ class HumanError:
     action: str | None  # the next step ("Top up or switch provider in Settings")
     detail: str | None  # the raw provider text — UI shows behind a toggle
     code: str | None  # machine tag: "provider_402", "network", "auth", ...
+
+    def to_event(self) -> LLMErrorEvent:
+        """This error as the stream's terminal error event (R15-CODE-PLATFORM-038)."""
+        from models.llm import LLMErrorEvent  # local: this module stays stdlib-only
+
+        return LLMErrorEvent(
+            message=self.message, action=self.action, detail=self.detail, code=self.code
+        )
 
 
 # ---------------------------------------------------------------------------

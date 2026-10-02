@@ -133,6 +133,18 @@ describe("buildSearchHeaders — R9 two-tier emit/omit matrix", () => {
     ).toBe("normal=perplexity/sonar,deep=openai/o4-mini-deep-research,ultra=x-ai/grok-4.3");
   });
 
+  it("includeKey:false omits the key and never reads the keychain, tier/models still ride (R15-CODE-PLATFORM-039)", async () => {
+    stubKeychain({ [OPENROUTER_ACCOUNT]: "sk-or-v1-secret" });
+    useSearchSettingsStore.getState().setResearchTier("tier_b");
+
+    const headers = await buildSearchHeaders({ includeKey: false });
+
+    expect(headers["X-Vysted-Research-Tier"]).toBe("tier_b");
+    expect(headers["X-Vysted-Openrouter-Key"]).toBeUndefined();
+    expect(headers["X-Vysted-Research-Models"]).toBeTruthy();
+    expect(getSecretMock).not.toHaveBeenCalled();
+  });
+
   it("getOpenrouterApiKey reads the AI-Providers slot and maps empty/miss to null", async () => {
     stubKeychain({ [OPENROUTER_ACCOUNT]: "sk-or-v1-secret" });
     expect(await getOpenrouterApiKey()).toBe("sk-or-v1-secret");

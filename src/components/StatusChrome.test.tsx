@@ -237,6 +237,27 @@ describe("StatusChrome", () => {
     expect(chip.textContent).toContain("2");
   });
 
+  describe("sidecar error reason (R15-LEAD-021)", () => {
+    afterEach(() => useAppStore.setState({ sidecarStatus: "connecting", sidecarError: null }));
+
+    it("an error status with a reason renders the reason in the chip title", () => {
+      useAppStore.setState({
+        sidecarStatus: "error",
+        sidecarError: "The data engine crashed on startup and was stopped.",
+      });
+      render(<StatusChrome />);
+      const chip = screen.getByTitle(/The data engine crashed on startup and was stopped\./);
+      expect(chip.title).toContain("Sidecar error");
+      expect(chip).toHaveTextContent("The data engine crashed on startup and was stopped.");
+    });
+
+    it("an error status with no reason keeps the bare label", () => {
+      useAppStore.setState({ sidecarStatus: "error", sidecarError: null });
+      render(<StatusChrome />);
+      expect(screen.getByTitle("Sidecar: Sidecar error")).toBeInTheDocument();
+    });
+  });
+
   describe("NSE fall-through notice (R15-LIFECYCLE-021)", () => {
     const row = (count: number, agoS: number) => ({
       provider: "nse_direct",

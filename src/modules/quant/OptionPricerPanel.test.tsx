@@ -37,6 +37,23 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe("OptionPricerPanel date defaults (R15-UI-063)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 25)); // 2026-09-25, local time
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("defaults valuation to today and expiry to today + 45d, not a frozen literal", () => {
+    render(<OptionPricerPanel />);
+    expect(screen.getByTestId("field-valuation-date")).toHaveValue("2026-09-25");
+    expect(screen.getByTestId("field-expiry-date")).toHaveValue("2026-11-09");
+  });
+});
+
 describe("OptionPricerPanel", () => {
   it("renders the input form and method selector", () => {
     render(<OptionPricerPanel />);
@@ -103,6 +120,17 @@ describe("OptionPricerPanel", () => {
     render(<OptionPricerPanel />);
     fireEvent.change(screen.getByTestId("field-spot"), { target: { value: "-3" } });
     expect(screen.getByTestId("option-validation").textContent).toMatch(/positive/);
+    const priceBtn = screen.getByTestId("price-option") as HTMLButtonElement;
+    expect(priceBtn.disabled).toBe(true);
+    fireEvent.click(priceBtn);
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  });
+
+  it("R15-CODE-PLATFORM-041: steps below the shared floor blocks submit with a message before the POST", () => {
+    render(<OptionPricerPanel />);
+    fireEvent.click(screen.getByTestId("method-binomial"));
+    fireEvent.change(screen.getByTestId("field-binomial-steps"), { target: { value: "2" } });
+    expect(screen.getByTestId("option-validation").textContent).toMatch(/Tree steps must be.*3/);
     const priceBtn = screen.getByTestId("price-option") as HTMLButtonElement;
     expect(priceBtn.disabled).toBe(true);
     fireEvent.click(priceBtn);

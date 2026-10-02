@@ -28,6 +28,15 @@ export type OptionPayoff = "call" | "put";
 export type OptionPricingMethod = "black-scholes" | "binomial" | "monte-carlo";
 
 /**
+ * Domain floors mirrored from ``sidecar/models/quant.py`` — the single
+ * source of truth is ``OptionPricingRequest.validate_domain()``; the panel
+ * reads these constants so its inline validation message matches the
+ * server's rejection instead of drifting (R15-CODE-PLATFORM-041).
+ */
+export const MIN_BINOMIAL_STEPS = 3;
+export const MIN_MC_PATHS = 100;
+
+/**
  * Inputs for an option-pricing call. Day-count + calendar are fixed
  * server-side (``Actual365Fixed`` + ``NullCalendar``) — the wire stays
  * minimal; advanced users get a custom-config endpoint later if needed.

@@ -128,9 +128,14 @@ def spend_usd(provider: str, model: str, usage: LLMUsage | None) -> float | None
     """The displayed spend of one call (C11, R15-AGENT-082).
 
     ``None`` when the call reported no usage or the model has no price: an
-    unknown cost is shown as unknown, not as the ceiling's fallback rate.
+    unknown cost is shown as unknown, not as the ceiling's fallback rate. The
+    usage's ``served_model`` (what a router slug actually ran) wins over the
+    requested ``model``.
     """
-    if usage is None or _priced_rate(provider, model) is None:
+    if usage is None:
+        return None
+    model = usage.served_model or model
+    if _priced_rate(provider, model) is None:
         return None
     tokens_usd = estimate_spend_usd(provider, model, _usage_tokens(usage))
     return round(tokens_usd + search_spend_usd(provider, model, usage), 6)
@@ -189,6 +194,7 @@ class BudgetGuard:
         """
         if usage is None:
             return
+        model = usage.served_model or model
         self.measured = True
         round_tokens = _usage_tokens(usage)
         self._tokens += round_tokens

@@ -179,6 +179,7 @@ export function formatModelLabel(modelId: string): string {
  */
 export function StatusChrome() {
   const status = useAppStore((state) => state.sidecarStatus);
+  const sidecarError = useAppStore((state) => state.sidecarError);
   const provider = useLLMProvidersStore((state) => state.defaultProviderId);
   const providers = useLLMProvidersStore((state) => state.providers);
   const model = useModelForProvider(provider);
@@ -228,8 +229,16 @@ export function StatusChrome() {
       : status === "error"
         ? "bg-negative"
         : "bg-warning animate-pulse";
+  // R15-LEAD-021: a terminated engine carries a reason (panels already show
+  // it) -- the chip used to read a bare "Sidecar error" with no detail.
   const connLabel =
-    status === "connected" ? "Connected" : status === "error" ? "Sidecar error" : "Connecting…";
+    status === "connected"
+      ? "Connected"
+      : status === "error"
+        ? sidecarError
+          ? `Sidecar error — ${sidecarError}`
+          : "Sidecar error"
+        : "Connecting…";
 
   return (
     <div

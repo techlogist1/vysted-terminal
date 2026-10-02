@@ -71,4 +71,16 @@ describe("SIDECAR_SPECS", () => {
       expect(added).toHaveLength(spec.addData.length);
     },
   );
+
+  // R15-CODE-PLATFORM-078: every spec, including "main", builds its frozen
+  // venv from requirements.txt — never requirements-dev.txt, which also pulls
+  // ruff/pytest/pytest-asyncio into the venv PyInstaller freezes the release
+  // binary from. Build-only tooling (pyinstaller) rides as a pipExtra instead.
+  it.each(SIDECAR_SPECS.map((s) => [s.name, s]))(
+    "%s builds from requirements.txt, not requirements-dev.txt",
+    (_name, spec) => {
+      expect(spec.requirements).toBe("requirements.txt");
+      expect(spec.pipExtras).toContain("pyinstaller==6.20.0");
+    },
+  );
 });

@@ -80,7 +80,9 @@ function SymbolCell({ row, showChips }: { row: WatchlistRow; showChips: boolean 
       {showChips && quote !== null && (
         <span className="flex flex-wrap items-center gap-1 overflow-hidden">
           <ProvenanceBadge provider={quote.provider} />
-          {quote.freshness != null && <StalenessBadge freshness={quote.freshness} />}
+          {quote.freshness != null && (
+            <StalenessBadge freshness={quote.freshness} asOf={Date.parse(quote.timestamp)} />
+          )}
         </span>
       )}
       {session.label !== null && session.tone === "muted" && (
@@ -125,14 +127,14 @@ function PriceCell({ row }: { row: WatchlistRow }) {
  *  or closed-session change greys to the muted tier so it never reads as a move. */
 function ChangeCell({ row }: { row: WatchlistRow }) {
   const { quote } = row;
-  const change = quote?.change_percent ?? 0;
-  const positive = change >= 0;
+  const change = quote?.change_percent ?? null;
+  const positive = change !== null && change >= 0;
   const live = isLiveQuote(quote?.freshness);
   return (
     <span
       className={cn(
         "block text-right tabular-nums",
-        quote === null || !live
+        change === null || !live
           ? "text-charcoal-400"
           : positive
             ? "text-positive"
@@ -140,7 +142,7 @@ function ChangeCell({ row }: { row: WatchlistRow }) {
       )}
       title={quote !== null && !live ? "Not a live tick — last known change" : undefined}
     >
-      {quote !== null ? fmtChange(change) : "—"}
+      {change !== null ? fmtChange(change) : "—"}
     </span>
   );
 }

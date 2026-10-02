@@ -35,6 +35,23 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe("GreeksDashboard date defaults (R15-UI-063)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 25)); // 2026-09-25, local time
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("defaults valuation to today and expiry to today + 45d, not a frozen literal", () => {
+    render(<GreeksDashboard />);
+    expect(screen.getByTestId("greeks-valuation-date")).toHaveValue("2026-09-25");
+    expect(screen.getByTestId("greeks-expiry-date")).toHaveValue("2026-11-09");
+  });
+});
+
 describe("GreeksDashboard", () => {
   it("renders payoff selector + BSM inputs", () => {
     render(<GreeksDashboard />);

@@ -1,6 +1,6 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
+import { AlertTriangle, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ export function EmptyState({
   hint,
   cta,
   dense = false,
+  variant = "empty",
   className,
 }: {
   /** The lucide icon for this surface (sized + tinted by the component). */
@@ -38,22 +39,31 @@ export function EmptyState({
   /** Compact variant for inline/secondary panels (palette no-results, sparse
    *  tables): smaller icon + caption headline, tighter rhythm. (§13.) */
   dense?: boolean;
+  /** 'error' is a failure, not an empty result: `role="alert"`, a distinct
+   *  negative-tinted AlertTriangle icon (never the caller's own icon, which
+   *  call sites pass unchanged for both states), instead of the quiet empty
+   *  tone (R15-UI-066). */
+  variant?: "empty" | "error";
   className?: string;
 }) {
+  const isError = variant === "error";
+  const DisplayIcon = isError ? AlertTriangle : Icon;
   return (
     <div
       data-testid="empty-state"
       data-dense={dense || undefined}
+      data-variant={variant}
+      role={isError ? "alert" : undefined}
       className={cn(
         "flex w-full flex-col items-center justify-start pt-16 text-center",
         dense ? "gap-2 px-4 py-6" : "gap-3 px-6 py-8",
         className,
       )}
     >
-      <Icon
+      <DisplayIcon
         aria-hidden
         strokeWidth={1.5}
-        className={cn("text-charcoal-500", dense ? "size-5" : "size-6")}
+        className={cn(isError ? "text-negative" : "text-charcoal-500", dense ? "size-5" : "size-6")}
         data-testid="empty-state-icon"
       />
       <div className={cn("flex flex-col items-center", dense ? "gap-0.5" : "gap-1")}>

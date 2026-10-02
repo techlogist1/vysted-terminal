@@ -53,8 +53,9 @@ def _make_quote(symbol: str) -> Quote:
 
 def test_register_adds_screener_query_to_workflow_engine() -> None:
     """``register()`` adds ``analysis.screener_query`` to the engine registry."""
-    # The conftest's TestClient build triggers ``register_v0_6_0_nodes`` which
-    # calls our register helper. Assert the node is in the registry.
+    # The conftest's TestClient build runs ``create_app`` ->
+    # ``workflow_nodes.register_all`` which calls our register helper. Assert the
+    # node is in the registry.
     assert "analysis.screener_query" in workflow_engine.registered_node_types()
 
 

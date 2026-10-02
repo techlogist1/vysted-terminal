@@ -195,6 +195,15 @@ describe("node-registry: buildRegistry", () => {
     const entry = findEntry(registry, "data.fetch_quote");
     expect(entry?.source).toBe("built-in");
   });
+
+  it("plugin node absent from the server list is not runnable", () => {
+    const withoutHandler = buildRegistry([pluginNode], [...FIRST_PARTY_NODE_IDS]);
+    expect(findEntry(withoutHandler, pluginNode.id)).toBeUndefined();
+    expect(withoutHandler).toHaveLength(FIRST_PARTY_NODE_IDS.length);
+
+    const withHandler = buildRegistry([pluginNode], [...FIRST_PARTY_NODE_IDS, pluginNode.id]);
+    expect(findEntry(withHandler, pluginNode.id)?.source).toBe("plugin");
+  });
 });
 
 describe("node-registry: groupByCategory", () => {

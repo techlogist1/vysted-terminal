@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 
@@ -88,3 +88,31 @@ def test_tenor_years_increases_along_curve() -> None:
 def test_duration_ms_recorded() -> None:
     result = yield_curve.bootstrap_curve(_canonical_us_treasury_request())
     assert result.duration_ms > 0
+
+
+def test_grid_distinct_and_within_max_tenor() -> None:
+    """R15-DATA-098: the sample grid must not run past the last instrument's
+    tenor, and (when the span has enough distinct days for the requested
+    sample count) must not repeat a date."""
+    # Long span (30y swap), moderate sample count -> distinctness is
+    # achievable; every date strictly increases and none exceeds the max
+    # tenor (2026-05-16 + 30y).
+    result = yield_curve.bootstrap_curve(_canonical_us_treasury_request(sample_count=100))
+    dates = [p.date for p in result.curve]
+    assert dates == sorted(set(dates)), "sample dates must be strictly increasing / distinct"
+    # 30y ~ round(30 * 365) = 10950 days -> the longest instrument's tenor date.
+    max_tenor_date = date(2026, 5, 16) + timedelta(days=round(30 * 365.0))
+    assert dates[-1] <= max_tenor_date
+
+    # The exact register repro: a single 3-month deposit with a sample count
+    # that outruns the span in days. The grid must still never extrapolate
+    # past the instrument's tenor (2026-08-16), even though 100 samples over
+    # ~91 days can't all be distinct calendar dates.
+    short_req = YieldCurveRequest(
+        valuation_date=date(2026, 5, 16),
+        instruments=[YieldCurveInstrument(type="deposit", tenor=3, tenor_unit="months", rate=0.05)],
+        sample_count=100,
+    )
+    short_result = yield_curve.bootstrap_curve(short_req)
+    # 3 months ~ round(0.25 * 365) = 91 days -> the instrument's own tenor date.
+    assert short_result.curve[-1].date <= date(2026, 5, 16) + timedelta(days=91)

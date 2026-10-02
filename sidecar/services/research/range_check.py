@@ -92,8 +92,9 @@ class Range52w:
     ``high``/``low`` are the max intraday high / min intraday low over the
     trailing 52-week window; ``coverage_days`` and ``bars`` back the
     applicability gate and are carried as evidence; ``source`` is the provider
-    lane that actually served the series (``nse_direct`` / ``nse`` / ``bse`` /
-    ``yfinance``), so a disagreement names which exchange series it came from.
+    lane that actually served the series (``nse_direct`` / ``nse`` / ``bse`` —
+    only an exchange-direct lane can witness, see _EXCHANGE_DIRECT_PROVIDERS),
+    so a disagreement names which exchange series it came from.
     """
 
     high: float
@@ -152,15 +153,14 @@ def compute_range(bars: list[Any] | None, source: str) -> Range52w | None:
         return None
     latest = max(ts for ts, _ in stamped)
     window_start = latest - timedelta(days=_WINDOW_DAYS)
-    windowed = [bar for ts, bar in stamped if ts >= window_start]
-    windowed_ts = [ts for ts, _ in stamped if ts >= window_start]
+    windowed = [(ts, bar) for ts, bar in stamped if ts >= window_start]
     if not windowed:
         return None
-    coverage_days = (latest - min(windowed_ts)).days
+    coverage_days = (latest - min(ts for ts, _ in windowed)).days
     if coverage_days < _COVERAGE_MIN_DAYS or len(windowed) < _COVERAGE_MIN_BARS:
         return None
-    highs = [float(b.high) for b in windowed if b.high is not None]
-    lows = [float(b.low) for b in windowed if b.low is not None]
+    highs = [float(bar.high) for _, bar in windowed if bar.high is not None]
+    lows = [float(bar.low) for _, bar in windowed if bar.low is not None]
     if not highs or not lows:
         return None
     return Range52w(

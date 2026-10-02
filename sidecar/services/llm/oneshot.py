@@ -74,6 +74,7 @@ async def complete_with_usage(
     messages: list[dict[str, Any]],
     *,
     timeout: float | None = None,
+    base_url: str | None = None,
 ) -> tuple[str, LLMUsage | None]:
     """Run one non-streaming completion; return ``(joined text, usage)``.
 
@@ -98,12 +99,14 @@ async def complete_with_usage(
     :param api_key: BYOK key (held in memory for the call only; never persisted).
     :param messages: Conversation as plain ``{"role", "content"}`` dicts.
     :param timeout: Per-call wall-clock cap in seconds, or ``None`` for no cap.
+    :param base_url: The calling adapter's endpoint override, so a follow-up
+        call reaches the same host as the stream it serves.
     """
     parts: list[str] = []
     usage: list[LLMUsage] = []
 
     async def _drive() -> None:
-        adapter = get_provider(provider)  # type: ignore[arg-type]
+        adapter = get_provider(provider, base_url=base_url)  # type: ignore[arg-type]
         stream = adapter.stream_chat(
             messages=_to_messages(messages),
             model=model,
@@ -148,13 +151,16 @@ async def complete(
     messages: list[dict[str, Any]],
     *,
     timeout: float | None = None,
+    base_url: str | None = None,
 ) -> str:
     """Run one non-streaming completion and return the joined text only.
 
     The text-only view of :func:`complete_with_usage` (same error and timeout
     semantics) for callers that do not meter usage.
     """
-    text, _usage = await complete_with_usage(provider, model, api_key, messages, timeout=timeout)
+    text, _usage = await complete_with_usage(
+        provider, model, api_key, messages, timeout=timeout, base_url=base_url
+    )
     return text
 
 

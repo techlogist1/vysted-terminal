@@ -235,6 +235,44 @@ async def test_native_tool_call_arguments_never_coerce_to_empty(
         assert tool_use[0].input == expected
 
 
+@pytest.mark.asyncio
+async def test_tools_construction_error_logs_and_emits_notice(
+    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """R15-AGENT-076: a tool schema the SDK rejects client-side (its own
+    ``Tool.model_validate``) drops tools for the round with a logged warning and
+    a notice event, never silently."""
+    from ollama._client import _copy_tools
+
+    from services.agent_tools import schemas
+
+    chunks = [{"message": {"content": "no tools"}, "done": True, "done_reason": "stop"}]
+    fake = _patch(monkeypatch, chunks=chunks)
+    fake_chat = fake.chat
+
+    async def _sdk_chat(**kwargs: Any) -> AsyncIterator[Any]:
+        list(_copy_tools(kwargs.get("tools")))  # the SDK's construction step
+        return await fake_chat(**kwargs)
+
+    fake.chat = _sdk_chat  # type: ignore[method-assign]
+    bad_tool = {"type": "function", "function": {"name": "price_data", "parameters": "x"}}
+    monkeypatch.setattr(schemas, "openai_tools", lambda _ids: [bad_tool])
+    with caplog.at_level("WARNING", logger="services.llm.ollama"):
+        out = [
+            e
+            async for e in OllamaProvider().stream_chat(
+                messages=[LLMMessage(role="user", content="quote RELIANCE")],
+                model="llama3.1:8b",
+                tool_ids=["price_data"],
+            )
+        ]
+    assert [e.kind for e in out] == ["research_step", "delta", "done"]
+    assert out[0].step_kind == "notice"
+    assert "without" in out[0].detail
+    assert "tools" not in fake.chat_calls[-1]
+    assert any("without tools" in r.getMessage() for r in caplog.records)
+
+
 async def _ollama_text_round(
     monkeypatch: pytest.MonkeyPatch, text: str, step: int | None = None
 ) -> list[Any]:

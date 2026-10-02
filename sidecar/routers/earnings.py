@@ -14,7 +14,6 @@ fresh) so repeat calls within the TTL skip the upstream entirely.
 
 from __future__ import annotations
 
-import logging
 from datetime import UTC, date, datetime, timedelta
 from typing import Annotated
 
@@ -27,30 +26,15 @@ from models.earnings import (
     EarningsSurprisesResponse,
     EarningsUpcomingResponse,
 )
-from services import data_cache, earnings_provider
+from routers._cached import cached as _cached
+from services import earnings_provider
 from services.yfinance_provider import _yahoo_symbol
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/earnings", tags=["earnings"])
 
 _TTL_UPCOMING = 6 * 60 * 60  # 6 hours
 _TTL_HISTORY = 24 * 60 * 60  # 24 hours
 _TTL_ESTIMATES = 6 * 60 * 60  # 6 hours
-
-
-async def _cache_and_stamp_as_of(cache_key: str, ttl_seconds: float, payload: dict) -> datetime:
-    """Store ``payload`` and return its ``as_of`` (R15-DATA-068).
-
-    Re-reads the row's own ``updated_at`` after the write rather than taking
-    a separate ``datetime.now()`` sample, so THIS response's ``as_of`` is
-    byte-identical to what the next cache hit within the TTL reports.
-    """
-    await data_cache.set(cache_key, payload)
-    refreshed = await data_cache.get_with_meta(cache_key, ttl_seconds)
-    if refreshed is not None:
-        return datetime.fromtimestamp(refreshed[1], tz=UTC)
-    return datetime.now(tz=UTC)  # pragma: no cover - only if ttl_seconds <= 0
 
 
 def _watchlist_key(watchlist: list[str] | None) -> str:
@@ -81,21 +65,13 @@ async def get_upcoming(
         f"earnings:upcoming:{start.isoformat()}:{end.isoformat()}:"
         f"{_watchlist_key(parsed_watchlist)}"
     )
-    hit = await data_cache.get_with_meta(cache_key, _TTL_UPCOMING)
-    if hit is not None:
-        cached, fetched_at = hit
-        if isinstance(cached, dict):
-            try:
-                response = EarningsUpcomingResponse.model_validate(cached)
-                response.as_of = datetime.fromtimestamp(fetched_at, tz=UTC)
-                return response
-            except Exception:  # noqa: BLE001
-                logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-
-    response = await earnings_provider.get_upcoming(start, end, parsed_watchlist)
-    response.as_of = await _cache_and_stamp_as_of(
-        cache_key, _TTL_UPCOMING, response.model_dump(mode="json", exclude={"as_of"})
+    response, as_of = await _cached(
+        cache_key,
+        _TTL_UPCOMING,
+        EarningsUpcomingResponse,
+        lambda: earnings_provider.get_upcoming(start, end, parsed_watchlist),
     )
+    response.as_of = as_of
     return response
 
 
@@ -104,20 +80,13 @@ async def get_history(symbol: str) -> EarningsHistoryResponse:
     """Return past earnings results for ``symbol``."""
     normalized = symbol.strip().upper()
     cache_key = f"earnings:{_yahoo_symbol(normalized)}:history"  # the resolved listing
-    hit = await data_cache.get_with_meta(cache_key, _TTL_HISTORY)
-    if hit is not None:
-        cached, fetched_at = hit
-        if isinstance(cached, dict):
-            try:
-                response = EarningsHistoryResponse.model_validate(cached)
-                response.as_of = datetime.fromtimestamp(fetched_at, tz=UTC)
-                return response
-            except Exception:  # noqa: BLE001
-                logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-    response = await earnings_provider.get_history(normalized)
-    response.as_of = await _cache_and_stamp_as_of(
-        cache_key, _TTL_HISTORY, response.model_dump(mode="json", exclude={"as_of"})
+    response, as_of = await _cached(
+        cache_key,
+        _TTL_HISTORY,
+        EarningsHistoryResponse,
+        lambda: earnings_provider.get_history(normalized),
     )
+    response.as_of = as_of
     return response
 
 
@@ -126,20 +95,13 @@ async def get_surprises(symbol: str) -> EarningsSurprisesResponse:
     """Return per-quarter EPS surprise rows for ``symbol``."""
     normalized = symbol.strip().upper()
     cache_key = f"earnings:{_yahoo_symbol(normalized)}:surprises"  # the resolved listing
-    hit = await data_cache.get_with_meta(cache_key, _TTL_HISTORY)
-    if hit is not None:
-        cached, fetched_at = hit
-        if isinstance(cached, dict):
-            try:
-                response = EarningsSurprisesResponse.model_validate(cached)
-                response.as_of = datetime.fromtimestamp(fetched_at, tz=UTC)
-                return response
-            except Exception:  # noqa: BLE001
-                logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-    response = await earnings_provider.get_surprises(normalized)
-    response.as_of = await _cache_and_stamp_as_of(
-        cache_key, _TTL_HISTORY, response.model_dump(mode="json", exclude={"as_of"})
+    response, as_of = await _cached(
+        cache_key,
+        _TTL_HISTORY,
+        EarningsSurprisesResponse,
+        lambda: earnings_provider.get_surprises(normalized),
     )
+    response.as_of = as_of
     return response
 
 
@@ -148,14 +110,14 @@ async def get_estimate_detail(symbol: str) -> EarningsEstimateDetail:
     """Return the next-event analyst-estimate detail for ``symbol``."""
     normalized = symbol.strip().upper()
     cache_key = f"earnings:{_yahoo_symbol(normalized)}:estimates"  # the resolved listing
-    cached = await data_cache.get(cache_key, _TTL_ESTIMATES)
-    if isinstance(cached, dict):
-        try:
-            return EarningsEstimateDetail.model_validate(cached)
-        except Exception:  # noqa: BLE001
-            logger.warning("earnings: cache deserialise failed for %s; refetching", cache_key)
-    response = await earnings_provider.get_estimate_detail(normalized)
-    await data_cache.set(cache_key, response.model_dump(mode="json"))
+    # The provider stamps its own as_of (unlike the other routes above); the
+    # cache row's write time is unused here.
+    response, _ = await _cached(
+        cache_key,
+        _TTL_ESTIMATES,
+        EarningsEstimateDetail,
+        lambda: earnings_provider.get_estimate_detail(normalized),
+    )
     return response
 
 

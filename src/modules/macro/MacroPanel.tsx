@@ -121,6 +121,7 @@ export function MacroPanel() {
           <div data-testid="macro-error">
             <EmptyState
               icon={TrendingUp}
+              variant="error"
               headline={`Could not load ${seriesId}`}
               hint={status.error ?? "The macro provider request failed."}
               cta={{

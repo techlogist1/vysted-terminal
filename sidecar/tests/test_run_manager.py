@@ -22,6 +22,7 @@ from config import DATA_DIR_ENV
 from models.llm import LLMDeltaEvent, LLMDoneEvent, LLMMessage, LLMToolUseEvent, LLMUsage
 from models.run import RunBudget
 from services import agent_runtime, run_manager, runs_store
+from services.errors import humanize
 
 
 @pytest.fixture(autouse=True)
@@ -915,3 +916,21 @@ async def test_runtime_events_derived_from_a_dispatched_call_are_delivered(
     assert [(a["name"], a["input"]) for a in row.host_actions] == [
         ("open_panel", {"panel": "backtest", "run_id": "bt-1"})
     ]
+@pytest.mark.asyncio
+async def test_crashed_run_detail_is_humanized(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-CODE-PLATFORM-038: a run that crashes records the humanizer's plain
+    sentence as its detail, never the raw exception text."""
+    crash = RuntimeError("Error code: 402 - {'error': {'message': 'Insufficient Balance'}}")
+
+    async def _crashing_invoke(**_: Any) -> AsyncIterator[Any]:
+        raise crash
+        yield  # pragma: no cover — makes this an async generator
+
+    monkeypatch.setattr(agent_runtime, "invoke_agent", _crashing_invoke)
+    run_id = run_manager.launch_run(
+        agent_id="copilot", prompt="x", api_key="sk", provider="deepseek", model="deepseek-chat"
+    )
+    row = await _await_terminal(run_id)
+    assert row is not None and row.status == "error"
+    assert row.detail == humanize("deepseek", crash).message
+    assert "Insufficient Balance" not in row.detail

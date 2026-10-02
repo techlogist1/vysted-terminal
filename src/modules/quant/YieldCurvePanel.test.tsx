@@ -54,6 +54,22 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe("YieldCurvePanel date defaults (R15-UI-063)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 25)); // 2026-09-25, local time
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("defaults valuation date to today, not a frozen literal", () => {
+    render(<YieldCurvePanel />);
+    expect(screen.getByTestId("field-valuation-date")).toHaveValue("2026-09-25");
+  });
+});
+
 describe("YieldCurvePanel", () => {
   it("renders the default 7-instrument grid + sample count", () => {
     render(<YieldCurvePanel />);
@@ -84,6 +100,23 @@ describe("YieldCurvePanel", () => {
     render(<YieldCurvePanel />);
     fireEvent.change(screen.getByTestId("field-sample-count"), { target: { value: "1" } });
     expect(screen.getByTestId("yield-curve-validation").textContent).toMatch(/3 to 200/);
+    const bootstrapBtn = screen.getByTestId("bootstrap-curve") as HTMLButtonElement;
+    expect(bootstrapBtn.disabled).toBe(true);
+    fireEvent.click(bootstrapBtn);
+    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+  });
+
+  it("R15-UI-077: two instruments on the same pillar names the duplicate and blocks the POST", () => {
+    render(<YieldCurvePanel />);
+    // Instrument 6 (idx 5) is the 10y swap in DEFAULT_INSTRUMENTS — retarget
+    // instrument 1 (idx 0, the 1mo depo) onto the same pillar.
+    fireEvent.change(screen.getByLabelText("Instrument 1 tenor"), { target: { value: "10" } });
+    fireEvent.change(screen.getByLabelText("Instrument 1 tenor unit"), {
+      target: { value: "years" },
+    });
+    expect(screen.getByTestId("yield-curve-validation").textContent).toMatch(
+      /same pillar.*10 years/,
+    );
     const bootstrapBtn = screen.getByTestId("bootstrap-curve") as HTMLButtonElement;
     expect(bootstrapBtn.disabled).toBe(true);
     fireEvent.click(bootstrapBtn);

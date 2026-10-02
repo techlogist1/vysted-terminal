@@ -27,8 +27,9 @@ export { cn };
  *  - Three text tiers via the `tier` prop, never via colour-as-emphasis:
  *    primary `charcoal-100` · secondary `charcoal-400` · tertiary `charcoal-500`.
  *  - Null / missing values render `—` in `charcoal-600`.
- *  - Optional sortable header — `aria-sort` + a quiet caret that is amber **only**
- *    on the active sort key (the table's one accent).
+ *  - Optional sortable header — `aria-sort` + a quiet caret that brightens to
+ *    `charcoal-300` on the active sort key (no colour accent — R9 reserves the
+ *    accent for live agent activity).
  *  - Optional sticky header (`sticky top-0`).
  *  - Optional grouped section-header rows.
  *  - An `action` column (icons, buttons) sits outside truncation.

@@ -174,8 +174,6 @@ def price_american_binomial(req: OptionPricingRequest) -> OptionPricingResult:
     """
     started = time.perf_counter()
     steps = req.binomial_steps if req.binomial_steps is not None else DEFAULT_BINOMIAL_STEPS
-    if steps < 3:
-        raise ValueError(f"binomial steps must be at least 3, got {steps}")
     price = _price_binomial_npv(req, steps)
     greeks = _greeks_binomial(req, steps)
     return OptionPricingResult(
@@ -208,8 +206,6 @@ def price_european_mc(req: OptionPricingRequest) -> OptionPricingResult:
 
     paths = req.monte_carlo_paths if req.monte_carlo_paths is not None else DEFAULT_MC_PATHS
     seed = req.monte_carlo_seed if req.monte_carlo_seed is not None else DEFAULT_MC_SEED
-    if paths < 100:
-        raise ValueError(f"monte carlo paths must be at least 100, got {paths}")
 
     process = build_bsm_process(
         req.spot,

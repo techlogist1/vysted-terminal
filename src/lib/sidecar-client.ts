@@ -2,9 +2,8 @@
  * Sidecar API client.
  *
  * Resolves the Python sidecar's localhost port from the Tauri core (cached after
- * the first call) and exposes typed accessors for the data-layer REST endpoints,
- * plus a WebSocket helper for crypto streams. Panels call these functions rather
- * than building URLs themselves.
+ * the first call) and exposes typed accessors for the data-layer REST endpoints.
+ * Panels call these functions rather than building URLs themselves.
  */
 
 import { invoke } from "@tauri-apps/api/core";
@@ -135,6 +134,11 @@ export function getSidecarBaseUrl(): Promise<string> {
   return readyPromise;
 }
 
+/** Per-round budget for one `/health` probe attempt (R15-LIFECYCLE-027): bounds
+ *  a hung-not-exited engine to this long per retry instead of hanging the
+ *  shared `readyPromise` past its overall 120 s deadline. */
+const HEALTH_PROBE_TIMEOUT_MS = 5_000;
+
 async function resolveAndAwaitReady(): Promise<string> {
   const deadline = Date.now() + 120_000;
   let delay = 250;
@@ -142,12 +146,15 @@ async function resolveAndAwaitReady(): Promise<string> {
     // Re-read each round: a spawn that fails while we probe stops the wait.
     const base = await resolvePortToBaseUrl();
     try {
-      const response = await fetch(new URL("/health", base).toString());
+      const response = await fetch(new URL("/health", base).toString(), {
+        signal: AbortSignal.timeout(HEALTH_PROBE_TIMEOUT_MS),
+      });
       if (response.ok) {
         return base;
       }
     } catch {
-      // Connection refused — sidecar has a port assigned but is not bound yet.
+      // Connection refused, or the probe timed out — sidecar has a port
+      // assigned but is not bound (or not answering) yet.
     }
     if (Date.now() > deadline) {
       throw new SidecarError(503, "The data engine did not become ready in time.");
@@ -216,12 +223,19 @@ export interface SidecarRequestOptions {
   signal?: AbortSignal;
 }
 
+/** Default per-request budget (R15-LIFECYCLE-027) when the caller supplies no
+ *  `signal` — bounds an otherwise-eternal spinner on a hung route. Generous:
+ *  well above any real data-layer or agent-run call. */
+const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
+
 /**
  * Typed request against a sidecar endpoint — the one client verb. `headers`
  * carries BYOK credentials read from the OS keychain (the read-only-plugin
  * pattern: secret in a header, never the body/query) — e.g. the
  * `X-Vysted-Newsapi-Key` the news feed sends. A non-2xx throws
- * `SidecarError(status, <human detail>)`; a 204 resolves `undefined`.
+ * `SidecarError(status, <human detail>)`; a 204 resolves `undefined`. `signal`
+ * aborts the call (a hung route never spins forever): a caller-supplied signal
+ * is combined with a generous default timeout, so either can fire.
  */
 export async function sidecarRequest<T>(
   method: "GET" | "POST" | "PUT" | "DELETE",
@@ -244,18 +258,25 @@ export async function sidecarRequest<T>(
   const requestHeaders: Record<string, string> = {
     "X-Vysted-Region": useSettingsStore.getState().region,
   };
-  // The three-tier web-search contract (FR-080/083/084): the active tier, the
-  // BYOK Exa key (keychain), and the local SearXNG URL ride every request so the
-  // sidecar dispatches search to the right backend. Undefined values are dropped
-  // below (never an empty header). Merged FIRST so a per-call header arg still
-  // wins if it ever sets the same key.
-  const searchHeaders = await buildSearchHeaders();
+  // The three-tier web-search contract (FR-080/083/084): the active tier and
+  // the local SearXNG URL ride every request so the sidecar dispatches search
+  // to the right backend. The tier_b BYOK OpenRouter key is OMITTED here
+  // (R15-CODE-PLATFORM-039) — this default REST path is taken by every sidecar
+  // call, including polls that never research (e.g. the watchlist's 5 s
+  // `/quotes` refresh), not just research; the SSE research transport
+  // (`chat/streaming.ts`) calls `buildSearchHeaders()` directly and keeps the
+  // full set including the key. Undefined values are dropped below (never an
+  // empty header). Merged FIRST so a per-call header arg still wins if it ever
+  // sets the same key.
+  const searchHeaders = await buildSearchHeaders({ includeKey: false });
   for (const [key, value] of Object.entries({ ...searchHeaders, ...opts.headers })) {
     if (value !== undefined) {
       requestHeaders[key] = value;
     }
   }
-  const init: RequestInit = { method, headers: requestHeaders, signal: opts.signal };
+  const timeoutSignal = AbortSignal.timeout(DEFAULT_REQUEST_TIMEOUT_MS);
+  const signal = opts.signal ? AbortSignal.any([opts.signal, timeoutSignal]) : timeoutSignal;
+  const init: RequestInit = { method, headers: requestHeaders, signal };
   if (opts.body !== undefined) {
     requestHeaders["Content-Type"] = "application/json";
     init.body = JSON.stringify(opts.body);
@@ -293,15 +314,6 @@ export function sidecarGet<T>(
   headers?: Record<string, string | undefined>,
 ): Promise<T> {
   return sidecarRequest<T>("GET", path, { params, headers });
-}
-
-/** Open a WebSocket to the crypto ticker stream. The caller owns the socket. */
-export async function openCryptoStream(exchange: string, symbol: string): Promise<WebSocket> {
-  const base = await getSidecarBaseUrl();
-  const url = new URL("/crypto/stream", base.replace(/^http/, "ws"));
-  url.searchParams.set("exchange", exchange);
-  url.searchParams.set("symbol", symbol);
-  return new WebSocket(url.toString());
 }
 
 /** Shape of the `/health` response. */

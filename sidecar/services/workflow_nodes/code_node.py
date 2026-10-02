@@ -28,11 +28,18 @@ spelling of power/ternary:
   round-half-to-even (``round(2.5)`` is ``3``, never the banker's-rounding
   ``2``) — the two evaluators disagreeing here was exactly what this
   residual fixed; canonical now means canonical, not "whichever ran last".
+
+Safe by construction covers code execution, not size: an integer power and a
+list/string repetition are the operators whose result can outgrow their
+operands without bound, so both are capped (:data:`_MAX_INT_BITS`,
+:data:`_MAX_REPEAT_LEN`) before they run, and evaluation runs off the event
+loop under :data:`_EVAL_TIMEOUT_SECONDS`.
 """
 
 from __future__ import annotations
 
 import ast
+import asyncio
 import math
 import operator
 import re
@@ -40,13 +47,43 @@ from typing import Any
 
 from services import workflow_engine
 
+#: Largest integer a power may produce (~3000 digits, far past any float64).
+_MAX_INT_BITS = 10_000
+#: Longest list or string a repetition (``[0] * n``) may produce.
+_MAX_REPEAT_LEN = 100_000
+#: Backstop on one evaluation; the caps above keep real ones far below it.
+_EVAL_TIMEOUT_SECONDS = 5.0
+
+
+def _pow(base: Any, exp: Any) -> Any:
+    """``base ** exp`` with an integer result capped at :data:`_MAX_INT_BITS`."""
+    if (
+        isinstance(base, int)
+        and isinstance(exp, int)
+        and exp > 0
+        and abs(base) > 1
+        and exp * (abs(base).bit_length() - 1) > _MAX_INT_BITS
+    ):
+        raise ValueError(f"power result too large (over {_MAX_INT_BITS} bits)")
+    return operator.pow(base, exp)
+
+
+def _mul(left: Any, right: Any) -> Any:
+    """``left * right`` with a list/string repetition capped at :data:`_MAX_REPEAT_LEN`."""
+    for seq, count in ((left, right), (right, left)):
+        if isinstance(seq, (list, str)) and isinstance(count, int):
+            if len(seq) * count > _MAX_REPEAT_LEN:
+                raise ValueError(f"repetition too large (over {_MAX_REPEAT_LEN} items)")
+    return operator.mul(left, right)
+
+
 _BIN_OPS = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
-    ast.Mult: operator.mul,
+    ast.Mult: _mul,
     ast.Div: operator.truediv,
     ast.Mod: operator.mod,
-    ast.Pow: operator.pow,
+    ast.Pow: _pow,
 }
 _CMP_OPS = {
     ast.Gt: operator.gt,
@@ -60,7 +97,10 @@ _CMP_OPS = {
 
 def _round(x: Any, ndigits: Any = 0) -> float:
     """Round-half-AWAY-from-zero to ``ndigits`` decimals — see module docstring."""
-    shift = 10 ** int(ndigits)
+    ndigits = int(ndigits)
+    if not 0 <= ndigits <= 15:  # mathjs's own bound, and 10**ndigits stays small
+        raise ValueError(f"round: digits must be in [0, 15]; got {ndigits}")
+    shift = 10**ndigits
     shifted = float(x) * shift
     rounded = math.floor(shifted + 0.5) if shifted >= 0 else math.ceil(shifted - 0.5)
     return rounded / shift
@@ -180,7 +220,12 @@ async def evaluate_code(inputs: dict[str, Any], config: dict[str, Any]) -> dict[
         tree = ast.parse(_translate_ternary(_caret_to_pow(expression.strip())), mode="eval")
     except SyntaxError as exc:
         raise ValueError(f"transform.code: parse error: {exc.msg}") from exc
-    return {"value": _eval(tree, scope)}
+    # ponytail: a timed-out thread still runs to completion (threads can't be
+    # killed); the size caps bound the work, this keeps the event loop free.
+    value = await asyncio.wait_for(
+        asyncio.to_thread(_eval, tree, scope), timeout=_EVAL_TIMEOUT_SECONDS
+    )
+    return {"value": value}
 
 
 def register() -> None:

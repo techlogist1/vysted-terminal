@@ -30,12 +30,14 @@ import { Calculator } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { optionDateDefaults } from "@/lib/date-defaults";
 import { regionConfig } from "@/lib/region";
 import { cn } from "@/lib/utils";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useQuantStore } from "@/store/quant";
 import { useSettingsStore } from "@/store/settings";
 
+import { MIN_BINOMIAL_STEPS, MIN_MC_PATHS } from "../../../types/quant";
 import type {
   Greeks,
   OptionExercise,
@@ -257,8 +259,8 @@ export function OptionPricerPanel() {
   const [r, setR] = useState("0.05");
   const [q, setQ] = useState("0.005");
   const [vol, setVol] = useState("0.28");
-  const [valuationDate, setValuationDate] = useState("2026-05-16");
-  const [expiryDate, setExpiryDate] = useState("2026-06-30");
+  const [valuationDate, setValuationDate] = useState(() => optionDateDefaults().valuationDate);
+  const [expiryDate, setExpiryDate] = useState(() => optionDateDefaults().expiryDate);
   const [binomialSteps, setBinomialSteps] = useState("200");
   const [mcPaths, setMcPaths] = useState("50000");
   const [mcSeed, setMcSeed] = useState("42");
@@ -299,14 +301,14 @@ export function OptionPricerPanel() {
     }
     if (method === "binomial") {
       const steps = Number(binomialSteps);
-      if (!Number.isInteger(steps) || steps < 1) {
-        return "Tree steps must be a whole number ≥ 1.";
+      if (!Number.isInteger(steps) || steps < MIN_BINOMIAL_STEPS) {
+        return `Tree steps must be a whole number ≥ ${MIN_BINOMIAL_STEPS}.`;
       }
     }
     if (method === "monte-carlo") {
       const paths = Number(mcPaths);
-      if (!Number.isInteger(paths) || paths < 1) {
-        return "MC paths must be a whole number ≥ 1.";
+      if (!Number.isInteger(paths) || paths < MIN_MC_PATHS) {
+        return `MC paths must be a whole number ≥ ${MIN_MC_PATHS}.`;
       }
       if (mcSeed.trim() === "" || !Number.isInteger(Number(mcSeed))) {
         return "MC seed must be a whole number.";
@@ -487,6 +489,7 @@ export function OptionPricerPanel() {
           onChange={setValuationDate}
           type="date"
           disabled={isRunning}
+          testId="field-valuation-date"
         />
         <Field
           label="Expiry"
@@ -494,6 +497,7 @@ export function OptionPricerPanel() {
           onChange={setExpiryDate}
           type="date"
           disabled={isRunning}
+          testId="field-expiry-date"
         />
 
         {method === "binomial" && (

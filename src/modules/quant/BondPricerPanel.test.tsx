@@ -39,6 +39,24 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe("BondPricerPanel date defaults (R15-UI-063)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 25)); // 2026-09-25, local time
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("defaults issue/settlement to today and maturity to today + 10y, not a frozen literal", () => {
+    render(<BondPricerPanel />);
+    expect(screen.getByTestId("field-issue")).toHaveValue("2026-09-25");
+    expect(screen.getByTestId("field-settle")).toHaveValue("2026-09-25");
+    expect(screen.getByTestId("field-maturity")).toHaveValue("2036-09-25");
+  });
+});
+
 describe("BondPricerPanel", () => {
   it("renders the input form", () => {
     render(<BondPricerPanel />);

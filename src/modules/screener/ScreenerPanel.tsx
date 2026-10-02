@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Play, Square, AlertCircle, BookmarkPlus, BookmarkX, FolderOpen } from "lucide-react";
 
 import { ConfirmButton } from "@/components/ConfirmButton";
@@ -142,7 +142,10 @@ export function ScreenerPanel() {
   //   deep_as_of     → "deep fields"  (7d .info deep tier — ROE, margins, growth)
   // Brief example: "quotes 4m ago · deep fields 2d ago" maps "deep fields"
   // to deep_as_of, NOT valuation_as_of.
-  function freshnessLine(): string | null {
+  // R15-UI-069: memoized over lastResult — each was previously a plain
+  // function invoked twice per render ({fn() && <div>{fn()}</div>}) on
+  // every SSE progress frame.
+  const freshnessLine = useMemo((): string | null => {
     const f = lastResult?.freshness;
     if (!f) return null;
     const parts: string[] = [];
@@ -150,13 +153,13 @@ export function ScreenerPanel() {
     if (f.valuation_as_of) parts.push(`valuation ${fmtAgo(f.valuation_as_of)}`);
     if (f.deep_as_of) parts.push(`deep fields ${fmtAgo(f.deep_as_of)}`);
     return parts.length > 0 ? parts.join(" · ") : null;
-  }
+  }, [lastResult]);
 
   // D52: the serving-basis mix — "1,900 live · 775 snapshot (as of Jun 16)".
   // Known bases render in a fixed order; an unexpected basis key still renders
   // (never silently dropped). The snapshot count carries the seed pack's honest
   // as-of date from freshness.seed_as_of when present.
-  function basisLine(): string | null {
+  const basisLine = useMemo((): string | null => {
     const counts = lastResult?.basis_counts;
     if (!counts) return null;
     const seedAsOf = lastResult?.freshness?.seed_as_of;
@@ -175,13 +178,13 @@ export function ScreenerPanel() {
       parts.push(`${N(n)} ${key}${asOf}`);
     }
     return parts.length > 0 ? parts.join(" · ") : null;
-  }
+  }, [lastResult]);
 
   // D53: aggregate the itemized skip ledger into a compact reason breakdown —
   // "554 unavailable — 300 rate-limited · 254 missing roe" (top 3 reasons,
   // tail collapsed into "other") so a user can tell "throttled, retry" from
   // "permanently absent" without reading a raw ledger.
-  function skipBreakdown(): string | null {
+  const skipBreakdown = useMemo((): string | null => {
     const details = lastResult?.skip_details;
     if (!details || details.length === 0) return null;
     const counts = new Map<string, number>();
@@ -195,7 +198,7 @@ export function ScreenerPanel() {
       parts.push(`${N(tail)} other`);
     }
     return `${N(details.length)} unavailable — ${parts.join(" · ")}`;
-  }
+  }, [lastResult]);
 
   const handleSave = () => {
     const trimmed = saveName.trim();
@@ -483,20 +486,18 @@ export function ScreenerPanel() {
               </div>
             )}
           {/* D52: the serving-basis mix for the returned rows. */}
-          {basisLine() && (
+          {basisLine && (
             <div className="text-muted-foreground text-micro" data-testid="basis-counts">
-              {basisLine()}
+              {basisLine}
             </div>
           )}
           {/* D53: WHY symbols were unavailable, not just how many. */}
-          {skipBreakdown() && (
+          {skipBreakdown && (
             <div className="text-muted-foreground text-micro" data-testid="skip-breakdown">
-              {skipBreakdown()}
+              {skipBreakdown}
             </div>
           )}
-          {freshnessLine() && (
-            <div className="text-muted-foreground text-micro">{freshnessLine()}</div>
-          )}
+          {freshnessLine && <div className="text-muted-foreground text-micro">{freshnessLine}</div>}
         </div>
       )}
 

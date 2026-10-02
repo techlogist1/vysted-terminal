@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 import asyncio
+from unittest import mock
 
 import httpx
 import pytest
 
-from services.search import ddg as ddg_module
 from services.search.base import (
     SEARCH_REASON_RATE_LIMITED,
     SEARCH_REASON_UNREACHABLE,
     SearchError,
 )
-from services.search.ddg import BACKEND_ID, DdgSearchBackend, _TokenBucket
+from services.search.ddg import BACKEND_ID, DdgSearchBackend
 
 # A trimmed DuckDuckGo HTML results page: a uddg-redirect link, a direct link, and
 # a protocol-relative link — covering the three href shapes the parser handles.
@@ -220,103 +220,85 @@ def test_403_with_failed_impersonation_raises_unreachable(
     assert excinfo.value.reason == SEARCH_REASON_UNREACHABLE
 
 
-# --- WS7: proactive token-bucket rate-limiter ------------------------------
+def test_403_then_429_reports_rate_limited(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-RESEARCH-039: the impersonated 403 fallback used to return text-or-
+    None on a 2xx-only check, discarding a 429 the SAME way the plain lane's
+    own status check catches — a hard-throttled engine read as 'unreachable'
+    instead of 'rate-limited'. The impersonated lane's status must feed the
+    same rate-limit gate."""
+    from services.search import transport as transport_module
+    from services.search.transport import FetchResult
+
+    async def _impersonated_429(url, *, params=None, data=None, headers=None, **kw):  # noqa: ANN001, ANN202
+        return FetchResult(status_code=429, text="too many", url=url)
+
+    monkeypatch.setattr(transport_module, "impersonated_fetch", _impersonated_429)
+    client = _FakeClient(_FakeResp("denied", status=403))
+    with pytest.raises(SearchError) as excinfo:
+        _run(DdgSearchBackend(client=client).search("nvda"))
+    assert excinfo.value.reason == SEARCH_REASON_RATE_LIMITED
+
+
+# --- R15-CODE-RESEARCH-009: pacing moved out of ddg.py to the caller --------
 #
-# These tests drive the bucket LOGIC with an INJECTED clock — no real-time
-# sleeps — so they are deterministic, never wall-clock-flaky. Token accounting
-# (refill maths + "how long must we wait") is asserted directly; we never block
-# on a real `asyncio.sleep`.
+# The WS7 proactive token-bucket rate-limiter (`_TokenBucket`/`_get_bucket`,
+# paced from inside `DdgSearchBackend._search_with`) is DELETED: it double-
+# spent a budget the keyless tier's own `pacing.RequestQueue` already metered
+# around each engine turn, plus double-paced the Lite fallback within one
+# search. Pacing is now entirely the caller's job (keyless's rotation, or the
+# registry's `_PacedBackend` for the bare "ddg" id) — this module no longer
+# defines, imports, or calls any pacing primitive at all, which this test pins
+# structurally (no bucket/pacing symbol survives on the module).
 
 
-class _FakeClock:
-    """A monotonic clock whose value is advanced explicitly by the test."""
+def test_no_internal_pacing_symbols_survive_on_the_module() -> None:
+    from services.search import ddg as ddg_module
 
-    def __init__(self, start: float = 1000.0) -> None:
-        self.now = start
-
-    def __call__(self) -> float:
-        return self.now
-
-    def advance(self, secs: float) -> None:
-        self.now += secs
+    for name in ("_TokenBucket", "_get_bucket", "_BUCKET", "_RATE_PER_MIN", "_RATE_PER_SEC"):
+        assert not hasattr(ddg_module, name), name
 
 
-def test_token_bucket_first_request_is_immediate() -> None:
-    """A fresh bucket starts FULL, so the very first acquire never sleeps."""
-    clock = _FakeClock()
-    bucket = _TokenBucket(rate_per_sec=0.4, capacity=5, clock=clock)
-
-    # No token deficit at the start → zero wait, and the awaitable returns 0.0
-    # WITHOUT a real-time sleep (the immediate path takes no asyncio.sleep).
-    assert bucket.time_until_available() == 0.0
-    assert _run(bucket.acquire()) == 0.0
-    # ... and a single call must not have advanced wall-clock at all.
-    assert clock.now == 1000.0
-
-
-def test_token_bucket_paces_a_sustained_burst() -> None:
-    """Once the initial tokens drain, the bucket reports a per-request WAIT —
-    asserted via the pure `time_until_available` accounting, NOT by sleeping."""
-    clock = _FakeClock()
-    # capacity 3, refill 0.5 tok/sec → one new token every 2.0s.
-    bucket = _TokenBucket(rate_per_sec=0.5, capacity=3, clock=clock)
-
-    # Drain the full bucket: 3 immediate (zero-wait) acquires (no time elapses).
-    assert _run(bucket.acquire()) == 0.0
-    assert _run(bucket.acquire()) == 0.0
-    assert _run(bucket.acquire()) == 0.0
-
-    # Empty now (no time elapsed): the next request must wait a full refill
-    # interval (2.0s). Asserted on the PURE accounting — no real sleep.
-    assert bucket.time_until_available() == pytest.approx(2.0)
-    # Halfway to a token (advance 1.0s at 0.5 tok/s = 0.5 token) → ~1.0s left.
-    clock.advance(1.0)
-    assert bucket.time_until_available() == pytest.approx(1.0)
+def test_lite_fallback_makes_exactly_two_requests_no_pacing_wait() -> None:
+    """A zero-row HTML answer falls through to Lite with no bucket/queue wait
+    in between — ddg.py itself no longer paces anything (that is the caller's
+    job now)."""
+    client = _MapClient(
+        {
+            "html.duckduckgo.com": _FakeResp("<html><body>no results</body></html>"),
+            "lite.duckduckgo.com": _FakeResp(_LITE_FIXTURE),
+        }
+    )
+    resp = _run(DdgSearchBackend(client=client).search("nvda"))
+    assert len(resp.results) == 1
+    assert len(client.calls) == 2
 
 
-def test_token_bucket_refills_over_time() -> None:
-    """Tokens accrue with elapsed (injected) time and re-enable immediate
-    acquires; refill saturates at capacity (no unbounded build-up). All asserted
-    on the pure `time_until_available` accounting — deterministic, no real sleep."""
-    clock = _FakeClock()
-    bucket = _TokenBucket(rate_per_sec=1.0, capacity=2, clock=clock)
+def test_one_search_with_lite_fallback_takes_one_pacing_slot() -> None:
+    """The bare ``"ddg"`` registry lane (the non-rotation path, paced by
+    `registry._PacedBackend` since ddg.py no longer paces itself) acquires
+    exactly ONE pacing slot for a whole `search()` call, even when it
+    internally falls through HTML -> Lite — never one slot per internal hit."""
+    from services.search import pacing
+    from services.search.registry import _PacedBackend
 
-    # Drain both tokens (immediate).
-    assert _run(bucket.acquire()) == 0.0
-    assert _run(bucket.acquire()) == 0.0
-    # Empty now: a request would wait 1.0s.
-    assert bucket.time_until_available() == pytest.approx(1.0)
+    pacing.reset_queue()
+    acquires: list[str] = []
+    original_acquire = pacing.RequestQueue.acquire
 
-    # Advance 1s → exactly one token refilled → no wait.
-    clock.advance(1.0)
-    assert bucket.time_until_available() == 0.0
-    assert _run(bucket.acquire()) == 0.0  # consume the refilled token
+    async def _counting_acquire(self, engine_id):  # noqa: ANN001
+        acquires.append(engine_id)
+        return await original_acquire(self, engine_id)
 
-    # Advance well past capacity → bucket saturates at `capacity`, not beyond:
-    # two tokens available (two immediate acquires), then a wait reappears.
-    clock.advance(100.0)
-    assert _run(bucket.acquire()) == 0.0
-    assert _run(bucket.acquire()) == 0.0
-    assert bucket.time_until_available() == pytest.approx(1.0)
+    client = _MapClient(
+        {
+            "html.duckduckgo.com": _FakeResp("<html><body>no results</body></html>"),
+            "lite.duckduckgo.com": _FakeResp(_LITE_FIXTURE),
+        }
+    )
+    backend = _PacedBackend(DdgSearchBackend(client=client), engine_id="ddg")
+    with mock.patch.object(pacing.RequestQueue, "acquire", _counting_acquire):
+        resp = _run(backend.search("nvda"))
+    pacing.reset_queue()
 
-
-def test_module_bucket_is_lazy_and_process_global() -> None:
-    """The DDG floor's bucket is a module-level singleton, lazily built on first
-    use (never an asyncio primitive at import time)."""
-    # Reset any state a prior test left, to assert the lazy-init path.
-    ddg_module._BUCKET = None
-    first = ddg_module._get_bucket()
-    second = ddg_module._get_bucket()
-    assert first is second  # process-global singleton
-    assert isinstance(first, _TokenBucket)
-
-
-def test_limiter_does_not_delay_a_single_search() -> None:
-    """End-to-end: the limiter sits in front of the fetch but the FIRST search
-    passes immediately (full bucket) — existing single-call tests stay fast."""
-    # Fresh bucket → full → no pacing wait on the one request.
-    ddg_module._BUCKET = None
-    client = _FakeClient(_FakeResp(_FIXTURE))
-    backend = DdgSearchBackend(region="US", client=client)
-    resp = _run(backend.search("nvda"))
-    assert len(resp.results) == 2
+    assert len(resp.results) == 1
+    assert acquires == ["ddg"]

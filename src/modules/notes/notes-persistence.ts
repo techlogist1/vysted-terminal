@@ -11,6 +11,8 @@
 
 import { invoke } from "@tauri-apps/api/core";
 
+import { safeFilename } from "@/lib/safe-filename";
+
 let appDataDirCache: string | null = null;
 
 /**
@@ -64,35 +66,10 @@ export async function persistNoteMd(scope: string | undefined, markdown: string)
     const dir = await resolveNotesDir();
     if (!dir) return;
 
-    const filename = scope ? `${scope.toUpperCase().replace(/[/\\]/g, "_")}.md` : "general.md";
+    const filename = scope ? `${safeFilename(scope.toUpperCase())}.md` : "general.md";
     const path = `${dir}/notes/${filename}`;
     await invoke("write_text_atomic", { path, contents: markdown });
   } catch {
     // Non-fatal — workspace blob is the primary durable store.
-  }
-}
-
-/**
- * Write a note to a user-specified path. Used for `.md` export (sharing).
- * Falls back to `{appData}/notes/exports/` if the path resolver cannot
- * produce a user-facing save dialog (no `tauri-plugin-dialog` installed).
- */
-export async function exportNoteMd(
-  markdown: string,
-  suggestedFilename: string,
-): Promise<string | null> {
-  if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) {
-    return null;
-  }
-  try {
-    const dir = await resolveNotesDir();
-    const exportDir = dir ? `${dir}/notes/exports` : null;
-    if (!exportDir) return null;
-
-    const path = `${exportDir}/${suggestedFilename}`;
-    await invoke("write_text_atomic", { path, contents: markdown });
-    return path;
-  } catch {
-    return null;
   }
 }

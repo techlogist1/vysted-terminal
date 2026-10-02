@@ -340,3 +340,38 @@ describe("BriefPanel export toolbar (R15-UI-083)", () => {
     expect(saveTextArtifactMock.mock.calls[0]?.[0]).toBe("research");
   });
 });
+
+describe("BriefPanel internal provenance sources (R15-UI-080)", () => {
+  beforeEach(() => {
+    resetBriefStoreForTests();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it("a vysted:// source renders a provenance chip, no external link, and no favicon lookup", () => {
+    const brief = fixtureBrief({
+      sources: [
+        {
+          url: "vysted://fundamentals/SAKSOFT.NS",
+          title: "Fundamentals — SAKSOFT.NS",
+          excerpt: "Structured fundamentals snapshot.",
+          provider: "Fundamentals engine",
+          publishedAt: "2026-09-20",
+        },
+      ],
+      sourceCount: 1,
+    });
+    useBriefStore.setState({ brief });
+    render(<BriefPanel />);
+
+    fireEvent.click(screen.getByRole("button", { name: /sources/i }));
+
+    const chip = screen.getByTestId("source-provenance-chip");
+    expect(chip).toHaveTextContent("Fundamentals engine");
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+    expect(document.querySelector('a[target="_blank"]')).toBeNull();
+    expect(document.querySelector('img[src*="s2/favicons"]')).toBeNull();
+  });
+});
