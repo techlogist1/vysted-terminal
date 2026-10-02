@@ -314,3 +314,4 @@ Well under both the original $2.00 cap and the raised $8.00 cap.
 ## Session 3 (Sat 3 Oct 2026, CC 2.1.288, per-workflow cap 6, lead claude-opus-5-5 high + Fable 5.1 advisor)
 
 - Telemetry `wf_8cc8e3eb-9ec` docs lane: 3 agents (claude-sonnet-5-5 medium ×2, claude-opus-5-5 medium ×1), 2.8 min wall, 288,535 subagent tokens, 31 tool uses, 0 errors, 0 walls. Files: CLAUDE.md (working tree, held), 5 handover/backlog/draft docs `4b5eb003`. Advisor spend from agents: NEEDS-MANUAL-CHECK (usage view is operator-only).
+- Telemetry `wf_61cda7fc-ea9` lows-int round 1: 2 agents (claude-sonnet-5-5 medium ×2), 38.8 min, 284,155 tokens, 108 tool uses, 0 errors, 0 walls. RED: 19 cross-partition failures.
