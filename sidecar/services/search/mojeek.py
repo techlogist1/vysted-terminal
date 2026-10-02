@@ -75,7 +75,7 @@ _CONFIG = HtmlSerpConfig(
     challenge_label="Mojeek",
     endpoint=_ENDPOINT,
     default_fetch=httpx_fetch,
-    parse=_parse,
+    parse=lambda text, limit: _parse(text, limit=limit),  # late-bound: _parse stays patchable
     region_param="arc",
     region_map=_REGION_ARC,
 )

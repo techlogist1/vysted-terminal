@@ -79,7 +79,7 @@ _CONFIG = HtmlSerpConfig(
     challenge_label="Brave",
     endpoint=_ENDPOINT,
     default_fetch=impersonated_fetch,
-    parse=_parse,
+    parse=lambda text, limit: _parse(text, limit=limit),  # late-bound: _parse stays patchable
     region_param="country",
     region_map=_REGION_COUNTRY,
     extra_params={"source": "web"},
