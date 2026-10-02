@@ -249,7 +249,8 @@ export interface SidecarRequestOptions {
   headers?: Record<string, string | undefined>;
   signal?: AbortSignal;
   /** Give up after this many ms with `SidecarError(504, SIDECAR_TIMED_OUT)`;
-   *  omitted, the default request budget applies (R15-LIFECYCLE-027). */
+   *  omitted, `sidecarRequest` applies the default request budget
+   *  (R15-LIFECYCLE-027) and `sidecarRequestInit` sets no deadline. */
   timeoutMs?: number;
 }
 
@@ -294,7 +295,7 @@ export async function sidecarRequestInit(
   const init: RequestInit = {
     method,
     headers: requestHeaders,
-    signal: withDeadline(opts.signal, opts.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS),
+    signal: withDeadline(opts.signal, opts.timeoutMs),
   };
   if (opts.body !== undefined) {
     requestHeaders["Content-Type"] = "application/json";
@@ -324,7 +325,12 @@ export async function sidecarRequest<T>(
       }
     }
   }
-  const init = await sidecarRequestInit(method, opts);
+  // The shared client's default budget (R15-LIFECYCLE-027) rides `sidecarRequest` only: a
+  // caller of `sidecarRequestInit` (an SSE stream) states its own deadline or has none.
+  const init = await sidecarRequestInit(method, {
+    ...opts,
+    timeoutMs: opts.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS,
+  });
   const response = await sidecarFetch(url.toString(), init);
   if (!response.ok) {
     // A body with no `detail` (and a blank status text) still names the status.
