@@ -1,0 +1,14 @@
+{
+ "symbol": "KALYANI",
+ "kind": null,
+ "count": 0,
+ "deals": [],
+ "sources": [
+  "NSE bulk",
+  "NSE block",
+  "NSE sast"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": "BSE KALYANI is a different company; only the NSE feed is served"
+}

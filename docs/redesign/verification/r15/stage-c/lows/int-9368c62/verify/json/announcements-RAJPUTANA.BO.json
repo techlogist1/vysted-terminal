@@ -1,0 +1,219 @@
+{
+ "symbol": "539090",
+ "exchange": null,
+ "count": 25,
+ "announcements": [
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Closure of Trading Window",
+   "category": "Insider Trading / SAST",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/6979d299-093a-480a-a199-25b473714158.pdf",
+   "ts": "2026-09-30T11:54:11.833000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0cdf5ea9-465d-45b3-8d80-6850cbfe0754.pdf",
+   "ts": "2026-08-13T14:59:39.067000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Standalone Un-Audited Financial Result For The Quarter Ended 30.06.2026.",
+   "category": "Result",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/55147201-7dba-4308-91a3-d4da83438526.pdf",
+   "ts": "2026-08-12T17:05:06.533000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Board Meeting Outcome for Outcome Of Board Meeting",
+   "category": "Board Meeting",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/419d0466-5a2c-4f49-a770-7f83dac909f3.pdf",
+   "ts": "2026-08-12T16:53:28.637000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Board Meeting Intimation for Schedule To Be Held On 12.08.2026 At 04.00 P.M",
+   "category": "Board Meeting",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0b1b630c-bb16-41ff-983f-c52f49137207.pdf",
+   "ts": "2026-08-05T12:05:09.370000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+   "category": "AGM/EGM",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/15d51e30-52bb-484f-952a-73025491b80b.pdf",
+   "ts": "2026-07-17T12:58:21.380000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+   "category": "AGM/EGM",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0324f96e-50cd-48ee-9f89-4a3f68236cb8.pdf",
+   "ts": "2026-07-15T17:35:14.660000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/213bb2f5-f5b8-435e-a322-5d73a06284e9.pdf",
+   "ts": "2026-07-08T11:49:48.217000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Closure of Trading Window",
+   "category": "Insider Trading / SAST",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3ad6fb72-187d-4ac3-a589-df7d0105d55f.pdf",
+   "ts": "2026-06-29T17:02:02.173000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e5f4b07d-0a8b-42db-8d91-eb6f18055584.pdf",
+   "ts": "2026-06-22T12:36:39.020000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Annual General Meeting",
+   "category": "AGM/EGM",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/96348ea4-c30f-4892-b5c1-64226aaa5931.pdf",
+   "ts": "2026-06-20T18:26:28.647000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Reg. 34 (1) Annual Report.",
+   "category": "Others",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/5844ba25-d39b-4214-9d17-5c5334edc640.pdf",
+   "ts": "2026-06-20T18:18:53.910000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ad6707b2-0ccc-4761-9fd8-1a163f501f32.pdf",
+   "ts": "2026-06-18T16:30:54.650000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Corrigendum",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d3990c2b-47eb-45b0-8866-46d5f5a34337.pdf",
+   "ts": "2026-06-17T13:01:37.067000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Book Closure",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/5b9b90a5-76bf-4515-8ffc-6ccf098bfb30.pdf",
+   "ts": "2026-06-17T11:59:32.857000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Board Meeting Outcome for Outcome Of Board Meeting",
+   "category": "Others",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/6faf7c65-94d1-43dc-862f-4cf621d43bf7.pdf",
+   "ts": "2026-06-17T11:52:43.300000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Compliances-Reg.24(A)-Annual Secretarial Compliance",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/73cb3747-03fe-4492-a396-aa290c0713e5.pdf",
+   "ts": "2026-05-29T16:47:15.273000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e9b22536-fa8f-40cc-b76d-417e8ddf29ce.pdf",
+   "ts": "2026-05-28T14:05:15.697000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Re-Appointment Of Internal Auditor.",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c90e9862-71bd-4f82-a86f-a61925fea0be.pdf",
+   "ts": "2026-05-28T12:05:38.933000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Non Applicability Of RPT Disclosure",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/872f364f-3855-4394-8118-1a927688bed4.pdf",
+   "ts": "2026-05-27T16:54:55.373000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Financial Result For The Quarter And Financial Year Ended 31.03.206",
+   "category": "Result",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/72d2239c-c1fd-4373-8c35-ae8072ce3c70.pdf",
+   "ts": "2026-05-27T16:49:26.910000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Board Meeting Outcome for Outcome Of Board Meeting",
+   "category": "Board Meeting",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/376b09ad-05b5-4370-8d0a-2cd6c20cbab3.pdf",
+   "ts": "2026-05-27T16:38:04.133000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Board Meeting Intimation for Scheduled To Be Held On 27.05.2026 At 04.00 P.M.",
+   "category": "Board Meeting",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d6b9a64b-bbc7-47c1-8938-dc166c0a081b.pdf",
+   "ts": "2026-05-19T12:04:18.213000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Format of the Initial Disclosure to be made by an entity identified as a Large Corporate : Annexure A",
+   "category": "Others",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/efe82baf-477d-4a58-add0-cad0e982d0ff.pdf",
+   "ts": "2026-04-30T16:06:15.527000+05:30"
+  },
+  {
+   "symbol": "539090",
+   "exchange": "BSE",
+   "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ab9a6cfa-900f-47f8-8cba-fde3452eeddc.pdf",
+   "ts": "2026-04-15T13:56:34.670000+05:30"
+  }
+ ],
+ "sources": [
+  "BSE"
+ ],
+ "errors": {},
+ "windows": {
+  "BSE": {
+   "window_start": "2026-04-06",
+   "window_end": "2026-10-03"
+  }
+ },
+ "coverage": "covered",
+ "note": null
+}

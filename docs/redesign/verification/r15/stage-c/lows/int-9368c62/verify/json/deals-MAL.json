@@ -1,0 +1,93 @@
+{
+ "symbol": "MAL",
+ "kind": null,
+ "count": 6,
+ "deals": [
+  {
+   "symbol": "MAL",
+   "kind": "bulk",
+   "date": "2026-03-20",
+   "party": "PUNEET JAYANTILAL SANGHVI",
+   "side": "buy",
+   "quantity": 216000.0,
+   "price": 32.2,
+   "value": 6955200.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  },
+  {
+   "symbol": "MAL",
+   "kind": "bulk",
+   "date": "2026-03-20",
+   "party": "URMILA JAYANTILAL SANGHVI",
+   "side": "sell",
+   "quantity": 216000.0,
+   "price": 32.2,
+   "value": 6955200.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  },
+  {
+   "symbol": "MAL",
+   "kind": "bulk",
+   "date": "2026-03-17",
+   "party": "MANJULA HOSHIYAR SANGHVI",
+   "side": "sell",
+   "quantity": 214400.0,
+   "price": 31.8,
+   "value": 6817920.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  },
+  {
+   "symbol": "MAL",
+   "kind": "bulk",
+   "date": "2026-03-17",
+   "party": "PURAN JAYANTI SANGHAVI",
+   "side": "buy",
+   "quantity": 214400.0,
+   "price": 31.8,
+   "value": 6817920.0,
+   "percent_after": null,
+   "exchange": "NSE",
+   "source_url": null
+  },
+  {
+   "symbol": "MAL",
+   "kind": "sast",
+   "date": "2025-10-29",
+   "party": "Catalyst Trusteeship Limited",
+   "side": "buy",
+   "quantity": 2715452.0,
+   "price": null,
+   "value": null,
+   "percent_after": 51.0,
+   "exchange": "NSE",
+   "source_url": "https://nsearchives.nseindia.com/corporate/MAL_11072025110754_47973.zip"
+  },
+  {
+   "symbol": "MAL",
+   "kind": "sast",
+   "date": "2025-10-27",
+   "party": "Catalyst Trusteeship Limited",
+   "side": "buy",
+   "quantity": 9874371.0,
+   "price": null,
+   "value": null,
+   "percent_after": 40.0,
+   "exchange": "NSE",
+   "source_url": "https://nsearchives.nseindia.com/corporate/MANGALAM_10292025114421_47937.zip"
+  }
+ ],
+ "sources": [
+  "NSE bulk",
+  "NSE block",
+  "NSE sast"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": "BSE MAL is a different company; only the NSE feed is served"
+}

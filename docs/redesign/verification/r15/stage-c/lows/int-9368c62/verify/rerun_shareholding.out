@@ -1,0 +1,6 @@
+attempt 1 KALYANI.BO vs 544023: equal=False n=11/11 sym=544023/544023 null-promoter-rows=3/1 keys=['patterns', 'major_shareholders']
+attempt 2 KALYANI.BO vs 544023: equal=False n=11/11 sym=544023/544023 null-promoter-rows=3/1 keys=['patterns', 'major_shareholders']
+attempt 1 RAJPUTANA.BO vs 539090: equal=False n=47/47 sym=539090/539090 null-promoter-rows=39/37 keys=['patterns', 'major_shareholders']
+attempt 2 RAJPUTANA.BO vs 539090: equal=False n=47/47 sym=539090/539090 null-promoter-rows=39/37 keys=['patterns', 'major_shareholders']
+attempt 1 ZEAL.BO vs 539963: equal=False n=37/37 sym=539963/539963 null-promoter-rows=29/26 keys=['patterns', 'major_shareholders']
+attempt 2 ZEAL.BO vs 539963: equal=False n=37/37 sym=539963/539963 null-promoter-rows=29/26 keys=['patterns', 'major_shareholders']

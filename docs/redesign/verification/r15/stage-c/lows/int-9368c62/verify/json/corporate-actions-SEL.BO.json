@@ -1,0 +1,78 @@
+{
+ "symbol": "509423",
+ "count": 6,
+ "actions": [
+  {
+   "symbol": "509423",
+   "kind": "other",
+   "purpose": "General",
+   "ratio": null,
+   "amount_per_share": null,
+   "ex_date": "2010-01-06",
+   "record_date": null,
+   "payment_date": null,
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "kind": "dividend",
+   "purpose": "NIL Dividend",
+   "ratio": null,
+   "amount_per_share": 0.0,
+   "ex_date": "2002-12-09",
+   "record_date": null,
+   "payment_date": null,
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "kind": "dividend",
+   "purpose": "NIL Dividend",
+   "ratio": null,
+   "amount_per_share": 0.0,
+   "ex_date": null,
+   "record_date": null,
+   "payment_date": null,
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "kind": "rights",
+   "purpose": "Right Issue of Equity Shares",
+   "ratio": null,
+   "amount_per_share": null,
+   "ex_date": null,
+   "record_date": "1999-08-11",
+   "payment_date": null,
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "kind": "other",
+   "purpose": "Spin Off",
+   "ratio": null,
+   "amount_per_share": null,
+   "ex_date": null,
+   "record_date": "2007-11-18",
+   "payment_date": null,
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "509423",
+   "kind": "other",
+   "purpose": "Reduction of Capital",
+   "ratio": null,
+   "amount_per_share": null,
+   "ex_date": null,
+   "record_date": "2005-09-29",
+   "payment_date": null,
+   "exchange": "BSE"
+  }
+ ],
+ "sources": [
+  "BSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": null
+}
