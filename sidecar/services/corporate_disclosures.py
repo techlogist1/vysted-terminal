@@ -160,6 +160,16 @@ def listing_lanes(bare: str) -> tuple[bool, str | None]:
     return False, symbol_resolver.bse_scrip_code(bare)
 
 
+def _lane_symbol(symbol: str) -> str:
+    """The identity the lanes key on: the bare ticker, except an explicit ``.BO`` on a
+    same-ticker different-company name takes that BSE company's scrip code, which
+    :func:`listing_lanes` then serves BSE-only (R15-LEAD-116)."""
+    symbol = symbol.strip().upper()
+    return symbol_resolver.pinned_other_company_bse_code(symbol) or locale.strip_exchange_suffix(
+        symbol
+    )
+
+
 def _other_company_note(bare: str, on_nse: bool, bse_code: str | None) -> str | None:
     """Why the same-ticker BSE feed was withheld (another company's), or ``None``."""
     if on_nse and bse_code is None and symbol_resolver.is_bse_symbol(bare):
@@ -561,7 +571,7 @@ def get_announcements(
     served. Every applicable lane failing (or no lane applying) raises
     :class:`ProviderError` — the feed is never silently empty-on-failure.
     """
-    bare = locale.strip_exchange_suffix(symbol.strip().upper())
+    bare = _lane_symbol(symbol)
     if not bare:
         raise ProviderError("disclosures: empty symbol")
     if not india_listing(symbol):
@@ -735,7 +745,7 @@ def get_results_calendar(symbol: str) -> ResultsCalendarResponse:
     non-NSE/BSE instrument is answered ``not_applicable``; a failing lane is
     recorded in ``errors`` and every applicable lane failing raises.
     """
-    bare = locale.strip_exchange_suffix(symbol.strip().upper())
+    bare = _lane_symbol(symbol)
     if not bare:
         raise ProviderError("disclosures: empty symbol")
     if not india_listing(symbol):
@@ -919,7 +929,7 @@ def get_corporate_actions(symbol: str) -> CorporateActionsResponse:
     failing applicable lane is recorded in ``errors`` and the rest is served;
     every applicable lane failing raises :class:`ProviderError`.
     """
-    bare = locale.strip_exchange_suffix(symbol.strip().upper())
+    bare = _lane_symbol(symbol)
     if not bare:
         raise ProviderError("disclosures: empty symbol")
     if not india_listing(symbol):
@@ -1077,7 +1087,7 @@ def get_deals(symbol: str, kind: str | None = None) -> ExchangeDealsResponse:
     lane is recorded in ``errors`` and the rest is served; every applicable
     lane failing (or none applying) raises :class:`ProviderError`.
     """
-    bare = locale.strip_exchange_suffix(symbol.strip().upper())
+    bare = _lane_symbol(symbol)
     if not bare:
         raise ProviderError("disclosures: empty symbol")
     if not india_listing(symbol):
@@ -1155,7 +1165,7 @@ def get_shareholding(symbol: str) -> ShareholdingResponse:
     ("incl. institutions"), and its as-of quarter; a lane that is applicable but
     fails is recorded and the next lane is tried, and no figure is ever fabricated.
     """
-    bare = locale.strip_exchange_suffix(symbol.strip().upper())
+    bare = _lane_symbol(symbol)
     if not bare:
         raise ProviderError("disclosures: empty symbol")
     if not india_listing(symbol):
