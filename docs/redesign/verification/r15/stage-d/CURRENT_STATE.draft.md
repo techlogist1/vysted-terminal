@@ -113,6 +113,8 @@ decisions from batch 3 on carry `D-B<n>-<k>` ids in
 Full open-item detail (grouped by subsystem, plus the open Tier-4 operator
 decisions) is in `BLOCKERS.md` "R15 open items".
 
+**Known open high at 0.9.0-rc1: R15-LEAD-116** — an explicit `FOCUS.BO` pin on a same-ticker, different-company name (also KALYANI, RAJPUTANA, MAL, SEL, ZEAL) serves the NSE company's disclosure feed in all five lanes, labelled with a note; its bounded fix is certified before rc2, else filed for 0.9.1.
+
 **Known limitations at rc1 — agent chat with a keyless local model.**
 Operator-accepted (Tier-4 sign-off, DECISIONS_FOR_OPERATOR.md §4.9–4.12): one
 known-limitation class ships as a documented limitation of the keyless

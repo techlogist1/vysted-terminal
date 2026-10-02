@@ -31,6 +31,32 @@ carried into 0.9.1** by this draft.
 | removed_with_feature | 0        | 1       | 9       | 4       | 14      |
 | **Total**            | **16**   | **123** | **329** | **270** | **738** |
 
+## 1.1 First item (conditional): R15-LEAD-116 [high]
+
+**Conditional: only if the lows-integration certification fails.** Operator
+decision DECISIONS §4.22 option (d): R15-LEAD-116 is an open high at
+0.9.0-rc1. Its bounded fix runs first inside the lows integration and is
+certified by that candidate's fresh verifier; rc2 requires open critical and
+high = 0 including it. This item enters 0.9.1 only if that certification
+fails once.
+
+The defect: an explicit `FOCUS.BO` pin on a same-ticker, different-company
+name serves the NSE company's disclosure feed in all five lanes
+(announcements, results, shareholding, corporate actions, deals). Six
+collision tickers: FOCUS, KALYANI, RAJPUTANA, MAL, SEL, ZEAL. Root cause:
+`sidecar/services/corporate_disclosures.py` strips the exchange suffix into
+`bare` before `listing_lanes(bare)`, so the `.BO` pin is lost.
+
+Fail-safe as the register describes it: the register carries no separate
+fail-safe entry; the standing behaviour is that the response is labelled with
+the note "BSE FOCUS is a different company; only the NSE feed is served", so
+no NSE row is presented as the BSE company's without that label (the
+register's option (c) rationale). The intended fix shape is to honour an
+explicit `.BO` when the same-ticker BSE scrip is a different company (take
+the BSE company's lanes and no NSE lane), keeping same-company `.BO`
+(AMAL.BO) and bare `FOCUS` unchanged. If this item is filed, state the
+fail-safe in the release notes as the labelled-NSE-feed behaviour.
+
 ## 2. Open mediums at 0.9.0 — first 0.9.1 batch
 
 Every register entry with `status: open` and `severity: medium` (28 entries).

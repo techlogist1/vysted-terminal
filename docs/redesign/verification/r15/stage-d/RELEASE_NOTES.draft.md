@@ -156,6 +156,7 @@ entries, if any, that partial merge actually certified. -->
   on-disk log file in a packaged build; and the sidecar refusing requests from other
   browser origins. Two manual checks have never been run: the documented Claude Desktop
   MCP setup, and the Windows MCP-spawn fix inside a launched packaged app.
+- **Known open high at 0.9.0-rc1: an explicit `FOCUS.BO` pin (and the same-ticker collisions KALYANI, RAJPUTANA, MAL, SEL, ZEAL) serves the NSE company's disclosure feed instead of the BSE company's, with a note saying so;** a fix is being certified before rc2, and if it fails certification it ships in 0.9.1.
 - **Other open issues are low-severity.** One medium issue remains open: the "don't use
   tools" detector described below. The remaining gaps are accepted and documented:
   signing, the release pipeline, CI, extensibility, webview hardening and a few stale

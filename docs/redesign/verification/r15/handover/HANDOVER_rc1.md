@@ -14,10 +14,16 @@ mid-round as gate rule change 1). Round 5's one bounded fix round certified
 R15-LEAD-059 (a cross-company disclosure-feed leak) but its own fresh
 verifier found one more high, R15-LEAD-116, on a narrower slice of the same
 bug class — the one bounded fix round the gate rule allows is already spent,
-so the tag now waits on the operator's answer to DECISIONS §4.22. A recheck
-is running on the post-fix candidate `949c3c9f`: its chain and Gate 8 lanes
-are green on disk already; only the battery lane (25 shards) is still in
-flight. Register at `949c3c9f`: **738 entries** — **fixed 395**, **open
+so the tag waited on the operator's answer to DECISIONS §4.22. The operator took
+option (d): `r15-rc1` is tagged (annotated tag object `0e0852e9` on commit
+`949c3c9f`, pushed 03:13:57 IST Sat 3 Oct 2026) with R15-LEAD-116 an open high
+at 0.9.0-rc1. Its bounded fix runs first inside the lows integration (in
+flight), certified by that candidate's fresh verifier; rc2 requires open
+critical and high = 0 including it, and if the fix fails certification once it
+is filed for 0.9.1 with its fail-safe described. The recheck on `949c3c9f` read
+clean on chain and Gate 8. 004 carries 0.9.0 (`06879089`) and the 0.9.1 backlog
+draft (`6f165d86`); DECISIONS §5.1-5.10 took their recommended options as
+operator-default at 03:22 IST Sat 3 Oct (standing rule). Register at `949c3c9f`: **738 entries** — **fixed 395**, **open
 277** (1 high + 28 medium + 248 low), **blocked_tier4 35**, **needs_gui 11**,
 removed_with_feature 14, not_a_defect 6.
 
@@ -125,7 +131,9 @@ verifier) with no standalone timing anywhere in the ledger.
 
 ## (d) Operator-pending items
 
-**DECISIONS §4.22 — R15-LEAD-116 (high).** An explicit `.BO` pin on a
+**DECISIONS §4.22 — R15-LEAD-116 (high) — RESOLVED, option (d).** The operator's answer is above in (a); the options below are kept as history.
+
+**Original framing:** An explicit `.BO` pin on a
 same-ticker, different-company name (FOCUS.BO = Focus Business Solution,
 BSE 543312) still serves the NSE company's rows in all five disclosure
 lanes, even after the LEAD-059 fix anchored the unpinned case on the
@@ -181,7 +189,11 @@ and operator-decisions brief addenda named in the run-state header,
 R15_BRIEF_PROCESS_NOTE_1.md (the in-flight ledger convention),
 R15_BRIEF_PROCESS_NOTE_2.md (the post-compaction re-read rule).
 
-Next concrete step, by the DECISIONS 4.22 outcome:
+Next concrete step: the 4.22 outcome is option (d), already applied (rc1 tagged at
+949c3c9f); run the lows integration with the LEAD-116 fix first. The (a)/(b)/(c)
+list below is the pre-answer history.
+
+Next concrete step, by the DECISIONS 4.22 outcome (history):
 - (a) one more bounded writer pass: launch a single writer -> integrator ->
   fresh-verifier chain on R15-LEAD-116 (the FOCUS.BO explicit-pin case) from
   794bc68f, same shape as the round-5 fix round (r15/tooling/rc1-r5-fix.js is
@@ -218,7 +230,5 @@ written):
   figures used there.
 - **Hosted spend for the recheck** — OpenAI-direct + OpenRouter ledger rows
   tagged to this run (`FILLED: USD 0.00 hosted (six free local-model rows)`).
-- **The tag sha itself** — `<<tag-sha>>` in `HEADER_DRAFT_rc1.md`'s
-  `Newest tag:` block, filled once DECISIONS §4.22 resolves and the recheck
-  (or the LEAD-116 fix-round-plus-recheck, if option (a) is chosen) reads
-  clean across chain, Gate 8 and the battery repro-check.
+- **The tag sha itself** — `949c3c9f` (annotated tag object `0e0852e9`), filled in
+  `HEADER_DRAFT_rc1.md`'s `Newest tag:` block.
