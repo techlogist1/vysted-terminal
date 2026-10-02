@@ -778,6 +778,23 @@ def dual_listed_bse_code(symbol: str) -> str | None:
     return _enrich_instrument(_instrument_nse(bare, 1.0)).bse_code
 
 
+def pinned_other_company_bse_code(symbol: str) -> str | None:
+    """The BSE scrip code an explicit ``.BO`` pin names when that BSE row is NOT the
+    NSE row's company (``FOCUS.BO``: BSE 543312 Focus Business Solution, not NSE
+    Focus Lighting). ``None`` for every other symbol, same-company ``.BO`` included.
+    Judged on the names (:func:`_bse_row_is_same_company`), independent of
+    :func:`dual_listed_bse_code`."""
+    if _suffix_exchange(symbol) != "BSE":
+        return None
+    bare = strip_exchange_suffix(symbol)
+    entry = _bse_master().get(bare)
+    if bare not in _nse_master() or not entry or not entry[2]:
+        return None
+    if _bse_row_is_same_company(_instrument_nse(bare, 1.0), entry):
+        return None
+    return entry[2]
+
+
 def region_hint(symbol: str) -> str | None:
     """Infer a symbol's intrinsic region, or ``None`` if it is ambiguous.
 

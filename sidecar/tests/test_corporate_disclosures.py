@@ -1188,3 +1188,66 @@ def test_shareholding_pattern_tool_surfaces_provider_error(
     result = asyncio.run(agent_tools.invoke_tool("shareholding_pattern", {"symbol": "RELIANCE"}))
     assert result["ok"] is False
     assert "every shareholding source failed" in result["error"]
+
+
+_ALL_LANES = (
+    ("get_announcements", lambda s: corporate_disclosures.get_announcements(s)),
+    ("get_results_calendar", lambda s: corporate_disclosures.get_results_calendar(s)),
+    ("get_shareholding", lambda s: corporate_disclosures.get_shareholding(s)),
+    ("get_corporate_actions", lambda s: corporate_disclosures.get_corporate_actions(s)),
+    ("get_deals", lambda s: corporate_disclosures.get_deals(s)),
+)
+
+
+def _nse_unreachable_bse_recorder(monkeypatch: pytest.MonkeyPatch) -> None:
+    def boom(*args: object, **kwargs: object) -> None:
+        raise AssertionError("the NSE company's feed must not be served")
+
+    for name in (
+        "get_corporate_announcements",
+        "get_results_calendar",
+        "get_shareholding_master",
+        "get_corporate_actions",
+        "get_bulk_block_deals",
+        "get_sast_disclosures",
+    ):
+        monkeypatch.setattr(nse_provider, name, boom)
+    monkeypatch.setattr(
+        corporate_disclosures, "_bse_get_json", lambda url, params: {"Table": [], "Table1": []}
+    )
+
+
+@pytest.mark.parametrize(("name", "lane"), _ALL_LANES, ids=[n for n, _ in _ALL_LANES])
+def test_explicit_bo_pin_on_a_different_company_takes_the_bse_company_in_every_lane(
+    monkeypatch: pytest.MonkeyPatch, name: str, lane: Any
+) -> None:
+    """R15-LEAD-116: FOCUS.BO is Focus Business Solution (BSE 543312), not NSE
+    Focus Lighting. Every lane answers exactly as the scrip code does, with no NSE
+    lane; a bare FOCUS keeps the NSE-only feed."""
+    _nse_unreachable_bse_recorder(monkeypatch)
+
+    def outcome(symbol: str) -> object:
+        try:
+            return lane(symbol).model_dump()
+        except ProviderError as exc:  # a lane's empty stub payload may be refused; same either way
+            return str(exc)
+
+    assert outcome("FOCUS.BO") == outcome("543312")
+
+
+def test_bo_pin_keeps_same_company_and_bare_behaviour(monkeypatch: pytest.MonkeyPatch) -> None:
+    """AMAL.BO (one company on both venues, even with its dual listing masked) and a
+    bare FOCUS are unchanged; INFY.NS and HDFCBANK keep both lanes."""
+    assert symbol_resolver.pinned_other_company_bse_code("FOCUS.BO") == "543312"
+    assert symbol_resolver.pinned_other_company_bse_code("FOCUS") is None
+    monkeypatch.setattr(symbol_resolver, "dual_listed_bse_code", lambda s: None)
+    assert symbol_resolver.pinned_other_company_bse_code("AMAL.BO") is None
+    assert corporate_disclosures.listing_lanes(corporate_disclosures._lane_symbol("AMAL.BO")) == (
+        True,
+        None,
+    )
+    monkeypatch.undo()
+    assert corporate_disclosures.listing_lanes("FOCUS") == (True, None)
+    for sym in ("INFY.NS", "HDFCBANK"):
+        on_nse, code = corporate_disclosures.listing_lanes(corporate_disclosures._lane_symbol(sym))
+        assert on_nse and code
