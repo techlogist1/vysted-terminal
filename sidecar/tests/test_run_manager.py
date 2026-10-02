@@ -916,6 +916,8 @@ async def test_runtime_events_derived_from_a_dispatched_call_are_delivered(
     assert [(a["name"], a["input"]) for a in row.host_actions] == [
         ("open_panel", {"panel": "backtest", "run_id": "bt-1"})
     ]
+
+
 @pytest.mark.asyncio
 async def test_crashed_run_detail_is_humanized(monkeypatch: pytest.MonkeyPatch) -> None:
     """R15-CODE-PLATFORM-038: a run that crashes records the humanizer's plain

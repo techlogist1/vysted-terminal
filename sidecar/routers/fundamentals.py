@@ -14,9 +14,6 @@ routes ride the same cache, keyed on the resolved listing (R15-DATA-096).
 
 from __future__ import annotations
 
-import asyncio
-import logging
-from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from typing import Annotated
 
