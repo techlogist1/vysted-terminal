@@ -2,7 +2,7 @@
 
 ``perplexity.py`` (direct Perplexity BYOK) and ``sonar.py`` (Perplexity Sonar
 via OpenRouter) are one hosted-research lane sharing ``services.research.
-perplexity._HostedResearchLane`` for request/response plumbing and HTTP status
+perplexity.HostedResearchLane`` for request/response plumbing and HTTP status
 mapping. Before the fix the two had drifted: 402 ("insufficient credits") was
 handled only on the OpenRouter side, so a Perplexity-direct 402 fell through to
 a generic "failed with HTTP 402". This pins BOTH constructors mapping the SAME

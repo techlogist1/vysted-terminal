@@ -634,7 +634,7 @@ def test_run_researcher_drops_off_entity_news_for_a_non_in_equity_target() -> No
         return "Gartner's forecast improved."
 
     _finding, _web, structured_pairs, _visited, _failed = asyncio.run(
-        deep._run_researcher(
+        deep.run_researcher(
             "What is the latest news?",
             target=target,
             query="Gartner outlook",
@@ -665,7 +665,7 @@ def _news_item(item_id: str, title: str, symbol: str, *, own_feed: bool) -> dict
 
 
 def _run_news_leg(target: ResearchTarget, items: list[dict[str, Any]]) -> tuple[list[str], str]:
-    """Drive ``_run_researcher`` with ``items`` as the news result; return the
+    """Drive ``run_researcher`` with ``items`` as the news result; return the
     URLs in the structured news pair and the extraction prompt text."""
 
     async def tool_call(name: str, _args: dict[str, Any]) -> dict[str, Any]:
@@ -680,7 +680,7 @@ def _run_news_leg(target: ResearchTarget, items: list[dict[str, Any]]) -> tuple[
         return "Finding."
 
     _finding, _web, pairs, _visited, _failed = asyncio.run(
-        deep._run_researcher(
+        deep.run_researcher(
             "What is the latest news?",
             target=target,
             query=f"{target.name} news",

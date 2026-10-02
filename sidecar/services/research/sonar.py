@@ -36,7 +36,7 @@ import httpx
 
 from services.llm.native_search import normalize_openai
 from services.research.models import ResearchBrief, ResearchSource
-from services.research.perplexity import _domain_of, _HostedResearchLane
+from services.research.perplexity import HostedResearchLane, domain_of
 
 #: OpenRouter's OpenAI-compatible chat-completions endpoint.
 OPENROUTER_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -153,7 +153,7 @@ def _extract_sources(body: dict[str, Any]) -> list[ResearchSource]:
         if not url or url in seen:
             return
         seen.add(url)
-        host = _domain_of(url)
+        host = domain_of(url)
         sources.append(
             ResearchSource(
                 url=url,
@@ -223,7 +223,7 @@ class OpenRouterSonarBackend:
         client: httpx.AsyncClient | None = None,
     ) -> None:
         self._model = resolve_model(model)
-        self._lane = _HostedResearchLane(
+        self._lane = HostedResearchLane(
             base_url=OPENROUTER_CHAT_URL,
             model=self._model,
             vendor="OpenRouter",
@@ -239,7 +239,7 @@ class OpenRouterSonarBackend:
     async def research(self, query: str, *, region: str | None = None) -> ResearchBrief:
         """Run one sonar research pass and map it to a ``ResearchBrief``.
 
-        See :meth:`_HostedResearchLane.research`.
+        See :meth:`HostedResearchLane.research`.
         """
         return await self._lane.research(query, region=region)
 
