@@ -31,32 +31,6 @@ carried into 0.9.1** by this draft.
 | removed_with_feature | 0        | 1       | 9       | 4       | 14      |
 | **Total**            | **16**   | **123** | **329** | **270** | **738** |
 
-## 1.1 First item (conditional): R15-LEAD-116 [high]
-
-**Conditional: only if the lows-integration certification fails.** Operator
-decision DECISIONS §4.22 option (d): R15-LEAD-116 is an open high at
-0.9.0-rc1. Its bounded fix runs first inside the lows integration and is
-certified by that candidate's fresh verifier; rc2 requires open critical and
-high = 0 including it. This item enters 0.9.1 only if that certification
-fails once.
-
-The defect: an explicit `FOCUS.BO` pin on a same-ticker, different-company
-name serves the NSE company's disclosure feed in all five lanes
-(announcements, results, shareholding, corporate actions, deals). Six
-collision tickers: FOCUS, KALYANI, RAJPUTANA, MAL, SEL, ZEAL. Root cause:
-`sidecar/services/corporate_disclosures.py` strips the exchange suffix into
-`bare` before `listing_lanes(bare)`, so the `.BO` pin is lost.
-
-Fail-safe as the register describes it: the register carries no separate
-fail-safe entry; the standing behaviour is that the response is labelled with
-the note "BSE FOCUS is a different company; only the NSE feed is served", so
-no NSE row is presented as the BSE company's without that label (the
-register's option (c) rationale). The intended fix shape is to honour an
-explicit `.BO` when the same-ticker BSE scrip is a different company (take
-the BSE company's lanes and no NSE lane), keeping same-company `.BO`
-(AMAL.BO) and bare `FOCUS` unchanged. If this item is filed, state the
-fail-safe in the release notes as the labelled-NSE-feed behaviour.
-
 ## 2. Open mediums at 0.9.0 — first 0.9.1 batch
 
 Every register entry with `status: open` and `severity: medium` (28 entries).
@@ -97,14 +71,25 @@ reopening the original.
 
 ## 3. Open lows at 0.9.0
 
-248 entries currently carry `status: open`, `severity: low`. Of those, 215+
-already have fixes pushed on the 41 lows-writer branches awaiting the
-combined-candidate integration described in §6.2 (all three partitions
-rebased onto the tag off-lane, one chain run, one fresh verifier). The full
-248-row list is **not** enumerated here — it is regenerated once that
-integration lands at rc2, when `status` on the fixed rows will have moved.
+The 203-id lows batch (P1/P2/P3 `WRITERS.json` outcome `fixed` +
+`remaining/REMAINING.json` outcome `fixed_untested`) integrated and certified
+at register sha d3509715 (merge d2da4535 into 004): 202 of 203 fixed, closure
+evidence `r15/stage-c/lows/int-9368c62/VERIFY.md` §5 (1314/1314 tests
+passed, 0 missing node ids, none reverted). One residual and three new/still-
+open lows came out of that integration:
 
-Generator (run after the rc2 integration):
+| ID                | Title                                                                                                                                      | Severity | Note                                                                                                                                           |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| R15-CODE-DATA-018 | Resolution.needs_disambiguation and the DISAMBIGUATION_THRESHOLD re-export are dead second-decision surfaces kept alive only by tests        | low      | Residual: needs_disambiguation was deleted (7f98480b) then restored verbatim (fix-A, 3af0502c) because rc1 test ea2ebd50 pins it; stays open   |
+| R15-LEAD-117      | FOCUS&exchange=BSE answers venue_not_covered with a note claiming FOCUS is not listed on BSE (BSE 543312 exists, a different company)        | low      | Sibling of R15-LEAD-116 (now fixed); the note-wording fix is not yet done                                                                      |
+| R15-LEAD-118      | Shareholding percentages differ by symbol spelling for the same scrip/quarter/filing (e.g. FOCUS vs FOCUS.BO vs 543312)                      | low      | Filed by the lows-int certifier (int-9368c62) as an adjacent finding; pre-existing, made reachable by the R15-LEAD-116 fix                     |
+| R15-LEAD-119      | The vitest coverage ratchet never gets committed: thresholds read lines 0 while measured coverage is about 81.4                              | low      | Filed by the lows-int certifier (int-9368c62) as an adjacent finding                                                                            |
+
+The remaining open-low count (53 entries total; most are unrelated to the
+203-id lows batch above, e.g. R15-LEAD-041..115) is not enumerated here —
+regenerate with the generator below.
+
+Generator (current):
 
 ```
 python3 -c "import json; d=json.load(open('docs/redesign/verification/vysted-r15-register.json')); [print(e['id'], e['severity'], e['status'], e['title'][:80]) for e in d['entries'] if e['status']=='open' and e['severity']=='low']"

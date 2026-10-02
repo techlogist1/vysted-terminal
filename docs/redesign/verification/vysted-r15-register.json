@@ -12547,8 +12547,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one catalog flag + a parity assertion; backtest is simulated, not trading, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-066"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one catalog flag + a parity assertion; backtest is simulated, not trading, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-066",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_mcp_catalog_parity.py::test_run_custom_backtest_not_read_only_on_mcp"
   },
   {
    "id": "R15-AGENT-067",
@@ -12572,8 +12573,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "Batch-9 register adjudication: the repro's broker_portfolio example is gone post-removal (a122dbf6 feat(d81)) -- services.agent_tools.broker_portfolio no longer exists (asserted absent by sidecar/tests/test_no_trading_surface.py). The entry's core defect still reproduces via its other examples (web_search and research are still projected to the external MCP surface purely by tool kind, spending the user's BYOK Exa/Perplexity credits). Stays open, narrowed. || triage@e032be7: still_reproduces, confidence 5, broker_portfolio half already left with D81; the remaining change is catalog-internal, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-067"
+   "status": "fixed",
+   "note": "Batch-9 register adjudication: the repro's broker_portfolio example is gone post-removal (a122dbf6 feat(d81)) -- services.agent_tools.broker_portfolio no longer exists (asserted absent by sidecar/tests/test_no_trading_surface.py). The entry's core defect still reproduces via its other examples (web_search and research are still projected to the external MCP surface purely by tool kind, spending the user's BYOK Exa/Perplexity credits). Stays open, narrowed. || triage@e032be7: still_reproduces, confidence 5, broker_portfolio half already left with D81; the remaining change is catalog-internal, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-067",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_mcp_catalog_parity.py::test_mcp_projection_is_explicit_per_entry"
   },
   {
    "id": "R15-AGENT-068",
@@ -12599,8 +12601,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, envelope extraction touches read-only data tools only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-068"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, envelope extraction touches read-only data tools only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-068",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agent_tools_lows.py::test_earnings_upcoming_bad_days_returns_range_message"
   },
   {
    "id": "R15-AGENT-069",
@@ -12624,8 +12627,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, two-line change per tool plus a mapping, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-069/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, two-line change per tool plus a mapping, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-069/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_compare_symbols.py::test_one_raising_symbol_yields_one_error_row; sidecar/tests/test_market_overview.py::test_one_raising_quote_yields_one_error_row"
   },
   {
    "id": "R15-AGENT-070",
@@ -12650,8 +12654,9 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, runtime + catalog field only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-070"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, runtime + catalog field only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-070",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agent_runtime.py::test_timeout_from_args_flag_not_name_selects_guard"
   },
   {
    "id": "R15-AGENT-071",
@@ -12675,8 +12680,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, prompt generation from catalog touches every persona prompt, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-071"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, prompt generation from catalog touches every persona prompt, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-071",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agent_runtime.py::test_every_tool_named_in_prompts_resolves_in_catalog"
   },
   {
    "id": "R15-AGENT-072",
@@ -12701,8 +12707,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, doc/field rename only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-072"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, doc/field rename only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-072",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agents_router.py::test_agents_expose_effective_grant_separately_from_specialty_tools"
   },
   {
    "id": "R15-AGENT-073",
@@ -12725,8 +12732,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, pass the resolved provider into _resolve_model, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-073"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pass the resolved provider into _resolve_model, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-073",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agent_runtime.py::test_provider_override_without_model_uses_provider_default"
   },
   {
    "id": "R15-AGENT-074",
@@ -12777,8 +12785,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, new optional field across the sidecar/TS mirror plus the price lookup, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-075/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, new optional field across the sidecar/TS mirror plus the price lookup, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-075/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_budget_guard.py::test_prices_with_served_model"
   },
   {
    "id": "R15-AGENT-076",
@@ -12801,8 +12810,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, narrow one except clause and add a log line; no logger exists in ollama.py today, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-076/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, narrow one except clause and add a log line; no logger exists in ollama.py today, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-076/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_llm_ollama.py::test_tools_construction_error_logs_and_emits_notice"
   },
   {
    "id": "R15-AGENT-077",
@@ -12827,8 +12837,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, add a base_url kwarg to oneshot.complete/complete_with_usage and thread self._base_url from openai.py:540, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-077/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, add a base_url kwarg to oneshot.complete/complete_with_usage and thread self._base_url from openai.py:540, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-AGENT-077/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_llm_openai.py::test_repair_round_keeps_configured_base_url; sidecar/tests/test_native_search.py::test_native_search_oneshot_keeps_the_callers_base_url"
   },
   {
    "id": "R15-AGENT-078",
@@ -12852,8 +12863,9 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "Verifier batch-8: same class as this entry's rAF-vs-synchronous-success gap, fresh instance -- arrange_layout's default (reset) path reports \"Reset the panel arrangement…\" as success even when dockviewApi is null and resetLayout is a no-op. || triage@e032be7: still_reproduces, confidence 4, delete four rAF wrappers, call applyPlan directly (applyLayoutMode already does); guard the reset path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-078"
+   "status": "fixed",
+   "note": "Verifier batch-8: same class as this entry's rAF-vs-synchronous-success gap, fresh instance -- arrange_layout's default (reset) path reports \"Reset the panel arrangement…\" as success even when dockviewApi is null and resetLayout is a no-op. || triage@e032be7: still_reproduces, confidence 4, delete four rAF wrappers, call applyPlan directly (applyLayoutMode already does); guard the reset path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-078",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/layout-templates.test.ts::applyLayoutTemplate/applyCustomLayout apply without a rAF flush"
   },
   {
    "id": "R15-AGENT-079",
@@ -12877,8 +12889,9 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one .lower() at backtest_dsl.py:237; no commit in range touched the file, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-079"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one .lower() at backtest_dsl.py:237; no commit in range touched the file, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-079",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_backtest_lows.py::test_uppercase_and_or_parse_like_lowercase"
   },
   {
    "id": "R15-AGENT-085",
@@ -12957,8 +12970,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, prose edits only, no behaviour change, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-087"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, prose edits only, no behaviour change, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-087",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/agent-mode.test.ts"
   },
   {
    "id": "R15-AGENT-089",
@@ -12983,8 +12997,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, add two ids to two constants, or derive both from the catalog, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-089"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, add two ids to two constants, or derive both from the catalog, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-AGENT-089",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_planner.py::test_coerce_steps_keeps_close_and_focus_panel_and_plan_marks_staged"
   },
   {
    "id": "R15-AGENT-091",
@@ -13008,8 +13023,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "batch-12: mined from rc1 Gate 8 (R15_GATE_RC1.md item 3)."
+   "status": "fixed",
+   "note": "batch-12: mined from rc1 Gate 8 (R15_GATE_RC1.md item 3).",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/chat/context-provider.test.ts::P:captureTerminalState — portfolio holdings (FR-110/111, SC-024) > get_portfolio holdings carry a currency field on both the panel-published and store-fallback paths (R15-AGENT-091)"
   },
   {
    "id": "R15-CODE-AGENT-014",
@@ -13033,8 +13049,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, refactor of the registry seam only; no trading path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-014"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, refactor of the registry seam only; no trading path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-014",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agent_tools_lows.py::test_invoke_tool_wraps_provider_error_with_one_spelling"
   },
   {
    "id": "R15-CODE-AGENT-015",
@@ -13058,8 +13075,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, read-only tool arg hygiene, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-015"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, read-only tool arg hygiene, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-015",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_sec_tools.py::test_limit_is_clamped_both_ways"
   },
   {
    "id": "R15-CODE-AGENT-016",
@@ -13108,8 +13126,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, try/except around _row_to_read in list_agents, mirroring _discover_specs, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-017"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, try/except around _row_to_read in list_agents, mirroring _discover_specs, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-017",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agents_store.py::test_unparseable_row_is_skipped_and_logged"
   },
   {
    "id": "R15-CODE-AGENT-018",
@@ -13132,8 +13151,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, comment + one assertion, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-018"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, comment + one assertion, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-018",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_toolbelt_integrity.py::test_stageable_and_read_safe_relation_is_pinned"
   },
   {
    "id": "R15-CODE-AGENT-019",
@@ -13158,8 +13178,9 @@
     "agent-chat",
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 3, one route, humanize() already exists in services/errors.py:269, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-019/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 3, one route, humanize() already exists in services/errors.py:269, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-019/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_llm_router.py::test_validate_transport_failure_is_humanized"
   },
   {
    "id": "R15-CODE-AGENT-020",
@@ -13182,8 +13203,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, constructor arg + two call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-020/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, constructor arg + two call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-020/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_llm_lows.py::test_get_provider_groq_gemini_honour_or_reject_base_url"
   },
   {
    "id": "R15-CODE-AGENT-021",
@@ -13206,8 +13228,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, three routes + frontend client + base.py docstring must move together, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-021/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, three routes + frontend client + base.py docstring must move together, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-021/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_llm_router.py::test_no_llm_route_echoes_the_key"
   },
   {
    "id": "R15-CODE-AGENT-022",
@@ -13229,8 +13252,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, replace one constant with the SDK's; the existing test (:43) only asserts truthiness, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-022/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, replace one constant with the SDK's; the existing test (:43) only asserts truthiness, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-022/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_mcp_server.py::test_status_protocol_version_matches_initialize_handshake"
   },
   {
    "id": "R15-CODE-AGENT-023",
@@ -13252,8 +13276,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, raise ToolError in _make_catalog_tool instead of returning {ok:False}; keep the message text, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-023/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, raise ToolError in _make_catalog_tool instead of returning {ok:False}; keep the message text, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-023/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_mcp_server.py::test_failing_catalog_tool_returns_is_error"
   },
   {
    "id": "R15-CODE-AGENT-024",
@@ -13276,8 +13301,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, refactor across three modules; behaviour-preserving but touches every MCP call path, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-024/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, refactor across three modules; behaviour-preserving but touches every MCP call path, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-024/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_mcp_client.py::test_local_mcp_subprocess_resolves_and_decodes_once"
   },
   {
    "id": "R15-CODE-AGENT-025",
@@ -13299,8 +13325,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one dict key pass-through plus the TS mirror, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-025/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one dict key pass-through plus the TS mirror, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-025/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_mcp_client.py::test_call_tool_passes_structured_content_through"
   },
   {
    "id": "R15-CODE-AGENT-026",
@@ -13321,8 +13348,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, dead enum member; no runtime behaviour today, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-026"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, dead enum member; no runtime behaviour today, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-026",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_mcp_catalog_parity.py::test_toolkind_has_no_unprojected_mcp_endpoint"
   },
   {
    "id": "R15-CODE-AGENT-027",
@@ -13344,8 +13372,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, test-plumbing + constant reuse only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-027"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, test-plumbing + constant reuse only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-027",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agent_tools_lows.py::test_reset_for_tests_restores_every_import_time_tool"
   },
   {
    "id": "R15-CODE-AGENT-028",
@@ -13369,8 +13398,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, cosmetic pass-through only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-028"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, cosmetic pass-through only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-028",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agent_tools_lows.py::test_no_agent_tools_registry_v0_6_0_module"
   },
   {
    "id": "R15-CODE-AGENT-029",
@@ -13397,8 +13427,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, pure deletion, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-029"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure deletion, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-AGENT-029",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agents_store.py::test_connect_is_idempotent; sidecar/tests/test_plugins.py::test_connect_is_idempotent; sidecar/tests/test_portfolio.py::test_connect_is_idempotent; sidecar/tests/test_schema_version.py"
   },
   {
    "id": "R15-CODE-AGENT-030",
@@ -13422,8 +13453,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, delete four no-op clauses, move anthropic's comment to the base docstring, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-030/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, delete four no-op clauses, move anthropic's comment to the base docstring, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-030/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_llm_lows.py::test_validate_key_has_no_reraise_only_clause"
   },
   {
    "id": "R15-CODE-AGENT-031",
@@ -13449,8 +13481,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, delete _dual_case, fix docstring, add docs section, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-031/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, delete _dual_case, fix docstring, add docs section, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-031/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_runs_router.py::test_runs_rows_carry_only_snake_case_keys; sidecar/tests/test_runs_router.py; sidecar/tests/test_run_manager.py::test_run_output_is_returned_untruncated_by_get_run; src/lib/delegate-runs.test.ts"
   },
   {
    "id": "R15-CODE-AGENT-032",
@@ -13475,8 +13508,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, four small independent changes across store, driver and poller, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-032/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, four small independent changes across store, driver and poller, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-AGENT-032/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_runs_store.py::test_list_runs_is_bounded_and_prunes_old_terminal_rows; src/lib/delegate-runs.test.ts::skips a poll while one is in flight, and bounds the /runs read with a timeout"
   },
   {
    "id": "R15-CODE-DATA-007",
@@ -13500,8 +13534,9 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, two except clauses widen to Exception (noqa BLE001), reason already recorded into errors, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-007/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, two except clauses widen to Exception (noqa BLE001), reason already recorded into errors, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-007/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_corporate_disclosures.py::test_lane_keyerror_degrades_to_partial_merge; sidecar/tests/test_corporate_disclosures.py::test_shareholding_lane_keyerror_falls_through_to_next_lane"
   },
   {
    "id": "R15-CODE-DATA-008",
@@ -13524,8 +13559,9 @@
     "data-smallcaps"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, widen the two except clauses, keep the provider-id log, re-raise only when no candidate remains, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-008"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, widen the two except clauses, keep the provider-id log, re-raise only when no candidate remains, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-008",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_provider_registry.py::test_resolve_sync_keyerror_falls_through_to_next_candidate; sidecar/tests/test_provider_registry.py::test_resolve_async_keyerror_falls_through_to_next_candidate"
   },
   {
    "id": "R15-CODE-DATA-009",
@@ -13551,8 +13587,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, one predicate, five imports, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-009"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one predicate, five imports, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-009",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_provider_health.py::test_is_rate_limit_union"
   },
   {
    "id": "R15-CODE-DATA-010",
@@ -13573,8 +13610,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, one DELETE on the stale-read branch, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-010"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one DELETE on the stale-read branch, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-010",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_data_cache.py::test_stale_get_evicts_row"
   },
   {
    "id": "R15-CODE-DATA-011",
@@ -13595,8 +13633,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, pure dedupe of three 12-line blocks into one _cached helper, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-011"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure dedupe of three 12-line blocks into one _cached helper, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-011",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_router_cached_helper.py::test_corrupt_cache_entry_refetches_for_all_rating_routes"
   },
   {
    "id": "R15-CODE-DATA-012",
@@ -13617,8 +13656,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, pure refactor of four GET handlers, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-012/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure refactor of four GET handlers, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-012/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_router_cached_helper.py::test_corrupt_cache_entry_refetches_for_all_rating_routes"
   },
   {
    "id": "R15-CODE-DATA-013",
@@ -13640,8 +13680,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, delete the pass-through route + function (no caller) or make the docstring true, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-013 || batch-13: stage-c/batch-12/VERDICTS.md 'Issues found (not in this batch's scope; for the backlog)' item 1 (GET /sec/filings/{accession}/sections returns [] for 10-Q filings; section parsing covers only 10-K items) — same route/file as this entry; folded here rather than filed separately since the fix_shape (delete the dead pass-through route) resolves it too."
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, delete the pass-through route + function (no caller) or make the docstring true, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-013 || batch-13: stage-c/batch-12/VERDICTS.md 'Issues found (not in this batch's scope; for the backlog)' item 1 (GET /sec/filings/{accession}/sections returns [] for 10-Q filings; section parsing covers only 10-K items) — same route/file as this entry; folded here rather than filed separately since the fix_shape (delete the dead pass-through route) resolves it too.",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_sec_filings_router.py::test_sections_route_is_gone"
   },
   {
    "id": "R15-CODE-DATA-014",
@@ -13666,8 +13707,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, replace three getState() helpers with per-call-site useSecStore selectors using the existing frozen empties, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-014/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, replace three getState() helpers with per-call-site useSecStore selectors using the existing frozen empties, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-014/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/sec/SecFilingsPanel.test.tsx::R15-CODE-DATA-014: a filingsByIdentifier update after mount re-renders the row count"
   },
   {
    "id": "R15-CODE-DATA-015",
@@ -13690,8 +13732,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, hoist seven literals to one array, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-015/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, hoist seven literals to one array, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-015/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/earnings/EarningsCalendarPanel.test.tsx::R15-CODE-DATA-015: skeleton and loaded colgroups share widths"
   },
   {
    "id": "R15-CODE-DATA-016",
@@ -13718,8 +13761,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, dedupe helpers; delete dead branches; fix one comment, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-016/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, dedupe helpers; delete dead branches; fix one comment, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-016/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/analyst-ratings/format.test.ts::fmtDate > parses a YYYY-MM-DD date as a local calendar date, never UTC midnight"
   },
   {
    "id": "R15-CODE-DATA-017",
@@ -13740,8 +13784,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, drop three `= BAND_FUZZY` defaults; make autocomplete pass its band, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-017/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, drop three `= BAND_FUZZY` defaults; make autocomplete pass its band, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-017/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_symbol_resolver.py::test_autocomplete_exact_ticker_carries_exact_band_and_binds"
   },
   {
    "id": "R15-CODE-DATA-018",
@@ -13765,7 +13810,7 @@
    "operator_areas": [],
    "tier4": false,
    "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, residual is the property only, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-018/"
+   "note": "triage@e032be7: still_reproduces, confidence 4, residual is the property only, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-018/ || d3509715: nothing removed net — P3 (7f98480b) deleted Resolution.needs_disambiguation (its four test call sites were migrated to assert resolution_policy.decide(r).outcome directly) and DISAMBIGUATION_THRESHOLD was never dead (always consumed at the retired-ticker/name-scan gate, symbol_resolver.py:1151 — 7f98480b's own commit message says so); needs_disambiguation property kept because rc1 test ea2ebd50 pins it (fix-A, 3af0502c); residual filed for 0.9.1."
   },
   {
    "id": "R15-CODE-DATA-019",
@@ -13788,8 +13833,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, delete the field on both sides of the wire in one commit (types/data-mirror rule), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-019"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, delete the field on both sides of the wire in one commit (types/data-mirror rule), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-019",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_screener.py::test_result_row_has_no_matched_criteria"
   },
   {
    "id": "R15-CODE-DATA-020",
@@ -13810,8 +13856,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, narrow except ValueError -> except FormulaError, rewrite the comment, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-020"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, narrow except ValueError -> except FormulaError, rewrite the comment, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-020",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_screener_router.py::test_internal_error_is_500_formula_error_is_400"
   },
   {
    "id": "R15-CODE-DATA-021",
@@ -13834,8 +13881,9 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one list of (ts, bar) pairs, both values derived from it, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-021/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one list of (ts, bar) pairs, both values derived from it, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-DATA-021/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_range_check.py"
   },
   {
    "id": "R15-CODE-DATA-022",
@@ -13859,8 +13907,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one-line Literal on a model no other batch touched, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-022"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one-line Literal on a model no other batch touched, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-DATA-022",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_fundamentals_models.py::test_field_meta_status_rejects_unknown"
   },
   {
    "id": "R15-CODE-DATA-023",
@@ -13909,8 +13958,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, describeContext returns a discriminated union and the render branches on kind; ~10 lines, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-021"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, describeContext returns a discriminated union and the render branches on kind; ~10 lines, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-021",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/chat/ChatSidebar.test.tsx::ContextBadge hidden with no bus events, shown with one panel event (asserted on kind) (R15-CODE-FRONTEND-021)"
   },
   {
    "id": "R15-CODE-FRONTEND-022",
@@ -13934,8 +13984,9 @@
     "agent-chat",
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one-line change in the switch case; agentSummary already rides the PaletteItem (command-palette.ts:225), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-022"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one-line change in the switch case; agentSummary already rides the PaletteItem (command-palette.ts:225), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-022",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/CommandPalette.test.tsx::agent row selection uses agentSummary.id"
   },
   {
    "id": "R15-CODE-FRONTEND-023",
@@ -13959,8 +14010,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, move the two consumer effects onto useChartSyncBus.subscribe, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-023"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, move the two consumer effects onto useChartSyncBus.subscribe, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-023",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/chart/ChartPanel.test.tsx::N crosshair moves on a lone chart cause 0 ChartPanel re-renders (R15-CODE-FRONTEND-023)"
   },
   {
    "id": "R15-CODE-FRONTEND-024",
@@ -13986,8 +14038,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, delete or one wiring line, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-024"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, delete or one wiring line, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-024",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/dead-surface.test.ts::R15-CODE-FRONTEND-024: no live source references a deleted dead-code symbol > finds zero references to fuzzyRank/fuzzyScore/exportNoteMd under src/"
   },
   {
    "id": "R15-CODE-FRONTEND-025",
@@ -14012,8 +14065,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "Batch-9 register adjudication: the repro's dead PANEL_MIN_SIZE key 'broker-order-entry' is gone from src/components/PanelHost.tsx post-removal (a122dbf6 feat(d81)) and no longer reproduces; the 'chat-sidebar' dead key is also gone. The entry's core defect still reproduces: PANEL_MIN_SIZE still misses brief-panel/notes-panel and constraints are still enforced only on boot restore (enforceConstraintsAfterRestore runs only in PanelHost's boot finally), not on loadWorkspace. Stays open, narrowed. || triage@e032be7: still_reproduces, confidence 5, move the table to src/lib/panel-sizing.ts and call the grow sweep from the load path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-025"
+   "status": "fixed",
+   "note": "Batch-9 register adjudication: the repro's dead PANEL_MIN_SIZE key 'broker-order-entry' is gone from src/components/PanelHost.tsx post-removal (a122dbf6 feat(d81)) and no longer reproduces; the 'chat-sidebar' dead key is also gone. The entry's core defect still reproduces: PANEL_MIN_SIZE still misses brief-panel/notes-panel and constraints are still enforced only on boot restore (enforceConstraintsAfterRestore runs only in PanelHost's boot finally), not on loadWorkspace. Stays open, narrowed. || triage@e032be7: still_reproduces, confidence 5, move the table to src/lib/panel-sizing.ts and call the grow sweep from the load path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-025",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/PanelHost.test.tsx::fromJSON with a sub-minimum panel grows it"
   },
   {
    "id": "R15-CODE-FRONTEND-026",
@@ -14037,8 +14091,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, replace drainNotifications() with takeNotifications() (atomic take before send) or drain(ids); two small call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-026/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, replace drainNotifications() with takeNotifications() (atomic take before send) or drain(ids); two small call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-026/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/workflow.test.ts::append a, take, append b -> b still pending"
   },
   {
    "id": "R15-CODE-FRONTEND-027",
@@ -14066,8 +14121,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "The broker/orders fetch-site examples are moot: removed with trading (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)). Core finding stays open: the surviving hand-rolled fetch sites (agents.ts, quant.ts, workflow.ts, safety.ts) still carry divergent error policies with no shared sidecarPost/timeout helper. || triage@e032be7: still_reproduces, confidence 5, sidecarRequest exists (sidecar-client.ts:225) so a sidecarPost wrapper is small; the four store sites are mechanical swaps, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-027"
+   "status": "fixed",
+   "note": "The broker/orders fetch-site examples are moot: removed with trading (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)). Core finding stays open: the surviving hand-rolled fetch sites (agents.ts, quant.ts, workflow.ts, safety.ts) still carry divergent error policies with no shared sidecarPost/timeout helper. || triage@e032be7: still_reproduces, confidence 5, sidecarRequest exists (sidecar-client.ts:225) so a sidecarPost wrapper is small; the four store sites are mechanical swaps, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-027",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/agents.test.ts::P:refreshCustom 404; src/lib/sidecar-client.test.ts; src/store/workflow.test.ts; src/modules/node-editor/schedule-control.test.tsx"
   },
   {
    "id": "R15-CODE-FRONTEND-028",
@@ -14094,8 +14150,9 @@
     "research-search",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, adds optional status to ResearchSpaceTurn and threads it through capture/restore; agent-space persistence is a larger follow-up, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-028"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, adds optional status to ResearchSpaceTurn and threads it through capture/restore; agent-space persistence is a larger follow-up, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-028",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/research-spaces.test.ts::R15-CODE-FRONTEND-028: an errored reply round-trips with its status; a pending one is not captured; src/lib/workspace.test.ts::R15-CODE-FRONTEND-028: agent spaces survive serialize -> deserialize"
   },
   {
    "id": "R15-CODE-FRONTEND-029",
@@ -14122,8 +14179,9 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, deletions plus replacing the [] memo with a selector over the live stores, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-029"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, deletions plus replacing the [] memo with a selector over the live stores, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-029",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/CommandPalette.test.tsx::custom agent added while open appears"
   },
   {
    "id": "R15-CODE-FRONTEND-030",
@@ -14147,8 +14205,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, setAll(bundle,{applyDefaultAgent}) passed only from the boot restore (workspace.ts:433); delete the module latch at settings.ts:126, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-030/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, setAll(bundle,{applyDefaultAgent}) passed only from the boot restore (workspace.ts:433); delete the module latch at settings.ts:126, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-030/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/settings.test.ts::R15-CODE-FRONTEND-030: fresh store, setActiveAgent(copilot), setAll({defaultAgentId: quant}) keeps copilot"
   },
   {
    "id": "R15-CODE-FRONTEND-031",
@@ -14197,8 +14256,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, call rejectAll() from both /clear handlers (ChatSidebar.tsx:650-652, 727-731) and on space/tab switch; prune in acceptBatch/rejectBatch, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-032"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, call rejectAll() from both /clear handlers (ChatSidebar.tsx:650-652, 727-731) and on space/tab switch; prune in acceptBatch/rejectBatch, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-032",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/chat/ChatSidebar.test.tsx::/clear rejects a pending write_note and acks it failed (R15-CODE-FRONTEND-032)"
   },
   {
    "id": "R15-CODE-FRONTEND-033",
@@ -14222,8 +14282,9 @@
     "agent-chat",
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: already_fixed, confidence 5, Residual: no test in host-actions.test.ts pins the alias case (lines 102/113 use 'chart' whose alias equals its id); the P7 pin is still worth adding., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-033/"
+   "status": "fixed",
+   "note": "triage@e032be7: already_fixed, confidence 5, Residual: no test in host-actions.test.ts pins the alias case (lines 102/113 use 'chart' whose alias equals its id); the P7 pin is still worth adding., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-033/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/host-actions.test.ts"
   },
   {
    "id": "R15-CODE-FRONTEND-034",
@@ -14247,8 +14308,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, ApplyResult already carries {label, reason}; add status to done()/fail() for the two Kept sites (host-actions.ts:1556,1564) and read it in accept(), evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-034/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, ApplyResult already carries {label, reason}; add status to done()/fail() for the two Kept sites (host-actions.ts:1556,1564) and read it in accept(), evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-FRONTEND-034/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/proposed-changes.test.ts::a reworded Kept label still acks kept_previous"
   },
   {
    "id": "R15-CODE-FRONTEND-035",
@@ -14273,8 +14335,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, the notes half is a 4-line swap to the existing seams; the portfolio half is already on addHolding/updateHolding/removeHolding, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-035"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, the notes half is a 4-line swap to the existing seams; the portfolio half is already on addHolding/updateHolding/removeHolding, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-035",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/host-actions.test.ts::write_note append with a trailing-whitespace addendum equals appendSymbolNote"
   },
   {
    "id": "R15-CODE-FRONTEND-036",
@@ -14300,8 +14363,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, one parity test plus exporting one RAIL constant, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-036"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one parity test plus exporting one RAIL constant, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-036",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/layout-templates.test.ts::every ARRANGEABLE/PANEL/DEFAULT_PANELS {id, component} equals a registered PanelSpec"
   },
   {
    "id": "R15-CODE-FRONTEND-037",
@@ -14324,8 +14388,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, drop the length > 0 half of the guard, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-037"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, drop the length > 0 half of the guard, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-FRONTEND-037",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/workspace.test.ts::R15-CODE-FRONTEND-037: empty watchlist round-trips to []; a blob without the key keeps defaults"
   },
   {
    "id": "R15-CODE-PLATFORM-031",
@@ -14424,8 +14489,9 @@
     "COD-backtest-11"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one comparison at :497; _slice_dates stays, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-034"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one comparison at :497; _slice_dates stays, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-034",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_backtest_lows.py::test_each_bar_in_exactly_one_slice"
   },
   {
    "id": "R15-CODE-PLATFORM-035",
@@ -14448,8 +14514,9 @@
     "COD-backtest-12"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, deletion only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-035"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, deletion only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-035",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_backtest_lows.py::test_no_dead_backtest_scaffolding"
   },
   {
    "id": "R15-CODE-PLATFORM-036",
@@ -14470,8 +14537,9 @@
     "COD-backtest-14"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, validate_definition can return its compiled dict (or a private _validate returns (report, compiled)), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-036"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, validate_definition can return its compiled dict (or a private _validate returns (report, compiled)), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-036",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_backtest_lows.py::test_each_rule_compiled_once"
   },
   {
    "id": "R15-CODE-PLATFORM-037",
@@ -14527,8 +14595,9 @@
     "COD-error-layer-13"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, HumanError.to_event() collapses 12 re-spellings; ErrorRow needs frame.code, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-038"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, HumanError.to_event() collapses 12 re-spellings; ErrorRow needs frame.code, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-038",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_run_manager.py::test_crashed_run_detail_is_humanized"
   },
   {
    "id": "R15-CODE-PLATFORM-039",
@@ -14552,8 +14621,9 @@
     "COD-error-layer-15"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, drop buildSearchHeaders from sidecarRequest's default path (streaming.ts:274 keeps its own call); fix the Exa comment, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-039"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, drop buildSearchHeaders from sidecarRequest's default path (streaming.ts:274 keeps its own call); fix the Exa comment, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-039",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/search-headers.test.ts::includeKey:false omits the key and never reads the keychain, tier/models still ride (R15-CODE-PLATFORM-039)"
   },
   {
    "id": "R15-CODE-PLATFORM-040",
@@ -14574,8 +14644,9 @@
     "COD-macro-quant-11"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, 'monte_carlo' string matches elsewhere are the OptionPricingMethod 'monte-carlo' enum (options.py price_european_mc), not this module., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-040"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, 'monte_carlo' string matches elsewhere are the OptionPricingMethod 'monte-carlo' enum (options.py price_european_mc), not this module., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-040",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-CODE-PLATFORM-041",
@@ -14600,8 +14671,9 @@
     "COD-macro-quant-12"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, no rationale on file, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-041/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, no rationale on file, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-041/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_quant_options.py::test_validate_domain_rejects_steps_2_and_low_paths"
   },
   {
    "id": "R15-CODE-PLATFORM-042",
@@ -14623,8 +14695,9 @@
     "COD-macro-quant-15"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, no rationale on file, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-042"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, no rationale on file, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-042",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_quant_greeks.py::test_compute_greeks_equals_price_european_bs"
   },
   {
    "id": "R15-CODE-PLATFORM-043",
@@ -14648,8 +14721,9 @@
     "INT-deferred-0-5"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, world_bank_provider.py line moved 37->38 (R15-DATA-085/086 fixes); entry otherwise exact., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-043"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, world_bank_provider.py line moved 37->38 (R15-DATA-085/086 fixes); entry otherwise exact., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-043",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_macro_providers.py::test_provider_constants_are_macro_provider_values"
   },
   {
    "id": "R15-CODE-PLATFORM-044",
@@ -14670,8 +14744,9 @@
     "INT-deferred-0-4"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one-word annotation change; no runtime behaviour, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-044/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one-word annotation change; no runtime behaviour, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-044/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_llm_lows.py::test_stream_chat_abc_is_not_a_coroutine_function"
   },
   {
    "id": "R15-CODE-PLATFORM-045",
@@ -14737,8 +14812,9 @@
     "COD-plugins-10"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-047"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-047",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/plugin-runtime.test.ts::disable during a pending healthCheck stays stopped, not reverted to active"
   },
   {
    "id": "R15-CODE-PLATFORM-048",
@@ -14759,8 +14835,9 @@
     "COD-plugins-14"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-048/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-048/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/plugin-runtime.test.ts::P:'<0.9.0' is rejected as unsupported; src/lib/plugin-runtime.test.ts::a '<' required version is always false, on either side of it"
   },
   {
    "id": "R15-CODE-PLATFORM-049",
@@ -14782,8 +14859,9 @@
     "INT-deferred-84-5"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-049"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-049",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/marketplace.test.ts::P:marketplace store — install/enable/configure/remove (FR-050/US10/SC-013) > remove(vysted-news) deletes each granted secret; disable does not (R15-CODE-PLATFORM-049)"
   },
   {
    "id": "R15-CODE-PLATFORM-050",
@@ -14806,8 +14884,9 @@
     "COD-portfolio-12"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, frontend-only refactor, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-050"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, frontend-only refactor, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-050",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/portfolio/metrics.test.ts::buildPortfolioSummary > rows carry the real holding id (R15-CODE-PLATFORM-050: no synthetic array-index id)"
   },
   {
    "id": "R15-CODE-PLATFORM-051",
@@ -14828,8 +14907,9 @@
     "COD-portfolio-13"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, cosmetic dedupe, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-051"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, cosmetic dedupe, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-051",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/portfolio/PortfolioPanel.test.tsx"
   },
   {
    "id": "R15-CODE-PLATFORM-052",
@@ -14850,8 +14930,9 @@
     "COD-portfolio-14"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, doc-only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-052"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, doc-only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-052",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/portfolios.test.ts"
   },
   {
    "id": "R15-CODE-PLATFORM-053",
@@ -14894,8 +14975,9 @@
     "COD-rust-core-7"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, f.sync_all()? before rename plus a parent-dir sync on unix, in the shared helper 055 introduces, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-054/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, f.sync_all()? before rename plus a parent-dir sync on unix, in the shared helper 055 introduces, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-054/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src-tauri/src/lib.rs::tests::write_atomic_round_trip_leaves_no_tmp"
   },
   {
    "id": "R15-CODE-PLATFORM-055",
@@ -14916,8 +14998,9 @@
     "COD-rust-core-14"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, pure extraction, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-055/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure extraction, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-055/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src-tauri/src/lib.rs::tests::write_atomic_text_and_bytes"
   },
   {
    "id": "R15-CODE-PLATFORM-056",
@@ -14938,8 +15021,9 @@
     "COD-rust-core-11"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, debug-only path, contained in one file, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-056/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, debug-only path, contained in one file, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-056/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src-tauri/src/keychain.rs::keychain::tests::dev::migrate_with_erroring_reader_leaves_unmigrated_and_retries"
   },
   {
    "id": "R15-CODE-PLATFORM-057",
@@ -14960,8 +15044,9 @@
     "COD-rust-core-13"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, debug-only; one callback + one event, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-057/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, debug-only; one callback + one event, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-057/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src-tauri/src/keychain.rs::keychain::tests::dev::on_wait_called_before_sleep"
   },
   {
    "id": "R15-CODE-PLATFORM-058",
@@ -14983,8 +15068,9 @@
     "COD-rust-core-12"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, pure extraction, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-058/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure extraction, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-058/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-CODE-PLATFORM-059",
@@ -15007,8 +15093,9 @@
     "INT-deferred-0-6"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, three-line mechanical change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-059/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, three-line mechanical change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-059/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-CODE-PLATFORM-060",
@@ -15030,8 +15117,9 @@
     "INT-blueprint-0-6"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, promise-unbuilt; the spec does not ask for one, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-060/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, promise-unbuilt; the spec does not ask for one, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-060/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-CODE-PLATFORM-061",
@@ -15052,8 +15140,9 @@
     "COD-scripts-build-9"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, one-line guard, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-061/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one-line guard, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-061/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: scripts/sidecar-staleness.test.mjs::survives a source file deleted between readdir and stat (TOCTOU, R15-CODE-PLATFORM-061)"
   },
   {
    "id": "R15-CODE-PLATFORM-062",
@@ -15074,8 +15163,9 @@
     "COD-scripts-build-11"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, script-local change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-062/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, script-local change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-062/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: scripts/smoke-test-sidecars.test.mjs::D:_httpGetOk (R15-CODE-PLATFORM-062)"
   },
   {
    "id": "R15-CODE-PLATFORM-063",
@@ -15120,8 +15210,9 @@
     "COD-scripts-build-13"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, dead v0.6.0 tooling; deletion is the fix, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-064/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, dead v0.6.0 tooling; deletion is the fix, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-064/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: scripts/smoke-test-sidecars.test.mjs::D:dead Phase-6 screenshot generators stay deleted (R15-CODE-PLATFORM-064)"
   },
   {
    "id": "R15-CODE-PLATFORM-065",
@@ -15147,8 +15238,9 @@
     "COD-workflow-engine-4"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, except WorkflowEngineError: yield run-error(str(exc)); client guess text can then go, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-065/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, except WorkflowEngineError: yield run-error(str(exc)); client guess text can then go, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-065/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_workflow_router.py::test_dangling_edge_yields_one_run_error_frame"
   },
   {
    "id": "R15-CODE-PLATFORM-066",
@@ -15169,8 +15261,9 @@
     "COD-workflow-engine-7"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, exponent/size guard in _eval plus to_thread wrapper, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-066/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, exponent/size guard in _eval plus to_thread wrapper, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-066/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_workflow_builtin_nodes.py::test_huge_pow_and_repeat_rejected_fast"
   },
   {
    "id": "R15-CODE-PLATFORM-067",
@@ -15196,8 +15289,9 @@
     "COD-workflow-engine-11"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, delete one set, add one resolve() helper; design-level, no wrong output today, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-067"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, delete one set, add one resolve() helper; design-level, no wrong output today, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-067",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_workflow_builtin_nodes.py::test_zero_input_not_replaced_by_config_and_unknown_provider_errors"
   },
   {
    "id": "R15-CODE-PLATFORM-068",
@@ -15224,8 +15318,9 @@
     "COD-workflow-engine-12"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, one register_all() called from create_app; delete dead else, _encode_event_dict and the resume-from fields, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-068"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one register_all() called from create_app; delete dead else, _encode_event_dict and the resume-from fields, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-068",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_workflow_builtin_nodes.py::test_create_app_registers_every_builtin_node"
   },
   {
    "id": "R15-CODE-PLATFORM-069",
@@ -15249,8 +15344,9 @@
     "COD-workflow-engine-13"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, latent (no bundled plugin sets contributesNodes) but needs a GET /workflow/node-types route that does not exist at the sha, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-069/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, latent (no bundled plugin sets contributesNodes) but needs a GET /workflow/node-types route that does not exist at the sha, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-069/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/node-editor/node-registry.test.ts::plugin node absent from the server list is not runnable"
   },
   {
    "id": "R15-CODE-PLATFORM-070",
@@ -15273,8 +15369,9 @@
     "INT-pdd-readme-45-8"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, mechanical re-value of dead fallback literals; zero runtime effect since tokens.css is imported unconditionally at globals.css:7, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-070"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, mechanical re-value of dead fallback literals; zero runtime effect since tokens.css is imported unconditionally at globals.css:7, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-070",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: scripts/audit-design-tokens.test.mjs::a mismatched fallback fails the audit"
   },
   {
    "id": "R15-CODE-PLATFORM-074",
@@ -15296,8 +15393,9 @@
     "INT-pdd-readme-315-3"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: duplicate_of, confidence 5, duplicate of R15-LIFECYCLE-037; Residual carried into 037's fix_shape: correct the doc sentence at docs/MCP_INTEGRATION.md:53-54 in the same commit., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-074/"
+   "status": "fixed",
+   "note": "triage@e032be7: duplicate_of, confidence 5, duplicate of R15-LIFECYCLE-037; Residual carried into 037's fix_shape: correct the doc sentence at docs/MCP_INTEGRATION.md:53-54 in the same commit., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-074/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src-tauri/src/lib.rs::tests::clear_mcp_endpoint_file_removes_existing"
   },
   {
    "id": "R15-CODE-PLATFORM-075",
@@ -15320,8 +15418,9 @@
     "INT-deferred-42-5"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, delete two fields or add one guard; no engine work, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-075/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, delete two fields or add one guard; no engine work, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-PLATFORM-075/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_workflow_router.py::test_resume_from_is_rejected_not_silently_rerun"
   },
   {
    "id": "R15-CODE-PLATFORM-076",
@@ -15344,8 +15443,9 @@
     "INT-pdd-readme-270-6"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, prompt trimming needs a behaviour re-check on the small local model, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-076"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, prompt trimming needs a behaviour re-check on the small local model, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-PLATFORM-076",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agent_runtime.py::test_agent_system_prompts_within_byte_budget"
   },
   {
    "id": "R15-CODE-PLATFORM-077",
@@ -15366,8 +15466,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 4."
+   "status": "fixed",
+   "note": "batch-12: mined from stage-c/batch-11/VERDICTS.md 'Issues found' item 4.",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_data_cache.py::test_old_upgrade_backups_are_pruned_after_a_successful_backup"
   },
   {
    "id": "R15-CODE-RESEARCH-005",
@@ -15392,8 +15493,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, rename/move only; no behavior change; the dead loop is already gone (9703eee7) so deep.py is now purely a helper module, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-RESEARCH-005/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, rename/move only; no behavior change; the dead loop is already gone (9703eee7) so deep.py is now purely a helper module, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-RESEARCH-005/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_research_module_boundary.py::test_no_research_module_imports_a_private_name_across_modules; sidecar/tests/test_research_module_boundary.py::test_shared_round_helpers_are_public_deep_exports"
   },
   {
    "id": "R15-CODE-RESEARCH-006",
@@ -15418,8 +15520,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one constant + one property; no contract or API change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-RESEARCH-006/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one constant + one property; no contract or API change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-RESEARCH-006/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_research_depth.py::test_panel_threshold_single_source"
   },
   {
    "id": "R15-CODE-RESEARCH-007",
@@ -15444,8 +15547,9 @@
     "research-search",
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-007"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-007",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_research_semantics.py::test_emitted_keys_subset_of_brief_ts_mirror"
   },
   {
    "id": "R15-CODE-RESEARCH-008",
@@ -15469,8 +15573,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-008"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-008",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_research_hosted_lanes.py::test_both_lanes_map_the_same_status_set_incl_402"
   },
   {
    "id": "R15-CODE-RESEARCH-009",
@@ -15496,8 +15601,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, Line numbers drifted (keyless 220->265, ddg 384/391->363/370) after RESEARCH-008/038 fixes; structure identical., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-009"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Line numbers drifted (keyless 220->265, ddg 384/391->363/370) after RESEARCH-008/038 fixes; structure identical., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-009",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_ddg_backend.py::test_one_search_with_lite_fallback_takes_one_pacing_slot"
   },
   {
    "id": "R15-CODE-RESEARCH-010",
@@ -15521,8 +15627,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, RESEARCH-022/023 fixes (d13bfb53, 2a933700) touched keyless.py, not a shared scraper base., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-RESEARCH-010/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, RESEARCH-022/023 fixes (d13bfb53, 2a933700) touched keyless.py, not a shared scraper base., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CODE-RESEARCH-010/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_brave_backend.py; sidecar/tests/test_mojeek_backend.py"
   },
   {
    "id": "R15-CODE-RESEARCH-011",
@@ -15546,8 +15653,9 @@
     "research-search",
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-011"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-011",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_research_semantics.py::test_every_leg_returns_facts_and_conflicts"
   },
   {
    "id": "R15-CODE-RESEARCH-012",
@@ -15571,8 +15679,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, finance.py line moved 122->138 since the raw finding., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-012"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, finance.py line moved 122->138 since the raw finding., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CODE-RESEARCH-012",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_research_relevance.py::test_junk_filter_host_match_delegates_to_finance"
   },
   {
    "id": "R15-CROSS-PLATFORM-005",
@@ -15620,8 +15729,9 @@
     "HYG-6"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one shared helper, two call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CROSS-PLATFORM-006"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one shared helper, two call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CROSS-PLATFORM-006",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/safe-filename.test.ts::P:safeFilename > maps "
   },
   {
    "id": "R15-CROSS-PLATFORM-007",
@@ -15646,8 +15756,9 @@
     "HYG-7"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, 3-5 retries with ~50 ms backoff in save_workspace; one shared Rust atomic-write helper that removes the temp on rename error, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-007/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, 3-5 retries with ~50 ms backoff in save_workspace; one shared Rust atomic-write helper that removes the temp on rename error, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-007/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_workspace.py::test_replace_retries_permission_error_then_succeeds"
   },
   {
    "id": "R15-CROSS-PLATFORM-008",
@@ -15670,8 +15781,9 @@
     "HYG-8"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "Verifier batch-8: confirmed live in the batch-8 boot-order change -- openbb_mcp::start/sec_edgar_mcp::start now call std::env::set_var while the main event loop is live (previously the main thread was blocked in join). setenv/getenv are not thread-safe on macOS; low-probability but present since the LIFECYCLE-001 boot-order fix. || triage@e032be7: still_reproduces, confidence 5, changes the port hand-off channel in the Rust boot path; needs a cargo build the triage lanes cannot run, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-008/"
+   "status": "fixed",
+   "note": "Verifier batch-8: confirmed live in the batch-8 boot-order change -- openbb_mcp::start/sec_edgar_mcp::start now call std::env::set_var while the main event loop is live (previously the main thread was blocked in join). setenv/getenv are not thread-safe on macOS; low-probability but present since the LIFECYCLE-001 boot-order fix. || triage@e032be7: still_reproduces, confidence 5, changes the port hand-off channel in the Rust boot path; needs a cargo build the triage lanes cannot run, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-008/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src-tauri/src/lib.rs::tests::no_env_mutation_in_src"
   },
   {
    "id": "R15-CROSS-PLATFORM-009",
@@ -15697,8 +15809,9 @@
     "HYG-9"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, five label sites; helper already exists at keybindings.ts:328, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CROSS-PLATFORM-009"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, five label sites; helper already exists at keybindings.ts:328, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-CROSS-PLATFORM-009",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/source-guards.test.ts::no string or JSX text under src/ contains ⌘ outside src/store/keybindings.ts"
   },
   {
    "id": "R15-CROSS-PLATFORM-010",
@@ -15722,8 +15835,9 @@
     "HYG-10"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, package.json only; build-python.mjs already exports resolveBuildPython, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-010/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, package.json only; build-python.mjs already exports resolveBuildPython, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-010/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: scripts/smoke-test-sidecars.test.mjs::D:ci-local's pip installs (R15-CROSS-PLATFORM-010)"
   },
   {
    "id": "R15-CROSS-PLATFORM-011",
@@ -15749,8 +15863,9 @@
     "HYG-11"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, moves non-secret flags out of the secret store; touches three layers, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-011/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, moves non-secret flags out of the secret store; touches three layers, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-011/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/onboarding.test.ts::rejecting keychain keeps seen:true once markSeen ran (R15-CROSS-PLATFORM-011)"
   },
   {
    "id": "R15-CROSS-PLATFORM-012",
@@ -15773,8 +15888,9 @@
     "HYG-12"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, new CLI arg + env var threaded to the two SQLite caches and searxng; user state stays put, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-012/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, new CLI arg + env var threaded to the two SQLite caches and searxng; user state stays put, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-CROSS-PLATFORM-012/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_cache_dir.py"
   },
   {
    "id": "R15-DATA-098",
@@ -15797,8 +15913,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, Edge case only when step_days floors to 1 (total_days < 2*(sample_count-1)), as the register's refuter note says., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-098/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Edge case only when step_days floors to 1 (total_days < 2*(sample_count-1)), as the register's refuter note says., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-098/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_quant_yield_curve.py::test_grid_distinct_and_within_max_tenor"
   },
   {
    "id": "R15-DATA-099",
@@ -15821,8 +15938,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, no rationale on file, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-099/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, no rationale on file, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-099/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_macro_providers.py::test_fred_sa_bw_map_to_other"
   },
   {
    "id": "R15-DATA-100",
@@ -15870,8 +15988,9 @@
     "agent-chat"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, payload-only addition, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-101"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, payload-only addition, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-101",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_market_overview.py::test_global_region_carries_us_proxy_note"
   },
   {
    "id": "R15-DATA-102",
@@ -15895,8 +16014,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, provenance default lives in the model; producers each need to state it, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-102"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, provenance default lives in the model; producers each need to state it, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-102",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_b7_exchange_financials.py::test_filed_growth_states_mrq_yoy_and_never_overrides_an_annual_basis; sidecar/tests/test_fundamentals.py::test_served_growth_states_its_mrq_yoy_basis; sidecar/tests/test_fundamentals_store.py::test_row_to_pair_growth_without_a_recorded_basis_states_none"
   },
   {
    "id": "R15-DATA-103",
@@ -15918,8 +16038,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, three `or` coercions at :566-569; Quote.change may need to become Optional in models/market.py + types/data.ts mirror, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-103"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, three `or` coercions at :566-569; Quote.change may need to become Optional in models/market.py + types/data.ts mirror, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-103",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_fundamentals_store.py::test_null_change_row_keeps_change_unset_and_row_currency"
   },
   {
    "id": "R15-DATA-104",
@@ -15940,8 +16061,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, Semaphore(8) around _one plus an is_open short-circuit, mirroring bar_loader, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-104"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, Semaphore(8) around _one plus an is_open short-circuit, mirroring bar_loader, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-104",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_earnings_provider.py::test_get_upcoming_caps_concurrent_calendar_fetches; sidecar/tests/test_earnings_provider.py::test_get_upcoming_skips_fetch_when_yahoo_circuit_is_open"
   },
   {
    "id": "R15-DATA-105",
@@ -15966,8 +16088,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, adds one enum value and a badge branch, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-105/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, adds one enum value and a badge branch, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-105/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_history.py::test_freshness_label_failure_yields_unknown"
   },
   {
    "id": "R15-DATA-106",
@@ -15988,8 +16111,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, producer script only; shipped artifact already clean, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-106/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, producer script only; shipped artifact already clean, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-106/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_india_sector_map.py::test_enrichment_writes_canonical_seven_keys"
   },
   {
    "id": "R15-DATA-107",
@@ -16010,8 +16134,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, NamedTuple return from _bse_lookup, field access by name in india_symbol_meta, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-107"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, NamedTuple return from _bse_lookup, field access by name in india_symbol_meta, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-107",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_screener_india.py::test_india_symbol_meta_fields_by_name"
   },
   {
    "id": "R15-DATA-108",
@@ -16032,8 +16157,9 @@
    ],
    "operator_areas": [],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, @lru_cache on _load_master plus cache_clear in the existing reset hook, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-108"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, @lru_cache on _load_master plus cache_clear in the existing reset hook, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-108",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_screener_india.py::test_sector_master_parsed_once"
   },
   {
    "id": "R15-DATA-109",
@@ -16058,8 +16184,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, wiring a socket into the watchlist needs lifecycle handling; deletion is S, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-109"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, wiring a socket into the watchlist needs lifecycle handling; deletion is S, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-109",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/sidecar-client.test.ts::openCryptoStream is not exported"
   },
   {
    "id": "R15-DATA-111",
@@ -16085,8 +16212,9 @@
     "research-search"
    ],
    "tier4": false,
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, Residual is the empty-success accounting + fixture-only pinning; the CAPTCHA half is closed by R15-RESEARCH-022., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-111"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, Residual is the empty-success accounting + fixture-only pinning; the CAPTCHA half is closed by R15-RESEARCH-022., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DATA-111",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_keyless_backend.py::test_nonempty_page_zero_rows_counts_parser_drift_failure; sidecar/tests/test_keyless_backend.py::test_canary_real_results_record_success; sidecar/tests/test_keyless_backend.py::test_canary_engine_error_counts_a_failure_with_its_own_note"
   },
   {
    "id": "R15-DOCS-006",
@@ -16112,8 +16240,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, comment-only edits, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-006"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, comment-only edits, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-006",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/source-guards.test.ts::no 'static-export'/'SSR-safe' claim under src/ outside the shrinking allowlist"
   },
   {
    "id": "R15-DOCS-007",
@@ -16138,8 +16267,9 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, pure doc back-port of the dark-only/zinc decisions; no code path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-007"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure doc back-port of the dark-only/zinc decisions; no code path, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-007",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-DOCS-008",
@@ -16185,8 +16315,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, prose edit only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-009"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, prose edit only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-009",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-DOCS-010",
@@ -16210,8 +16341,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, two comment edits plus one class, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-010"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, two comment edits plus one class, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-010",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/notes/NotesToolbar.test.tsx::NotesToolbar — R15-DOCS-010 > the active toolbar button carries the fill class"
   },
   {
    "id": "R15-DOCS-011",
@@ -16260,8 +16392,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, doc hygiene, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-012/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, doc hygiene, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-012/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-DOCS-013",
@@ -16284,8 +16417,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one docstring line, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-013/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one docstring line, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-013/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_range_check.py::test_yfinance_served_series_declines_to_witness"
   },
   {
    "id": "R15-DOCS-014",
@@ -16309,8 +16443,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, write-up of existing r15 drive timestamps, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-014/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, write-up of existing r15 drive timestamps, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-014/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-DOCS-019",
@@ -16335,8 +16470,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only edit; no code path, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-019/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only edit; no code path, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-019/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-DOCS-020",
@@ -16359,8 +16495,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one-paragraph doc correction, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-020/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one-paragraph doc correction, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-020/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-DOCS-021",
@@ -16381,8 +16518,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-021/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-021/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-DOCS-022",
@@ -16405,8 +16543,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-022"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-DOCS-022",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-DOCS-023",
@@ -16428,8 +16567,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-023/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-023/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-DOCS-024",
@@ -16470,9 +16610,10 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
+   "status": "fixed",
    "source": "lead-found batch-3",
-   "note": "triage@e032be7: still_reproduces, confidence 5, pure dedup of a 17-line pandas helper; no contract, no trading, no redesign surface, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LEAD-006/"
+   "note": "triage@e032be7: still_reproduces, confidence 5, pure dedup of a 17-line pandas helper; no contract, no trading, no redesign surface, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LEAD-006/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_growth_check.py; sidecar/tests/test_earnings_quality.py"
   },
   {
    "id": "R15-LEAD-017",
@@ -16491,8 +16632,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "source: verifier batch-5 || triage@e032be7: still_reproduces, confidence 3, pure dedupe at the lane boundary, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LEAD-017/"
+   "status": "fixed",
+   "note": "source: verifier batch-5 || triage@e032be7: still_reproduces, confidence 3, pure dedupe at the lane boundary, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LEAD-017/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_corporate_disclosures.py::test_duplicate_quarter_rows_collapse_to_one"
   },
   {
    "id": "R15-LEAD-020",
@@ -16511,9 +16653,10 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
+   "status": "fixed",
    "source": "verifier batch-7",
-   "note": "triage@e032be7: still_reproduces, confidence 4, cache a short-TTL negative marker at :363-366, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LEAD-020"
+   "note": "triage@e032be7: still_reproduces, confidence 4, cache a short-TTL negative marker at :363-366, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LEAD-020",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_exchange_financials_negcache.py"
   },
   {
    "id": "R15-LEAD-021",
@@ -16532,9 +16675,10 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
+   "status": "fixed",
    "source": "verifier batch-8",
-   "note": "triage@e032be7: still_reproduces, confidence 4, read state.sidecarError next to state.sidecarStatus (:129) and append it to connLabel/title, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LEAD-021"
+   "note": "triage@e032be7: still_reproduces, confidence 4, read state.sidecarError next to state.sidecarStatus (:129) and append it to connLabel/title, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LEAD-021",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/StatusChrome.test.tsx::an error status with a reason renders the reason in the chip title"
   },
   {
    "id": "R15-LEAD-025",
@@ -16576,8 +16720,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "source": "verifier batch-9"
+   "status": "fixed",
+   "source": "verifier batch-9",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/command-palette.test.ts::no two empty-query rows share a panelId"
   },
   {
    "id": "R15-LEAD-029",
@@ -16598,8 +16743,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "batch-14: mined from stage-c/batch-13/VERDICTS.md 'Issues found' item 1 (source 'lead-found batch-14'). Not covered by R15-CODE-DATA-023, which named only screener_universe_india.py's module docstring and models/screener.py:34; both of those were fixed by 3cb5bc29 and R15-CODE-DATA-023 is closed. This entry tracks the remaining stale count at line 95."
+   "status": "fixed",
+   "note": "batch-14: mined from stage-c/batch-13/VERDICTS.md 'Issues found' item 1 (source 'lead-found batch-14'). Not covered by R15-CODE-DATA-023, which named only screener_universe_india.py's module docstring and models/screener.py:34; both of those were fixed by 3cb5bc29 and R15-CODE-DATA-023 is closed. This entry tracks the remaining stale count at line 95.",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_screener_india.py::test_nse_lookup_docstring_count_matches_india_all_length"
   },
   {
    "id": "R15-LEAD-031",
@@ -16644,9 +16790,10 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
+   "status": "fixed",
    "source": "verifier batch-19",
-   "note": "batch-21 (not_certified, source batch-20/VERDICTS.json): The literal repro holds: f-named-colon-fenced-json now yields the note as prose with no ``` (b19v_probe/b20w_probe), and a fresh chunked ```text fence also renders as prose. The fix_shape ('strip any enclosing fence the original dump opened') and the acceptance ('the replacement carries no fence markers') fail on a fresh fence of the same class. For a CommonMark tilde fence, all-errored fundamentals, 'Here is the output:\\n\\n~~~json\\n{\"pe\": 8.4, \"roe\": 0.214}\\n~~~\\n\\nHope that helps.' becomes 'The fundamentals tool returned no data for this in this turn.\\n\\n~~~\\n\\nHope that helps.' (verifier-evidence/fresh.out v036-tilde-fence). The orphan closing ~~~ opens an unclosed code block that swallows the following prose. Cause: _FENCE_OPEN/_FENCE_CLOSE (agent_runtime.py:2084-2085) recognise backtick fences only. Base renders the note inside the ~~~json fence, so this is no regression. || batch-22 (not_certified, source batch-21/VERDICTS.json): The formatting claim holds for every CLOSED fence tried. The replacement renders as prose with no fence marker for: batch-20 v036-tilde-fence; fresh chunked ~~~~ with an info string; a ```` fence nesting ```json; a ~~~ closed by a longer ~~~~~; an indented ~~~ block; a mixed-turn ~~~ fence on an errored subject. An ok-result ~~~ block streams intact. Not certified, because the change that makes tildes fences also makes an UNCLOSED tilde fence invisible to the guard, so the fabricated dump inside it is neither replaced nor unfenced. All-errored fundamentals with 'Output:\\n\\n~~~json\\n{\"pe\": 31.7}\\n' streams whole on this branch; base 4d9a7324 replaced it with the note. This is a regression on a fresh case of the fence class the entry fixes (verifier-evidence/unclosed.out, fresh2.out f036-unclosed-tilde). Cause: _fence_body (agent_runtime.py, unchanged) drops lines[-1] as the closer even when _seg_at found none (_Seg.closed False at end of stream). CommonMark closes an open fence at end of document. || batch-23 (not certified, cross-round fence, source batch-22/VERDICTS.md): same-round fences hold, but a fence opened one round earlier (a streamed ``` before a native tool call) stays open when the next round's replaced note renders, leaving the note inside an orphaned code block. Reproduces offline for ``` and ~~~; unchanged on base, not a regression."
+   "note": "batch-21 (not_certified, source batch-20/VERDICTS.json): The literal repro holds: f-named-colon-fenced-json now yields the note as prose with no ``` (b19v_probe/b20w_probe), and a fresh chunked ```text fence also renders as prose. The fix_shape ('strip any enclosing fence the original dump opened') and the acceptance ('the replacement carries no fence markers') fail on a fresh fence of the same class. For a CommonMark tilde fence, all-errored fundamentals, 'Here is the output:\\n\\n~~~json\\n{\"pe\": 8.4, \"roe\": 0.214}\\n~~~\\n\\nHope that helps.' becomes 'The fundamentals tool returned no data for this in this turn.\\n\\n~~~\\n\\nHope that helps.' (verifier-evidence/fresh.out v036-tilde-fence). The orphan closing ~~~ opens an unclosed code block that swallows the following prose. Cause: _FENCE_OPEN/_FENCE_CLOSE (agent_runtime.py:2084-2085) recognise backtick fences only. Base renders the note inside the ~~~json fence, so this is no regression. || batch-22 (not_certified, source batch-21/VERDICTS.json): The formatting claim holds for every CLOSED fence tried. The replacement renders as prose with no fence marker for: batch-20 v036-tilde-fence; fresh chunked ~~~~ with an info string; a ```` fence nesting ```json; a ~~~ closed by a longer ~~~~~; an indented ~~~ block; a mixed-turn ~~~ fence on an errored subject. An ok-result ~~~ block streams intact. Not certified, because the change that makes tildes fences also makes an UNCLOSED tilde fence invisible to the guard, so the fabricated dump inside it is neither replaced nor unfenced. All-errored fundamentals with 'Output:\\n\\n~~~json\\n{\"pe\": 31.7}\\n' streams whole on this branch; base 4d9a7324 replaced it with the note. This is a regression on a fresh case of the fence class the entry fixes (verifier-evidence/unclosed.out, fresh2.out f036-unclosed-tilde). Cause: _fence_body (agent_runtime.py, unchanged) drops lines[-1] as the closer even when _seg_at found none (_Seg.closed False at end of stream). CommonMark closes an open fence at end of document. || batch-23 (not certified, cross-round fence, source batch-22/VERDICTS.md): same-round fences hold, but a fence opened one round earlier (a streamed ``` before a native tool call) stays open when the next round's replaced note renders, leaving the note inside an orphaned code block. Reproduces offline for ``` and ~~~; unchanged on base, not a regression.",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_agent_runtime.py::test_a_fence_opened_before_a_tool_call_leaves_no_marker_when_replaced; sidecar/tests/test_agent_runtime.py::test_a_streamed_fence_is_closed_before_the_next_rounds_note; sidecar/tests/test_agent_runtime.py::test_a_fence_continued_on_an_ok_result_streams_as_written"
   },
   {
    "id": "R15-LEAD-041",
@@ -17661,8 +17808,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "Verifier batch-8: live-confirmed the same mechanism from the outside -- after a transport failure sidecarFetch nulls readyPromise, so the *next* call re-runs the full 120 s /health probe before failing: call 1 took 3 ms, call 2 took 120,238 ms. Inside Tauri a crash now short-circuits this via Terminated (LIFECYCLE-010/UI-014), but a hung-not-exited engine still hits the full 120 s wait every time. || triage@e032be7: still_reproduces, confidence 4, health probe needs signal: AbortSignal.timeout; a default timeout on sidecarRequest; pass persisted into loadPlugin, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-027"
+   "status": "fixed",
+   "note": "Verifier batch-8: live-confirmed the same mechanism from the outside -- after a transport failure sidecarFetch nulls readyPromise, so the *next* call re-runs the full 120 s /health probe before failing: call 1 took 3 ms, call 2 took 120,238 ms. Inside Tauri a crash now short-circuits this via Terminated (LIFECYCLE-010/UI-014), but a hung-not-exited engine still hits the full 120 s wait every time. || triage@e032be7: still_reproduces, confidence 4, health probe needs signal: AbortSignal.timeout; a default timeout on sidecarRequest; pass persisted into loadPlugin, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-027",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/sidecar-client.test.ts::D:request timeouts; src/lib/plugin-bootstrap.test.ts::persistence.load is called exactly once per catalog plugin"
   },
   {
    "id": "R15-LIFECYCLE-028",
@@ -17686,8 +17834,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, expose flushAutosave and call it from pagehide/Tauri onCloseRequested and the PanelHost cleanup, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-028"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, expose flushAutosave and call it from pagehide/Tauri onCloseRequested and the PanelHost cleanup, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-028",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/workspace.test.ts::R15-LIFECYCLE-028: pagehide with a pending autosave issues the POST immediately"
   },
   {
    "id": "R15-LIFECYCLE-029",
@@ -17712,8 +17861,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, latent until a plugin sets contributesPanels:true; every bundled plugin at the sha sets false, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-029"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, latent until a plugin sets contributesPanels:true; every bundled plugin at the sha sets false, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-029",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/PanelHost.test.tsx::saved layout with a plugin panel restores intact when the plugin registers after bootstrap"
   },
   {
    "id": "R15-LIFECYCLE-030",
@@ -17736,8 +17886,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, delete the `seeded` flag + seed call at :197-207; :418-424 keeps ownership, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-030"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, delete the `seeded` flag + seed call at :197-207; :418-424 keeps ownership, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-030",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_fundamentals_warm.py::test_in_boot_seeds_exactly_once"
   },
   {
    "id": "R15-LIFECYCLE-031",
@@ -17761,8 +17912,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, store as _seed_task, add to the cancel list at :436, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-031"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, store as _seed_task, add to the cancel list at :436, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-031",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_fundamentals_warm.py::test_start_stop_clean_no_leaked_tasks"
   },
   {
    "id": "R15-LIFECYCLE-032",
@@ -17785,8 +17937,9 @@
    "operator_areas": [
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, move :362 upsert inside the try at :344; gather(..., return_exceptions=True) at :366, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-032"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, move :362 upsert inside the try at :344; gather(..., return_exceptions=True) at :366, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-032",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_fundamentals_warm.py::test_one_upsert_failure_counts_the_others"
   },
   {
    "id": "R15-LIFECYCLE-033",
@@ -17809,8 +17962,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, one env check around two routes, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-033/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one env check around two routes, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-033/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_system_router.py::test_provider_health_mutations_404_without_rig_hooks_flag; sidecar/tests/test_system_router.py::test_provider_health_mutations_work_with_rig_hooks_flag"
   },
   {
    "id": "R15-LIFECYCLE-034",
@@ -17833,8 +17987,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, Line numbers shifted (logger 62->63, setup 483->515) after RESEARCH-008/LIFECYCLE-007 fixes., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-034"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Line numbers shifted (logger 62->63, setup 483->515) after RESEARCH-008/LIFECYCLE-007 fixes., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-034",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_searxng_manager.py::test_setup_write_settings_oserror_reports_error_with_reason"
   },
   {
    "id": "R15-LIFECYCLE-035",
@@ -17857,8 +18012,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, Documented intent, not an accident; still the behaviour the entry describes. Retry CTA exists (SettingsPanel)., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-035"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, Documented intent, not an accident; still the behaviour the entry describes. Retry CTA exists (SettingsPanel)., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-LIFECYCLE-035",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_searxng_manager.py::test_hand_fixed_container_supersedes_a_sticky_error; sidecar/tests/test_searxng_manager.py::test_error_stays_sticky_while_the_container_is_not_serving; sidecar/tests/test_searxng_manager.py::test_hot_path_reprobes_a_sticky_error_on_a_throttle"
   },
   {
    "id": "R15-LIFECYCLE-036",
@@ -17882,8 +18038,9 @@
     "data-smallcaps",
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, widen the except at :457 to (FileNotFoundError, ModuleNotFoundError, ValueError, OSError), evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-036/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, widen the except at :457 to (FileNotFoundError, ModuleNotFoundError, ValueError, OSError), evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-036/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_symbol_resolver.py::test_garbled_master_degrades_to_no_match_not_500"
   },
   {
    "id": "R15-LIFECYCLE-037",
@@ -17904,8 +18061,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, two remove_file(..).ok() calls plus one doc sentence, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-037/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, two remove_file(..).ok() calls plus one doc sentence, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-037/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src-tauri/src/lib.rs::tests::clear_mcp_endpoint_file_removes_existing"
   },
   {
    "id": "R15-LIFECYCLE-038",
@@ -17927,8 +18085,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, hand-rolled HTTP over std TcpStream to avoid a new crate; only the main sidecar changes, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-038/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, hand-rolled HTTP over std TcpStream to avoid a new crate; only the main sidecar changes, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-038/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src-tauri/src/lib.rs::tests::plain_tcp_listener_is_not_healthy"
   },
   {
    "id": "R15-LIFECYCLE-039",
@@ -17949,8 +18108,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, script-local; needs an owner-pid field and a glob, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-039/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, script-local; needs an owner-pid field and a glob, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-039/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: scripts/smoke-test-sidecars.test.mjs::D:_scopedOrphanPreflight (R15-LIFECYCLE-039)"
   },
   {
    "id": "R15-LIFECYCLE-040",
@@ -17995,8 +18155,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, no workflow edit needed, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-008/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, no workflow edit needed, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-008/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: scripts/smoke-test-sidecars.test.mjs::D:_shouldProbeExchanges (R15-RELEASE-008)"
   },
   {
    "id": "R15-RELEASE-009",
@@ -18018,8 +18179,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, test-only addition, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-009/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, test-only addition, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-009/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src-tauri/src/lib.rs::tests::smoke_bind_budget_matches_supervisor"
   },
   {
    "id": "R15-RELEASE-010",
@@ -18042,8 +18204,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only or out-of-repo web work, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-010/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, docs-only or out-of-repo web work, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-010/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: untestable per VERIFY §5"
   },
   {
    "id": "R15-RELEASE-011",
@@ -18065,8 +18228,9 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, local gate only, no workflow edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-011/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, local gate only, no workflow edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RELEASE-011/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: scripts/smoke-test-sidecars.test.mjs::D:coverage gate (R15-RELEASE-011)"
   },
   {
    "id": "R15-RELEASE-012",
@@ -18115,8 +18279,9 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, minimum `(.*)` -> `([\\s\\S]*)`; better: typed run_id/depth/query fields on the step event, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-031"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, minimum `(.*)` -> `([\\s\\S]*)`; better: typed run_id/depth/query fields on the step event, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-031",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/chat/streaming.test.ts::multi-line query research:begin fires beginRun with the full query"
   },
   {
    "id": "R15-RESEARCH-032",
@@ -18214,8 +18379,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, local change inside _Report.render; only over-cap bodies change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RESEARCH-035/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, local change inside _Report.render; only over-cap bodies change, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-RESEARCH-035/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_research_iter.py::test_over_cap_report_keeps_facts_established"
   },
   {
    "id": "R15-RESEARCH-036",
@@ -18239,8 +18405,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-036"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-036",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_research_semantics.py::test_prompt_keys_cover_every_derived_metric"
   },
   {
    "id": "R15-RESEARCH-037",
@@ -18315,8 +18482,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, Code-read only; a stubbed 403-then-429 test would make it 5. Not exercised by test_ddg_backend.py at the sha., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-039"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, Code-read only; a stubbed 403-then-429 test would make it 5. Not exercised by test_ddg_backend.py at the sha., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-039",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_ddg_backend.py::test_403_then_429_reports_rate_limited"
   },
   {
    "id": "R15-RESEARCH-040",
@@ -18344,8 +18512,9 @@
     "agent-chat",
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-040"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-040",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/chat/DepthControl.test.tsx::Tier B + ULTRA renders an estimate before dispatch"
   },
   {
    "id": "R15-RESEARCH-041",
@@ -18372,8 +18541,9 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, four derivation sites must agree on 'web-search origin' provenance; source rows already carry provider/domain after 22215e27, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-041"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, four derivation sites must agree on 'web-search origin' provenance; source rows already carry provider/domain after 22215e27, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-041",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_research_iter.py::test_structured_only_sources_are_not_web_available"
   },
   {
    "id": "R15-RESEARCH-042",
@@ -18398,8 +18568,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-042"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-RESEARCH-042",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_research_fast.py::test_below_floor_marker"
   },
   {
    "id": "R15-UI-060",
@@ -18426,8 +18597,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, either emit progress every K bars in the bar loop (:497 area) or delete the two kinds in five layers, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-060"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, either emit progress every K bars in the bar loop (:497 area) or delete the two kinds in five layers, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-060",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_backtest_engine.py::test_event_sequence_has_progress_between_start_and_complete"
   },
   {
    "id": "R15-UI-061",
@@ -18450,8 +18622,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, label change only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-061"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, label change only, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-061",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/backtest/BacktestResultView.test.tsx"
   },
   {
    "id": "R15-UI-062",
@@ -18474,8 +18647,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, replace two literals with a mount-time derivation (reuse whatever quant panels use for date defaults), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-062"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, replace two literals with a mount-time derivation (reuse whatever quant panels use for date defaults), evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-062",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/backtest/BacktestPanel.test.tsx::D:*date default"
   },
   {
    "id": "R15-UI-063",
@@ -18501,8 +18675,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, BondPricerPanel lines moved 107-109 -> 118-120 after R15-DATA-100 (235e0138) added the currency select; literals untouched., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-063"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, BondPricerPanel lines moved 107-109 -> 118-120 after R15-DATA-100 (235e0138) added the currency select; literals untouched., evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-063",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/date-defaults.test.ts; src/modules/quant/OptionPricerPanel.test.tsx::D:OptionPricerPanel date defaults (R15-UI-063); src/modules/quant/YieldCurvePanel.test.tsx::D:YieldCurvePanel date defaults (R15-UI-063)"
   },
   {
    "id": "R15-UI-064",
@@ -18526,8 +18701,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, one shared toSeriesPoints + a running colour index + leftPriceScale visible, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-064"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, one shared toSeriesPoints + a running colour index + leftPriceScale visible, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-064",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/chart/ChartPanel.test.tsx::a % comparison overlay gets sorted, de-duplicated points on a VISIBLE left scale (R15-UI-064)"
   },
   {
    "id": "R15-UI-065",
@@ -18553,8 +18729,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-065"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-065",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/open-panel-literals.test.ts::panel-id literals (R15-UI-065) > every openPanel('literal') / opensPanel literal under src/ resolves to a registered panel"
   },
   {
    "id": "R15-UI-066",
@@ -18580,8 +18757,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one prop on the primitive plus three call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-066"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one prop on the primitive plus three call sites, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-066",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/EmptyState.test.tsx::EmptyState > R15-UI-066: variant 'error' renders role=alert and a distinct icon"
   },
   {
    "id": "R15-UI-067",
@@ -18610,8 +18788,9 @@
     "ui-panels",
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "The BrokerReadsSection fork is moot: deleted whole (a122dbf6 feat(d81)). The other forks this finding names — EquityOverview shadowing the shared ProvenanceBadge, Watchlist/Chart's bare 'EOD' with no date, and the UTC off-by-a-day as-of date — are on surviving surfaces and stay open. || triage@e032be7: still_reproduces, confidence 4, surviving surfaces only; BrokerReadsSection fork already gone with D81, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-067"
+   "status": "fixed",
+   "note": "The BrokerReadsSection fork is moot: deleted whole (a122dbf6 feat(d81)). The other forks this finding names — EquityOverview shadowing the shared ProvenanceBadge, Watchlist/Chart's bare 'EOD' with no date, and the UTC off-by-a-day as-of date — are on surviving surfaces and stay open. || triage@e032be7: still_reproduces, confidence 4, surviving surfaces only; BrokerReadsSection fork already gone with D81, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-067",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/DataBadges.test.tsx::dates EOD in the viewer's local calendar across IST midnight (R15-UI-067)"
   },
   {
    "id": "R15-UI-068",
@@ -18641,8 +18820,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, primitive API extension plus porting four hand-rolled tables, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-068"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, primitive API extension plus porting four hand-rolled tables, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-068",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/DataTable.test.tsx"
   },
   {
    "id": "R15-UI-069",
@@ -18665,8 +18845,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, three useMemo over lastResult, render the memoised string, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-069"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, three useMemo over lastResult, render the memoised string, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-069",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/screener/ScreenerPanel.test.tsx"
   },
   {
    "id": "R15-UI-070",
@@ -18691,8 +18872,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, two buttons on the existing dialog reusing the write_text_atomic export path plus a file picker, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-070"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, two buttons on the existing dialog reusing the write_text_atomic export path plus a file picker, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-070",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/platform/WorkspaceDialog.test.tsx::exports a saved workspace to a .vysted-workspace file and imports it back under a chosen name"
   },
   {
    "id": "R15-UI-071",
@@ -18718,8 +18900,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, tooling addition plus a mechanical labelling pass; no product surface changes, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-071"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, tooling addition plus a mechanical labelling pass; no product surface changes, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-071",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/SettingsPanel.test.tsx"
   },
   {
    "id": "R15-UI-072",
@@ -18742,8 +18925,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one ChevronDown import + one element beside the label, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-072"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one ChevronDown import + one element beside the label, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-072",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/chat/ModelControl.test.tsx::R15-UI-072: the trigger contains a chevron icon"
   },
   {
    "id": "R15-UI-073",
@@ -18771,8 +18955,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, token split plus ~30 call-site re-classes, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-073"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, token split plus ~30 call-site re-classes, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-073",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/warning-token-scope.test.ts"
   },
   {
    "id": "R15-UI-074",
@@ -18797,8 +18982,9 @@
     "research-search",
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one utility class on two containers, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-074"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one utility class on two containers, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-074",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/research/brief-layout.test.tsx::caps heading, prose and list blocks at max-w-prose but lets a table use the panel width"
   },
   {
    "id": "R15-UI-075",
@@ -18822,8 +19008,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, comment/code contradiction, single edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-075"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, comment/code contradiction, single edit, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-075",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: scripts/audit-design-tokens.test.mjs::body font-feature-settings enables zero (matches tokens.css's slashed-zero claim)"
   },
   {
    "id": "R15-UI-076",
@@ -18850,8 +19037,9 @@
     "ui-panels",
     "data-smallcaps"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, seed from a per-region table keyed by DEFAULT_REGION, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-076"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, seed from a per-region table keyed by DEFAULT_REGION, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-076",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/symbols.test.ts; src/store/chart-drawings.test.ts"
   },
   {
    "id": "R15-UI-077",
@@ -18875,8 +19063,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, No Stage C commit touched the route's except clause; quant pool commits (bdc7f0e5) re-raise the same exception type., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-UI-077/"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, No Stage C commit touched the route's except clause; quant pool commits (bdc7f0e5) re-raise the same exception type., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-UI-077/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_quant_router.py::test_duplicate_pillar_is_400; src/modules/quant/YieldCurvePanel.test.tsx::R15-UI-077: two instruments on the same pillar names the duplicate and blocks the POST"
   },
   {
    "id": "R15-UI-078",
@@ -18902,8 +19091,9 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, three writers still hold separate rule sets, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-078"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, three writers still hold separate rule sets, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-078",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/portfolios.test.ts::D:validateHolding rejects blank cost, qty>1e12, names the field for 1,000 (R15-UI-078)"
   },
   {
    "id": "R15-UI-079",
@@ -18927,8 +19117,9 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, one regex + prefix in a shared helper, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-079"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, one regex + prefix in a shared helper, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-079",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/lib/csv.test.ts::csv helpers > escapeCsvCell > R15-UI-079: prefixes a formula-trigger leading char so no text cell opens a live formula"
   },
   {
    "id": "R15-UI-080",
@@ -18952,8 +19143,9 @@
    "operator_areas": [
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-080"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-080",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/research/BriefPanel.test.tsx::a vysted:// source renders a provenance chip, no external link, and no favicon lookup"
   },
   {
    "id": "R15-UI-081",
@@ -18982,8 +19174,9 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 4, openPanel resolves through the enabled map; the chat module is a panel-less registry entry, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-081"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 4, openPanel resolves through the enabled map; the chat module is a panel-less registry entry, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-081",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/store/workspace.test.ts::disabled portfolio: openPanel returns false, no panel added"
   },
   {
    "id": "R15-UI-082",
@@ -19008,8 +19201,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "triage@e032be7: already_fixed, confidence 5, Residual polish, not the original defect: the 200-byte encoded-stem cap rejects a 33-char Devanagari name as 'too long' (9 bytes per char), and the Settings input has no maxLength/rule text., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-UI-082/"
+   "status": "fixed",
+   "note": "triage@e032be7: already_fixed, confidence 5, Residual polish, not the original defect: the 200-byte encoded-stem cap rejects a 33-char Devanagari name as 'too long' (9 bytes per char), and the Settings input has no maxLength/rule text., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-UI-082/",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_workspace.py::test_a_32_char_devanagari_name_saves; sidecar/tests/test_workspace.py::test_a_name_whose_encoded_bytes_exceed_the_cap_is_still_rejected"
   },
   {
    "id": "R15-UI-089",
@@ -19033,8 +19227,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "The broker-credential comparison is moot: after the trading removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)) marketplace.ts's only credential entry is NewsAPI. Core finding stays open: Marketplace CredentialForm still saves the NewsAPI key with no validation, unlike KeyEntryDialog's live probe for LLM keys. || triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-089"
+   "status": "fixed",
+   "note": "The broker-credential comparison is moot: after the trading removal (a122dbf6a4f942c159fcebdd8ddabf4beccc7127 feat(d81)) marketplace.ts's only credential entry is NewsAPI. Core finding stays open: Marketplace CredentialForm still saves the NewsAPI key with no validation, unlike KeyEntryDialog's live probe for LLM keys. || triage@e032be7: still_reproduces, confidence 5, orthogonal to trading removal and the redesign, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-089",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/marketplace/MarketplacePanel.test.tsx"
   },
   {
    "id": "R15-UI-093",
@@ -19059,8 +19254,9 @@
    "operator_areas": [
     "agent-chat"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, needs a debounced quote fetch for the visible rows plus a row description change; the resolver contract stays untouched, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-093"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, needs a debounced quote fetch for the visible rows plus a row description change; the resolver contract stays untouched, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-093",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/modules/chat/mentions.test.ts::R15-UI-093: a quoted candidate renders description '[NMS: 227.1 +0.8%]'"
   },
   {
    "id": "R15-UI-094",
@@ -19086,8 +19282,9 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "open",
-   "note": "triage@e032be7: still_reproduces, confidence 5, prompt + parser + model + TS mirror + typed render blocks, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-094"
+   "status": "fixed",
+   "note": "triage@e032be7: still_reproduces, confidence 5, prompt + parser + model + TS mirror + typed render blocks, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-094",
+   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_company_narrative.py::test_five_section_fixture_parses_all_fields"
   },
   {
    "id": "R15-LEAD-116",
@@ -19112,9 +19309,9 @@
     "data-smallcaps",
     "research-search"
    ],
-   "status": "open",
+   "status": "fixed",
    "note": "filed 18:31 IST 27 Sep from the round-5 fix round's fresh verifier (VERIFY.md adjacent, evidence a2-FOCUS-BO-ann.json). Not a regression of the LEAD-059 fix (pre-existing). A new HIGH found AFTER the one bounded fix round gate rule change 1 allows: the rc1 bar needs open critical/high = 0, so the tag waits on the operator — DECISIONS_FOR_OPERATOR.md 4.22 (options a/b/c, recommendation b).",
-   "closure_evidence": null,
+   "closure_evidence": "fixed by 3acd24dc + 3af0502c (fix round A), certified at d3509715 by r15/stage-c/lows/int-9368c62/VERIFY.md (31/34 row checks byte-equal; the 3 shareholding cells differ by pre-existing per-spelling lane non-determinism, filed separately)",
    "source": "rc1 gate round 5 fix-r2 fresh verifier"
   },
   {
@@ -19143,6 +19340,48 @@
    "note": "filed 18:31 IST 27 Sep from the round-5 fix round's fresh verifier (adjacent 2); open at 0.9.0 -> first 0.9.1 batch.",
    "closure_evidence": null,
    "source": "rc1 gate round 5 fix-r2 fresh verifier"
+  },
+  {
+   "id": "R15-LEAD-118",
+   "title": "Shareholding percentages differ by symbol spelling for the same scrip/quarter/filing (e.g. FOCUS vs FOCUS.BO vs 543312)",
+   "severity": "low",
+   "area": "data",
+   "subsystem": "disclosures",
+   "files": [
+    "sidecar/services/ (grep _MAX_SHP_XBRL_PARSES)"
+   ],
+   "repro": "Own sidecar, lows-int certifier run: the same BSE scrip under two spellings (e.g. KALYANI.BO vs 544023; also RAJPUTANA, ZEAL) returns the same quarters/filings but some quarters' promoter/FII/DII/public cells are null under one spelling and filled under the other, for the duration of the cache TTL. 539963 direct lane calls: null counts 17 vs 9 across the two spellings.",
+   "evidence": "r15/stage-c/lows/int-9368c62/verify/shareholding_identity.out and shareholding_determinism.out, shareholding-*.json in that dir",
+   "root_cause": "bse_provider.get_shareholding spends a per-call XBRL parse budget (_MAX_SHP_XBRL_PARSES, a progressive fill by design) and routers/disclosures.py caches each normalized spelling separately (disclosures:shareholding:{normalized}:{region}), so which filings get parsed depends on the spelling and the cache state at call time.",
+   "fix_shape": "Key the shareholding cache and the XBRL parse budget by the resolved scrip identity, not the normalized query spelling, so every spelling of the same scrip converges on the same parse state.",
+   "defect_class": "identity-by-ticker-string",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "filed by the lows-int certifier (int-9368c62) as an adjacent finding (adjacent 1), pre-existing for any two spellings of a collision scrip; LEAD-116 makes <name>.BO a second spelling, making it reachable. Residual filed for 0.9.1.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-119",
+   "title": "The vitest coverage ratchet never gets committed: thresholds read lines 0 while measured coverage is about 81.4",
+   "severity": "low",
+   "area": "code",
+   "subsystem": "ci",
+   "files": [
+    "vitest.config.ts"
+   ],
+   "repro": "vitest.config.ts ships { lines: 0, autoUpdate: true }. A green ci-local run rewrites it to lines: 81.4 in the runner's own worktree, but that change is uncommitted; every fresh checkout (CI) starts again at a 0 floor.",
+   "evidence": "git -C <scratch>/lows-int diff vitest.config.ts (int-9368c62 certifier run)",
+   "root_cause": "autoUpdate: true rewrites the on-disk threshold after a passing run but nothing commits that rewrite, so the ratchet's updated floor never survives past the worktree it ran in and the gate cannot catch a regression.",
+   "fix_shape": "Either commit the auto-updated threshold as a CI step (fail the job if the diff is uncommitted) or stop auto-updating and hand-ratchet the floor on each release.",
+   "defect_class": "process-gate-silently-inert",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "filed by the lows-int certifier (int-9368c62) as an adjacent finding (adjacent 2). Residual filed for 0.9.1.",
+   "closure_evidence": ""
   }
  ],
  "rejections": [
@@ -19453,11 +19692,11 @@
  ],
  "counts": {
   "raw": 887,
-  "entries": 738,
+  "entries": 740,
   "rejections": 76,
   "critical": 16,
   "high": 123,
   "medium": 329,
-  "low": 270
+  "low": 272
  }
 }
