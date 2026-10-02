@@ -27,6 +27,7 @@ import { Landmark } from "lucide-react";
 
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import { bondDateDefaults } from "@/lib/date-defaults";
 import { formatMoney } from "@/lib/format";
 import { regionConfig } from "@/lib/region";
 import { useQuantStore } from "@/store/quant";
@@ -115,9 +116,9 @@ export function BondPricerPanel() {
   const [faceValue, setFaceValue] = useState("1000");
   const [couponRate, setCouponRate] = useState("0.05");
   const [couponsPerYear, setCouponsPerYear] = useState<"1" | "2" | "4">("2");
-  const [issueDate, setIssueDate] = useState("2026-05-16");
-  const [maturityDate, setMaturityDate] = useState("2036-05-16");
-  const [settlementDate, setSettlementDate] = useState("2026-05-16");
+  const [issueDate, setIssueDate] = useState(() => bondDateDefaults().issueDate);
+  const [maturityDate, setMaturityDate] = useState(() => bondDateDefaults().maturityDate);
+  const [settlementDate, setSettlementDate] = useState(() => bondDateDefaults().settlementDate);
   const [ytm, setYtm] = useState("0.0425");
 
   // R15-DATA-100: display currency, defaulting to the session region's — an

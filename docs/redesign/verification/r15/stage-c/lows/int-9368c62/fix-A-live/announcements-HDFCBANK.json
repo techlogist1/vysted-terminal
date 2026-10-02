@@ -1,0 +1,424 @@
+{
+ "symbol": "HDFCBANK",
+ "exchange": null,
+ "count": 50,
+ "announcements": [
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Change in Director(s) of the company.",
+   "category": "Change in Director(s)",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_01102026182319_SE_Intimation-_Anup_Bagchi.pdf",
+   "ts": "2026-10-01T18:23:52+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/709c1ca1-bbc6-4432-949f-6a84683a6ebe.pdf",
+   "ts": "2026-10-01T18:19:13.007000+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about change in Management",
+   "category": "Change in Management",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_30092026203611_SE_intimation-_sudhir.pdf",
+   "ts": "2026-09-30T20:36:35+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "Newspaper publication regarding special window for transfer and dematerialization of physical shares of HDFC Bank Limited.",
+   "category": "General Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_29092026121137_SE_Intimation_-_Special_window.pdf",
+   "ts": "2026-09-29T12:12:17+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Allotment of 1897180   Shares.",
+   "category": "ESOP/ESOS/ESPS",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_25092026121829_SELetterESOP23092026.pdf",
+   "ts": "2026-09-25T12:19:10+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Board Meeting Intimation for Approval Of The Unaudited Standalone And Consolidated Financial Results Of The Bank For The Quarter/Half-Year Ending September 30,2026",
+   "category": "Board Meeting",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/baa67aec-6e29-4518-9677-0883060b793c.pdf",
+   "ts": "2026-09-22T10:46:45.820000+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Allotment of 2521106  Shares.",
+   "category": "ESOP/ESOS/ESPS",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_16092026150152_SELetterESOP16092026.pdf",
+   "ts": "2026-09-16T15:02:39+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed regarding Disclosure of material information",
+   "category": "Disclosure of material issue",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK1_12092026162117_SE_intimation_Reg30_12062026.pdf",
+   "ts": "2026-09-12T16:24:43+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Disclosure Under Regulation 30 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015 ('SEBI Listing Regulations')",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/a9ab4a0d-8f0c-4255-bc2b-0e22e71e935f.pdf",
+   "ts": "2026-09-12T16:19:19.397000+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about General Updates",
+   "category": "General Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_11092026233004_SE_Intimation-_Sept_112026.pdf",
+   "ts": "2026-09-11T23:30:43+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Schedule of meet",
+   "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_10092026180813_SE_Intimation-_September_10_2026.pdf",
+   "ts": "2026-09-10T18:09:10+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding 'Grant of stock options under Employees Stock Option Scheme   2024 and Grant of Restricted Stock Units under Employees Stock Incentive Master Scheme   2022'.",
+   "category": "Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_06092026214946_Draft_SE_intimation_LTI_grant.pdf",
+   "ts": "2026-09-06T21:54:52+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about General Updates",
+   "category": "General Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_01092026212904_SEIntimationBondsSeptember12026.pdf",
+   "ts": "2026-09-01T21:29:22+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Intimation Under Regulation 30 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4420c539-34d9-4cfb-a3b7-c0f88ccf0f4c.pdf",
+   "ts": "2026-09-01T21:17:43.147000+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Intimation Of ESG Ratings Pursuant To Regulation 30 Of SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0dee5007-f436-4196-b1e9-69a62f82a103.pdf",
+   "ts": "2026-09-01T15:12:52.793000+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Allotment of 3058164  Shares.",
+   "category": "ESOP/ESOS/ESPS",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_31082026135453_SELetterESOP31082026.pdf",
+   "ts": "2026-08-31T13:55:08+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Disclosure under Regulation 30 and other applicable regulations of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015",
+   "category": "General Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_29082026202524_Stock_exchange_intimationSJ.pdf",
+   "ts": "2026-08-29T20:28:37+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about General Updates",
+   "category": "General Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_24082026224258_SEIntimationAugust242026.pdf",
+   "ts": "2026-08-24T22:43:22+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about General Updates",
+   "category": "General Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_20082026225919_SE_Intimatio-_Unsecured_bonds.pdf",
+   "ts": "2026-08-20T22:59:40+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Credit Rating",
+   "category": "Credit Rating",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_20082026171343_Rating_20Aug2026.pdf",
+   "ts": "2026-08-20T17:16:08+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Credit Rating",
+   "category": "Credit Rating",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_19082026231821_IndiaandCARErating_19Aug2026.pdf",
+   "ts": "2026-08-19T23:19:15+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding 'Intimation under Securities and Exchange Board of India (Listing Obligations and Disclosure Requirements) Regulations, 2015 ( SEBI Listing Regulations )'.",
+   "category": "Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_19082026224543_RBIapproval_MajorshareholderLIC.pdf",
+   "ts": "2026-08-19T22:52:22+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Schedule of meet",
+   "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_16082026193110_SEIntimation_August162026.pdf",
+   "ts": "2026-08-16T19:34:00+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Allotment of 1729212  Shares.",
+   "category": "ESOP/ESOS/ESPS",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_14082026140700_SELetterESOP14082026.pdf",
+   "ts": "2026-08-14T14:10:29+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Schedule of meet",
+   "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_13082026161622_Analystmeetintimation_13082026.pdf",
+   "ts": "2026-08-13T16:17:31+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+   "category": "AGM/EGM",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8a9f4bfe-9423-4e01-a058-cc1c48beaeaa.pdf",
+   "ts": "2026-08-05T21:24:22.577000+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Proceedings of Annual General Meeting held on August 05, 2026. Further, the company has submitted the Exchange a copy of Srutinizers report along with voting results.",
+   "category": "Shareholders meeting",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_05082026205958_AGM_outcome_cover_letter_2026.pdf",
+   "ts": "2026-08-05T21:00:26+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Copy of Newspaper Publication",
+   "category": "Copy of Newspaper Publication",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_31072026121032_SEDividendspecialwindowfortransferAdv31jul2026.pdf",
+   "ts": "2026-07-31T12:14:43+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Allotment of 4248902  Shares.",
+   "category": "ESOP/ESOS/ESPS",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_31072026120129_SELetterESOP31072026.pdf",
+   "ts": "2026-07-31T12:05:08+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding conclusion of internal review pertaining to Maharashtra State Road Development Corporation arrangement",
+   "category": "Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_27072026153754_SEintimationMSRDC.pdf",
+   "ts": "2026-07-27T15:56:07+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding intimation under Regulation 30 of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015- Exercise of call option on US$ 1,000,000,000 3.7% Additional Tier 1 Notes  issued by HDFC Bank Limited",
+   "category": "General Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_24072026190350_SE_Intimation_call_option.pdf",
+   "ts": "2026-07-24T19:06:34+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Transcript",
+   "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_24072026154746_SEintimationTranscriptofearningscall18jul2026.pdf",
+   "ts": "2026-07-24T15:52:03+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Allotment of 3815292  Shares.",
+   "category": "ESOP/ESOS/ESPS",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_21072026134737_SELetterESOP21072026.pdf",
+   "ts": "2026-07-21T13:50:17+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Link of Recording",
+   "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_18072026214010_SEintimation_RECORDING_18jul2026.pdf",
+   "ts": "2026-07-18T21:41:03+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Investor Presentation",
+   "category": "Investor Presentation",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_18072026151522_SE_Intimation_earningcall_presentation18jul2026.pdf",
+   "ts": "2026-07-18T15:18:05+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Unaudited Standalone And Consolidated Financial Results Of The Bank For The Quarter Ended June 30, 2026",
+   "category": "Result",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7abdb29f-c7a2-4f32-a37f-5273fded5000.pdf",
+   "ts": "2026-07-18T14:27:17.553000+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has submitted to the Exchange, the financial results for the period ended Jun 30, 2026.",
+   "category": "Outcome of Board Meeting",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_18072026142204_SEIntimationResult30062026.pdf",
+   "ts": "2026-07-18T14:22:30+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Certificate under SEBI (Depositories and Participants) Regulations, 2018",
+   "category": "Certificate under SEBI (Depositories and Participants) Regulations, 2018",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_16072026110220_Reg74_5_30062026.pdf",
+   "ts": "2026-07-16T11:06:07+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding receipt of approval from the Reserve Bank of India for appointment of Mr. Rajiv Kumar as Part-time Chairman of the Bank",
+   "category": "Appointment",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_15072026165458_SEIntimation_RBI_approval_appointment_of_PTC.pdf",
+   "ts": "2026-07-15T17:00:18+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Copy of Newspaper Publication",
+   "category": "Copy of Newspaper Publication",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_12072026142630_NewspaperAdv12072026.pdf",
+   "ts": "2026-07-12T14:29:26+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Reg. 34 (1) Annual Report.",
+   "category": "Others",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7d621500-082a-4342-b98d-ba677d3890c5.pdf",
+   "ts": "2026-07-11T00:06:13.937000+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Business Responsibility and Sustainability Reporting (BRSR)",
+   "category": "Others",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f177e4bb-db67-4fcd-b034-377db28cf453.pdf",
+   "ts": "2026-07-10T23:56:09.040000+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Notice of Annual General Meeting to be held on August 05, 2026",
+   "category": "Shareholders meeting",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_10072026234853_Final_IAR.pdf",
+   "ts": "2026-07-10T23:50:18+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange about Schedule of meet",
+   "category": "Analysts/Institutional Investor Meet/Con. Call Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_09072026170732_SEintimationEarningsCall18jul2026.pdf",
+   "ts": "2026-07-09T17:09:34+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding 'Intimation under SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015'.",
+   "category": "Updates",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK_04072026085736_Initial_Financial_disclosure_30062026.pdf",
+   "ts": "2026-07-04T09:00:01+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Appointment of Mr Jigar Shah  as General Counsel (Designate) w.e.f. August 20, 2026.",
+   "category": "Appointment",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_29062026230501_SEIntimationJune292026CFOGC.pdf",
+   "ts": "2026-06-29T23:06:25+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Appointment of Mr Puneet Sharma as Chief Financial Officer (Designate) w.e.f. September 01, 2026.",
+   "category": "Appointment",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_29062026225958_SEIntimationJune292026CFOGC.pdf",
+   "ts": "2026-06-29T23:06:25+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f9e942cd-4056-4757-aa27-8c8a603c201d.pdf",
+   "ts": "2026-06-29T22:32:50.273000+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "NSE",
+   "headline": "HDFC Bank Limited has informed the Exchange regarding Appointment of Mr. Rajiv Kumar as a Part-time Chairman and Additional (Independent) Director of HDFC Bank Limited w.e.f. Jun 30, 2026.",
+   "category": "Appointment",
+   "attachment_url": "https://nsearchives.nseindia.com/corporate/HDFCBANK3_29062026203112_SE_Intimation_-_June_29_2026_-_PTC.pdf",
+   "ts": "2026-06-29T20:33:49+05:30"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "exchange": "BSE",
+   "headline": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/1d6d59b4-cad2-4bf3-b13e-a17ca0ea2694.pdf",
+   "ts": "2026-06-29T20:22:22.930000+05:30"
+  }
+ ],
+ "sources": [
+  "NSE",
+  "BSE"
+ ],
+ "errors": {},
+ "windows": {
+  "NSE": {
+   "window_start": "2026-06-29",
+   "window_end": "2026-10-03"
+  },
+  "BSE": {
+   "window_start": "2026-06-29",
+   "window_end": "2026-10-03"
+  }
+ },
+ "coverage": "covered",
+ "note": null
+}

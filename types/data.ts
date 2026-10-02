@@ -9,14 +9,16 @@
 // --- market ---------------------------------------------------------------
 
 /** Calendar-aware staleness label for a served market value (FR-041 / SC-019). */
-export type Freshness = "live" | "eod" | "stale";
+/** `unknown` = the label could not be computed — still badged, never read as live. */
+export type Freshness = "live" | "eod" | "stale" | "unknown";
 
 /** A point-in-time price quote for one instrument. */
 export interface Quote {
   symbol: string;
   price: number;
-  change: number;
-  change_percent: number;
+  /** `null` when the lane does not know the day's change — never a fabricated 0. */
+  change: number | null;
+  change_percent: number | null;
   volume: number | null;
   /** The session's open/high/low and the prior close, where the lane reports them. */
   open?: number | null;
@@ -218,9 +220,11 @@ export interface Fundamentals {
   revenue_growth: number | null;
   earnings_growth: number | null;
   /**
-   * Basis of the growth fields above (R11 / D55). yfinance's growth figures
-   * are MOST-RECENT-QUARTER vs the same quarter a year ago ("mrq_yoy") — NOT
-   * annual/TTM growth. Every surface rendering growth must disclose this.
+   * Basis of the growth fields above (R11 / D55): "mrq_yoy" (MOST-RECENT-QUARTER
+   * vs the same quarter a year ago — yfinance's growth figures, the exchange-filed
+   * overlay) or "annual_yoy". Stated by the producer of a growth value; `null`
+   * means no basis was stated, never an inherited default (R15-DATA-102). Every
+   * surface rendering growth must disclose this.
    */
   growth_basis?: string | null;
   // Ownership (fractions)
@@ -334,10 +338,20 @@ export interface UnverifiedClaim {
  */
 export interface CompanyNarrative {
   symbol: string;
-  /** 2-4 sentence narrative with unverified numbers redacted; null when none. */
+  /** FR-124 "The Take": 2-4 sentence headline, unverified numbers redacted; null when none. */
   summary: string | null;
-  /** 2-4 short key-insight bullets, verified the same way as `summary`. */
+  /** Legacy key-insight bullets (an older completion), verified the same way. */
   insights: string[];
+  /** FR-124 business: what the company does and how it earns. */
+  business: string | null;
+  /** FR-124 storyline: the trajectory the served numbers show. */
+  storyline: string | null;
+  /** FR-124 balanced bull points. */
+  bull_case: string[];
+  /** FR-124 balanced bear points. */
+  bear_case: string[];
+  /** FR-124 key risks. */
+  risks: string[];
   /** True when a narrative ran AND every numeric claim matched a source value. */
   verified: boolean;
   /** Numeric claims that failed verification and were redacted from the prose. */

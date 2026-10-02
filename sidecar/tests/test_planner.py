@@ -113,6 +113,36 @@ def test_decompose_drops_unknown_actions() -> None:
     assert [s.action for s in plan.steps] == ["answer"]
 
 
+def test_coerce_steps_keeps_close_and_focus_panel_and_plan_marks_staged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-AGENT-089: close_panel/focus_panel survive the planner and the plan the
+    runtime emits flags them staged like every other host-action step."""
+    from services import agent_runtime
+
+    reply = (
+        '[{"action":"close_panel","args":{"panel":"news"}},'
+        '{"action":"focus_panel","args":{"panel":"chart"}},'
+        '{"action":"set_chart_symbol","args":{"symbol":"TCS.NS"}}]'
+    )
+
+    async def fake_complete(*_a: Any, **_k: Any) -> str:
+        return reply
+
+    monkeypatch.setattr(agent_runtime.oneshot, "complete", fake_complete)
+    event = _run(
+        agent_runtime._compound_plan(
+            "openai", "gpt-4.1-mini", "k", "close the news panel and then chart TCS", None
+        )
+    )
+    assert event is not None
+    assert [(s["action"], s["staged"]) for s in event.steps] == [
+        ("close_panel", True),
+        ("focus_panel", True),
+        ("set_chart_symbol", True),
+    ]
+
+
 def test_decompose_falls_back_when_model_returns_garbage() -> None:
     async def fake_llm(_prompt: str) -> str:
         return "I cannot help with that."

@@ -215,9 +215,23 @@ def test_mc_rejects_american_exercise() -> None:
 
 
 def test_mc_rejects_too_few_paths() -> None:
+    # The floor lives in OptionPricingRequest.validate_domain() only (R15-CODE-PLATFORM-041)
+    # — price_european_mc no longer duplicates the check, so this routes through the
+    # dispatcher (which always calls validate_domain() first) rather than the engine directly.
     req = _make_req(method="monte-carlo", monte_carlo_paths=50)
-    with pytest.raises(ValueError, match="at least 100"):
-        options.price_european_mc(req)
+    with pytest.raises(ValueError, match="monte_carlo_paths must be between 100"):
+        options.price(req)
+
+
+def test_validate_domain_rejects_steps_2_and_low_paths() -> None:
+    """R15-CODE-PLATFORM-041: the floor lives in validate_domain only, one place."""
+    steps_req = _make_req(method="binomial", binomial_steps=2)
+    with pytest.raises(ValueError, match="binomial_steps must be between 3"):
+        steps_req.validate_domain()
+
+    paths_req = _make_req(method="monte-carlo", monte_carlo_paths=50)
+    with pytest.raises(ValueError, match="monte_carlo_paths must be between 100"):
+        paths_req.validate_domain()
 
 
 # ---------------------------------------------------------------------------

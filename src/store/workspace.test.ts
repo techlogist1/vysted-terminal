@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { chartModule } from "@/modules/chart";
+import { portfolioModule } from "@/modules/portfolio";
 import { useChartDrawingsStore } from "@/store/chart-drawings";
 import { useModulesStore } from "@/store/modules";
 import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
@@ -63,6 +64,23 @@ describe("openPanel chart dedup (singleton)", () => {
     expect(api.addPanel.mock.calls[0][0].id).toBe("chart");
     expect(api.panels).toHaveLength(1);
     expect(api.panels[0].id).toBe("chart");
+  });
+});
+
+describe("openPanel honours module enablement (R15-UI-081)", () => {
+  it("disabled portfolio: openPanel returns false, no panel added", () => {
+    useModulesStore.setState({ modules: [], enabled: {} });
+    useModulesStore.getState().registerModules([portfolioModule]);
+    useModulesStore.getState().setModuleEnabled("portfolio", false);
+    const api = fakeDockviewApi();
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+
+    expect(useWorkspaceStore.getState().openPanel("portfolio")).toBe(false);
+    expect(api.addPanel).not.toHaveBeenCalled();
+
+    useModulesStore.getState().setModuleEnabled("portfolio", true);
+    expect(useWorkspaceStore.getState().openPanel("portfolio")).toBe(true);
+    expect(api.panels.map((panel) => panel.id)).toEqual(["portfolio"]);
   });
 });
 

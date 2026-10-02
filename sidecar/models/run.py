@@ -7,14 +7,12 @@ driven by a detached asyncio task (``run_manager``), governed by a hard
 ``BudgetGuard`` spend ceiling (``budget_guard``), and observable / cancellable /
 resumable through ``routers.runs`` long after the launching request closed.
 
-These models are the wire contract the frontend consumes. The poller reads BOTH
-snake_case and camelCase for cost (``spend_usd`` / ``spendUsd``) — we emit
-camelCase aliases via ``Field(alias=...)`` + ``populate_by_name=True``, and the
-router serialises ``by_alias=True``, so the wire shape is the camelCase one the
-frontend expects while Python keeps snake_case attribute names.
-
-CLAUDE.md gotcha: ``types/data.ts`` mirrors ``sidecar/models/`` by hand — a
-field rename here requires a same-commit TypeScript update.
+These models are the wire contract, in ONE spelling: snake_case, in both
+directions (the field names are the wire keys; no aliases). The frontend reads
+them in ``src/lib/delegate-runs.ts`` (``RunWire`` / ``RunOutputWire``, kept by
+hand; there is no ``types/data.ts`` mirror of the run models), so a field rename
+here needs a same-commit update there. ``test_runs_router`` pins the keys
+(R15-CODE-AGENT-031); ``docs/SIDECAR_API.md`` documents them.
 """
 
 from __future__ import annotations
@@ -49,16 +47,16 @@ class RunBudget(BaseModel):
     which no trading path exists.
     """
 
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid")
 
     #: Hard cap on total tokens (input + output, summed across rounds).
-    max_tokens: int | None = Field(default=None, gt=0, alias="maxTokens")
+    max_tokens: int | None = Field(default=None, gt=0)
     #: Hard cap on estimated USD spend (see ``budget_guard.PRICE_TABLE``).
-    max_spend_usd: float | None = Field(default=None, gt=0, alias="maxSpendUsd")
+    max_spend_usd: float | None = Field(default=None, gt=0)
     #: Hard cap on wall-clock seconds from run start (monotonic).
-    max_wall_seconds: float | None = Field(default=None, gt=0, alias="maxWallSeconds")
+    max_wall_seconds: float | None = Field(default=None, gt=0)
     #: Hard cap on provider rounds (also bounded by ``_MAX_TOOL_ROUNDS``).
-    max_steps: int | None = Field(default=None, gt=0, alias="maxSteps")
+    max_steps: int | None = Field(default=None, gt=0)
 
 
 #: The server floor for an omitted ceiling. Equal to the composer's
@@ -75,10 +73,10 @@ class RunCost(BaseModel):
     table; it is NOT a billed figure (the sidecar holds no provider invoice).
     """
 
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid")
 
     tokens: int = 0
-    spend_usd: float = Field(default=0.0, alias="spendUsd")
+    spend_usd: float = 0.0
     steps: int = 0
 
 
@@ -90,13 +88,13 @@ class RunLaunchRequest(BaseModel):
     response (asserted in ``test_runs_router``).
     """
 
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid")
 
     prompt: str
-    context_snapshot: dict[str, Any] | None = Field(default=None, alias="contextSnapshot")
+    context_snapshot: dict[str, Any] | None = None
     provider: LLMProviderId | None = None
     model: str | None = None
-    api_key: str | None = Field(default=None, alias="apiKey")
+    api_key: str | None = None
     budget: RunBudget = Field(default_factory=RunBudget)
     options: dict[str, Any] = Field(default_factory=dict)
 
@@ -128,15 +126,15 @@ class RunActivity(BaseModel):
 class RunSummary(BaseModel):
     """One row in ``GET /runs`` — the run-tray list shape.
 
-    Serialised ``by_alias=True`` so cost is ``{tokens, spendUsd, steps}`` and
-    timestamps are ``createdAt`` / ``updatedAt`` on the wire.
+    Cost is ``{tokens, spend_usd, steps}`` and the timestamps are
+    ``created_at`` / ``updated_at`` (epoch seconds) on the wire.
     """
 
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid")
 
     id: str
-    agent_id: str = Field(alias="agentId")
-    agent_name: str = Field(alias="agentName")
+    agent_id: str
+    agent_name: str
     mode: str
     status: RunStatus
     cost: RunCost
@@ -151,8 +149,8 @@ class RunSummary(BaseModel):
     activity: list[RunActivity] = Field(default_factory=list)
     detail: str | None = None
     question: str | None = None
-    created_at: int = Field(alias="createdAt")
-    updated_at: int = Field(alias="updatedAt")
+    created_at: int
+    updated_at: int
 
 
 class RunDetail(RunSummary):
@@ -169,18 +167,18 @@ class RunDetail(RunSummary):
     ``{tool_call_id, name, input}``. None of it is applied by the sidecar.
     """
 
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid")
 
     transcript: list[dict[str, Any]] = Field(default_factory=list)
-    checkpoint_messages: int = Field(default=0, alias="checkpointMessages")
+    checkpoint_messages: int = 0
     answer: str | None = None
     brief: dict[str, Any] | None = None
-    host_actions: list[dict[str, Any]] = Field(default_factory=list, alias="hostActions")
+    host_actions: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class RunAnswerRequest(BaseModel):
     """``POST /runs/{run_id}/answer`` body — a human-in-the-loop reply (FR-028)."""
 
-    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+    model_config = ConfigDict(extra="forbid")
 
     answer: str

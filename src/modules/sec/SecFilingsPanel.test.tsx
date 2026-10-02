@@ -79,6 +79,41 @@ describe("SecFilingsPanel", () => {
     expect(screen.getByTestId("filings-row-0000320193-24-000100")).toBeInTheDocument();
   });
 
+  it("R15-CODE-DATA-014: a filingsByIdentifier update after mount re-renders the row count", async () => {
+    render(<SecFilingsPanel />);
+    await waitFor(() => screen.getByTestId("filings-list-table"));
+    expect(screen.getByTestId("filings-row-0000320193-24-000123")).toBeInTheDocument();
+
+    // Write straight into the store, bypassing loadFilings entirely — the
+    // panel must pick this up via its own subscription, not a stale
+    // getState() snapshot taken at some earlier render.
+    useSecStore.setState((state) => ({
+      filingsByIdentifier: {
+        ...state.filingsByIdentifier,
+        "AAPL::all": {
+          ...AAPL_FILINGS,
+          filings: [
+            ...AAPL_FILINGS.filings,
+            {
+              accession: "0000320193-24-000099",
+              cik: "0000320193",
+              company_name: "Apple Inc.",
+              symbol: "AAPL",
+              form_type: "8-K",
+              filed_date: "2024-05-01",
+              period_of_report: "2024-04-29",
+              edgar_url: "https://www.sec.gov/Archives/edgar/data/320193/99/",
+            },
+          ],
+        },
+      },
+    }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("filings-row-0000320193-24-000099")).toBeInTheDocument();
+    });
+  });
+
   it("submits a new symbol via the form", async () => {
     render(<SecFilingsPanel />);
     await waitFor(() => screen.getByTestId("filings-list-table"));

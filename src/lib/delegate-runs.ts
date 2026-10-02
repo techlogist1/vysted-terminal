@@ -57,11 +57,11 @@ const origins = new Map<
   { threadId?: string; agentId: string; agentName: string; messageId: string }
 >();
 
-/** `GET /runs/{id}` output fields (either spelling for the host actions). */
+/** `GET /runs/{id}` output fields. The runs wire is snake_case only, both
+ *  ways (`sidecar/models/run.py`, R15-CODE-AGENT-031). */
 interface RunOutputWire {
   answer?: string | null;
   brief?: Record<string, unknown> | null;
-  hostActions?: HostActionWire[];
   host_actions?: HostActionWire[];
 }
 
@@ -85,9 +85,14 @@ interface RunWire {
   question?: string;
 }
 
-/** `GET /runs` — every run the sidecar knows, newest first. */
+/** A `/runs` read that has not answered in this long is aborted (a failed poll). */
+const FETCH_RUNS_TIMEOUT_MS = 8000;
+
+/** `GET /runs` — the newest runs the sidecar knows, newest first. */
 async function fetchRuns(): Promise<RunWire[]> {
-  const wire = await sidecarGet<{ runs?: RunWire[] } | RunWire[]>("/runs");
+  const wire = await sidecarRequest<{ runs?: RunWire[] } | RunWire[]>("GET", "/runs", {
+    signal: AbortSignal.timeout(FETCH_RUNS_TIMEOUT_MS),
+  });
   return Array.isArray(wire) ? wire : (wire.runs ?? []);
 }
 
@@ -146,7 +151,7 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
     threadId: launch.threadId,
   });
   try {
-    const body = await sidecarRequest<{ runId?: string; run_id?: string }>(
+    const body = await sidecarRequest<{ run_id?: string }>(
       "POST",
       `/agents/${encodeURIComponent(launch.agentId)}/runs`,
       {
@@ -172,7 +177,7 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
         },
       },
     );
-    const sidecarRunId = body.runId ?? body.run_id;
+    const sidecarRunId = body.run_id;
     useAgentRunsStore.getState().updateRun(localId, { sidecarRunId });
     if (sidecarRunId) {
       origins.set(sidecarRunId, {
@@ -188,8 +193,22 @@ export async function launchDelegateRun(launch: DelegateLaunch): Promise<void> {
   }
 }
 
+/** True while a poll is running; the 2 s timer skips a tick rather than stack
+ *  a second `/runs` read (and a second delivery) behind a slow one. */
+let pollInFlight = false;
+
 /** Poll the sidecar runs and sync cost/status into the rail. */
 export async function pollDelegateRuns(): Promise<void> {
+  if (pollInFlight) return;
+  pollInFlight = true;
+  try {
+    await syncRuns();
+  } finally {
+    pollInFlight = false;
+  }
+}
+
+async function syncRuns(): Promise<void> {
   const active = useAgentRunsStore
     .getState()
     .runs.some((r) => r.sidecarRunId && isLiveRun(r.status));
@@ -276,7 +295,7 @@ async function deliverRunOutput(
   }
   const enqueue = useProposedChangesStore.getState().enqueue;
   const gate = { batchId: messageId, agentId: origin.agentId, agentName: origin.agentName };
-  for (const action of output.hostActions ?? output.host_actions ?? []) {
+  for (const action of output.host_actions ?? []) {
     enqueue({ toolCallId: action.tool_call_id, name: action.name, input: action.input, ...gate });
   }
   if (output.brief) {

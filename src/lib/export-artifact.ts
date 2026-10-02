@@ -11,10 +11,14 @@
  * affordance is never silently dead, and return `{ path: null, fellBack: true }`.
  *
  * `html-to-image` and `jspdf` are imported lazily so they never enter the
- * initial bundle or run during SSR/static-export.
+ * initial bundle or run during SSR/static-export. `sidecar-client` is
+ * imported statically (R15-CODE-FRONTEND-038) — it is already a static
+ * dependency of ~40 other modules, so lazy-loading it here only produced a
+ * Vite [INEFFECTIVE_DYNAMIC_IMPORT] warning, never an actual chunk split.
  */
 
 import { invoke } from "@tauri-apps/api/core";
+import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 
 export interface ExportResult {
   /** Absolute path written on disk (Tauri), or null when a browser fallback ran. */
@@ -48,7 +52,6 @@ async function resolveDataDir(): Promise<string | null> {
     // Fall through to the legacy /health probe.
   }
   try {
-    const { getSidecarBaseUrl } = await import("@/lib/sidecar-client");
     const base = await getSidecarBaseUrl();
     const response = await fetch(`${base}/health`);
     if (!response.ok) return null;

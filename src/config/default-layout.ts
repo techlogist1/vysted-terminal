@@ -29,7 +29,7 @@ interface PlacedPanel {
   position?: { referencePanel: string; direction: Direction };
 }
 
-const DEFAULT_PANELS: PlacedPanel[] = [
+export const DEFAULT_PANELS: PlacedPanel[] = [
   { id: "chart", component: "chart-panel", title: "Chart" },
   {
     id: "equity-overview",

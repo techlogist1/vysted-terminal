@@ -116,6 +116,22 @@ def test_india_symbol_meta_is_constant_time_for_the_boot_seed() -> None:
     assert _time.perf_counter() - start < 1.0
 
 
+def test_nse_lookup_docstring_count_matches_india_all_length() -> None:
+    """R15-LEAD-029: no docstring in the India universe module may carry a
+    universe count that has drifted from the loader (``_nse_lookup`` quoted
+    ``~5,156`` while ``india-all`` loads 5,891)."""
+    import inspect
+    import re
+
+    live = {
+        len(screener_universe_india.load_india_universe(uid).symbols)
+        for uid in ("nse-all", "bse-all", "india-all")
+    }
+    source = inspect.getsource(screener_universe_india)
+    counts = [int(m.replace(",", "")) for m in re.findall(r"\b\d{1,3}(?:,\d{3})+\b", source)]
+    assert all(c in live for c in counts), (counts, live)
+
+
 def test_india_symbol_meta_joins_masters() -> None:
     rel = screener_universe_india.india_symbol_meta("RELIANCE.NS")
     assert rel is not None
@@ -132,9 +148,48 @@ def test_india_symbol_meta_joins_masters() -> None:
     assert screener_universe_india.india_symbol_meta("NOTASYMBOL123") is None
 
 
+def test_india_symbol_meta_fields_by_name() -> None:
+    """R15-DATA-107: the master rows are read by field name, so every
+    ``india-all`` symbol's scrip code, ISIN and group land in their own slots
+    on both the NSE (BSE-joined) and the BSE path."""
+    for symbol in screener_universe_india.load_india_universe("india-all").symbols:
+        meta = screener_universe_india.india_symbol_meta(symbol)
+        assert meta is not None, symbol
+        code, isin, group = meta["scrip_code"], meta["isin"], meta["group"]
+        assert code is None or code.isdigit(), (symbol, meta)
+        assert isin is None or not isin.isdigit(), (symbol, meta)
+        assert group is None or (group.isalpha() and len(group) <= 2), (symbol, meta)
+    tcs = screener_universe_india.india_symbol_meta("TCS.BO")
+    assert tcs is not None and tcs["exchange"] == "BSE"
+    assert tcs["scrip_code"].isdigit()
+    assert tcs["isin"].startswith("INE")
+
+
 # ---------------------------------------------------------------------------
 # Sector map — bundled JSON + the regenerate script's hand table
 # ---------------------------------------------------------------------------
+
+
+def test_sector_master_parsed_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-DATA-108: the ~1 MB sector master is parsed once per process, not
+    per sector_map_generated / sector_map_coverage / sector_seed_for call."""
+    real = screener_universe_india._load_master
+    loads: list[str] = []
+
+    def counting(filename: str) -> dict:
+        loads.append(filename)
+        return real(filename)
+
+    monkeypatch.setattr(screener_universe_india, "_load_master", counting)
+    screener_universe_india.reset_caches_for_tests()
+    try:
+        for _ in range(3):
+            assert screener_universe_india.sector_map_generated()
+            assert screener_universe_india.sector_map_coverage()
+            assert screener_universe_india.sector_seed_for("RELIANCE.NS")
+    finally:
+        screener_universe_india.reset_caches_for_tests()
+    assert loads.count("india_sector_map.json") == 1, loads
 
 
 def test_sector_map_bundled_with_honest_coverage() -> None:

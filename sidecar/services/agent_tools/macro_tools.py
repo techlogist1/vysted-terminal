@@ -1,7 +1,7 @@
 """v0.6.0 agent tools — macro data (Teammate M).
 
 Registers two tools agents can call once :func:`register` runs from
-:mod:`services.agent_tools.registry_v0_6_0`:
+:func:`services.agent_tools.register_v0_6_0_tools`:
 
   - ``macro_series`` — fetch one series from a named provider.
   - ``macro_search`` — search a provider's catalog by free-text query.
@@ -16,7 +16,6 @@ from __future__ import annotations
 from typing import Any
 
 from services.agent_tools import register_tool
-from services.errors import ProviderError
 from services.macro import macro_router as macro_dispatcher
 
 _VALID_PROVIDERS = {"fred", "ecb", "imf", "world-bank"}
@@ -41,12 +40,7 @@ async def _macro_series(args: dict[str, Any]) -> dict[str, Any]:
             "ok": False,
             "error": f"provider must be one of {sorted(_VALID_PROVIDERS)}",
         }
-    try:
-        series = await macro_dispatcher.get_series(series_id, provider.lower())
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    series = await macro_dispatcher.get_series(series_id, provider.lower())
     return {"ok": True, "series": series.model_dump(mode="json")}
 
 
@@ -72,12 +66,7 @@ async def _macro_search(args: dict[str, Any]) -> dict[str, Any]:
         limit = max(1, min(50, int(limit_raw)))
     except (TypeError, ValueError):
         limit = 10
-    try:
-        results = await macro_dispatcher.search(query, provider.lower(), limit=limit)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    results = await macro_dispatcher.search(query, provider.lower(), limit=limit)
     return {
         "ok": True,
         "results": [r.model_dump(mode="json") for r in results],

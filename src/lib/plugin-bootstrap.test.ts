@@ -20,6 +20,7 @@ vi.mock("@/lib/sidecar-client", async () => {
 });
 
 import { bootstrapPlugins } from "@/lib/plugin-bootstrap";
+import { CATALOG_ROWS } from "@/lib/marketplace";
 import { SidecarError } from "@/lib/sidecar-client";
 
 /** Persisted plugin configs as the sidecar returns them; unknown ids 404 (defaults). */
@@ -64,5 +65,29 @@ describe("bootstrapPlugins — plugin agents at boot", () => {
     const teardownDisabled = await bootstrapPlugins();
     teardownDisabled();
     expect(syncPluginAgentsMock.mock.calls.some((c) => c[0] === "vysted-lenses")).toBe(false);
+  });
+});
+
+// R15-LIFECYCLE-027: the boot loop used to read each plugin's persisted config
+// once to decide whether to load it, then loadPlugin() re-fetched the SAME
+// row again, serially, for every installed+enabled plugin.
+describe("bootstrapPlugins — reads persisted config once per plugin", () => {
+  afterEach(() => {
+    sidecarGetMock.mockReset();
+    vi.unstubAllGlobals();
+  });
+
+  it("persistence.load is called exactly once per catalog plugin", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, status: 200, json: async () => ({}) })),
+    );
+    persistedConfigs({});
+
+    const teardown = await bootstrapPlugins();
+    teardown();
+
+    const configReads = sidecarGetMock.mock.calls.filter((c) => String(c[0]).endsWith("/config"));
+    expect(configReads).toHaveLength(CATALOG_ROWS.length);
   });
 });

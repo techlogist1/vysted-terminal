@@ -49,6 +49,7 @@ import pandas as pd
 import yfinance as yf
 
 from services import provider_health
+from services.growth_check import _row_value
 
 logger = logging.getLogger(__name__)
 
@@ -131,30 +132,6 @@ def is_applicable(symbol: str) -> bool:
     return isinstance(symbol, str) and bool(symbol)
 
 
-def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
-    """The first present row's value at ``column``, as float; NaN/missing → None.
-
-    Mirrors :func:`services.growth_check._row_value` (case-insensitive label
-    match, duplicate-row tolerant) so the two Yahoo statement readers behave
-    identically.
-    """
-    lowered = {str(label).strip().lower(): label for label in frame.index}
-    for candidate in labels:
-        actual = lowered.get(candidate.lower())
-        if actual is None:
-            continue
-        value = frame.loc[actual, column]
-        if isinstance(value, pd.Series):
-            value = value.iloc[0]
-        if value is None or pd.isna(value):
-            return None
-        try:
-            return float(value)
-        except (TypeError, ValueError):
-            return None
-    return None
-
-
 def compute_earnings_quality(frame: pd.DataFrame | None) -> EarningsQuality | None:
     """One-off-distortion evidence from an annual income-statement frame.
 
@@ -207,24 +184,6 @@ def compute_earnings_quality(frame: pd.DataFrame | None) -> EarningsQuality | No
     )
 
 
-def _is_rate_limited(exc: BaseException) -> bool:
-    """True when ``exc`` (or a chained cause) is a yfinance rate-limit.
-
-    Matched by type NAME — same rationale as
-    :func:`services.growth_check._is_rate_limited`: importing
-    ``yfinance.exceptions`` would couple this module to a drifting submodule.
-    """
-    seen: set[int] = set()
-    cur: BaseException | None = exc
-    while cur is not None and id(cur) not in seen:
-        seen.add(id(cur))
-        name = type(cur).__name__
-        if name == "YFRateLimitError" or "ratelimit" in name.lower():
-            return True
-        cur = cur.__cause__ or cur.__context__
-    return False
-
-
 def _fetch_income_stmt(symbol: str) -> pd.DataFrame | None:
     """The ANNUAL income statement (BLOCKING; runs under ``to_thread``)."""
     return yf.Ticker(symbol).income_stmt
@@ -245,7 +204,7 @@ async def get_earnings_quality(symbol: str) -> EarningsQuality | None:
     try:
         frame = await asyncio.to_thread(_fetch_income_stmt, symbol)
     except Exception as exc:  # noqa: BLE001 — a cross-check must never break research
-        if _is_rate_limited(exc):
+        if provider_health.is_rate_limit(exc):
             provider_health.record_rate_limited()
         else:
             logger.debug("annual income statement unavailable for %s: %s", symbol, exc)

@@ -19,7 +19,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 
 import { usePanelContextBus } from "@/store/panel-context";
-import { DEFAULT_SYMBOLS, useSymbolsStore } from "@/store/symbols";
+import { defaultSymbolsForRegion, useSymbolsStore } from "@/store/symbols";
+
+// The fixtures below are written against the US watchlist; the app default is
+// IN (R15-UI-076), so seed the US list explicitly.
+const US_SYMBOLS = defaultSymbolsForRegion("US");
 
 // --- shared mocks ---------------------------------------------------------
 
@@ -38,7 +42,7 @@ vi.mock("@/lib/sidecar-client", async () => {
 vi.mock("@/modules/watchlist/api", () => ({
   WATCHLIST_CRYPTO_EXCHANGE: "binance",
   fetchWatchlistQuotes: vi.fn(async () =>
-    DEFAULT_SYMBOLS.map((entry) => ({
+    US_SYMBOLS.map((entry) => ({
       entry,
       quote: {
         symbol: entry.symbol,
@@ -108,7 +112,7 @@ beforeEach(() => {
   publishSpy = vi.fn(realPublish) as ReturnType<typeof vi.fn> & PublishFn;
   // Replace publish with a spy so we can count calls.
   usePanelContextBus.setState({ publish: publishSpy });
-  useSymbolsStore.setState({ entries: [...DEFAULT_SYMBOLS] });
+  useSymbolsStore.setState({ entries: [...US_SYMBOLS] });
 });
 
 afterEach(() => {
@@ -148,7 +152,7 @@ describe("WatchlistPanel publisher", () => {
     };
     expect(latest.source).toBe("watchlist");
     expect(latest.kind).toBe("selection");
-    expect(latest.payload.symbols).toEqual(DEFAULT_SYMBOLS.map((e) => e.symbol));
+    expect(latest.payload.symbols).toEqual(US_SYMBOLS.map((e) => e.symbol));
     expect(latest.payload.selectedSymbol).toBeNull();
   });
 

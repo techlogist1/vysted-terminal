@@ -8,6 +8,7 @@ round-trip.
 
 from __future__ import annotations
 
+import time
 from pathlib import Path
 
 import pytest
@@ -61,13 +62,14 @@ def test_update_cost_and_status() -> None:
     runs_store.create_run(
         run_id="run-1", agent_id="x", agent_name="X", budget=RunBudget(), now=1000
     )
-    updated = runs_store.update_run(
+    runs_store.update_run(
         "run-1",
         status="done",
         cost=RunCost(tokens=1234, spend_usd=0.05, steps=3),
         detail="completed",
         now=2000,
     )
+    updated = runs_store.get_run("run-1")
     assert updated is not None
     assert updated.status == "done"
     assert updated.cost.tokens == 1234
@@ -167,6 +169,37 @@ def test_first_connection_marks_orphaned_running_rows_interrupted() -> None:
     assert (asked.status, asked.question) == ("paused", "Which exchange?")
 
 
+def test_list_runs_is_bounded_and_prunes_old_terminal_rows() -> None:
+    """R15-CODE-AGENT-032: the 2 s poll reads at most LIST_LIMIT rows, and a new
+    process deletes finished rows past retention (a waiting run stays)."""
+    now = int(time.time())
+    old = now - runs_store.RETENTION_SECONDS - 60
+    for status in ("done", "error", "cancelled", "paused"):
+        runs_store.create_run(
+            run_id=f"old-{status}", agent_id="x", agent_name="X", budget=RunBudget(), now=old
+        )
+        runs_store.update_run(f"old-{status}", status=status, now=old)
+    runs_store.create_run(
+        run_id="recent-done", agent_id="x", agent_name="X", budget=RunBudget(), now=now
+    )
+    runs_store.update_run("recent-done", status="done", now=now)
+    for i in range(runs_store.LIST_LIMIT + 5):
+        runs_store.create_run(
+            run_id=f"r{i:03d}", agent_id="x", agent_name="X", budget=RunBudget(), now=now + i
+        )
+
+    listed = runs_store.list_runs()
+    assert len(listed) == runs_store.LIST_LIMIT
+    assert listed[0].id == f"r{runs_store.LIST_LIMIT + 4:03d}"
+
+    runs_store._RECONCILED.clear()  # a new sidecar process opens the store
+    assert runs_store.get_run("old-done") is None
+    assert runs_store.get_run("old-error") is None
+    assert runs_store.get_run("old-cancelled") is None
+    assert runs_store.get_run("old-paused") is not None
+    assert runs_store.get_run("recent-done") is not None
+
+
 def test_reset_for_tests_clears_rows() -> None:
     runs_store.create_run(
         run_id="run-1", agent_id="x", agent_name="X", budget=RunBudget(), now=1000
@@ -248,7 +281,7 @@ def test_options_column_migrates_an_older_database() -> None:
     )
     conn.execute(
         "INSERT INTO runs (id, agent_id, agent_name, status, created_at, updated_at) "
-        "VALUES ('legacy-1', 'x', 'X', 'done', 1000, 1000)"
+        "VALUES ('legacy-1', 'x', 'X', 'done', strftime('%s', 'now'), strftime('%s', 'now'))"
     )
     conn.commit()
     conn.close()

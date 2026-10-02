@@ -5,11 +5,13 @@
  * needed (per the Phase 1.B brief).
  */
 
-import type { Position, Quote } from "../../../types/data";
+import type { Holding } from "@/store/portfolios";
 
-/** A position joined with its live quote and derived per-position metrics. */
+import type { Quote } from "../../../types/data";
+
+/** A holding joined with its live quote and derived per-position metrics. */
 export interface PositionRow {
-  position: Position;
+  position: Holding;
   quote: Quote | null;
   /** Cost basis × quantity. */
   costValue: number;
@@ -94,14 +96,16 @@ function currencyKey(quote: Quote | null): string {
   return (quote?.currency ?? "").trim().toUpperCase();
 }
 
-/** Join positions to quotes and compute per-position + portfolio-level metrics. */
+/** Join holdings to quotes and compute per-holding + portfolio-level metrics.
+ *  Rows carry the real {@link Holding.id} — no synthetic index-based id and
+ *  no re-join by array position required of the caller. */
 export function buildPortfolioSummary(
-  positions: Position[],
+  holdings: Holding[],
   quotes: Map<string, Quote>,
 ): PortfolioSummary {
-  const partials = positions.map((position) => {
+  const partials = holdings.map((position) => {
     const quote = quotes.get(position.symbol.toUpperCase()) ?? null;
-    const costValue = position.cost_basis * position.quantity;
+    const costValue = position.costBasis * position.quantity;
     const marketValue = quote !== null ? quote.price * position.quantity : null;
     const pnl = marketValue !== null ? marketValue - costValue : null;
     // P&L% is undefined for a zero cost basis (vested shares / RSUs are a valid

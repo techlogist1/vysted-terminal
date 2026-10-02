@@ -50,7 +50,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from datetime import UTC, datetime
 from typing import Any
 
@@ -106,12 +105,13 @@ _DEFAULT_PROVIDERS: dict[str, str] = {
     "macro": "fred",
 }
 
-# Cached availability flag. ``None`` = not yet probed.
-_AVAILABLE: bool | None = None
-
-# In-memory state mirroring the retired openbb_provider for test parity.
-_last_tool_call_ok: bool | None = None
-_last_error: str | None = None
+# Shared discovery/status/health-tracked-call shape (R15-CODE-AGENT-024).
+# openbb-mcp-server 1.4.0 serves the transport at ``/mcp`` (no trailing slash
+# — a trailing-slash GET gets a 307 to the canonical path); ``resolve_endpoint``
+# points directly at the canonical path so ``None`` means the Tauri core did
+# not set the env var (the registry treats that as "openbb-mcp not bundled"
+# and routes to yfinance).
+_subprocess = mcp_client.LocalMcpSubprocess("openbb-mcp", port_env=_PORT_ENV, host_env=_HOST_ENV)
 
 
 # ---------------------------------------------------------------------------
@@ -119,29 +119,9 @@ _last_error: str | None = None
 # ---------------------------------------------------------------------------
 
 
-def _resolve_endpoint() -> str | None:
-    """Return the Streamable-HTTP endpoint for the openbb-mcp child, or ``None``.
-
-    ``None`` means the Tauri core did not set the env var, which the
-    registry treats as "openbb-mcp not bundled" and routes to yfinance.
-    openbb-mcp-server 1.4.0 serves the transport at ``/mcp`` (no trailing
-    slash — a trailing-slash GET gets a 307 to the canonical path); the
-    MCP client follows redirects but pointing directly at the canonical
-    path skips a needless hop.
-    """
-    port = os.environ.get(_PORT_ENV)
-    if not port:
-        return None
-    host = os.environ.get(_HOST_ENV, "127.0.0.1")
-    return f"http://{host}:{port}/mcp"
-
-
 def is_available() -> bool:
     """Return whether the openbb-mcp subprocess is reachable in this build."""
-    global _AVAILABLE
-    if _AVAILABLE is None:
-        _AVAILABLE = _resolve_endpoint() is not None
-    return bool(_AVAILABLE)
+    return _subprocess.is_available()
 
 
 async def status() -> dict[str, Any]:
@@ -151,32 +131,12 @@ async def status() -> dict[str, Any]:
     at least once, and the last tool-call outcome — what the plugin manager
     UI needs to colour the openbb-mcp plugin chip.
     """
-    endpoint = _resolve_endpoint()
-    # Configured is not enough: after a failed call the provider is down until
-    # the next call succeeds (R15-LIFECYCLE-005).
-    available = endpoint is not None and _last_tool_call_ok is not False
-    return {
-        "available": available,
-        "provider": PROVIDER,
-        "endpoint": endpoint,
-        "lastToolCallOk": _last_tool_call_ok,
-        "lastError": _last_error,
-    }
+    return await _subprocess.status(PROVIDER)
 
 
 # ---------------------------------------------------------------------------
 # Client + tool dispatch
 # ---------------------------------------------------------------------------
-
-
-async def _get_client() -> mcp_client.McpClient:
-    """Return the cached :class:`McpClient` for the openbb-mcp subprocess."""
-    endpoint = _resolve_endpoint()
-    if endpoint is None:
-        raise ProviderError(
-            "openbb-mcp subprocess is not running — VYSTED_OPENBB_MCP_PORT not set."
-        )
-    return await mcp_client.get_client("openbb-mcp", transport="http", endpoint=endpoint)
 
 
 def _decode_tool_result(result: dict[str, Any], tool_name: str) -> Any:
@@ -240,21 +200,7 @@ def _to_dict(item: Any) -> dict[str, Any]:
 
 async def _call_tool(name: str, arguments: dict[str, Any]) -> Any:
     """Invoke an openbb-mcp tool and return the decoded body."""
-    global _last_tool_call_ok, _last_error
-    client = await _get_client()
-    try:
-        # One try over the call AND the decode: an ``isError`` / undecodable
-        # payload is a failed call too, so the health flags record it (R15-DATA-083).
-        decoded = _decode_tool_result(await client.call_tool(name, arguments), name)
-    except Exception as exc:
-        _last_tool_call_ok = False
-        _last_error = f"{type(exc).__name__}: {exc}"
-        if isinstance(exc, ProviderError):
-            raise
-        raise ProviderError(f"openbb-mcp call {name!r} failed: {exc}") from exc
-    _last_tool_call_ok = True
-    _last_error = None
-    return decoded
+    return await _subprocess.call_tool_json(name, arguments, decode=_decode_tool_result)
 
 
 # ---------------------------------------------------------------------------
@@ -574,7 +520,4 @@ async def get_macro_series(series_id: str, provider: str | None = None) -> Macro
 
 def _reset_for_tests() -> None:
     """Clear cached availability state — used only from the test suite."""
-    global _AVAILABLE, _last_tool_call_ok, _last_error
-    _AVAILABLE = None
-    _last_tool_call_ok = None
-    _last_error = None
+    _subprocess.reset_for_tests()

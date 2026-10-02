@@ -160,20 +160,24 @@ def test_no_recognised_rows_or_empty_frame_is_none() -> None:
 
 
 def test_gate_requires_a_provider_growth_scalar() -> None:
-    assert should_cross_check({"revenue_growth": 0.1}) is True
-    assert should_cross_check({"earnings_growth": -0.05}) is True
-    assert should_cross_check({"revenue_growth": None, "earnings_growth": None}) is False
-    assert should_cross_check({}) is False
-    assert should_cross_check({"revenue_growth": True}) is False
+    mrq = {"growth_basis": "mrq_yoy"}
+    assert should_cross_check({"revenue_growth": 0.1, **mrq}) is True
+    assert should_cross_check({"earnings_growth": -0.05, **mrq}) is True
+    assert should_cross_check({"revenue_growth": None, "earnings_growth": None, **mrq}) is False
+    assert should_cross_check(mrq) is False
+    assert should_cross_check({"revenue_growth": True, **mrq}) is False
 
 
 def test_gate_requires_the_mrq_yoy_basis() -> None:
     # An explicit non-MRQ basis must never be compared against quarterly YoY —
     # that would manufacture a conflict out of a basis mismatch. An absent
-    # basis means the D55 default (mrq_yoy) and passes.
+    # basis is no longer the D55 default (R15-DATA-102: the producer states it,
+    # nothing inherits it), so an unstated basis is not claimed MRQ either —
+    # this asserted True before, pinning the inherited default.
     assert should_cross_check({"revenue_growth": 0.1, "growth_basis": "mrq_yoy"}) is True
     assert should_cross_check({"revenue_growth": 0.1, "growth_basis": "fy_yoy"}) is False
-    assert should_cross_check({"revenue_growth": 0.1}) is True
+    assert should_cross_check({"revenue_growth": 0.1, "growth_basis": None}) is False
+    assert should_cross_check({"revenue_growth": 0.1}) is False
 
 
 # --- get_quarterly_yoy: the fetching wrapper ------------------------------------
@@ -265,6 +269,7 @@ def test_snapshot_attaches_computed_growth_next_to_provider_values(
                     "provider": "yfinance",
                     "revenue_growth": 0.669,
                     "earnings_growth": 0.03,
+                    "growth_basis": "mrq_yoy",
                 }
             ),
             "ICICIBANK",
@@ -307,7 +312,15 @@ def test_snapshot_attaches_nothing_when_statements_unavailable(
     monkeypatch.setattr(growth_check, "get_quarterly_yoy", none_yoy)
     snap = asyncio.run(
         snapshot_structured(
-            _fund_tool({"symbol": "X.NS", "provider": "yfinance", "revenue_growth": 0.1}), "X"
+            _fund_tool(
+                {
+                    "symbol": "X.NS",
+                    "provider": "yfinance",
+                    "revenue_growth": 0.1,
+                    "growth_basis": "mrq_yoy",
+                }
+            ),
+            "X",
         )
     )
     fund = snap["fundamentals"]["data"]

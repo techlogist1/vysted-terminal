@@ -8,6 +8,7 @@ sidecar/sec_edgar_mcp_subprocess/.venv/
 .next/
 out/
 dist/
+coverage/
 next-env.d.ts
 *.tsbuildinfo
 src-tauri/target/
@@ -65,3 +66,4 @@ dev-keystore.json
 docs/redesign/verification/R15_BRIEF*.md
 docs/redesign/verification/r15/local/
 Claude outputs/
+coverage/

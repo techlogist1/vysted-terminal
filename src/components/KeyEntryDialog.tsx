@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
+import { isSecretStoreUnavailable, KEYCHAIN_NAMESPACES, setSecret } from "@/lib/keychain";
 import { validateProvider } from "@/lib/provider-validation";
 import { useLLMProvidersStore } from "@/store/llm-providers";
 import type { LLMProviderId } from "../../types/ai";
@@ -32,7 +32,7 @@ export interface KeyEntryDialogProps {
   onSaved?: (providerId: LLMProviderId) => void;
 }
 
-type Status = "idle" | "validating" | "valid" | "invalid" | "save-error";
+type Status = "idle" | "validating" | "valid" | "invalid" | "save-error" | "store-unavailable";
 
 export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyEntryDialogProps) {
   const providers = useLLMProvidersStore((state) => state.providers);
@@ -96,6 +96,10 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
     } catch (err) {
       if (controller.signal.aborted) {
         return; // Cancelled — the dialog is closing.
+      }
+      if (isSecretStoreUnavailable(err)) {
+        setStatus("store-unavailable");
+        return;
       }
       setStatus("save-error");
       setErrorDetail(err instanceof Error ? err.message : "Failed to save key.");
@@ -169,6 +173,12 @@ export function KeyEntryDialog({ open, providerId, onOpenChange, onSaved }: KeyE
           )}
           {status === "save-error" && (
             <p className="text-negative text-caption font-mono">{errorDetail}</p>
+          )}
+          {status === "store-unavailable" && (
+            <p className="text-negative text-caption font-mono">
+              Secret store unavailable: no OS keychain is reachable, so the key was not saved. On
+              Linux, start a Secret Service provider (GNOME Keyring or KWallet) and try again.
+            </p>
           )}
           {status === "valid" && (
             <p className="text-positive text-caption font-mono">

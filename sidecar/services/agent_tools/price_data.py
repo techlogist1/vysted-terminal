@@ -45,21 +45,15 @@ async def _price_data(args: dict[str, Any]) -> dict[str, Any]:
     asset_class = str(args.get("asset_class", "equity"))
 
     from services import provider_registry
-    from services.errors import ProviderError
 
-    try:
-        series = await asyncio.to_thread(
-            provider_registry.get_history,
-            symbol,
-            timeframe,
-            str(range_),
-            asset_class,
-        )
-        quote = await asyncio.to_thread(provider_registry.get_quote, symbol, asset_class)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    series = await asyncio.to_thread(
+        provider_registry.get_history,
+        symbol,
+        timeframe,
+        str(range_),
+        asset_class,
+    )
+    quote = await asyncio.to_thread(provider_registry.get_quote, symbol, asset_class)
 
     all_bars = list(series.bars)
     recent_bars = all_bars[-_MAX_BARS:]

@@ -239,6 +239,7 @@ async def native_search_oneshot(
     model_web_search: str | None = None,
     max_searches: int = 3,
     timeout: float = NATIVE_SEARCH_ONESHOT_TIMEOUT_SECS,
+    base_url: str | None = None,
 ) -> dict[str, Any]:
     """Run ONE native-search-grounded completion — the callable channel for
     Team B's tier_a cross-verify (R9 Track A interface).
@@ -272,7 +273,7 @@ async def native_search_oneshot(
     parts: list[str] = []
 
     async def _drive() -> None:
-        adapter = get_provider(provider_id)  # type: ignore[arg-type]
+        adapter = get_provider(provider_id, base_url=base_url)  # type: ignore[arg-type]
         stream = adapter.stream_chat(
             messages=[LLMMessage(role="user", content=prompt)],
             model=model,

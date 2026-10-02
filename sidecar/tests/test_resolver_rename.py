@@ -15,6 +15,7 @@ from datetime import date
 import pytest
 
 from services import nse_symbol_change, symbol_resolver
+from services.resolution_policy import decide
 
 
 def _raise_if_network(*_a: object, **_k: object) -> None:
@@ -117,7 +118,7 @@ def test_dual_listed_old_ticker_collapses_the_stale_bse_candidate() -> None:
     )
     # Collapsed to a single clean candidate → binds, never a disambiguation.
     assert len(r.candidates) == 1
-    assert not r.needs_disambiguation
+    assert decide(r).outcome != "disambiguate"
 
 
 def _inject(old: str, new: str, effective: date, new_name: str) -> None:
@@ -163,7 +164,7 @@ def test_genuine_dual_listed_rename_still_collapses_to_the_current_symbol() -> N
     assert r.best.isin == "INE154A01025"
     assert r.best.rename is not None and r.best.rename.renamed_from == "ITC"
     assert [c.symbol for c in r.candidates] == ["ITCNEW"]
-    assert not r.needs_disambiguation
+    assert decide(r).outcome != "disambiguate"
 
 
 @pytest.mark.parametrize("query", ["zomato", "ZOMATO"])
@@ -178,7 +179,7 @@ def test_retired_ticker_missing_from_the_master_resolves_to_current(query: str) 
     assert r.best.symbol == "ETERNAL" and r.best.yahoo_symbol == "ETERNAL.NS"
     assert r.best.rename is not None and r.best.rename.renamed_from == "ZOMATO"
     assert r.best.former_name == "ZOMATO"
-    assert not r.needs_disambiguation
+    assert decide(r).outcome != "disambiguate"
 
 
 def test_autocomplete_lists_the_current_symbol_for_a_retired_ticker() -> None:

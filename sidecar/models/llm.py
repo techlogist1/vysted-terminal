@@ -137,6 +137,10 @@ class LLMUsage(BaseModel):
     #: Native server-side web searches the provider ran on this call, when the
     #: request carried native search (R15-AGENT-049): priced and capped per run.
     web_search_requests: int | None = None
+    #: The model that actually produced these tokens, when the provider names
+    #: it (a router slug such as ``openrouter/auto`` picks one per call): the
+    #: spend is priced against it and the chat discloses it (R15-AGENT-075).
+    served_model: str | None = None
 
 
 class LLMDeltaEvent(BaseModel):

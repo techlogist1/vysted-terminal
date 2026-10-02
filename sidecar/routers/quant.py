@@ -75,6 +75,12 @@ async def yield_curve_bootstrap(req: YieldCurveRequest) -> YieldCurveResult:
         return await run_quant(yield_curve.bootstrap_curve, req)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        # QuantLib's PiecewiseLinearZero raises a RuntimeError (not a
+        # ValueError) for a bootstrap it can't build — e.g. two instruments
+        # at the same pillar (maturity date) — which otherwise surfaces as
+        # an uncaught 500 with no CORS headers (R15-UI-077).
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @router.get("/option/chain/{symbol}", response_model=OptionChain)

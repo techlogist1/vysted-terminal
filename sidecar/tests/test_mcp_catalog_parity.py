@@ -12,10 +12,12 @@ backtest digest).
 from __future__ import annotations
 
 import asyncio
+from typing import get_args
 
 from services import mcp_server
 from services.agent_tools.catalog import (
     CAPABILITY_CATALOG,
+    ToolKind,
     internal_tool_ids,
     mcp_capabilities,
     mcp_tool_ids,
@@ -109,8 +111,70 @@ def test_mcp_surface_is_a_subset_of_internal_modulo_local_only() -> None:
         cap.id
         for cap in CAPABILITY_CATALOG.values()
         if cap.internal
-        and (cap.kind in ("per_invocation", "host_action") or cap.id == "backtest_summary")
+        and (
+            cap.kind in ("per_invocation", "host_action")
+            or cap.id in ("backtest_summary", "run_custom_backtest")
+        )
     }
     assert internal_only == expected_internal_only, (
         f"unexpected internal/MCP divergence: {internal_only ^ expected_internal_only}"
     )
+
+
+def test_run_custom_backtest_not_read_only_on_mcp() -> None:
+    """R15-AGENT-066: run_custom_backtest caches its run in this session, so the
+    MCP listing never advertises it with readOnlyHint=true (it stays local with
+    backtest_summary, the only reader of its run_id)."""
+    listed = {tool.name for tool in _mcp_tools()}
+    assert "run_custom_backtest" not in listed
+    assert "run_custom_backtest" not in mcp_tool_ids()
+
+
+#: Every capability on the external MCP surface, named one by one (R15-AGENT-067).
+#: The catalog projects by kind, so a new read_handler would otherwise reach
+#: external clients unreviewed: adding it here (or to the catalog's
+#: _MCP_INTERNAL_ONLY) is the per-entry decision.
+_MCP_EXPOSED = {
+    "analyst_history",
+    "analyst_individual",
+    "compare_symbols",
+    "compute_greeks",
+    "corporate_actions",
+    "corporate_announcements",
+    "earnings_call_transcript",
+    "earnings_estimates",
+    "earnings_history",
+    "earnings_upcoming",
+    "exchange_deals",
+    "financial_statements",
+    "fundamentals",
+    "macro_search",
+    "macro_series",
+    "market_overview",
+    "news",
+    "option_chain",
+    "price_bond",
+    "price_data",
+    "price_option",
+    "price_target_history",
+    "research",
+    "resolve_symbol",
+    "screener_run",
+    "sec_filing_content",
+    "sec_filings_list",
+    "sec_insider_transactions",
+    "shareholding_pattern",
+    "web_search",
+    "yield_curve_value",
+}
+
+
+def test_mcp_projection_is_explicit_per_entry() -> None:
+    assert set(mcp_tool_ids()) == _MCP_EXPOSED
+
+
+def test_toolkind_has_no_unprojected_mcp_endpoint() -> None:
+    """R15-CODE-AGENT-026: every ToolKind member is used by a catalog entry, so no
+    dead kind (the former mcp_endpoint, which the projection routed nowhere) waits
+    to swallow a future capability."""
+    assert set(get_args(ToolKind)) == {cap.kind for cap in CAPABILITY_CATALOG.values()}

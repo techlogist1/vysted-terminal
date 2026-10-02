@@ -111,9 +111,9 @@ def get_provider(provider_id: LLMProviderId, base_url: str | None = None) -> LLM
     if provider_id == "openai":
         return OpenAIProvider(base_url=base_url)
     if provider_id == "gemini":
-        return GeminiProvider()
+        return GeminiProvider(base_url=base_url)
     if provider_id == "groq":
-        return GroqProvider()
+        return GroqProvider(base_url=base_url)
     if provider_id == "ollama":
         return OllamaProvider(base_url=base_url)
     if provider_id in ("deepseek", "xai", "openrouter"):

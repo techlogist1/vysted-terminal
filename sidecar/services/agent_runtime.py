@@ -57,7 +57,7 @@ from models.llm import (
 )
 from services import action_ledger, agent_tools, budget_guard, figure_grounding, model_registry
 from services.agent_tools import catalog
-from services.agent_tools.schemas import openai_tools
+from services.agent_tools.schemas import HOST_ACTION_TOOLS, openai_tools
 from services.llm import get_provider, native_search, oneshot, scrub_adapter_options
 from services.llm.base import (
     IDLE_TIMEOUT_S,
@@ -66,26 +66,24 @@ from services.llm.base import (
     is_length_finish,
 )
 from services.llm.openai import INVALID_ARGS_SENTINEL
-from services.planner import classify_intent, decompose
+from services.planner import PLAN_ACTIONS, classify_intent, decompose
 from services.search.scrub import wrap_untrusted
 
-#: Host-action steps a plan may PRE-STAGE into the diff/accept gate (the planner
-#: vocabulary minus research/answer, which execute inside the loop).
-_STAGEABLE_PLAN_ACTIONS = frozenset(
-    {
-        "open_panel",
-        "set_chart_symbol",
-        "set_chart_indicators",
-        "add_to_watchlist",
-        "arrange_layout",
-        "open_company_overview",
-    }
-)
+#: Host-action steps a plan may PRE-STAGE into the diff/accept gate: every planner
+#: verb that is a catalog host action (research/answer execute inside the loop).
+#: Derived, so a verb added to PLAN_ACTIONS is staged without a second list
+#: (R15-AGENT-089). Unrelated to _READ_SAFE_PANEL_ACTIONS below: the plan
+#: pre-pass never runs on a read turn, so the two sets are never consulted
+#: together and neither must contain the other; both are host-action subsets
+#: (R15-CODE-AGENT-018, pinned in test_toolbelt_integrity).
+_STAGEABLE_PLAN_ACTIONS = frozenset(PLAN_ACTIONS).intersection(HOST_ACTION_TOOLS)
 
 #: Read-safe panel host-actions RETAINED on a READ intent (locked Decision 4): a
 #: read question may still ground itself by pulling up the relevant chart / index /
 #: layout. No ``data-write`` action (portfolio, notes, screens, saved layouts) is
-#: in this set, so a read turn can never edit the user's tracked portfolio.
+#: in this set, so a read turn can never edit the user's tracked portfolio. A
+#: separate property from _STAGEABLE_PLAN_ACTIONS (see there): widening one never
+#: widens the other.
 _READ_SAFE_PANEL_ACTIONS = frozenset(
     {
         "open_panel",
@@ -141,28 +139,23 @@ _RESERVED = {"_schema.json"}
 
 #: Shared terminal-capabilities preamble appended to every first-party agent's
 #: system prompt at LOAD time (D21 deliverable 2 — the persona JSON keeps its
-#: voice; the loader tells it about its hands). Mirrors what the copilot's own
-#: prompt teaches: the agent CAN drive the cockpit, and it must narrate
-#: dispatched-vs-proposed truthfully so chat claims always match real panel state.
+#: voice; the loader tells it about its hands). The tool list is generated from
+#: the catalog's default grant (R15-AGENT-071): each tool's own description says
+#: what it takes, so the prompt never restates (or drifts from) the catalog. It
+#: also sets the rule to narrate dispatched-vs-proposed truthfully so chat claims
+#: always match real panel state.
 TERMINAL_CAPABILITIES_PREAMBLE = (
     "## Terminal capabilities\n"
     "You are operating inside the Vysted terminal, and your analysis comes with "
-    "hands — you CAN drive the cockpit with tools, never claim otherwise. You can "
-    "open, close, or focus panels (open_panel / close_panel / focus_panel — "
-    "open_panel takes an optional symbol so a symbol-aware panel like "
-    "equity-overview or the chart opens ON that company, never empty), load a "
-    "symbol into the chart (set_chart_symbol), apply chart indicators "
-    "(set_chart_indicators), open a company's full overview (open_company_overview "
-    "— always pass the symbol), arrange the cockpit layout (arrange_layout), add "
-    "or remove watchlist symbols (add_to_watchlist / remove_from_watchlist), "
-    "publish a research brief (publish_brief), stage screener filters for the "
-    "user to review and run (write_screener_filters), save a screen or the "
-    "layout (save_screen / save_layout), maintain the user's LOCAL tracked "
-    "portfolio (portfolio_add_position / portfolio_update_position / "
-    "portfolio_delete_position — manual holdings the user tracks), "
-    "write notes (write_note), switch the market region (set_region), and run "
-    "the research tool for a grounded, cited workup. When showing something on "
-    "screen would help the user, do it.\n"
+    "hands — you CAN drive the cockpit with tools, never claim otherwise. Your "
+    "cockpit tools: "
+    + ", ".join(
+        t
+        for t in catalog.default_grant_tool_ids()
+        if catalog.CAPABILITY_CATALOG[t].kind == "host_action"
+    )
+    + ". Each tool's description says what it takes; call research for a grounded, "
+    "cited workup. When showing something on screen would help the user, do it.\n"
     "Narrate these actions truthfully, matching each tool result: a result that "
     "says dispatched means the action was SENT to the panel — verify with "
     "get_terminal_state before claiming completion (panel state is "
@@ -720,15 +713,19 @@ def _resolve_provider_id(spec: AgentSpec, override: LLMProviderId | None) -> LLM
     return override or spec.default_provider
 
 
-def _resolve_model(spec: AgentSpec, override: str | None) -> str:
+def _resolve_model(spec: AgentSpec, provider_id: str, override: str | None) -> str:
+    """The turn's model: the override, else the agent's own model when the turn
+    runs on the agent's provider, else the registry default for ``provider_id``
+    (a provider override without a model never inherits the agent's model,
+    R15-AGENT-073)."""
     if override:
         return override
-    if spec.default_model:
+    if spec.default_model and provider_id == spec.default_provider:
         return spec.default_model
-    # Per-provider default from the single-source registry
-    # (config/model_registry.json). A last-resort fallback covers a provider
-    # somehow absent from the registry so a model id is never empty.
-    return model_registry.default_model_for(spec.default_provider) or "gpt-4.1-mini"
+    model = model_registry.default_model_for(provider_id)
+    if not model:
+        raise ValueError(f"no default model for provider {provider_id!r}; pass a model")
+    return model
 
 
 #: Hard cap on tool-call rounds in a single invocation. Strategy Critic
@@ -823,7 +820,8 @@ def _research_guard_seconds(args: Any) -> float:
 
 def _tool_timeout_seconds(event: LLMToolUseEvent) -> float | None:
     """The dispatch wall budget for one registry tool call (E7); ``None`` = none."""
-    if event.name == "research":
+    cap = catalog.CAPABILITY_CATALOG.get(event.name)
+    if cap is not None and cap.timeout_from_args:
         return _research_guard_seconds(event.input)
     return catalog.timeout_for(event.name)
 
@@ -1885,7 +1883,7 @@ async def plan_delegate_run(
     if provider_id not in _PLANNER_PROVIDERS:
         return None
     return await _compound_plan(
-        provider_id, _resolve_model(spec, model), api_key, prompt, context_snapshot
+        provider_id, _resolve_model(spec, provider_id, model), api_key, prompt, context_snapshot
     )
 
 
@@ -2269,6 +2267,43 @@ def _units(text: str) -> list[_Unit]:
     return units
 
 
+def _carry_fence(out: str, fence: tuple[str, str] | None) -> tuple[str, tuple[str, str] | None]:
+    """What streams of ``out``, the guard's output for a release judged with
+    ``fence``'s prefix in front, and the fence it leaves open (R15-LEAD-036).
+
+    ``fence`` is ``(prefix, closer)``: a fence an earlier release (often an
+    earlier round, before a tool call) left open. The prefix is its opener
+    line, so the guard sees the release inside the block; ``closer`` closes it
+    once streamed, and is empty while the opener was held back unstreamed. A
+    continuation the guard keeps streams without the prefix it already sent;
+    one it replaced gets the closer first, so its note renders as prose. An
+    opener with a still-blank body is held back instead of streamed, so a
+    note that replaces its block leaves no fence behind at all."""
+    if fence:
+        prefix, closer = fence
+        kept = out.startswith(prefix)
+        out = out[len(prefix) :] if kept and closer else out if kept else closer + out
+    seen = (fence[0] if fence and fence[1] else "") + out
+    lines = seen.split("\n")
+    run, opener = None, 0
+    for index, line in enumerate(lines):
+        match = _FENCE_OPEN.match(line)
+        if not match:
+            continue
+        mark = match.group(1)
+        if run is None:
+            run, opener = mark, index
+        elif mark[0] == run[0] and len(mark) >= len(run):
+            run = None
+    if run is None:
+        return out, None
+    tail = "\n".join(lines[opener:])
+    if not tail[len(lines[opener]) :].strip() and len(tail) <= len(out):
+        return out[: len(out) - len(tail)], (tail, "")
+    closer = ("" if seen.endswith("\n") else "\n") + run + "\n\n"
+    return out, (lines[opener] + "\n", closer)
+
+
 def _release_point(text: str) -> int:
     """Where the stream holds from: the start of the first unit still open."""
     return next((u.start for u in _units(text) if not u.closed), len(text))
@@ -2630,6 +2665,9 @@ class _TurnState:
     # The queries resolve_symbol bound this turn, by symbol base ("Airtel"
     # for BHARTIARTL): each is a name of its subject (figure_grounding.aliases).
     resolved_names: dict[str, list[str]] = field(default_factory=dict)
+    # A code fence released prose left open, as (prefix, closer): the next
+    # release, in any round, is judged inside it (:func:`_carry_fence`).
+    fence: tuple[str, str] | None = None
 
 
 @dataclass
@@ -2663,7 +2701,7 @@ def _prepare_run(
     """Resolve the turn's provider, model, tools and messages; publish the run's
     task-local settings; pop every option the runtime owns (R15-CODE-AGENT-009)."""
     provider_id = _resolve_provider_id(spec, provider)
-    resolved_model = _resolve_model(spec, model)
+    resolved_model = _resolve_model(spec, provider_id, model)
     opts = dict(options or {})
     history, folded = _coerce_history(opts.pop("history", None))
     tool_ids, read_only, retired_tools = _resolve_tool_surface(spec, mode, prompt)
@@ -2843,7 +2881,8 @@ async def _consume_round(
     def _release(chunks: list[str]) -> list[LLMDeltaEvent]:
         nonlocal last_note, last_subject
         text = "".join(chunks)
-        guarded = _guard_ratio_claims(text, turn.tool_results, turn.ratio_context)
+        prefix = turn.fence[0] if turn.fence else ""
+        guarded = prefix + _guard_ratio_claims(text, turn.tool_results, turn.ratio_context)
         # A tool called this round has no result yet: prose after the call
         # cannot cite it, and a bare "Returned: {...}" is fabricated.
         pending = {call.name for call in rnd.pending_tools}
@@ -2859,6 +2898,7 @@ async def _consume_round(
             subject=last_subject,
         )
         guarded, last_note = _guard_tool_citations(guarded, ctx, last_note)
+        guarded, turn.fence = _carry_fence(guarded, turn.fence)
         last_subject = ctx.subject
         turn.ratio_context = _depositary_context(text, turn.ratio_context)
         if guarded.strip():
@@ -2874,7 +2914,8 @@ async def _consume_round(
             # Prose is released a unit at a time (a sentence, a row block, a
             # colon intro with its paragraph, a fenced block or a dump): what
             # the guard judges as one thing is held until it is complete.
-            cut = _release_point(text)
+            prefix = turn.fence[0] if turn.fence else ""
+            cut = max(0, _release_point(prefix + text) - len(prefix))
             size = 0
             for index, chunk in enumerate(held if cut else []):
                 size += len(chunk)

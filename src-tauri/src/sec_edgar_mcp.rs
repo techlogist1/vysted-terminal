@@ -15,10 +15,10 @@
 //! Lifecycle ownership:
 //!
 //! - :fn:`start` is called from ``lib.rs``'s boot thread AFTER
-//!   ``openbb_mcp::start``. It picks a free port, sets the
-//!   ``VYSTED_SEC_EDGAR_MCP_PORT`` env var so the Python sidecar's
-//!   ``sec_filings_provider`` learns the port without an explicit handshake,
-//!   spawns the bundled binary, drains the child's stdout/stderr so its pipes
+//!   ``openbb_mcp::start``. It picks a free port (``lib.rs`` hands it to the
+//!   main sidecar as ``VYSTED_SEC_EDGAR_MCP_PORT`` on that child's own
+//!   environment, so the Python ``sec_filings_provider`` learns it without a
+//!   handshake), spawns the bundled binary, drains the child's stdout/stderr so its pipes
 //!   never block, and manages the ``CommandChild`` in Tauri state.
 //!   :fn:`supervise` then waits for the bind (after the main sidecar has been
 //!   spawned).
@@ -54,19 +54,17 @@ pub fn get_sec_edgar_mcp_port(port: tauri::State<'_, SecEdgarMcpPort>) -> u16 {
 }
 
 /// Register this build as "sec-edgar-mcp unavailable": port=0 + no child.
-/// The Python sidecar's ``sec_filings_provider`` reads the missing/zero
+/// The Python sidecar's ``sec_filings_provider`` reads the empty
 /// ``VYSTED_SEC_EDGAR_MCP_PORT`` and the ``/sec`` routes 501 cleanly.
 fn register_unavailable(app: &AppHandle) {
-    std::env::remove_var("VYSTED_SEC_EDGAR_MCP_PORT");
-    std::env::remove_var("VYSTED_SEC_EDGAR_MCP_HOST");
     app.manage(SecEdgarMcpPort(0));
     app.manage(SecEdgarMcpProcess(Mutex::new(None)));
 }
 
-/// Start the sec-edgar-mcp subprocess: pick its port, publish it in the env
-/// var, spawn it and keep its handle in Tauri state. Fast — no bind wait
-/// (that is :fn:`supervise`), so the main sidecar can spawn right after with
-/// the env var already set (R15-LIFECYCLE-001). Returns the port to
+/// Start the sec-edgar-mcp subprocess: pick its port, spawn it and keep its
+/// handle in Tauri state. Fast — no bind wait (that is :fn:`supervise`), so
+/// the main sidecar can spawn right after with the port in its env
+/// (R15-LIFECYCLE-001). Returns the port to
 /// supervise, or ``None`` once registered unavailable. Never panics — when the
 /// bundled binary is missing (a dev build that skipped ``pnpm
 /// sec-edgar-mcp-sidecar:build``) the main sidecar's SEC filings provider
@@ -87,12 +85,6 @@ pub fn start(app: &AppHandle) -> Option<u16> {
             return None;
         }
     };
-
-    // Hand the port to the Python sidecar via env var, set before the main
-    // sidecar spawn so it is inherited by the time the sidecar imports
-    // ``services.sec_filings_provider``.
-    std::env::set_var("VYSTED_SEC_EDGAR_MCP_PORT", port.to_string());
-    std::env::set_var("VYSTED_SEC_EDGAR_MCP_HOST", "127.0.0.1");
 
     let sidecar = match app
         .shell()
@@ -189,7 +181,9 @@ pub fn supervise(app: &AppHandle, port: u16) {
 /// child is reaped on app shutdown alongside the main sidecar.
 pub fn kill(app: &AppHandle) {
     if let Some(state) = app.try_state::<SecEdgarMcpProcess>() {
-        if let Some(child) = state.0.lock().unwrap().take() {
+        // Take the child in its own statement so the guard drops before kill().
+        let child = state.0.lock().unwrap().take();
+        if let Some(child) = child {
             let _ = child.kill();
         }
     }

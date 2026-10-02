@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { usePortfoliosStore, type HoldingInput } from "./portfolios";
+import { usePortfoliosStore, validateHolding, type HoldingInput } from "./portfolios";
 
 /**
  * The portfolios store's holding writes — the ONE write path for the panel and
@@ -70,6 +70,36 @@ describe("holding validation (R15-DATA-088)", () => {
     const id = store.addHolding("default", RELIANCE)!;
     expect(store.updateHolding("default", id, { ...RELIANCE, quantity: -3 })).toBe(false);
     expect(holdings()).toEqual([expect.objectContaining({ id, quantity: 5, costBasis: 1263 })]);
+  });
+});
+
+describe("validateHolding rejects blank cost, qty>1e12, names the field for 1,000 (R15-UI-078)", () => {
+  it("rejects a blank cost basis instead of coercing it to 0", () => {
+    const result = validateHolding({ symbol: "RELIANCE", quantity: 5, costBasis: "" });
+    expect(result).toMatchObject({ valid: false, field: "costBasis" });
+  });
+
+  it("accepts a real 0 cost basis (vested shares/RSUs) — only BLANK is rejected", () => {
+    expect(validateHolding({ symbol: "HDFC", quantity: 2, costBasis: 0 }).valid).toBe(true);
+  });
+
+  it("rejects a quantity above the 1e12 ceiling", () => {
+    const result = validateHolding({ symbol: "RELIANCE", quantity: 1e20, costBasis: 100 });
+    expect(result).toMatchObject({ valid: false, field: "quantity" });
+  });
+
+  it("names the field for a comma-formatted quantity like '1,000', not the old generic message", () => {
+    const result = validateHolding({ symbol: "RELIANCE", quantity: "1,000", costBasis: 100 });
+    expect(result.valid).toBe(false);
+    expect(result.field).toBe("quantity");
+    expect(result.message).not.toBe("Symbol, quantity, and avg cost per share are required");
+  });
+
+  it("addHolding/updateHolding inherit the same ceiling via normalizeHolding", () => {
+    const store = usePortfoliosStore.getState();
+    expect(store.addHolding("default", { ...RELIANCE, quantity: 1e20 })).toBeNull();
+    const id = store.addHolding("default", RELIANCE)!;
+    expect(store.updateHolding("default", id, { ...RELIANCE, quantity: 1e20 })).toBe(false);
   });
 });
 

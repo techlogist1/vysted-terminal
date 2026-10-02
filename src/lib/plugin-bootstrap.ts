@@ -274,13 +274,13 @@ export async function bootstrapPlugins(): Promise<() => void> {
     const plugin: DiscoveredPlugin = row.discovered;
     // Always discover so the plugin is loadable + appears in the marketplace.
     runtime.discover(plugin);
-    const on = await runtime.readConfig(plugin.manifest.id).then(
-      (config) => config.installed && config.enabled,
-      () => enabledByDefault(plugin.manifest.id),
-    );
+    // Read the persisted config ONCE (R15-LIFECYCLE-027) and hand it to
+    // `loadPlugin` below so it doesn't re-fetch the same row.
+    const stored = await persistence.load(plugin.manifest.id).catch(() => null);
+    const on = stored ? stored.installed && stored.enabled : enabledByDefault(plugin.manifest.id);
     if (on) {
       // Loading attaches its panels, commands and agents via `pluginHost`.
-      await runtime.loadPlugin(plugin);
+      await runtime.loadPlugin(plugin, stored);
     }
   }
 

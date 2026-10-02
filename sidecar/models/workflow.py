@@ -104,8 +104,9 @@ class WorkflowRunRequest(BaseModel):
 
     spec: WorkflowSpec
     inputs: dict[str, Any] = Field(default_factory=dict)
-    mode: Literal["full", "resume-from"] = "full"
-    resume_from: str | None = Field(default=None, alias="resumeFrom")
+    #: Only ``"full"`` runs; the router answers 400 for any other mode rather
+    #: than silently re-running the whole graph (resume is not implemented).
+    mode: str = "full"
     #: Foreground BYOK creds for ``ai.agent_invoke`` nodes, the same names as
     #: ``AgentInvocationRequest``. Held for the run only; never persisted or logged.
     provider: LLMProviderId | None = None

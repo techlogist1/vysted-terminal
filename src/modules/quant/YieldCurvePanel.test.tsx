@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
+import { sidecarRequest } from "@/lib/sidecar-client";
 import { resetQuantStoreForTests } from "@/store/quant";
 import { YieldCurvePanel } from "./YieldCurvePanel";
 
@@ -20,38 +21,50 @@ vi.mock("lightweight-charts", () => {
   };
 });
 
-vi.mock("@/lib/sidecar-client", () => ({
-  getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
-}));
+// The quant store POSTs through the shared sidecar verb (R15-CODE-FRONTEND-027).
+vi.mock("@/lib/sidecar-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+  return { ...actual, sidecarRequest: vi.fn() };
+});
 
 beforeEach(() => {
   resetQuantStoreForTests();
-  vi.stubGlobal(
-    "fetch",
-    vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: "OK",
-      json: async () => ({
-        valuation_date: "2026-05-16",
-        curve: [
-          {
-            date: "2026-06-16",
-            tenor_years: 0.083,
-            zero_rate: 0.041,
-            discount_factor: 0.997,
-          },
-          { date: "2031-05-16", tenor_years: 5.0, zero_rate: 0.047, discount_factor: 0.79 },
-        ],
-        duration_ms: 1.5,
-      }),
-    }),
-  );
+  vi.mocked(sidecarRequest).mockReset();
+  vi.mocked(sidecarRequest).mockResolvedValue({
+    valuation_date: "2026-05-16",
+    curve: [
+      {
+        date: "2026-06-16",
+        tenor_years: 0.083,
+        zero_rate: 0.041,
+        discount_factor: 0.997,
+      },
+      { date: "2031-05-16", tenor_years: 5.0, zero_rate: 0.047, discount_factor: 0.79 },
+    ],
+    duration_ms: 1.5,
+  });
 });
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+});
+
+describe("YieldCurvePanel date defaults (R15-UI-063)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 25)); // 2026-09-25, local time
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("defaults valuation date to today, not a frozen literal", () => {
+    render(<YieldCurvePanel />);
+    expect(screen.getByTestId("field-valuation-date")).toHaveValue("2026-09-25");
+  });
 });
 
 describe("YieldCurvePanel", () => {
@@ -87,6 +100,23 @@ describe("YieldCurvePanel", () => {
     const bootstrapBtn = screen.getByTestId("bootstrap-curve") as HTMLButtonElement;
     expect(bootstrapBtn.disabled).toBe(true);
     fireEvent.click(bootstrapBtn);
-    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+    expect(sidecarRequest).not.toHaveBeenCalled();
+  });
+
+  it("R15-UI-077: two instruments on the same pillar names the duplicate and blocks the POST", () => {
+    render(<YieldCurvePanel />);
+    // Instrument 6 (idx 5) is the 10y swap in DEFAULT_INSTRUMENTS — retarget
+    // instrument 1 (idx 0, the 1mo depo) onto the same pillar.
+    fireEvent.change(screen.getByLabelText("Instrument 1 tenor"), { target: { value: "10" } });
+    fireEvent.change(screen.getByLabelText("Instrument 1 tenor unit"), {
+      target: { value: "years" },
+    });
+    expect(screen.getByTestId("yield-curve-validation").textContent).toMatch(
+      /same pillar.*10 years/,
+    );
+    const bootstrapBtn = screen.getByTestId("bootstrap-curve") as HTMLButtonElement;
+    expect(bootstrapBtn.disabled).toBe(true);
+    fireEvent.click(bootstrapBtn);
+    expect(sidecarRequest).not.toHaveBeenCalled();
   });
 });

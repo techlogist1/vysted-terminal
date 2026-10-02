@@ -39,15 +39,9 @@ async def _news(args: dict[str, Any]) -> dict[str, Any]:
         limit = 20
 
     from services import news_provider
-    from services.errors import ProviderError
 
-    try:
-        async with httpx.AsyncClient() as client:
-            items = await news_provider.fetch_news(client, symbols, limit)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001 — surface failures to the model
-        return {"ok": False, "error": f"news fetch failed: {exc}"}
+    async with httpx.AsyncClient() as client:
+        items = await news_provider.fetch_news(client, symbols, limit)
 
     # R15-AGENT-063: the tool used to return raw, unscored items — score and
     # tag them the same way the /news route does, so a model calling this

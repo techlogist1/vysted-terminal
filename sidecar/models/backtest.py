@@ -139,13 +139,11 @@ class BacktestRunEvent(BaseModel):
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
-    kind: Literal["run-start", "progress", "trade", "run-complete", "run-error"]
+    kind: Literal["run-start", "progress", "run-complete", "run-error"]
     run_id: str = Field(alias="runId")
     total_bars: int | None = Field(default=None, alias="totalBars")
     started_at: int | None = Field(default=None, alias="startedAt")
     bars_processed: int | None = Field(default=None, alias="barsProcessed")
-    equity: float | None = None
-    trade: BacktestTrade | None = None
     result: BacktestResult | None = None
     message: str | None = None
 

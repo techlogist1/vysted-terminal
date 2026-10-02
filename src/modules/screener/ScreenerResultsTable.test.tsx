@@ -77,7 +77,6 @@ const RESULT: ScreenerResult = {
       price: 192.5,
       change_percent_1d: 1.5,
       volume: 51_000_000,
-      matched_criteria: [0, 1, 2],
       currency: "USD",
     },
     {
@@ -90,7 +89,6 @@ const RESULT: ScreenerResult = {
       price: 420.0,
       change_percent_1d: -0.5,
       volume: 22_000_000,
-      matched_criteria: [0, 1, 2],
       currency: "USD",
     },
     {
@@ -103,7 +101,6 @@ const RESULT: ScreenerResult = {
       price: 175.0,
       change_percent_1d: 0.3,
       volume: 18_000_000,
-      matched_criteria: [0, 1, 2],
       currency: "USD",
     },
   ],
@@ -122,7 +119,6 @@ const INR_SNAPSHOT_ROW = {
   price: 1293.0,
   change_percent_1d: 0.6,
   volume: 5_400_000,
-  matched_criteria: [0],
   currency: "INR",
   data_basis: "snapshot",
   data_as_of: 1_781_611_200, // 2026-06-16T12:00Z (mid-day: "Jun 16" in any test TZ)
@@ -192,14 +188,14 @@ describe("ScreenerResultsTable", () => {
     // this is a real `runScreener()` call (stubbed above), not a client
     // re-sort of the page already served — the stub's async body has no
     // `await`, so its state write lands synchronously within this call.
-    fireEvent.click(screen.getByTestId("column-pe_ratio"));
+    fireEvent.click(within(screen.getByTestId("column-pe_ratio")).getByRole("button"));
     expect(useScreenerStore.getState().sortBy).toBe("pe_ratio");
     expect(useScreenerStore.getState().sortDir).toBe("desc");
     firstRow = screen.getAllByRole("row")[1];
     expect(within(firstRow!).getByText("GOOGL")).toBeInTheDocument();
 
     // Click again → asc by P/E → AAPL (18.5) first.
-    fireEvent.click(screen.getByTestId("column-pe_ratio"));
+    fireEvent.click(within(screen.getByTestId("column-pe_ratio")).getByRole("button"));
     expect(useScreenerStore.getState().sortDir).toBe("asc");
     firstRow = screen.getAllByRole("row")[1];
     expect(within(firstRow!).getByText("AAPL")).toBeInTheDocument();
@@ -274,7 +270,6 @@ describe("ScreenerResultsTable", () => {
       price: 1293.0,
       change_percent_1d: 0.6,
       volume: 5_400_000,
-      matched_criteria: [0],
       currency: "INR",
     };
     const TCS_NS = {
@@ -287,7 +282,6 @@ describe("ScreenerResultsTable", () => {
       price: 3800.0,
       change_percent_1d: 0.2,
       volume: 1_200_000,
-      matched_criteria: [0],
       currency: "INR",
     };
     const combined = [...RESULT.rows, RELIANCE_NS, TCS_NS];
@@ -311,7 +305,7 @@ describe("ScreenerResultsTable", () => {
 
     // Click the Price header — the same currency grouping must hold there.
     // R15-UI-006: a real (stubbed) `runScreener()` call, not a client re-sort.
-    fireEvent.click(screen.getByTestId("column-price"));
+    fireEvent.click(within(screen.getByTestId("column-price")).getByRole("button"));
     symbolOrder = screen
       .getAllByRole("row")
       .slice(1)

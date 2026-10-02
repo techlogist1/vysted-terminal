@@ -10,8 +10,8 @@
  *   4. Panels   — PanelSpec[] from enabled modules.
  *   5. Symbols  — watchlist + resolved; query-gated (hidden when empty query) + capped ≤50.
  *
- * Empty-query state: shows "Recent" (last-used commands) + "Suggested" (curated
- * shortcuts) instead of the full corpus dump.
+ * Empty-query state: "Recent" (last-used items) above the groups. A panel an
+ * action already opens has no separate Panels row (R15-LEAD-027).
  *
  * Settings → Command palette (FR-038, R15-UI-087): `paletteShowRecents` turns
  * the recents-first empty state (and the "recent" row tags) off, and
@@ -57,16 +57,18 @@ import { useSymbolAutocomplete } from "@/lib/symbol-autocomplete";
 import { useActiveAgentStore } from "@/store/active-agent";
 import { sendToAgent } from "@/store/agent-command";
 import { useAgentDockStore } from "@/store/agent-dock";
+import { selectCustomAgents, selectFirstPartyAgents, useAgentsStore } from "@/store/agents";
 import {
   buildPaletteCorpus,
   paletteFilter,
-  SUGGESTED_ITEMS,
   SYMBOL_CAP,
   useCommandPalette,
   type PaletteItem,
 } from "@/store/command-palette";
 import { formatBinding, registerAction, useKeybindingsStore } from "@/store/keybindings";
+import { useModulesStore } from "@/store/modules";
 import { useSettingsStore } from "@/store/settings";
+import { useSymbolsStore } from "@/store/symbols";
 import { useWorkspaceStore } from "@/store/workspace";
 
 // ---------------------------------------------------------------------------
@@ -121,8 +123,18 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
     [showRecents, recordedRecents],
   );
 
-  // Live corpus — rebuilt on each render from live Zustand stores.
-  const corpus = useMemo(() => buildPaletteCorpus(), []);
+  // Live corpus — rebuilt whenever a source store changes, so an agent or a
+  // plugin's commands that load while the palette is open appear.
+  const modules = useModulesStore((state) => state.modules);
+  const enabledModules = useModulesStore((state) => state.enabled);
+  const firstPartyAgents = useAgentsStore(selectFirstPartyAgents);
+  const customAgents = useAgentsStore(selectCustomAgents);
+  const symbolEntries = useSymbolsStore((state) => state.entries);
+  const corpus = useMemo(
+    () => buildPaletteCorpus(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- buildPaletteCorpus reads these stores
+    [modules, enabledModules, firstPartyAgents, customAgents, symbolEntries],
+  );
 
   // Partition by kind.
   const agents = useMemo(() => corpus.filter((i) => i.kind === "agent"), [corpus]);
@@ -184,7 +196,9 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
           // Switch the chat surface to THIS agent (the row was dead wiring
           // until R7 — it revealed the dock but never changed the persona),
           // then surface the dock.
-          useActiveAgentStore.getState().setActiveAgent(item.id.replace(/^agent:/, ""));
+          if (item.agentSummary) {
+            useActiveAgentStore.getState().setActiveAgent(item.agentSummary.id);
+          }
           useAgentDockStore.getState().setCollapsed(false);
           break;
         case "action":
@@ -211,27 +225,6 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
       onClose();
     },
     [recordSelection, openPanel, onClose],
-  );
-
-  // Handler for suggested static items (resolved against the live corpus).
-  const handleSelectSuggested = useCallback(
-    (suggestion: (typeof SUGGESTED_ITEMS)[number]) => {
-      recordSelection(suggestion.id);
-
-      // Try to find the item in the corpus and dispatch normally.
-      const found = corpus.find((i) => i.id === suggestion.corpusId);
-      if (found) {
-        handleSelectItem(found);
-        return;
-      }
-
-      // Fallback: open by panel id directly.
-      if (suggestion.panelId) {
-        openPanel(suggestion.panelId);
-      }
-      onClose();
-    },
-    [recordSelection, corpus, handleSelectItem, openPanel, onClose],
   );
 
   // ---------------------------------------------------------------------------
@@ -281,51 +274,19 @@ function PaletteBody({ onClose }: PaletteBodyProps) {
           />
         </Command.Empty>
 
-        {/* ── Empty-query state: Recent + Suggested ─────────────────────── */}
-        {!hasQuery && (
-          <>
-            {recentItems.length > 0 && (
-              <Command.Group
-                heading="Recent"
-                className="[&_[cmdk-group-heading]]:group-heading-style"
-              >
-                {recentItems.map((item) => (
-                  <PaletteItemRow
-                    key={item.id}
-                    item={item}
-                    isRecent={false}
-                    onSelect={() => handleSelectItem(item)}
-                    icon={<KindIcon kind={item.kind} />}
-                  />
-                ))}
-              </Command.Group>
-            )}
-
-            <Command.Group
-              heading="Suggested"
-              className="[&_[cmdk-group-heading]]:group-heading-style"
-            >
-              {SUGGESTED_ITEMS.map((suggestion) => (
-                <Command.Item
-                  key={suggestion.id}
-                  value={suggestion.id}
-                  keywords={[suggestion.label, suggestion.description ?? ""]}
-                  onSelect={() => handleSelectSuggested(suggestion)}
-                  className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
-                >
-                  <suggestion.Icon className="text-charcoal-400 size-4 shrink-0" aria-hidden />
-                  <div className="min-w-0 flex-1">
-                    <div className="text-charcoal-100 text-body truncate">{suggestion.label}</div>
-                    {suggestion.description && (
-                      <div className="text-charcoal-500 text-caption truncate">
-                        {suggestion.description}
-                      </div>
-                    )}
-                  </div>
-                </Command.Item>
-              ))}
-            </Command.Group>
-          </>
+        {/* ── Empty-query state: Recent ─────────────────────────────────── */}
+        {!hasQuery && recentItems.length > 0 && (
+          <Command.Group heading="Recent" className="[&_[cmdk-group-heading]]:group-heading-style">
+            {recentItems.map((item) => (
+              <PaletteItemRow
+                key={item.id}
+                item={item}
+                isRecent={false}
+                onSelect={() => handleSelectItem(item)}
+                icon={<KindIcon kind={item.kind} />}
+              />
+            ))}
+          </Command.Group>
         )}
 
         {/* ── Group 1: Ask AI ───────────────────────────────────────────── */}

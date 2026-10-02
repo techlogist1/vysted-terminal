@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useCallback, useEffect, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ConfirmButton";
@@ -11,12 +11,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { saveTextArtifact } from "@/lib/export-artifact";
 import {
   createResearchSpace,
   deleteWorkspace,
+  exportWorkspace,
+  importWorkspace,
   listWorkspaces,
   loadWorkspace,
+  parseWorkspaceFile,
   saveWorkspace,
+  type SerializedWorkspace,
 } from "@/lib/workspace";
 import { useChartCommandStore } from "@/store/chart-command";
 import { useWorkspaceStore } from "@/store/workspace";
@@ -30,7 +35,8 @@ import { useWorkspaceDialog } from "./workspace-dialog-store";
  * - Save mode: a name field (pre-filled with the active workspace name) →
  *   `saveWorkspace`.
  * - Load mode: the list of saved workspaces fetched from the sidecar; pick one
- *   to `loadWorkspace`, or delete one.
+ *   to `loadWorkspace`, export or delete one, or import a `.vysted-workspace`
+ *   file under a chosen name.
  */
 export function WorkspaceDialog() {
   const mode = useWorkspaceDialog((state) => state.mode);
@@ -163,6 +169,12 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
   const [fetchFailed, setFetchFailed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [pendingImport, setPendingImport] = useState<{
+    workspace: SerializedWorkspace;
+    name: string;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const openSave = useWorkspaceDialog((state) => state.openSave);
 
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -219,6 +231,61 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
     }
   }
 
+  async function handleExport(name: string) {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const text = await exportWorkspace(name);
+      const filename = `${name.replace(/[^A-Za-z0-9 _-]/g, "-")}.vysted-workspace`;
+      const result = await saveTextArtifact("workspaces", filename, text);
+      setNotice(result.path ? `Exported to ${result.path}` : `Downloaded ${filename}`);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not export the workspace.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleImportFile(file: File) {
+    setError(null);
+    setNotice(null);
+    try {
+      const workspace = parseWorkspaceFile(await file.text());
+      const name =
+        typeof workspace.name === "string" && workspace.name.trim()
+          ? workspace.name
+          : file.name.replace(/\.[^.]*$/, "");
+      setPendingImport({ workspace, name });
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not read the workspace file.");
+    }
+  }
+
+  async function handleImport(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!pendingImport) {
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const saved = await importWorkspace(pendingImport.name, pendingImport.workspace);
+      setNames((current) =>
+        (current ?? []).includes(saved) ? current : [...(current ?? []), saved].sort(),
+      );
+      setPendingImport(null);
+      setNotice(`Imported "${saved}".`);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not import the workspace.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const importReplaces =
+    pendingImport !== null && (names ?? []).includes(pendingImport.name.trim());
+
   return (
     <div>
       <DialogHeader>
@@ -243,6 +310,31 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
             </Button>
           )}
         </div>
+      ) : null}
+      {notice ? <p className="text-charcoal-400 text-caption mt-3 font-mono">{notice}</p> : null}
+      {pendingImport ? (
+        <form onSubmit={handleImport} className="mt-4 flex items-center gap-2">
+          <input
+            autoFocus
+            value={pendingImport.name}
+            onChange={(event) => setPendingImport({ ...pendingImport, name: event.target.value })}
+            placeholder="Workspace name"
+            aria-label="Imported workspace name"
+            className="border-charcoal-700 bg-charcoal-850 text-charcoal-100 placeholder:text-charcoal-400 rounded-control text-body focus:border-charcoal-500 h-8 flex-1 border px-3 font-mono outline-none"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setPendingImport(null)}
+            disabled={busy}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" size="sm" disabled={busy || pendingImport.name.trim() === ""}>
+            {importReplaces ? "Replace" : "Import"}
+          </Button>
+        </form>
       ) : null}
       <div
         className={
@@ -283,6 +375,17 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
               >
                 {name}
               </button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="xs"
+                aria-label={`Export workspace ${name}`}
+                onClick={() => handleExport(name)}
+                disabled={busy}
+                className="text-charcoal-400 hover:text-charcoal-200"
+              >
+                Export
+              </Button>
               <ConfirmButton
                 variant="ghost"
                 size="xs"
@@ -297,7 +400,29 @@ function LoadWorkspaceList({ onDone }: ModeProps) {
           ))
         )}
       </div>
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex justify-between">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={busy}
+        >
+          Import…
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".vysted-workspace,application/json,.json"
+          aria-label="Import workspace file"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) {
+              void handleImportFile(file);
+            }
+            event.target.value = ""; // allow re-importing the same file
+          }}
+        />
         <Button type="button" variant="ghost" onClick={onDone} disabled={busy}>
           Cancel
         </Button>

@@ -87,7 +87,7 @@ async def bootstrap_yield_curve(inputs: dict[str, Any], config: dict[str, Any]) 
 
 
 def register() -> None:
-    """Register every quant workflow-node type. Called from the v0.6.0 aggregator."""
+    """Register every quant workflow-node type. Called from ``workflow_nodes.register_all``."""
     workflow_engine.register_node_type("quant.price_option", price_option)
     workflow_engine.register_node_type("quant.compute_greeks", compute_greeks)
     workflow_engine.register_node_type("quant.price_bond", price_bond)

@@ -58,8 +58,46 @@ describe("DataTable", () => {
     );
     const header = screen.getByText("Price").closest("th")!;
     expect(header.getAttribute("aria-sort")).toBe("descending");
-    fireEvent.click(header);
+    // R15-UI-068: aria-sort lives on the <th> (WAI-ARIA sortable-table
+    // pattern); the click target is the nested <button> so the header is
+    // keyboard-reachable — see the next test for the keyboard path.
+    fireEvent.click(screen.getByRole("button", { name: "Price" }));
     expect(onSort).toHaveBeenCalledWith("price");
+  });
+
+  it("makes a sortable header keyboard-operable (R15-UI-068)", () => {
+    const onSort = vi.fn();
+    render(<DataTable columns={columns} rows={rows} rowKey={(r) => r.symbol} onSort={onSort} />);
+    const button = screen.getByRole("button", { name: "Symbol" });
+    // A real <button> is natively focusable and fires `click` for both Enter
+    // and Space without any extra key-handling code — that's the whole fix.
+    button.focus();
+    expect(document.activeElement).toBe(button);
+    fireEvent.click(button);
+    expect(onSort).toHaveBeenCalledWith("symbol");
+  });
+
+  it("renders skeleton rows and marks the table busy when loading (R15-UI-068)", () => {
+    const { container } = render(
+      <DataTable columns={columns} rows={[]} rowKey={(r) => r.symbol} loading={{ rows: 3 }} />,
+    );
+    const table = container.querySelector("table")!;
+    expect(table.getAttribute("aria-busy")).toBe("true");
+    expect(container.querySelectorAll("tbody tr").length).toBe(3);
+    // Skeleton rows are presentational only — no real cell text is rendered.
+    expect(screen.queryByText("AAPL")).not.toBeInTheDocument();
+  });
+
+  it("renders the empty slot when there are zero rows and not loading (R15-UI-068)", () => {
+    render(
+      <DataTable
+        columns={columns}
+        rows={[]}
+        rowKey={(r) => r.symbol}
+        empty="No symbols match this screen."
+      />,
+    );
+    expect(screen.getByText("No symbols match this screen.")).toBeInTheDocument();
   });
 
   it("renders grouped section header rows", () => {

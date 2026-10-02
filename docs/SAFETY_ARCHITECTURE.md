@@ -39,10 +39,11 @@ covers the safety model for that write surface.
 
 Every host action the agent wants to run is staged as a `ProposedChange`
 before it lands. Under ASK autonomy, every kind is staged for the user to
-accept or reject in the review bar. Under AUTO autonomy, every kind
-auto-applies on enqueue — there is no exempt kind, because the one kind that
-used to be exempt (`order`) no longer exists. A persisted AUTO autonomy
-setting restores with the workspace blob (`src/lib/workspace.ts`).
+accept or reject in the review bar. Under AUTO autonomy, only the
+`AUTO_APPLIED_KINDS` set (`panel`, `chart`, `watchlist`) auto-applies on
+enqueue; `data-write` and `settings` always wait in the review queue under
+either autonomy setting. A persisted AUTO autonomy setting restores with the
+workspace blob (`src/lib/workspace.ts`).
 
 ## 3. Honest narration and read-back
 

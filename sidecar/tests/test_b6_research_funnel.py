@@ -70,7 +70,7 @@ def _researcher_tools(sub_question: str, target: Any) -> list[str]:
         return "finding"
 
     asyncio.run(
-        deep._run_researcher(
+        deep.run_researcher(
             sub_question, target=target, query="q", region=None, tool_call=tool_call, llm_call=llm
         )
     )

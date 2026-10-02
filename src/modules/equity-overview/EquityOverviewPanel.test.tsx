@@ -16,9 +16,11 @@ import type { EquityOverview, SymbolCandidate } from "./api";
 vi.mock("./api", () => ({
   loadEquityOverview: vi.fn(),
   autocompleteSymbols: vi.fn(() => Promise.resolve([])),
+  // No narrative by default (rejects → the panel's quiet unavailable state).
+  loadCompanyNarrative: vi.fn(() => Promise.reject(new Error("no narrative"))),
 }));
 
-const { autocompleteSymbols, loadEquityOverview } = await import("./api");
+const { autocompleteSymbols, loadCompanyNarrative, loadEquityOverview } = await import("./api");
 const mockLoad = vi.mocked(loadEquityOverview);
 
 function quote(): Quote {
@@ -157,6 +159,30 @@ describe("EquityOverviewPanel", () => {
     for (const t of ["AAPL", "RELIANCE", "NVDA"]) {
       expect(chips.textContent).toContain(t);
     }
+  });
+
+  it("caps the AI narrative at a reading measure (R15-UI-074)", async () => {
+    vi.mocked(loadCompanyNarrative).mockResolvedValueOnce({
+      symbol: "AAPL",
+      summary: "Apple trades at a P/E of 31.5.",
+      insights: [],
+      business: "Designs phones and services.",
+      storyline: null,
+      bull_case: [],
+      bear_case: [],
+      risks: [],
+      verified: true,
+      unverified_claims: [],
+      source_provider: "yfinance",
+      model: "m",
+      generated_at: "2026-09-24T00:00:00Z",
+      reason: null,
+    });
+    mockLoad.mockResolvedValue(overview());
+    render(<EquityOverviewPanel />);
+    await loadSymbol();
+    expect(screen.getByText("Designs phones and services.")).toBeInTheDocument();
+    expect(screen.getByTestId("narrative-body").className).toContain("max-w-prose");
   });
 
   it("a quick-load chip loads its symbol", async () => {

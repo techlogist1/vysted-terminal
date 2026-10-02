@@ -10,8 +10,6 @@ Routes:
     for a company. Either ``cik`` or ``symbol`` is required.
   * ``GET /sec/filings/{accession}?identifier=`` — full FilingDetail
     (filing metadata + parsed sections).
-  * ``GET /sec/filings/{accession}/sections?identifier=`` — sections
-    list only, for the FilingViewer's section navigation rail.
   * ``GET /sec/insider/{identifier}?form=3|4|5&limit=`` — recent
     insider transactions for an issuer.
   * ``GET /sec/filings/search?q=&limit=`` — company-name search for the
@@ -32,7 +30,6 @@ from fastapi import APIRouter, HTTPException
 from models.sec import (
     FilingDetail,
     FilingFormType,
-    FilingSection,
     FilingsListResponse,
     InsiderTransactionsResponse,
 )
@@ -119,23 +116,6 @@ async def get_filing(
     return await sec_filings_provider.get_filing(
         accession, cik_or_symbol=identifier, form_type=form_type
     )
-
-
-@router.get("/filings/{accession}/sections")
-async def get_filing_sections(
-    accession: str,
-    identifier: str,
-    form_type: str | None = None,
-) -> dict[str, list[FilingSection]]:
-    """Return the sections list for an accession.
-
-    ``form_type`` is the listed row's form — a lookup hint (R15-LEAD-010)."""
-    _require_available()
-    sections = await sec_filings_provider.get_filing_sections(
-        accession, cik_or_symbol=identifier, form_type=form_type
-    )
-    # Wrap to keep the schema dict-shaped (CLAUDE.md FastMCP-tool gotcha).
-    return {"sections": sections}
 
 
 # Insider form type accepted as a query param. Mirrors models.sec.InsiderFormType

@@ -7,6 +7,9 @@ per call so each test gets its own isolated SQLite file.
 
 from __future__ import annotations
 
+import logging
+import sqlite3
+
 import pytest
 
 from config import DATA_DIR_ENV
@@ -46,9 +49,11 @@ def _sample_update() -> CustomAgentUpdate:
     )
 
 
-def test_ensure_schema_is_idempotent(temp_data_dir: object) -> None:
-    agents_store._ensure_schema()
-    agents_store._ensure_schema()
+def test_connect_is_idempotent(temp_data_dir: object) -> None:
+    with agents_store._connect():
+        pass
+    with agents_store._connect():
+        pass
     assert agents_store.list_agents() == []
 
 
@@ -72,6 +77,23 @@ def test_list_agents_is_ordered_by_id(temp_data_dir: object) -> None:
     agents_store.create_agent(_sample_create("custom:mu"))
     ids = [agent.id for agent in agents_store.list_agents()]
     assert ids == ["custom:alpha", "custom:mu", "custom:zeta"]
+
+
+def test_unparseable_row_is_skipped_and_logged(
+    temp_data_dir: object, caplog: pytest.LogCaptureFixture
+) -> None:
+    agents_store.create_agent(_sample_create("custom:bad"))
+    agents_store.create_agent(_sample_create("custom:good"))
+    conn = sqlite3.connect(agents_store._db_path())
+    conn.execute("UPDATE custom_agents SET tools_json = '{' WHERE id = 'custom:bad'")
+    conn.commit()
+    conn.close()
+
+    with caplog.at_level(logging.WARNING, logger="services.agents_store"):
+        agents = agents_store.list_agents()
+
+    assert [agent.id for agent in agents] == ["custom:good"]
+    assert "custom:bad" in caplog.text
 
 
 def test_get_agent_roundtrip(temp_data_dir: object) -> None:

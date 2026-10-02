@@ -52,7 +52,9 @@ async def _tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
 
 
 def _brief(monkeypatch: pytest.MonkeyPatch, loop: Any, finish_reason: str) -> Any:
-    monkeypatch.setattr(oneshot, "get_provider", lambda *_a: _SynthesisProvider(finish_reason))
+    monkeypatch.setattr(
+        oneshot, "get_provider", lambda *_a, **_k: _SynthesisProvider(finish_reason)
+    )
     return asyncio.run(
         loop("research NVDA", tool_call=_tool, llm_call=_llm_call, budget=BudgetGuard(max_steps=2))
     )

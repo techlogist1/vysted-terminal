@@ -129,6 +129,27 @@ describe("streaming — brief lifecycle feed (R10 D39)", () => {
     }
   });
 
+  it("multi-line query research:begin fires beginRun with the full query", async () => {
+    const query = "Compare TCS and Infosys:\n1) margins\n2) attrition";
+    fetchMock.mockImplementationOnce(async () =>
+      sseFrames([
+        {
+          kind: "research_step",
+          step_kind: "engine",
+          detail: `research:begin r1 depth=deep query=${query}`,
+          status: "ok",
+          index: 1,
+        },
+        { kind: "done" },
+      ]),
+    );
+    await streamAgentInvocation("copilot", { prompt: query }, { onEvent: () => undefined });
+    const panel = useBriefStore.getState().panel;
+    expect(panel.phase).toBe("in_flight");
+    expect(panel.phase === "in_flight" && panel.runId).toBe("r1");
+    expect(panel.phase === "in_flight" && panel.query).toBe(query);
+  });
+
   it("an ultra begin maps onto the heavy tier; steps outside a run are ignored", async () => {
     fetchMock.mockImplementationOnce(async () =>
       sseFrames([

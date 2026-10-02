@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from datetime import UTC, datetime
 from typing import Any
 
@@ -122,6 +123,29 @@ _BUILTIN_PAIRS = [
     ("transform", "json_path"),
     ("flow", "sleep"),
 ]
+
+
+def test_create_app_registers_every_builtin_node() -> None:
+    """``create_app`` alone (no main.py step) registers what ``register_all`` does."""
+    from app import create_app
+
+    workflow_nodes.register_all()
+    expected = set(workflow_engine.registered_node_types())
+    workflow_engine.reset_registry_for_tests()
+
+    create_app()
+
+    registered = set(workflow_engine.registered_node_types())
+    assert registered == expected
+    one_per_domain = {
+        "transform.code",
+        "data.fetch_macro_series",
+        "data.fetch_sec_filing",
+        "quant.price_option",
+        "data.fetch_earnings_calendar",
+        "analysis.screener_query",
+    }
+    assert set(workflow_nodes.BUILTIN_NODE_SPECS) | one_per_domain <= registered
 
 
 # ---------------------------------------------------------------------------
@@ -533,3 +557,67 @@ async def test_research_workflow_runs_end_to_end(
     assert by_id["i"].status == "ok"
     assert by_id["a"].outputs["content"] == "Analysis for buffett."
     assert by_id["l"].status == "ok"
+
+
+# ---------------------------------------------------------------------------
+# transform.code — size bounds (R15-CODE-PLATFORM-066)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_huge_pow_and_repeat_rejected_fast() -> None:
+    from services.workflow_nodes import code_node
+
+    for expression in ("7**(10**7)", "[0]*10**9", "10^9 * 'ab'", "round(1, 10^7)"):
+        started = time.perf_counter()
+        with pytest.raises(ValueError, match="too large|digits"):
+            await code_node.evaluate_code({}, {"expression": expression})
+        assert time.perf_counter() - started < 0.05, expression
+
+    # In-bound uses of the same operators still evaluate.
+    out = await code_node.evaluate_code({}, {"expression": "2^10 + sum([1] * 3) + round(2.5)"})
+    assert out == {"value": 1024 + 3 + 3}
+
+
+# ---------------------------------------------------------------------------
+# Domain node input/config precedence (R15-CODE-PLATFORM-067)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_zero_input_not_replaced_by_config_and_unknown_provider_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import sec_filings_provider
+    from services.macro import macro_router
+    from services.workflow_nodes import macro_nodes, research_nodes, sec_nodes
+
+    # A present 0 input is a value: it is validated, not swapped for config.
+    with pytest.raises(ValueError, match=r"\[1, 60\]"):
+        await research_nodes.fetch_earnings_calendar({"days": 0}, {"days": 7})
+
+    captured: dict[str, Any] = {}
+
+    async def _list(identifier: str, form_type: Any = None, limit: int = 30) -> Any:
+        captured.update(identifier=identifier, form=form_type, limit=limit)
+        raise RuntimeError("stop")
+
+    monkeypatch.setattr(sec_filings_provider, "list_insider_transactions", _list)
+    with pytest.raises(RuntimeError, match="stop"):
+        await sec_nodes.fetch_insider_transactions(
+            {"symbol": "AAPL", "limit": 0}, {"identifier": "MSFT", "limit": 15, "form": "4"}
+        )
+    assert captured == {"identifier": "AAPL", "form": "4", "limit": 0}
+
+    # An empty provider input is not silently replaced by the config's; an
+    # unknown one errors before any provider is dispatched.
+    async def _never(*_a: Any, **_k: Any) -> Any:
+        raise AssertionError("dispatched")
+
+    monkeypatch.setattr(macro_router, "get_series", _never)
+    with pytest.raises(ValueError, match="missing 'provider'"):
+        await macro_nodes.fetch_macro_series(
+            {"provider": ""}, {"series_id": "X", "provider": "fred"}
+        )
+    with pytest.raises(ValueError, match="unknown provider 'yodlee'"):
+        await macro_nodes.fetch_macro_series({}, {"series_id": "X", "provider": "yodlee"})

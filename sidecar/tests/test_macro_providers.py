@@ -132,6 +132,16 @@ def test_fred_catalog_returns_curated_set(fake_fred: _FakeFred) -> None:
     assert any(e.series_id == "DGS10" for e in cat.entries)
 
 
+def test_fred_sa_bw_map_to_other() -> None:
+    """R15-DATA-099: semiannual ('sa') and biweekly ('bw') are distinct from
+    quarterly/weekly and must not collapse onto them."""
+    assert fred_provider._FREQ_MAP["sa"] == "other"
+    assert fred_provider._FREQ_MAP["bw"] == "other"
+    # The genuine quarterly/weekly codes are untouched.
+    assert fred_provider._FREQ_MAP["q"] == "quarterly"
+    assert fred_provider._FREQ_MAP["w"] == "weekly"
+
+
 # ---------------------------------------------------------------------------
 # ECB provider
 # ---------------------------------------------------------------------------
@@ -462,3 +472,23 @@ def test_wb_catalog_returns_curated_set(fake_wb: _FakeWbModule) -> None:
     cat = world_bank_provider.catalog()
     assert cat.provider == "world-bank"
     assert len(cat.entries) >= 5
+
+
+# ---------------------------------------------------------------------------
+# Provider identity typing (R15-CODE-PLATFORM-043)
+# ---------------------------------------------------------------------------
+
+
+def test_provider_constants_are_macro_provider_values() -> None:
+    """Each PROVIDER constant is a value of the MacroProvider Literal the
+    model already defines — a typo here would otherwise only be caught by
+    Pydantic at request time, never by a type checker."""
+    from typing import get_args
+
+    from models.macro_extended import MacroProvider
+
+    valid = get_args(MacroProvider)
+    assert fred_provider.PROVIDER in valid
+    assert ecb_provider.PROVIDER in valid
+    assert imf_provider.PROVIDER in valid
+    assert world_bank_provider.PROVIDER in valid

@@ -312,6 +312,47 @@ def test_declarations_every_provider_has_exactly_one_row() -> None:
 
 
 # ---------------------------------------------------------------------------
+# R15-CODE-DATA-008 — a non-ProviderError falls through too (sync + async).
+# ---------------------------------------------------------------------------
+
+
+def _stub_candidates(monkeypatch: pytest.MonkeyPatch, bad_result: Exception) -> None:
+    def boom(symbol: str):  # noqa: ANN202, ARG001
+        raise bad_result
+
+    stub_bad = provider_registry.ProviderDeclaration(id="bad", rank=10, serves={"quote": boom})
+    stub_good = provider_registry.ProviderDeclaration(
+        id="good", rank=20, serves={"quote": lambda symbol: _quote("good", symbol)}
+    )
+    monkeypatch.setattr(
+        provider_registry,
+        "_candidates",
+        lambda model_key, asset_class, region: [stub_bad, stub_good],  # noqa: ARG005
+    )
+
+
+def test_resolve_sync_keyerror_falls_through_to_next_candidate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A KeyError (not a clean ProviderError) from the preferred candidate must
+    fall through to the next candidate, not propagate and skip it."""
+    _stub_candidates(monkeypatch, KeyError("lastPrice"))
+    result = provider_registry._resolve_sync("quote", None, None, None, "AAPL")  # noqa: SLF001
+    assert result.provider == "good"
+
+
+def test_resolve_async_keyerror_falls_through_to_next_candidate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Same as above for the async resolver."""
+    _stub_candidates(monkeypatch, KeyError("lastPrice"))
+    result = asyncio.run(
+        provider_registry._resolve_async("quote", None, None, None, "AAPL")  # noqa: SLF001
+    )
+    assert result.provider == "good"
+
+
+# ---------------------------------------------------------------------------
 # fixtures
 # ---------------------------------------------------------------------------
 

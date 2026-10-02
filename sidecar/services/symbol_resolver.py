@@ -530,8 +530,8 @@ def _load_master(filename: str, *, fallback: dict | None = None) -> dict:
             .open("r", encoding="utf-8")
         ) as fp:
             return json.load(fp)
-    except (FileNotFoundError, ModuleNotFoundError) as exc:  # pragma: no cover - bundling bug
-        logger.error("symbol_resolver: missing bundled master %s: %s", filename, exc)
+    except (OSError, ModuleNotFoundError, ValueError) as exc:  # bundling bug / garbled JSON
+        logger.error("symbol_resolver: missing or garbled bundled master %s: %s", filename, exc)
         return fallback if fallback is not None else {"instruments": []}
 
 
@@ -775,7 +775,24 @@ def dual_listed_bse_code(symbol: str) -> str | None:
     bare = strip_exchange_suffix(symbol)
     if bare not in _nse_master():
         return None
-    return _enrich_instrument(_instrument_nse(bare, 1.0)).bse_code
+    return _enrich_instrument(_instrument_nse(bare, 1.0, BAND_EXACT_TICKER)).bse_code
+
+
+def pinned_other_company_bse_code(symbol: str) -> str | None:
+    """The BSE scrip code an explicit ``.BO`` pin names when that BSE row is NOT the
+    NSE row's company (``FOCUS.BO``: BSE 543312 Focus Business Solution, not NSE
+    Focus Lighting). ``None`` for every other symbol, same-company ``.BO`` included.
+    Judged on the names (:func:`_bse_row_is_same_company`), independent of
+    :func:`dual_listed_bse_code`."""
+    if _suffix_exchange(symbol) != "BSE":
+        return None
+    bare = strip_exchange_suffix(symbol)
+    entry = _bse_master().get(bare)
+    if bare not in _nse_master() or not entry or not entry[2]:
+        return None
+    if _bse_row_is_same_company(_instrument_nse(bare, 1.0, BAND_EXACT_TICKER), entry):
+        return None
+    return entry[2]
 
 
 def region_hint(symbol: str) -> str | None:
@@ -822,7 +839,7 @@ def _suffix_exchange(symbol: str) -> str | None:
     return None
 
 
-def _instrument_nse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instrument:
+def _instrument_nse(symbol: str, score: float, band: int) -> Instrument:
     name, typ = _nse_master()[symbol]
     asset_class = "etf" if typ == "ETF" else "equity"
     return Instrument(
@@ -837,7 +854,7 @@ def _instrument_nse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instru
     )
 
 
-def _instrument_bse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instrument:
+def _instrument_bse(symbol: str, score: float, band: int) -> Instrument:
     name, _group, _code, _isin = _bse_master()[symbol]
     return Instrument(
         symbol=symbol,
@@ -851,7 +868,7 @@ def _instrument_bse(symbol: str, score: float, band: int = BAND_FUZZY) -> Instru
     )
 
 
-def _instrument_us(symbol: str, score: float, band: int = BAND_FUZZY) -> Instrument:
+def _instrument_us(symbol: str, score: float, band: int) -> Instrument:
     name = _us_master()[symbol]
     return Instrument(
         symbol=symbol,
@@ -1633,16 +1650,17 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
     q_sym = bare.upper()
     q_lc = query.strip().lower()
 
-    def _score(sym: str, name: str) -> float | None:
+    # (score, band): each row states its match rung, as resolve() does.
+    def _score(sym: str, name: str) -> tuple[float, int] | None:
         if sym == q_sym:
-            return 1.0
+            return 1.0, BAND_EXACT_TICKER
         if sym.startswith(q_sym):
-            return 0.95
+            return 0.95, BAND_PREFIX
         name_lc = name.lower()
         if name_lc.startswith(q_lc):
-            return 0.9
+            return 0.9, BAND_PREFIX
         if q_lc in name_lc:
-            return 0.8
+            return 0.8, BAND_SUBSTRING
         return None
 
     out: list[Instrument] = []
@@ -1650,7 +1668,7 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
     for sym, (name, _typ) in nse_symbols.items():
         s = _score(sym, name)
         if s is not None:
-            out.append(_instrument_nse(sym, s))
+            out.append(_instrument_nse(sym, *s))
     # BSE-only names (the micro-cap tail) — dual-listed symbols are skipped so
     # the canonical NSE row is the one (and only) candidate for that instrument,
     # keeping the list deduplicated and NSE-preferred without a second pass.
@@ -1659,11 +1677,11 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
             continue
         s = _score(sym, name)
         if s is not None:
-            out.append(_instrument_bse(sym, s))
+            out.append(_instrument_bse(sym, *s))
     for sym, name in _us_master().items():
         s = _score(sym, name)
         if s is not None:
-            out.append(_instrument_us(sym, s))
+            out.append(_instrument_us(sym, *s))
     # A retired NSE ticker (ZOMATO) lists its current instrument (ETERNAL) first,
     # annotated — the old symbol is what the user remembers typing.
     retired = (
@@ -1746,7 +1764,7 @@ def _live_lookup(query: str, region: str) -> list[Instrument]:
     except Exception as exc:  # noqa: BLE001 - any live-lookup failure is non-fatal
         with _live_cache_lock:
             _live_cooldown_until = time.monotonic() + _LIVE_FAILURE_COOLDOWN_SECONDS
-        if type(exc).__name__ == "YFRateLimitError":
+        if provider_health.is_rate_limit(exc):
             provider_health.record_rate_limited()
         logger.debug("symbol_resolver: live lookup failed for %r: %s", query, exc)
         return []

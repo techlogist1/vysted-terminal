@@ -161,6 +161,18 @@ def test_new_mutating_tools_are_not_read_safe() -> None:
         assert catalog.is_read_only(tool_id) is False, f"{tool_id}: must be a mutation"
 
 
+def test_stageable_and_read_safe_relation_is_pinned() -> None:
+    """R15-CODE-AGENT-018: plan-stageable and read-safe are separate host-action
+    subsets (neither derives from the other); their difference is pinned so
+    widening either set is a deliberate edit here."""
+    stageable = agent_runtime._STAGEABLE_PLAN_ACTIONS
+    read_safe = agent_runtime._READ_SAFE_PANEL_ACTIONS
+    host_actions = {c.id for c in catalog.CAPABILITY_CATALOG.values() if c.kind == "host_action"}
+    assert stageable <= host_actions and read_safe <= host_actions
+    assert stageable - read_safe == {"close_panel", "focus_panel"}
+    assert read_safe - stageable == {"open_company_overview"}
+
+
 # ---------------------------------------------------------------------------
 # §6.5-adjacent — no capability over the agent's own leash
 # ---------------------------------------------------------------------------

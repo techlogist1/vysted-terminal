@@ -159,13 +159,17 @@ def test_validate_key_connect_error_is_unreachable(
     body = response.json()
     assert body["ok"] is False
     assert body["reason"] == "unreachable"
-    assert "ConnectError" in body["detail"]
+    assert "Could not reach OpenAI" in body["detail"]
 
 
-def test_validate_key_transport_error_surfaces_detail(
+def test_validate_transport_failure_is_humanized(
     client: TestClient,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """R15-CODE-AGENT-019: the raw SDK exception repr never reaches the Key Entry
+    Dialog — the route returns humanize()'s message + action, same as every other
+    failure surface in the subsystem; the raw text stays in the sidecar log only."""
+
     class _RaisingProvider:
         async def stream_chat(self, *_a: Any, **_kw: Any) -> AsyncIterator[Any]:  # pragma: no cover
             if False:
@@ -182,7 +186,12 @@ def test_validate_key_transport_error_surfaces_detail(
     body = response.json()
     assert body["ok"] is False
     assert body["reason"] == "unreachable"
-    assert "network down" in body["detail"]
+    assert (
+        body["detail"]
+        == "Something went wrong with Anthropic. Try again or switch provider in Settings."
+    )
+    assert "RuntimeError" not in body["detail"]
+    assert "network down" not in body["detail"]
 
 
 def test_chat_streams_sse_frames(
@@ -388,3 +397,50 @@ def test_chat_invalid_provider_returns_400(client: TestClient) -> None:
     )
     # Pydantic rejects the literal at the input boundary, so we get 422 not 400.
     assert response.status_code in {400, 422}
+
+
+def test_no_llm_route_echoes_the_key(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-CODE-AGENT-021: the key rides a header on ``GET /llm/models`` and the
+    JSON body on ``POST /llm/chat`` / ``POST /llm/keys/validate`` (two transports,
+    documented as such — moving them onto one transport is out of this entry's
+    scope), but on ALL THREE routes it reaches the adapter and never the response."""
+    canary = "sk-canary-do-not-echo"
+
+    fake = _FakeProvider()
+    monkeypatch.setattr(llm_router, "get_provider", lambda *_a, **_k: fake)
+
+    validate_response = client.post(
+        "/llm/keys/validate",
+        json={"provider": "anthropic", "api_key": canary},
+    )
+    assert canary not in validate_response.text
+    assert fake.last_api_key == canary
+
+    with client.stream(
+        "POST",
+        "/llm/chat",
+        json={
+            "provider": "anthropic",
+            "model": "claude-opus-4-8",
+            "messages": [{"role": "user", "content": "hi"}],
+            "api_key": canary,
+        },
+    ) as chat_response:
+        chat_body = b"".join(chat_response.iter_bytes()).decode("utf-8")
+    assert canary not in chat_body
+    assert fake.last_api_key == canary
+
+    captured: dict[str, Any] = {}
+    monkeypatch.setattr(
+        llm_router, "get_provider", lambda *_a, **_k: _CatalogProvider([], captured)
+    )
+    models_response = client.get(
+        "/llm/models",
+        params={"provider": "openrouter"},
+        headers={"X-LLM-Key": canary},
+    )
+    assert canary not in models_response.text
+    assert captured["api_key"] == canary

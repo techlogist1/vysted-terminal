@@ -7,10 +7,11 @@ emits :class:`WorkflowRunEvent` events through an optional ``on_event``
 callback for SSE streaming.
 
 The engine is intentionally minimal — concrete node-type handlers are
-the v0.5.0 Teammate W deliverable, registered via :func:`register_node_type`
-into a module-level registry. Plugin-contributed nodes (via the
-``contributesNodes`` capability on the locked ``VystedPlugin`` contract)
-register through the same surface.
+Python callables registered via :func:`register_node_type` into a
+module-level registry (``services/workflow_nodes``). A plugin-contributed
+``NodeSpec`` (``contributesNodes`` on ``VystedPlugin``) is palette-only: no
+TS→Python bridge registers a handler for it, so a spec using one is rejected
+by :func:`_validate_spec`. ``GET /workflow/node-types`` lists what can run.
 
 Why custom, not Prefect/Dagster:
 - Prefect/Dagster are server orchestrators, wrong shape for a desktop
@@ -49,6 +50,21 @@ logger = logging.getLogger(__name__)
 NodeHandler = Callable[[dict[str, Any], dict[str, Any]], Awaitable[dict[str, Any]]]
 
 EventCallback = Callable[[WorkflowRunEvent], Awaitable[None]]
+
+
+def resolve(inputs: dict[str, Any], config: dict[str, Any], *keys: str, default: Any = None) -> Any:
+    """A node parameter by the one precedence rule every handler shares.
+
+    The first non-``None`` value among ``keys`` (aliases, in order) in the
+    upstream ``inputs``, then in the static ``config``, else ``default``. A
+    present ``0``/``""``/``[]`` is a value, never "missing".
+    """
+    for source in (inputs, config):
+        for key in keys:
+            if source.get(key) is not None:
+                return source[key]
+    return default
+
 
 #: Handler bound when a node's config sets no ``timeout_seconds``. Above
 #: ``flow.sleep``'s 300 s cap and a deep-research agent's wall budget.

@@ -151,3 +151,66 @@ describe("MarketplacePanel — India data lanes derive from live /data-sources (
     expect(screen.queryByLabelText("India data lanes")).toBeNull();
   });
 });
+
+describe("MarketplacePanel — CredentialForm blocks a definite auth failure (R15-UI-089)", () => {
+  const newsEntry = MARKETPLACE_CATALOG.find((entry) => entry.pluginId === "vysted-news")!;
+
+  beforeEach(async () => {
+    resetMarketplaceStoreForTests();
+    useModulesStore.setState({ modules: [], enabled: {} });
+    usePluginsStore.setState({
+      plugins: [],
+      dataSources: [],
+      agents: [],
+      nodes: [],
+      runtime: null,
+    });
+    setSecretMock.mockClear();
+    getSecretMock.mockClear();
+    sidecarGetMock.mockClear();
+    sidecarGetMock.mockResolvedValue({ newsapi: "ok" });
+    attachFreshRuntime();
+    await useMarketplaceStore.getState().refresh();
+  });
+
+  afterEach(() => {
+    cleanup();
+    detach?.();
+    detach = null;
+  });
+
+  it("an invalid key is not marked configured (not saved to the keychain)", async () => {
+    sidecarGetMock.mockResolvedValue({ newsapi: "unauthorized" });
+
+    render(<MarketplacePanel />);
+    fireEvent.click(await screen.findByRole("button", { name: `Configure ${newsEntry.name}` }));
+    fireEvent.change(screen.getByPlaceholderText("RSS works without a key"), {
+      target: { value: "bad-key" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save credentials/i }));
+
+    await screen.findByText("NewsAPI rejected this key");
+    // The blocked save never reaches the keychain.
+    expect(setSecretMock).not.toHaveBeenCalled();
+    // The form stays open on the error (onDone never fired).
+    expect(screen.getByRole("button", { name: /save credentials/i })).toBeInTheDocument();
+  });
+
+  it("a valid key is saved to the keychain", async () => {
+    sidecarGetMock.mockResolvedValue({ newsapi: "ok" });
+
+    render(<MarketplacePanel />);
+    fireEvent.click(await screen.findByRole("button", { name: `Configure ${newsEntry.name}` }));
+    fireEvent.change(screen.getByPlaceholderText("RSS works without a key"), {
+      target: { value: "good-key" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /save credentials/i }));
+
+    await waitFor(() =>
+      expect(setSecretMock).toHaveBeenCalledWith(
+        "plugin-secret:vysted-news:newsapi_key",
+        "good-key",
+      ),
+    );
+  });
+});

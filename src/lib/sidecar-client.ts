@@ -2,9 +2,8 @@
  * Sidecar API client.
  *
  * Resolves the Python sidecar's localhost port from the Tauri core (cached after
- * the first call) and exposes typed accessors for the data-layer REST endpoints,
- * plus a WebSocket helper for crypto streams. Panels call these functions rather
- * than building URLs themselves.
+ * the first call) and exposes typed accessors for the data-layer REST endpoints.
+ * Panels call these functions rather than building URLs themselves.
  */
 
 import { invoke } from "@tauri-apps/api/core";
@@ -135,6 +134,11 @@ export function getSidecarBaseUrl(): Promise<string> {
   return readyPromise;
 }
 
+/** Per-round budget for one `/health` probe attempt (R15-LIFECYCLE-027): bounds
+ *  a hung-not-exited engine to this long per retry instead of hanging the
+ *  shared `readyPromise` past its overall 120 s deadline. */
+const HEALTH_PROBE_TIMEOUT_MS = 5_000;
+
 async function resolveAndAwaitReady(): Promise<string> {
   const deadline = Date.now() + 120_000;
   let delay = 250;
@@ -142,12 +146,15 @@ async function resolveAndAwaitReady(): Promise<string> {
     // Re-read each round: a spawn that fails while we probe stops the wait.
     const base = await resolvePortToBaseUrl();
     try {
-      const response = await fetch(new URL("/health", base).toString());
+      const response = await fetch(new URL("/health", base).toString(), {
+        signal: AbortSignal.timeout(HEALTH_PROBE_TIMEOUT_MS),
+      });
       if (response.ok) {
         return base;
       }
     } catch {
-      // Connection refused — sidecar has a port assigned but is not bound yet.
+      // Connection refused, or the probe timed out — sidecar has a port
+      // assigned but is not bound (or not answering) yet.
     }
     if (Date.now() > deadline) {
       throw new SidecarError(503, "The data engine did not become ready in time.");
@@ -164,11 +171,36 @@ type QueryParams = Record<string, string | number | undefined>;
 export const SIDECAR_UNREACHABLE =
   "The data engine is not responding — it may have stopped. Restart Vysted.";
 
+/** The message for a sidecar that accepted the request but missed its deadline. */
+export const SIDECAR_TIMED_OUT = "The data engine did not answer in time. Try again.";
+
+/**
+ * The deadline for a local list/CRUD call (custom agents, schedules, saved
+ * workflows): the sidecar answers these from SQLite in milliseconds, so 30 s
+ * means it hung. Streams and long compute (quant pricing, runs) pass none.
+ */
+export const SIDECAR_REQUEST_TIMEOUT_MS = 30_000;
+
+/** True when `signal` fired because its `timeoutMs` deadline passed. */
+function timedOut(signal: AbortSignal | null | undefined): boolean {
+  return (signal?.reason as { name?: unknown } | undefined)?.name === "TimeoutError";
+}
+
+/** The caller's signal joined with an optional deadline. */
+function withDeadline(signal?: AbortSignal, timeoutMs?: number): AbortSignal | undefined {
+  if (!timeoutMs) {
+    return signal;
+  }
+  const deadline = AbortSignal.timeout(timeoutMs);
+  return signal ? AbortSignal.any([signal, deadline]) : deadline;
+}
+
 /**
  * `fetch` against the sidecar with its transport failure named: a rejection
  * becomes `SidecarError(0, SIDECAR_UNREACHABLE)` and drops the cached base URL
- * so the next call re-resolves it. A caller's own abort passes through as is.
- * Every sidecar fetch (REST and the SSE stream) goes through here.
+ * so the next call re-resolves it; a passed `timeoutMs` deadline becomes
+ * `SidecarError(504, SIDECAR_TIMED_OUT)`. A caller's own abort passes through
+ * as is. Every sidecar fetch (REST and the SSE stream) goes through here.
  */
 export async function sidecarFetch(url: string, init?: RequestInit): Promise<Response> {
   let response: Response;
@@ -176,7 +208,7 @@ export async function sidecarFetch(url: string, init?: RequestInit): Promise<Res
     response = await fetch(url, init);
   } catch (err) {
     if (init?.signal?.aborted) {
-      throw err;
+      throw timedOut(init.signal) ? new SidecarError(504, SIDECAR_TIMED_OUT) : err;
     }
     readyPromise = null;
     reportReachability(false, SIDECAR_UNREACHABLE);
@@ -207,6 +239,8 @@ function reportReachability(reachable: boolean, reason?: string): void {
   }
 }
 
+export type SidecarMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+
 export interface SidecarRequestOptions {
   params?: QueryParams;
   /** JSON-encoded as the request body. */
@@ -214,6 +248,60 @@ export interface SidecarRequestOptions {
   /** Per-call headers (BYOK keys ride here); undefined values are dropped. */
   headers?: Record<string, string | undefined>;
   signal?: AbortSignal;
+  /** Give up after this many ms with `SidecarError(504, SIDECAR_TIMED_OUT)`;
+   *  omitted, `sidecarRequest` applies the default request budget
+   *  (R15-LIFECYCLE-027) and `sidecarRequestInit` sets no deadline. */
+  timeoutMs?: number;
+}
+
+/** Default per-request budget (R15-LIFECYCLE-027) when the caller passes no
+ *  `timeoutMs` — bounds an otherwise-eternal spinner on a hung route. */
+const DEFAULT_REQUEST_TIMEOUT_MS = SIDECAR_REQUEST_TIMEOUT_MS;
+
+/**
+ * The `RequestInit` every sidecar call carries: the session region, the search
+ * headers, the per-call headers, a JSON body and the optional deadline.
+ * {@link sidecarRequest} builds on it; a caller that must read the raw
+ * `Response` (an SSE stream) passes it to {@link sidecarFetch}, so the
+ * transport is decided here once.
+ */
+export async function sidecarRequestInit(
+  method: SidecarMethod,
+  opts: Omit<SidecarRequestOptions, "params"> = {},
+): Promise<RequestInit> {
+  // The active region rides every sidecar request (Pass B B1 locale-native
+  // contract): the sidecar reads `X-Vysted-Region` to pick region-first data
+  // providers/feeds. Read at call time so a region change reflects immediately;
+  // `getState()` is SSR/static-export safe (no window/navigator at module load).
+  const requestHeaders: Record<string, string> = {
+    "X-Vysted-Region": useSettingsStore.getState().region,
+  };
+  // The three-tier web-search contract (FR-080/083/084): the active tier and
+  // the local SearXNG URL ride every request so the sidecar dispatches search
+  // to the right backend. The tier_b BYOK OpenRouter key is OMITTED here
+  // (R15-CODE-PLATFORM-039) — this default REST path is taken by every sidecar
+  // call, including polls that never research (e.g. the watchlist's 5 s
+  // `/quotes` refresh), not just research; the SSE research transport
+  // (`chat/streaming.ts`) calls `buildSearchHeaders()` directly and keeps the
+  // full set including the key. Undefined values are dropped below (never an
+  // empty header). Merged FIRST so a per-call header arg still wins if it ever
+  // sets the same key.
+  const searchHeaders = await buildSearchHeaders({ includeKey: false });
+  for (const [key, value] of Object.entries({ ...searchHeaders, ...opts.headers })) {
+    if (value !== undefined) {
+      requestHeaders[key] = value;
+    }
+  }
+  const init: RequestInit = {
+    method,
+    headers: requestHeaders,
+    signal: withDeadline(opts.signal, opts.timeoutMs),
+  };
+  if (opts.body !== undefined) {
+    requestHeaders["Content-Type"] = "application/json";
+    init.body = JSON.stringify(opts.body);
+  }
+  return init;
 }
 
 /**
@@ -224,7 +312,7 @@ export interface SidecarRequestOptions {
  * `SidecarError(status, <human detail>)`; a 204 resolves `undefined`.
  */
 export async function sidecarRequest<T>(
-  method: "GET" | "POST" | "PUT" | "DELETE",
+  method: SidecarMethod,
   path: string,
   opts: SidecarRequestOptions = {},
 ): Promise<T> {
@@ -237,29 +325,12 @@ export async function sidecarRequest<T>(
       }
     }
   }
-  // The active region rides every sidecar request (Pass B B1 locale-native
-  // contract): the sidecar reads `X-Vysted-Region` to pick region-first data
-  // providers/feeds. Read at call time so a region change reflects immediately;
-  // `getState()` is SSR/static-export safe (no window/navigator at module load).
-  const requestHeaders: Record<string, string> = {
-    "X-Vysted-Region": useSettingsStore.getState().region,
-  };
-  // The three-tier web-search contract (FR-080/083/084): the active tier, the
-  // BYOK Exa key (keychain), and the local SearXNG URL ride every request so the
-  // sidecar dispatches search to the right backend. Undefined values are dropped
-  // below (never an empty header). Merged FIRST so a per-call header arg still
-  // wins if it ever sets the same key.
-  const searchHeaders = await buildSearchHeaders();
-  for (const [key, value] of Object.entries({ ...searchHeaders, ...opts.headers })) {
-    if (value !== undefined) {
-      requestHeaders[key] = value;
-    }
-  }
-  const init: RequestInit = { method, headers: requestHeaders, signal: opts.signal };
-  if (opts.body !== undefined) {
-    requestHeaders["Content-Type"] = "application/json";
-    init.body = JSON.stringify(opts.body);
-  }
+  // The shared client's default budget (R15-LIFECYCLE-027) rides `sidecarRequest` only: a
+  // caller of `sidecarRequestInit` (an SSE stream) states its own deadline or has none.
+  const init = await sidecarRequestInit(method, {
+    ...opts,
+    timeoutMs: opts.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS,
+  });
   const response = await sidecarFetch(url.toString(), init);
   if (!response.ok) {
     // A body with no `detail` (and a blank status text) still names the status.
@@ -277,6 +348,10 @@ export async function sidecarRequest<T>(
   try {
     return (await response.json()) as T;
   } catch (err) {
+    // The deadline can pass while the body streams in: that is a timeout.
+    if (timedOut(init.signal)) {
+      throw new SidecarError(504, SIDECAR_TIMED_OUT);
+    }
     // A 200 with a truncated / non-JSON body (sidecar crash mid-response,
     // proxy hiccup) would otherwise reject with a raw SyntaxError the callers
     // don't expect — normalize to a SidecarError so error handling is uniform
@@ -293,15 +368,6 @@ export function sidecarGet<T>(
   headers?: Record<string, string | undefined>,
 ): Promise<T> {
   return sidecarRequest<T>("GET", path, { params, headers });
-}
-
-/** Open a WebSocket to the crypto ticker stream. The caller owns the socket. */
-export async function openCryptoStream(exchange: string, symbol: string): Promise<WebSocket> {
-  const base = await getSidecarBaseUrl();
-  const url = new URL("/crypto/stream", base.replace(/^http/, "ws"));
-  url.searchParams.set("exchange", exchange);
-  url.searchParams.set("symbol", symbol);
-  return new WebSocket(url.toString());
 }
 
 /** Shape of the `/health` response. */

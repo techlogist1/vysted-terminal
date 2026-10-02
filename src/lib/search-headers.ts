@@ -73,27 +73,45 @@ export function encodeResearchModels(models: ResearchModelMap): string {
   return RESEARCH_STOPS.map((stop) => `${stop}=${models[stop]}`).join(",");
 }
 
+/** {@link buildSearchHeaders} options. */
+export interface BuildSearchHeadersOptions {
+  /**
+   * Whether to read the keychain and include the tier_b BYOK OpenRouter key
+   * (R15-CODE-PLATFORM-039). Defaults to true. The sidecar's default REST path
+   * (`sidecarRequest`) passes `false`: it is taken by every sidecar call, not
+   * just research (e.g. the watchlist's 5 s `/quotes` poll), so sending the key
+   * there does an unmemoised keychain IPC and ships the secret to routes that
+   * never research. The SSE research transport (`chat/streaming.ts`) keeps the
+   * default and gets the full header set.
+   */
+  includeKey?: boolean;
+}
+
 /**
  * Build the search headers for a sidecar request. Reads the tier + per-stop
  * models + SearXNG URL from the search-settings store (at call time, so a
- * change reflects immediately) and the BYOK key from the keychain. Header
- * values are `undefined` when absent so the caller's header-merge drops them
- * (never an empty string). The keychain is read ONLY for the lane that needs
- * it — tier_a requests never touch the OpenRouter slot.
+ * change reflects immediately) and, when `includeKey` is not disabled, the
+ * BYOK key from the keychain. Header values are `undefined` when absent so
+ * the caller's header-merge drops them (never an empty string). The keychain
+ * is read ONLY for the lane that needs it — tier_a requests, and any
+ * `includeKey: false` caller, never touch the OpenRouter slot.
  */
-export async function buildSearchHeaders(): Promise<Record<string, string | undefined>> {
+export async function buildSearchHeaders(
+  options: BuildSearchHeadersOptions = {},
+): Promise<Record<string, string | undefined>> {
+  const includeKey = options.includeKey ?? true;
   const { researchTier, searxngUrl, researchModels } = useSearchSettingsStore.getState();
 
   const tierB = researchTier === "tier_b";
   // A missing key is OMITTED, never sent blank — the sidecar's research lane
   // then stops honestly naming the unlock (retrieval still serves locally).
-  const openrouterKey = tierB ? await getOpenrouterApiKey() : null;
+  const openrouterKey = tierB && includeKey ? await getOpenrouterApiKey() : null;
   const trimmedUrl = searxngUrl.trim();
 
   return {
     "X-Vysted-Research-Tier": researchTier,
     "X-Vysted-Searxng-Url": trimmedUrl !== "" ? trimmedUrl : undefined,
-    "X-Vysted-Openrouter-Key": tierB ? (openrouterKey ?? undefined) : undefined,
+    "X-Vysted-Openrouter-Key": tierB && includeKey ? (openrouterKey ?? undefined) : undefined,
     "X-Vysted-Research-Models": tierB ? encodeResearchModels(researchModels) : undefined,
   };
 }

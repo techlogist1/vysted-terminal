@@ -133,3 +133,27 @@ def test_screener_run_invalid_request_400(client: TestClient) -> None:
     )
     # Pydantic discriminated-union mismatch is 422.
     assert response.status_code == 422
+
+
+def test_internal_error_is_500_formula_error_is_400(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-CODE-DATA-020: only a FormulaError (the caller's formula) is a 400;
+    any other ValueError out of the engine is an internal bug and stays a 500."""
+    from app import create_app
+    from services import screener
+    from services.screener_formula import FormulaError
+
+    body = {"universe": "custom", "custom_symbols": ["AAA"], "criteria": []}
+    client = TestClient(create_app(), raise_server_exceptions=False)
+
+    async def raises(exc: Exception) -> None:
+        raise exc
+
+    monkeypatch.setattr(screener, "run_screener", lambda _req: raises(ValueError("model bug")))
+    assert client.post("/screener/run", json=body).status_code == 500
+
+    monkeypatch.setattr(
+        screener, "run_screener", lambda _req: raises(FormulaError("unexpected ')'", 3))
+    )
+    response = client.post("/screener/run", json=body)
+    assert response.status_code == 400
+    assert "unexpected ')'" in response.json()["detail"]

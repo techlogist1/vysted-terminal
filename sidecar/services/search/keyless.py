@@ -282,6 +282,42 @@ class KeylessSearchBackend(SearchBackend):
         return last_error
 
 
+#: The R15-DATA-111 canary query: guaranteed real organic results on every
+#: engine. A normal ``search()`` can't tell "genuinely zero results for this
+#: query" apart from "the parser drifted off the live markup" — both look
+#: like a healthy zero-row answer — so it treats either as success (WS3). A
+#: query known in advance to always have results removes that ambiguity: a
+#: zero-row answer to THIS query is unambiguous drift. :func:`canary_check`
+#: is the opt-in probe that uses it (the live counterpart is the manual/cron
+#: ``scripts/search-live-smoke.mjs``, which exercises the real engines over
+#: the network instead of an injected fake).
+CANARY_QUERY = "apple inc stock price"
+
+
+async def canary_check(engine_id: str, engine: SearchBackend) -> dict[str, object]:
+    """Probe ONE engine with :data:`CANARY_QUERY`, flagging markup drift.
+
+    Unlike the rotation's own zero-row handling (an honest "no results",
+    recorded as SUCCESS — the engine may simply be right), a zero-row answer
+    to a query that is GUARANTEED to have real results means the parser has
+    drifted off the live markup: this records a FAILURE on the same breaker
+    :func:`tier_status` and the rotation both read, so a drifting engine gets
+    benched and shows up cooling down like any other repeated failure — no
+    separate accounting surface needed.
+    """
+    breaker = breaker_for(engine_id)
+    try:
+        response = await engine.search(CANARY_QUERY)
+    except SearchError as exc:
+        breaker.record_failure()
+        return {"engine": engine_id, "ok": False, "note": str(exc)}
+    if not response.results:
+        breaker.record_failure()
+        return {"engine": engine_id, "ok": False, "note": "parser drift"}
+    breaker.record_success()
+    return {"engine": engine_id, "ok": True, "note": f"{len(response.results)} rows"}
+
+
 def tier_status() -> dict[str, object]:
     """The honest per-engine T1 status for the UI (GET /search/status).
 
@@ -320,12 +356,14 @@ def tier_status() -> dict[str, object]:
 
 __all__ = [
     "BACKEND_ID",
+    "CANARY_QUERY",
     "ENGINE_CHAIN",
     "ENGINE_DEADLINE_SECS",
     "ENGINE_LABELS",
     "INTERSTITIAL_MARKERS",
     "LOW_QUALITY_MARKERS",
     "KeylessSearchBackend",
+    "canary_check",
     "is_low_quality",
     "tier_status",
 ]

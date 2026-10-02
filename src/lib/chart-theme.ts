@@ -42,7 +42,7 @@ export const NEUTRAL = "#a8a8a8"; // charcoal-400 -- comparison / secondary seri
 export const NEUTRAL_LIGHT = "#8f8f8f"; // distinct mid-gray (historical name)
 
 // --- RGB tuples for alpha fills (canvas wants rgba()) ------------------------
-export const ACCENT_CORAL_RGB = "204, 204, 204"; // #cccccc -- three-place lockstep
+export const ACCENT_CORAL_RGB = "204, 204, 204"; // = ACCENT_CORAL (#cccccc); change the two together
 export const POSITIVE_RGB = "63, 191, 111";
 export const NEGATIVE_RGB = "229, 84, 75";
 

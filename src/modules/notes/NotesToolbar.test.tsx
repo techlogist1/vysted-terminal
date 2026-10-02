@@ -113,3 +113,31 @@ describe("NotesToolbar — R15-UI-024", () => {
     expect(editorOf().getText()).toBe("[[");
   });
 });
+
+describe("NotesToolbar — R15-DOCS-010", () => {
+  beforeEach(() => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+  });
+
+  afterEach(() => {
+    cleanup();
+    useNotesStore.setState({ general: "", bySymbol: {}, focusSymbol: "" });
+  });
+
+  it("the active toolbar button carries the fill class", async () => {
+    await renderPanel();
+    const boldButton = screen.getByRole("button", { name: "Bold" });
+    // classList token checks: the inactive string carries hover:bg-charcoal-800,
+    // so a className substring match cannot tell active from inactive.
+    expect(boldButton.classList.contains("bg-charcoal-800")).toBe(false);
+    expect(boldButton.getAttribute("aria-pressed")).toBe("false");
+
+    fireEvent.click(boldButton);
+
+    await waitFor(() => {
+      expect(boldButton.classList.contains("bg-charcoal-800")).toBe(true);
+      expect(boldButton.getAttribute("aria-pressed")).toBe("true");
+    });
+  });
+});
