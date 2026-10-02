@@ -772,7 +772,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   of work, and they remove the SEC and OpenBB data lanes. Get a lawyer's read before you sell
   the first commercial licence. The question is whether shipping AGPL programs next to a
   commercially licensed core needs more than notices. Only a lawyer can answer it.
-- **Status: awaiting operator**
+- **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator.
 
 ### 5.2 `frozendict` 2.4.7 (LGPL v3) is frozen into the main and openbb-mcp sidecars
 
@@ -794,7 +794,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
 - **Recommendation:** (a). It is one notices entry, and the public rebuild recipe is what
   makes swapping the library practical. (c) would make replacement easier still, but only
   when the cold-bind work lands for its own reasons, not for this.
-- **Status: awaiting operator**
+- **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator.
 
 ### 5.3 `r-efi` and the four packages with empty licence metadata: no licence gap found
 
@@ -815,7 +815,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   the 5.1 notices file under the licences their shipped files state. Separately, the
   licence scanner (`scripts/r15/licence_scan.py`) could fall back to `License-File`. That
   is tooling work, not Tier-4.
-- **Status: awaiting operator** (acknowledge only)
+- **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator. (acknowledge only)
 
 ### 5.4 `CLAUDE.md` still states AGPL-3.0: fixed on the unmerged version branch
 
@@ -833,7 +833,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   the stale line misleads no user. Keeping the bump out of the gated sha keeps the gate's
   verdict valid. Review the `CLAUDE.md` diff in `1dfda1f3` before the merge, because it is a
   Tier-1 file.
-- **Status: awaiting operator**
+- **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator.
 
 ### 5.5 Windows stays unverified for 0.9.0 (runbook §10, NEEDS-MANUAL-CHECK)
 
@@ -852,7 +852,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   Attach no Windows installer to the GitHub release until one attended Windows build and
   smoke test has passed. That would be the first real signal from 655+ commits of work that
   has never been built on Windows.
-- **Status: awaiting operator**
+- **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator.
 
 ### 5.6 Secrets scan: nothing classed `real_or_unknown`
 
@@ -864,7 +864,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   location to rotate and no value to list.
 - **Recommendation:** no action. Re-run the same scan at the tag sha as part of the gate, so
   that the files landed since `4d893147` are covered too.
-- **Status: awaiting operator** (acknowledge only)
+- **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator. (acknowledge only)
 
 ### 5.7 Rollback artefact: no post-D81 build exists to roll back to
 
@@ -880,7 +880,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
 - **Recommendation:** (a) from this release on. Until a second post-D81 build exists,
   rollback for 0.9.0 means pulling the release (§11's first paragraph) and fixing forward.
   Do not reinstall the `com.vysted.desk` copy as a rollback.
-- **Status: awaiting operator**
+- **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator.
 
 ### 5.8 The filing-watcher groundwork evidence folder and its two tooling files are in the public tree
 
@@ -901,7 +901,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   never carry them. Do not do (c): it needs a force-push of a public branch, and the files
   would stay in any clone taken before the rewrite. The measurement work stays on disk, which
   is all its later use needs.
-- **Status: awaiting operator**
+- **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator.
 
 ### 5.9 Rehearsal boundary incident: WebKit housekeeping files written under your real `~/Library`
 
@@ -921,7 +921,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   `~/Library/WebKit`. A `HOME=` override proves data-dir isolation and sidecar warm-up only,
   as `REHEARSAL.md:93-94` corrections 5 and 6 say. That runbook edit is a draft-doc change the
   lead lands at the runbook refresh, and it needs no sign-off.
-- **Status: awaiting operator** (the cache clear only)
+- **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator. (the cache clear only)
 
 ### 5.11 R15-DOCS-026: CLAUDE.md capture-path pointer, folded into the single CLAUDE.md commit
 
@@ -949,7 +949,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   and `spctl -a -t exec` both reject the bundle (`REHEARSAL.md:39`). **Disposition:** this is
   the documented signing limitation. Signing is the operator-only step in runbook §8 and
   §2.8 (R15-RELEASE-001). It is not a defect.
-- **Status: awaiting operator** (no new decision: both ride §2.21 and §2.8)
+- **Status: operator-default 03:22 IST Sat 3 Oct 2026** — the recommended option applies under the RESUME 3 standing rule (no answer in one 5-hour window since 26 Sep); recorded by the lead, revocable by the operator. (no new decision: both ride §2.21 and §2.8)
 
 ### 5.12 Lead ruling on the three-failure count for R15-DATA-002 (critical): a non-delivery is not a certification failure
 
