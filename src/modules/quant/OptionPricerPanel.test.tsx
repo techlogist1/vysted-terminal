@@ -131,7 +131,7 @@ describe("OptionPricerPanel", () => {
     const priceBtn = screen.getByTestId("price-option") as HTMLButtonElement;
     expect(priceBtn.disabled).toBe(true);
     fireEvent.click(priceBtn);
-    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+    expect(sidecarRequest).not.toHaveBeenCalled();
   });
 
   it("surfaces errors from the store via the error card", async () => {

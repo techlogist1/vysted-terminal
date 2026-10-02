@@ -166,8 +166,15 @@ describe("AgentBuilderPanel", () => {
   });
 
   it("POSTs the payload and refreshes the list on save", async () => {
-    fetchMock.mockImplementationOnce(async () => {
-      return new Response(JSON.stringify([]), { status: 200 });
+    // The mount-time list GET answers an empty list, routed by URL rather than
+    // call order: the store's shared transport (R15-CODE-FRONTEND-027) builds
+    // its headers before fetching, so the panel's tool-ids GET can land first.
+    const defaultFetch = fetchMock.getMockImplementation();
+    fetchMock.mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (input.toString().endsWith("/custom-agents")) {
+        return new Response(JSON.stringify([]), { status: 200 });
+      }
+      return defaultFetch?.(input, init);
     });
     render(<AgentBuilderPanel />);
     await screen.findByText("New custom agent");

@@ -117,6 +117,6 @@ describe("YieldCurvePanel", () => {
     const bootstrapBtn = screen.getByTestId("bootstrap-curve") as HTMLButtonElement;
     expect(bootstrapBtn.disabled).toBe(true);
     fireEvent.click(bootstrapBtn);
-    expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+    expect(sidecarRequest).not.toHaveBeenCalled();
   });
 });
