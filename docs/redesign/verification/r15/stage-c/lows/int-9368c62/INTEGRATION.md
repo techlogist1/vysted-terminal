@@ -65,3 +65,12 @@ Pytest (16):
 - test_workspace::test_any_name_round_trips[a%41]: P2 R15-UI-082 encodes % but the load path unquotes to "aA"; workspace_store x existing test (c10c274a).
 
 Fixed during integration (mechanical): test_b7_research_result_limit brave/mojeek (2 ids) went green after late-binding the parse hook.
+
+## Round 2
+
+- Merges (--no-ff, in order): fix-A 3af0502c (840d5ea9), fix-B 1e924996 (0f5ac5db), fix-C 0f1c0074 (8597d991). No conflicts.
+- Encoding pass: test_tests_encoding.py named new test files; explicit encoding= added (3ecb019d). ruff format on sidecar/tests/test_agents_router.py (92fb7d40).
+- Safety diff vs 9368c626: docs/SAFETY_ARCHITECTURE.md (R15-DOCS-025 AUTO_APPLIED_KINDS sentence only, 5+/4-) and src/store/proposed-changes.ts (R15-CODE-FRONTEND-034, lead-ruled equivalent ack-status refactor, 3+/4-). types/proposed-change.ts, test_no_trading_surface.py, types/plugin.ts: empty.
+- Chain: single pnpm ci-local invocation, EXIT=0. Stages: install, ensure-all-sidecars, lint+token audit, prettier (453 files formatted), tsc, cargo fmt, clippy, ruff (all checks passed), vitest 169 files / 2031 tests passed, cargo test 31 passed, pytest 3921 passed 1 skipped.
+- Smoke: node scripts/smoke-test-sidecars.mjs EXIT=0 (3 sidecars, /agents roster 13, mcp toolCount 39).
+- Logs: logs/round-2/. Status green.
