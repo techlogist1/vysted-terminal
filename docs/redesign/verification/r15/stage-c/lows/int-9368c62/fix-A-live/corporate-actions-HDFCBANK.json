@@ -1,0 +1,233 @@
+{
+ "symbol": "HDFCBANK",
+ "count": 20,
+ "actions": [
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Dividend - Rs 13 Per Share",
+   "ratio": null,
+   "amount_per_share": 13.0,
+   "ex_date": "2026-06-19",
+   "record_date": "2026-06-19",
+   "payment_date": null,
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "bonus",
+   "purpose": "Bonus 1:1",
+   "ratio": "1:1",
+   "amount_per_share": null,
+   "ex_date": "2025-08-26",
+   "record_date": "2025-08-27",
+   "payment_date": null,
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Special Dividend - Rs 5 Per Share",
+   "ratio": null,
+   "amount_per_share": 5.0,
+   "ex_date": "2025-07-25",
+   "record_date": "2025-07-25",
+   "payment_date": "2025-08-11",
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Dividend - Rs 22 Per Share",
+   "ratio": null,
+   "amount_per_share": 22.0,
+   "ex_date": "2025-06-27",
+   "record_date": "2025-06-27",
+   "payment_date": null,
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Dividend - Rs 19.50 Per Share",
+   "ratio": null,
+   "amount_per_share": 19.5,
+   "ex_date": "2024-05-10",
+   "record_date": "2024-05-10",
+   "payment_date": null,
+   "exchange": "NSE+BSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Dividend - Rs 19 Per Share",
+   "ratio": null,
+   "amount_per_share": 19.0,
+   "ex_date": "2023-05-16",
+   "record_date": "2023-05-16",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Dividend - Rs 15.50 Per Share",
+   "ratio": null,
+   "amount_per_share": 15.5,
+   "ex_date": "2022-05-12",
+   "record_date": "2022-05-13",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Dividend - Rs 6.50 Per Share",
+   "ratio": null,
+   "amount_per_share": 6.5,
+   "ex_date": "2021-06-29",
+   "record_date": "2021-06-30",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "split",
+   "purpose": "Face Value Split (Sub-Division) - From Rs 2 Per Share To Rs 1 Per Share",
+   "ratio": null,
+   "amount_per_share": null,
+   "ex_date": "2019-09-19",
+   "record_date": "2019-09-20",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Special Dividend - Rs 5 Per Share",
+   "ratio": null,
+   "amount_per_share": 5.0,
+   "ex_date": "2019-08-01",
+   "record_date": "2019-08-02",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Dividend Rs 15 Per Sh",
+   "ratio": null,
+   "amount_per_share": 15.0,
+   "ex_date": "2019-06-20",
+   "record_date": "2019-06-21",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Dividend- Rs 13 Per Share",
+   "ratio": null,
+   "amount_per_share": 13.0,
+   "ex_date": "2018-05-31",
+   "record_date": "2018-06-01",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Dividend - Rs 11/- Per Share",
+   "ratio": null,
+   "amount_per_share": 11.0,
+   "ex_date": "2017-06-29",
+   "record_date": "2017-06-30",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Dividend - Rs 9.50/- Per Share",
+   "ratio": null,
+   "amount_per_share": 9.5,
+   "ex_date": "2016-06-29",
+   "record_date": "2016-06-30",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Annual General Meeting/ Dividend - Rs 8/- Per Share",
+   "ratio": null,
+   "amount_per_share": 8.0,
+   "ex_date": "2015-07-02",
+   "record_date": null,
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Annual General Meeting And Dividend - Rs.6.85/- Per Share",
+   "ratio": null,
+   "amount_per_share": 6.85,
+   "ex_date": "2014-06-05",
+   "record_date": null,
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Annual General Meeting / Final Dividend Rs.5.50/- Per Equity Share",
+   "ratio": null,
+   "amount_per_share": 5.5,
+   "ex_date": "2013-06-13",
+   "record_date": null,
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Annual General Meeting And Dividend Rs.4.30 Per Share",
+   "ratio": null,
+   "amount_per_share": 4.3,
+   "ex_date": "2012-06-28",
+   "record_date": null,
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "split",
+   "purpose": "Face Value Split From Rs.10/- To Rs.2/-",
+   "ratio": null,
+   "amount_per_share": null,
+   "ex_date": "2011-07-14",
+   "record_date": "2011-07-16",
+   "payment_date": null,
+   "exchange": "NSE"
+  },
+  {
+   "symbol": "HDFCBANK",
+   "kind": "dividend",
+   "purpose": "Annual General Meeting And Dividend Rs.16.50 Per Share",
+   "ratio": null,
+   "amount_per_share": 16.5,
+   "ex_date": "2011-06-02",
+   "record_date": null,
+   "payment_date": null,
+   "exchange": "NSE"
+  }
+ ],
+ "sources": [
+  "NSE",
+  "BSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": null
+}
