@@ -101,7 +101,7 @@ def estimate_cost_usd(query: str) -> float:
 def _human_http_error(exc: httpx.HTTPStatusError, *, vendor: str) -> str:
     """Translate a hosted-lane HTTP error into a clean, key-free human message.
 
-    Shared by every :class:`_HostedResearchLane` (Perplexity direct, Sonar via
+    Shared by every :class:`HostedResearchLane` (Perplexity direct, Sonar via
     OpenRouter — R15-CODE-RESEARCH-008): the two lanes had drifted to map the
     SAME status set differently (402 handled only on the OpenRouter side); one
     vendor-templated mapping keeps them identical, incl. 402.
@@ -144,7 +144,7 @@ def _extract_markdown(body: dict[str, Any]) -> str:
     return content.strip() if isinstance(content, str) else ""
 
 
-def _domain_of(url: str) -> str | None:
+def domain_of(url: str) -> str | None:
     """Best-effort host label for a citation url (display only, never required)."""
     try:
         host = httpx.URL(url).host
@@ -186,7 +186,7 @@ def _extract_sources(body: dict[str, Any]) -> list[ResearchSource]:
         info = meta.get(url, {})
         title = info.get("title") if isinstance(info.get("title"), str) else None
         excerpt = info.get("snippet") if isinstance(info.get("snippet"), str) else None
-        host = _domain_of(url)
+        host = domain_of(url)
         sources.append(
             ResearchSource(
                 url=url,
@@ -228,7 +228,7 @@ def _cost_snapshot(query: str) -> dict[str, Any]:
     }
 
 
-class _HostedResearchLane:
+class HostedResearchLane:
     """Shared plumbing for a one-call hosted deep-research backend.
 
     Perplexity direct and Perplexity Sonar via OpenRouter (:mod:`services.
@@ -348,7 +348,7 @@ class PerplexityDeepBackend:
     name = "perplexity"
 
     def __init__(self, api_key: str | None, *, client: httpx.AsyncClient | None = None) -> None:
-        self._lane = _HostedResearchLane(
+        self._lane = HostedResearchLane(
             base_url=PERPLEXITY_URL,
             model=PERPLEXITY_DEEP_MODEL,
             vendor="Perplexity",
@@ -362,7 +362,7 @@ class PerplexityDeepBackend:
     async def research(self, query: str, *, region: str | None = None) -> ResearchBrief:
         """Run a deep-research pass for ``query`` and map it to a ``ResearchBrief``.
 
-        See :meth:`_HostedResearchLane.research`.
+        See :meth:`HostedResearchLane.research`.
         """
         return await self._lane.research(query, region=region)
 
@@ -372,7 +372,9 @@ __all__ = [
     "PERPLEXITY_DEEP_MODEL",
     "PERPLEXITY_URL",
     "PROVENANCE_NOTE",
+    "HostedResearchLane",
     "PerplexityDeepBackend",
+    "domain_of",
     "estimate_cost_usd",
     "is_configured",
 ]

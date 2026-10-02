@@ -78,13 +78,19 @@ def _build_ddg(*, searxng_url: str | None, region: str | None, **_: object) -> S
     Wrapped in :class:`_PacedBackend`: this bare-id lane runs OUTSIDE the
     keyless rotation, so unlike ``DdgSearchBackend`` used via
     :mod:`services.search.keyless` (which the rotation already paces), nothing
-    else paces it (R15-CODE-RESEARCH-009).
+    else paces it (R15-CODE-RESEARCH-009). The paced lane stays a
+    ``DdgSearchBackend`` so callers that type-check the floor still see one.
     """
     try:
         from .ddg import DdgSearchBackend
     except ImportError:
         return None
-    return _PacedBackend(DdgSearchBackend(region=region), engine_id="ddg")
+
+    class _PacedDdgSearchBackend(DdgSearchBackend):
+        async def search(self, query: str, *, options: dict | None = None) -> SearchResponse:
+            return await _PacedBackend(super(), engine_id="ddg").search(query, options=options)
+
+    return _PacedDdgSearchBackend(region=region)
 
 
 def _build_keyless(

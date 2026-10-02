@@ -107,7 +107,10 @@ def test_any_name_round_trips(client: TestClient, name: str) -> None:
     """R15-CODE-FRONTEND-004: the frontend's research-space names ("Research:
     TICKER") and any other name save, load, list and delete — the store
     percent-encodes the filename instead of rejecting the name."""
-    url = f"/workspace/{quote(name, safe='')}"
+    # Starlette's TestClient unquotes httpx's already-decoded path a second
+    # time (a real server decodes once), so the segment is encoded twice to
+    # reach the router as ``name``; otherwise ``a%41`` arrives as ``aA``.
+    url = f"/workspace/{quote(quote(name, safe=''), safe='')}"
     workspace = _sample_workspace(name)
     assert client.post("/workspace", json={"name": name, "workspace": workspace}).status_code == 200
     assert client.get(url).json() == workspace
