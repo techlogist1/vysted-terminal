@@ -226,3 +226,32 @@ def test_ollama_pull_reports_error_as_stream_event(
     assert resp.status_code == 200
     assert '"error"' in resp.text
     assert "daemon down" in resp.text
+
+
+def test_provider_health_mutations_404_without_rig_hooks_flag(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-LIFECYCLE-033: trip/reset are verification-rig affordances — 404
+    in a plain production run (no VYSTED_RIG_HOOKS env var set)."""
+    monkeypatch.delenv("VYSTED_RIG_HOOKS", raising=False)
+    assert client.post("/system/provider-health/trip", json={"weight": 3.0}).status_code == 404
+    assert client.post("/system/provider-health/reset").status_code == 404
+
+
+def test_provider_health_mutations_work_with_rig_hooks_flag(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from services import provider_health
+
+    monkeypatch.setenv("VYSTED_RIG_HOOKS", "1")
+    provider_health.reset_for_tests()
+    try:
+        resp = client.post("/system/provider-health/trip", json={"weight": 3.0})
+        assert resp.status_code == 200
+        assert resp.json()["yahoo"]["open"] is True
+
+        resp = client.post("/system/provider-health/reset")
+        assert resp.status_code == 200
+        assert resp.json()["yahoo"]["open"] is False
+    finally:
+        provider_health.reset_for_tests()

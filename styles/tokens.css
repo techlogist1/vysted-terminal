@@ -80,7 +80,15 @@
   --color-positive-bright: #4ade80; /* gain flash peak */
   --color-negative: #e5544b; /* muted red, luminance-matched -- losses */
   --color-negative-bright: #f87171; /* loss flash peak */
-  --color-warning: #e0a13a; /* stale / paper / caution badge */
+  --color-warning: #e0a13a; /* DATA signal only -- stale/synthetic/paper/partial/
+    throttled market data (DataBadges, screener PARTIAL, EquityOverview stale/
+    flagged, brief source conflicts, portfolio quote-refresh failure). Never
+    infra/lifecycle/config -- see --color-caution (R15-UI-073). */
+  --color-caution: #e0a13a; /* INFRA/LIFECYCLE signal -- Docker/engine health,
+    plugin/run lifecycle (initializing/stopping/paused/budget), config nags
+    (no BYOK key, no tool-calling, keybinding conflict), generic form
+    validation. Same value as --color-warning today (no visual change); the
+    split is semantic so the two can diverge without a call-site hunt later. */
 
   /* --- Research depth heat (R9) -- the ONE designed color family beyond the
    * scarce accent: white -> peach -> ember escalation for the composer send

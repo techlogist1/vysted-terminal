@@ -3,11 +3,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { WorkflowRunEvent, WorkflowSpec } from "../../types/workflow";
 
 // Stub the Tauri-coupled ``getSidecarBaseUrl`` so the store resolves a URL
-// without a desktop runtime.
-vi.mock("@/lib/sidecar-client", () => ({
-  getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:51763"),
-}));
+// without a desktop runtime; runWorkflow rides the real shared transport
+// (sidecarRequestInit + sidecarFetch, R15-CODE-FRONTEND-027).
+vi.mock("@/lib/sidecar-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+  return { ...actual, getSidecarBaseUrl: () => Promise.resolve("http://127.0.0.1:51763") };
+});
 
+import { useSettingsStore } from "@/store/settings";
 import {
   selectActiveRunLog,
   selectPendingNotifications,
@@ -135,8 +139,8 @@ describe("useWorkflowStore — event accumulation", () => {
     expect(useWorkflowStore.getState().pendingNotifications).toEqual([]);
   });
 
-  it("drainNotifications returns and clears the queue", () => {
-    const { appendEvent, drainNotifications } = useWorkflowStore.getState();
+  it("takeNotifications returns and clears the queue", () => {
+    const { appendEvent, takeNotifications } = useWorkflowStore.getState();
     appendEvent({
       kind: "node-output",
       runId: "r1",
@@ -144,9 +148,26 @@ describe("useWorkflowStore — event accumulation", () => {
       outputs: { intent: "desktop-notification", notified: true, title: "T", message: "M" },
       durationMs: 1,
     });
-    const drained = drainNotifications();
+    const drained = takeNotifications();
     expect(drained).toHaveLength(1);
     expect(useWorkflowStore.getState().pendingNotifications).toEqual([]);
+  });
+
+  it("append a, take, append b -> b still pending", () => {
+    const { appendEvent, takeNotifications } = useWorkflowStore.getState();
+    const notify = (nodeId: string, title: string) =>
+      appendEvent({
+        kind: "node-output",
+        runId: "r1",
+        nodeId,
+        outputs: { intent: "desktop-notification", notified: true, title, message: "M" },
+        durationMs: 1,
+      });
+    notify("na", "a");
+    const taken = takeNotifications();
+    notify("nb", "b");
+    expect(taken.map((i) => i.title)).toEqual(["a"]);
+    expect(useWorkflowStore.getState().pendingNotifications.map((i) => i.title)).toEqual(["b"]);
   });
 
   it("clearRun drops one run's log; clearAll drops all", () => {
@@ -289,6 +310,23 @@ describe("useWorkflowStore.runWorkflow — SSE consumption", () => {
     await expect(useWorkflowStore.getState().runWorkflow(_spec())).rejects.toThrow(
       /Internal Error|500/,
     );
+  });
+
+  it("R15-CODE-FRONTEND-027: the run rides the shared transport and a JSON detail is the error", async () => {
+    useSettingsStore.setState({ region: "IN" });
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(
+        new Response(JSON.stringify({ detail: "unknown node type: foo.bar" }), { status: 422 }),
+      );
+
+    await expect(useWorkflowStore.getState().runWorkflow(_spec())).rejects.toThrow(
+      /^unknown node type: foo\.bar$/,
+    );
+    const headers = fetchMock.mock.calls[0]![1]?.headers as Record<string, string>;
+    expect(headers["X-Vysted-Region"]).toBe("IN");
+    expect(headers.Accept).toBe("text/event-stream");
+    expect(headers["Content-Type"]).toBe("application/json");
   });
 
   it("rejects when the stream closes without ever seeing run-start", async () => {

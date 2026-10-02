@@ -180,9 +180,6 @@ export interface ScreenerResultRow {
   change_percent_1d: number | null;
   /** Volume (most recent close). */
   volume: number | null;
-  /** Per-criterion match scores keyed by criterion index — surfaced in the
-   * results table for column hover-explain. */
-  matched_criteria: number[];
   // --- R11 (D52/D57) honest-basis block — optional for older payloads. ---
   /** Listing currency of the currency-denominated fields (market_cap, price). */
   currency?: string | null;

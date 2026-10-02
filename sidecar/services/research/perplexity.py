@@ -37,6 +37,7 @@ the key. No test makes a live call — see ``tests/test_perplexity_backend.py``
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 import httpx
@@ -97,21 +98,31 @@ def estimate_cost_usd(query: str) -> float:
     return round(min(estimate, _ESTIMATE_CEILING_USD), 4)
 
 
-def _human_http_error(exc: httpx.HTTPStatusError) -> str:
-    """Translate a Perplexity HTTP error into a clean, key-free human message."""
+def _human_http_error(exc: httpx.HTTPStatusError, *, vendor: str) -> str:
+    """Translate a hosted-lane HTTP error into a clean, key-free human message.
+
+    Shared by every :class:`_HostedResearchLane` (Perplexity direct, Sonar via
+    OpenRouter — R15-CODE-RESEARCH-008): the two lanes had drifted to map the
+    SAME status set differently (402 handled only on the OpenRouter side); one
+    vendor-templated mapping keeps them identical, incl. 402.
+    """
     status = exc.response.status_code
     if status in (401, 403):
         return (
-            "Perplexity rejected the request — check that your Perplexity API "
-            "key is valid and active."
+            f"{vendor} rejected the request — check that your {vendor} API key is valid and active."
+        )
+    if status == 402:
+        return (
+            f"{vendor} reports insufficient credits for the research run — top up "
+            "your account to use the hosted research lane."
         )
     if status == 429:
-        return "Perplexity rate limit reached — slow down or check your plan's quota."
+        return f"{vendor} rate limit reached — slow down or check your plan's quota."
     if status == 400:
-        return "Perplexity could not process the research request (bad query or parameters)."
+        return f"{vendor} could not process the research request (bad query or parameters)."
     if status >= 500:
-        return "Perplexity is temporarily unavailable (server error) — try again shortly."
-    return f"Perplexity deep research failed with HTTP {status}."
+        return f"{vendor} is temporarily unavailable (server error) — try again shortly."
+    return f"{vendor} research failed with HTTP {status}."
 
 
 def _extract_markdown(body: dict[str, Any]) -> str:
@@ -217,6 +228,108 @@ def _cost_snapshot(query: str) -> dict[str, Any]:
     }
 
 
+class _HostedResearchLane:
+    """Shared plumbing for a one-call hosted deep-research backend.
+
+    Perplexity direct and Perplexity Sonar via OpenRouter (:mod:`services.
+    research.sonar`) are ONE lane written twice (R15-CODE-RESEARCH-008): same
+    request shape, same HTTP status handling, same markdown extraction, same
+    ``ResearchBrief`` construction. Only the endpoint, routed model, vendor
+    label/provenance, missing-key message, source extraction (Perplexity reads
+    ``citations[]``+``search_results[]``; the OpenRouter lane also normalizes
+    OpenAI-style ``url_citation`` annotations) and cost estimate differ per
+    vendor — each backend class below is a thin constructor over this.
+    """
+
+    def __init__(
+        self,
+        *,
+        base_url: str,
+        model: str,
+        vendor: str,
+        no_key_message: str,
+        extract_sources: Callable[[dict[str, Any]], list[ResearchSource]],
+        cost_snapshot: Callable[[str], dict[str, Any]],
+        api_key: str | None,
+        client: httpx.AsyncClient | None,
+    ) -> None:
+        self._base_url = base_url
+        self._model = model
+        self._vendor = vendor
+        self._no_key_message = no_key_message
+        self._extract_sources = extract_sources
+        self._cost_snapshot = cost_snapshot
+        self._api_key = (api_key or "").strip()
+        self._client = client
+
+    async def research(self, query: str, *, region: str | None = None) -> ResearchBrief:
+        """Run one hosted deep-research pass and map it to a ``ResearchBrief``.
+
+        ``region`` is accepted for interface parity with the native research
+        path (each vendor does region selection internally; it is not
+        forwarded as a vendor parameter). Raises
+        :class:`~services.search.base.SearchError` — human message, never raw
+        vendor JSON, never the key — when the key is missing or the upstream
+        call fails.
+        """
+        if not self._api_key:
+            raise SearchError(self._no_key_message)
+
+        text = (query or "").strip()
+        if not text:
+            raise SearchError("Research query is empty.")
+
+        payload: dict[str, Any] = {
+            "model": self._model,
+            "messages": [{"role": "user", "content": text}],
+        }
+        headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Content-Type": "application/json",
+        }
+
+        try:
+            if self._client is not None:
+                response = await self._client.post(
+                    self._base_url, json=payload, headers=headers, timeout=_HTTP_TIMEOUT
+                )
+            else:
+                async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
+                    response = await client.post(self._base_url, json=payload, headers=headers)
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            raise SearchError(_human_http_error(exc, vendor=self._vendor)) from exc
+        except httpx.HTTPError as exc:
+            raise SearchError(
+                f"Could not reach {self._vendor} — check your network connection."
+            ) from exc
+
+        try:
+            body: dict[str, Any] = response.json()
+        except ValueError as exc:
+            raise SearchError(
+                f"{self._vendor} returned a response that could not be parsed."
+            ) from exc
+
+        markdown = _extract_markdown(body)
+        if not markdown:
+            raise SearchError(f"{self._vendor} returned an empty research brief.")
+
+        sources = self._extract_sources(body)
+
+        return ResearchBrief(
+            query=text,
+            symbol="",
+            mode=DEEP_MODE,
+            markdown=markdown,
+            sources=sources,
+            source_count=len(sources),
+            cost=self._cost_snapshot(text),
+            web_available=True,
+            note=None,
+        )
+
+
 class PerplexityDeepBackend:
     """Perplexity ``sonar-deep-research`` DEEP backend (FR-073).
 
@@ -235,74 +348,23 @@ class PerplexityDeepBackend:
     name = "perplexity"
 
     def __init__(self, api_key: str | None, *, client: httpx.AsyncClient | None = None) -> None:
-        self._api_key = (api_key or "").strip()
-        self._client = client
+        self._lane = _HostedResearchLane(
+            base_url=PERPLEXITY_URL,
+            model=PERPLEXITY_DEEP_MODEL,
+            vendor="Perplexity",
+            no_key_message="Perplexity needs an API key to run deep research — add one to opt in.",
+            extract_sources=_extract_sources,
+            cost_snapshot=_cost_snapshot,
+            api_key=api_key,
+            client=client,
+        )
 
     async def research(self, query: str, *, region: str | None = None) -> ResearchBrief:
         """Run a deep-research pass for ``query`` and map it to a ``ResearchBrief``.
 
-        ``region`` is accepted for interface parity with the native research path
-        (Perplexity does region selection internally; it is not forwarded as a
-        vendor parameter). Raises :class:`~services.search.base.SearchError` —
-        human message, never raw vendor JSON, never the key — when the key is
-        missing or the upstream call fails.
+        See :meth:`_HostedResearchLane.research`.
         """
-        if not self._api_key:
-            raise SearchError(
-                "Perplexity needs an API key to run deep research — add one to opt in."
-            )
-
-        text = (query or "").strip()
-        if not text:
-            raise SearchError("Research query is empty.")
-
-        payload: dict[str, Any] = {
-            "model": PERPLEXITY_DEEP_MODEL,
-            "messages": [{"role": "user", "content": text}],
-        }
-        headers = {
-            "Authorization": f"Bearer {self._api_key}",
-            "Content-Type": "application/json",
-        }
-
-        try:
-            if self._client is not None:
-                response = await self._client.post(
-                    PERPLEXITY_URL, json=payload, headers=headers, timeout=_HTTP_TIMEOUT
-                )
-            else:
-                async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
-                    response = await client.post(PERPLEXITY_URL, json=payload, headers=headers)
-            response.raise_for_status()
-        except httpx.HTTPStatusError as exc:
-            raise SearchError(_human_http_error(exc)) from exc
-        except httpx.HTTPError as exc:
-            raise SearchError(
-                "Could not reach Perplexity — check your network connection."
-            ) from exc
-
-        try:
-            body: dict[str, Any] = response.json()
-        except ValueError as exc:
-            raise SearchError("Perplexity returned a response that could not be parsed.") from exc
-
-        markdown = _extract_markdown(body)
-        if not markdown:
-            raise SearchError("Perplexity returned an empty research brief.")
-
-        sources = _extract_sources(body)
-
-        return ResearchBrief(
-            query=text,
-            symbol="",
-            mode=DEEP_MODE,
-            markdown=markdown,
-            sources=sources,
-            source_count=len(sources),
-            cost=_cost_snapshot(text),
-            web_available=True,
-            note=None,
-        )
+        return await self._lane.research(query, region=region)
 
 
 __all__ = [

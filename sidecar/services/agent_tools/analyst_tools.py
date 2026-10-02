@@ -9,7 +9,8 @@ targets:
 * ``price_target_history(symbol)`` — price-target timeline.
 
 The tools wrap :mod:`services.analyst_ratings_extended`; provider errors
-surface as ``{"ok": False, "error": "<msg>"}``.
+propagate to :func:`services.agent_tools.invoke_tool`, which surfaces them
+as ``{"ok": False, "error": "<msg>"}``.
 
 These are read-only data tools (Vysted has no trading path, D81).
 """
@@ -20,7 +21,6 @@ from typing import Any
 
 from services import analyst_ratings_extended
 from services.agent_tools import register_tool
-from services.errors import ProviderError
 
 # Cap per-tool returns so a chatty backfill (200+ rows) doesn't blow up the
 # model prompt budget. The frontend always paginates these locally so this
@@ -33,12 +33,7 @@ async def _analyst_history(args: dict[str, Any]) -> dict[str, Any]:
     symbol = args.get("symbol")
     if not isinstance(symbol, str) or not symbol:
         return {"ok": False, "error": "missing or non-string symbol"}
-    try:
-        response = await analyst_ratings_extended.get_ratings_history(symbol)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await analyst_ratings_extended.get_ratings_history(symbol)
     rows = response.history[:_MAX_HISTORY_ROWS]
     return {
         "ok": True,
@@ -53,12 +48,7 @@ async def _analyst_individual(args: dict[str, Any]) -> dict[str, Any]:
     symbol = args.get("symbol")
     if not isinstance(symbol, str) or not symbol:
         return {"ok": False, "error": "missing or non-string symbol"}
-    try:
-        response = await analyst_ratings_extended.get_individual_analysts(symbol)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await analyst_ratings_extended.get_individual_analysts(symbol)
     rows = response.analysts[:_MAX_HISTORY_ROWS]
     return {
         "ok": True,
@@ -73,12 +63,7 @@ async def _price_target_history(args: dict[str, Any]) -> dict[str, Any]:
     symbol = args.get("symbol")
     if not isinstance(symbol, str) or not symbol:
         return {"ok": False, "error": "missing or non-string symbol"}
-    try:
-        response = await analyst_ratings_extended.get_price_target_history(symbol)
-    except ProviderError as exc:
-        return {"ok": False, "error": f"provider error: {exc}"}
-    except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": f"unexpected error: {exc}"}
+    response = await analyst_ratings_extended.get_price_target_history(symbol)
     rows = response.history[:_MAX_HISTORY_ROWS]
     return {
         "ok": True,

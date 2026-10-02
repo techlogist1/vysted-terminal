@@ -78,10 +78,11 @@ async def run_screener(request: ScreenerRequest) -> ScreenerResult:
     """
     try:
         return await screener.run_screener(request)
-    except ValueError as exc:
-        # Pydantic-style validation surface beyond what the request model
-        # already enforces (e.g. an unknown universe id is a ValueError
-        # in the engine).
+    except screener_formula.FormulaError as exc:
+        # The engine re-compiles ``formula``; an unparseable one is the
+        # caller's (the request model already 422s it, so this is the backstop).
+        # Anything else raised here is an engine bug and stays a 500; an
+        # unknown universe id never reaches here (Literal -> 422).
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 

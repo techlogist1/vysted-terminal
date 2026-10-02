@@ -1,33 +1,30 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
+import { sidecarRequest } from "@/lib/sidecar-client";
 import { usePanelContextBus } from "@/store/panel-context";
 import { resetQuantStoreForTests } from "@/store/quant";
 import { useSettingsStore } from "@/store/settings";
 import { GreeksDashboard } from "./GreeksDashboard";
 
-vi.mock("@/lib/sidecar-client", () => ({
-  getSidecarBaseUrl: vi.fn().mockResolvedValue("http://127.0.0.1:9000"),
-}));
+// The quant store POSTs through the shared sidecar verb (R15-CODE-FRONTEND-027).
+vi.mock("@/lib/sidecar-client", async () => {
+  const actual =
+    await vi.importActual<typeof import("@/lib/sidecar-client")>("@/lib/sidecar-client");
+  return { ...actual, sidecarRequest: vi.fn() };
+});
 
 beforeEach(() => {
   resetQuantStoreForTests();
   usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
   // The display currency defaults to the session region's; pin it.
   useSettingsStore.setState({ region: "US" });
-  vi.stubGlobal(
-    "fetch",
-    vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: "OK",
-      json: async () => ({
-        greeks: { delta: 0.55, gamma: 0.02, vega: 30, theta: -5, rho: 12 },
-        price: 8.42,
-        duration_ms: 1.2,
-      }),
-    }),
-  );
+  vi.mocked(sidecarRequest).mockReset();
+  vi.mocked(sidecarRequest).mockResolvedValue({
+    greeks: { delta: 0.55, gamma: 0.02, vega: 30, theta: -5, rho: 12 },
+    price: 8.42,
+    duration_ms: 1.2,
+  });
 });
 
 afterEach(() => {

@@ -45,16 +45,25 @@ export function summarizeTranscript(transcript: ResearchSpaceTurn[], symbol: str
   return `Prior research on ${symbol} (${count} ${noun}). Recent: ${recent.join(" | ")}`;
 }
 
-/** Snapshot the live chat history into persistable transcript turns (capped). */
+/** Snapshot the live chat history into persistable transcript turns (capped).
+ *  A still-streaming turn is skipped; a failed or stopped one keeps its status. */
 function captureLiveTranscript(): ResearchSpaceTurn[] {
   return useChatHistoryStore
     .getState()
     .messages.filter(
       (m): m is ChatMessage & { role: "user" | "assistant" } =>
-        (m.role === "user" || m.role === "assistant") && m.content.trim().length > 0,
+        (m.role === "user" || m.role === "assistant") && !m.pending && m.content.trim().length > 0,
     )
     .slice(-RESEARCH_SPACE_TRANSCRIPT_CAP)
-    .map((m) => ({ role: m.role, content: m.content, createdAt: m.createdAt }));
+    .map((m) => {
+      const status = m.error ? "error" : m.stopped ? "stopped" : undefined;
+      return {
+        role: m.role,
+        content: m.content,
+        createdAt: m.createdAt,
+        ...(status ? { status } : {}),
+      };
+    });
 }
 
 function sameTranscript(a: ResearchSpaceTurn[], b: ResearchSpaceTurn[]): boolean {
@@ -64,18 +73,25 @@ function sameTranscript(a: ResearchSpaceTurn[], b: ResearchSpaceTurn[]): boolean
       (turn, i) =>
         turn.role === b[i].role &&
         turn.content === b[i].content &&
-        turn.createdAt === b[i].createdAt,
+        turn.createdAt === b[i].createdAt &&
+        turn.status === b[i].status,
     )
   );
 }
 
-/** Rebuild finalized `ChatMessage`s from a saved transcript (none left pending). */
+/** The error line a restored failed turn shows (the original text is not archived). */
+export const ARCHIVED_ERROR_TEXT = "This reply failed before it finished.";
+
+/** Rebuild finalized `ChatMessage`s from a saved transcript (none left pending),
+ *  restoring a failed or stopped turn's status. */
 function turnsToMessages(transcript: ResearchSpaceTurn[]): ChatMessage[] {
   return transcript.map((t, i) => ({
     id: `rs-${t.createdAt}-${i}`,
     role: t.role,
     content: t.content,
     createdAt: t.createdAt,
+    ...(t.status === "error" ? { error: ARCHIVED_ERROR_TEXT } : {}),
+    ...(t.status === "stopped" ? { stopped: true } : {}),
   }));
 }
 

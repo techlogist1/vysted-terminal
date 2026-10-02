@@ -4,7 +4,7 @@ Fetches a quote + fundamentals + a 6-month relative-performance window for
 2–4 symbols concurrently and ranks them by trailing return, so an agent can
 answer "how do AAPL, MSFT and NVDA compare?" in one call instead of fanning
 out to ``price_data``/``fundamentals`` per ticker. Registered via
-:func:`register` from :func:`services.agent_tools.registry_v0_6_0`.
+:func:`register` from :func:`services.agent_tools.register_v0_6_0_tools`.
 
 Failure isolation: each symbol is fetched in its own task wrapped so one
 provider failure surfaces as a per-symbol ``error`` field rather than tanking
@@ -246,9 +246,20 @@ async def _compare_symbols(args: dict[str, Any]) -> dict[str, Any]:
     if asset_class not in _VALID_ASSET_CLASSES:
         return {"ok": False, "error": f"asset_class must be one of {list(_VALID_ASSET_CLASSES)}"}
 
-    results = await asyncio.gather(
-        *(_compare_one(symbol, timeframe, asset_class) for symbol in symbols)
+    raw_results = await asyncio.gather(
+        *(_compare_one(symbol, timeframe, asset_class) for symbol in symbols),
+        return_exceptions=True,
     )
+    # ``_compare_one`` already catches every known failure path internally, but
+    # ``return_exceptions=True`` is the outer backstop so a truly unexpected
+    # exception still degrades to a per-symbol error row instead of raising
+    # out of ``gather`` and crashing the whole comparison (R15-AGENT-069).
+    results = [
+        {"symbol": symbol, "error": str(r), "note": f"unexpected error fetching {symbol}: {r}"}
+        if isinstance(r, BaseException)
+        else r
+        for symbol, r in zip(symbols, raw_results, strict=True)
+    ]
 
     resolved = [r for r in results if "error" not in r]
     if len(resolved) < 2:

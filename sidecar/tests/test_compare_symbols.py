@@ -18,6 +18,7 @@ import pytest
 
 from models.fundamentals import Fundamentals
 from models.market import OHLCVBar, OHLCVSeries, Quote
+from services.agent_tools import compare_symbols
 from services.agent_tools.compare_symbols import _compare_one, _compare_symbols
 
 
@@ -332,6 +333,38 @@ def test_three_symbol_failure_names_every_failed_input(monkeypatch: pytest.Monke
     assert result["ok"] is False
     assert "MAZAGONDOCK: unresolved name" in result["message"]
     assert "TCS.NS: no quote for TCS.NS" in result["message"]
+
+
+def test_one_raising_symbol_yields_one_error_row(monkeypatch: pytest.MonkeyPatch) -> None:
+    """R15-AGENT-069: ``_compare_one`` already catches every known failure, but
+    the outer ``gather`` used to omit ``return_exceptions=True`` — a truly
+    unexpected exception from one symbol's task would raise out of ``gather``
+    and crash the whole comparison instead of degrading to that one symbol."""
+    _patch_registry(
+        monkeypatch,
+        quotes={"AAPL": _quote("AAPL"), "MSFT": _quote("MSFT")},
+        series={
+            "AAPL": _series("AAPL", first=100.0, last=120.0),
+            "MSFT": _series("MSFT", first=100.0, last=110.0),
+        },
+        fundamentals={"AAPL": _fundamentals("AAPL"), "MSFT": _fundamentals("MSFT")},
+    )
+
+    real_compare_one = compare_symbols._compare_one
+
+    async def _boom_for_msft(symbol: str, timeframe: str, asset_class: str) -> dict:
+        if symbol == "MSFT":
+            raise RuntimeError("totally unexpected blowup")
+        return await real_compare_one(symbol, timeframe, asset_class)
+
+    monkeypatch.setattr(compare_symbols, "_compare_one", _boom_for_msft)
+
+    result = asyncio.run(compare_symbols._compare_symbols({"symbols": ["AAPL", "MSFT"]}))
+
+    assert result["ok"] is False
+    by_symbol = {entry["symbol"]: entry for entry in result["symbols"]}
+    assert "totally unexpected blowup" in by_symbol["MSFT"]["error"]
+    assert "MSFT" in result["message"]
 
 
 def test_company_name_is_compared_under_its_resolved_listing(

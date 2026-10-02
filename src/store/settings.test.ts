@@ -64,13 +64,22 @@ describe("settings store", () => {
     expect(useActiveAgentStore.getState().activeAgentId).toBeNull();
   });
 
-  it("the boot restore (first setAll) seeds the active agent from the blob", () => {
-    useSettingsStore.getState().setAll({ defaultAgentId: "munger" });
+  it("the boot restore seeds the active agent from the blob", () => {
+    useSettingsStore.getState().setAll({ defaultAgentId: "munger" }, { applyDefaultAgent: true });
     expect(useActiveAgentStore.getState().activeAgentId).toBe("munger");
   });
 
+  it("R15-CODE-FRONTEND-030: fresh store, setActiveAgent(copilot), setAll({defaultAgentId: quant}) keeps copilot", () => {
+    // A settings import on a fresh install (no launch restore ran) must not
+    // switch the persona mid-conversation; the default applies next session.
+    useActiveAgentStore.getState().setActiveAgent("copilot");
+    useSettingsStore.getState().setAll({ defaultAgentId: "quant" });
+    expect(useSettingsStore.getState().defaultAgentId).toBe("quant");
+    expect(useActiveAgentStore.getState().activeAgentId).toBe("copilot");
+  });
+
   it("a later restore does NOT yank the live lens (default applies per session)", () => {
-    useSettingsStore.getState().setAll({ defaultAgentId: "munger" }); // boot
+    useSettingsStore.getState().setAll({ defaultAgentId: "munger" }, { applyDefaultAgent: true }); // boot
     useActiveAgentStore.getState().setActiveAgent("graham"); // user switches lens
     useSettingsStore.getState().setAll({ defaultAgentId: "buffett" }); // layout load / import
     expect(useSettingsStore.getState().defaultAgentId).toBe("buffett");
@@ -83,7 +92,7 @@ describe("settings store", () => {
     expect(bundle.defaultAgentId).toBe(RAW_CHAT_SENTINEL);
 
     resetSettingsStoreForTests();
-    useSettingsStore.getState().setAll(bundle);
+    useSettingsStore.getState().setAll(bundle, { applyDefaultAgent: true });
     expect(useSettingsStore.getState().defaultAgentId).toBeNull();
     expect(useActiveAgentStore.getState().activeAgentId).toBeNull();
   });
@@ -91,7 +100,7 @@ describe("settings store", () => {
   it("a legacy blob's dead null coerces to the Copilot default", () => {
     // Pre-R9 the control was written-never-read, so a persisted null carried
     // no intent — restoring it must not strand the chat on raw mode.
-    useSettingsStore.getState().setAll({ defaultAgentId: null });
+    useSettingsStore.getState().setAll({ defaultAgentId: null }, { applyDefaultAgent: true });
     expect(useSettingsStore.getState().defaultAgentId).toBe(DEFAULT_AGENT_ID);
     expect(useActiveAgentStore.getState().activeAgentId).toBe(DEFAULT_AGENT_ID);
   });

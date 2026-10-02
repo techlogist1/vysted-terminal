@@ -11,6 +11,7 @@ the same scorer so the gate is single-sourced.
 from __future__ import annotations
 
 import json
+import os
 import re
 from collections.abc import AsyncIterator
 from typing import Annotated, Any
@@ -216,11 +217,20 @@ async def get_provider_health() -> dict:
     }
 
 
+def _require_rig_hooks() -> None:
+    """R15-LIFECYCLE-033: the trip/reset mutation routes are verification-rig
+    affordances, not a production surface — 404 unless the rig has set
+    VYSTED_RIG_HOOKS=1 (the verification rig must set this env var)."""
+    if os.environ.get("VYSTED_RIG_HOOKS") != "1":
+        raise HTTPException(status_code=404, detail="Not Found")
+
+
 @router.post("/provider-health/trip")
 async def trip_provider_health(payload: dict | None = None) -> dict:
     """Force the Yahoo circuit OPEN (verification rig / induced-throttle
     drills). Loopback-only; the circuit self-heals through its normal
     half-open path, or POST /system/provider-health/reset closes it."""
+    _require_rig_hooks()
     from services import provider_health
 
     weight = float((payload or {}).get("weight", 3.0))
@@ -231,6 +241,7 @@ async def trip_provider_health(payload: dict | None = None) -> dict:
 @router.post("/provider-health/reset")
 async def reset_provider_health() -> dict:
     """Close the Yahoo circuit (verification rig cleanup)."""
+    _require_rig_hooks()
     from services import provider_health
 
     provider_health.record_success(provider_health.YAHOO)

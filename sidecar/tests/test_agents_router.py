@@ -51,6 +51,40 @@ def test_list_agents_returns_roster(client: TestClient) -> None:
         assert "default_provider" in row
 
 
+def test_agents_expose_effective_grant_separately_from_specialty_tools(
+    client: TestClient,
+) -> None:
+    """R15-AGENT-072: every first-party agent's ``tools`` array is dead
+    config — ``agent_runtime._grant_first_party_hands`` unions it with the
+    catalog's default grant at load time, so the field GET /agents used to
+    publish as ``tools`` was already the merged grant, not the persona's
+    declared specialty list the schema describes. ``tools`` must now be the
+    raw declared list and ``effective_tools`` the real (superset) grant."""
+    import json
+
+    from services import agent_runtime
+
+    response = client.get("/agents")
+    assert response.status_code == 200
+    body = response.json()
+    by_id = {row["id"]: row for row in body}
+    row = by_id["buffett"]
+
+    assert "effective_tools" in row
+    declared = set(row["tools"])
+    effective = set(row["effective_tools"])
+    # The effective grant is always a superset of the declared specialty list.
+    assert declared <= effective
+    # Every first-party agent gets the catalog default grant unioned in, so
+    # (with a non-trivial catalog) the effective set is strictly larger.
+    assert effective > declared
+
+    # Cross-check "tools" against the raw JSON on disk, not the loaded/merged
+    # spec — a case the fix was not written against (a different agent id).
+    raw = json.loads((agent_runtime.AGENTS_DIR / "strategy_critic.json").read_text())
+    assert set(by_id["strategy_critic"]["tools"]) == set(raw["tools"])
+
+
 def test_invoke_unknown_agent_returns_404(client: TestClient) -> None:
     response = client.post(
         "/agents/does-not-exist/invoke",

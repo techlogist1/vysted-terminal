@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { useAgentSpacesStore } from "./agent-spaces";
 import { type ChatMessage, useChatHistoryStore } from "./chat-history";
-import { summarizeTranscript, useResearchSpacesStore } from "./research-spaces";
+import {
+  ARCHIVED_ERROR_TEXT,
+  summarizeTranscript,
+  useResearchSpacesStore,
+} from "./research-spaces";
 
 function msg(role: "user" | "assistant", content: string, createdAt = 0): ChatMessage {
   return { id: `${content}-${Math.random()}`, role, content, createdAt };
@@ -115,6 +119,35 @@ describe("research-spaces store — per-space agent memory", () => {
 
     useResearchSpacesStore.getState().replaceAll(snap);
     expect(useResearchSpacesStore.getState().getMemory("Research: NVDA")?.symbol).toBe("NVDA");
+  });
+
+  it("R15-CODE-FRONTEND-028: an errored reply round-trips with its status; a pending one is not captured", () => {
+    useChatHistoryStore
+      .getState()
+      .loadMessages([
+        msg("user", "is AMD cheap?", 1),
+        { ...msg("assistant", "AMD trades at", 2), error: "stream failed" },
+        msg("user", "and margins?", 3),
+        { ...msg("assistant", "Gross margin is", 4), stopped: true },
+        msg("user", "and debt?", 5),
+        { ...msg("assistant", "Net debt", 6), pending: true },
+      ]);
+    const memory = useResearchSpacesStore.getState().saveSpace("Research: AMD", "AMD");
+    expect(memory!.transcript.map((t) => [t.content, t.status])).toEqual([
+      ["is AMD cheap?", undefined],
+      ["AMD trades at", "error"],
+      ["and margins?", undefined],
+      ["Gross margin is", "stopped"],
+      ["and debt?", undefined],
+    ]);
+
+    useChatHistoryStore.getState().clear();
+    useResearchSpacesStore.getState().restoreSpace("Research: AMD");
+    const restored = useChatHistoryStore.getState().messages;
+    expect(restored[1]).toMatchObject({ content: "AMD trades at", error: ARCHIVED_ERROR_TEXT });
+    expect(restored[3]).toMatchObject({ content: "Gross margin is", stopped: true });
+    expect(restored[0].error).toBeUndefined();
+    expect(restored[0].stopped).toBeUndefined();
   });
 
   // --- R13 JARVIS 3a: stated-value claims ledger -----------------------------

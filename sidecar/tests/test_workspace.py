@@ -101,7 +101,7 @@ def test_delete_missing_workspace_is_404(client: TestClient) -> None:
 
 @pytest.mark.parametrize(
     "name",
-    ["Research: M&M", "Research: RELIANCE.NS", "My Layout (2)", "मेरा लेआउट"],
+    ["Research: M&M", "Research: RELIANCE.NS", "My Layout (2)", "मेरा लेआउट", "a%41"],
 )
 def test_any_name_round_trips(client: TestClient, name: str) -> None:
     """R15-CODE-FRONTEND-004: the frontend's research-space names ("Research:
@@ -130,10 +130,61 @@ def test_a_traversal_name_stays_inside_the_workspaces_directory(client: TestClie
     assert client.get(f"/workspace/{quote(name, safe='')}").json() == workspace
 
 
+def test_a_workspace_saved_under_the_legacy_stem_still_loads_and_deletes(
+    client: TestClient,
+) -> None:
+    """R15-UI-082: files saved before the stem change percent-encoded all
+    punctuation and non-ASCII ("Q1 %28draft%29"); they are still listed, loaded
+    and deleted by their plain name (renamed to the current stem on access)."""
+    import json
+
+    from config import get_workspaces_dir
+    from services.workspace_store import WORKSPACE_SUFFIX
+
+    for name in ("Q1 (draft)", "मेरा लेआउट"):
+        workspace = _sample_workspace(name)
+        legacy_stem = quote(name, safe=" ").replace(".", "%2E")
+        legacy = get_workspaces_dir() / f"{legacy_stem}{WORKSPACE_SUFFIX}"
+        legacy.write_text(json.dumps(workspace), encoding="utf-8")
+        url = f"/workspace/{quote(name, safe='')}"
+        assert client.get("/workspace").json() == [name]
+        assert client.get(url).json() == workspace
+        assert client.get("/workspace").json() == [name]
+        assert client.delete(url).status_code == 204
+        assert client.get("/workspace").json() == []
+        assert list(get_workspaces_dir().iterdir()) == []
+
+
 def test_an_empty_name_is_rejected_with_the_reason(client: TestClient) -> None:
     response = client.post("/workspace", json={"name": "   ", "workspace": {}})
     assert response.status_code == 400
     assert response.json()["detail"] == "A workspace name is required."
+
+
+def test_a_32_char_devanagari_name_saves(client: TestClient) -> None:
+    """R15-UI-082: percent-encoding every non-ASCII byte inflated a Devanagari
+    name to ~9 encoded bytes per character, so a 32-character name (86 raw
+    UTF-8 bytes) tripped the 200-byte encoded-stem cap as "too long" even
+    though it is nowhere near the filesystem's 255-byte filename limit. Only
+    unsafe/control characters are percent-encoded now, so this saves."""
+    name = " ".join(["मेरा लेआउट"] * 3)  # 32 characters, 86 UTF-8 bytes
+    workspace = _sample_workspace(name)
+    response = client.post("/workspace", json={"name": name, "workspace": workspace})
+    assert response.status_code == 200
+    assert client.get("/workspace").json() == [name]
+
+
+def test_a_name_whose_encoded_bytes_exceed_the_cap_is_still_rejected(
+    client: TestClient,
+) -> None:
+    """The byte cap still fires — now measured in encoded UTF-8 bytes, not
+    code points, so a long run of characters that DO need encoding (here,
+    literal dots — always escaped to keep dot-segments out of the stem) is
+    still caught before it would produce an unusable filename."""
+    name = "." * 90  # each '.' encodes to the 3-byte "%2E" -> 270 bytes
+    response = client.post("/workspace", json={"name": name, "workspace": _sample_workspace(name)})
+    assert response.status_code == 400
+    assert "too long" in response.json()["detail"]
 
 
 def test_corrupt_file_degrades_to_404_not_500(client: TestClient) -> None:

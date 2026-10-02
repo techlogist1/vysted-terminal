@@ -257,6 +257,39 @@ pub(crate) fn app_data_dir(app: &AppHandle) -> PathBuf {
     dir
 }
 
+/// Resolve the per-OS LOCAL (non-roaming) application data directory for
+/// regenerable caches (R15-CROSS-PLATFORM-012). `app_data_dir()` resolves to
+/// Roaming AppData on Windows, which roaming profiles sync at logon/logoff
+/// and which folder redirection can put on a network share — unsafe for the
+/// sidecar's SQLite WAL cache files. `app_local_data_dir()` is the Windows
+/// non-roaming counterpart (macOS/Linux resolve the same directory as
+/// `app_data_dir()` on those platforms, so this is a no-op there). Falls
+/// back to the same temp dir as `app_data_dir` on resolution failure. A
+/// `VYSTED_DATA_DIR` override keeps caches under it too, so an isolated
+/// rehearsal profile never writes into the real local app-data directory.
+fn resolve_cache_dir(app: &AppHandle) -> String {
+    let dir = match parse_data_dir_override(std::env::var(DATA_DIR_OVERRIDE_ENV)) {
+        Some(dir) => PathBuf::from(dir),
+        None => match app.path().app_local_data_dir() {
+            Ok(dir) => dir,
+            Err(err) => {
+                diag_eprintln!(
+                    "[vysted] could not resolve the local cache directory ({err}); \
+                     falling back to a temp directory"
+                );
+                std::env::temp_dir().join("vysted-terminal")
+            }
+        },
+    };
+    if let Err(err) = std::fs::create_dir_all(&dir) {
+        diag_eprintln!(
+            "[vysted] could not create the cache directory {dir:?} ({err}); \
+             sidecar caches may be degraded"
+        );
+    }
+    dir.to_string_lossy().to_string()
+}
+
 /// Return the per-OS application data directory to the frontend — the
 /// authoritative source the Rust core also passes to the sidecar as
 /// `--data-dir`. Used by the export helpers (notes/brief MD/PNG/PDF) to resolve
@@ -355,9 +388,17 @@ fn start_main_sidecar(app: &AppHandle, port: u16, openbb: Option<u16>, sec_edgar
         status.fail("The data engine could not start: no free local port.".to_string());
         return;
     }
+    let cache_dir = resolve_cache_dir(app);
     let command = match app.shell().sidecar("vysted-sidecar") {
         Ok(command) => command
-            .args(["--port", &port.to_string(), "--data-dir", &data_dir])
+            .args([
+                "--port",
+                &port.to_string(),
+                "--data-dir",
+                &data_dir,
+                "--cache-dir",
+                &cache_dir,
+            ])
             .envs(mcp_port_env(openbb, sec_edgar)),
         Err(err) => {
             status.fail(format!("The data engine could not start ({err})."));

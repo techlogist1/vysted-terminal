@@ -28,7 +28,7 @@ import threading
 import uvicorn
 
 from app import app
-from config import DATA_DIR_ENV
+from config import CACHE_DIR_ENV, DATA_DIR_ENV
 from services import agent_tools, backtest_strategies, mcp_server
 from services.quant import pool as quant_pool
 
@@ -92,6 +92,15 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Application data directory resolved by the Tauri core.",
     )
     parser.add_argument(
+        "--cache-dir",
+        default=None,
+        help=(
+            "Regenerable-cache directory resolved by the Tauri core "
+            "(app_local_data_dir; non-roaming on Windows). Falls back to "
+            "--data-dir when omitted."
+        ),
+    )
+    parser.add_argument(
         "--mcp-stdio",
         action="store_true",
         help=(
@@ -148,6 +157,9 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.data_dir:
         os.environ[DATA_DIR_ENV] = args.data_dir
+
+    if args.cache_dir:
+        os.environ[CACHE_DIR_ENV] = args.cache_dir
 
     if args.mcp_stdio:
         run_mcp_stdio()

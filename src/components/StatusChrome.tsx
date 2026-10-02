@@ -228,7 +228,7 @@ export function StatusChrome() {
       ? "bg-positive"
       : status === "error"
         ? "bg-negative"
-        : "bg-warning animate-pulse";
+        : "bg-caution animate-pulse";
   // R15-LEAD-021: a terminated engine carries a reason (panels already show
   // it) -- the chip used to read a bare "Sidecar error" with no detail.
   const connLabel =

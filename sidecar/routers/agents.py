@@ -41,6 +41,39 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/agents", tags=["agents"])
 
 
+class AgentSummaryWithGrant(AgentSummary):
+    """``GET /agents`` row — adds the effective tool grant alongside ``tools``.
+
+    Every first-party agent's ``tools`` here is the RAW specialty list from
+    its JSON config (what the persona's system prompt was tuned for, per the
+    schema's ``tools`` description) — not the enforced allow-list the field
+    name might suggest. At load time ``agent_runtime._grant_first_party_hands``
+    unions that list with the catalog's default grant, so what the agent can
+    actually call is a strict superset; ``effective_tools`` names that real
+    grant explicitly instead of leaving the two silently conflated
+    (R15-AGENT-072).
+    """
+
+    effective_tools: list[str]
+
+
+def _declared_tools(agent_id: str) -> list[str]:
+    """Read the RAW ``tools`` array from ``<agent_id>.json`` on disk.
+
+    ``agent_runtime.list_agents()`` already returns the merged/effective grant
+    under ``spec.tools`` (see ``_grant_first_party_hands``), so the original
+    declared list has to be re-read from the source file rather than derived
+    from the loaded spec.
+    """
+    path = agent_runtime.AGENTS_DIR / f"{agent_id}.json"
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    tools = raw.get("tools")
+    return list(tools) if isinstance(tools, list) else []
+
+
 class ActionAckRequest(BaseModel):
     """``POST /agents/actions/ack`` body — the host-action read-back (E3.3)."""
 
@@ -48,7 +81,9 @@ class ActionAckRequest(BaseModel):
 
     tool_call_id: str = Field(alias="toolCallId", min_length=1)
     #: ``staged`` = waiting in the user's review queue (non-terminal, C1).
-    status: Literal["applied", "kept_previous", "failed", "staged"]
+    #: Derived from ``action_ledger.KNOWN_STATUSES`` (R15-CODE-AGENT-027) —
+    #: the two used to be independent literals that could drift.
+    status: Literal[*action_ledger.KNOWN_STATUSES]
     #: Optional applied-brief identity ({run_id, created_at, symbol,
     #: source_count}) so the divergence notice can name what actually rendered.
     brief: dict[str, Any] | None = None
@@ -67,14 +102,21 @@ def ack_action(payload: ActionAckRequest) -> dict[str, bool]:
 
 
 @router.get("")
-def list_agents() -> list[AgentSummary]:
-    """Return summaries for every registered first-party agent."""
+def list_agents() -> list[AgentSummaryWithGrant]:
+    """Return summaries for every registered first-party agent.
+
+    ``tools`` is the persona's declared specialty list (re-read from its JSON
+    config); ``effective_tools`` is what it can actually call — the specialty
+    list unioned with the catalog's default grant at load time. The two used
+    to be silently conflated under one ``tools`` field (R15-AGENT-072).
+    """
     return [
-        AgentSummary(
+        AgentSummaryWithGrant(
             id=spec.id,
             name=spec.name,
             philosophy=spec.philosophy,
-            tools=spec.tools,
+            tools=_declared_tools(spec.id),
+            effective_tools=spec.tools,
             default_provider=spec.default_provider,
             default_model=spec.default_model,
             icon=spec.icon,
