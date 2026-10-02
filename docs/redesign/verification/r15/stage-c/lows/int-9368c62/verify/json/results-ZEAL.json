@@ -1,0 +1,11 @@
+{
+ "symbol": "ZEAL",
+ "count": 0,
+ "events": [],
+ "sources": [
+  "NSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": "BSE ZEAL is a different company; only the NSE feed is served"
+}

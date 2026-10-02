@@ -1,0 +1,92 @@
+{
+ "symbol": "531613",
+ "count": 10,
+ "events": [
+  {
+   "symbol": "531613",
+   "company": "Meyer Apparel Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-08-12",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "531613",
+   "company": "Meyer Apparel Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-05-17",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "531613",
+   "company": "Meyer Apparel Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-01-17",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "531613",
+   "company": "Meyer Apparel Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-11-06",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "531613",
+   "company": "Meyer Apparel Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-08-07",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "531613",
+   "company": "Meyer Apparel Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-05-17",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "531613",
+   "company": "Meyer Apparel Limited",
+   "purpose": "Independent Director Meeting",
+   "description": null,
+   "date": "2025-03-10",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "531613",
+   "company": "Meyer Apparel Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-02-10",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "531613",
+   "company": "Meyer Apparel Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2024-11-13",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "531613",
+   "company": "Meyer Apparel Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2024-07-29",
+   "exchange": "BSE"
+  }
+ ],
+ "sources": [
+  "BSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": null
+}

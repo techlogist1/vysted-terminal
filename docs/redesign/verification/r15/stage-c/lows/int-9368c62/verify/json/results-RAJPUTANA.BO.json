@@ -1,0 +1,92 @@
+{
+ "symbol": "539090",
+ "count": 10,
+ "events": [
+  {
+   "symbol": "539090",
+   "company": "Rajputana Investment and Finance Ltd.",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-08-12",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539090",
+   "company": "Rajputana Investment and Finance Ltd.",
+   "purpose": "General",
+   "description": null,
+   "date": "2026-05-27",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539090",
+   "company": "Rajputana Investment and Finance Ltd.",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-05-27",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539090",
+   "company": "Rajputana Investment and Finance Ltd.",
+   "purpose": "General",
+   "description": null,
+   "date": "2026-02-11",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539090",
+   "company": "Rajputana Investment and Finance Ltd.",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-02-11",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539090",
+   "company": "Rajputana Investment and Finance Ltd.",
+   "purpose": "General",
+   "description": null,
+   "date": "2025-11-14",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539090",
+   "company": "Rajputana Investment and Finance Ltd.",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-11-14",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539090",
+   "company": "Rajputana Investment and Finance Ltd.",
+   "purpose": "General",
+   "description": null,
+   "date": "2025-08-06",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539090",
+   "company": "Rajputana Investment and Finance Ltd.",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-08-06",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539090",
+   "company": "Rajputana Investment and Finance Ltd.",
+   "purpose": "A.G.M.",
+   "description": null,
+   "date": "2025-06-16",
+   "exchange": "BSE"
+  }
+ ],
+ "sources": [
+  "BSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": null
+}

@@ -1,0 +1,243 @@
+{
+ "symbol": "544023",
+ "exchange": null,
+ "count": 28,
+ "announcements": [
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Voting Results And Scrutinizer Report Of 14Th Annual General Meeting ('AGM') Of Kalyani\r\nCast Tech Limited",
+   "category": "AGM/EGM",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/cdb57ae9-f817-4628-9f3e-ba48908ab02a.pdf",
+   "ts": "2026-10-02T16:02:40.367000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+   "category": "AGM/EGM",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/db70e59d-5cdf-44eb-ae6a-722506860f71.pdf",
+   "ts": "2026-09-30T19:12:29.190000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Closure of Trading Window",
+   "category": "Insider Trading / SAST",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8f9655ff-11d6-4ee3-bbfe-e05dd6d43868.pdf",
+   "ts": "2026-09-26T16:34:16.983000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Board Meeting Outcome for Approved The Allotment Of 323,123 Convertible Equity Warrants",
+   "category": "Others",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e5772274-4a53-4d6e-b7de-6d37dac36c77.pdf",
+   "ts": "2026-09-23T11:18:21.290000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Revised Intimation - Change In Date And Time Of Inauguration Of Gati Shakti Cargo Terminal, Flagging Off Of Bulk Salt Container Train And Laying Of Foundation Stone Of Inland Container Depot (ICD)",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c9ddb966-3fd2-422d-9e9f-a6f83a1e65d6.pdf",
+   "ts": "2026-09-13T21:59:35.513000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Intimation Regarding Inauguration Of Gati Shakti Cargo Terminal, Flagging Off Of Bulk Salt Train And Laying Of Foundation Stone Of Inland Container Depot (ICD)",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3bcbe160-55b0-4194-a70a-48c1c267f16f.pdf",
+   "ts": "2026-09-11T14:39:39.723000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Intimation Of Receipt Of The In-Principle Approval From BSE Limited For Issue Of 3,23,123 Convertible Warrants To Promoter And Non Promoters On Preferential Basis.",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3309c0a9-00dc-474f-9569-e08d32a15de3.pdf",
+   "ts": "2026-09-10T12:59:22.710000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Disclosure Under Regulation 30 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015.",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/2d7aca00-02d8-4a0f-8568-7c52486ab1e2.pdf",
+   "ts": "2026-09-08T16:34:38.973000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Notice Of Book Closure",
+   "category": "Corp. Action",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4968659e-4a0c-4b1c-992f-8d164bc41a05.pdf",
+   "ts": "2026-09-05T12:37:53.400000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Reg. 34 (1) Annual Report.",
+   "category": "Others",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bd416bdd-28cf-4ea8-8c2d-44886f386301.pdf",
+   "ts": "2026-09-05T12:19:21.620000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Board Meeting Outcome for Outcome Of The Board Meeting Held On Monday 31St August 2026",
+   "category": "Others",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d068c04f-59b3-4617-908a-a1f41b7031d7.pdf",
+   "ts": "2026-08-31T17:56:31.367000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Successful Arrival Of First Container Trial Train At Gati Shakti Terminal",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/1c2bc0c5-4e16-42f4-82de-a2a616356234.pdf",
+   "ts": "2026-08-21T15:17:55.470000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Intimation Regarding Registration Of Private Freight Terminal Project Under Gujarat\r\nIntegrated Logistics And Logistics Park Policy 2021",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f5793c6f-94a7-4bdc-b748-e5d0dba6c60b.pdf",
+   "ts": "2026-08-19T14:55:39.763000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Clarification With Reference To EGM Notice Dated July 04Th,\r\n2026 Regarding Percentage Of Grand Total In Shareholding Pattern",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/60023eb5-bd80-4f17-902f-56b75f661682.pdf",
+   "ts": "2026-08-17T15:59:35.590000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Intimation Under Regulation 30 Of The SEBI (Listing Obligations And Disclosure Requirements)\r\nRegulations, 2015 - Commissioning Of Gati Shakti Multi-Modal Cargo Terminal Of KMT Engineering\r\nPrivate Limited, A Subsidiary Of Kalyani Cast Tech Limited",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/42ed2424-470e-48c6-9fb4-4c415e0dce02.pdf",
+   "ts": "2026-08-07T12:34:40.733000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Voting Results And Scrutinizer''s Report Of The Extraordinary General Meeting (\"EGM\")\r\nOf Kalyani Cast Tech Limited Held On July 28, 2026",
+   "category": "AGM/EGM",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9337100f-7c1b-45c1-9831-ae8aaa134d97.pdf",
+   "ts": "2026-07-28T23:21:43.553000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Shareholder Meeting / Postal Ballot-Outcome of EGM",
+   "category": "AGM/EGM",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/04894ce7-0797-4c5f-ac59-3e29a63eb091.pdf",
+   "ts": "2026-07-28T18:08:56.683000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Corrigendum To The Extra Ordinary General Meeting Notice Dated July 04, 2026",
+   "category": "AGM/EGM",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3c2d8a91-4c36-48e7-af05-a2c60d08f38c.pdf",
+   "ts": "2026-07-15T16:40:48.007000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/17774853-0cf9-423b-9d09-60a78da5aba2.pdf",
+   "ts": "2026-07-14T18:50:26.330000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0d5b265f-5ae0-4585-b168-37ad51b4350b.pdf",
+   "ts": "2026-07-06T17:56:15.040000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Notice Of The Extra Ordinary General Meeting",
+   "category": "AGM/EGM",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/be0e2dcc-1e20-49b5-9d50-ba2eeb758cea.pdf",
+   "ts": "2026-07-04T13:14:21.077000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Board Meeting Outcome for Outcome Of Board Meeting",
+   "category": "Board Meeting",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/88ec7f64-f94e-483c-b6d2-d37e767f57b9.pdf",
+   "ts": "2026-06-30T18:42:15.943000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Board Meeting Intimation for Considering The Issue Of Equity Shares And/Or Convertible Securities Including Warrants On Preferential Basis Under SEBI (ICDR) Regulations, 2018",
+   "category": "Board Meeting",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/79f1a18a-37ec-48a6-8cd5-c4b12661eb39.pdf",
+   "ts": "2026-06-23T15:44:28.900000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Clarification Regarding Capital Investment Figure Disclosed In Investor\r\nPresentation/Letter To Investors Submitted Along With Financial Results For The Year\r\nEnded March 31, 2026",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ea6a6a72-5996-47ae-ab00-b84609996df1.pdf",
+   "ts": "2026-06-08T21:16:33.380000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Audited Standalone And Consolidated Financial Results For The Year Ended 31.03.2026",
+   "category": "Result",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/196ded79-3733-4dea-a055-e1aeda4fee3c.pdf",
+   "ts": "2026-05-29T17:03:33.320000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Board Meeting Intimation for Intimation Regarding Board Meeting",
+   "category": "Board Meeting",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/42c8216e-6180-459f-bd20-e4809915438a.pdf",
+   "ts": "2026-05-24T14:57:07.040000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Intimation Under Regulation 30 Of SEBI (LODR) Regulations, 2015 - Approval Of Layout Plan By Town Planning Authority",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/622da481-0a9c-45d4-9e2d-4b0372893c33.pdf",
+   "ts": "2026-04-21T18:12:11.763000+05:30"
+  },
+  {
+   "symbol": "544023",
+   "exchange": "BSE",
+   "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+   "category": "Company Update",
+   "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3ace0f17-55c7-4a94-b6a5-7faa3d005415.pdf",
+   "ts": "2026-04-10T18:47:49.133000+05:30"
+  }
+ ],
+ "sources": [
+  "BSE"
+ ],
+ "errors": {},
+ "windows": {
+  "BSE": {
+   "window_start": "2026-04-06",
+   "window_end": "2026-10-03"
+  }
+ },
+ "coverage": "covered",
+ "note": null
+}

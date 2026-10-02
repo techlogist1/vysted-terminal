@@ -1,0 +1,92 @@
+{
+ "symbol": "539963",
+ "count": 10,
+ "events": [
+  {
+   "symbol": "539963",
+   "company": "Zeal Aqua Limited",
+   "purpose": "A.G.M.",
+   "description": null,
+   "date": "2026-09-05",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539963",
+   "company": "Zeal Aqua Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-08-14",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539963",
+   "company": "Zeal Aqua Limited",
+   "purpose": "General",
+   "description": null,
+   "date": "2026-08-05",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539963",
+   "company": "Zeal Aqua Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-05-28",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539963",
+   "company": "Zeal Aqua Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2026-02-10",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539963",
+   "company": "Zeal Aqua Limited",
+   "purpose": "General",
+   "description": null,
+   "date": "2026-01-05",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539963",
+   "company": "Zeal Aqua Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-11-12",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539963",
+   "company": "Zeal Aqua Limited",
+   "purpose": "A.G.M.",
+   "description": null,
+   "date": "2025-09-05",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539963",
+   "company": "Zeal Aqua Limited",
+   "purpose": "Results",
+   "description": null,
+   "date": "2025-08-05",
+   "exchange": "BSE"
+  },
+  {
+   "symbol": "539963",
+   "company": "Zeal Aqua Limited",
+   "purpose": "General",
+   "description": null,
+   "date": "2025-05-29",
+   "exchange": "BSE"
+  }
+ ],
+ "sources": [
+  "BSE"
+ ],
+ "errors": {},
+ "coverage": "covered",
+ "note": null
+}
