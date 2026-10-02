@@ -1,0 +1,12 @@
+  PID  PPID ARGS
+47951     1 <SP>/gui-9368c62/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-terminal
+47970 47951 <SP>/gui-9368c62/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-openbb-mcp-sidecar --port 50516
+47971 47951 <SP>/gui-9368c62/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-sec-edgar-mcp-sidecar --port 50517
+47972 47951 <SP>/gui-9368c62/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-sidecar --port 50515 --data-dir <SP>/gui-round-home-R15-LIFECYCLE-001/Library/Application Support/com.vysted.terminal
+48029 47970 <SP>/gui-9368c62/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-openbb-mcp-sidecar --port 50516
+48053 47972 <SP>/gui-9368c62/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-sidecar --port 50515 --data-dir <SP>/gui-round-home-R15-LIFECYCLE-001/Library/Application Support/com.vysted.terminal
+48056 47971 <SP>/gui-9368c62/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-sec-edgar-mcp-sidecar --port 50517
+48392 47942 lsof -nP -iTCP -sTCP:LISTEN -a -p 47972,48053
+48393 47932 ps -o pid,ppid,args -g 47932
+48395 47932 sed s#<SP>#<SP>#g
+48398 47932 tee /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/raw/launch2-ps.txt
