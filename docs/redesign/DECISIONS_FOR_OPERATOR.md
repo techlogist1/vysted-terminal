@@ -990,6 +990,21 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   - If any high is still open, (a) or (b) applies as written.
 - **Fail-safe landing outcome (23:19 IST 3 Oct):** both entries certified on their stated repros at `b796f6a9`, merged into 004 as `1fddb2b1`. R15-LEAD-137 (P/E on the current share count) and R15-LEAD-141 (3-letter word tickers) are fixed, not just fail-safed. Open critical and high is 0, so this question is moot: neither option is taken, no round 4 runs, and rc2 proceeds without waiting for the 02:45 IST default.
 
+### 5.15 r15-launch tagged without the GUI half of the final pass (record, 00:42 IST 4 Oct; no decision asked)
+
+- **What happened.** The order put the GUI half of the final pass before r15-launch. It was tried twice this release:
+  - At d38b5d1a it stopped when the operator came back to the Mac (Zed, 09:58Z).
+  - At 1fddb2b1 (wf_af2e5d21-51f) nothing was driven. A SecurityAgent consent prompt sat over both targets. The lead's own release launch check raised that prompt at 23:47:12 (R15-LEAD-143).
+- **Why there is no third attempt.**
+  - The prompt is still on screen, and the rig refuses to act while anything other than Vysted is frontmost.
+  - Answering a keychain prompt or stopping SecurityAgent is not this run's to do.
+  - The away sentinel ends 03:13 IST.
+- **What stays open.** These go to the hand-testing guide, operator-attended:
+  - R15-LIFECYCLE-008 (high, needs_gui). Log rotation and the diagnostics preview were shown at d38b5d1. The Copy-to-clipboard click has never been landed.
+  - R15-UI-022 (medium, needs_gui). Chart drawing anchors.
+- **What the tag rests on.** Open critical and high are 0. The code is identical to the certified b796f6a9. The carry-forward judge's three owed re-runs all hold (r15/final-pass/rerun-launch/RERUN.md). Gate 8 passes at the launch head.
+- **Action for the operator.** Click **Deny** on the SecurityAgent prompt. Then run the two GUI checks from the hand-testing guide.
+
 ## 6. Operator rule changes recorded during the rc1 gate (27 Sep 2026)
 
 Recorded here at the operator's instruction. These are operator decisions already in force, not items awaiting one; the verbatim text is the brief addendum `R15_BRIEF_GATE_RULE_CHANGE_1.md` (kept outside the repo).
