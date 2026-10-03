@@ -1384,6 +1384,36 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(diff.kind).toBe("data-write");
   });
 
+  it("R15-FINAL-030: a note scoped by company name files under the resolved ticker; a ticker scope is unchanged", async () => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    sidecarGetMock.mockReset();
+    sidecarGetMock.mockResolvedValueOnce({
+      resolved: { symbol: "COCHINSHIP", name: "Cochin Shipyard Limited" },
+      needs_disambiguation: false,
+      candidates: [{ symbol: "COCHINSHIP", name: "Cochin Shipyard Limited" }],
+    });
+    expect(
+      await applyHostActionAsync("write_note", { scope: "Cochin Shipyard", text: "Stretched." }),
+    ).toBe('Appended to the COCHINSHIP note (resolved from "Cochin Shipyard")');
+    expect(useNotesStore.getState().noteFor("COCHINSHIP")).toBe("Stretched.");
+    expect(useNotesStore.getState().bySymbol["COCHIN SHIPYARD"]).toBeUndefined();
+
+    sidecarGetMock.mockResolvedValueOnce({
+      resolved: null,
+      needs_disambiguation: false,
+      candidates: [],
+    });
+    expect(
+      await applyHostActionAsync("write_note", { scope: "Nonesuch Works", text: "Hm." }),
+    ).toMatch(/"Nonesuch Works" did not resolve to a listing/);
+    expect(useNotesStore.getState().bySymbol["NONESUCH WORKS"]).toBe("Hm.");
+
+    sidecarGetMock.mockReset();
+    await applyHostActionAsync("write_note", { scope: "TCS.NS", text: "Ticker." });
+    expect(sidecarGetMock).not.toHaveBeenCalled();
+    expect(useNotesStore.getState().bySymbol["TCS.NS"]).toBe("Ticker.");
+  });
+
   it("write_note honours the catalog-documented args: 'global' is General, mode defaults to append", () => {
     useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
     useNotesStore.setState({ general: "My thesis.", bySymbol: { NVDA: "old", AAPL: "keep" } });
