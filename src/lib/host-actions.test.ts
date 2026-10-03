@@ -164,6 +164,38 @@ describe("host-actions", () => {
     expect(maximizeSpy).toHaveBeenCalledTimes(1);
   });
 
+  it("R15-FINAL-016: a custom arrange that places nothing fails naming the token; a comma string arranges", () => {
+    const addPanel = vi.fn();
+    useWorkspaceStore.setState({
+      dockviewApi: {
+        panels: [],
+        width: 1600,
+        getPanel: () => undefined,
+        addPanel,
+        hasMaximizedGroup: () => false,
+        exitMaximizedGroup: vi.fn(),
+        maximizeGroup: vi.fn(),
+      } as never,
+      openPanel: vi.fn(),
+    } as never);
+    const unknown = applyIntent(
+      parseHostAction("arrange_layout", { pattern: "custom", panels: ["sec_filings_list"] }),
+    );
+    expect(unknown.label).toBeNull();
+    expect(unknown.reason).toContain('"sec_filings_list"');
+    expect(addPanel).not.toHaveBeenCalled();
+
+    const label = applyHostAction("arrange_layout", {
+      pattern: "custom",
+      panels: "chart, sec-filings, nope",
+    });
+    expect(label).toBe('Arranged chart + sec-filings (no panel named "nope")');
+    expect(addPanel.mock.calls.map(([opts]) => (opts as { id: string }).id)).toEqual([
+      "chart",
+      "sec-filings",
+    ]);
+  });
+
   it("open_panel returns null when the panel did not actually open (disabled module)", () => {
     const openPanel = vi.fn(); // a no-op open — the module is disabled
     useWorkspaceStore.setState({

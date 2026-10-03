@@ -398,13 +398,21 @@ function strArray(input: Record<string, unknown>, key: string): string[] {
 }
 
 /**
- * Parse the `panels` arg of a CUSTOM arrange (Track B). Tolerant of both shapes
- * the model might emit: a bare `["chart","news"]` (host picks coherent positions)
- * or `[{panel,direction,reference}, …]` (explicit "one here, one there"). Anything
- * malformed is dropped so a sloppy arg never crashes the arrange.
+ * Parse the `panels` arg of a CUSTOM arrange (Track B). Tolerant of the shapes
+ * the model might emit: a bare `["chart","news"]` (host picks coherent positions),
+ * a comma string `"chart, news"`, or `[{panel,direction,reference}, …]` (explicit
+ * "one here, one there"). Anything malformed is dropped so a sloppy arg never
+ * crashes the arrange.
  */
 function parseCustomPanels(input: Record<string, unknown>): CustomPanelSpec[] {
   const raw = input.panels;
+  if (typeof raw === "string") {
+    return raw
+      .split(",")
+      .map((panel) => panel.trim())
+      .filter((panel) => panel !== "")
+      .map((panel) => ({ panel }));
+  }
   if (!Array.isArray(raw)) {
     return [];
   }
@@ -1653,12 +1661,20 @@ export function applyIntent(intent: HostIntent): ApplyResult {
         if (!api) {
           return fail("the layout has not mounted");
         }
-        applyCustomLayout(api, customPanels, { symbol: symbol || undefined });
+        const { placed, unresolved } = applyCustomLayout(api, customPanels, {
+          symbol: symbol || undefined,
+        });
+        const unknown = unresolved.map((token) => `"${token}"`).join(", ");
+        if (placed.length === 0) {
+          // Nothing placed: never narrate an arrange that did not happen.
+          return fail(unknown ? `no arrangeable panel named ${unknown}` : "no panels named");
+        }
         if (symbol) {
           useChartCommandStore.getState().loadSymbol(symbol);
         }
-        const names = customPanels.map((p) => p.panel).join(" + ");
-        return done(names ? `Arranged ${names}` : "Arranged your panels");
+        return done(
+          `Arranged ${placed.join(" + ")}${unknown ? ` (no panel named ${unknown})` : ""}`,
+        );
       }
       if (LAYOUT_TEMPLATE_IDS.has(pattern)) {
         const api = ws.dockviewApi;
