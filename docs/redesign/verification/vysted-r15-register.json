@@ -3755,8 +3755,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "Batch-4 (dcbe7ba) needs_gui. jsdom shows downloadCsv going through saveTextArtifact, and get_app_data_dir/write_text_atomic are registered Tauri commands; the defect is WKWebView-only. GUI check: in the packaged macOS app, click Export CSV in Watchlist, Portfolio and (fresh) Screener -- each must show the saved path and the file must exist under <app data>/exports/csv/, not silently no-op. (See issue 5: SettingsPanel.tsx export and ChatSidebar.tsx /export still use the Blob + <a download> path.) || gui-round@ace7dd7: not certified: Capture ace7dd7-11 (after the Screener Export CSV click) matches ace7dd7-10 (before the click): no saved path, no toast, no error. The file was written to disk, but the note requires every panel to show the saved path. ScreenerResultsTable.tsx:283-285 throws away the export result. Watchlist (06) and Portfolio (04) do show the path., evidence docs/redesign/verification/r15/gui-round/R15-UI-009/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-UI-009/VERIFY.md"
+   "status": "fixed",
+   "note": "Batch-4 (dcbe7ba) needs_gui. jsdom shows downloadCsv going through saveTextArtifact, and get_app_data_dir/write_text_atomic are registered Tauri commands; the defect is WKWebView-only. GUI check: in the packaged macOS app, click Export CSV in Watchlist, Portfolio and (fresh) Screener -- each must show the saved path and the file must exist under <app data>/exports/csv/, not silently no-op. (See issue 5: SettingsPanel.tsx export and ChatSidebar.tsx /export still use the Blob + <a download> path.) || gui-round@ace7dd7: not certified: Capture ace7dd7-11 (after the Screener Export CSV click) matches ace7dd7-10 (before the click): no saved path, no toast, no error. The file was written to disk, but the note requires every panel to show the saved path. ScreenerResultsTable.tsx:283-285 throws away the export result. Watchlist (06) and Portfolio (04) do show the path., evidence docs/redesign/verification/r15/gui-round/R15-UI-009/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-UI-009/VERIFY.md | lead ruling 12:10 IST 3 Oct: fixed on the stated repro (Watchlist + Portfolio hold at ace7dd76); Screener no-feedback gap filed as its own medium.",
+   "closure_evidence": "certified on its stated repro at ace7dd76 (lead ruling 12:10 IST 3 Oct, gate rule change 1): the repro names Watchlist and Portfolio; the fresh GUI verifier (gui-round/R15-UI-009/VERIFY.md) ruled both 'holds' — status strip shows 'Saved …/exports/csv/…' and the files exist. Its not_certified rested on the Screener panel, which the note added beyond the stated repro; that gap is filed separately."
   },
   {
    "id": "R15-UI-090",
@@ -19434,6 +19435,49 @@
    ],
    "status": "open",
    "note": "Filed by the rc2 gate (round-6-rc2) register adjudicator from gate8/agent-get-portfolio.txt: R15-AGENT-091's own fix (currency field present, figures correct) holds; only the printed currency symbol is wrong. Adjacent to R15-AGENT-091, not a Gate 8 break. Not filed against the signed-off local-model known-limitation class (DECISIONS_FOR_OPERATOR.md §4.9-4.12 cover fabricated/ungrounded tool figures and no-tool-instruction compliance; a wrong currency symbol on a correctly-grounded figure is a different, plain defect class).",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-122",
+   "title": "Screener 'Export CSV' writes the file but shows no saved path, toast or error (the result of downloadCsv is discarded)",
+   "severity": "medium",
+   "area": "ui",
+   "subsystem": "screener",
+   "files": [
+    "src/modules/screener/ScreenerResultsTable.tsx"
+   ],
+   "repro": "Packaged macOS app at ace7dd76: run a NIFTY50 screen, click Export CSV -> panel unchanged (capture ace7dd7-11 == ace7dd7-10), while <app data>/exports/csv/vysted-screener-nifty50.csv is written.",
+   "evidence": "docs/redesign/verification/r15/gui-round/R15-UI-009/VERIFY.md (Screener row); ScreenerResultsTable.tsx:283-285 `void downloadCsv(...)`.",
+   "root_cause": "downloadScreenerCsv discards the export result; the panel has no exportStatus surface (Watchlist/Portfolio have one).",
+   "fix_shape": "Reuse the Watchlist/Portfolio 'Saved <path>' / 'Export failed' status strip in the screener results table.",
+   "defect_class": "silent-control",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "Split out of R15-UI-009 by lead ruling (beyond its stated repro). 0.9.1 unless the final pass closes it.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-123",
+   "title": "A main sidecar that binds after the core's 90 s window is SIGTERM'd and the app stays failed for the whole session ('The data engine stopped (signal 15).')",
+   "severity": "high",
+   "area": "lifecycle",
+   "subsystem": "boot",
+   "files": [
+    "src-tauri/src/lib.rs",
+    "src/lib/sidecar-client.ts"
+   ],
+   "repro": "Packaged app at ace7dd76 on a loaded machine (load 3-6.6): cold launch; the main sidecar binds at 96-108 s; the core declares it failed at 90 s, the status chip settles to 'The data engine stopped (signal 15).' and no panel recovers without a relaunch (5 of 5 boots across the LIFECYCLE-001/008 drives).",
+   "evidence": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/DRIVE.md (captures 05, 10); docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-008/DRIVE.md (bound at 96 s and 108 s).",
+   "root_cause": "PENDING — root-cause agent dispatched 12:10 IST 3 Oct.",
+   "fix_shape": "PENDING — expected: a late bind recovers instead of staying failed.",
+   "defect_class": "lifecycle-boot",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "Filed by the lead from the GUI round's adjacent notes. Severity high is PROVISIONAL (conservative) until the root-cause judgement rates it from the evidence.",
    "closure_evidence": ""
   }
  ],
