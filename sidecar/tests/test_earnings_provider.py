@@ -914,3 +914,26 @@ async def test_history_and_surprise_rows_share_the_eps_currency_scale_check(
     assert surprises.surprises
     for row in surprises.surprises:
         assert row.currency == "CNY"
+
+
+@pytest.mark.asyncio
+async def test_estimate_detail_never_falls_back_to_the_ruled_out_currency(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-FINAL-010, SIFY: a USD-sized 191.7M quarterly estimate against INR
+    46.5bn total revenue is out of band, so INR is ruled out; the country map
+    (India) would hand back that same INR, so no label is served."""
+    monkeypatch.setattr(
+        earnings_provider,
+        "_yf_ticker",
+        _currency_shaped_ticker(
+            currency="USD",
+            financial_currency="INR",
+            country="India",
+            total_revenue=4.6506e10,
+            revenue_average=1.917e8,  # annualised ~0.016x totalRevenue: out of band
+        ),
+    )
+    detail = await earnings_provider.get_estimate_detail("SIFY")
+    assert detail.revenue_currency != "INR"
+    assert detail.revenue_currency is None
