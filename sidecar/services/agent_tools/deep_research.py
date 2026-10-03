@@ -838,6 +838,7 @@ async def run_research_model_brief(
             agent_tools.invoke_tool,
             target.symbol,
             region=config.get_region(),
+            listing_region=target.region,
             canonical_name=target.name,
             leg_timeout_s=DEEP_SNAPSHOT_LEG_TIMEOUT_S,
         )

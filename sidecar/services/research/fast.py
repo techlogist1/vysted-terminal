@@ -279,6 +279,51 @@ async def snapshot_structured(
     symbol: str,
     *,
     region: str | None = None,
+    listing_region: str | None = None,
+    canonical_name: str | None = None,
+    on_step: OnStep | None = None,
+    leg_timeout_s: float | None = None,
+) -> dict[str, Any]:
+    """:func:`_snapshot_legs` with every leg scoped to ``listing_region``.
+
+    R15-LEAD-127: ``symbol`` is a bare ticker that the legs re-resolve through
+    ``config.get_region()``. Under session IN, 'Halliburton' bound HAL/US, yet
+    every leg served Hindustan Aeronautics. When the caller passes the bound
+    listing's region, the region ContextVar is set BEFORE the fan-out (tasks
+    and ``to_thread`` copy the context) and restored afterwards. ``region``
+    stays the session region and is context only. ``None`` keeps the ambient
+    region.
+    """
+    if not listing_region:
+        return await _snapshot_legs(
+            tool_call,
+            symbol,
+            region=region,
+            canonical_name=canonical_name,
+            on_step=on_step,
+            leg_timeout_s=leg_timeout_s,
+        )
+    import config
+
+    token = config.set_request_region(listing_region)
+    try:
+        return await _snapshot_legs(
+            tool_call,
+            symbol,
+            region=region,
+            canonical_name=canonical_name,
+            on_step=on_step,
+            leg_timeout_s=leg_timeout_s,
+        )
+    finally:
+        config.reset_request_region(token)
+
+
+async def _snapshot_legs(
+    tool_call: ToolCall,
+    symbol: str,
+    *,
+    region: str | None = None,
     canonical_name: str | None = None,
     on_step: OnStep | None = None,
     leg_timeout_s: float | None = None,
@@ -652,7 +697,12 @@ async def gather_fast(
                 "filings", _filings_leg(tool_call, target), on_step, _WITNESS_LEG_TIMEOUT_S
             ),
             snapshot_structured(
-                tool_call, symbol, region=region, canonical_name=target.name, on_step=on_step
+                tool_call,
+                symbol,
+                region=region,
+                listing_region=target.region,
+                canonical_name=target.name,
+                on_step=on_step,
             ),
         )
         # R13 ledger #9: the news leg is relevance-gated for a resolved IN equity
