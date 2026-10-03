@@ -23,7 +23,7 @@ sudo pmset -c sleep 0 displaysleep 10
 sudo pmset -a powernap 1
 ```
 
-<<CHECK: the defaults above are generic macOS defaults, not values recorded by this run; confirm with pmset -g before applying>>
+**Operator to confirm:** the defaults above are generic macOS defaults, not values this run recorded — confirm with `pmset -g` before applying any of them.
 
 ## caffeinate (the only power control the run recorded)
 
@@ -43,7 +43,7 @@ pkill caffeinate
 pmset -g assertions
 ```
 
-`pkill caffeinate` ends every caffeinate on the machine, including ones you started yourself; to be selective, `kill <pid>` the pids `pgrep -fl caffeinate` shows. A caffeinate release is also planned as a run-ending stage of `r15/tooling/final-pass.js` (<<CHECK: whether that stage ran>>).
+`pkill caffeinate` ends every caffeinate on the machine, including ones you started yourself; to be selective, `kill <pid>` the pids `pgrep -fl caffeinate` shows. A caffeinate release is also planned as a run-ending stage of `r15/tooling/final-pass.js`. **Operator to confirm:** whether that stage actually ran at the end of this run — it is not recorded in the run-state or ledger either way.
 
 ## Other system settings this run touched
 

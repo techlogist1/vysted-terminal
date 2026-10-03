@@ -508,10 +508,42 @@ any change here (including the minimal ad-hoc `"-"` unblock), that edit must lan
 must both be re-run afterward; a §6/§7 already done against the old (unsigned) config is
 stale the moment §8 changes anything.
 
-## 9. Tag and GitHub release — operator-only
+## 9. Merge to main, tag and GitHub release — operator-only
 
-What: cut the `v0.9.0` tag and publish a GitHub Release with installable assets.
-Who: **operator runs this.**
+What: merge the release branch to `main`, cut the `v0.9.0` tag on the merge commit, and
+publish a GitHub Release with installable assets.
+Who: **operator runs this.** Nothing in this section has been executed by any promotion or
+docs pass — it is written, not run.
+
+**9a. Merge `004-r4-experience-rebuild` into `main`.** Use a merge commit, not a fast-forward
+or squash, so the branch's full commit history (654+ commits of R15 work) stays attributable
+and the merge commit itself is a clean tag target:
+
+```sh
+git checkout main
+git pull origin main
+git merge --no-ff 004-r4-experience-rebuild -m "Merge 004-r4-experience-rebuild: R15 LAUNCH, Vysted Terminal 0.9.0"
+git push origin main
+```
+
+Only merge once the rc gate's PASS verdict is confirmed at the candidate sha on
+`004-r4-experience-rebuild` (checklist item above) — do not merge an unverified tree.
+
+**9b. Tag `v0.9.0` on the merge commit**, not on the pre-merge branch head, so the tag
+resolves on `main`:
+
+```sh
+git tag -a v0.9.0 -m "v0.9.0 — R15 LAUNCH: trading removed, PolyForm Strict + commercial licence, audit and fix pass"
+git push origin v0.9.0
+```
+
+**9c. Publish the draft release.** If the draft was created with `--target <sha>` before the
+merge (`GITHUB_RELEASE_v0.9.0.md`'s publish command), either let it point at that already-built
+asset or re-point it at the tag once pushed (`gh release edit v0.9.0 --tag v0.9.0`), then:
+
+```sh
+gh release edit v0.9.0 --draft=false
+```
 
 **Do not tag before the rc gate passes.** `git tag --list 'r15*'` is empty at S — no
 `r15-rc1` tag exists yet. `R15_GATE_RC1.md:3` reads "**Verdict: FAIL.** Do not tag rc1." for

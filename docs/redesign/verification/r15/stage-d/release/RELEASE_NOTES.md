@@ -1,27 +1,30 @@
 # Vysted Terminal 0.9.0 - release notes
 
-Release candidate head: <<RC2_SHA>>. Launch tag head: <<LAUNCH_SHA>>. Facts below come from the code at `d38b5d1a2487bd52fe8a7e741a3a5266e3206611` and the register and docs at `4da7fc91`.
+Release candidate head and launch tag head are the same commit: `1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056` (tags `r15-rc2` and `r15-launch`). Facts below are current at that commit and at the register as committed at `4b460027` (docs-only commits on top of the launch tag; this is where R15-LEAD-143 and R15-LEAD-144 were filed).
 
 ## What this release is
 
-Vysted Terminal is a source-available, AI-native finance desktop terminal: a Tauri desktop app (Rust core, Vite + React interface) with a bundled Python data engine, your own API keys, and a plugin architecture. 0.9.0 is the first release after a full end-to-end audit and fix programme (R15 "LAUNCH") that catalogued every promised or discovered defect, fixed 596 of them, and gated the result with a regression check. Final adversarial pass: <<FINAL_PASS_SUMMARY>>.
+Vysted Terminal is a source-available, AI-native finance desktop terminal: a Tauri desktop app (Rust core, Vite + React interface) with a bundled Python data engine, your own API keys, and a plugin architecture. 0.9.0 is the first release after a full end-to-end audit and fix programme (R15 "LAUNCH") that catalogued every promised or discovered defect, fixed 629 of them, and gated the result with a regression check and a final adversarial pass. Final adversarial pass summary: a fresh-context Opus 5.5 pass (battery/drive lanes plus a cross-adversarial keyless + real-user round) admitted 58 new register entries (`R15-FINAL-001..038`, `R15-LEAD-125..144`) after rc1. Every admitted critical and high was fixed and certified by a fresh verifier before this tag: `R15-LEAD-127` (certified, `stage-c/lead127/VERIFY.md`); `R15-FINAL-001..008` plus the rest of the first batch certified at `fix-r1` (26 certified, 2 not certified on the first pass — `R15-FINAL-005` and `R15-FINAL-006`); FINAL-005 and FINAL-006 then certified at `rc2-round2`; `R15-LEAD-136` (not certified at rc2-round2) certified at `rc2-round3`; `R15-LEAD-137` (not certified at rc2-round3) certified together with `R15-LEAD-141` at the rc2 fail-safe round. New mediums and lows are filed for 0.9.1. A carry-forward judge then checked every passing final-pass observation against the rc2 -> launch code diff (`final-pass/CARRY_FORWARD_launch.md`): 26 observation groups carried unchanged, 30 were already re-proved by a later gate, and 4 owed a fresh re-run (a malformed-symbol/census route replay, the portfolio-crypto batch path, and one LLM spot-check); all 4 held when rerun at the launch head (`final-pass/rerun-launch/RERUN.md`). The pass's GUI half (a packaged-app click-through) was **not tested** at the launch head (`DECISIONS_FOR_OPERATOR.md` 5.15); `R15-LEAD-143` and `R15-LEAD-144` (both low) were filed afterward during the release-bundle rehearsal, not by the adversarial pass itself.
 
 ## What changed since 0.8.0
 
 - **Trading is removed permanently (decision D81).** Broker connectivity, orders and simulated accounts are gone from the product and will not return. The terminal is a research, data and agent tool; the agent can read data and propose changes to your own hand-kept portfolio, and every data write waits for your review.
 - **New licence.** The core is now under PolyForm Strict 1.0.0 plus a commercial licence (see `LICENSING.md`). The plugin contract (`types/plugin.ts`) and the example plugin are Apache-2.0, so plugin authors are never bound by the core licence. Every commit made before the relicensing commit stays available under AGPL-3.0.
-- **A long audit-and-fix pass.** 596 register entries are fixed, including 15 of the 16 criticals; the remaining critical, R15-DATA-002 (a bare ticker present in both the US and Indian masters binds to the session region; the user-pick fix is merged, the agent-add leg is not), waits on an operator decision (DECISIONS 4.15).
-- **First-boot reliability (R15-LEAD-123).** The core now waits up to 270 s (45 s x 6) for the bundled data engine to bind and the interface waits up to 300 s, so a cold first launch or a busy machine no longer leaves the session stuck in a failed state.
-- **Diagnostics.** The app keeps a rotating log under its data directory (`logs/vysted.log`) and Settings offers "Copy diagnostics".
-- **Origin protection (R15-CODE-AGENT-001).** The sidecar, including its MCP surface, now rejects a browser request whose `Origin` is not on an allow-list (the app's own origins and the dev server). The packaged-app click-through that confirms every panel still loads is listed under awaiting manual check.
-- R15-LEAD-116 (high): an explicit BSE pin on a same-ticker, different-company name (for example `FOCUS.BO`, also KALYANI, RAJPUTANA, MAL, SEL, ZEAL) used to serve the NSE company's feed in all five disclosure lanes. Register status at `4da7fc91`: **fixed**. Closure evidence: fixed by 3acd24dc + 3af0502c (fix round A), certified at d3509715 by r15/stage-c/lows/int-9368c62/VERIFY.md (31/34 row checks byte-equal; the 3 shareholding cells differ by pre-existing per-spelling lane non-determinism, filed separately) It is therefore **fixed in 0.9.0** and is not an open item.
+- **A long audit-and-fix pass, plus a final adversarial pass.** 629 register entries are fixed, including 17 of the 18 criticals; the remaining critical, R15-DATA-002 (a bare ticker present in both the US and Indian masters binds to the session region; the user-pick fix is merged, the agent-add leg is not), waits on an operator decision (DECISIONS 4.15). A distinct sibling defect on the research and copilot data-fetch path, R15-LEAD-127 (a bare collision ticker served the session region's company in a research brief or MCP tool result, not the DATA-002 surfaces), was found by the final pass and fixed and certified before this tag.
+- **First-boot reliability (R15-LEAD-123, R15-LIFECYCLE-001).** The core now waits up to 270 s (45 s x 6) for the bundled data engine to bind and the interface waits up to 300 s, so a cold first launch or a busy machine no longer leaves the session stuck in a failed state. The main event loop no longer freezes for the MCP bind window; confirmed headlessly and on a macOS packaged build, with the Windows packaged check still open (see "Open items" below).
+- **Diagnostics.** The app keeps a rotating log under its data directory (`logs/vysted.log`) and Settings offers "Copy diagnostics". The macOS packaged click-through for this is still awaiting manual check (R15-LIFECYCLE-008).
+- **Origin protection (R15-CODE-AGENT-001).** The sidecar, including its MCP surface, now rejects a browser request whose `Origin` is not on an allow-list (the app's own origins and the dev server). This is verified live and on the macOS packaged app and `pnpm tauri:dev`; the Windows packaged click-through is the one piece still awaiting manual check (`WINDOWS_MANUAL_CHECK.md` section 1).
+- R15-LEAD-116 (high): an explicit BSE pin on a same-ticker, different-company name (for example `FOCUS.BO`, also KALYANI, RAJPUTANA, MAL, SEL, ZEAL) used to serve the NSE company's feed in all five disclosure lanes. Register status: **fixed**. Closure evidence: fixed by 3acd24dc + 3af0502c (fix round A), certified at d3509715 by r15/stage-c/lows/int-9368c62/VERIFY.md (31/34 row checks byte-equal; the 3 shareholding cells differ by pre-existing per-spelling lane non-determinism, filed separately). It is therefore **fixed in 0.9.0** and is not an open item.
 
 ## Install notes
 
-- **This build is unsigned.** It carries no Apple Developer ID signature and is not notarized (R15-RELEASE-001). On the Mac that built it, it runs; on any other Mac, Gatekeeper refuses it unless you right-click the app, choose Open, and confirm. If macOS says the app is "damaged", the quarantine flag is the cause: after copying the app to Applications, run `xattr -dr com.apple.quarantine "/Applications/Vysted Terminal.app"`. <<CHECK: whether the operator signs and notarizes before publishing; if so this paragraph is replaced with a normal install note>>
-- **The first launch can take up to a few minutes.** The bundled data engine is a single-file binary that unpacks itself on every launch; a cold first launch or a busy machine can take well over a minute, and the app waits up to 270 s before it gives up (R15-LEAD-123). Wait for the status chip to turn connected before judging anything. Measured on the verifier's machine, the release build bound the engine at about 92-102 s and reached connected.
-- Platform: macOS on Apple Silicon (`Vysted Terminal_0.9.0_aarch64.dmg`, <<BUNDLE_BYTES>> bytes, sha256 <<BUNDLE_SHA256>>). No Windows or Linux build has been verified for this release; see `WINDOWS_MANUAL_CHECK.md`.
+- **This build is unsigned.** It carries no Apple Developer ID signature and is not notarized (R15-RELEASE-001). On the Mac that built it, it runs; on any other Mac, Gatekeeper refuses it unless you right-click the app, choose Open, and confirm. If macOS says the app is "damaged", the quarantine flag is the cause: after copying the app to Applications, run `xattr -dr com.apple.quarantine "/Applications/Vysted Terminal.app"`.
+
+  **Operator to confirm:** whether this dmg gets signed and notarized before publishing. If it does, replace this paragraph with a normal install note; the signing and notarization steps are in `docs/redesign/OPERATOR_BRIEFING.md` section 2 step 3. An unsigned install on a machine that already has `vysted-terminal` keychain items from a prior build can also raise a one-time login-keychain consent prompt at first launch (R15-LEAD-143) — this is expected, not a bug; click Deny or Allow as you prefer for your own machine.
+- **The first launch can take up to a few minutes.** The bundled data engine is a single-file binary that unpacks itself on every launch; a cold first launch or a busy machine can take well over a minute, and the app waits up to 270 s before it gives up (R15-LEAD-123). Wait for the status chip to turn connected before judging anything. Measured on the verifier's machine, the release build bound the engine at about 92-114 s and reached connected, holding steady past +340 s with live data in its panels (`bundle-rc2b/launch/LAUNCH.md`).
+- Platform: macOS on Apple Silicon (`Vysted Terminal_0.9.0_aarch64.dmg`, 228,480,607 bytes, sha256 `9940d41b7ed6725aaabb6bb1709dc48b4f8ec51facd0696e376c68401139bc53`). No Windows or Linux build has been verified for this release; see `WINDOWS_MANUAL_CHECK.md`.
 - There is no auto-update path and no published GitHub release pipeline yet (R15-RELEASE-002, -003); update by installing the next dmg.
+- **Upgrading from 0.8.0:** the app-side half of this check (install 0.9.0 over an existing 0.8.0 install and confirm your workspace, portfolio and keys survive) is operator-attended; see `HAND_TESTING_GUIDE.md`. A headless, sidecar-side proof of the same upgrade path is being run separately; its result will live at `docs/redesign/verification/r15/stage-d/upgrade-0.8.0/` (not available at the time this note was written).
 - Bring your own keys: provider keys are stored in the OS keychain through Settings, never in a file. A keyless local model through Ollama is supported with the limitation below.
 
 ## Known limitation - agent chat with a keyless local model
@@ -86,27 +89,33 @@ Status note (from `docs/redesign/DECISIONS_FOR_OPERATOR.md` section 4.10, outsid
 
 ## Open items
 
-Register state at `4da7fc91` (register entries with status exactly `open`): **31 medium and 58 low, 89 in all; no critical or high is open.** The final adversarial pass may add mediums and lows before launch, so the totals are written <<OPEN_COUNTS>> (final-pass summary: <<FINAL_PASS_SUMMARY>>). Every item below is filed for 0.9.1 under the operator's gate rule (new mediums and lows are listed as open at 0.9.0 and become the first 0.9.1 batch).
+Register state at `4b460027` (entries with status exactly `open`): **0 critical, 0 high, 43 medium, 72 low — 115 in all.** Every item below is filed for 0.9.1 under the operator's gate rule (new mediums and lows are listed as open at 0.9.0 and become the first 0.9.1 batch). See "What this release is" above for the final adversarial pass that produced most of the new entries.
 
-Register totals at `4da7fc91` (745 entries; the severity-by-status split is in the table), counts to be refreshed as <<OPEN_COUNTS>>:
+Register totals at `4b460027` (803 entries; the severity-by-status split is in the table):
 
 | Status | critical | high | medium | low | total |
 | --- | --- | --- | --- | --- | --- |
-| fixed | 15 | 109 | 265 | 207 | 596 |
-| open | 0 | 0 | 31 | 58 | 89 |
-| needs_gui | 0 | 3 | 1 | 1 | 5 |
+| fixed | 17 | 120 | 277 | 215 | 629 |
+| open | 0 | 0 | 43 | 72 | 115 |
+| needs_gui | 0 | 2 | 1 | 1 | 4 |
 | blocked_tier4 | 1 | 11 | 19 | 4 | 35 |
 | removed_with_feature | 0 | 1 | 9 | 4 | 14 |
 | not_a_defect | 0 | 0 | 6 | 0 | 6 |
-| **total** | 16 | 124 | 331 | 274 | 745 |
+| **total** | 18 | 134 | 355 | 296 | 803 |
 
-### Open mediums (31)
+### Open mediums (43)
 
 | ID | Title |
 | --- | --- |
-| R15-AGENT-027 | humanize() classifies by HTTP status alone, so users get a next step that cannot work: OpenAI no-credit 429 and free-model shared-pool 429 say 'wait a minute', invalid Gemini/xAI keys... |
-| R15-CODE-PLATFORM-072 | Data-source description is hand-maintained in marketplace.ts, disconnected from provider_registry and the plugin contract, and has already drifted (yfinance entry lists 3 keys vs 7 served;... |
-| R15-LEAD-060 | Verifier verdict text wrapped in underscore emphasis (_UNVERIFIED_ / __UNVERIFIED__) parses as AGREE |
+| R15-AGENT-027 | humanize() classifies by HTTP status alone, so users get a next step that cannot work: OpenAI no-credit 429 and free-model shared-pool 429 say 'wait a minute', invalid Gemini/xAI keys (400),... |
+| R15-CODE-PLATFORM-072 | Data-source description is hand-maintained in marketplace.ts, disconnected from provider_registry and the plugin contract, and has already drifted (yfinance entry lists 3 keys vs 7 served; n... |
+| R15-FINAL-012 | RELIANCE.BO earnings history is two quarters stale against the NSE listing of the same company (latest 2025-12-31 vs 2026-06-30) and its analyst consensus differs (36 vs 26 analysts), with n... |
+| R15-FINAL-013 | 'Should I buy Amal Ltd?' on gpt-4o-mini gets a buy lean justified by an industry P/E comparison no tool fetched |
+| R15-FINAL-014 | Ollama lane: a tool call leaked as a Python-literal dict (None/True/False) is not rescued; the raw call blob is shown as the assistant reply |
+| R15-FINAL-015 | THIRD_PARTY_NOTICES.md lists the wrong version for 56 of 121 main-sidecar Python components because transitive deps are unpinned and the bundle ships what pip resolved at build time |
+| R15-FINAL-018 | With the ULTRA slider one user turn fans out into N sequential full ULTRA heavy runs (4 research calls -> ~19 min, ~$1.25, each brief replacing the last) |
+| R15-FINAL-019 | Settings SearXNG card tells a user whose Docker/OrbStack is installed but stopped that Docker 'isn't available' and to install it, ignoring docker.cli_present/daemon_running and the sidecar'... |
+| R15-FINAL-020 | Keyless web search: the Brave engine (impersonated fetch) gets HTTP 429 while a plain-UA curl from the same host gets 200 in the same minute, so keyless web_search returns zero rows on this... |
 | R15-LEAD-061 | strip_model_bibliography misses common bibliography heading variants, so a model-written source list survives beside the verified one |
 | R15-LEAD-062 | A Gemini free-tier per-minute 429 (RESOURCE_EXHAUSTED ... retry in Ns) is shown as "out of credit or quota. Add credit or check your plan" |
 | R15-LEAD-063 | historyForSend drops the oldest turns once the thread passes 60k chars with no notice to the user or the model |
@@ -117,13 +126,11 @@ Register totals at `4da7fc91` (745 entries; the severity-by-status split is in t
 | R15-LEAD-068 | Settings privacy copy over-promises: "Nothing leaves this machine except calls you make to providers you configure" while keyless lanes (Yahoo, NSE/BSE, DDG) call out without configuration |
 | R15-LEAD-069 | Screener formula validate accepts a boolean operand in a comparison ("roe > (pe_ratio < 15)", "(pe_ratio > 3) > 0.5") and coerces it |
 | R15-LEAD-070 | Analyst ratings swallow a Yahoo rate-limit into an empty 200 list that reads as no coverage |
-| R15-LEAD-071 | A Yahoo rate-limit on earnings history is swallowed as an empty history and cached for 24 h |
 | R15-LEAD-072 | Heavy/ULTRA brief stopped by its spend ceiling publishes note=None, and the cross-check keeps spending after the breach |
 | R15-LEAD-073 | The latest round's tool results are never elided by _fit_to_window, so a multi-result round leaves the answer below the 1/8 reserve |
 | R15-LEAD-074 | Scheduled and MCP-run workflows run with no event sink: action.notify_desktop reports notified:true but nothing is shown |
 | R15-LEAD-075 | Editing a custom agent silently clears its default_model on save (customSpecToSummary sets defaultModel: null) |
 | R15-LEAD-076 | A partially throttled screen shows "No rows matched - loosen a threshold / Reset filters" although most symbols were never evaluated |
-| R15-LEAD-077 | A focused SEC Filings panel publishes identifier, not symbol, so the agent context names the wrong symbol |
 | R15-LEAD-078 | Flaky test_research_fast::test_fast_web_round_runs_alongside_a_time_boxed_fan_out: an unstubbed earnings-quality leg makes it timing-dependent |
 | R15-LEAD-079 | ReasoningSplitter releases a held reasoning echo in full when an answer follows it (provisional, shard evidence only) |
 | R15-LEAD-080 | Agent/MCP compute_greeks and price_option return QuantLib-unit vega/theta/rho unlabelled; the model restated them as per-unit values |
@@ -132,11 +139,19 @@ Register totals at `4da7fc91` (745 entries; the severity-by-status split is in t
 | R15-LEAD-083 | Earnings drill-down As-of chip shows the client fetch clock and ignores the envelope server as_of |
 | R15-LEAD-122 | Screener 'Export CSV' writes the file but shows no saved path, toast or error (the result of downloadCsv is discarded) |
 | R15-LEAD-124 | sec-edgar-mcp is killed while still extracting on a cold or busy launch (~91 s) and /sec routes return 501 for the whole session |
-| R15-LIFECYCLE-024 | No persistent store records a schema version (user_version 0 on all 8 SQLite DBs; no top-level workspace blob version) and nothing backs up the data dir before a new build touches it, so... |
-| R15-RESEARCH-022 | A 200-status CAPTCHA/block page from a keyless engine is recorded as a healthy empty answer and resets that engine's circuit breaker, so a blocking engine is never benched and an... |
+| R15-LEAD-126 | The main data engine takes about 100 s to answer /health on an idle warm launch, behind the MCP binds, so a user waits over a minute and a half before any panel loads |
+| R15-LEAD-128 | Research brief drops an NSE small cap's price when the 6-month history fetch is slow: price_data fetches history before the quote inside the 6 s box |
+| R15-LEAD-129 | README keyless section repeats the false promises R15-UI-052 removed from the app (keyless web research via DuckDuckGo, 'fully offline'); BYOK list omits OpenRouter |
+| R15-LEAD-130 | Palette/watchlist autocomplete cannot find a company by former name or BSE scrip code though /resolve binds both |
+| R15-LEAD-131 | Identity cross-check flags the correct company as a possible mis-resolution ('&' vs 'and', 0.40); raw BSE '-$' suffix shown as the name on 310 scrips |
+| R15-LEAD-135 | Research's news leg still fetches the bare ticker under the session region, so a US name colliding with an Indian ticker carries the Indian namesake's headlines (Halliburton brief under IN t... |
+| R15-LEAD-138 | The copilot/MCP fundamentals tool skips the SME exchange-filings fallback: MCP fundamentals VOLERCAR returns ok:false 'No data provider covers...' while REST /fundamentals serves values |
+| R15-LEAD-140 | A cold 100-name NSE batch takes ~171 s, over the 120 s client QUOTES_BATCH_TIMEOUT_MS, so the first portfolio refresh of a large cold portfolio aborts (the next refresh is 9.4 s, 100/100) |
+| R15-LEAD-142 | Recall regression from the LEAD-136 fix: brand-only and list headlines for the 234 NSE word tickers now drop ('Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks', 'Titan... |
+| R15-RESEARCH-022 | A 200-status CAPTCHA/block page from a keyless engine is recorded as a healthy empty answer and resets that engine's circuit breaker, so a blocking engine is never benched and an all-blocked... |
 | R15-UI-084 | The agent surface cannot take the full cockpit: the dock width is hard-capped at 1200 px and there is no maximize mode (FR-001 requires 'dominant column or full cockpit') |
 
-### Open lows (58)
+### Open lows (72)
 
 | ID | Title |
 | --- | --- |
@@ -148,14 +163,21 @@ Register totals at `4da7fc91` (745 entries; the severity-by-status split is in t
 | R15-CODE-PLATFORM-045 | Boot path bridges a plugin's panels and commands without checking that loadPlugin succeeded, so an errored plugin still contributes UI |
 | R15-CODE-PLATFORM-046 | moduleForPlugin re-implements capability negotiation without the runtime's try/catch, so a throwing getPanels()/getCommands() rejects bootstrapPlugins() mid-loop |
 | R15-DATA-098 | The yield curve emits a duplicated first point and extrapolates past the last instrument without saying so when step_days floors to 1 |
+| R15-FINAL-025 | DEEP research overran its 180 s wall budget by 79 s (259 s) on the local lane: the final synthesis call is not boxed by the remaining wall |
+| R15-FINAL-026 | Screener freshness line prints unrounded float seconds ('quotes 41.64699196815491s ago') |
+| R15-FINAL-029 | transform.code size caps are bypassed by sum(list, start): a 25-character expression builds an uncapped list (8.3 GB peak RSS) and keeps running after the 5 s timeout |
+| R15-FINAL-032 | A local-model narrative written with markdown-bold headers (**TAKE** / **BULL** ...) collapses to a flat summary + insights; the five typed fields come back empty |
+| R15-FINAL-034 | Brief header reads 'web + structured data' directly above the 'Structured data only - no web sources found' banner on a filings-only brief |
+| R15-FINAL-036 | CURRENT_STATE.md cites a missing build report, the deleted monte_carlo.py and an absent ConnectCard.tsx, and reports 0.8.0 and 619 vitest / 942 pytest |
+| R15-FINAL-038 | MCP discovery file advertises protocol 2025-06-18 while /mcp/status reports 2025-11-25; the Rust sync comment points at a constant that does not exist |
 | R15-LEAD-025 | The fundamentals warmer hits openbb-mcp hard at boot with no observed throttling on the default (non-IN) universe warm path |
 | R15-LEAD-041 | Earnings estimate detail's analyst count and its EPS triple are read from different upstream fields and disagree: TM shows estimate_analyst_count 1 while the EPS triple is null |
-| R15-LEAD-042 | The proposed-change review card and its applied label price a US lot in the session region's currency, not the listing's: {MSFT, 4, 480 USD} under an IN session reads 'Add 4 MSFT @ ₹480 to... |
+| R15-LEAD-042 | The proposed-change review card and its applied label price a US lot in the session region's currency, not the listing's: {MSFT, 4, 480 USD} under an IN session reads 'Add 4 MSFT @ ₹480 to t... |
 | R15-LEAD-047 | A derived EPS (e.g. MSFT) is stamped field_meta status 'ok' with no reason text distinguishing it from a directly-served EPS |
 | R15-LEAD-052 | An ALL-CAPS headline still over-matches a 3-character common-word ticker in the non-IN relevance gate |
 | R15-LEAD-053 | Direct GET /quotes/TATAMOTORS.NS and .BO still 404 with no rename hint to TMPV, even though /resolve already lists TMPV first for the same query |
 | R15-LEAD-054 | sp500.json carries ECHO and VMRK, two symbols absent from the current US resolver master, the same stale-universe-seed class R15-LEAD-049 fixed for nifty50 |
-| R15-LEAD-055 | R15-AGENT-053's own regression test (NewsFeedPanel 'publishes the top headline...') flakes under full vitest-suite load: a context-bus publish is asserted synchronously right after a... |
+| R15-LEAD-055 | R15-AGENT-053's own regression test (NewsFeedPanel 'publishes the top headline...') flakes under full vitest-suite load: a context-bus publish is asserted synchronously right after a waitFor... |
 | R15-LEAD-056 | DOW's (and NICE's) own stripped company-name alias is the common word itself, so the DATA-030 stoplist's anchored-ticker rule never applies and 'Dow Jones falls 300 points' still tags DOW |
 | R15-LEAD-057 | Name-alias derivation leaves master-name registry artefacts in place ('amazon com', 'keycorp /new/'), so plain-prose company mentions never tag |
 | R15-LEAD-058 | GM and GS (2-letter tickers with no brand token) never pass the non-IN relevance gate on a bare mention |
@@ -169,7 +191,7 @@ Register totals at `4da7fc91` (745 entries; the severity-by-status split is in t
 | R15-LEAD-091 | Type-first JSON tool-call text can leak into the visible answer |
 | R15-LEAD-092 | _row_value has a twin implementation that can drift |
 | R15-LEAD-093 | One doc line still says "the 18" host actions while the others and the catalog say 19 |
-| R15-LEAD-094 | sidecar/agents/copilot.json system prompt example reply "Built you a brief on NVDA - it's at the top of the cockpit" teaches an applied-tense claim that conflicts with review mode (local... |
+| R15-LEAD-094 | sidecar/agents/copilot.json system prompt example reply "Built you a brief on NVDA - it's at the top of the cockpit" teaches an applied-tense claim that conflicts with review mode (local rb1... |
 | R15-LEAD-095 | Bond pricer display currency fixed at mount; region switch while open keeps USD |
 | R15-LEAD-096 | leading_token reads a negated COMPLETE sentence as complete |
 | R15-LEAD-097 | A scrip with one trade inside 52 weeks keeps a forward-fill-derived provider 52w low unflagged when it is within the 10% tolerance |
@@ -196,23 +218,30 @@ Register totals at `4da7fc91` (745 entries; the severity-by-status split is in t
 | R15-LEAD-119 | The vitest coverage ratchet never gets committed: thresholds read lines 0 while measured coverage is about 81.4 |
 | R15-LEAD-120 | Bare 2-letter ticker absent from the company name (KO / Coca-Cola) still fails the non-IN relevance gate; _entity_signals credits a ticker mention only for len(symbol)>=3 |
 | R15-LEAD-121 | llama3.1:8b prints USD portfolio holdings with the rupee sign although each holding carries currency:'USD' (IN default region) |
+| R15-LEAD-125 | After the data engine dies or fails to start, panels and chat show their own generic copy; only the status chip names the reason |
+| R15-LEAD-132 | NSE EOD warm stamps a holiday (2 Oct) as the trade date on 1 Oct's bhavcopy rows |
+| R15-LEAD-133 | Never-installed Ollama is told 'start Ollama' and the guided setup with the install link never opens |
+| R15-LEAD-134 | The 8 s FAST web-round box is shorter than the keyless chain's 6 s per-engine deadlines; Mojeek is never reached and a timeout is reported as 'no web backend' |
+| R15-LEAD-139 | SUMAX/QUALIANCE /fundamentals is still a 404 whose body carries action 'Check the symbol or series id.' beside the correct typed not-covered detail |
+| R15-LEAD-143 | An unsigned 0.9.0 release launch raises a login-keychain SecurityAgent consent prompt at boot when vysted-terminal keychain items from another build exist; VYSTED_DATA_DIR isolates the data... |
+| R15-LEAD-144 | A double-suffixed spelling (RELIANCE.NS.NS) is normalised to the known listing by /fundamentals (200, NSE filings fallback, P/E and market cap typed null) but 404s on /quotes; five slash-con... |
 | R15-LIFECYCLE-040 | The Tauri-Rust MCP spawn (the Windows deadlock fix) has never been exercised inside a launched packaged app; CI builds the bundle and smoke-tests the raw binaries, but no packaged cold boot... |
-| R15-UI-068 | DataTable, 'the ONE table primitive', has no loading/empty slot and its sort headers are not keyboard-operable, so panels hand-roll skeleton tables and four surfaces still hand-roll data... |
+| R15-UI-068 | DataTable, 'the ONE table primitive', has no loading/empty slot and its sort headers are not keyboard-operable, so panels hand-roll skeleton tables and four surfaces still hand-roll data tab... |
 
-### Awaiting manual check (needs_gui, 5)
+### Awaiting manual check (needs_gui, 4)
 
 These could not be shown on the rig and wait for a person to click through the packaged app (see `HAND_TESTING_GUIDE.md` and `WINDOWS_MANUAL_CHECK.md`).
 
 | ID | Severity | Awaiting manual check |
 | --- | --- | --- |
-| R15-CODE-AGENT-001 | high | The whole sidecar (including the unauthenticated /mcp surface with 36 tools, invoke_agent among them) answers any browser Origin with access-control-allow-origin: * and... |
-| R15-LIFECYCLE-001 | high | Every launch freezes the app's main event loop for the whole MCP bind window (about 25 s warm, 34 s+ cold, up to 90 s), and the data sidecar is not even spawned until... |
-| R15-LIFECYCLE-008 | high | No diagnostics exist and a shipped build persists no log at all: every Rust, sidecar and MCP line goes to process stdout (no console at all on a Windows release build),... |
-| R15-UI-022 | medium | Chart drawing tools cannot place what the user clicks: anchors snap to the bar close, clicks past the last bar commit invisible drawings, Text always reads 'label', and... |
-| R15-DOCS-024 | low | MCP_INTEGRATION.md's Claude Desktop (mcp-remote) setup has never been demonstrated end to end, and its claim that tools appear in Claude Desktop's slash picker as... |
+| R15-CODE-AGENT-001 | high | Windows half only — macOS packaged and `pnpm tauri:dev` both confirmed live (every panel loads, no webview 403). Remaining: launch the Windows packaged app and confirm the same. |
+| R15-LIFECYCLE-008 | high | No diagnostics exist and a shipped build persists no log at all: every Rust, sidecar and MCP line goes to process stdout (no console at all on a Windows release build), so a user with a problem has no record. Packaged click-through on "Copy diagnostics" still needed on both platforms. |
+| R15-UI-022 | medium | Chart drawing tools cannot place what the user clicks: anchors snap to the bar close, clicks past the last bar commit invisible drawings, Text always reads 'label', and Lock is a dead control. |
+| R15-DOCS-024 | low | MCP_INTEGRATION.md's Claude Desktop (mcp-remote) setup has never been demonstrated end to end, and its claim that tools appear in Claude Desktop's slash picker as /vysted__price_data is unverified. |
 
 `blocked_tier4` entries (35) wait on an operator decision, not on code; they are listed in `BACKLOG_0.9.1.md`. Four of them are the signed-off local-model limitation quoted below.
 
 ## Build and verification
 
-- Built from <<LAUNCH_SHA>> (release code head `d38b5d1a2487bd52fe8a7e741a3a5266e3206611` plus docs). Gates at the release code head: ci-local exit 0 (vitest 2032, cargo 32, pytest 3921 with 1 skip), sidecar smoke test exit 0, Gate 8 8 passed (`r15/stage-c/lead123/VERIFY.md`).
+- Built from `1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056`. Gates at this head: ci-local exit 0 (vitest 2048, cargo 32, pytest 4013 with the skip), sidecar smoke test exit 0 (13 agents, toolCount 39), Gate 8 8 passed (`r15/stage-c/rc2-failsafe/VERIFY.md`).
+- Production bundle: `Vysted Terminal_0.9.0_aarch64.dmg`, built and launch-checked from this same commit (`r15/stage-d/bundle-rc2b/BUILD.md`, `.../launch/LAUNCH.md`). 228,480,607 bytes, sha256 `9940d41b7ed6725aaabb6bb1709dc48b4f8ec51facd0696e376c68401139bc53`, unsigned.

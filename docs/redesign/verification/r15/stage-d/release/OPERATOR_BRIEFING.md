@@ -1,49 +1,53 @@
 # Operator Briefing - R15 "LAUNCH" (0.9.0)
 
-Draft written from the code at `d38b5d1a2487bd52fe8a7e741a3a5266e3206611` and the register and docs at `4da7fc91`. Tag values are markers filled at the launch tag: rc2 <<RC2_SHA>>, launch <<LAUNCH_SHA>>.
+True at the launch tag `1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056` (tags `r15-rc2` and `r15-launch`); register and docs read at `4b460027` (docs-only commits on top of the launch tag, where R15-LEAD-143 and R15-LEAD-144 were filed).
 
 ## 1. Outcome
 
-Vysted Terminal 0.9.0 is ready for you to publish, with two honest caveats. R15 was an autonomous run that audited the whole product, filed 745 defect entries, and fixed 596 of them; it also removed trading from the product for good (D81) and relicensed the core to PolyForm Strict 1.0.0 plus a commercial licence, with the plugin contract and example plugin staying Apache-2.0. At the register state in this draft no critical or high entry is open: R15-LEAD-116 (the explicit `FOCUS.BO` pin served the NSE company's feed) is fixed, and the boot bug R15-LEAD-123 (a data engine that binds late left the session stuck in a failed state) is fixed and merged at `d38b5d1a`, with a fresh verifier certifying it. 31 medium and 58 low entries are open and filed for 0.9.1 (<<OPEN_COUNTS>>); the final adversarial pass summary is <<FINAL_PASS_SUMMARY>>. 5 entries are awaiting a human click-through on the packaged app, and 35 wait on decisions that only you can make (money, identity, Tier-1 files, or the signed-off local-model limitation).
+Vysted Terminal 0.9.0 is ready for you to publish, with two honest caveats. R15 was an autonomous run that audited the whole product, filed 803 defect entries, and fixed 629 of them; it also removed trading from the product for good (D81) and relicensed the core to PolyForm Strict 1.0.0 plus a commercial licence, with the plugin contract and example plugin staying Apache-2.0. No critical or high entry is open: R15-LEAD-116 (the explicit `FOCUS.BO` pin served the NSE company's feed) is fixed, the boot bug R15-LEAD-123 (a data engine that binds late left the session stuck in a failed state) is fixed and certified, and R15-LEAD-127 (a sibling of R15-DATA-002 on the research/copilot data-fetch path — a bare collision ticker served the wrong region's company in a brief or MCP result) was found by the final adversarial pass and fixed and certified before this tag.
 
-The two caveats: the build is unsigned and not notarized, so another Mac refuses it until you sign it (step 3 below); and nothing about Windows has been verified (`WINDOWS_MANUAL_CHECK.md`). The production bundle is built by <<LAUNCH_SHA>> as `Vysted Terminal_0.9.0_aarch64.dmg`, <<BUNDLE_BYTES>> bytes, sha256 <<BUNDLE_SHA256>>.
+Final adversarial pass summary: a fresh-context Opus 5.5 pass (battery/drive lanes plus a cross-adversarial keyless + real-user round) admitted 58 new register entries after rc1 (`R15-FINAL-001..038`, `R15-LEAD-125..144`). Every admitted critical and high was fixed and certified by a fresh verifier before this tag: R15-LEAD-127 at `stage-c/lead127/VERIFY.md`; R15-FINAL-001..008 at `fix-r1` (26 certified, 2 not certified first pass) and `rc2-round2`; R15-LEAD-136 at `rc2-round3`; R15-LEAD-137 and R15-LEAD-141 at the rc2 fail-safe round. New mediums and lows are filed for 0.9.1. A carry-forward judge then re-checked every passing final-pass observation against the launch-head code (`final-pass/CARRY_FORWARD_launch.md`): 26 carried, 30 already re-proved, 4 freshly rerun — all 4 held (`final-pass/rerun-launch/RERUN.md`). The pass's GUI half was **not tested** at the launch head (`DECISIONS_FOR_OPERATOR.md` 5.15) — this is why the fresh-install, upgrade and GUI-check items in section 6 below are yours to run, not a gap anyone glossed over.
+
+43 medium and 72 low entries are open and filed for 0.9.1 (115 in all). 4 entries are awaiting a human click-through on the packaged app (down from 5 — R15-LIFECYCLE-001, the boot-freeze item, is now fixed), and 35 wait on decisions that only you can make (money, identity, Tier-1 files, or the signed-off local-model limitation).
+
+The two caveats: the build is unsigned and not notarized, so another Mac refuses it until you sign it (step 3 below); and nothing about Windows has been verified (`WINDOWS_MANUAL_CHECK.md`). The production bundle is built from `1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056` as `Vysted Terminal_0.9.0_aarch64.dmg`, 228,480,607 bytes, sha256 `9940d41b7ed6725aaabb6bb1709dc48b4f8ec51facd0696e376c68401139bc53`.
 
 ## 2. Public-button sequence
 
 These are the operator-only steps, in order. Nothing here has been run by an agent. An agent never pushes, tags, signs, uploads or publishes.
 
-1. **Review and merge `004-r4-experience-rebuild` to `main`.** Open a pull request (this also gives the 3-OS CI its first ever signal on the branch, R15-RELEASE-004), read the diff, then merge.
+1. **Merge `004-r4-experience-rebuild` to `main`, with a merge commit.** This also gives the 3-OS CI its first ever signal on the branch (R15-RELEASE-004). Full command sequence: `docs/RELEASE_RUNBOOK.md` section 9a.
    ```sh
-   gh pr create --base main --head 004-r4-experience-rebuild --title "R15 LAUNCH: Vysted Terminal 0.9.0" --body "See docs/redesign/OPERATOR_BRIEFING.md"
-   gh pr view --web
-   gh pr merge --merge
+   git checkout main && git pull origin main
+   git merge --no-ff 004-r4-experience-rebuild -m "Merge 004-r4-experience-rebuild: R15 LAUNCH, Vysted Terminal 0.9.0"
+   git push origin main
    ```
-2. **Tag `v0.9.0` on the gated sha** (never bare `HEAD`; the sha the final gate evaluated is <<LAUNCH_SHA>>).
+2. **Tag `v0.9.0` on the merge commit** (never bare `HEAD` from before the merge; the code the final gate evaluated is `1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056`, which the merge commit now contains on `main`).
    ```sh
-   git tag -a v0.9.0 <<LAUNCH_SHA>> -m "v0.9.0 - R15 LAUNCH: trading removed, PolyForm Strict + commercial licence, audit and fix pass"
+   git tag -a v0.9.0 -m "v0.9.0 - R15 LAUNCH: trading removed, PolyForm Strict + commercial licence, audit and fix pass"
    git push origin v0.9.0
    ```
 3. **Sign and notarize the dmg.** Build from the tagged sha with your Apple credentials in the environment (the next section says what they are), then verify.
    ```sh
    git checkout v0.9.0
    pnpm install --frozen-lockfile
-   node scripts/ensure-all-sidecars.mjs --force
+   VYSTED_SKIP_DEV_SIGN=1 node scripts/ensure-all-sidecars.mjs --force
    APPLE_SIGNING_IDENTITY="Developer ID Application: <your name> (<TEAMID>)" \
    APPLE_ID="<apple id email>" APPLE_PASSWORD="<app-specific password>" APPLE_TEAM_ID="<TEAMID>" \
-   pnpm tauri build
+   VYSTED_SKIP_DEV_SIGN=1 pnpm tauri build
    codesign -dv --verbose=4 "src-tauri/target/release/bundle/macos/Vysted Terminal.app"
    spctl -a -vv "src-tauri/target/release/bundle/macos/Vysted Terminal.app"
    xcrun stapler validate "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg"
    shasum -a 256 "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg"
    ```
-   <<CHECK: the unsigned build's recipe used VYSTED_SKIP_DEV_SIGN=1 for the sidecars and the build (bundle-rc2/BUILD.md); whether the sidecar dev-sign step must be skipped for a Developer ID build is not recorded, confirm against docs/RELEASE_RUNBOOK.md section 8 before running>>. The macOS signing identity can also be set at `bundle.macOS.signingIdentity` in `src-tauri/tauri.conf.json`, which is a Tier-1 file and is not set at this sha. Put the new size and sha256 into the release body (`<<BUNDLE_BYTES>>`, `<<BUNDLE_SHA256>>`).
+   Keep `VYSTED_SKIP_DEV_SIGN=1` set for this build too: it only skips the lead's local self-signed dev-signing identity on the three inner sidecar binaries (`docs/RELEASE_RUNBOOK.md` section 4) — unrelated to your Developer ID signing of the outer `.app`/`.dmg`, which `pnpm tauri build` applies itself by reading `APPLE_SIGNING_IDENTITY` (or `bundle.macOS.signingIdentity` in `src-tauri/tauri.conf.json`, a Tier-1 file, not set at this sha). Omitting the env var here would dev-sign the sidecar binaries with the lead's local cert, which is never meant to ship. The current unsigned reference numbers are 228,480,607 bytes / sha256 `9940d41b7ed6725aaabb6bb1709dc48b4f8ec51facd0696e376c68401139bc53` — these will change once you sign and notarize; use the fresh `shasum` output above for the release body, not these.
 4. **Create the draft release and attach the signed dmg.**
    ```sh
-   gh release create v0.9.0 --draft --title "Vysted Terminal 0.9.0" \
+   gh release create v0.9.0 --draft --target 1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056 --title "Vysted Terminal 0.9.0" \
      --notes-file docs/redesign/verification/r15/stage-d/release/GITHUB_RELEASE_v0.9.0.md \
      "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg"
    ```
-   If the draft already exists, attach with `gh release upload v0.9.0 "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg" --clobber`.
+   `--target` lets you create the draft before the tag is pushed, from the exact commit the gate evaluated. If the draft already exists, attach with `gh release upload v0.9.0 "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg" --clobber`.
 5. **Publish.** Before this, get a real commercial contact address into `LICENSING.md` and `COMMERCIAL_LICENSE.md` (R15-DOCS-002: the placeholder domain has no mail records), because a published release is a public announcement.
    ```sh
    gh release edit v0.9.0 --draft=false
@@ -111,15 +115,23 @@ An unsigned build is refused by Gatekeeper on every other Mac (it reads "damaged
 > `_NO_TOOL_CUE` list in `sidecar/services/planner.py` (`planner.py:136`, batch 21); batch 24 narrows it further, pending its own concurrence. Post-launch design (`DECISIONS_FOR_OPERATOR.md`
 > §4.9–4.12, not built): claim grounding by field/provenance plus a structured no-data turn.
 
-Status note (from `docs/redesign/DECISIONS_FOR_OPERATOR.md` section 4.10, outside the quoted block): the operator's ruling of 07:50 IST 26 Sep records R15-LEAD-035 as ACCEPTED, joining LEAD-030, LEAD-037 and LEAD-038 as one documented known-limitation class of the keyless local-model lane, `blocked_tier4`, with no further rounds this release. The quoted block above is the operator briefing's section as promoted at rc1 and is reproduced unchanged; where it says LEAD-035's wording is pending, 4.10 is the later record.
+Status note (from `docs/redesign/DECISIONS_FOR_OPERATOR.md` section 4.10, outside the quoted block): the operator's ruling of 07:50 IST 26 Sep records R15-LEAD-035 as ACCEPTED, joining LEAD-030, LEAD-037 and LEAD-038 as one documented known-limitation class of the keyless local-model lane, `blocked_tier4`, with no further rounds this release.
 
 ## 5. Windows
 
 Nobody has built or run this branch on Windows. The list of what to check on your ROG machine, with R15-CODE-AGENT-001 first, is in `WINDOWS_MANUAL_CHECK.md`.
 
-## 6. Other things only you can do
+## 6. Things only you can do
+
+**New since the drafts were written** — these are operator-attended, no computer-use grant covers them, and none were exercised by the final adversarial pass (its GUI half was not tested at the launch head, DECISIONS 5.15):
+
+- **A fresh install and first launch.** Download the dmg onto a clean or representative Mac, install, and launch cold. `HAND_TESTING_GUIDE.md` section 1 is written for exactly this and should be your first stop before anything else in that guide.
+- **The 0.8.0-to-0.9.0 upgrade, app side.** Install 0.8.0, create some state (a watchlist, a portfolio position, a note), install 0.9.0 over it, and confirm that state survives. `HAND_TESTING_GUIDE.md` section 2 has the steps. A separate, sidecar-side headless proof of the same upgrade path is being produced in parallel; when done it will live at `docs/redesign/verification/r15/stage-d/upgrade-0.8.0/` — that path does not exist yet as this briefing is written, and this briefing does not claim or assume any result from it.
+- **R15-LIFECYCLE-008 and R15-UI-022, packaged-app GUI checks.** "Copy diagnostics" in Settings, and the chart drawing tools (anchor placement, Text label, Lock). `HAND_TESTING_GUIDE.md` section 3 has both.
+
+**Everything else awaiting manual check or your decision:**
 
 - 35 `blocked_tier4` entries and the unfunded provider lanes (DECISIONS 2.1): see `BACKLOG_0.9.1.md` section on the Tier-4 bucket.
-- Awaiting manual check (5): see `HAND_TESTING_GUIDE.md` and `WINDOWS_MANUAL_CHECK.md`.
+- Awaiting manual check (4, down from 5 — R15-LIFECYCLE-001 is now fixed): R15-CODE-AGENT-001 (Windows half only), R15-LIFECYCLE-008, R15-UI-022, R15-DOCS-024. See `HAND_TESTING_GUIDE.md` and `WINDOWS_MANUAL_CHECK.md`.
 - The power and sleep settings this run used: `PMSET_REVERT.md`.
 - Restore the working state for the next session: `docs/redesign/verification/vysted-r15-run-state.md` has the resume prompt.

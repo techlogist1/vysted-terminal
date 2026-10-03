@@ -47,7 +47,7 @@ R15-LIFECYCLE-001 (the boot-freeze item previously listed here) is now **fixed**
 
 - **R15-LIFECYCLE-008** (high): No diagnostics exist and a shipped build persists no log at all: every Rust, sidecar and MCP line goes to process stdout (no console at all on a Windows release build), so a user with a problem has no record. Packaged click-through on "Copy diagnostics" still needed on both platforms.
 - **R15-UI-022** (medium): Chart drawing tools cannot place what the user clicks: anchors snap to the bar close, clicks past the last bar commit invisible drawings, Text always reads 'label', and Lock is a dead control.
-- **R15-DOCS-024** (low): MCP_INTEGRATION.md's Claude Desktop (mcp-remote) setup has never been demonstrated end to end, and its claim that tools appear in Claude Desktop's slash picker as /vysted__price_data is unverified.
+- **R15-DOCS-024** (low): MCP_INTEGRATION.md's Claude Desktop (mcp-remote) setup has never been demonstrated end to end, and its claim that tools appear in Claude Desktop's slash picker as /vysted\_\_price_data is unverified.
 
 Steps and expected results for each are in the register notes (`needs_gui` entries) and summarised here:
 
