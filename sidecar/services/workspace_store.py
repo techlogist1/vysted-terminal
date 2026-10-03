@@ -222,8 +222,13 @@ def load_workspace(name: str) -> dict[str, Any]:
 
 
 def delete_workspace(name: str) -> None:
-    """Delete the ``<name>.vysted-workspace`` file; raise if it does not exist."""
+    """Delete the ``<name>.vysted-workspace`` file and its ``.bak``; raise if it does not exist.
+
+    A ``.bak`` left behind would be restored over a later workspace of the same
+    name when that one is corrupt, serving deleted content (R15-FINAL-031).
+    """
     path = _path_for(name)
     if not path.is_file():
         raise WorkspaceNotFoundError(name)
     path.unlink()
+    _bak_path(path).unlink(missing_ok=True)

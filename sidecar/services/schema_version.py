@@ -6,6 +6,8 @@ before versioning (``CREATE IF NOT EXISTS`` plus its additive column guards), so
 an unversioned database from any earlier build lands on version 1. A database
 whose version is newer than the steps this build knows was written by a newer
 build: it is logged and left untouched, never downgraded (R15-LIFECYCLE-024).
+Every store opens its database through :func:`open_migrated`, which moves an
+unreadable file aside instead of failing every open (R15-FINAL-008).
 """
 
 from __future__ import annotations
@@ -13,6 +15,9 @@ from __future__ import annotations
 import logging
 import sqlite3
 from collections.abc import Callable, Sequence
+from datetime import datetime
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +68,58 @@ def migrate(conn: sqlite3.Connection, steps: Sequence[Step]) -> int:
             target,
         )
     return current
+
+
+def open_migrated(
+    path: str | Path,
+    steps: Sequence[Step],
+    *,
+    prepare: Callable[[sqlite3.Connection], None] | None = None,
+    row_factory: Any = None,
+    quiet: bool = False,
+    **connect_kwargs: Any,
+) -> tuple[sqlite3.Connection, int]:
+    """Connect to ``path`` with ``row_factory``, run ``prepare`` then :func:`migrate`; return the
+    connection and the version on disk.
+
+    A file SQLite reports as not a database or malformed (a bad header, a
+    truncated file) is renamed with its ``-wal``/``-shm`` to ``.corrupt-<ts>``,
+    kept for recovery, and a fresh database is created in its place, so one
+    damaged file costs that store's data instead of every open of it failing.
+    Any other error (``database is locked``) is raised untouched. A user store
+    logs the quarantine as a warning; ``quiet`` (a regenerable cache) as info.
+    """
+    for attempt in range(2):
+        conn = sqlite3.connect(str(path), **connect_kwargs)
+        conn.row_factory = row_factory
+        try:
+            if prepare is not None:
+                prepare(conn)
+            return conn, migrate(conn, steps)
+        except sqlite3.DatabaseError as exc:
+            conn.close()
+            message = str(exc)
+            if attempt or not ("not a database" in message or "malformed" in message):
+                raise
+            moved = _quarantine(Path(path))
+            log = logger.info if quiet else logger.warning
+            log(
+                "schema_version: %s is unreadable (%s); moved to %s and recreated", path, exc, moved
+            )
+        except BaseException:
+            conn.close()
+            raise
+    raise AssertionError("unreachable")
+
+
+def _quarantine(path: Path) -> Path:
+    """Rename ``path`` and its -wal/-shm to ``<name>.corrupt-<ts>``; return the db's new path."""
+    stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+    for suffix in ("-wal", "-shm", ""):
+        side = path.with_name(path.name + suffix)
+        if side.exists():
+            side.rename(side.with_name(f"{side.name}.corrupt-{stamp}"))
+    return path.with_name(f"{path.name}.corrupt-{stamp}")
 
 
 def _version(conn: sqlite3.Connection) -> int:

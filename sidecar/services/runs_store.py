@@ -195,10 +195,8 @@ def _connect() -> Iterator[sqlite3.Connection]:
     prunes finished rows older than :data:`RETENTION_SECONDS`.
     """
     path = _db_path()
-    conn = sqlite3.connect(path)
-    conn.row_factory = sqlite3.Row
+    conn, _ = schema_version.open_migrated(path, _STEPS, row_factory=sqlite3.Row)
     try:
-        schema_version.migrate(conn, _STEPS)
         if path not in _RECONCILED:
             now = int(time.time())
             conn.execute(
