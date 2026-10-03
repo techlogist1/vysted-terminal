@@ -1,0 +1,6 @@
+drwxr-xr-x@ - lokavyasingh  3 Oct 10:54 research
+
+'/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-UI-083/Library/Application Support/com.vysted.terminal/exports/research':
+.rw-r--r--@ 2.0k lokavyasingh  3 Oct 10:53 setfnif50.md
+.rw-r--r--@ 7.5M lokavyasingh  3 Oct 10:54 setfnif50.pdf
+.rw-r--r--@ 392k lokavyasingh  3 Oct 10:54 setfnif50.png
