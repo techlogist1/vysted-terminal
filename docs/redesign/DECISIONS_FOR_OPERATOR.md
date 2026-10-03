@@ -984,6 +984,10 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
     - A new high minted by round 3 gets the same treatment: its fail-safe, or the narrowest safe default, then 0.9.1.
   - **(b)** Hold r15-rc2 for a round 4 on whatever round 3 leaves open.
 - **Default:** with no answer one 5-hour window after this filing, (a) applies and is recorded as operator-default with the timestamp (standing rule, brief RESUME 3).
+- **Round-3 outcome (22:40 IST 3 Oct):** the condition is met. The rc2 gate holds at `a5abb7ec`, merged into 004 as `b7d37fd9`. R15-LEAD-136 is certified. R15-LEAD-137 is half fixed: market cap is right, but P/E is still low because a second overlay pass overwrites it. Round 3 also filed R15-LEAD-141 (high, 3-letter word tickers). Under either option the same fail-safe code has to be written and certified, so that landing starts now.
+  - r15-rc2 tags the head where the fail-safe lands, after that head's own fresh verifier. This replaces "the round-3 head" above.
+  - If the verifier certifies both entries on their stated repros, open critical and high is 0 and this question is moot: rc2 proceeds without waiting for the default, and that will be recorded here.
+  - If any high is still open, (a) or (b) applies as written.
 
 ## 6. Operator rule changes recorded during the rc1 gate (27 Sep 2026)
 
