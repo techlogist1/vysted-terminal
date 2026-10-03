@@ -46,7 +46,7 @@ These are the operator-only steps, in order. None of them has been run by an age
    gh release upload v0.9.0 "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg" --clobber
    gh release view v0.9.0 --json isDraft,assets --jq '{isDraft, assets:[.assets[]|{name,size}]}'
    ```
-   GitHub stores the asset as `Vysted.Terminal_0.9.0_aarch64.dmg` (spaces become dots), so `--clobber` replaces the unsigned one by that name. Update the sha256 line in the release body (`gh release edit v0.9.0 --notes-file <edited body>`) to the signed `shasum` from step 3. If the draft was deleted, recreate it:
+   GitHub stores the asset as `Vysted.Terminal_0.9.0_aarch64.dmg` (spaces become dots); `--clobber` still replaces it — verified by the run at 01:36–01:37 IST 4 Oct by re-uploading the same unsigned dmg onto the draft (exit 0, one asset afterwards, still a draft). If an upload is ever refused with `already_exists`, run `gh release delete-asset v0.9.0 Vysted.Terminal_0.9.0_aarch64.dmg` and upload again. Update the sha256 line in the release body (`gh release edit v0.9.0 --notes-file <edited body>`) to the signed `shasum` from step 3. If the draft was deleted, recreate it:
    ```sh
    gh release create v0.9.0 --draft --target 1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056 --title "Vysted Terminal 0.9.0" \
      --notes-file docs/redesign/verification/r15/stage-d/release/GITHUB_RELEASE_v0.9.0.md \

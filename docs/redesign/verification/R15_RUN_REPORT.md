@@ -40,8 +40,11 @@ the top of `docs/redesign/DECISIONS_FOR_OPERATOR.md`.
 State left on this Mac. The isolated stack runs on 127.0.0.1:52152 (sidecar from source, version
 0.9.0) with the two MCP sidecars from the launch bundle on 52153/52154, data in the session
 scratchpad. The run's caffeinate (pid 91760) was released at 01:23 IST 4 Oct; no `pmset` setting
-was ever changed (`r15/stage-d/release/PMSET_REVERT.md`). Your installed `/Applications/Vysted.app`
-(0.8.0), real app data and keystore were never written.
+was ever changed (`r15/stage-d/release/PMSET_REVERT.md`). The app itself was not left running: a
+release launch raises the login-keychain prompt the run may not answer (R15-LEAD-143), and a dev launch
+needs the attended rig. The run never wrote your installed `/Applications/Vysted.app` (0.8.0), your real
+app data or your keystore; how the 23:47 IST keychain prompt was dismissed (Allow, Deny or timeout) is
+not recorded.
 
 Measured wall-clock for the closing stretch: bundle build 659 s, bundle launch check about 6 min,
 GUI half 9.3 min (blocked), carry-forward judge 16.2 min, re-runs 13.3 min, r15-rc2 to r15-launch

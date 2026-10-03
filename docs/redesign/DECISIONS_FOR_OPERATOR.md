@@ -12,7 +12,7 @@ Do these in this order; each line names where the detail lives.
    the 0.8.0 → 0.9.0 upgrade (app half; the sidecar half passed headless), R15-LIFECYCLE-008 (Copy
    diagnostics) and R15-UI-022 (chart drawing tools). `docs/HAND_TESTING_GUIDE.md` §1–3. None of these
    ran at the launch commit (5.15). If a login-keychain prompt appears on that launch, it is R15-LEAD-143
-   (the unsigned build asking for the release keychain item); Deny is safe. The prompt the run raised
+   (the unsigned build asking for keychain items an earlier build stored); Deny keeps those keys away from the unsigned build and it runs keyless, Allow grants it access. The prompt the run raised
    at 23:47 IST 3 Oct is gone (no SecurityAgent process at 01:25 IST 4 Oct).
 2. **Put a real commercial contact address** in `LICENSING.md` and `COMMERCIAL_LICENSE.md`
    (R15-DOCS-002) — a published release announces it.
