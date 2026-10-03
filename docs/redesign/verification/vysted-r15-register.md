@@ -1,12 +1,12 @@
 # R15 register (readable view)
 
-887 raw findings -> 756 entries + 76 rejections. critical: 17 . high: 124 . medium: 337 . low: 278
+887 raw findings -> 795 entries + 76 rejections. critical: 18 . high: 132 . medium: 352 . low: 293
 
-Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 99 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 624 . needs_gui: 4 . not_a_defect: 6 . open: 112 . removed_with_feature: 14
 
 ## The operator's four areas
 
-### UI / panels / layout (126)
+### UI / panels / layout (133)
 
 - **R15-DATA-031** [high] Earnings and analyst panels drop the contract's currency: EPS/revenue/targets render unlabelled, the Consensus EPS column sorts USD against INR by magnitude, and the surprise chart hardcodes 'EPS $' — _fixed_
 - **R15-DATA-042** [high] Portfolio CSV export writes a cross-currency Weight % and no currency column, abandoning the D57 rule the table enforces (the table drops Wt when currencies are mixed) — _fixed_
@@ -134,8 +134,15 @@ Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _fixed_
 - **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _fixed_
 - **R15-LEAD-122** [medium] Screener 'Export CSV' writes the file but shows no saved path, toast or error (the result of downloadCsv is discarded) — _open_
+- **R15-FINAL-006** [high] Portfolio quote fan-out wedges the sidecar: per-symbol /quotes GETs abort at the 30 s client budget, the in-flight guard releases on the abort while the server keeps working, and each tick re-requests every symbol (0/100 resolved over 210 s; RELIANCE quote >40 s on the same sidecar) — _open_
+- **R15-FINAL-017** [medium] A holding whose symbol answers 404 raises the transport-failure banner 'Couldn't refresh live quotes' with a Retry that can never succeed, and the 404 is re-requested every 5 s — _fixed_
+- **R15-FINAL-019** [medium] Settings SearXNG card tells a user whose Docker/OrbStack is installed but stopped that Docker 'isn't available' and to install it, ignoring docker.cli_present/daemon_running and the sidecar's 'start Docker/OrbStack' detail — _open_
+- **R15-FINAL-026** [low] Screener freshness line prints unrounded float seconds ('quotes 41.64699196815491s ago') — _open_
+- **R15-FINAL-032** [low] A local-model narrative written with markdown-bold headers (**TAKE** / **BULL** ...) collapses to a flat summary + insights; the five typed fields come back empty — _open_
+- **R15-FINAL-033** [low] A whitespace-only Avg cost saves the holding at cost basis 0, and a hex quantity '0x10' saves as 16 — _fixed_
+- **R15-FINAL-034** [low] Brief header reads 'web + structured data' directly above the 'Structured data only - no web sources found' banner on a filings-only brief — _open_
 
-### Agent / chat (121)
+### Agent / chat (126)
 
 - **R15-AGENT-002** [high] Stop does not stop: aborting the chat stream leaves the in-flight tool task (research, LLM and web calls) running for minutes, spending the BYOK key and holding the single Ollama slot — _fixed_
 - **R15-AGENT-003** [high] At the 6-round tool cap the capped round's tool calls are streamed to the UI (and may be auto-applied as host actions) but never dispatched, and the turn ends with no answer text — _fixed_
@@ -258,8 +265,13 @@ Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-LEAD-107** [low] add_chart_drawing: a non-empty bogus panelId bypasses the open-chart fallback — _open_
 - **R15-LEAD-121** [low] llama3.1:8b prints USD portfolio holdings with the rupee sign although each holding carries currency:'USD' (IN default region) — _open_
 - **R15-LEAD-133** [low] Never-installed Ollama is told 'start Ollama' and the guided setup with the install link never opens — _open_
+- **R15-FINAL-007** [high] With the Portfolio panel closed, get_portfolio stamps every non-crypto holding with the session region's currency, so a USD AAPL lot is served to the agent as currency INR and the copilot states 'AAPL - 2 shares, cost basis Rs190' — _fixed_
+- **R15-FINAL-013** [medium] 'Should I buy Amal Ltd?' on gpt-4o-mini gets a buy lean justified by an industry P/E comparison no tool fetched — _open_
+- **R15-FINAL-014** [medium] Ollama lane: a tool call leaked as a Python-literal dict (None/True/False) is not rescued; the raw call blob is shown as the assistant reply — _open_
+- **R15-FINAL-016** [medium] arrange_layout custom reports success ('Arranged sec_filings_list' / 'Arranged your panels') when no panel token resolves and the layout is unchanged — _fixed_
+- **R15-FINAL-030** [low] write_note files a note under the literal company name ('COCHIN SHIPYARD') instead of the ticker, so the symbol's note view (COCHINSHIP) stays empty — _fixed_
 
-### Research / web search (71)
+### Research / web search (76)
 
 - **R15-AGENT-001** [critical] Chat narrates derived money figures 10-100x wrong: fraction values labelled unit 'percent' are read as percent, and a raw-rupee market cap is mis-scaled by the model — _fixed_
 - **R15-DATA-003** [critical] Research treats a US-bound AMAL as the Indian Amal Ltd for ownership: the ownership applicability gate checks bare-ticker NSE/BSE master membership, so Amalgamated Financial's brief states 'Promoter group (exchange filing) 71.35%' from Amal Ltd's BSE shareholding and raises a false conflict — _fixed_
@@ -281,7 +293,7 @@ Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-RESEARCH-011** [high] A BSE-XBRL institutional-holding figure is shown in the brief labelled 'NSE shareholding filing, <NSE quarter>' - the service's honest split_source/split_as_of stamp is discarded one layer up — _fixed_
 - **R15-AGENT-063** [medium] News sentiment scoring and symbol tagging live in the HTTP route, so the agent and MCP news tool return unscored, untagged items while claiming to mirror GET /news; raw watchlist symbols like BTC/USDT also tag nothing — _fixed_
 - **R15-LEAD-050** [medium] A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace — _fixed_
-- **R15-LEAD-060** [medium] Verifier verdict text wrapped in underscore emphasis (_UNVERIFIED_ / __UNVERIFIED__) parses as AGREE — _open_
+- **R15-LEAD-060** [medium] Verifier verdict text wrapped in underscore emphasis (_UNVERIFIED_ / __UNVERIFIED__) parses as AGREE — _fixed_
 - **R15-LEAD-061** [medium] strip_model_bibliography misses common bibliography heading variants, so a model-written source list survives beside the verified one — _open_
 - **R15-LEAD-065** [medium] FAST research web-only branch (no instrument resolves) awaits _web_round without a time box; only the resolved branch uses asyncio.wait_for — _open_
 - **R15-LEAD-069** [medium] Screener formula validate accepts a boolean operand in a comparison ("roe > (pe_ratio < 15)", "(pe_ratio > 3) > 0.5") and coerces it — _open_
@@ -332,8 +344,13 @@ Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-LEAD-128** [medium] Research brief drops an NSE small cap's price when the 6-month history fetch is slow: price_data fetches history before the quote inside the 6 s box — _open_
 - **R15-LEAD-134** [low] The 8 s FAST web-round box is shorter than the keyless chain's 6 s per-engine deadlines; Mojeek is never reached and a timeout is reported as 'no web backend' — _open_
 - **R15-LEAD-135** [medium] Research's news leg still fetches the bare ticker under the session region, so a US name colliding with an Indian ticker carries the Indian namesake's headlines (Halliburton brief under IN tops with a Hindustan Aeronautics results story) — _open_
+- **R15-FINAL-004** [high] Deep brief for FOCUS (Focus Lighting and Fixtures) states unrelated common-word headlines (Flydubai pilot podcast 'Focus on flying', European shares 'focus on inflation data') as the company's own sentiment and strategy — _fixed_
+- **R15-FINAL-018** [medium] With the ULTRA slider one user turn fans out into N sequential full ULTRA heavy runs (4 research calls -> ~19 min, ~$1.25, each brief replacing the last) — _open_
+- **R15-FINAL-020** [medium] Keyless web search: the Brave engine (impersonated fetch) gets HTTP 429 while a plain-UA curl from the same host gets 200 in the same minute, so keyless web_search returns zero rows on this network — _open_
+- **R15-FINAL-025** [low] DEEP research overran its 180 s wall budget by 79 s (259 s) on the local lane: the final synthesis call is not boxed by the remaining wall — _open_
+- **R15-LEAD-136** [high] Any NSE ticker that is an ordinary English word but is not on COMMON_WORD_TICKERS scores as a distinctive match on unrelated headlines, so briefs state them as the company's own news (CAMPUS, SAFARI, ETERNAL) — _open_
 
-### Data on small or obscure stocks (162)
+### Data on small or obscure stocks (172)
 
 - **R15-DATA-001** [critical] Income / balance-sheet / cash-flow statements (and one /fundamentals identity) for Indian tickers that collide with a US ticker serve the US company's real financials under the Indian name (DAL->Delta, CHTR->Charter, SAFE->Safehold, CSL->Carlisle, ICON->Icon Energy, AMAL->Amalgamated, SMR->NuScale, TTC->Toro, SUMAX->a US muni fund) — _fixed_
 - **R15-DATA-002** [critical] A bare ticker that exists in both the US and Indian masters binds silently to the session region, and every data panel re-queries the bare symbol, so the user who picked NASDAQ:AMAL or NYSE:SMR gets Amal Ltd / SMR Jewels quote, ratios and 52w range (and, for SMR, NuScale statements under the same header) — _blocked_tier4_
@@ -458,7 +475,7 @@ Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-LEAD-051** [medium] A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly — _fixed_
 - **R15-LEAD-064** [medium] 20-F ownership lane returns not_applicable with 0 holders for ADRs whose 20-F has a holders table (IBN, HDB) — _open_
 - **R15-LEAD-070** [medium] Analyst ratings swallow a Yahoo rate-limit into an empty 200 list that reads as no coverage — _open_
-- **R15-LEAD-071** [medium] A Yahoo rate-limit on earnings history is swallowed as an empty history and cached for 24 h — _open_
+- **R15-LEAD-071** [medium] A Yahoo rate-limit on earnings history is swallowed as an empty history and cached for 24 h — _fixed_
 - **R15-LEAD-081** [medium] sp500 screen serves S&P 500 member PTC as PTC India Limited (INR) from a fundamentals row written before the LEAD-044 fix; no migration purges it — _open_
 - **R15-LEAD-082** [medium] Screener top-K round-robin gives currency-less rows their own group slot, so a null-market-cap row displaces a real one — _open_
 - **R15-LEAD-083** [medium] Earnings drill-down As-of chip shows the client fetch clock and ignores the envelope server as_of — _open_
@@ -497,6 +514,16 @@ Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-LEAD-130** [medium] Palette/watchlist autocomplete cannot find a company by former name or BSE scrip code though /resolve binds both — _open_
 - **R15-LEAD-131** [medium] Identity cross-check flags the correct company as a possible mis-resolution ('&' vs 'and', 0.40); raw BSE '-$' suffix shown as the name on 310 scrips — _open_
 - **R15-LEAD-132** [low] NSE EOD warm stamps a holiday (2 Oct) as the trade date on 1 Oct's bhavcopy rows — _open_
+- **R15-FINAL-001** [critical] A bare-ticker portfolio lot is re-priced against a different listing when the session region changes: INFY 20 @ Rs1,500 shows -$29,779.20 (-99.26%) under region US, and the CSV export carries it — _fixed_
+- **R15-FINAL-002** [high] NSE SME GSTL (Globesecure Technologies) is stamped with BSE GSTL Globalspace Technologies' ISIN INE632W01016 / scrip 540654, so its results calendar, announcements, corporate actions and shareholding split merge a different company's BSE filings — _fixed_
+- **R15-FINAL-003** [high] After the exchange-filed overlay replaces EPS, P/E stays on the provider EPS the payload says is not served (SUNRAJDI P/E 155.5 beside served EPS 0.23 at 12.44; true ~54), the flag reason quotes a third implied P/E 141.1, and the copilot tells the user the 155.5 'is indeed right' — _fixed_
+- **R15-FINAL-005** [high] Every NSE Emerge (SME) listing has no fundamentals: /fundamentals 404s telling the user to check the symbol, and income/balance return empty 200s with no reason (YASHOPTICS, SUMAX, QUALIANCE, GANESHIN, VOLERCAR) — _open_
+- **R15-FINAL-009** [medium] AMAL (NSE, the default IN bind) serves market_cap and shares_outstanding unavailable while the same ISIN on BSE (AMAL.BO) serves both in the same sidecar — _fixed_
+- **R15-FINAL-010** [medium] SIFY analyst revenue estimate (USD-sized 191.7M) is labelled revenue_currency INR, a ~64x understatement against Sify's quarterly revenue INR 12,352 M, and the Earnings estimate grid renders it — _fixed_
+- **R15-FINAL-011** [medium] Symbol autocomplete never offers the BSE company of a same-ticker collision: 'Zeal Aqua', 'Sanathnagar Enterprises', ZEAL.BO and SEL.BO return only the NSE namesake or nothing, though /resolve binds the BSE company — _fixed_
+- **R15-FINAL-012** [medium] RELIANCE.BO earnings history is two quarters stale against the NSE listing of the same company (latest 2025-12-31 vs 2026-06-30) and its analyst consensus differs (36 vs 26 analysts), with no staleness or listing-basis note — _open_
+- **R15-FINAL-024** [low] Ownership witness flags a near-agreeing institutions figure with a false reason: Yahoo 0.00% vs filed 0.03% (AMAL) is flagged 'disagrees ... beyond 3pp' — _fixed_
+- **R15-FINAL-027** [low] News titles keep raw HTML entities: the News Feed shows 'F&amp;O Talk: ...' literally (and the agent news tool gets the same) — _fixed_
 
 ## All entries by severity
 
@@ -847,7 +874,7 @@ Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LEAD-049 | medium | data | resolver | TATAMOTORS.NS/.BO return not_found in the nifty50 universe sweep and in direct quotes: the post-demerger NSE/BSE masters carry the symbol only as TMPV (with 'Tata Motors Limited' as a former name), while the nifty50 constituent list and any direct TATAMOTORS quote still use the retired ticker | fixed |  |
 | R15-LEAD-050 | medium | research | research-relevance | A bare 2-letter ticker no longer passes the non-IN relevance gate alone, under-serving FAST/DEEP web evidence for names like GE Aerospace | fixed |  |
 | R15-LEAD-051 | medium | data | exchange_financials | A recently listed filer with only 2 quarters ever filed is labelled 'half-yearly' by exchange_financials.cadence(), against the fix's own rationale that any filer of a 3-month period is quarterly | fixed |  |
-| R15-LEAD-060 | medium | research | research-depth-iter-deep | Verifier verdict text wrapped in underscore emphasis (_UNVERIFIED_ / __UNVERIFIED__) parses as AGREE | open |  |
+| R15-LEAD-060 | medium | research | research-depth-iter-deep | Verifier verdict text wrapped in underscore emphasis (_UNVERIFIED_ / __UNVERIFIED__) parses as AGREE | fixed |  |
 | R15-LEAD-061 | medium | research | research-extraction-synthesis | strip_model_bibliography misses common bibliography heading variants, so a model-written source list survives beside the verified one | open |  |
 | R15-LEAD-062 | medium | agent | error-layer | A Gemini free-tier per-minute 429 (RESOURCE_EXHAUSTED ... retry in Ns) is shown as "out of credit or quota. Add credit or check your plan" | open |  |
 | R15-LEAD-063 | medium | agent | agent-runtime | historyForSend drops the oldest turns once the thread passes 60k chars with no notice to the user or the model | open |  |
@@ -858,13 +885,13 @@ Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LEAD-068 | medium | ui | frontend-panels-agent-shell | Settings privacy copy over-promises: "Nothing leaves this machine except calls you make to providers you configure" while keyless lanes (Yahoo, NSE/BSE, DDG) call out without configuration | open |  |
 | R15-LEAD-069 | medium | research | screener | Screener formula validate accepts a boolean operand in a comparison ("roe > (pe_ratio < 15)", "(pe_ratio > 3) > 0.5") and coerces it | open |  |
 | R15-LEAD-070 | medium | data | market-data-providers-3 | Analyst ratings swallow a Yahoo rate-limit into an empty 200 list that reads as no coverage | open |  |
-| R15-LEAD-071 | medium | data | market-data-providers-1 | A Yahoo rate-limit on earnings history is swallowed as an empty history and cached for 24 h | open |  |
+| R15-LEAD-071 | medium | data | market-data-providers-1 | A Yahoo rate-limit on earnings history is swallowed as an empty history and cached for 24 h | fixed |  |
 | R15-LEAD-072 | medium | research | research-depth-iter-deep | Heavy/ULTRA brief stopped by its spend ceiling publishes note=None, and the cross-check keeps spending after the breach | open |  |
 | R15-LEAD-073 | medium | agent | agent-runtime | The latest round's tool results are never elided by _fit_to_window, so a multi-result round leaves the answer below the 1/8 reserve | open |  |
 | R15-LEAD-074 | medium | code | frontend-stores | Scheduled and MCP-run workflows run with no event sink: action.notify_desktop reports notified:true but nothing is shown | open |  |
 | R15-LEAD-075 | medium | ui | frontend-panels-agent-shell | Editing a custom agent silently clears its default_model on save (customSpecToSummary sets defaultModel: null) | open |  |
 | R15-LEAD-076 | medium | ui | screener | A partially throttled screen shows "No rows matched - loosen a threshold / Reset filters" although most symbols were never evaluated | open |  |
-| R15-LEAD-077 | medium | code | frontend-panels-agent-shell | A focused SEC Filings panel publishes identifier, not symbol, so the agent context names the wrong symbol | open |  |
+| R15-LEAD-077 | medium | code | frontend-panels-agent-shell | A focused SEC Filings panel publishes identifier, not symbol, so the agent context names the wrong symbol | fixed |  |
 | R15-LEAD-078 | medium | release | research-extraction-synthesis | Flaky test_research_fast::test_fast_web_round_runs_alongside_a_time_boxed_fan_out: an unstubbed earnings-quality leg makes it timing-dependent | open |  |
 | R15-LEAD-079 | medium | agent | llm-adapters-and-errors | ReasoningSplitter releases a held reasoning echo in full when an answer follows it (provisional, shard evidence only) | open |  |
 | R15-LEAD-080 | medium | ui | macro-quant | Agent/MCP compute_greeks and price_option return QuantLib-unit vega/theta/rho unlabelled; the model restated them as per-unit values | open |  |
@@ -885,7 +912,7 @@ Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LIFECYCLE-021 | medium | data | market-data-providers-1 | A dead or moved NSE endpoint is invisible: /health keeps naming nse_direct as primary, provider-health tracks only Yahoo, and an .NS chart silently switches to BSE bars (last-bar volume 10.7M -> 0.56M) | fixed | LIFE-L2-ROT-2 |
 | R15-LIFECYCLE-022 | medium | data | market-data-providers-1 | A moved NSE bhavcopy archive path is read as a week of holidays: every past weekday's 404 is cached as an empty 'holiday' marker with no log, the UDiFF-primary 404 never tries the live legacy fallback, and the IN EOD freshness lane silently dies | fixed | LIFE-L2-ROT-4 |
 | R15-LIFECYCLE-023 | medium | ui | frontend-panels-shell-chrome | No React error boundary anywhere: one panel's render throw blanks the whole cockpit (portfolio and chat included) with no message or recovery, and the stack goes to a console a release build cannot open | fixed | LIFE-L3-DIAGNOSTICS-2 |
-| R15-LIFECYCLE-024 | medium | lifecycle | workspace-layout | No persistent store records a schema version (user_version 0 on all 8 SQLite DBs; no top-level workspace blob version) and nothing backs up the data dir before a new build touches it, so the first non-additive schema change will crash or silently drop data | open | LIFE-L4-UPGRADE-2 |
+| R15-LIFECYCLE-024 | medium | lifecycle | workspace-layout | No persistent store records a schema version (user_version 0 on all 8 SQLite DBs; no top-level workspace blob version) and nothing backs up the data dir before a new build touches it, so the first non-additive schema change will crash or silently drop data | fixed | LIFE-L4-UPGRADE-2 |
 | R15-LIFECYCLE-025 | medium | agent | agent-runtime | A custom agent saved on the v0.8.0 tag silently loses its 'macro' tool: the id was renamed with no alias or row migration, every adapter drops unknown ids without a log, and re-saving the agent 422s | fixed | LIFE-L4-UPGRADE-4 |
 | R15-LIFECYCLE-026 | medium | lifecycle | market-data-providers-1 | Under light realistic load the sidecar burns ~60% of a CPU core continuously, 99% of it on the event-loop thread and mostly between requests (a clean idle sidecar sits at 0-0.8%) | fixed | LIFE-L6-LONGSESSION-1 |
 | R15-RELEASE-005 | medium | release | scripts-build | Sidecar staleness gate ignores .json.gz, so regenerating the bundled Indian fundamentals seed does not rebuild the binary and assertFresh still passes: a local release ships the previous seed snapshot | fixed | COD-scripts-build-1 |
@@ -1258,3 +1285,42 @@ Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LEAD-133 | low | agent | chat-onboarding | Never-installed Ollama is told 'start Ollama' and the guided setup with the install link never opens | open | keyless:2 |
 | R15-LEAD-134 | low | research | research-fast | The 8 s FAST web-round box is shorter than the keyless chain's 6 s per-engine deadlines; Mojeek is never reached and a timeout is reported as 'no web backend' | open | keyless:5 |
 | R15-LEAD-135 | medium | research | research-fast | Research's news leg still fetches the bare ticker under the session region, so a US name colliding with an Indian ticker carries the Indian namesake's headlines (Halliburton brief under IN tops with a Hindustan Aeronautics results story) | open |  |
+| R15-FINAL-001 | critical | data | portfolio | A bare-ticker portfolio lot is re-priced against a different listing when the session region changes: INFY 20 @ Rs1,500 shows -$29,779.20 (-99.26%) under region US, and the CSV export carries it | fixed | maintainer:2 |
+| R15-FINAL-002 | high | data | resolver | NSE SME GSTL (Globesecure Technologies) is stamped with BSE GSTL Globalspace Technologies' ISIN INE632W01016 / scrip 540654, so its results calendar, announcements, corporate actions and shareholding split merge a different company's BSE filings | fixed | investor:5 |
+| R15-FINAL-003 | high | data | fundamentals-profile | After the exchange-filed overlay replaces EPS, P/E stays on the provider EPS the payload says is not served (SUNRAJDI P/E 155.5 beside served EPS 0.23 at 12.44; true ~54), the flag reason quotes a third implied P/E 141.1, and the copilot tells the user the 155.5 'is indeed right' | fixed | investor:3, investor:9 |
+| R15-FINAL-004 | high | research | research-relevance | Deep brief for FOCUS (Focus Lighting and Fixtures) states unrelated common-word headlines (Flydubai pilot podcast 'Focus on flying', European shares 'focus on inflation data') as the company's own sentiment and strategy | fixed | investor:12 |
+| R15-FINAL-005 | high | data | fundamentals-profile | Every NSE Emerge (SME) listing has no fundamentals: /fundamentals 404s telling the user to check the symbol, and income/balance return empty 200s with no reason (YASHOPTICS, SUMAX, QUALIANCE, GANESHIN, VOLERCAR) | open | investor:2 |
+| R15-FINAL-006 | high | ui | portfolio | Portfolio quote fan-out wedges the sidecar: per-symbol /quotes GETs abort at the 30 s client budget, the in-flight guard releases on the abort while the server keeps working, and each tick re-requests every symbol (0/100 resolved over 210 s; RELIANCE quote >40 s on the same sidecar) | open | drive-portfolio-notes:1 |
+| R15-FINAL-007 | high | agent | agent-tools | With the Portfolio panel closed, get_portfolio stamps every non-crypto holding with the session region's currency, so a USD AAPL lot is served to the agent as currency INR and the copilot states 'AAPL - 2 shares, cost basis Rs190' | fixed | drive-portfolio-notes:2 |
+| R15-FINAL-008 | high | lifecycle | persistence | A corrupt SQLite store is never quarantined: a corrupt data_cache.db (pure cache) fails sidecar startup on every launch, and a corrupt custom_agents.db / delegate_runs.db / plugins.db 500s every route of that store until the file is deleted by hand | fixed | FI-FINAL-CORRUPT-CACHE-BRICKS-BOOT, maintainer:5 |
+| R15-FINAL-009 | medium | data | fundamentals-profile | AMAL (NSE, the default IN bind) serves market_cap and shares_outstanding unavailable while the same ISIN on BSE (AMAL.BO) serves both in the same sidecar | fixed | investor:1 |
+| R15-FINAL-010 | medium | data | earnings | SIFY analyst revenue estimate (USD-sized 191.7M) is labelled revenue_currency INR, a ~64x understatement against Sify's quarterly revenue INR 12,352 M, and the Earnings estimate grid renders it | fixed | investor:4 |
+| R15-FINAL-011 | medium | data | symbol-resolution | Symbol autocomplete never offers the BSE company of a same-ticker collision: 'Zeal Aqua', 'Sanathnagar Enterprises', ZEAL.BO and SEL.BO return only the NSE namesake or nothing, though /resolve binds the BSE company | fixed | investor:6 |
+| R15-FINAL-012 | medium | data | earnings | RELIANCE.BO earnings history is two quarters stale against the NSE listing of the same company (latest 2025-12-31 vs 2026-06-30) and its analyst consensus differs (36 vs 26 analysts), with no staleness or listing-basis note | open | investor:7 |
+| R15-FINAL-013 | medium | agent | copilot-prompt | 'Should I buy Amal Ltd?' on gpt-4o-mini gets a buy lean justified by an industry P/E comparison no tool fetched | open | investor:10 |
+| R15-FINAL-014 | medium | agent | llm-adapters | Ollama lane: a tool call leaked as a Python-literal dict (None/True/False) is not rescued; the raw call blob is shown as the assistant reply | open | maintainer:1, battery3-agent022-local-text-toolcall |
+| R15-FINAL-015 | medium | release | licensing-notices | THIRD_PARTY_NOTICES.md lists the wrong version for 56 of 121 main-sidecar Python components because transitive deps are unpinned and the bundle ships what pip resolved at build time | open | maintainer:7 |
+| R15-FINAL-016 | medium | agent | host-actions | arrange_layout custom reports success ('Arranged sec_filings_list' / 'Arranged your panels') when no panel token resolves and the layout is unchanged | fixed | drive-panels-layouts:nd-1 |
+| R15-FINAL-017 | medium | ui | portfolio | A holding whose symbol answers 404 raises the transport-failure banner 'Couldn't refresh live quotes' with a Retry that can never succeed, and the 404 is re-requested every 5 s | fixed | drive-portfolio-notes:3 |
+| R15-FINAL-018 | medium | research | research-depth | With the ULTRA slider one user turn fans out into N sequential full ULTRA heavy runs (4 research calls -> ~19 min, ~$1.25, each brief replacing the last) | open | drive-research-briefs:3 |
+| R15-FINAL-019 | medium | ui | settings-searxng | Settings SearXNG card tells a user whose Docker/OrbStack is installed but stopped that Docker 'isn't available' and to install it, ignoring docker.cli_present/daemon_running and the sidecar's 'start Docker/OrbStack' detail | open | drive-settings-plugins:searxng-daemon-down-install-copy |
+| R15-FINAL-020 | medium | research | keyless-search | Keyless web search: the Brave engine (impersonated fetch) gets HTTP 429 while a plain-UA curl from the same host gets 200 in the same minute, so keyless web_search returns zero rows on this network | open | battery2-brave-impersonated-fetch-429 |
+| R15-FINAL-021 | medium | docs | sidecar-api-doc | docs/SIDECAR_API.md ('the contract') documents 20 of 111 live routes and states an allow-all-origins CORS posture, a 501 macro hook and stub routers that the running sidecar contradicts | fixed | F-DOCS-001 |
+| R15-FINAL-022 | medium | docs | hand-testing-guide | R12_HAND_TESTING_GUIDE.md, the only hand-testing guide, walks an order-placement 'safety showcase', a brokers plugin and a paper portfolio removed by D81 | fixed | F-DOCS-002 |
+| R15-FINAL-023 | medium | release | release-runbook | RELEASE_RUNBOOK.md step 1 tells the operator to merge the superseded worktree-agent-r15-version-0.9.0 branch although the 0.9.0 bump is already in the sha | fixed | F-DOCS-004 |
+| R15-FINAL-024 | low | data | ownership-witness | Ownership witness flags a near-agreeing institutions figure with a false reason: Yahoo 0.00% vs filed 0.03% (AMAL) is flagged 'disagrees ... beyond 3pp' | fixed | investor:8 |
+| R15-FINAL-025 | low | research | research-depth-iter-deep | DEEP research overran its 180 s wall budget by 79 s (259 s) on the local lane: the final synthesis call is not boxed by the remaining wall | open | investor:11 |
+| R15-FINAL-026 | low | ui | screener | Screener freshness line prints unrounded float seconds ('quotes 41.64699196815491s ago') | open | maintainer:3 |
+| R15-FINAL-027 | low | data | news | News titles keep raw HTML entities: the News Feed shows 'F&amp;O Talk: ...' literally (and the agent news tool gets the same) | fixed | maintainer:4 |
+| R15-FINAL-028 | low | lifecycle | sidecar-boot | A bundle sidecar that cannot bind its port dies with SIGABRT (exit 134, Fatal Python error _enter_buffered_busy on the stdin watchdog) instead of a clean non-zero exit | fixed | maintainer:6 |
+| R15-FINAL-029 | low | platform | workflow-engine | transform.code size caps are bypassed by sum(list, start): a 25-character expression builds an uncapped list (8.3 GB peak RSS) and keeps running after the 5 s timeout | open | maintainer:8 |
+| R15-FINAL-030 | low | agent | host-actions | write_note files a note under the literal company name ('COCHIN SHIPYARD') instead of the ticker, so the symbol's note view (COCHINSHIP) stays empty | fixed | drive-composer-chat:nd-1 |
+| R15-FINAL-031 | low | lifecycle | workspace-store | delete_workspace leaves <name>.vysted-workspace.bak behind, so a later corrupt-file recovery of a same-named workspace resurrects the deleted workspace's content | fixed | drive-panels-layouts:nd-2 |
+| R15-FINAL-032 | low | ui | fundamentals-profile | A local-model narrative written with markdown-bold headers (**TAKE** / **BULL** ...) collapses to a flat summary + insights; the five typed fields come back empty | open | drive-panels-layouts:reg-1 |
+| R15-FINAL-033 | low | ui | portfolio | A whitespace-only Avg cost saves the holding at cost basis 0, and a hex quantity '0x10' saves as 16 | fixed | drive-portfolio-notes:4 |
+| R15-FINAL-034 | low | ui | research-brief | Brief header reads 'web + structured data' directly above the 'Structured data only - no web sources found' banner on a filings-only brief | open | drive-research-briefs:2 |
+| R15-FINAL-035 | low | docs | mcp-doc | MCP_INTEGRATION.md names 25 tools; the live MCP surface lists 39 | fixed | F-DOCS-003 |
+| R15-FINAL-036 | low | docs | current-state | CURRENT_STATE.md cites a missing build report, the deleted monte_carlo.py and an absent ConnectCard.tsx, and reports 0.8.0 and 619 vitest / 942 pytest | open | F-DOCS-005 |
+| R15-FINAL-037 | low | release | release-runbook | RELEASE_RUNBOOK.md's 'verbatim' ci-local block differs from package.json ci-local | fixed | F-DOCS-006 |
+| R15-FINAL-038 | low | platform | mcp | MCP discovery file advertises protocol 2025-06-18 while /mcp/status reports 2025-11-25; the Rust sync comment points at a constant that does not exist | open | F-DOCS-008 |
+| R15-LEAD-136 | high | research | research-relevance | Any NSE ticker that is an ordinary English word but is not on COMMON_WORD_TICKERS scores as a distinctive match on unrelated headlines, so briefs state them as the company's own news (CAMPUS, SAFARI, ETERNAL) | open |  |
