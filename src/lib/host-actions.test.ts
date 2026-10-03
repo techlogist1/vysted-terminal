@@ -1294,8 +1294,22 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
         id: "default",
         name: "Portfolio",
         holdings: [
-          { id: "h-1", symbol: "TCS", quantity: 5, costBasis: 2500, assetClass: "equity" },
-          { id: "h-2", symbol: "TCS", quantity: 20, costBasis: 3900, assetClass: "equity" },
+          {
+            id: "h-1",
+            symbol: "TCS",
+            quantity: 5,
+            costBasis: 2500,
+            assetClass: "equity",
+            region: "IN",
+          },
+          {
+            id: "h-2",
+            symbol: "TCS",
+            quantity: 20,
+            costBasis: 3900,
+            assetClass: "equity",
+            region: "IN",
+          },
         ],
       },
     ]);
@@ -1682,7 +1696,14 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
         id: "A",
         name: "A",
         holdings: [
-          { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+          {
+            id: "h-a",
+            symbol: "TCS",
+            quantity: 10,
+            costBasis: 2500,
+            assetClass: "equity",
+            region: "IN",
+          },
         ],
       },
     ]);
@@ -1810,14 +1831,28 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
           id: "A",
           name: "A",
           holdings: [
-            { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+            {
+              id: "h-a",
+              symbol: "TCS",
+              quantity: 10,
+              costBasis: 2500,
+              assetClass: "equity",
+              region: "IN",
+            },
           ],
         },
         {
           id: "B",
           name: "B",
           holdings: [
-            { id: "h-b", symbol: "TCS", quantity: 99, costBasis: 3900, assetClass: "equity" },
+            {
+              id: "h-b",
+              symbol: "TCS",
+              quantity: 99,
+              costBasis: 3900,
+              assetClass: "equity",
+              region: "IN",
+            },
           ],
         },
       ],
@@ -1902,7 +1937,14 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     expect(vi.mocked(fetch).mock.calls.length).toBe(fetchCalls); // Undo acks nothing new
     const holdings = usePortfoliosStore.getState().portfolios.find((p) => p.id === "A")!.holdings;
     expect(holdings).toEqual([
-      { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+      {
+        id: "h-a",
+        symbol: "TCS",
+        quantity: 10,
+        costBasis: 2500,
+        assetClass: "equity",
+        region: "IN",
+      },
     ]);
     expect(useProposedChangesStore.getState().changes[0].status).toBe("undone");
   });

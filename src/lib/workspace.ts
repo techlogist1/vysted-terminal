@@ -18,6 +18,7 @@ import type { DockviewApi, SerializedDockview, SerializedGridObject } from "dock
 import { applyDefaultLayout } from "@/config/default-layout";
 import { applyResearchSpaceLayout } from "@/lib/layout-templates";
 import { collectPanelComponents } from "@/lib/module-registry";
+import { isRegion } from "@/lib/region";
 import { getSidecarBaseUrl } from "@/lib/sidecar-client";
 import { fetchLegacyPositions } from "@/modules/portfolio/api";
 import { type AgentSpacesBundle, useAgentSpacesStore } from "@/store/agent-spaces";
@@ -385,9 +386,16 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
     }),
     restore: (workspace) => {
       if (workspace.portfolios && Array.isArray(workspace.portfolios.list)) {
+        // A pre-region blob's holdings were entered under the blob's own saved
+        // region; the settings slice restores after this one, so read it here.
+        const savedRegion = workspace.settings?.region;
         usePortfoliosStore
           .getState()
-          .setAll(workspace.portfolios.list, workspace.portfolios.activeId);
+          .setAll(
+            workspace.portfolios.list,
+            workspace.portfolios.activeId,
+            isRegion(savedRegion) ? savedRegion : undefined,
+          );
       }
     },
     subscribe: onChange(

@@ -209,13 +209,15 @@ export function PortfolioPanel() {
   // Live quotes — refetched whenever the holding SET changes (symbols/classes).
   // Holdings render synchronously from the store; only the price / market-value
   // / P&L columns wait on the quote (they show "—" until it resolves).
-  const quotesKey = holdings.map((h) => `${h.symbol}:${h.assetClass}`).join(",");
+  const quotesKey = holdings.map((h) => `${h.symbol}:${h.assetClass}:${h.region}`).join(",");
   useEffect(() => {
     let cancelled = false;
     quoteFetchInFlightRef.current = true;
     // fetchPositionQuotes([]) resolves to an empty map, so an emptied portfolio
     // clears its quotes via the async path — no synchronous setState in-effect.
-    void fetchPositionQuotes(holdings.map((h) => ({ symbol: h.symbol, assetClass: h.assetClass })))
+    void fetchPositionQuotes(
+      holdings.map((h) => ({ symbol: h.symbol, assetClass: h.assetClass, region: h.region })),
+    )
       .then(({ quotes: resolved, failed }) => {
         if (!cancelled) {
           setQuotes(resolved);

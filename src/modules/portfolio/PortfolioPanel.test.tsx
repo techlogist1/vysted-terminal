@@ -325,7 +325,14 @@ describe("PortfolioPanel", () => {
           id: "default",
           name: "Portfolio",
           holdings: [
-            { id: "h1", symbol: "BTC/USDT", quantity: 0.5, costBasis: 60000, assetClass: "crypto" },
+            {
+              id: "h1",
+              symbol: "BTC/USDT",
+              quantity: 0.5,
+              costBasis: 60000,
+              assetClass: "crypto",
+              region: "US",
+            },
           ],
         },
       ],
@@ -339,7 +346,9 @@ describe("PortfolioPanel", () => {
 
     expect(await screen.findByText("67,000.00 USDT")).toBeInTheDocument();
     expect(screen.getByText("60,000.00 USDT")).toBeInTheDocument();
-    expect(mockFetchQuotes).toHaveBeenCalledWith([{ symbol: "BTC/USDT", assetClass: "crypto" }]);
+    expect(mockFetchQuotes).toHaveBeenCalledWith([
+      { symbol: "BTC/USDT", assetClass: "crypto", region: "US" },
+    ]);
     expect(screen.queryByText(/₹/)).not.toBeInTheDocument();
   });
 
@@ -398,14 +407,28 @@ describe("PortfolioPanel", () => {
           id: "A",
           name: "A",
           holdings: [
-            { id: "h-a", symbol: "RELIANCE", quantity: 10, costBasis: 2500, assetClass: "equity" },
+            {
+              id: "h-a",
+              symbol: "RELIANCE",
+              quantity: 10,
+              costBasis: 2500,
+              assetClass: "equity",
+              region: "IN",
+            },
           ],
         },
         {
           id: "B",
           name: "B",
           holdings: [
-            { id: "h-b", symbol: "TCS", quantity: 3, costBasis: 3900, assetClass: "equity" },
+            {
+              id: "h-b",
+              symbol: "TCS",
+              quantity: 3,
+              costBasis: 3900,
+              assetClass: "equity",
+              region: "IN",
+            },
           ],
         },
       ],

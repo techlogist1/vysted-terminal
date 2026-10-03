@@ -16,6 +16,8 @@ import type { OHLCVSeries, Position, Quote } from "../../../types/data";
 export interface QuoteTarget {
   symbol: string;
   assetClass: string;
+  /** The holding's own listing region (R15-FINAL-001), never the session's. */
+  region?: string;
 }
 
 /** The outcome of resolving one holding's live quote — a real failure (network
@@ -32,9 +34,10 @@ export type QuoteFetchResult = { quote: Quote } | { error: string };
 export async function fetchPositionQuote(
   symbol: string,
   assetClass: string,
+  region?: string,
 ): Promise<QuoteFetchResult> {
   try {
-    return { quote: await sidecarApi.quote(symbol, assetClass) };
+    return { quote: await sidecarApi.quote(symbol, assetClass, region) };
   } catch (err) {
     return { error: err instanceof Error ? err.message : String(err) };
   }
@@ -47,7 +50,9 @@ export async function fetchPositionQuotes(
   targets: QuoteTarget[],
 ): Promise<{ quotes: Map<string, Quote>; failed: number }> {
   const quotes = new Map<string, Quote>();
-  const results = await Promise.all(targets.map((t) => fetchPositionQuote(t.symbol, t.assetClass)));
+  const results = await Promise.all(
+    targets.map((t) => fetchPositionQuote(t.symbol, t.assetClass, t.region)),
+  );
   let failed = 0;
   targets.forEach((t, index) => {
     const result = results[index];

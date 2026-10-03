@@ -2,6 +2,9 @@
 
 import { create } from "zustand";
 
+import { type Region, isRegion } from "@/lib/region";
+import { useSettingsStore } from "@/store/settings";
+
 /**
  * Multi-portfolio store.
  *
@@ -26,6 +29,11 @@ export interface Holding {
   quantity: number;
   costBasis: number;
   assetClass: AssetClass;
+  /** The region the listing was picked under, sent with its quote request: a
+   *  bare ticker names different listings per market (INFY is NSE under IN, the
+   *  NYSE ADR under US), so a session-region switch must not reprice the lot
+   *  against another listing (R15-FINAL-001). */
+  region: Region;
   note?: string;
 }
 
@@ -42,6 +50,8 @@ export interface HoldingInput {
   quantity: number;
   costBasis: number;
   assetClass: AssetClass;
+  /** Omitted on add: the session region is stamped; on update: kept. */
+  region?: Region;
   note?: string;
 }
 
@@ -130,8 +140,8 @@ export function validateHolding(raw: {
 /** Coerce an arbitrary (possibly corrupt-blob) holding to a valid one, or drop
  *  it — via {@link validateHolding}, the same rules as the panel form, for
  *  every caller (restore, the agent, the form). Garbage is dropped, never
- *  coerced to a plausible 0. */
-function normalizeHolding(raw: unknown): Holding | null {
+ *  coerced to a plausible 0. A holding with no region gets `region`. */
+function normalizeHolding(raw: unknown, region: Region): Holding | null {
   if (!raw || typeof raw !== "object") {
     return null;
   }
@@ -149,6 +159,7 @@ function normalizeHolding(raw: unknown): Holding | null {
     quantity,
     costBasis,
     assetClass: h.assetClass === "crypto" ? "crypto" : "equity",
+    region: isRegion(h.region) ? h.region : region,
     note,
   };
 }
@@ -172,8 +183,10 @@ interface PortfoliosState {
   updateHolding: (portfolioId: string, holdingId: string, input: HoldingInput) => boolean;
   /** Remove a holding. */
   removeHolding: (portfolioId: string, holdingId: string) => void;
-  /** Replace the whole set — used to restore a persisted blob (guards corruption). */
-  setAll: (portfolios: Portfolio[], activeId?: string) => void;
+  /** Replace the whole set — used to restore a persisted blob (guards
+   *  corruption). A holding saved without a region is stamped `region`
+   *  (default: the session region). */
+  setAll: (portfolios: Portfolio[], activeId?: string, region?: Region) => void;
 }
 
 export const usePortfoliosStore = create<PortfoliosState>((set, get) => ({
@@ -216,7 +229,10 @@ export const usePortfoliosStore = create<PortfoliosState>((set, get) => ({
     set((state) => (state.portfolios.some((p) => p.id === id) ? { activeId: id } : state)),
 
   addHolding: (portfolioId, input) => {
-    const holding = normalizeHolding({ ...input, id: genId("h") });
+    const holding = normalizeHolding(
+      { ...input, id: genId("h") },
+      useSettingsStore.getState().region,
+    );
     if (!holding) {
       return null;
     }
@@ -229,10 +245,10 @@ export const usePortfoliosStore = create<PortfoliosState>((set, get) => ({
   },
 
   updateHolding: (portfolioId, holdingId, input) => {
-    const next = normalizeHolding({ ...input, id: holdingId });
     const target = get()
       .portfolios.find((p) => p.id === portfolioId)
-      ?.holdings.some((h) => h.id === holdingId);
+      ?.holdings.find((h) => h.id === holdingId);
+    const next = target ? normalizeHolding({ ...input, id: holdingId }, target.region) : null;
     if (!next || !target) {
       return false;
     }
@@ -253,7 +269,7 @@ export const usePortfoliosStore = create<PortfoliosState>((set, get) => ({
       ),
     })),
 
-  setAll: (portfolios, activeId) =>
+  setAll: (portfolios, activeId, region = useSettingsStore.getState().region) =>
     set(() => {
       const cleaned: Portfolio[] = (Array.isArray(portfolios) ? portfolios : [])
         .filter((p) => p && typeof p === "object")
@@ -264,7 +280,7 @@ export const usePortfoliosStore = create<PortfoliosState>((set, get) => ({
               ? p.name.trim()
               : DEFAULT_PORTFOLIO_NAME,
           holdings: (Array.isArray(p.holdings) ? p.holdings : [])
-            .map(normalizeHolding)
+            .map((h) => normalizeHolding(h, region))
             .filter((h): h is Holding => h !== null),
         }));
       if (cleaned.length === 0) {
@@ -286,7 +302,11 @@ export function seedDefaultPortfolio(holdings: HoldingInput[]): void {
       {
         id: DEFAULT_PORTFOLIO_ID,
         name: DEFAULT_PORTFOLIO_NAME,
-        holdings: holdings.map((holding) => ({ ...holding, id: genId("h") })),
+        holdings: holdings.map((holding) => ({
+          ...holding,
+          id: genId("h"),
+          region: holding.region ?? useSettingsStore.getState().region,
+        })),
       },
     ],
     DEFAULT_PORTFOLIO_ID,
