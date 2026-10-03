@@ -1,0 +1,48 @@
+== ace7dd7-check1-run.log
+launch_epoch 1790987786.801
+poller 86899
+app 86910 launched 2026-10-03T00:36:27.3NZ
+window_epoch 1790987789.160 bounds {"owner": "Vysted Terminal", "id": 6319, "layer": 0, "bounds": [116.0, 43.0, 1280.0, 832.0]}
+front_epoch 1790987790.067
+1790987790.470 step 0 capture ok
+1790987790.563 step 1 click ok
+1790987792.066 step 2 wait ok
+1790987792.126 step 3 click ok
+1790987793.127 step 4 wait ok
+1790987793.211 step 5 capture ok
+1790987793.271 step 6 click ok
+1790987796.276 step 7 wait ok
+1790987796.350 step 8 capture ok
+1790987796.566 step 9 key ok
+1790987798.569 step 10 wait ok
+1790987798.641 step 11 capture ok
+1790987798.642 {"sha256": "2d68d09847f3a522e31fd2073a75f1b0c0a35658042e92dcacfa57348ebe7c6c", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/ace7dd7-01-boot-2s.png", "tool": "scripts/rig/rig.py capture", "frontmost_app": "Vysted Terminal", "window_owner": "Vysted Terminal", "taken_at": "2026-10-03T00:36:30.469427+00:00"}
+1790987798.642 {"sha256": "fb24400d4e6d36e64dcf9cea2c4d4c29758dd3ce7c8608fe9ea7aa9bcc9be2ab", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/ace7dd7-02-boot-6s-after-clicks.png", "tool": "scripts/rig/rig.py capture", "frontmost_app": "Vysted Terminal", "window_owner": "Vysted Terminal", "taken_at": "2026-10-03T00:36:33.209313+00:00"}
+1790987798.642 {"sha256": "f528519f8aae05cca30b66b72cdb8c5182f091f8fd55e73a40937062dfede63f", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/ace7dd7-03-boot-toolbar-palette.png", "tool": "scripts/rig/rig.py capture", "frontmost_app": "Vysted Terminal", "window_owner": "Vysted Terminal", "taken_at": "2026-10-03T00:36:36.349737+00:00"}
+1790987798.642 {"sha256": "e64a161ca3a5f99655288854081051da572c1db7af99ee0f8f6d1883bb570de0", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/ace7dd7-04-boot-12s.png", "tool": "scripts/rig/rig.py capture", "frontmost_app": "Vysted Terminal", "window_owner": "Vysted Terminal", "taken_at": "2026-10-03T00:36:38.640487+00:00"}
+batch_exit 0 1790987798.670
+== ace7dd7-check3-run.log
+launch_epoch 1790988969.261
+poller 11080
+app 11087 launched 2026-10-03T00:56:09.3NZ
+window_epoch 1790988971.856 bounds {"owner": "Vysted Terminal", "id": 6357, "layer": 0, "bounds": [116.0, 43.0, 1280.0, 832.0]}
+front_epoch 1790988972.224
+1790988973.463 step 0 wait ok
+1790988973.599 step 1 capture ok
+1790988984.608 step 2 wait ok
+1790988984.685 step 3 capture ok
+1790988984.685 {"sha256": "6788195bae3e9c90d35609cd5dbf50b2f1c4e0f3c1047690b5562778e50895e9", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/ace7dd7-20-broken-3s.png", "tool": "scripts/rig/rig.py capture", "frontmost_app": "Vysted Terminal", "window_owner": "Vysted Terminal", "taken_at": "2026-10-03T00:56:13.599011+00:00"}
+1790988984.686 {"frontmost_app": "Vysted Terminal", "path": "docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/ace7dd7-20-broken-3s.png", "sha256": "6788195bae3e9c90d35609cd5dbf50b2f1c4e0f3c1047690b5562778e50895e9", "taken_at": "2026-10-03T00:56:13.599011+00:00", "tool": "scripts/rig/rig.py capture", "window_owner": "Vysted Terminal"}
+batch_exit 0 1790988984.706
+== ace7dd7-check4-chat-run.log
+step 0 click ok
+step 1 wait ok
+step 2 type ok
+step 3 key ok
+step 4 wait ok
+step 5 capture ok
+step 6 click ok
+step 7 wait ok
+step 8 capture ok
+{"sha256": "509f3b922efd750d6b956009d9a967b6d446236c0bc0985ca68a94092f5c6d23", "path": "docs/redesign/verification/r15/g
+{"sha256": "c90bbe4d4161885bb9063d51261d498303508d52d3b4f49ca20a354a7d25de52", "path": "docs/redesign/verification/r15/g
