@@ -296,6 +296,34 @@ describe("EquityOverviewPanel", () => {
     expect(screen.getByText("Ratings unavailable")).toBeInTheDocument();
   });
 
+  it("an empty statement shows the sidecar's not-covered reason (R15-FINAL-005)", async () => {
+    const reason =
+      "No data provider covers financial statements for this NSE Emerge (SME) listing.";
+    const notCovered = (): FinancialStatement => ({
+      symbol: "SUMAX-SM.NS",
+      periods: [],
+      lines: [],
+      provider: "yfinance",
+      reason,
+    });
+    mockLoad.mockResolvedValue(
+      overview({
+        fundamentals: null,
+        fundamentalsError:
+          "No data provider covers fundamentals for this NSE Emerge (SME) listing, and the exchange holds no results filing to build them from.",
+        income: notCovered(),
+        balance: notCovered(),
+        cashFlow: notCovered(),
+      }),
+    );
+    render(<EquityOverviewPanel />);
+    await loadSymbol("sumax");
+
+    expect(screen.getByText("Income statement unavailable")).toBeInTheDocument();
+    expect(screen.getAllByText(reason)).toHaveLength(3);
+    expect(screen.getByText(/No data provider covers fundamentals/)).toBeInTheDocument();
+  });
+
   it("renders analyst ratings as a labelled metric strip", async () => {
     mockLoad.mockResolvedValue(overview());
     render(<EquityOverviewPanel />);

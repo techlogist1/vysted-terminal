@@ -42,6 +42,7 @@ from services import (
     exchange_financials,
     fundamentals_store,
     locale,
+    market_cap_witness,
     ownership_check,
     symbol_resolver,
     yfinance_provider,
@@ -482,11 +483,11 @@ def reconcile_ownership(
     does not bear out (R15-DATA-004).
 
     Each served ``held_percent_*`` is compared with its exchange counterpart
-    (percent, 0-100): a gap over :data:`_OWNERSHIP_BAND_PP`, or one side zero
-    while the other is not, flags the provider value with the filing's figure
-    and quarter. A filing category the exchange does not report (a promoter-less
-    bank) counts as zero. When no filing figure is available at all, a served
-    value is flagged as unreconciled. Never substituted.
+    (percent, 0-100): a gap over :data:`_OWNERSHIP_BAND_PP` flags the provider
+    value with the filing's figure and quarter. A filing category the exchange
+    does not report (a promoter-less bank) counts as zero. When no filing
+    figure is available at all, a served value is flagged as unreconciled.
+    Never substituted.
     """
     pairs = (
         ("held_percent_insiders", "insiders", "promoter group", "insiders ≠ promoter group"),
@@ -525,8 +526,9 @@ def reconcile_ownership(
             as_of = exchange.institutions_as_of or exchange.as_of_quarter
         provider_pct = value * 100.0
         exchange_pct = filed_pct if filed_pct is not None else 0.0
-        zero_mismatch = (provider_pct == 0.0) != (exchange_pct == 0.0)
-        if not zero_mismatch and abs(provider_pct - exchange_pct) <= _OWNERSHIP_BAND_PP:
+        # A zero beside a small filed figure is no disagreement (0.00% vs 0.03%,
+        # R15-FINAL-024): only a gap past the band flags.
+        if abs(provider_pct - exchange_pct) <= _OWNERSHIP_BAND_PP:
             continue
         shown = f"{filed_pct:.2f}%" if filed_pct is not None else f"no {category} reported"
         flagged[field_name] = (
@@ -675,12 +677,52 @@ def _growth_disagrees(served: float, filed: float) -> bool:
     return abs(served - filed) > band
 
 
+def _rebase_pe_on_filed_eps(
+    f: Fundamentals,
+    eps: float,
+    as_of: str,
+    meta: dict[str, FieldMeta],
+    updates: dict[str, Any],
+) -> None:
+    """Recompute ``pe_ratio`` on the exchange-filed TTM EPS the overlay serves
+    (R15-FINAL-003): a P/E left on the provider EPS the payload says is not
+    served is a third figure. Priced at the ratio price (pe x provider eps
+    only as fallback); a non-positive filed EPS has no trailing P/E, so the
+    provider's is withheld, never left beside it."""
+    price = f.ratio_price if f.ratio_price is not None and f.ratio_price > 0 else _implied_price(f)
+    if eps > 0 and price is not None:
+        source = "the ratio price" if price == f.ratio_price else "pe x provider eps"
+        updates["pe_ratio"] = price / eps
+        meta["pe_ratio"] = FieldMeta(
+            status="ok",
+            provider="derived",
+            as_of=as_of,
+            basis_note=(
+                f"price / exchange-filed TTM EPS ({price:,.4g} / {eps:,.2f}, price from {source})"
+            ),
+        )
+    elif f.pe_ratio is not None:
+        updates["pe_ratio"] = None
+        meta["pe_ratio"] = FieldMeta(
+            status="withheld",
+            provider=f.provider,
+            reason=(
+                f"the exchange-filed TTM EPS {eps:,.2f} is not positive — no trailing P/E; withheld"
+                if eps <= 0
+                else "the provider's P/E sits on an EPS the exchange filing does not bear out, "
+                "and no price is available to recompute it; withheld"
+            ),
+        )
+
+
 def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPeriods) -> Fundamentals:
     """Serve the exchange-filed figures over the provider's (D-B7-1).
 
       * ``revenue_ttm`` / ``net_income_ttm`` / ``eps`` — the sum of the filed
         periods covering the trailing 12 months (four quarters, or two halves);
         nothing when the filings leave a hole in that year;
+      * ``pe_ratio`` — re-derived on the served EPS
+        (:func:`_rebase_pe_on_filed_eps`);
       * ``revenue_growth`` / ``earnings_growth`` — the newest filed period
         against the same-length period a year earlier (MRQ-YoY), when filed.
 
@@ -762,6 +804,8 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
                 )
                 basis_note = None
             serve(name, total, label, off, basis_note)
+        if "eps" in updates:
+            _rebase_pe_on_filed_eps(f, updates["eps"], as_of, meta, updates)
         if "revenue_ttm" in updates or "net_income_ttm" in updates:
             updates["financial_currency"] = None if f.currency == "INR" else "INR"
             if not old_basis_is_inr:
@@ -976,6 +1020,54 @@ def reconcile_52w_range(
     return _merge_meta(f, {}, flagged)
 
 
+def fill_market_cap_from_master(
+    f: Fundamentals, witness: market_cap_witness.MarketCapWitness | None
+) -> Fundamentals:
+    """Derive a missing ``market_cap`` (and ``shares_outstanding``) for an
+    Indian listing from the app's own BSE-derived master share count
+    (R15-FINAL-009: AMAL.NS served neither while AMAL.BO served both).
+
+    Only when the provider published neither figure, the ratio price is
+    known, and the master row is this listing's own company: the BSE row
+    under an NSE ticker can be another company (NSE ZEAL vs BSE Zeal Aqua),
+    so an NSE listing needs its same-company BSE dual listing to carry that
+    scrip code. Stamped ``derived`` with the basis; never overrides a value."""
+    price = f.ratio_price
+    if witness is None or f.market_cap is not None or f.shares_outstanding is not None:
+        return f
+    if price is None or price <= 0:
+        return f
+    bare = locale.strip_exchange_suffix(f.symbol).removesuffix("-SM")
+    own_code = (
+        symbol_resolver.dual_listed_bse_code(bare)
+        if f.symbol.strip().upper().endswith(".NS")
+        else symbol_resolver.bse_scrip_code(bare)
+    )
+    if own_code != witness.scrip_code:
+        return f
+    shares = witness.shares_outstanding
+    meta = dict(f.field_meta or {})
+    price_meta = meta.get("ratio_price")
+    meta["shares_outstanding"] = FieldMeta(
+        status="ok",
+        provider="derived",
+        as_of=witness.as_of,
+        basis_note=f"BSE scrip {witness.scrip_code} share count from {witness.source}",
+    )
+    meta["market_cap"] = FieldMeta(
+        status="ok",
+        provider="derived",
+        as_of=price_meta.as_of if price_meta is not None else witness.as_of,
+        basis_note=(
+            f"ratio price x master share count ({price:,.4g} x {shares:,.0f}, "
+            f"shares from {witness.source})"
+        ),
+    )
+    return f.model_copy(
+        update={"shares_outstanding": shares, "market_cap": price * shares, "field_meta": meta}
+    )
+
+
 async def _dividend_witness(symbol: str) -> dividend_history.DividendTTM | None:
     """The paid-TTM dividend history for ``symbol``; a failed round-trip is
     ``None`` so :func:`_cached_witness` does not keep it."""
@@ -1003,6 +1095,8 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         the research snapshot runs (R15-DATA-047/049);
       * for a yfinance-served 52-week range on an Indian listing, a year of
         NSE + BSE daily bars → :func:`reconcile_52w_range` (R15-DATA-015/016);
+      * for an Indian listing with no published market cap, the bundled BSE
+        master share count → :func:`fill_market_cap_from_master`;
       * for an Indian listing, the exchange-filed results →
         :func:`overlay_filed_periods` (D-B7-1). A trailing revenue served from
         the filings is not reconciled against Yahoo's statements; one left as
@@ -1043,7 +1137,12 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
             "range52w", f.symbol, lambda: range_check.get_venue_history(f.symbol)
         )
 
-    exchange, annual, quarter_ends, equity, paid, venues, filed = await asyncio.gather(
+    async def master_shares() -> market_cap_witness.MarketCapWitness | None:
+        if f.market_cap is not None or not market_cap_witness.is_applicable(f.symbol):
+            return None
+        return await market_cap_witness.get_market_cap_witness(f.symbol)
+
+    exchange, annual, quarter_ends, equity, paid, venues, filed, master = await asyncio.gather(
         ownership(),
         statement("income", yfinance_provider.get_income_statement, check_revenue),
         statement("quarters", yfinance_provider.get_quarterly_period_ends, check_revenue),
@@ -1051,7 +1150,9 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         dividends(),
         venue_history(),
         exchange_financials.get_filed_periods(f.symbol),
+        master_shares(),
     )
+    f = fill_market_cap_from_master(f, master)
     if check_ownership:
         f = reconcile_ownership(f, exchange)
     if filed is not None:
@@ -1076,6 +1177,7 @@ __all__ = [
     "CorrectnessError",
     "apply_exchange_financials",
     "apply_witnesses",
+    "fill_market_cap_from_master",
     "overlay_filed_periods",
     "reconcile_52w_range",
     "reconcile_book_value",

@@ -217,6 +217,9 @@ class FinancialStatement(BaseModel):
     #: Expected periods the provider did not serve (R15-LEAD-015): each is
     #: listed in ``periods`` with a null value in every line.
     gaps: list[str] = []
+    #: Why the statement is empty (R15-FINAL-005), e.g. no provider covers
+    #: NSE Emerge (SME) statements. ``None`` whenever ``periods`` is non-empty.
+    reason: str | None = None
 
 
 class IncomeStatement(FinancialStatement):
