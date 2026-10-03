@@ -172,6 +172,8 @@ export function SecFilingsPanel() {
       kind: "snapshot",
       payload: {
         identifier: activeIdentifier,
+        // The context provider reads `symbol` for "this" (R15-LEAD-077).
+        symbol: activeIdentifier,
         formFilter,
         tab,
         filingCount: filings.filings.length,

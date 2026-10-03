@@ -20,7 +20,14 @@ import {
 } from "./metrics";
 
 function pos(symbol: string, quantity: number, cost: number): Holding {
-  return { id: `h-${symbol}`, symbol, quantity, costBasis: cost, assetClass: "equity" };
+  return {
+    id: `h-${symbol}`,
+    symbol,
+    quantity,
+    costBasis: cost,
+    assetClass: "equity",
+    region: "US",
+  };
 }
 function quote(symbol: string, price: number, currency = "USD"): Quote {
   return { symbol, price, currency } as Quote;

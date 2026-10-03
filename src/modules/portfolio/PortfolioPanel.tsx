@@ -20,15 +20,14 @@ import {
   instrumentCurrency,
 } from "@/lib/format";
 import { useMarketSession } from "@/lib/market-session";
-import { regionConfig } from "@/lib/region";
 import { useContainerWidth } from "@/lib/use-container-width";
 import { usePanelContextBus } from "@/store/panel-context";
-import { useSettingsStore } from "@/store/settings";
 import { assetClassOf } from "@/store/symbols";
 import {
   type AssetClass,
   type Holding,
   type HoldingInput,
+  listingCurrency,
   usePortfoliosStore,
   validateHolding,
 } from "@/store/portfolios";
@@ -195,6 +194,14 @@ export function PortfolioPanel() {
   // Guards the interval tick below against piling a new fan-out on top of one
   // still in flight (mirrors WatchlistPanel's inFlightRef, WatchlistPanel.tsx:182-251).
   const quoteFetchInFlightRef = useRef(false);
+  // After a failed refresh the interval backs off (10 s, 20 s, ... 60 s) instead
+  // of re-sending the whole portfolio every 5 s (R15-FINAL-006).
+  const quoteBackoffRef = useRef({ failures: 0, until: 0 });
+  // Symbols a completed batch had no quote for (R15-FINAL-017): shown as "no
+  // quote" on their row and left out of the 5 s ticks, re-asked once a minute
+  // or when the holding set changes.
+  const [missingQuotes, setMissingQuotes] = useState<ReadonlySet<string>>(new Set());
+  const missingRef = useRef({ key: "", symbols: new Set<string>(), retryAt: 0 });
   // R15-UI-009: the CSV export now writes a real file via the Rust
   // atomic-write path — surface the saved path (or a write failure) since
   // there is no browser download UI to confirm it landed.
@@ -209,19 +216,45 @@ export function PortfolioPanel() {
   // Live quotes — refetched whenever the holding SET changes (symbols/classes).
   // Holdings render synchronously from the store; only the price / market-value
   // / P&L columns wait on the quote (they show "—" until it resolves).
-  const quotesKey = holdings.map((h) => `${h.symbol}:${h.assetClass}`).join(",");
+  const quotesKey = holdings.map((h) => `${h.symbol}:${h.assetClass}:${h.region}`).join(",");
+  const noteQuoteOutcome = (failed: boolean) => {
+    const backoff = quoteBackoffRef.current;
+    backoff.failures = failed ? backoff.failures + 1 : 0;
+    backoff.until = failed
+      ? Date.now() + Math.min(QUOTE_REFRESH_MS * 2 ** backoff.failures, 60_000)
+      : 0;
+  };
   useEffect(() => {
     let cancelled = false;
     quoteFetchInFlightRef.current = true;
+    const known = missingRef.current;
+    if (known.key !== quotesKey) {
+      missingRef.current = { key: quotesKey, symbols: new Set(), retryAt: 0 };
+    }
+    const skipMissing = Date.now() < missingRef.current.retryAt;
+    const skipped = skipMissing ? missingRef.current.symbols : new Set<string>();
     // fetchPositionQuotes([]) resolves to an empty map, so an emptied portfolio
     // clears its quotes via the async path — no synchronous setState in-effect.
-    void fetchPositionQuotes(holdings.map((h) => ({ symbol: h.symbol, assetClass: h.assetClass })))
-      .then(({ quotes: resolved, failed }) => {
+    void fetchPositionQuotes(
+      holdings
+        .filter((h) => !skipped.has(h.symbol.toUpperCase()))
+        .map((h) => ({ symbol: h.symbol, assetClass: h.assetClass, region: h.region })),
+    )
+      .then(({ quotes: resolved, failed, missing }) => {
         if (!cancelled) {
+          if (!skipMissing) {
+            missingRef.current = {
+              key: quotesKey,
+              symbols: new Set(missing),
+              retryAt: Date.now() + 60_000,
+            };
+            setMissingQuotes(new Set(missing));
+          }
           setQuotes(resolved);
           // R15-UI-004: `failed` counts real fetch failures (never a swallowed
           // null), so the banner + Retry now actually reach the DOM.
           setQuotesError(failed > 0);
+          noteQuoteOutcome(failed > 0);
         }
       })
       .catch(() => {
@@ -229,6 +262,7 @@ export function PortfolioPanel() {
         // values are stale/absent rather than reading "—" as "no data".
         if (!cancelled) {
           setQuotesError(true);
+          noteQuoteOutcome(true);
         }
       })
       .finally(() => {
@@ -252,7 +286,7 @@ export function PortfolioPanel() {
     const timer = setInterval(() => {
       // Skip this tick while the previous fan-out hasn't settled, so a slow
       // symbol can't pile up overlapping full-portfolio fetches.
-      if (quoteFetchInFlightRef.current) return;
+      if (quoteFetchInFlightRef.current || Date.now() < quoteBackoffRef.current.until) return;
       setQuotesNonce((n) => n + 1);
     }, QUOTE_REFRESH_MS);
     return () => clearInterval(timer);
@@ -433,13 +467,9 @@ export function PortfolioPanel() {
         costBasis: position.costBasis,
         assetClass: position.assetClass,
         // R15-AGENT-091: the tracked position's currency, so the agent never
-        // guesses one — a resolved quote's currency, else the pair's quote
-        // side for an unresolved crypto lot, else the region default (the
-        // same fallback chain the form/table money cells use).
-        currency:
-          quote?.currency ??
-          pairCurrency(position.symbol) ??
-          regionConfig(useSettingsStore.getState().region).currency,
+        // guesses one — a resolved quote's currency, else the listing's own,
+        // else null (unknown), never the session region's (R15-FINAL-007).
+        currency: quote?.currency ?? listingCurrency(position.symbol, position.assetClass),
         marketValue: marketValue ?? null,
         pnl: pnl ?? null,
       })),
@@ -600,7 +630,12 @@ export function PortfolioPanel() {
         numeric: true,
         tier: "secondary",
         width: HOLDING_TRACKS.price,
-        format: (r) => (r.quote !== null ? lotMoney(r.quote.price, r.quote.currency) : null),
+        format: (r) =>
+          r.quote !== null
+            ? lotMoney(r.quote.price, r.quote.currency)
+            : missingQuotes.has(r.position.symbol.toUpperCase())
+              ? "no quote"
+              : null,
       });
     }
     cols.push(
@@ -665,7 +700,16 @@ export function PortfolioPanel() {
       ),
     });
     return cols;
-  }, [showQty, showCost, showPrice, showWeight, mixedCurrencies, handleEdit, handleDelete]);
+  }, [
+    showQty,
+    showCost,
+    showPrice,
+    showWeight,
+    mixedCurrencies,
+    missingQuotes,
+    handleEdit,
+    handleDelete,
+  ]);
 
   const submitPfName = () => {
     const name = pfName.trim();

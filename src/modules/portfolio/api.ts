@@ -8,7 +8,7 @@
  * read once, to import holdings saved before they moved into the blob.
  */
 
-import { getSidecarBaseUrl, sidecarApi } from "@/lib/sidecar-client";
+import { getSidecarBaseUrl, sidecarApi, sidecarRequest } from "@/lib/sidecar-client";
 import type { HoldingInput } from "@/store/portfolios";
 import type { OHLCVSeries, Position, Quote } from "../../../types/data";
 
@@ -16,48 +16,60 @@ import type { OHLCVSeries, Position, Quote } from "../../../types/data";
 export interface QuoteTarget {
   symbol: string;
   assetClass: string;
+  /** The holding's own listing region (R15-FINAL-001), never the session's. */
+  region?: string;
 }
 
-/** The outcome of resolving one holding's live quote — a real failure (network
- *  down, sidecar 502, etc.) is distinct from a plain success, so a caller can
- *  tell "the fetch failed" apart from "the row has no quote". */
-export type QuoteFetchResult = { quote: Quote } | { error: string };
+/** A cold batch at the route's bounded concurrency outlasts the 30 s list/CRUD
+ *  default by far; aborting it early only re-sends the same work while the
+ *  sidecar is still finishing the last one (R15-FINAL-006). */
+export const QUOTES_BATCH_TIMEOUT_MS = 120_000;
 
 /**
- * Fetch a live quote for one symbol, mapping the asset class onto the sidecar's
- * quote endpoint. A failed fetch comes back as `{error}`, never a swallowed
- * `null` — the caller decides how to surface it (R15-UI-004: collapsing every
- * failure into `null` made the panel's failure banner unreachable).
+ * Fetch live quotes for a set of holdings through the batch `/quotes` route:
+ * one request per (region, asset class), each sent with that listing region
+ * (R15-FINAL-001). Quotes are keyed by upper-cased symbol; `failed` counts the
+ * batch REQUESTS that failed (sidecar down, timeout), while `missing` lists the
+ * symbols a completed batch answered without — a row-level "no quote", never
+ * the transport banner (R15-FINAL-017; R15-UI-004 is the converse).
  */
-export async function fetchPositionQuote(
-  symbol: string,
-  assetClass: string,
-): Promise<QuoteFetchResult> {
-  try {
-    return { quote: await sidecarApi.quote(symbol, assetClass) };
-  } catch (err) {
-    return { error: err instanceof Error ? err.message : String(err) };
-  }
-}
-
-/** Fetch live quotes for a set of holdings, keyed by upper-cased symbol, plus
- *  a count of the ones that failed to fetch (as opposed to a quote map with no
- *  signal either way). */
 export async function fetchPositionQuotes(
   targets: QuoteTarget[],
-): Promise<{ quotes: Map<string, Quote>; failed: number }> {
+): Promise<{ quotes: Map<string, Quote>; failed: number; missing: string[] }> {
+  const groups = new Map<string, { region?: string; assetClass: string; symbols: Set<string> }>();
+  for (const t of targets) {
+    const key = `${t.region ?? ""}|${t.assetClass}`;
+    const group = groups.get(key) ?? {
+      region: t.region,
+      assetClass: t.assetClass,
+      symbols: new Set<string>(),
+    };
+    group.symbols.add(t.symbol.toUpperCase());
+    groups.set(key, group);
+  }
   const quotes = new Map<string, Quote>();
-  const results = await Promise.all(targets.map((t) => fetchPositionQuote(t.symbol, t.assetClass)));
+  const missing: string[] = [];
   let failed = 0;
-  targets.forEach((t, index) => {
-    const result = results[index];
-    if ("quote" in result) {
-      quotes.set(t.symbol.toUpperCase(), result.quote);
-    } else {
-      failed += 1;
-    }
-  });
-  return { quotes, failed };
+  await Promise.all(
+    [...groups.values()].map(async ({ region, assetClass, symbols }) => {
+      try {
+        const rows = await sidecarRequest<Quote[]>("GET", "/quotes", {
+          params: { symbols: [...symbols].join(","), asset_class: assetClass },
+          headers: { "X-Vysted-Region": region },
+          timeoutMs: QUOTES_BATCH_TIMEOUT_MS,
+        });
+        const answered = new Set<string>();
+        for (const quote of rows) {
+          quotes.set(quote.symbol.toUpperCase(), quote);
+          answered.add(quote.symbol.toUpperCase());
+        }
+        missing.push(...[...symbols].filter((symbol) => !answered.has(symbol)));
+      } catch {
+        failed += 1;
+      }
+    }),
+  );
+  return { quotes, failed, missing };
 }
 
 /**

@@ -274,18 +274,22 @@ export function planCustom(specs: CustomPanelSpec[], opts?: LayoutPlanOptions): 
 /**
  * IMPERATIVE applier for a custom arrange — `applyLayoutTemplate` from a
  * `planCustom` plan. Synchronous, idempotent via the shared `applyPlan`
- * (reuses already-open panels by id).
+ * (reuses already-open panels by id). Returns the tokens it placed and the
+ * ones that named no arrangeable panel, so the caller narrates what actually
+ * happened (R15-FINAL-016) — an all-unknown list places nothing.
  */
 export function applyCustomLayout(
   api: DockviewApi,
   specs: CustomPanelSpec[],
   opts?: LayoutPlanOptions,
-): void {
+): { placed: string[]; unresolved: string[] } {
+  const placed = specs.filter((s) => resolvePanelToken(s.panel)).map((s) => s.panel);
+  const unresolved = specs.filter((s) => !resolvePanelToken(s.panel)).map((s) => s.panel);
   const plan = planCustom(specs, opts);
-  if (plan.panels.length === 0) {
-    return;
+  if (plan.panels.length > 0) {
+    applyPlan(api, plan);
   }
-  applyPlan(api, plan);
+  return { placed, unresolved };
 }
 
 /**
