@@ -10,7 +10,7 @@ First release after the R15 audit-and-fix programme. Source-available desktop fi
 
 Built from 1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056 on macOS (Apple Silicon). Check the download with `shasum -a 256 "Vysted Terminal_0.9.0_aarch64.dmg"`.
 
-**Signing.** This asset, as built and verified for this release, is unsigned and not notarized, so macOS Gatekeeper refuses it on other Macs: right-click the app, choose Open, and confirm. The first launch can take up to a few minutes while the bundled data engine unpacks; wait for the status chip to turn connected. **Operator to confirm:** whether a signed, notarized dmg replaces this asset before the release is published — if so, delete this paragraph and the Gatekeeper instruction no longer applies.
+**Signing.** This asset, as built and verified for this release, is unsigned and not notarized, so macOS Gatekeeper refuses it on other Macs: try to open it once, then open System Settings → Privacy & Security and click **Open Anyway** next to the Vysted Terminal notice, and confirm (the old right-click → Open bypass no longer works on macOS 15 and later). The first launch can take up to a few minutes while the bundled data engine unpacks; wait for the status chip to turn connected. **Operator to confirm:** whether a signed, notarized dmg replaces this asset before the release is published — if so, delete this paragraph and the Gatekeeper instruction no longer applies.
 
 ## License in plain words
 
@@ -232,14 +232,22 @@ These could not be shown on the rig and wait for a person to click through the p
 
 `blocked_tier4` entries (35) wait on an operator decision, not on code; they are listed in `BACKLOG_0.9.1.md`. Four of them are the signed-off local-model limitation quoted below.
 
-## Publish command (operator only, never run by an agent)
+## Draft release (created by the run; publishing is operator-only)
+
+The run created this release as a **draft**, with the unsigned dmg attached:
 
 ```sh
 gh release create v0.9.0 --draft \
   --target 1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056 \
   --title "Vysted Terminal 0.9.0" \
-  --notes-file docs/redesign/verification/r15/stage-d/release/GITHUB_RELEASE_v0.9.0.md \
-  "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg"
+  --notes-file <this file, up to the line before this section> \
+  "<scratchpad>/bundle-rc2b/src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg"
 ```
 
-Run it from the repository root. `--target` points the draft release at the launch commit directly, so this command does not require the `v0.9.0` tag to exist or be pushed first — it creates the release from that commit; `gh` only creates a lightweight tag reference once the release is published, this command never does that itself and never pushes anything. The release stays a draft until the operator publishes it (`gh release edit v0.9.0 --draft=false`). If the notes file is promoted to another path at the launch tag, change `--notes-file` to match.
+A draft creates no git tag and pushes nothing. These steps stay the operator's, in this order (`docs/RELEASE_RUNBOOK.md` section 9):
+
+1. Sign and notarize, then replace the asset: `gh release upload v0.9.0 "<signed dmg>" --clobber`.
+2. Merge to main and push the annotated `v0.9.0` tag on the merge commit.
+3. Publish: `gh release edit v0.9.0 --draft=false`. Once the annotated tag exists, publishing uses it rather than the draft's `--target`.
+
+Created 01:20 IST 4 Oct 2026 (upload 01:16:57 to 01:19:42 IST). `gh api .../releases` shows draft=true, tag_name v0.9.0, target_commitish 1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056, one asset `Vysted.Terminal_0.9.0_aarch64.dmg` (GitHub swaps spaces for dots) of 228,480,607 bytes, state uploaded. `git ls-remote origin 'refs/tags/v0.9*'` is empty. Until publication the draft's URL is an `untagged-…` link that only the repository owner can see.
