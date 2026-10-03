@@ -101,9 +101,14 @@ _db_path: Path | None = None
 
 def _connect(path: Path) -> sqlite3.Connection:
     """Open a SQLite connection with WAL + schema bootstrap."""
-    conn = sqlite3.connect(str(path), isolation_level=None, check_same_thread=False)
-    conn.execute("PRAGMA journal_mode=WAL")
-    schema_version.migrate(conn, _STEPS)
+    conn, _ = schema_version.open_migrated(
+        path,
+        _STEPS,
+        prepare=lambda conn: conn.execute("PRAGMA journal_mode=WAL"),
+        quiet=True,
+        isolation_level=None,
+        check_same_thread=False,
+    )
     return conn
 
 

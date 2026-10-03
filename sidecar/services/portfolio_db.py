@@ -50,10 +50,8 @@ def _connect() -> Iterator[sqlite3.Connection]:
     The path is resolved per call rather than cached so a test that points
     ``VYSTED_DATA_DIR`` at a ``tmp_path`` always hits its own database.
     """
-    conn = sqlite3.connect(_db_path())
-    conn.row_factory = sqlite3.Row
+    conn, _ = schema_version.open_migrated(_db_path(), _STEPS, row_factory=sqlite3.Row)
     try:
-        schema_version.migrate(conn, _STEPS)
         yield conn
         conn.commit()
     finally:
