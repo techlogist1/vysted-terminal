@@ -88,7 +88,7 @@ def test_a_taken_port_exits_non_zero_without_aborting(tmp_path: Path) -> None:
         taken.listen()
         port = taken.getsockname()[1]
         log = tmp_path / "stderr.log"
-        with log.open("wb") as stderr:
+        with open(log, "wb") as stderr:
             child = subprocess.Popen(
                 [sys.executable, "main.py", "--port", str(port), "--data-dir", str(tmp_path)],
                 cwd=Path(main.__file__).parent,
@@ -101,5 +101,5 @@ def test_a_taken_port_exits_non_zero_without_aborting(tmp_path: Path) -> None:
             finally:
                 child.kill()
                 child.stdin.close()  # type: ignore[union-attr]
-    tail = log.read_text(errors="replace")[-2000:]
+    tail = log.read_text(encoding="utf-8", errors="replace")[-2000:]
     assert code not in (0, -signal.SIGABRT, 134), tail
