@@ -15,7 +15,9 @@ slowest single symbol, not the sum. Mirrors the established pattern in
 Batch lookups run on their OWN bounded pool, never the event loop's default
 executor: a 100-symbol portfolio batch used to occupy every default worker, so
 a single ``/quotes/{symbol}`` (and every other ``to_thread`` route) queued
-behind it for minutes (R15-FINAL-006).
+behind it for minutes (R15-FINAL-006). Batch members also take the NSE
+throttle's bulk lane, so an interactive quote is paced ahead of them rather than
+behind every slot the batch has reserved.
 """
 
 from __future__ import annotations
@@ -28,7 +30,7 @@ from concurrent.futures import ThreadPoolExecutor
 from fastapi import APIRouter, Query
 
 from models.market import Quote
-from services import provider_registry
+from services import nse_provider, provider_registry
 from services.locale import REGION_FOREIGN, REGION_US, freshness_for, instrument_region
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
@@ -38,11 +40,16 @@ router = APIRouter(prefix="/quotes", tags=["quotes"])
 _BATCH_POOL = ThreadPoolExecutor(max_workers=16, thread_name_prefix="quotes-batch")
 
 
+def _batch_member_quote(symbol: str, asset_class: str) -> Quote:
+    nse_provider.bulk_lane.set(True)  # scoped to this member's copied context
+    return provider_registry.get_quote(symbol, asset_class)
+
+
 def _on_batch_pool(symbol: str, asset_class: str) -> asyncio.Future[Quote]:
     """``asyncio.to_thread`` onto the batch pool: the copied context carries the
     request's region ContextVar into the worker, as ``to_thread`` does."""
     call = functools.partial(
-        contextvars.copy_context().run, provider_registry.get_quote, symbol, asset_class
+        contextvars.copy_context().run, _batch_member_quote, symbol, asset_class
     )
     return asyncio.get_running_loop().run_in_executor(_BATCH_POOL, call)
 

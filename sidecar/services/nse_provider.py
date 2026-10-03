@@ -62,12 +62,14 @@ Anti-bot machinery (the brief's cookie-dance session):
 
 The public accessors are synchronous, mirroring every other provider the
 registry's sync resolver drives (callers run them in ``asyncio.to_thread``);
-the shared session is guarded by a module lock so threaded callers serialize
-(the 1 req/s throttle makes concurrency pointless anyway).
+each lane's session (interactive, and batch members on the bulk lane) is
+guarded by its own lock so threaded callers serialize per lane (the 1 req/s
+throttle paces both lanes together).
 """
 
 from __future__ import annotations
 
+import contextvars
 import logging
 import random
 import threading
@@ -156,13 +158,33 @@ def is_available() -> bool:
 # ---------------------------------------------------------------------------
 
 
+#: Set inside a batch ``/quotes`` member's worker (``routers/quotes.py``): its NSE
+#: calls take the bulk lane, so an interactive request is never paced behind a
+#: queued portfolio batch (R15-FINAL-006).
+bulk_lane: contextvars.ContextVar[bool] = contextvars.ContextVar("nse_bulk_lane", default=False)
+
+
+class _BulkTicket:
+    __slots__ = ("bumped", "slot")
+
+    def __init__(self, slot: float) -> None:
+        self.slot = slot
+        self.bumped = False
+
+
 class _Throttle:
-    """Thread-safe minimum-interval pacer with jitter.
+    """Thread-safe minimum-interval pacer with jitter and a bulk lane.
 
     Each :meth:`wait` blocks until at least ``min_interval`` (+ a fresh random
     jitter in ``[0, jitter]``) has elapsed since the previous waited call —
     polite, non-bursty pacing that does not look metronomic to the edge.
     ``sleep``/``clock`` are injectable for tests (no real sleeping in pytest).
+
+    A bulk-lane caller (:data:`bulk_lane`) reserves its slot like anyone, but an
+    interactive caller takes the earliest bulk slot still in the future and that
+    bulk caller is re-queued at the tail. The set of slots is unchanged, so the
+    upstream rate is too; only who rides each slot moves (R15-FINAL-006: a single
+    quote waited ~20 s behind 16 reserved batch slots).
     """
 
     def __init__(
@@ -178,16 +200,44 @@ class _Throttle:
         self._clock = clock
         self._next_at = 0.0
         self._lock = threading.Lock()
+        self._bulk: set[_BulkTicket] = set()
+
+    def _reserve_tail(self, now: float) -> float:
+        slot = max(now, self._next_at)
+        self._next_at = slot + self._min_interval + random.uniform(0.0, self._jitter)
+        return slot
 
     def wait(self) -> None:
-        """Reserve the next slot under the lock, then sleep OUTSIDE it, so a
-        queued caller never holds the lock while it waits (R15-DATA-066)."""
+        """Reserve a slot under the lock, then sleep OUTSIDE it, so a queued
+        caller never holds the lock while it waits (R15-DATA-066)."""
+        if bulk_lane.get():
+            self._wait_bulk()
+            return
         with self._lock:
             now = self._clock()
-            slot = max(now, self._next_at)
-            self._next_at = slot + self._min_interval + random.uniform(0.0, self._jitter)
+            ahead = [t for t in self._bulk if t.slot > now]
+            if ahead:
+                ticket = min(ahead, key=lambda t: t.slot)
+                slot, ticket.slot, ticket.bumped = ticket.slot, self._reserve_tail(now), True
+            else:
+                slot = self._reserve_tail(now)
         if slot > now:
             self._sleep(slot - now)
+
+    def _wait_bulk(self) -> None:
+        with self._lock:
+            now = self._clock()
+            ticket = _BulkTicket(self._reserve_tail(now))
+            self._bulk.add(ticket)
+        while True:
+            if ticket.slot > now:
+                self._sleep(ticket.slot - now)
+            with self._lock:
+                if not ticket.bumped:
+                    self._bulk.discard(ticket)
+                    return
+                ticket.bumped = False  # an interactive caller took the slot
+                now = self._clock()
 
 
 # ---------------------------------------------------------------------------
@@ -278,13 +328,23 @@ class _SessionHolder:
 
 
 _throttle = _Throttle()
-_holder = _SessionHolder()
 _breakers: dict[str, _CircuitBreaker] = {}
+_breakers_lock = threading.Lock()
+# One session + lock per lane: a GET runs under its session's lock, so a batch
+# member's hung or slow GET (a 10 s connection reset) never holds the session an
+# interactive call needs (R15-FINAL-006). Starts are still paced by _throttle.
+_holder = _SessionHolder()
 _lock = threading.Lock()
+_bulk_holder = _SessionHolder()
+_bulk_lock = threading.Lock()
+
+
+def _lane_session() -> tuple[_SessionHolder, threading.Lock]:
+    return (_bulk_holder, _bulk_lock) if bulk_lane.get() else (_holder, _lock)
 
 
 def _breaker_for(path: str) -> _CircuitBreaker:
-    with _lock:
+    with _breakers_lock:
         breaker = _breakers.get(path)
         if breaker is None:
             breaker = _CircuitBreaker()
@@ -296,6 +356,7 @@ def reset_for_tests() -> None:
     """Discard the session, breakers, and throttle pacing (test isolation)."""
     global _throttle
     _holder.rotate()
+    _bulk_holder.rotate()
     _breakers.clear()
     _eod_quotes.clear()
     _throttle = _Throttle()
@@ -308,7 +369,7 @@ def _get_json(path: str, params: dict[str, str], referer: str) -> object:
     on 401/403 rotate the session and retry ONCE → a second block records into
     the path's breaker and raises. Any other non-200 / non-JSON body raises a
     plain :class:`ProviderError` (not a block — the breaker only counts
-    bot-blocks). Serialized by the module lock (threaded registry callers).
+    bot-blocks). Serialized by the caller's lane lock (threaded registry callers).
     """
     breaker = _breaker_for(path)
     remaining = breaker.seconds_remaining()
@@ -318,17 +379,18 @@ def _get_json(path: str, params: dict[str, str], referer: str) -> object:
             f"({remaining:.0f}s cooldown remaining)"
         )
     headers = dict(_API_HEADERS, Referer=referer)
+    holder, session_lock = _lane_session()
     last_status = 0
     for attempt in (0, 1):
         _throttle.wait()  # paced before taking the session lock (R15-DATA-066)
-        with _lock:
-            session = _holder.ensure()
+        with session_lock:
+            session = holder.ensure()
             try:
                 resp = session.get(_BASE + path, params=params, headers=headers, timeout=_TIMEOUT)
             except Exception as exc:
                 raise ProviderError(f"nse_direct: transport failure on {path}: {exc}") from exc
             if resp.status_code in (401, 403):
-                _holder.rotate()  # cookie set is burned — dance again
+                holder.rotate()  # cookie set is burned — dance again
         last_status = resp.status_code
         if resp.status_code in (401, 403):
             if attempt == 0:
@@ -757,8 +819,9 @@ def get_archive_text(url: str) -> str:
     cookie-danced session. Only ``nsearchives.nseindia.com`` URLs are fetched."""
     if not url.startswith(_ARCHIVE_BASE):
         raise ProviderError(f"nse_direct: not an NSE archive URL: {url!r}")
-    with _lock:
-        session = _holder.ensure()
+    holder, session_lock = _lane_session()
+    with session_lock:
+        session = holder.ensure()
         _throttle.wait()
         try:
             resp = session.get(

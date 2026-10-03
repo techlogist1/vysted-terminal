@@ -7,6 +7,7 @@ and ``/quotes`` answers each quote under the spelling that was requested.
 
 from __future__ import annotations
 
+import threading
 import time
 from datetime import UTC, datetime, timedelta
 
@@ -84,6 +85,89 @@ def test_throttle_sleeps_outside_its_lock() -> None:
     throttle.wait()
     throttle.wait()
     assert held == [False]
+
+
+def test_an_interactive_call_is_admitted_ahead_of_a_queued_bulk_batch() -> None:
+    """R15-FINAL-006: 16 batch members hold slots 0..15 on one FIFO pacer; an
+    interactive call rides the next slot (1.0), not the 17th, and the member it
+    displaced is re-queued at the tail, so the slot set (the rate) is unchanged."""
+    clock = {"t": 0.0}
+    targets: dict[str, list[float]] = {}
+    parked = threading.Semaphore(0)
+    release = threading.Event()
+    record = threading.Lock()
+
+    def sleep(seconds: float) -> None:  # park until the test releases everyone
+        with record:
+            targets.setdefault(threading.current_thread().name, []).append(clock["t"] + seconds)
+        parked.release()
+        release.wait(5)
+
+    throttle = nse_provider._Throttle(
+        min_interval=1.0, jitter=0.0, sleep=sleep, clock=lambda: clock["t"]
+    )
+
+    def batch_member() -> None:
+        nse_provider.bulk_lane.set(True)
+        throttle.wait()
+
+    members = [threading.Thread(target=batch_member, name=f"bulk{i}") for i in range(16)]
+    for member in members:
+        member.start()
+    for _ in range(15):  # bulk0 rides slot 0 at once; the rest park on 1..15
+        assert parked.acquire(timeout=5)
+    single = threading.Thread(target=throttle.wait, name="single")
+    single.start()
+    assert parked.acquire(timeout=5)
+    assert targets["single"] == [1.0]
+
+    release.set()
+    for thread in [*members, single]:
+        thread.join(5)
+        assert not thread.is_alive()
+    last_slot = sorted(slots[-1] for slots in targets.values())
+    assert last_slot == [float(i) for i in range(1, 17)]
+
+
+def test_a_hung_batch_get_never_holds_the_interactive_session(
+    nse_edge: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-FINAL-006: a GET runs under its session lock, and live the NSE edge
+    reset connections after ~10 s each; a batch member's hung GET held the one
+    shared lock, so a single quote waited out several. Each lane now has its own
+    session, so the interactive GET completes while the batch GET still hangs."""
+    entered = threading.Event()
+    release = threading.Event()
+
+    class _HangingEdge(_Session):
+        def get(self, url: str, params=None, headers=None, timeout=None):  # noqa: ANN001, ANN201
+            if params and params.get("symbol") == "SLOW":
+                entered.set()
+                release.wait(5)
+            return super().get(url, params=params, headers=headers, timeout=timeout)
+
+    monkeypatch.setattr(nse_provider, "_new_session", _HangingEdge)
+
+    def batch_member() -> None:
+        nse_provider.bulk_lane.set(True)
+        nse_provider._get_json("/api/historicalOR/cm/equity", {"symbol": "SLOW"}, "ref")
+
+    hung = threading.Thread(target=batch_member)
+    single = threading.Thread(
+        target=nse_provider._get_json,
+        args=("/api/historicalOR/cm/equity", {"symbol": "TCS"}, "ref"),
+    )
+    try:
+        hung.start()
+        assert entered.wait(5)
+        single.start()
+        single.join(2)
+        assert not single.is_alive(), "the single GET waited on the batch GET's session"
+    finally:
+        release.set()
+        for thread in (hung, single):
+            if thread.ident is not None:
+                thread.join(5)
 
 
 def test_warm_20_symbol_batch_is_served_under_a_second(
