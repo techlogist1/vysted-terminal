@@ -80,3 +80,42 @@ def test_a_non_positive_filed_eps_withholds_the_providers_pe() -> None:
     served = correctness_gate.overlay_filed_periods(provider, _quarters(-1.0, 0.2, 0.2, 0.1))
     assert served.pe_ratio is None
     assert served.field_meta["pe_ratio"].status == "withheld"
+
+
+# --- R15-FINAL-024: no ownership flag inside the 3pp band ---------------------
+
+
+def _amal_exchange(institutions: float):  # noqa: ANN202
+    from services.ownership_check import ExchangeOwnership
+
+    return ExchangeOwnership(
+        promoter_percent=63.4,
+        institutions_percent=institutions,
+        public_percent=36.6,
+        as_of_quarter="2026-06-30",
+        source="BSE",
+    )
+
+
+def test_zero_beside_a_small_filed_institutions_figure_is_not_flagged() -> None:
+    f = Fundamentals(
+        symbol="AMAL.NS",
+        provider="yfinance",
+        held_percent_insiders=0.634,
+        held_percent_institutions=0.0,
+    )
+    out = correctness_gate.reconcile_ownership(f, _amal_exchange(0.03))
+    assert (out.field_meta or {}).get("held_percent_institutions") is None
+
+
+def test_zero_beside_a_large_filed_institutions_figure_is_flagged_truthfully() -> None:
+    f = Fundamentals(
+        symbol="AMAL.NS",
+        provider="yfinance",
+        held_percent_insiders=0.634,
+        held_percent_institutions=0.0,
+    )
+    out = correctness_gate.reconcile_ownership(f, _amal_exchange(12.0))
+    meta = out.field_meta["held_percent_institutions"]
+    assert meta.status == "flagged"
+    assert "0.00%" in meta.reason and "12.00%" in meta.reason and "beyond 3pp" in meta.reason

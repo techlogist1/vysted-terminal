@@ -482,11 +482,11 @@ def reconcile_ownership(
     does not bear out (R15-DATA-004).
 
     Each served ``held_percent_*`` is compared with its exchange counterpart
-    (percent, 0-100): a gap over :data:`_OWNERSHIP_BAND_PP`, or one side zero
-    while the other is not, flags the provider value with the filing's figure
-    and quarter. A filing category the exchange does not report (a promoter-less
-    bank) counts as zero. When no filing figure is available at all, a served
-    value is flagged as unreconciled. Never substituted.
+    (percent, 0-100): a gap over :data:`_OWNERSHIP_BAND_PP` flags the provider
+    value with the filing's figure and quarter. A filing category the exchange
+    does not report (a promoter-less bank) counts as zero. When no filing
+    figure is available at all, a served value is flagged as unreconciled.
+    Never substituted.
     """
     pairs = (
         ("held_percent_insiders", "insiders", "promoter group", "insiders ≠ promoter group"),
@@ -525,8 +525,9 @@ def reconcile_ownership(
             as_of = exchange.institutions_as_of or exchange.as_of_quarter
         provider_pct = value * 100.0
         exchange_pct = filed_pct if filed_pct is not None else 0.0
-        zero_mismatch = (provider_pct == 0.0) != (exchange_pct == 0.0)
-        if not zero_mismatch and abs(provider_pct - exchange_pct) <= _OWNERSHIP_BAND_PP:
+        # A zero beside a small filed figure is no disagreement (0.00% vs 0.03%,
+        # R15-FINAL-024): only a gap past the band flags.
+        if abs(provider_pct - exchange_pct) <= _OWNERSHIP_BAND_PP:
             continue
         shown = f"{filed_pct:.2f}%" if filed_pct is not None else f"no {category} reported"
         flagged[field_name] = (
