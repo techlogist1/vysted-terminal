@@ -1,0 +1,3 @@
+66449 <SP>/gui-d38b5d1/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-openbb-mcp-sidecar --port 59639
+66453 <SP>/gui-d38b5d1/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-sec-edgar-mcp-sidecar --port 59640
+66454 <SP>/gui-d38b5d1/src-tauri/target/debug/bundle/macos/Vysted Terminal.app/Contents/MacOS/vysted-sidecar --port 59638 --data-dir <SP>/gui-round-home-R15-LIFECYCLE-001/Library/Application Support/com.vysted.terminal --cache-dir <SP>/gui-round-home-R15-LIFECYCLE-001/Library/Application Support/com.vysted.terminal
