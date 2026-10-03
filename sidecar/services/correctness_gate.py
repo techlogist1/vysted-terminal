@@ -784,7 +784,13 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
         )
 
     #: No provider size (an NSE Emerge listing): the filings alone size it.
-    filings_only = all(getattr(f, name) is None for name, _ in _FILED_SIZES)
+    #: The filings stand-in's shell (provider = the venue) stays filings-only
+    #: when the gate re-runs this overlay on it, so its P/E stays on the
+    #: current share count, never rebased on the summed filed EPS (R15-LEAD-137,
+    #: DECISIONS 5.14).
+    filings_only = f.provider == filed.venue or all(
+        getattr(f, name) is None for name, _ in _FILED_SIZES
+    )
     trail = filed.trailing()
     if trail is None and filings_only:
         # No provider size to keep (an NSE Emerge listing): fill from a derived
