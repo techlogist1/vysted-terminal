@@ -2,7 +2,7 @@
 
 887 raw findings -> 745 entries + 76 rejections. critical: 16 . high: 124 . medium: 331 . low: 274
 
-Status: blocked_tier4: 35 . fixed: 596 . needs_gui: 5 . not_a_defect: 6 . open: 89 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 596 . needs_gui: 4 . not_a_defect: 6 . open: 90 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -600,7 +600,7 @@ Status: blocked_tier4: 35 . fixed: 596 . needs_gui: 5 . not_a_defect: 6 . open: 
 | R15-LEAD-030 | high | agent | agent-tools | After an errored or uncalled tool, llama3.1:8b narrates a fabricated 'tool returned' citation for a financial figure no tool result carries | blocked_tier4 |  |
 | R15-LEAD-044 | high | data | market-data-providers-1 | Screener universe fetches (sp500/nifty50) resolve bare tickers by session region with no universe-intrinsic region, poisoning the store with wrong-entity rows that persist across sessions | fixed | rc1-vshard-6:1, R15-LEAD-013 |
 | R15-LEAD-059 | high | data | resolver | FOCUS announcements merge the BSE feed of a different company (BSE scrip 543312) with Focus Lighting and Fixtures NSE items under one symbol | fixed |  |
-| R15-LIFECYCLE-001 | high | lifecycle | rust-core | Every launch freezes the app's main event loop for the whole MCP bind window (about 25 s warm, 34 s+ cold, up to 90 s), and the data sidecar is not even spawned until both MCP binds return | needs_gui | COD-rust-core-1, INT-deferred-0-1 |
+| R15-LIFECYCLE-001 | high | lifecycle | rust-core | Every launch freezes the app's main event loop for the whole MCP bind window (about 25 s warm, 34 s+ cold, up to 90 s), and the data sidecar is not even spawned until both MCP binds return | open | COD-rust-core-1, INT-deferred-0-1 |
 | R15-LIFECYCLE-002 | high | lifecycle | workspace-layout | A layout-level restore failure discards ALL non-layout state (portfolio holdings, watchlist, notes, settings, research memory) and the next autosave overwrites the user's blob; the scheduled trading-panel removal triggers it deterministically for any user whose last autosave had a broker panel docked | fixed | COD-workspace-layout-4, LIFE-L4-UPGRADE-1 |
 | R15-LIFECYCLE-003 | high | lifecycle | workspace-layout | Autosave is neither gated on restore nor serialized: every launch fires a burst of PARTIAL full-blob POSTs mid-restore, and the last one drops researchSymbol and the research-memory archive | fixed | COD-workspace-layout-3 |
 | R15-LIFECYCLE-004 | high | data | market-data-providers-1 | Exchange payload field drift is served as fabricated data: a renamed open/high/low/volume field yields open=high=low=close candles with zero volume under the exchange's own provider label, and the correctness gate passes them | fixed | LIFE-L2-ROT-3 |
