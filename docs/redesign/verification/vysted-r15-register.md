@@ -1,12 +1,12 @@
 # R15 register (readable view)
 
-887 raw findings -> 742 entries + 76 rejections. critical: 16 . high: 123 . medium: 329 . low: 274
+887 raw findings -> 744 entries + 76 rejections. critical: 16 . high: 124 . medium: 330 . low: 274
 
-Status: blocked_tier4: 35 . fixed: 594 . needs_gui: 5 . not_a_defect: 6 . open: 88 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 595 . needs_gui: 5 . not_a_defect: 6 . open: 89 . removed_with_feature: 14
 
 ## The operator's four areas
 
-### UI / panels / layout (125)
+### UI / panels / layout (126)
 
 - **R15-DATA-031** [high] Earnings and analyst panels drop the contract's currency: EPS/revenue/targets render unlabelled, the Consensus EPS column sorts USD against INR by magnitude, and the surprise chart hardcodes 'EPS $' — _fixed_
 - **R15-DATA-042** [high] Portfolio CSV export writes a cross-currency Weight % and no currency column, abandoning the D57 rule the table enforces (the table drops Wt when currencies are mixed) — _fixed_
@@ -18,7 +18,7 @@ Status: blocked_tier4: 35 . fixed: 594 . needs_gui: 5 . not_a_defect: 6 . open: 
 - **R15-UI-006** [high] Screener results are a silent top-200-by-market-cap page: the header's 'N rows' is the page cap not the match count, and column sort only reorders that page — 'lowest P/E on the NSE' can never surface a small cap — _fixed_
 - **R15-UI-007** [high] Clicking a screener preset while a Nested group or formula is set silently runs the OLD tree and formula and presents the rows as the named preset — _fixed_
 - **R15-UI-008** [high] Onboarding certifies any string as an OpenRouter key ('OpenRouter is connected — the agent and deep research are live'), switches the default provider to it, hides the key banner, and the first message 401s — _fixed_
-- **R15-UI-009** [high] Watchlist and Portfolio 'Export CSV' are silent dead controls on macOS: downloadCsv uses the Blob + <a download> path the repo's own export helper documents as blocked in the Tauri webview — _open_
+- **R15-UI-009** [high] Watchlist and Portfolio 'Export CSV' are silent dead controls on macOS: downloadCsv uses the Blob + <a download> path the repo's own export helper documents as blocked in the Tauri webview — _fixed_
 - **R15-UI-090** [high] Quote freshness is stamped against the USER's locale calendar, not the instrument's exchange, so a closed US quote reads 'live' during Indian market hours on every surface (chart/watchlist included), and Portfolio shows no session/staleness cue at all — _blocked_tier4_
 - **R15-AGENT-032** [medium] The chat transcript writes 'Applied: <change>' synchronously, before the async apply can fail and re-pend the change, so the transcript contradicts the review row — _fixed_
 - **R15-AGENT-052** [medium] The panel-context bus's focus id (dockview ids) and publishers' event keys ('chart-chart', 'equity', 'backtest-panel') never match, so suggestion chips and the context badge never find the focused symbol and a focused Equity Overview is ignored — _fixed_
@@ -133,6 +133,7 @@ Status: blocked_tier4: 35 . fixed: 594 . needs_gui: 5 . not_a_defect: 6 . open: 
 - **R15-UI-089** [low] Plugin data credentials (the optional NewsAPI key) are saved from a separate Marketplace form with no validation, unlike LLM keys, which are live-probed before save — _fixed_
 - **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _fixed_
 - **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _fixed_
+- **R15-LEAD-122** [medium] Screener 'Export CSV' writes the file but shows no saved path, toast or error (the result of downloadCsv is discarded) — _open_
 
 ### Agent / chat (120)
 
@@ -629,7 +630,7 @@ Status: blocked_tier4: 35 . fixed: 594 . needs_gui: 5 . not_a_defect: 6 . open: 
 | R15-UI-006 | high | ui | screener | Screener results are a silent top-200-by-market-cap page: the header's 'N rows' is the page cap not the match count, and column sort only reorders that page — 'lowest P/E on the NSE' can never surface a small cap | fixed | COD-screener-3, SURF-SCREENER-4 |
 | R15-UI-007 | high | ui | screener | Clicking a screener preset while a Nested group or formula is set silently runs the OLD tree and formula and presents the rows as the named preset | fixed | SURF-SCREENER-2 |
 | R15-UI-008 | high | ui | llm-adapters | Onboarding certifies any string as an OpenRouter key ('OpenRouter is connected — the agent and deep research are live'), switches the default provider to it, hides the key banner, and the first message 401s | fixed | SURF-ONBOARDING-STRANGER-1 |
-| R15-UI-009 | high | ui | frontend-panels-data-surfaces | Watchlist and Portfolio 'Export CSV' are silent dead controls on macOS: downloadCsv uses the Blob + <a download> path the repo's own export helper documents as blocked in the Tauri webview | open | WLD-T-2 |
+| R15-UI-009 | high | ui | frontend-panels-data-surfaces | Watchlist and Portfolio 'Export CSV' are silent dead controls on macOS: downloadCsv uses the Blob + <a download> path the repo's own export helper documents as blocked in the Tauri webview | fixed | WLD-T-2 |
 | R15-UI-090 | high | ui | market-data-providers-3 | Quote freshness is stamped against the USER's locale calendar, not the instrument's exchange, so a closed US quote reads 'live' during Indian market hours on every surface (chart/watchlist included), and Portfolio shows no session/staleness cue at all | blocked_tier4 | INT-spec-135-168 |
 | R15-AGENT-025 | medium | agent | llm-adapters | A provider that accepts the request and never streams (or a hung planner pre-pass) leaves the chat on a silent spinner for up to 600 s: no client timeout, no heartbeat and no stall watchdog | fixed | SURF-FAILURE-INDUCER-3, COD-agent-runtime-3 |
 | R15-AGENT-026 | medium | agent | error-layer | A truncated or empty answer is shown as a complete one: max_tokens/length finishes (Anthropic hard-capped at 4096), streams that end with no finish_reason, and rounds with zero text and zero tool calls all settle as success with no notice or Retry | fixed | COD-error-layer-2-3, SURF-FAILURE-INDUCER-1 |
@@ -1235,3 +1236,5 @@ Status: blocked_tier4: 35 . fixed: 594 . needs_gui: 5 . not_a_defect: 6 . open: 
 | R15-LEAD-119 | low | code | ci | The vitest coverage ratchet never gets committed: thresholds read lines 0 while measured coverage is about 81.4 | open |  |
 | R15-LEAD-120 | low | research | research-relevance | Bare 2-letter ticker absent from the company name (KO / Coca-Cola) still fails the non-IN relevance gate; _entity_signals credits a ticker mention only for len(symbol)>=3 | open | rc1-battery-14:1 |
 | R15-LEAD-121 | low | agent | agent-tools | llama3.1:8b prints USD portfolio holdings with the rupee sign although each holding carries currency:'USD' (IN default region) | open | rc1-gate8:1 |
+| R15-LEAD-122 | medium | ui | screener | Screener 'Export CSV' writes the file but shows no saved path, toast or error (the result of downloadCsv is discarded) | open |  |
+| R15-LEAD-123 | high | lifecycle | boot | A main sidecar that binds after the core's 90 s window is SIGTERM'd and the app stays failed for the whole session ('The data engine stopped (signal 15).') | open |  |
