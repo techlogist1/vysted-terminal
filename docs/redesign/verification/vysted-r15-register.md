@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 740 entries + 76 rejections. critical: 16 . high: 123 . medium: 329 . low: 272
+887 raw findings -> 742 entries + 76 rejections. critical: 16 . high: 123 . medium: 329 . low: 274
 
-Status: blocked_tier4: 35 . fixed: 593 . needs_gui: 11 . not_a_defect: 6 . open: 81 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 591 . needs_gui: 11 . not_a_defect: 6 . open: 85 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -115,7 +115,7 @@ Status: blocked_tier4: 35 . fixed: 593 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-UI-065** [low] 'Open Marketplace' buttons (Plugin Manager empty state, Settings → Integrations) are dead: they pass the component id 'marketplace-panel' and openPanel silently ignores unknown ids — _fixed_
 - **R15-UI-066** [low] EmptyState cannot express failure: error and empty states share icon, tones and semantics with no role=alert — _fixed_
 - **R15-UI-067** [low] Data-trust badges are forked: EquityOverview shadows the shared ProvenanceBadge, the shared one signals 'synthetic' by colour only, Watchlist/Chart show a bare 'EOD' with no date, and the as-of date is computed in UTC (off by a day 00:00–05:29 IST) — _fixed_
-- **R15-UI-068** [low] DataTable, 'the ONE table primitive', has no loading/empty slot and its sort headers are not keyboard-operable, so panels hand-roll skeleton tables and four surfaces still hand-roll data tables — _fixed_
+- **R15-UI-068** [low] DataTable, 'the ONE table primitive', has no loading/empty slot and its sort headers are not keyboard-operable, so panels hand-roll skeleton tables and four surfaces still hand-roll data tables — _open_
 - **R15-UI-069** [low] ScreenerPanel recomputes three ledger aggregates twice per render on every SSE progress frame — _fixed_
 - **R15-UI-070** [low] No workspace export/import gesture: the .vysted-workspace file format exists but nothing in the UI produces or consumes one — _fixed_
 - **R15-UI-071** [low] No automated accessibility gate: 74 of 76 <input>s have neither id nor name and there is no axe/jsx-a11y/Lighthouse tooling to catch this or unlabelled controls — _fixed_
@@ -134,7 +134,7 @@ Status: blocked_tier4: 35 . fixed: 593 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _fixed_
 - **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _fixed_
 
-### Agent / chat (119)
+### Agent / chat (120)
 
 - **R15-AGENT-002** [high] Stop does not stop: aborting the chat stream leaves the in-flight tool task (research, LLM and web calls) running for minutes, spending the BYOK key and holding the single Ollama slot — _fixed_
 - **R15-AGENT-003** [high] At the 6-round tool cap the capped round's tool calls are streamed to the UI (and may be auto-applied as host actions) but never dispatched, and the turn ends with no answer text — _fixed_
@@ -255,8 +255,9 @@ Status: blocked_tier4: 35 . fixed: 593 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LEAD-094** [low] sidecar/agents/copilot.json system prompt example reply "Built you a brief on NVDA - it's at the top of the cockpit" teaches an applied-tense claim that conflicts with review mode (local rb1/rb4 overclaim) — _open_
 - **R15-LEAD-102** [low] Ollama adapter catch-all humanizes internal exceptions as an Ollama error — _open_
 - **R15-LEAD-107** [low] add_chart_drawing: a non-empty bogus panelId bypasses the open-chart fallback — _open_
+- **R15-LEAD-121** [low] llama3.1:8b prints USD portfolio holdings with the rupee sign although each holding carries currency:'USD' (IN default region) — _open_
 
-### Research / web search (66)
+### Research / web search (67)
 
 - **R15-AGENT-001** [critical] Chat narrates derived money figures 10-100x wrong: fraction values labelled unit 'percent' are read as percent, and a raw-rupee market cap is mis-scaled by the model — _fixed_
 - **R15-DATA-003** [critical] Research treats a US-bound AMAL as the Indian Amal Ltd for ownership: the ownership applicability gate checks bare-ticker NSE/BSE master membership, so Amalgamated Financial's brief states 'Promoter group (exchange filing) 71.35%' from Amal Ltd's BSE shareholding and raises a false conflict — _fixed_
@@ -324,6 +325,7 @@ Status: blocked_tier4: 35 . fixed: 593 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-RESEARCH-040** [low] Hosted Tier B research shows its cost estimate only after the run has been billed; nothing shows a per-run estimate before dispatch (FR-073) — _fixed_
 - **R15-RESEARCH-041** [low] The 'structured data only - no web' brief banner can never fire: briefFromInput counts vysted:// and exchange rows as web availability, so zero-web DEEP/ULTRA briefs never get the promised affordance — _fixed_
 - **R15-RESEARCH-042** [low] The research cockpit's brief has no floor of >=3 cited sources (SC-016): nothing enforces or measures source count per brief, and with no web backend FAST publishes structured-only with fewer — _fixed_
+- **R15-LEAD-120** [low] Bare 2-letter ticker absent from the company name (KO / Coca-Cola) still fails the non-IN relevance gate; _entity_signals credits a ticker mention only for len(symbol)>=3 — _open_
 
 ### Data on small or obscure stocks (159)
 
@@ -459,7 +461,7 @@ Status: blocked_tier4: 35 . fixed: 593 . needs_gui: 11 . not_a_defect: 6 . open:
 - **R15-LIFECYCLE-020** [medium] At boot the sidecar starts a US-only S&P 500 warm loop every ~40 s whatever the region, spending the shared Yahoo circuit on 506 US symbols on an India-first install — _fixed_
 - **R15-LIFECYCLE-021** [medium] A dead or moved NSE endpoint is invisible: /health keeps naming nse_direct as primary, provider-health tracks only Yahoo, and an .NS chart silently switches to BSE bars (last-bar volume 10.7M -> 0.56M) — _fixed_
 - **R15-LIFECYCLE-022** [medium] A moved NSE bhavcopy archive path is read as a week of holidays: every past weekday's 404 is cached as an empty 'holiday' marker with no log, the UDiFF-primary 404 never tries the live legacy fallback, and the IN EOD freshness lane silently dies — _fixed_
-- **R15-DATA-098** [low] The yield curve emits a duplicated first point and extrapolates past the last instrument without saying so when step_days floors to 1 — _fixed_
+- **R15-DATA-098** [low] The yield curve emits a duplicated first point and extrapolates past the last instrument without saying so when step_days floors to 1 — _open_
 - **R15-DATA-099** [low] FRED 'SA' (semiannual) and 'BW' (biweekly) series are labelled quarterly/weekly although the contract has an 'other' value — _fixed_
 - **R15-DATA-103** [low] row_to_pair renders an unknown day-change as 0.0 and falls back to 'USD' ignoring the row's own currency column (latent: no current row has that shape) — _fixed_
 - **R15-DATA-104** [low] earnings get_upcoming fans out 3-4 Yahoo round trips per symbol with no semaphore or circuit check, monopolising the shared default thread pool for large watchlists — _fixed_
@@ -1091,7 +1093,7 @@ Status: blocked_tier4: 35 . fixed: 593 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-CROSS-PLATFORM-010 | low | release | scripts-build | Sidecar build scripts create the venv from whatever python/python3 is on PATH with no 3.13 check (fresh Windows hits the Store alias stub, exit 9009), and pnpm ci-local calls bare 'python', which does not exist on this Mac or stock Ubuntu | fixed | HYG-10 |
 | R15-CROSS-PLATFORM-011 | low | lifecycle | rust-core | Linux without a Secret Service provider has no credential fallback: keychain_set/get reject, BYOK keys cannot be saved, and because the non-secret onboarding flag lives in the secret store the onboarding flow reappears on every launch | fixed | HYG-11 |
 | R15-CROSS-PLATFORM-012 | low | code | rust-core | On Windows the entire data dir, including ~54 MB of regenerable SQLite caches (data_cache.db + WAL, fundamentals_cache.db), lands in Roaming AppData, which roaming profiles sync at logon/logoff and folder redirection can put on a network share where SQLite WAL is unsafe | fixed | HYG-12 |
-| R15-DATA-098 | low | data | macro-quant | The yield curve emits a duplicated first point and extrapolates past the last instrument without saying so when step_days floors to 1 | fixed | COD-macro-quant-8 |
+| R15-DATA-098 | low | data | macro-quant | The yield curve emits a duplicated first point and extrapolates past the last instrument without saying so when step_days floors to 1 | open | COD-macro-quant-8 |
 | R15-DATA-099 | low | data | macro-quant | FRED 'SA' (semiannual) and 'BW' (biweekly) series are labelled quarterly/weekly although the contract has an 'other' value | fixed | COD-macro-quant-10 |
 | R15-DATA-100 | low | ui | macro-quant | The Bond Pricer hard-prefixes '$' on every price in an India-first terminal | fixed | COD-macro-quant-13 |
 | R15-DATA-101 | low | agent | agent-tools-catalog-ledger | market_overview returns region 'GLOBAL' with the US index set and no note in the payload | fixed | COD-agent-tools-catalog-ledger-10 |
@@ -1209,7 +1211,7 @@ Status: blocked_tier4: 35 . fixed: 593 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-UI-065 | low | ui | plugins | 'Open Marketplace' buttons (Plugin Manager empty state, Settings → Integrations) are dead: they pass the component id 'marketplace-panel' and openPanel silently ignores unknown ids | fixed | COD-frontend-panels-shell-chrome-2, COD-plugins-7 |
 | R15-UI-066 | low | ui | frontend-panels-shell-chrome | EmptyState cannot express failure: error and empty states share icon, tones and semantics with no role=alert | fixed | COD-frontend-panels-shell-chrome-5 |
 | R15-UI-067 | low | ui | frontend-panels-shell-chrome | Data-trust badges are forked: EquityOverview shadows the shared ProvenanceBadge, the shared one signals 'synthetic' by colour only, Watchlist/Chart show a bare 'EOD' with no date, and the as-of date is computed in UTC (off by a day 00:00–05:29 IST) | fixed | COD-frontend-panels-shell-chrome-9 |
-| R15-UI-068 | low | ui | frontend-panels-shell-chrome | DataTable, 'the ONE table primitive', has no loading/empty slot and its sort headers are not keyboard-operable, so panels hand-roll skeleton tables and four surfaces still hand-roll data tables | fixed | COD-frontend-panels-shell-chrome-12, INT-pdd-readme-45-3 |
+| R15-UI-068 | low | ui | frontend-panels-shell-chrome | DataTable, 'the ONE table primitive', has no loading/empty slot and its sort headers are not keyboard-operable, so panels hand-roll skeleton tables and four surfaces still hand-roll data tables | open | COD-frontend-panels-shell-chrome-12, INT-pdd-readme-45-3 |
 | R15-UI-069 | low | ui | screener | ScreenerPanel recomputes three ledger aggregates twice per render on every SSE progress frame | fixed | COD-screener-12 |
 | R15-UI-070 | low | ui | workspace-layout | No workspace export/import gesture: the .vysted-workspace file format exists but nothing in the UI produces or consumes one | fixed | INT-blueprint-144-7 |
 | R15-UI-071 | low | ui | frontend-panels-shell-chrome | No automated accessibility gate: 74 of 76 <input>s have neither id nor name and there is no axe/jsx-a11y/Lighthouse tooling to catch this or unlabelled controls | fixed | INT-deferred-0-8, INT-deferred-0-14 |
@@ -1231,3 +1233,5 @@ Status: blocked_tier4: 35 . fixed: 593 . needs_gui: 11 . not_a_defect: 6 . open:
 | R15-LEAD-117 | low | data | resolver | FOCUS&exchange=BSE answers venue_not_covered with a note claiming FOCUS is not listed on BSE (BSE 543312 exists, a different company) | open | rc1-r5-fix-verifier adjacent |
 | R15-LEAD-118 | low | data | disclosures | Shareholding percentages differ by symbol spelling for the same scrip/quarter/filing (e.g. FOCUS vs FOCUS.BO vs 543312) | open |  |
 | R15-LEAD-119 | low | code | ci | The vitest coverage ratchet never gets committed: thresholds read lines 0 while measured coverage is about 81.4 | open |  |
+| R15-LEAD-120 | low | research | research-relevance | Bare 2-letter ticker absent from the company name (KO / Coca-Cola) still fails the non-IN relevance gate; _entity_signals credits a ticker mention only for len(symbol)>=3 | open | rc1-battery-14:1 |
+| R15-LEAD-121 | low | agent | agent-tools | llama3.1:8b prints USD portfolio holdings with the rupee sign although each holding carries currency:'USD' (IN default region) | open | rc1-gate8:1 |

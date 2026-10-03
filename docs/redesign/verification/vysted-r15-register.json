@@ -15913,9 +15913,9 @@
     "ui-panels"
    ],
    "tier4": false,
-   "status": "fixed",
-   "note": "triage@e032be7: still_reproduces, confidence 5, Edge case only when step_days floors to 1 (total_days < 2*(sample_count-1)), as the register's refuter note says., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-098/",
-   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_quant_yield_curve.py::test_grid_distinct_and_within_max_tenor"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, Edge case only when step_days floors to 1 (total_days < 2*(sample_count-1)), as the register's refuter note says., evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DATA-098/ || rc2 gate (round-6-rc2) battery: residual — curve[0]==curve[1] (duplicated first point) still reproduces at sample_count=100 (100 points, 91 distinct dates, 2026-05-17 twice); extrapolation past the last tenor is now fixed (last sample 2026-08-15 <= tenor 2026-08-16); evidence docs/redesign/verification/r15/rc1/round-6-rc2/battery/raw/set-102/R15-DATA-098.txt",
+   "closure_evidence": "partial: lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: sidecar/tests/test_quant_yield_curve.py::test_grid_distinct_and_within_max_tenor"
   },
   {
    "id": "R15-DATA-099",
@@ -18820,9 +18820,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "fixed",
-   "note": "triage@e032be7: still_reproduces, confidence 5, primitive API extension plus porting four hand-rolled tables, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-068",
-   "closure_evidence": "lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/DataTable.test.tsx"
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 5, primitive API extension plus porting four hand-rolled tables, evidence docs/redesign/verification/r15/stage-c/lows-triage/LOWS_TRIAGE.json#R15-UI-068 || rc2 gate (round-6-rc2) battery: residual — 5 hand-rolled tables still bypass DataTable (ScreenerResultsTable.tsx:409, WatchlistPanel.tsx:526, EarningsCalendarPanel.tsx:270+328, BacktestResultView.tsx:242, brief-blocks.tsx:920; DataTable's own loading/empty slots and keyboard-operable sort header hold); evidence docs/redesign/verification/r15/rc1/round-6-rc2/battery/raw/set-114/R15-UI-068.txt",
+   "closure_evidence": "partial: lows integration certified at d3509715 (merge d2da4535): r15/stage-c/lows/int-9368c62/VERIFY.md §5; tests: src/components/DataTable.test.tsx"
   },
   {
    "id": "R15-UI-069",
@@ -19382,6 +19382,56 @@
    "status": "open",
    "note": "filed by the lows-int certifier (int-9368c62) as an adjacent finding (adjacent 2). Residual filed for 0.9.1.",
    "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-120",
+   "title": "Bare 2-letter ticker absent from the company name (KO / Coca-Cola) still fails the non-IN relevance gate; _entity_signals credits a ticker mention only for len(symbol)>=3",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-relevance",
+   "files": [
+    "sidecar/services/research/relevance.py"
+   ],
+   "repro": "relevance.row_relevant({'title':'KO shares climb as volumes recover','excerpt':'','url':'https://example.com/a','source':'x'}, target=<KO Coca-Cola Company NYSE US>) -> False. GE passes the same gate only via its brand token 'ge' in the headline; KO has no such token so the 2-letter ticker never gets credited.",
+   "evidence": "docs/redesign/verification/r15/rc1/round-6-rc2/battery/raw/set-136/R15-LEAD-050.txt",
+   "root_cause": "relevance.py:668 (_entity_signals) only credits a ticker-mention signal when len(symbol) >= 3; a 2-letter ticker that is not on the curated common-word anchoring list and is not contained in the company's brand tokens (KO / Coca-Cola Company) gets no ticker signal at all.",
+   "fix_shape": "Extend ticker-mention credit to 2-letter tickers under the same anchoring rule R15-LEAD-050 applied to 3+ char tickers (case/punctuation-anchored bare mention passes); pin with a KO/Coca-Cola case alongside the existing GE/IT/ON/ALL cases.",
+   "defect_class": "incomplete-fix-residual",
+   "raw_ids": [
+    "rc1-battery-14:1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "research-search"
+   ],
+   "status": "open",
+   "note": "Filed by the rc2 gate (round-6-rc2) register adjudicator from the R15-LEAD-050 battery raw probe (set-136): KO/Coca-Cola is a non-entry probe row on that probe script, not part of R15-LEAD-050's own pinned repro, so this is a new, adjacent finding rather than a reopening of R15-LEAD-050 (fixed).",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-121",
+   "title": "llama3.1:8b prints USD portfolio holdings with the rupee sign although each holding carries currency:'USD' (IN default region)",
+   "severity": "low",
+   "area": "agent",
+   "subsystem": "agent-tools",
+   "files": [
+    "sidecar/services/agent_runtime.py"
+   ],
+   "repro": "Own sidecar :52310, context from captureAgentContext() with AAPL 8@200 USD, MSFT 3@400 USD; python3 scripts/r15/vy.py invoke copilot 'Read my portfolio with get_portfolio and list every holding with its quantity and cost basis.' --provider ollama --model llama3.1:8b --autonomy ask --context gate8/agent-context-get-portfolio.wire.json -> reply states 'cost basis = ₹200 ... market value = ₹2669.52' for a USD holding.",
+   "evidence": "docs/redesign/verification/r15/rc1/round-6-rc2/gate8/agent-get-portfolio.txt",
+   "root_cause": "get_portfolio's tool result carries currency:'USD' per holding (R15-AGENT-091's fix) and the figures themselves are correct, but nothing in the reply-formatting path threads that per-holding currency into the model's output; llama3.1:8b defaults to the session's IN region currency symbol when verbalising the figures.",
+   "fix_shape": "Have the agent runtime or a post-process step render each holding's currency using its own currency field (symbol lookup keyed by holding.currency) rather than relying on the model to pick the right symbol; pin with a USD-holding reply under an IN-region session.",
+   "defect_class": "locale-default-override",
+   "raw_ids": [
+    "rc1-gate8:1"
+   ],
+   "tier4": false,
+   "operator_areas": [
+    "agent-chat"
+   ],
+   "status": "open",
+   "note": "Filed by the rc2 gate (round-6-rc2) register adjudicator from gate8/agent-get-portfolio.txt: R15-AGENT-091's own fix (currency field present, figures correct) holds; only the printed currency symbol is wrong. Adjacent to R15-AGENT-091, not a Gate 8 break. Not filed against the signed-off local-model known-limitation class (DECISIONS_FOR_OPERATOR.md §4.9-4.12 cover fabricated/ungrounded tool figures and no-tool-instruction compliance; a wrong currency symbol on a correctly-grounded figure is a different, plain defect class).",
+   "closure_evidence": ""
   }
  ],
  "rejections": [
@@ -19692,11 +19742,11 @@
  ],
  "counts": {
   "raw": 887,
-  "entries": 740,
+  "entries": 742,
   "rejections": 76,
   "critical": 16,
   "high": 123,
   "medium": 329,
-  "low": 272
+  "low": 274
  }
 }
