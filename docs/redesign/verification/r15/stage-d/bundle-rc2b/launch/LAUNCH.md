@@ -17,3 +17,13 @@
   - `1fddb2b-03-steady-320s.png` (+342 s): still CONNECTED. The watchlist has live rows (^NSEI 22,421.95 −0.88%; a second row 1,167.70 −1.63%).
 - **Terms:** the first-launch terms dialog rendered. The keychain is not redirected under VYSTED_DATA_DIR, and nothing was acknowledged or clicked.
 - **Quit:** SIGTERM to pid 27014. The tree [27014 27030 27032] had no process alive 8 s later. The data dir is in scratch.
+
+## Correction (00:08 IST 4 Oct): the launch raised a login-keychain SecurityAgent prompt
+
+At 00:00 IST the GUI-half preflight found a SecurityAgent window frontmost. It was at layer 1000, screen rect 539,206 434x186, and it stopped both GUI drivers. `ps -o lstart` on SecurityAgent pid 27037 gives **Sat Oct 3 23:47:12 2026**, 2 s after this check's exec at T0 23:47:10. This launch caused that prompt.
+
+The cause: `VYSTED_DATA_DIR` moves the data dir only, not the keychain. The release build reads the OS keychain at boot (the first-launch terms ack and the provider keys). This binary is unsigned and freshly built, so it is not in the ACL of the `vysted-terminal` items that an earlier build created, and macOS asked for consent.
+
+The captures did not show the prompt because `screencapture -l <wid>` captures only the app window, by design. "Terms dialog rendered (keychain read only)" above is accurate in the narrow sense: nothing was read, because the read waited on consent and the app was quit first. The window-only method still hid this, and the record above should have said so.
+
+The prompt was not answered or dismissed, and SecurityAgent was not touched. Answering a keychain prompt or stopping a system process is not this run's to do. It stays on screen for the operator to **Deny**. Filed as R15-LEAD-143. Release prep's fresh-install launch will raise the same prompt, so it is operator-attended.

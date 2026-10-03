@@ -3124,7 +3124,7 @@
    "tier4": false,
    "operator_areas": [],
    "status": "needs_gui",
-   "note": "Batch-5 (1574ed8) needs_gui. /system/diagnostics was verified live: version, status and a redacted logTail; no planted canary leaked (key, public IP, query, prompt); cargo test diag_log tests pass. GUI check: on the packaged app, confirm <data-dir>/logs/vysted.log receives timestamped [sidecar]/[vysted]/MCP lines and rotates; confirm Settings 'Copy diagnostics' previews and then copies. || gui-round@ace7dd7: stays needs_gui: blocked_env: Rotation shown on disk: filler at 2096828 B moved to vysted.log.1 and a fresh vysted.log started at 01:16:36.737Z with [sidecar]/[vysted]/[openbb-mcp]/[sec-edgar-mcp] lines. Copy diagnostics was not driven: both boots missed the core's 90 s sidecar window under machine load (bound at 96 s and 108 s), which left the UI stuck in the failed state., evidence docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-008/DRIVE.md || gui-round@d38b5d1: stays needs_gui: operator_present: d38b5d1 packaged app, isolated home. At boot the 2096827 B filler log rotated to vysted.log.1 (2097122 B), and the new vysted.log has fresh timestamped [vysted]/[sidecar]/[openbb-mcp]/[sec-edgar-mcp] lines. Settings Copy diagnostics showed the bundle preview (d38b5d1-07) and the clipboard was still empty afterwards. The Copy to clipboard click missed three times and was never landed, because the operator came back (Zed at 09:58Z). Committed as 0084a540., evidence docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-008/DRIVE.md"
+   "note": "Batch-5 (1574ed8) needs_gui. /system/diagnostics was verified live: version, status and a redacted logTail; no planted canary leaked (key, public IP, query, prompt); cargo test diag_log tests pass. GUI check: on the packaged app, confirm <data-dir>/logs/vysted.log receives timestamped [sidecar]/[vysted]/MCP lines and rotates; confirm Settings 'Copy diagnostics' previews and then copies. || gui-round@ace7dd7: stays needs_gui: blocked_env: Rotation shown on disk: filler at 2096828 B moved to vysted.log.1 and a fresh vysted.log started at 01:16:36.737Z with [sidecar]/[vysted]/[openbb-mcp]/[sec-edgar-mcp] lines. Copy diagnostics was not driven: both boots missed the core's 90 s sidecar window under machine load (bound at 96 s and 108 s), which left the UI stuck in the failed state., evidence docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-008/DRIVE.md || gui-round@d38b5d1: stays needs_gui: operator_present: d38b5d1 packaged app, isolated home. At boot the 2096827 B filler log rotated to vysted.log.1 (2097122 B), and the new vysted.log has fresh timestamped [vysted]/[sidecar]/[openbb-mcp]/[sec-edgar-mcp] lines. Settings Copy diagnostics showed the bundle preview (d38b5d1-07) and the clipboard was still empty afterwards. The Copy to clipboard click missed three times and was never landed, because the operator came back (Zed at 09:58Z). Committed as 0084a540., evidence docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-008/DRIVE.md || gui-half@1fddb2b (wf_af2e5d21-51f, 00:10 IST 4 Oct): stays needs_gui: blocked_env — a SecurityAgent consent prompt raised by the lead's release launch check (R15-LEAD-143) was frontmost over the target area; nothing launched. Carried to the operator-attended hand-testing guide."
   },
   {
    "id": "R15-LIFECYCLE-009",
@@ -11300,7 +11300,7 @@
     "ui-panels"
    ],
    "status": "needs_gui",
-   "note": "Batch-7 (e81c9e7) needs_gui. The click path is pinned in vitest against a mocked chart (anchor from coordinateToPrice, off-bar logical index, Text prompt, locked-delete disabled). The actual placement on the lightweight-charts canvas cannot be seen headless. GUI check (native event injection, not chrome-devtools) must confirm: (1) a trendline/horizontal line clicked mid-candle renders at the clicked y; (2) a click right of the last bar places a visible drawing; (3) the Text tool asks for a label and shows the typed text, not \"label\"; (4) a locked drawing's row delete control is disabled and the drawing survives a click on it. || gui-round@ace7dd7: stays needs_gui: still_needs_gui: Check 2 remains. Pan a plain chart, with no Ichimoku or future timeline, into the empty space right of the last bar. Click a trendline twice there. Confirm it renders and its stored points read time:null with a logical index. The driven off-bar case had future bar times, so the pre-fix code would also have drawn it., evidence docs/redesign/verification/r15/gui-round/R15-UI-022/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-UI-022/VERIFY.md || gui-round@d38b5d1: stays needs_gui: operator_present: not attempted: the lane stopped at R15-LIFECYCLE-008 (operator present), evidence docs/redesign/verification/r15/gui-round/R15-UI-022/DRIVE.md"
+   "note": "Batch-7 (e81c9e7) needs_gui. The click path is pinned in vitest against a mocked chart (anchor from coordinateToPrice, off-bar logical index, Text prompt, locked-delete disabled). The actual placement on the lightweight-charts canvas cannot be seen headless. GUI check (native event injection, not chrome-devtools) must confirm: (1) a trendline/horizontal line clicked mid-candle renders at the clicked y; (2) a click right of the last bar places a visible drawing; (3) the Text tool asks for a label and shows the typed text, not \"label\"; (4) a locked drawing's row delete control is disabled and the drawing survives a click on it. || gui-round@ace7dd7: stays needs_gui: still_needs_gui: Check 2 remains. Pan a plain chart, with no Ichimoku or future timeline, into the empty space right of the last bar. Click a trendline twice there. Confirm it renders and its stored points read time:null with a logical index. The driven off-bar case had future bar times, so the pre-fix code would also have drawn it., evidence docs/redesign/verification/r15/gui-round/R15-UI-022/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-UI-022/VERIFY.md || gui-round@d38b5d1: stays needs_gui: operator_present: not attempted: the lane stopped at R15-LIFECYCLE-008 (operator present), evidence docs/redesign/verification/r15/gui-round/R15-UI-022/DRIVE.md || gui-half@1fddb2b (wf_af2e5d21-51f, 00:10 IST 4 Oct): stays needs_gui: blocked_env — a SecurityAgent consent prompt raised by the lead's release launch check (R15-LEAD-143) was frontmost over the target area; nothing launched. Carried to the operator-attended hand-testing guide."
   },
   {
    "id": "R15-UI-023",
@@ -20852,6 +20852,30 @@
    "operator_areas": [],
    "status": "open",
    "note": "Filed by the lead from the rc2 round-3 verifier's candidate N3 under gate rule change 1. Fail-safe direction (drops rather than misattributes). Filed for 0.9.1.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-143",
+   "title": "An unsigned 0.9.0 release launch raises a login-keychain SecurityAgent consent prompt at boot when vysted-terminal keychain items from another build exist; VYSTED_DATA_DIR isolates the data dir but not the keychain, so an isolated launch check still touches the real login keychain (and a window-only capture never shows the prompt)",
+   "severity": "low",
+   "area": "distribution",
+   "subsystem": "keychain-signing",
+   "files": [
+    "src-tauri/src/keychain.rs",
+    "src-tauri/src/lib.rs"
+   ],
+   "repro": "On a Mac with vysted-terminal items in the login keychain, exec the freshly built unsigned bundle at 1fddb2b1 with VYSTED_DATA_DIR=<scratch>: SecurityAgent (pid 27037, started 23:47:12, 2 s after exec at 23:47:10) shows a consent prompt that persists after the app quits.",
+   "evidence": "docs/redesign/verification/r15/stage-d/bundle-rc2b/launch/LAUNCH.md (Correction); docs/redesign/verification/r15/gui-round/presence.log 18:28-18:36Z",
+   "root_cause": "Keychain item ACLs are bound to the creating binary's code signature; an unsigned rebuild is a different code identity, so macOS asks. The data-dir override does not redirect the keychain service.",
+   "fix_shape": "Developer ID signing with a stable team identity (operator's signing step) removes the prompt for upgrades; for verification runs, a keychain override (dev-keystore-like file under VYSTED_DATA_DIR for release launch checks, or a separate macOS user) keeps launch checks off the real keychain.",
+   "defect_class": "distribution",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [
+    "signing"
+   ],
+   "status": "open",
+   "note": "Filed by the lead at 00:08 IST 4 Oct from the GUI-half preflight's blocked_env stop. Not answered: left for the operator to Deny. Filed for 0.9.1 / the signing briefing.",
    "closure_evidence": ""
   }
  ],
