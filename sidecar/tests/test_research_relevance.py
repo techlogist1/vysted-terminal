@@ -472,3 +472,30 @@ def test_junk_filter_host_match_delegates_to_finance() -> None:
     row = _row("https://www.youtube.com/watch?v=x", "Route Mobile Q4 results discussion")
     assert not relevance.row_relevant(row, target=ROUTE)
     assert finance.host_matches("www.youtube.com".removeprefix("www."), relevance.JUNK_HOSTS)
+
+
+def test_common_word_in_ticker_needs_the_full_name_or_a_ticker_anchor() -> None:
+    """R15-FINAL-004: an Indian target whose symbol IS an English word (FOCUS =
+    Focus Lighting and Fixtures; SUPER = Super Auto Forge) was kept on any
+    headline carrying the word. The word alone is prose; the company's other name
+    tokens (or a ``NSE: FOCUS`` anchor) are what name it."""
+    cases = [
+        (
+            _target(symbol="FOCUS", name="Focus Lighting and Fixtures Limited"),
+            ["Focus on flying, not selfies", "European shares focus on inflation data"],
+            ["Focus Lighting Q1 results", "NSE: FOCUS shares rally"],
+        ),
+        (
+            _target(symbol="SUPER", name="Super Auto Forge Limited"),
+            ["Super Bowl ad prices hit a record", "Super weekend for markets"],
+            ["Super Auto Forge Q2 results"],
+        ),
+    ]
+    for target, dropped, kept in cases:
+        for title in dropped:
+            row = _row("https://example.com/a", title)
+            assert relevance.entity_match(row, target=target) <= relevance.WEAK_MATCH_CEILING
+            assert not relevance.row_relevant(row, target=target), title
+        for title in kept:
+            row = _row("https://example.com/a", title)
+            assert relevance.row_relevant(row, target=target), title

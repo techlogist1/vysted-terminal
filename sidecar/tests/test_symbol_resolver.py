@@ -940,6 +940,44 @@ def test_same_ticker_different_companies_keep_their_own_identity(
     assert decide(res).outcome == "disambiguate"
 
 
+def test_generic_suffix_does_not_join_two_technologies_companies() -> None:
+    """R15-FINAL-002: NSE GSTL is Globesecure Technologies, BSE GSTL is Globalspace
+    Technologies (INE632W01016 / 540654). The shared "Technologies" suffix scored
+    0.83 on the raw name key; with generic trailing words dropped it is 0.45, so
+    the NSE row takes no identity from the BSE row. True dual listings (Black
+    Rose Inds. / Industries, D.B.Corp, a DVR share class) still join."""
+    gstl = symbol_resolver._instrument_nse("GSTL", 1.0, BAND_EXACT_TICKER)
+    enriched = symbol_resolver._enrich_instrument(gstl)
+    assert enriched.isin != "INE632W01016"
+    assert enriched.bse_code != "540654"
+    assert enriched.isin is None and enriched.bse_code is None
+    for ticker in ("BLACKROSE", "DBCORP", "FELDVR", "SANDESH"):
+        enriched = symbol_resolver._enrich_instrument(
+            symbol_resolver._instrument_nse(ticker, 1.0, BAND_EXACT_TICKER)
+        )
+        assert enriched.isin is not None and enriched.bse_code is not None, ticker
+    focus = symbol_resolver._enrich_instrument(
+        symbol_resolver._instrument_nse("FOCUS", 1.0, BAND_EXACT_TICKER)
+    )
+    assert focus.isin is None and focus.bse_code is None
+
+
+def test_autocomplete_offers_a_same_ticker_different_company_bse_row() -> None:
+    """R15-FINAL-011: BSE Zeal Aqua shares the ticker ZEAL with NSE Zeal Global
+    Services; autocomplete used to hide every BSE row under an NSE ticker. A
+    ``.BO`` query ranks the BSE row first; a true dual listing still gives one row."""
+    names = [(i.exchange, i.name) for i in symbol_resolver.autocomplete("Zeal Aqua", "IN")]
+    assert ("BSE", "Zeal Aqua Ltd") in names
+    bo = symbol_resolver.autocomplete("ZEAL.BO", "IN")
+    assert (bo[0].exchange, bo[0].name) == ("BSE", "Zeal Aqua Ltd")
+    sel = symbol_resolver.autocomplete("SEL.BO", "IN")
+    assert any(i.exchange == "BSE" and i.name.startswith("Sanathnagar") for i in sel)
+    rel = [
+        i for i in symbol_resolver.autocomplete("RELIANCE", "IN") if i.symbol.startswith("RELIANCE")
+    ]
+    assert [i.exchange for i in rel if i.symbol in ("RELIANCE", "RELIANCE.NS")] == ["NSE"]
+
+
 # ---------------------------------------------------------------------------
 # R15-DATA-059 — former-company-name resolution (the bundled former_names.json
 # former-name scan lane) + the private/pvt corporate-suffix strip.

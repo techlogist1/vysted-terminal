@@ -111,15 +111,10 @@ surface is not a hand-maintained duplicate. The agent / workspace /
 workflow tools below are hand-written and MCP-only. The source of truth
 is `sidecar/services/mcp_server.py` plus the catalog; the exact count
 grows as catalog capabilities land, so probe `/mcp/status` (below) for
-the live `toolCount` rather than relying on a number here.
+the live `toolCount` (39 at 0.9.0: 31 catalog-projected + 8 hand-written).
 
-Catalog-projected data + analysis tools (each under its catalog id):
-`price_data`, `fundamentals`, `news`, `screener_run`, `macro_series`,
-`macro_search`, `earnings_upcoming`, `earnings_history`,
-`earnings_estimates`, `analyst_history`, `analyst_individual`,
-`price_target_history`, `sec_filings_list`, `sec_filing_content`,
-`sec_insider_transactions`, `price_option`, `compute_greeks`,
-`price_bond`, `yield_curve_value`. No broker tool exists — Vysted has no
+Catalog-projected data + analysis tools (each under its catalog id, 31 of the 39 live tools):
+`price_data`, `resolve_symbol`, `compare_symbols`, `fundamentals`, `financial_statements`, `news`, `market_overview`, `web_search`, `research`, `screener_run`, `macro_series`, `macro_search`, `earnings_upcoming`, `earnings_history`, `earnings_estimates`, `analyst_history`, `analyst_individual`, `price_target_history`, `sec_filings_list`, `sec_filing_content`, `sec_insider_transactions`, `corporate_announcements`, `shareholding_pattern`, `corporate_actions`, `exchange_deals`, `earnings_call_transcript`, `price_option`, `compute_greeks`, `price_bond`, `yield_curve_value`, `option_chain`. No broker tool exists — Vysted has no
 brokerage connection (D81, 23 Sep 2026).
 
 **The catalog-projected surface is read-only in 0.9** (R15-AGENT-083).
@@ -142,6 +137,8 @@ Hand-written agent / workspace / workflow tools:
 | `get_workspace`   | `workspace_id`               | one saved workspace                                    |
 | `run_workflow`    | `spec_json`                  | unary workflow run result                              |
 | `list_workflows`  | —                            | saved workflows                                        |
+| `save_workflow`   | `spec_json`                  | create or update a saved workflow                      |
+| `list_runs`       | —                            | Delegate runs with status and cost so far              |
 
 ## Claude Desktop
 
@@ -204,7 +201,7 @@ For a richer readiness check (no JSON-RPC), GET `/mcp/status`:
 
 ```bash
 curl http://127.0.0.1:<sidecar-port>/mcp/status
-# {"ready":true,"toolCount":26,"endpoint":"/mcp","protocolVersion":"2025-06-18"}
+# {"ready":true,"toolCount":39,"endpoint":"/mcp","protocolVersion":"2025-11-25"}
 ```
 
 ## Authentication
