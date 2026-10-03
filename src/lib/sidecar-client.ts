@@ -136,11 +136,16 @@ export function getSidecarBaseUrl(): Promise<string> {
 
 /** Per-round budget for one `/health` probe attempt (R15-LIFECYCLE-027): bounds
  *  a hung-not-exited engine to this long per retry instead of hanging the
- *  shared `readyPromise` past its overall 120 s deadline. */
+ *  shared `readyPromise` past its overall deadline. */
 const HEALTH_PROBE_TIMEOUT_MS = 5_000;
 
+/** R15-LEAD-123: must outlast the core's main-sidecar budget (45 s x 6 + 15 s
+ *  `/health` = 285 s, `src-tauri/src/lib.rs`), or the renderer gives up on a
+ *  contended cold bind the core is still waiting on. Pinned by a Rust test. */
+const READY_DEADLINE_MS = 300_000;
+
 async function resolveAndAwaitReady(): Promise<string> {
-  const deadline = Date.now() + 120_000;
+  const deadline = Date.now() + READY_DEADLINE_MS;
   let delay = 250;
   for (;;) {
     // Re-read each round: a spawn that fails while we probe stops the wait.
