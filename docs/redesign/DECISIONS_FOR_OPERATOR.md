@@ -973,6 +973,18 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
 - **Ruling (15:33 IST 3 Oct, Tier 3):** under 6.1, "anything a verifier finds beyond an entry's stated repro is a new entry ... it does not reopen the original". LIFECYCLE-001 is `fixed`. The extra checks are filed as R15-LEAD-125 (low, generic panel and chat copy after an engine death) and R15-LEAD-126 (medium, about 100 s to the first `/health` on an idle warm launch; the real fix is `--onedir`). Both are in the 0.9.1 backlog. Open critical and high is therefore 0 and rc2 can proceed.
 - **Why it is recorded here:** this ruling unblocks a tag. If you read 6.1 differently, say so: LIFECYCLE-001 goes back to an open high and r15-rc2 waits on a bounded fix round for it.
 
+### 5.14 Convergence bound before r15-rc2: round 3 is the last fix round; a high it leaves open lands its fail-safe and is filed for 0.9.1 (filed 21:45 IST 3 Oct; default after one 5-hour window)
+
+- **Facts:** the final adversarial pass and two bounded fix rounds have closed one critical and nine highs (LEAD-127, FINAL-001..008 bar 004's descendant, FINAL-005, FINAL-006), all certified on the merged head `ae6ffff0` with no regression. Each round has also minted one high beyond a stated repro: R15-LEAD-136 (common-word tickers outside the curated list; attempt 1 fixed CAMPUS, SAFARI and ETERNAL but missed TITAN and CUPID on letter case) and R15-LEAD-137 (round 2's SME market cap and P/E use a weighted share count, about 23% low on recently listed names such as CURIS). rc2 requires open critical and high = 0.
+- **Round 3 (in flight from this filing):** LEAD-137, attempt 1, takes market cap and P/E only from an authoritative current share count, otherwise null with a typed reason. LEAD-136, attempt 2, adds case-folded word membership plus a rule that reads lowercase or mid-sentence use of the ticker as an ordinary word, with a test that enumerates the NSE symbols that are words. One fresh verifier certifies the merged head.
+- **Question (only if round 3's verifier leaves a high open, or files a new one beyond a stated repro):**
+  - **(a) Recommended.** The entry's fail-safe lands and the entry is re-rated on its reduced harm, filed for 0.9.1 and named in the release notes. r15-rc2 is tagged on the round-3 head. This is the LEAD-116 shape (4.22).
+    - LEAD-137 fail-safe: a derived SME market cap or P/E is shown only from an authoritative current share count. Otherwise it is null with a typed "share count unavailable" reason, never a weighted-count figure. Revenue, net income and EPS stay, since they match the filings exactly.
+    - LEAD-136 fail-safe: a common-word ticker headline counts toward a brief only when anchored by a cashtag or ticker form, exchange context, or a corroborating company-name token. A name the rule still misses is listed as a known limitation in the release notes.
+    - A new high minted by round 3 gets the same treatment: its fail-safe, or the narrowest safe default, then 0.9.1.
+  - **(b)** Hold r15-rc2 for a round 4 on whatever round 3 leaves open.
+- **Default:** with no answer one 5-hour window after this filing, (a) applies and is recorded as operator-default with the timestamp (standing rule, brief RESUME 3).
+
 ## 6. Operator rule changes recorded during the rc1 gate (27 Sep 2026)
 
 Recorded here at the operator's instruction. These are operator decisions already in force, not items awaiting one; the verbatim text is the brief addendum `R15_BRIEF_GATE_RULE_CHANGE_1.md` (kept outside the repo).
