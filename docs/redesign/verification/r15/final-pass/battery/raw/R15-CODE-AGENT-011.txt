@@ -1,0 +1,17 @@
+# R15-CODE-AGENT-011 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:35:45+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '== live ollama llama3.1:8b delegate run told to ask -> paused; POST /answer (lock-held; driver lr.py) =='; cat $B/out/L-CODE-AGENT-011.txt
+cd "$C/sidecar"; echo '$ pause_run callers outside tests'; grep -rn 'pause_run' services routers --include=*.py | grep -v 'def pause_run' | head -5
+--- output ---
+== live ollama llama3.1:8b delegate run told to ask -> paused; POST /answer (lock-held; driver lr.py) ==
+# launch {"prompt": "Before doing anything else, use the ask_user tool to ask me which stock ticker I want, then get its price.", "provider": "ollama", "model": "llama3.1:8b", "budget": {}}
+launch resp: 201 {'run_id': 'b935e317b684499c9646846a734bc52b'}
+paused with question: Please enter a stock ticker
+answer HTTP 200 {'resumed': True}
+final status poll: done (26 polls)
+{"id": "b935e317b684499c9646846a734bc52b", "status": "done", "provider": "ollama", "model": "llama3.1:8b", "cost": {"tokens": 14899, "spend_usd": 0.0, "steps": 3}, "budget": {"max_tokens": 120000, "max_spend_usd": 1.0, "max_wall_seconds": 600.0, "max_steps": 12}, "detail": "completed", "question": null, "plan": null}
+activity: [{"tool": "resolve_symbol", "status": "ok", "summary": "{\"ok\": true, \"query\": \"MSFT\", \"region\": \"IN\", \"status\": \"bound\", \"reason\": \"score 1.00 >= accept at band 6\", \"resolved\": {\"symbol\": \"MSFT\", \"name\": \"MICROSOFT CORP\", \"exchange\": \"US\", \"region\": \"US\", "}]
+EXIT=0
+$ pause_run callers outside tests
+
+EXIT=0 (0.1s)

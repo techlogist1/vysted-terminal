@@ -1,0 +1,14 @@
+# R15-CODE-PLATFORM-013 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:17:24+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$PATH
+cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb2-fe; echo "scratch vitest harness /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb2-fe (symlinks to final-cand d38b5d1a src; jsdom url http://localhost:5173; not the repo suite)"; ./node_modules/.bin/vitest run --reporter=dot 2>&1 | grep -E "PROBE|Test Files|Tests |FAIL|Error" | head -20
+cd "$C"; grep -n "R15-CODE-PLATFORM-013" src/lib/workspace.test.ts | head -3
+--- output ---
+scratch vitest harness /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb2-fe (symlinks to final-cand d38b5d1a src; jsdom url http://localhost:5173; not the repo suite)
+PROBE serializeWorkspace.enabledModules (plugin:* must not persist): {"chart":true}
+PROBE after restoring an older blob with plugin:vysted-lenses=false over an enabled plugin: {"chart":false,"news":true,"plugin:vysted-lenses":true}
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+525:  it("never persists plugin:* flags, and a blob with plugin:x=false keeps an enabled plugin on (R15-CODE-PLATFORM-013)", () => {
+
+EXIT=0 (1.2s)

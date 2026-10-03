@@ -1,0 +1,13 @@
+# R15-AGENT-006 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:05+0530
+
+$ git merge-base --is-ancestor dcbe7ba HEAD && echo 'closure dcbe7ba is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure dcbe7ba NOT an ancestor'
+[exit 0] [0.02s]
+closure dcbe7ba is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-AGENT-006\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.49s]
+sidecar/tests/test_gemini_multiround.py:131:# R15-AGENT-006: Gemini 3 thought signatures survive a multi-round tool turn
+sidecar/services/llm/gemini.py:84:                # same part (R15-AGENT-006); one part per call, never merged.
+sidecar/services/agent_runtime.py:3137:                        # thought signature, R15-AGENT-006).
+

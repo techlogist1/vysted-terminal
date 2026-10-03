@@ -1,0 +1,9 @@
+# R15-DATA-108 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:10+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b13_scr.py 108 2>&1 | grep -v Warning
+--- output ---
+100 repeat calls ms: 0.01
+_sector_master cache: CacheInfo(hits=100, misses=1, maxsize=1, currsize=1)
+same obj: True
+
+EXIT=0 (0.2s)

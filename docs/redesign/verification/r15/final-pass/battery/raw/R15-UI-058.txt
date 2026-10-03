@@ -1,0 +1,15 @@
+# R15-UI-058 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:30:17+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$PATH; cd "$C"; node --experimental-strip-types --no-warnings $B/sc/kb2.mts 2>&1 | grep 'setOverrides merge'; grep -n 'let appliedAny = false\|export function buildSettingsExport' src/components/SettingsPanel.tsx; grep -n "a bundle lacking region preserves the CURRENT region\|bogus" src/components/SettingsPanel.test.tsx | head -4; grep -n 'R15-UI-058' src/store/keybindings.test.ts src/components/SettingsPanel.test.tsx | head
+--- output ---
+setOverrides merge w/ bogus: overrides={"changes.acceptAll":"mod+shift+a"}
+1997:export function buildSettingsExport(): SettingsExport {
+2046:      let appliedAny = false;
+394:  it("a bundle lacking region preserves the CURRENT region instead of resetting it", async () => {
+403:  it("keybindingOverrides with a bogus action id merges instead of wiping the existing remap", async () => {
+src/store/keybindings.test.ts:85:  it("R15-UI-058: merges over the CURRENT overrides instead of replacing them", () => {
+src/store/keybindings.test.ts:94:  it("R15-UI-058: rejects an unknown action id and a non-string value without touching existing overrides", () => {
+src/components/SettingsPanel.test.tsx:371:  // ---- Import gating + SettingsExport v2 (R15-UI-058) ----
+src/components/SettingsPanel.test.tsx:460:  it("R15-UI-058: search-settings setAll preserves the CURRENT searxngUrl when a later bundle omits it", () => {
+
+EXIT=0 (0.1s)

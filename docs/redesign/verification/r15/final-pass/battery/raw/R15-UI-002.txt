@@ -1,0 +1,15 @@
+# R15-UI-002 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:38+0530
+
+$ git merge-base --is-ancestor c81d879 HEAD && echo 'closure c81d879 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure c81d879 NOT an ancestor'
+[exit 0] [0.02s]
+closure c81d879 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-002\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+
+
+$ (cwd final-cand) grep -n 'always-consumed chart-command channel' src/components/CommandPalette.test.tsx; grep -n 'useChartCommandStore\|chart-command' src/components/CommandPalette.tsx | head -3
+217:  it("a ticker pick commands the chart through the always-consumed chart-command channel", () => {
+218:            // The always-consumed chart-command channel (opens a chart if none
+[exit 0]

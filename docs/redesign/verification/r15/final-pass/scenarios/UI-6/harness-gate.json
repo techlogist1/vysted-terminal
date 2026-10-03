@@ -1,0 +1,42 @@
+[
+ {
+  "renderedText": "2 proposed changes — review before they applyAccept allReject allUpdate position in the portfolio− Portfolio: unchanged+ can't apply — AAPL is not in the active portfoliofrobnicate everything− —+ Unknown action — can't apply",
+  "changes": [
+   {
+    "title": "Update position in the portfolio",
+    "kind": "data-write",
+    "before": "Portfolio: unchanged",
+    "after": "can't apply — AAPL is not in the active portfolio"
+   },
+   {
+    "title": "frobnicate everything",
+    "kind": "panel",
+    "before": "—",
+    "after": "Unknown action — can't apply"
+   }
+  ]
+ },
+ {
+  "rejectStatus": "rejected",
+  "rejectUnchanged": true,
+  "unknownTitle": "frobnicate everything",
+  "unknownKind": "panel",
+  "unknownAcceptResult": "failed",
+  "unknownStatusAfter": "pending",
+  "unknownDetail": "unknown action \"frobnicate_everything\"",
+  "autoUnknown": {
+   "kind": "panel",
+   "title": "frobnicate everything",
+   "outcome": "failed",
+   "status": "pending",
+   "detail": "unknown action \"frobnicate_everything\""
+  },
+  "finalSnap": {
+   "portfolios": "[{\"id\":\"default\",\"name\":\"Portfolio\",\"holdings\":[]},{\"id\":\"pf-a65e7042-86cb-4070-b242-850b4bfc419c\",\"name\":\"FP\",\"holdings\":[{\"id\":\"h-0d3c6276-8dd6-4112-b305-220e04f5c5dd\",\"symbol\":\"AAPL\",\"quantity\":10,\"costBasis\":180,\"assetClass\":\"equity\"}]}]",
+   "watchlist": [
+    "MSFT"
+   ]
+  },
+  "renderedAfter": "2 proposed changes — review before they applyAccept allReject allfrobnicate everything− —+ Unknown action — can't applyCouldn’t apply: unknown action \"frobnicate_everything\" — try again.frobnicate everything− —+ Unknown action — can't applyCouldn’t apply: unknown action \"frobnicate_everything\" — try again."
+ }
+]

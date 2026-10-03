@@ -1,0 +1,41 @@
+{
+ "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/research-briefs/final/02-normal-sonata-llama-keptprev.jsonl": {
+  "phase": "published",
+  "applied": [
+   {
+    "name": "publish_brief",
+    "label": "Published the FAST research brief",
+    "phaseAfter": "published"
+   }
+  ],
+  "errors": [],
+  "engineNotices": [],
+  "brief": {
+   "symbol": "SONATSOFTW",
+   "depth": "quick",
+   "mode": "FAST",
+   "webAvailable": false,
+   "webReason": "unreachable",
+   "note": "No web-search backend configured — structured data only",
+   "sourceCount": 0,
+   "sourcesStored": 0,
+   "sourcesRendered": 0,
+   "markdownLen": 0,
+   "markersInBody": [],
+   "maxMarker": 0,
+   "markersAfterSanitize": 0,
+   "execution": {
+    "runId": "4044ee3737184fb0b794bebbeac7114c",
+    "requestedDepth": "normal",
+    "loop": "fast",
+    "backend": null,
+    "startedAt": 1791023503.383005,
+    "finishedAt": 1791023511.125142,
+    "degradedReason": null
+   },
+   "metrics": null
+  },
+  "anchors": [],
+  "renderedText": " Save .md Save PDF Save PNGFASTSONATSOFTW0 sources FASTstructured dataEOD as of 2026-10-03Sonata SoftwareStructured-data-only briefNo web-search backend configured — structured data only"
+ }
+}

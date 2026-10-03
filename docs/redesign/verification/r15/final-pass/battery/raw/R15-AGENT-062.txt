@@ -1,0 +1,20 @@
+# R15-AGENT-062 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:33:17+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py6/R15-AGENT-062.py 2>&1 | grep -v '^DEBUG\|falling through' | tail -c 9000
+[exit 0] [16.86s]
+6mo {'ok': True, 'symbol': 'RELIANCE', 'timeframe': '1d', 'provider': 'nse_direct', 'bars_returned': 90, 'bars_available': 128, 'window_start': '2026-05-26T00:00:00+00:00'}
+1y {'ok': True, 'symbol': 'RELIANCE', 'timeframe': '1d', 'provider': 'nse_direct', 'bars_returned': 90, 'bars_available': 257, 'window_start': '2026-05-26T00:00:00+00:00'}
+
+
+$ echo '--- earlier probe of this id (batch4) ---'; /bin/cat /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/old/R15-AGENT-062.txt
+[exit 0] [0.00s]
+--- earlier probe of this id (batch4) ---
+# R15-AGENT-062 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:29:31+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py4/R15-AGENT-062.py 2>&1 | grep -v '^DEBUG' | tail -c 9000
+[exit 0] [9.24s]
+provider yfinance failed for ohlcv, falling through: yfinance history rate-limited for 'AAPL': Too Many Requests. Rate limited. Try after a while.
+AAPL default: {"ok": false, "error": "provider error: yfinance history rate-limited for 'AAPL': Too Many Requests. Rate limited. Try after a while."}
+RELIANCE 1mo: {"ok": true, "symbol": "RELIANCE", "timeframe": "1d", "provider": "nse_direct", "quote": {"symbol": "RELIANCE", "price": 1167.7, "change": -19.299999999999955, "change_percent": -1.6259477674810408, "volume": 16771221.0, "open": 1180.1, "high": 1183.9, "low": 1160.8, "prev_close": 1187.0, "currency": "INR", "market_state": "CLOSED", "timestamp": "2026-10-01T00:00:00Z", "provider": "nse_direct", "freshness": null}, "bars_returned": 26, "bars_available": 26, "window_start": "2026-08-26T00:00:00+00:00", "bars": 26}
+
+

@@ -1,0 +1,11 @@
+# R15-CODE-PLATFORM-052 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'Patch an existing holding' src/store/portfolios.ts; echo grep_exit=$?; grep -n -B3 'updateHolding: (portfolioId: string, holdingId: string' src/store/portfolios.ts
+--- output ---
+grep_exit=1
+169-  /** Replace an existing holding's fields (not a partial merge); false when
+170-   *  the input is invalid or that portfolio holds no such holding (nothing
+171-   *  changes either way). */
+172:  updateHolding: (portfolioId: string, holdingId: string, input: HoldingInput) => boolean;
+
+EXIT=0 (0.0s)

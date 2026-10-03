@@ -1,0 +1,7 @@
+# R15-RESEARCH-020 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:31+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p020.py 2>&1 | grep -v Warning
+--- output ---
+results 3 citations 3
+
+EXIT=0 (0.1s)

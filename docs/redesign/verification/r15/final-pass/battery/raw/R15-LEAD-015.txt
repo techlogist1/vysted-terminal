@@ -1,0 +1,18 @@
+# R15-LEAD-015 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:44+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for p in quarterly annual; do echo "\$ GET /fundamentals/DHANBANK/income?period=$p [IN]"; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/fundamentals/DHANBANK/income?period=$p" | python3 -c "
+import sys,json;d=json.load(sys.stdin)
+per=d.get('periods') or [];print('periods',per[:6],'gaps',d.get('gaps'),'provider',d.get('provider'))
+g=(d.get('gaps') or [None])[0]
+if g and g in per:
+  i=per.index(g);lines=d.get('lines') or d.get('rows') or []
+  vals=[ (l.get('values') or {}).get(g) for l in lines if isinstance(l,dict)]
+  print('values at gap period: non-null count',sum(v is not None for v in vals),'of',len(vals))"; done
+--- output ---
+$ GET /fundamentals/DHANBANK/income?period=quarterly [IN]
+periods ['2026-06-30', '2026-03-31', '2025-12-31', '2025-09-30', '2025-06-30', '2025-03-31'] gaps ['2025-09-30'] provider openbb-mcp
+values at gap period: non-null count 0 of 27
+$ GET /fundamentals/DHANBANK/income?period=annual [IN]
+periods ['2026-03-31', '2025-03-31', '2024-03-31', '2023-03-31'] gaps [] provider openbb-mcp
+
+EXIT=0 (0.1s)

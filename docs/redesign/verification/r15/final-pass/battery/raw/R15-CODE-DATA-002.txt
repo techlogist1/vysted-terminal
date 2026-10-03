@@ -1,0 +1,12 @@
+# R15-CODE-DATA-002 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:20+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for i in 1 2 3; do curl -s -o /dev/null -w "hdfc bank limited results call$i %{http_code} %{time_total}s\n" -H "X-Vysted-Region: IN" "$H/resolve?q=hdfc+bank+limited+results"; done
+for i in 1 2; do curl -s -o /dev/null -w "infosys call$i %{http_code} %{time_total}s\n" -H "X-Vysted-Region: IN" "$H/resolve?q=infosys"; done
+--- output ---
+hdfc bank limited results call1 200 0.933863s
+hdfc bank limited results call2 200 0.001502s
+hdfc bank limited results call3 200 0.001431s
+infosys call1 200 0.253154s
+infosys call2 200 0.001545s
+
+EXIT=0 (1.2s)

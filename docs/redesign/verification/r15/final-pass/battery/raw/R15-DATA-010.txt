@@ -1,0 +1,8 @@
+# R15-DATA-010 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:27:05+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b7_bt.py 2>&1 | grep -v Warning | grep -i -A2 'sortino\|010'
+--- output ---
+sortino register series: 6.352097860237519 textbook: 6.352097860237523
+two identical losses sortino: -2.509980079602211
+
+EXIT=0 (0.2s)

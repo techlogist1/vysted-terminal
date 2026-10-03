@@ -1,0 +1,11 @@
+# R15-UI-089 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:17:45+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+echo -n "bogus: "; curl -s -m 30 -H "X-Vysted-Newsapi-Key: fb2bogus0000000000000000" "$H/news/sources/status"; echo; echo -n "none: "; curl -s -m 30 "$H/news/sources/status"; echo; echo -n "newsapi.org direct bogus: "; curl -s -m 20 -o /dev/null -w '%{http_code}\n' "https://newsapi.org/v2/top-headlines?country=us&apiKey=fb2bogus0000000000000000"; grep -n 'probeNewsApiKeyOrThrow' "$C/src/store/marketplace.ts" | head -2
+--- output ---
+bogus: {"newsapi":"unauthorized"}
+none: {"newsapi":"absent"}
+newsapi.org direct bogus: 401
+39:async function probeNewsApiKeyOrThrow(key: string): Promise<void> {
+219:              await probeNewsApiKeyOrThrow(value);
+
+EXIT=0 (1.7s)

@@ -1,0 +1,21 @@
+# R15-CODE-PLATFORM-005 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:39+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import httpx, concurrent.futures as cf
+P="http://127.0.0.1:52863"
+body=lambda vd:{"exercise":"european","payoff":"call","spot":100,"strike":100,"risk_free_rate":0.05,"dividend_yield":0.0,"volatility":0.2,"valuation_date":vd,"expiry_date":"2031-06-01","method":"black-scholes"}
+dates=["2026-06-01","2029-01-02"]
+def price(vd):
+    r=httpx.post(P+"/quant/option/price",json=body(vd),timeout=60); return r.status_code, r.json().get("price") if r.status_code==200 else r.text[:100]
+ref={d:price(d) for d in dates}
+print("$ POST /quant/option/price serial refs:", ref)
+jobs=[dates[i%2] for i in range(200)]
+with cf.ThreadPoolExecutor(32) as ex: res=list(ex.map(price,jobs))
+bad=sum(1 for d,r in zip(jobs,res) if r!=ref[d]); zero=sum(1 for r in res if r[1]==0 or r[1] is None)
+print(f"200 concurrent (32 threads) alternating valuation dates: mismatches vs serial={bad}, zero/None prices={zero}")
+PY
+--- output ---
+$ POST /quant/option/price serial refs: {'2026-06-01': (200, 29.148952715356675), '2029-01-02': (200, 18.17477563889321)}
+200 concurrent (32 threads) alternating valuation dates: mismatches vs serial=0, zero/None prices=0
+
+EXIT=0 (3.0s)

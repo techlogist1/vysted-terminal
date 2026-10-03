@@ -1,0 +1,16 @@
+# R15-CODE-AGENT-026 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services.agent_tools import catalog
+print('ToolKind:', __import__('typing').get_args(catalog.ToolKind))
+print('mcp-projected kinds:', {c.kind for c in catalog.mcp_capabilities()})
+PY
+cd "$C/sidecar"; echo "grep mcp_endpoint services models:"; grep -rn mcp_endpoint services models || echo "(no hits)"; grep -n 'def test_toolkind_has_no_unprojected_mcp_endpoint' tests/*.py
+--- output ---
+ToolKind: ('read_handler', 'per_invocation', 'host_action')
+mcp-projected kinds: {'read_handler'}
+grep mcp_endpoint services models:
+(no hits)
+tests/test_mcp_catalog_parity.py:176:def test_toolkind_has_no_unprojected_mcp_endpoint() -> None:
+
+EXIT=0 (0.5s)

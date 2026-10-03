@@ -1,0 +1,12 @@
+# R15-LEAD-044 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:07:30+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for c in "sp500 IN" "sp500 US" "nifty50 US"; do set -- $c; echo -n "$1 under $2: "; curl -s -m 110 -X POST -H "X-Vysted-Region: $2" -H 'content-type: application/json' "$H/screener/run" -d "{\"universe\":\"$1\",\"criteria\":[],\"limit\":1000}" | python3 -c "
+import sys,json,collections;d=json.load(sys.stdin);r=d.get('rows') or d.get('results') or []
+cur=collections.Counter(x.get('currency') for x in r);m={x.get('symbol'):(x.get('name'),x.get('currency'),x.get('price')) for x in r}
+print(len(r),'rows',dict(cur),{k:m.get(k) for k in ('HAL','CCL','IEX','ACGL','PTC') if k in m} or list(m.items())[:2])"; done
+--- output ---
+sp500 under IN: 503 rows {'USD': 503} {'HAL': ('Halliburton Company', 'USD', 31.85), 'CCL': ('Carnival Corporation Ltd.', 'USD', 25.76), 'IEX': ('IDEX Corporation', 'USD', 232.99), 'ACGL': ('Arch Capital Group Ltd.', 'USD', 93.6), 'PTC': ('PTC Inc.', 'USD', 144.03)}
+sp500 under US: 503 rows {'USD': 503} {'HAL': ('Halliburton Company', 'USD', 31.85), 'CCL': ('Carnival Corporation Ltd.', 'USD', 25.76), 'IEX': ('IDEX Corporation', 'USD', 232.99), 'ACGL': ('Arch Capital Group Ltd.', 'USD', 93.6), 'PTC': ('PTC Inc.', 'USD', 144.03)}
+nifty50 under US: 50 rows {'INR': 50} [('RELIANCE.NS', ('Reliance Industries Limited', 'INR', 1167.7)), ('HDFCBANK.NS', ('HDFC Bank Limited', 'INR', 721.2))]
+
+EXIT=0 (1.4s)

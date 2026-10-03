@@ -1,0 +1,11 @@
+# R15-CODE-FRONTEND-025 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'fromJSON with a sub-minimum panel grows it' src/components/PanelHost.test.tsx; grep -n "'chat-sidebar'\|broker-order-entry" src/components/PanelHost.tsx; echo dead-keys-grep-exit-$?; grep -rn 'brief-panel\|notes-panel' src/lib/panel-sizing.ts src/components/PanelHost.tsx 2>/dev/null | head -4
+--- output ---
+198:  it("fromJSON with a sub-minimum panel grows it", async () => {
+dead-keys-grep-exit-1
+src/lib/panel-sizing.ts:53:  "brief-panel": { minimumWidth: 380, minimumHeight: 260 },
+src/lib/panel-sizing.ts:54:  "notes-panel": { minimumWidth: 320, minimumHeight: 200 },
+
+EXIT=0 (0.0s)

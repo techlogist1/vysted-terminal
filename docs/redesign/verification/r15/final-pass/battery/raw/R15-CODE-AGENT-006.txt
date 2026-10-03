@@ -1,0 +1,26 @@
+# R15-CODE-AGENT-006 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:28+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 20 "$H/llm/providers" > /tmp/fb2p.json; python3 - <<'PY'
+import json
+live=json.load(open('/tmp/fb2p.json')); live=live.get('providers',live) if isinstance(live,dict) else live
+reg=json.load(open('config/model_registry.json'))
+rp=reg.get('providers',reg)
+rids=list(rp.keys()) if isinstance(rp,dict) else [p.get('id') for p in rp]
+print('live',len(live),'registry',len(rids))
+diffs=0
+for p in live:
+    r=rp.get(p['id']) if isinstance(rp,dict) else next((x for x in rp if x.get('id')==p['id']),None)
+    if r is None: diffs+=1; print('missing in registry',p['id']); continue
+    for k in ('default_model','defaultModel'):
+        if k in p and k in r and p[k]!=r[k]: diffs+=1; print('diff',p['id'],k,p[k],r[k])
+print('diffs',diffs, 'live ids',[p['id'] for p in live])
+PY
+rm -f /tmp/fb2p.json; grep -n 'model_registry' "$C/src/store/model-selection.ts" "$C/src/store/llm-providers.ts" | head -3
+--- output ---
+live 8 registry 8
+diffs 0 live ids ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/src/store/model-selection.ts:14:import registry from "../../sidecar/config/model_registry.json";
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/src/store/model-selection.ts:17:/** One provider row of `sidecar/config/model_registry.json` — the single source
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/src/store/llm-providers.ts:29:  /** Config-driven default model (from the sidecar's model_registry.json). */
+
+EXIT=0 (0.0s)

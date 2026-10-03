@@ -1,0 +1,14 @@
+# R15-CODE-PLATFORM-038 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:51+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn '"provider_402"\|"insufficient_credit"\|"ollama_not_running"\|SETTINGS_FIX_CODES = ' src/modules/chat/streaming.ts src/modules/chat/ChatSidebar.tsx | head; grep -n 'from services.errors import humanize\|detail=humanize(provider, exc).message' sidecar/services/run_manager.py; grep -n 'def test_crashed_run_detail_is_humanized' sidecar/tests/test_run_manager.py; grep -n 'recognises a runtime notice by its step kind' src/modules/chat/message-notices.test.ts
+--- output ---
+src/modules/chat/streaming.ts:54:  "provider_402",
+src/modules/chat/streaming.ts:55:  "insufficient_credit",
+src/modules/chat/streaming.ts:57:  "ollama_not_running",
+src/modules/chat/ChatSidebar.tsx:1638:const SETTINGS_FIX_CODES = new Set(["auth", "provider_402", "model_not_found"]);
+52:from services.errors import humanize
+391:            detail=humanize(provider, exc).message,
+922:async def test_crashed_run_detail_is_humanized(monkeypatch: pytest.MonkeyPatch) -> None:
+30:  it("recognises a runtime notice by its step kind, never its copy", () => {
+
+EXIT=0 (0.0s)

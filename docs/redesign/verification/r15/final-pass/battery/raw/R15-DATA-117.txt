@@ -1,0 +1,31 @@
+# R15-DATA-117 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:51:10+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for sym in TSM HDB; do echo "=== GET /fundamentals/$sym"; curl -s -m100 -H "X-Vysted-Region: US" "$H/fundamentals/$sym" | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+for f in ('price_to_book','book_value','price_to_sales','pe_ratio','currency','financial_currency'): print(f,'=',d.get(f))
+fm=d.get('field_meta') or {}
+for f in ('price_to_book','book_value','price_to_sales'): print('field_meta.'+f,'=',json.dumps(fm.get(f))[:260])"; done
+--- output ---
+=== GET /fundamentals/TSM
+price_to_book = None
+book_value = None
+price_to_sales = None
+pe_ratio = 35.334827
+currency = USD
+financial_currency = TWD
+field_meta.price_to_book = {"status": "withheld", "provider": "yfinance", "as_of": "2026-10-02T20:00:02+00:00", "reason": "Yahoo's price/book (listing price over book value per share) divides or states a USD listing value against TWD statements; its basis cannot be verified without FX, 
+field_meta.book_value = {"status": "withheld", "provider": "yfinance", "as_of": "2026-10-03T11:51:04.347456+00:00", "reason": "Yahoo's book value per share divides or states a USD listing value against TWD statements; its basis cannot be verified without FX, so it is withheld", "labe
+field_meta.price_to_sales = {"status": "withheld", "provider": "yfinance", "as_of": "2026-10-02T20:00:02+00:00", "reason": "Yahoo's price/sales (market cap over trailing revenue) divides or states a USD listing value against TWD statements; its basis cannot be verified without FX, so it 
+=== GET /fundamentals/HDB
+price_to_book = None
+book_value = None
+price_to_sales = None
+pe_ratio = 15.622378
+currency = USD
+financial_currency = INR
+field_meta.price_to_book = {"status": "withheld", "provider": "yfinance", "as_of": "2026-10-02T20:00:03+00:00", "reason": "Yahoo's price/book (listing price over book value per share) divides or states a USD listing value against INR statements; its basis cannot be verified without FX, 
+field_meta.book_value = {"status": "withheld", "provider": "yfinance", "as_of": "2026-10-03T11:51:09.586947+00:00", "reason": "Yahoo's book value per share divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it is withheld", "labe
+field_meta.price_to_sales = {"status": "withheld", "provider": "yfinance", "as_of": "2026-10-02T20:00:03+00:00", "reason": "Yahoo's price/sales (market cap over trailing revenue) divides or states a USD listing value against INR statements; its basis cannot be verified without FX, so it 
+
+EXIT=0 (7.9s)

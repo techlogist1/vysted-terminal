@@ -1,0 +1,89 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_ce13a28e6eb0412f865641a426a75944", "name": "fundamentals", "input": {"symbol": "SUNRAJDIAM"}}
+{"kind": "tool_result", "tool_call_id": "call_ce13a28e6eb0412f865641a426a75944", "name": "fundamentals", "ok": false, "error": "provider error: yfinance fundamentals rate-limited for 'SUNRAJDIAM': Too Many Requests. Rate limited. Try after a while."}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Sun"}
+{"kind": "delta", "text": "raj"}
+{"kind": "delta", "text": " Diamond"}
+{"kind": "delta", "text": " Ex"}
+{"kind": "delta", "text": "ports"}
+{"kind": "delta", "text": " due"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " rate"}
+{"kind": "delta", "text": " limit"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " y"}
+{"kind": "delta", "text": "finance"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " fundamental"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " symbol"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " for"}
+{"kind": "delta", "text": " Sun"}
+{"kind": "delta", "text": "raj"}
+{"kind": "delta", "text": " Diamond"}
+{"kind": "delta", "text": " Ex"}
+{"kind": "delta", "text": "ports"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " was"}
+{"kind": "delta", "text": " unable"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " it"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " our"}
+{"kind": "delta", "text": " feeds"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": "'d"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " I"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " help"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " explore"}
+{"kind": "delta", "text": " other"}
+{"kind": "delta", "text": " metrics"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " try"}
+{"kind": "delta", "text": " again"}
+{"kind": "delta", "text": " later"}
+{"kind": "delta", "text": " when"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " rate"}
+{"kind": "delta", "text": " limit"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " reset"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 1709, "output_tokens": 83, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

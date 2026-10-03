@@ -1,0 +1,29 @@
+COUNT 39
+NAMES ['analyst_history', 'analyst_individual', 'compare_symbols', 'compute_greeks', 'corporate_actions', 'corporate_announcements', 'earnings_call_transcript', 'earnings_estimates', 'earnings_history', 'earnings_upcoming', 'exchange_deals', 'financial_statements', 'fundamentals', 'get_workspace', 'invoke_agent', 'list_agents', 'list_runs', 'list_workflows', 'list_workspaces', 'macro_search', 'macro_series', 'market_overview', 'news', 'option_chain', 'price_bond', 'price_data', 'price_option', 'price_target_history', 'research', 'resolve_symbol', 'run_workflow', 'save_workflow', 'screener_run', 'sec_filing_content', 'sec_filings_list', 'sec_insider_transactions', 'shareholding_pattern', 'web_search', 'yield_curve_value']
+{
+ "list_agents:{}": {
+  "is_error": false,
+  "structured_type": "dict",
+  "text": "{\"agents\":[{\"id\":\"buffett\",\"name\":\"Warren Buffett\",\"philosophy\":\"Value investing with a wide-moat lens \u2014 wonderful businesses at fair prices, held forever.\",\"tools\":[\"price_data\",\"fundamentals\",\"news\"],\"default_provider\":\"anthropic\",\"default_model\":null,\"icon\":\"landmark\",\"effective_tools\":[\"price_da"
+ },
+ "market_overview:{}": {
+  "is_error": false,
+  "structured_type": "dict",
+  "text": "{\"ok\":true,\"region\":\"IN\",\"indices\":[{\"symbol\":\"^NSEI\",\"name\":\"Nifty 50\",\"price\":22421.95,\"change\":-198.49921874999927,\"change_percent\":-0.8775211174208869,\"currency\":\"INR\",\"market_state\":null,\"provider\":\"yfinance\"},{\"symbol\":\"^BSESN\",\"name\":\"BSE Sensex\",\"price\":71909.7,\"change\":-570.5890625000029,\"c"
+ },
+ "price_data:{\"symbol\": \"ZZZZNOTREAL\"}": {
+  "is_error": true,
+  "structured_type": "NoneType",
+  "text": "tool 'price_data' raised: correctness gate: empty series for 'ZZZZNOTREAL' from 'yfinance'"
+ },
+ "resolve_symbol:{\"query\": \"Reliance\"}": {
+  "is_error": false,
+  "structured_type": "dict",
+  "text": "{\"ok\":true,\"query\":\"Reliance\",\"region\":\"IN\",\"status\":\"bound\",\"reason\":\"score 1.00 >= accept at band 6\",\"resolved\":{\"symbol\":\"RELIANCE\",\"name\":\"Reliance Industries Limited\",\"exchange\":\"NSE\",\"region\":\"IN\",\"asset_class\":\"equity\",\"yahoo_symbol\":\"RELIANCE.NS\",\"confidence\":1.0,\"isin\":\"INE002A01018\",\"bse_c"
+ },
+ "fundamentals:{\"symbol\": \"AAPL\"}": {
+  "is_error": false,
+  "structured_type": "dict",
+  "text": "{\"ok\":true,\"fundamentals\":{\"symbol\":\"AAPL\",\"name\":\"Apple Inc.\",\"sector\":\"Technology\",\"industry\":\"Consumer Electronics\",\"sector_source\":\"yfinance\",\"currency\":\"USD\",\"financial_currency\":null,\"ratio_price\":333.69,\"market_cap\":4869931925504.0,\"pe_ratio\":37.876274,\"forward_pe\":34.821583,\"peg_ratio\":2.706"
+ }
+}

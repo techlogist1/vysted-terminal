@@ -1,0 +1,39 @@
+# R15-CODE-PLATFORM-002 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:48:58+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+echo 'POST /workflow/run palette-shaped graph (json_path value port, compare op neq, branch value port, sleep seconds=1, notify value port)'
+"$IP" - <<'PY'
+import json, urllib.request, time
+H="http://127.0.0.1:52860"
+N=lambda i,t,c: {"id":i,"type":t,"position":{"x":0,"y":0},"config":c}
+E=lambda i,s,sp,t,tp: {"id":i,"sourceNode":s,"sourcePort":sp,"targetNode":t,"targetPort":tp}
+spec={"id":"fb0-002","name":"fb0-002","version":1,"nodes":[N("q","data.fetch_quote",{"symbol":"AAPL"}),N("j","transform.json_path",{"path":"price"}),
+ N("b","logic.branch",{"mode":"truthy"}),N("c","logic.compare",{"op":"neq"}),N("s","flow.sleep",{"seconds":1}),N("n","action.notify_desktop",{"title":"fb0","message_template":"AAPL {value}"})],
+ "edges":[E("e1","q","quote","j","value"),E("e2","j","extracted","b","value"),E("e3","b","true_path","c","a"),E("e4","j","extracted","c","b"),E("e5","b","true_path","s","value"),E("e6","s","value","n","value")]}
+t=time.time()
+r=urllib.request.urlopen(urllib.request.Request(H+"/workflow/run",data=json.dumps({"spec":spec}).encode(),headers={"content-type":"application/json"}),timeout=90)
+body=r.read().decode(); print("HTTP",r.status,"elapsed %.1fs"%(time.time()-t))
+for l in body.splitlines():
+    if l.startswith("data:"):
+        e=json.loads(l[5:]); o=e.get("outputs") or e.get("output")
+        if isinstance(o,dict) and "quote" in o: o={"quote.price":(o["quote"] or {}).get("price")}
+        print((e.get("kind"), e.get("nodeType") or e.get("node_type"), o, e.get("error") or e.get("message")))
+PY
+--- output ---
+POST /workflow/run palette-shaped graph (json_path value port, compare op neq, branch value port, sleep seconds=1, notify value port)
+HTTP 200 elapsed 1.6s
+('run-start', None, None, None)
+('node-start', 'data.fetch_quote', None, None)
+('node-output', None, {'quote.price': 333.69000244140625}, None)
+('node-start', 'transform.json_path', None, None)
+('node-output', None, {'extracted': 333.69000244140625}, None)
+('node-start', 'logic.branch', None, None)
+('node-output', None, {'true_path': 333.69000244140625}, None)
+('node-start', 'logic.compare', None, None)
+('node-output', None, {'result': False}, None)
+('node-start', 'flow.sleep', None, None)
+('node-output', None, {'value': 333.69000244140625, 'slept': 1.0}, None)
+('node-start', 'action.notify_desktop', None, None)
+('node-output', None, {'notified': True, 'title': 'fb0', 'message': 'AAPL 333.69000244140625', 'intent': 'desktop-notification'}, None)
+('run-complete', None, None, None)
+
+EXIT=0 (1.7s)

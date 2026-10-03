@@ -1,0 +1,922 @@
+{
+ "/disclosures/shareholding?symbol=GSTL": [
+  200,
+  {
+   "symbol": "GSTL",
+   "count": 15,
+   "patterns": [
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2026-06-30",
+     "quarter_basis": null,
+     "promoter_percent": 27.83,
+     "fii_percent": 0.15,
+     "dii_percent": 0.0,
+     "institutions_percent": 0.15,
+     "public_percent": 72.17,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": 44.01,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2026-07-17",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1694903_17072026123630_WEB.xml",
+     "source": "NSE",
+     "split_source": "BSE",
+     "split_as_of": "2026-06-30",
+     "split_basis": "derived",
+     "promoter_pledged_percent": 0.0,
+     "promoter_pledge_basis": "filed"
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2026-03-31",
+     "quarter_basis": null,
+     "promoter_percent": 27.83,
+     "fii_percent": 0.0,
+     "dii_percent": 0.0,
+     "institutions_percent": 0.0,
+     "public_percent": 72.17,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": 44.16,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2026-04-14",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1650605_14042026035016_WEB.xml",
+     "source": "NSE",
+     "split_source": "BSE",
+     "split_as_of": "2026-03-31",
+     "split_basis": "derived",
+     "promoter_pledged_percent": 0.0,
+     "promoter_pledge_basis": "filed"
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2025-09-30",
+     "quarter_basis": null,
+     "promoter_percent": 24.77,
+     "fii_percent": 0.0,
+     "dii_percent": 0.0,
+     "institutions_percent": 0.0,
+     "public_percent": 75.23,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": 44.16,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2025-10-16",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_1550297_16102025041524_WEB.xml",
+     "source": "NSE",
+     "split_source": "BSE",
+     "split_as_of": "2025-09-30",
+     "split_basis": "derived",
+     "promoter_pledged_percent": 0.0,
+     "promoter_pledge_basis": "filed"
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2025-03-31",
+     "quarter_basis": null,
+     "promoter_percent": 23.51,
+     "fii_percent": 0.0,
+     "dii_percent": 0.0,
+     "institutions_percent": 0.0,
+     "public_percent": 76.49,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": 44.16,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2025-04-18",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_198057_1422515_22042025042334_WEB.xml",
+     "source": "NSE",
+     "split_source": "BSE",
+     "split_as_of": "2025-03-31",
+     "split_basis": "derived",
+     "promoter_pledged_percent": 0.0,
+     "promoter_pledge_basis": "filed"
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2024-12-31",
+     "quarter_basis": null,
+     "promoter_percent": 27.59,
+     "fii_percent": 0.0,
+     "dii_percent": 0.0,
+     "institutions_percent": 0.0,
+     "public_percent": 72.41,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": 44.16,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2025-01-21",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_195831_1354491_21012025123237_WEB.xml",
+     "source": "NSE",
+     "split_source": "BSE",
+     "split_as_of": "2024-12-31",
+     "split_basis": "derived",
+     "promoter_pledged_percent": 0.0,
+     "promoter_pledge_basis": "filed"
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2024-09-30",
+     "quarter_basis": null,
+     "promoter_percent": 34.01,
+     "fii_percent": 0.0,
+     "dii_percent": 0.0,
+     "institutions_percent": 0.0,
+     "public_percent": 65.99,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": 44.16,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2024-10-18",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_192822_1277253_18102024030157_WEB.xml",
+     "source": "NSE",
+     "split_source": "BSE",
+     "split_as_of": "2024-09-30",
+     "split_basis": "derived",
+     "promoter_pledged_percent": 0.0,
+     "promoter_pledge_basis": "filed"
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2024-08-09",
+     "quarter_basis": null,
+     "promoter_percent": 36.27,
+     "fii_percent": 0.0,
+     "dii_percent": 0.0,
+     "institutions_percent": 0.0,
+     "public_percent": 63.73,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": 44.16,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2024-08-28",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_190936_1233530_28082024051001_WEB.xml",
+     "source": "NSE",
+     "split_source": "BSE",
+     "split_as_of": "2024-09-30",
+     "split_basis": "derived",
+     "promoter_pledged_percent": 0.0,
+     "promoter_pledge_basis": "filed"
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2024-06-30",
+     "quarter_basis": null,
+     "promoter_percent": 35.8,
+     "fii_percent": 0.0,
+     "dii_percent": 0.0,
+     "institutions_percent": 0.0,
+     "public_percent": 64.2,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": 44.16,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2024-07-19",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_190370_1195256_19072024054419_WEB.xml",
+     "source": "NSE",
+     "split_source": "BSE",
+     "split_as_of": "2024-09-30",
+     "split_basis": "derived",
+     "promoter_pledged_percent": 0.0,
+     "promoter_pledge_basis": "filed"
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2024-03-31",
+     "quarter_basis": null,
+     "promoter_percent": 35.8,
+     "fii_percent": null,
+     "dii_percent": null,
+     "institutions_percent": null,
+     "public_percent": 64.2,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": null,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2024-04-18",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_187611_1099202_18042024062351_WEB.xml",
+     "source": "NSE",
+     "split_source": null,
+     "split_as_of": null,
+     "split_basis": null,
+     "promoter_pledged_percent": null,
+     "promoter_pledge_basis": null
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2023-09-30",
+     "quarter_basis": null,
+     "promoter_percent": 35.8,
+     "fii_percent": null,
+     "dii_percent": null,
+     "institutions_percent": null,
+     "public_percent": 64.2,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": null,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2023-10-12",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_181319_949782_12102023061524_WEB.xml",
+     "source": "NSE",
+     "split_source": null,
+     "split_as_of": null,
+     "split_basis": null,
+     "promoter_pledged_percent": null,
+     "promoter_pledge_basis": null
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2023-03-31",
+     "quarter_basis": null,
+     "promoter_percent": 35.8,
+     "fii_percent": null,
+     "dii_percent": null,
+     "institutions_percent": null,
+     "public_percent": 64.2,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": null,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2023-04-18",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_177109_823284_18042023024957_WEB.xml",
+     "source": "NSE",
+     "split_source": null,
+     "split_as_of": null,
+     "split_basis": null,
+     "promoter_pledged_percent": null,
+     "promoter_pledge_basis": null
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2022-12-31",
+     "quarter_basis": null,
+     "promoter_percent": 35.8,
+     "fii_percent": null,
+     "dii_percent": null,
+     "institutions_percent": null,
+     "public_percent": 64.2,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": null,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2023-01-12",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_174018_764091_12012023044459_WEB.xml",
+     "source": "NSE",
+     "split_source": null,
+     "split_as_of": null,
+     "split_basis": null,
+     "promoter_pledged_percent": null,
+     "promoter_pledge_basis": null
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2022-09-30",
+     "quarter_basis": null,
+     "promoter_percent": 35.8,
+     "fii_percent": null,
+     "dii_percent": null,
+     "institutions_percent": null,
+     "public_percent": 64.2,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": null,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2022-10-19",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_171874_733674_19102022031857_WEB.xml",
+     "source": "NSE",
+     "split_source": null,
+     "split_as_of": null,
+     "split_basis": null,
+     "promoter_pledged_percent": null,
+     "promoter_pledge_basis": null
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2022-06-30",
+     "quarter_basis": null,
+     "promoter_percent": 35.8,
+     "fii_percent": null,
+     "dii_percent": null,
+     "institutions_percent": null,
+     "public_percent": 64.21,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": null,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2022-07-19",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_170014_694369_19072022123547_WEB.xml",
+     "source": "NSE",
+     "split_source": null,
+     "split_as_of": null,
+     "split_basis": null,
+     "promoter_pledged_percent": null,
+     "promoter_pledge_basis": null
+    },
+    {
+     "symbol": "GSTL",
+     "quarter_end": "2022-06-01",
+     "quarter_basis": null,
+     "promoter_percent": 35.8,
+     "fii_percent": null,
+     "dii_percent": null,
+     "institutions_percent": null,
+     "public_percent": 64.2,
+     "public_basis": "incl. institutions",
+     "public_non_institutional_percent": null,
+     "employee_trusts_percent": 0.0,
+     "submission_date": "2022-06-22",
+     "xbrl_url": "https://nsearchives.nseindia.com/corporate/xbrl/SHP_168459_675955_22062022010835_WEB.xml",
+     "source": "NSE",
+     "split_source": null,
+     "split_as_of": null,
+     "split_basis": null,
+     "promoter_pledged_percent": null,
+     "promoter_pledge_basis": null
+    }
+   ],
+   "coverage": "covered",
+   "note": null,
+   "provider": null,
+   "major_shareholders": [],
+   "source_url": null
+  }
+ ],
+ "/disclosures/announcements?symbol=GSTL&limit=50": [
+  200,
+  {
+   "symbol": "GSTL",
+   "exchange": null,
+   "count": 50,
+   "announcements": [
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has submitted the Exchange a copy Srutinizers report of  Annual General Meeting held on September 30, 2026. Further, the company has informed the Exchange regarding voting results.",
+     "category": "Shareholders meeting",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_03102026095217_GSTL_AGM_Voting_Results.pdf",
+     "ts": "2026-10-03T09:52:26+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding Appointment of Ms Ms. Ranjana Malpani and Mr. Shravan Talvar as Non- Executive Independent Director of the company w.e.f. October 01, 2026.",
+     "category": "Appointment",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_01102026175036_Reg_30_Appt.pdf",
+     "ts": "2026-10-01T17:50:52+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/bb875050-10ff-4568-bfce-4acd08e61062.pdf",
+     "ts": "2026-10-01T12:08:01.747000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+     "category": "AGM/EGM",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/2ebc4d5d-aada-40ba-92d3-5da0fac7df4d.pdf",
+     "ts": "2026-10-01T11:47:27.967000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding the Amendment to AOA/MOA of the company.",
+     "category": "Amendment to AOA/MOA",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_30092026155023_GSTL_AGM_Proceedings.pdf",
+     "ts": "2026-09-30T15:50:31+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding Proceedings of  Annual General Meeting held on September 30, 2026",
+     "category": "Shareholders meeting",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_30092026154410_GSTL_AGM_Proceedings.pdf",
+     "ts": "2026-09-30T15:45:54+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+     "category": "AGM/EGM",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/fc362fd5-a7bb-4172-b702-c4cad1fb7c3b.pdf",
+     "ts": "2026-09-29T19:46:15.670000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding the Trading Window closure pursuant to SEBI (Prohibition of Insider Trading) Regulations, 2015",
+     "category": "Trading Window",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_28092026130721_Trading_WIndow.pdf",
+     "ts": "2026-09-28T13:07:28+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Closure of Trading Window",
+     "category": "Insider Trading / SAST",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/81eb6768-1125-440c-8536-0d9b4bc10fc4.pdf",
+     "ts": "2026-09-25T17:35:29.840000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding 'Revised financial results for half year and year ended March 31, 2026'.",
+     "category": "Updates",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_23092026175327_Revised_Results_230926.pdf",
+     "ts": "2026-09-23T17:53:37+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding Appointment of  Ms. Ranjana Malpani as Non- Executive Independent Director of the company w.e.f. September 18, 2026.",
+     "category": "Appointment",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_18092026113219_Outcome.pdf",
+     "ts": "2026-09-18T11:33:04+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding Outcome of Board Meeting held on September 18, 2026.",
+     "category": "Outcome of Board Meeting",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_18092026113039_Outcome.pdf",
+     "ts": "2026-09-18T11:30:51+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange about Agreements",
+     "category": "Agreements",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_08092026182347_Reg_30_Agreements.pdf",
+     "ts": "2026-09-08T18:23:55+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange about Amendment(s)",
+     "category": "Amendment(s)",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_08092026175204_Reg_30_Agreements.pdf",
+     "ts": "2026-09-08T17:52:19+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f7a08067-aed2-4c40-a4ee-a8c1eb6a187c.pdf",
+     "ts": "2026-09-06T17:03:01.517000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Disclosure Under Regulation 30 Of The SEBI (Listing Obligations And Disclosure Requirements) Regulations, 2015",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7bdb98cb-aed8-4ca6-ba1c-ea67684b88b2.pdf",
+     "ts": "2026-09-05T18:42:27.510000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Reg. 34 (1) Annual Report.",
+     "category": "Others",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/516a4930-3897-4700-955b-98081b95fd03.pdf",
+     "ts": "2026-09-05T18:30:53.617000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Notice Of The 16Th Annual General Meeting Of The Company For Financial Year 2025-26",
+     "category": "AGM/EGM",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/37344660-9c90-4bd3-8dbd-93a59b7a4eb5.pdf",
+     "ts": "2026-09-05T18:27:50.430000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding Notice of Annual General Meeting to be held on September 30, 2026",
+     "category": "Shareholders meeting",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_04092026211306_AGM_Intimation.pdf",
+     "ts": "2026-09-04T21:13:15+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding Outcome of Board Meeting held on September 04, 2026.",
+     "category": "Outcome of Board Meeting",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_04092026194727_Outcome_Revised.pdf",
+     "ts": "2026-09-04T19:47:49+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/99636e95-b733-47dd-8ab1-7b9ff323002d.pdf",
+     "ts": "2026-09-03T14:12:39.337000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/cf50c4a3-d9e4-46ef-a896-7a2193d53fd7.pdf",
+     "ts": "2026-08-17T17:24:02.277000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/019c2b90-ef5f-4671-b340-caa709acb015.pdf",
+     "ts": "2026-08-14T22:21:55.533000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Financial Results For The Quarter Ended June 30, 2026.",
+     "category": "Result",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/dcd666e1-91ab-4c82-b737-9da9884b24a4.pdf",
+     "ts": "2026-08-14T22:13:11.793000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Board Meeting Outcome for Outcome Of Board Meeting Of The Company Held Today I.E., August 14, 2026",
+     "category": "Board Meeting",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/dc61c370-c297-4acc-807f-9c6afb28f5bf.pdf",
+     "ts": "2026-08-14T22:04:40+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding change in Registered Office of the company.",
+     "category": "Address Change",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_12082026215415_Reg_30-revised.pdf",
+     "ts": "2026-08-12T21:54:27+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Board Meeting Intimation for Board Meeting Intimation For Considering Un-Audited Financial Results For The Quarter Ended June 30, 2026.",
+     "category": "Board Meeting",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/2d5a8d74-b6e4-4420-9daf-aef2910bb944.pdf",
+     "ts": "2026-08-11T18:15:04.557000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange about Closure of operations at Ahmedabad Branch office of the Company",
+     "category": "Closure of operations",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_30072026174755_Reg_30.pdf",
+     "ts": "2026-07-30T17:48:03+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Submission of SDD Compliance Certificate for quarter ended June 30, 2026",
+     "category": "Structural Digital Database",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_24072026154028_GSTL_SDD.pdf",
+     "ts": "2026-07-24T15:40:38+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange about Clarification on Price Movement as Sought By NSE",
+     "category": "General Updates",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_22072026174608_Reply_for_Price_Movement.pdf",
+     "ts": "2026-07-22T17:46:16+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Significant movement in price has been observed in Globesecure Technologies Limited. The Exchange, in order to ensure that investors have latest relevant information about the company and to inform the market place so that the interest of the investors is safeguarded, has written to the company. The response from the company is awaited.",
+     "category": "Price movement",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/-",
+     "ts": "2026-07-22T17:44:55+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/9683e254-1386-4516-9c09-e97079acda95.pdf",
+     "ts": "2026-07-14T11:24:56.500000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange about Certificate under SEBI (Depositories and Participants) Regulations, 2018",
+     "category": "Certificate under SEBI (Depositories and Participants) Regulations, 2018",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_10072026155752_GSTL_74_5_.pdf",
+     "ts": "2026-07-10T15:58:05+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange about Action(s) initiated or orders passed",
+     "category": "Action(s) initiated or orders passed",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_08072026175711_Reg_30.pdf",
+     "ts": "2026-07-08T17:57:27+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange regarding Outcome of Board Meeting held on Jun 29, 2026.",
+     "category": "Outcome of Board Meeting",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_29062026171950_Outcome.pdf",
+     "ts": "2026-06-29T17:19:58+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Closure of Trading Window",
+     "category": "Insider Trading / SAST",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4e5d19d6-342b-48d5-9349-e955b5755b6e.pdf",
+     "ts": "2026-06-26T16:08:56.657000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "The Exchange had sought clarification from Globesecure Technologies Limited for the quarter ended 30-Sep-2025 with respect to Regulation 33 of the SEBI (Listing Obligations and Disclosure Requirements) Regulations, 2015. On basis of above the Company was required to clarify the following:   The response of the Company is enclosed.",
+     "category": "Reply to Clarification- Financial results",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_23012026160045_Reply_for_financial_results.pdf",
+     "ts": "2026-06-25T15:58:52+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Ragavan Rajkumar has Submitted to the Exchange a copy of Disclosure under Regulation 31(4) of the Securities and Exchange Board of India (Substantial Acquisition of Shares and Takeovers) Regulations, 2011.",
+     "category": "Disclosure under SEBI Takeover Regulations",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/team_sandeshc_12052026112441_GTL_0001.pdf",
+     "ts": "2026-06-23T19:43:57+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Announcement under Regulation 30 (LODR)-Acquisition",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8dcb6566-1dc6-4e0a-83c3-a594fb71ddc9.pdf",
+     "ts": "2026-06-18T19:18:28.873000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Grant Of Options Pursuant To The \"Global Space Technologies Limited - Employees Stock Options Scheme - 2018\"",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/2728849c-e5d0-4231-bb09-877509c5617d.pdf",
+     "ts": "2026-06-01T17:44:02.390000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has submitted to the Exchange, the financial results for the period ended March 31, 2026.",
+     "category": "Outcome of Board Meeting",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_30052026201456_Outcome.pdf",
+     "ts": "2026-05-30T20:18:43+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Compliances-Reg.24(A)-Annual Secretarial Compliance",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/30da8af5-f8a7-42fa-b0e8-e074692ea412.pdf",
+     "ts": "2026-05-29T20:01:53.797000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "Globesecure Technologies Limited has informed the Exchange about Bagging/Receiving of orders/contracts",
+     "category": "Bagging/Receiving of orders/contracts",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_28052026152923_REG_30_PO.pdf",
+     "ts": "2026-05-28T15:29:36+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/5aed9292-7577-436b-8aaa-0bed32c6afe2.pdf",
+     "ts": "2026-05-17T22:41:09.670000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Grant Of Options Pursuant To The \"Global Space Technologies Limited - Employees Stock Options Scheme - 2018\"",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/38573156-4570-481e-bf3c-4bf7e4401086.pdf",
+     "ts": "2026-05-15T21:28:14.160000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c399f9f1-78fe-4ec5-8f81-a45fdc0fc42c.pdf",
+     "ts": "2026-05-15T21:25:19.130000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+     "category": "Company Update",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d123b553-2113-439b-bb0c-d720d47782ac.pdf",
+     "ts": "2026-05-15T21:21:16.060000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Financial Results For The Quarter And Year Ended March 31, 2026.",
+     "category": "Result",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c27fa59d-fa8c-4be6-be87-1fcd6017e652.pdf",
+     "ts": "2026-05-15T21:18:26.420000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "BSE",
+     "headline": "Board Meeting Outcome for Outcome Of Board Meeting Of The Company Held Today I.E., Friday, May 15, 2026.",
+     "category": "Board Meeting",
+     "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/70ae72a6-8b78-4b16-8a61-bcd8d19d2ff0.pdf",
+     "ts": "2026-05-15T21:11:36.427000+05:30"
+    },
+    {
+     "symbol": "GSTL",
+     "exchange": "NSE",
+     "headline": "SDD Compliance certificate for the FY 2025-26",
+     "category": "Structural Digital Database",
+     "attachment_url": "https://nsearchives.nseindia.com/corporate/GLOBESECURE2021_15052026165925_GSTL_SDD_Annual.pdf",
+     "ts": "2026-05-15T16:59:42+05:30"
+    }
+   ],
+   "sources": [
+    "NSE",
+    "BSE"
+   ],
+   "errors": {},
+   "windows": {
+    "NSE": {
+     "window_start": "2026-05-15",
+     "window_end": "2026-10-03"
+    },
+    "BSE": {
+     "window_start": "2026-05-15",
+     "window_end": "2026-10-03"
+    }
+   },
+   "coverage": "covered",
+   "note": null
+  }
+ ],
+ "/disclosures/results?symbol=GSTL": [
+  200,
+  {
+   "symbol": "GSTL",
+   "count": 10,
+   "events": [
+    {
+     "symbol": "GSTL",
+     "company": "GlobalSpace Technologies Limited",
+     "purpose": "Results",
+     "description": null,
+     "date": "2026-08-14",
+     "exchange": "BSE"
+    },
+    {
+     "symbol": "GSTL",
+     "company": "GlobalSpace Technologies Limited",
+     "purpose": "Results",
+     "description": null,
+     "date": "2026-05-15",
+     "exchange": "BSE"
+    },
+    {
+     "symbol": "GSTL",
+     "company": "GlobalSpace Technologies Limited",
+     "purpose": "Results",
+     "description": null,
+     "date": "2026-02-12",
+     "exchange": "BSE"
+    },
+    {
+     "symbol": "GSTL",
+     "company": "GlobalSpace Technologies Limited",
+     "purpose": "Results",
+     "description": null,
+     "date": "2025-11-13",
+     "exchange": "BSE"
+    },
+    {
+     "symbol": "GSTL",
+     "company": "GlobalSpace Technologies Limited",
+     "purpose": "Results",
+     "description": null,
+     "date": "2025-08-12",
+     "exchange": "BSE"
+    },
+    {
+     "symbol": "GSTL",
+     "company": "GlobalSpace Technologies Limited",
+     "purpose": "Results",
+     "description": null,
+     "date": "2025-05-23",
+     "exchange": "BSE"
+    },
+    {
+     "symbol": "GSTL",
+     "company": "GlobalSpace Technologies Limited",
+     "purpose": "Results",
+     "description": null,
+     "date": "2025-02-11",
+     "exchange": "BSE"
+    },
+    {
+     "symbol": "GSTL",
+     "company": "GlobalSpace Technologies Limited",
+     "purpose": "Results",
+     "description": null,
+     "date": "2024-12-09",
+     "exchange": "BSE"
+    },
+    {
+     "symbol": "GSTL",
+     "company": "GlobalSpace Technologies Limited",
+     "purpose": "Results",
+     "description": null,
+     "date": "2024-11-14",
+     "exchange": "BSE"
+    },
+    {
+     "symbol": "GSTL",
+     "company": "GlobalSpace Technologies Limited",
+     "purpose": "Results",
+     "description": null,
+     "date": "2024-08-12",
+     "exchange": "BSE"
+    }
+   ],
+   "sources": [
+    "NSE",
+    "BSE"
+   ],
+   "errors": {},
+   "coverage": "covered",
+   "note": null
+  }
+ ],
+ "/disclosures/corporate-actions?symbol=GSTL": [
+  200,
+  {
+   "symbol": "GSTL",
+   "count": 3,
+   "actions": [
+    {
+     "symbol": "GSTL",
+     "kind": "rights",
+     "purpose": "RIGHTS 3:4 @ PREMIUM RS 30/-",
+     "ratio": "3:4",
+     "amount_per_share": null,
+     "ex_date": "2024-07-12",
+     "record_date": "2024-07-12",
+     "payment_date": null,
+     "exchange": "NSE"
+    },
+    {
+     "symbol": "GSTL",
+     "kind": "rights",
+     "purpose": "Right Issue of Equity Shares",
+     "ratio": null,
+     "amount_per_share": null,
+     "ex_date": "2023-11-03",
+     "record_date": "2023-11-03",
+     "payment_date": null,
+     "exchange": "BSE"
+    },
+    {
+     "symbol": "GSTL",
+     "kind": "dividend",
+     "purpose": "Final Dividend",
+     "ratio": null,
+     "amount_per_share": 0.2,
+     "ex_date": "2021-11-11",
+     "record_date": null,
+     "payment_date": "2021-12-26",
+     "exchange": "BSE"
+    }
+   ],
+   "sources": [
+    "NSE",
+    "BSE"
+   ],
+   "errors": {},
+   "coverage": "covered",
+   "note": null
+  }
+ ],
+ "/quotes/GSTL": [
+  200,
+  {
+   "symbol": "GSTL",
+   "price": 10.85,
+   "change": -0.5500000000000007,
+   "change_percent": -4.824561403508778,
+   "volume": 2000.0,
+   "open": 11.4,
+   "high": 11.4,
+   "low": 10.85,
+   "prev_close": 11.4,
+   "currency": "INR",
+   "market_state": "CLOSED",
+   "timestamp": "2026-09-30T00:00:00Z",
+   "provider": "nse_direct",
+   "freshness": "eod"
+  }
+ ]
+}

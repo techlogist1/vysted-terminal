@@ -1,0 +1,16 @@
+# R15-UI-091 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:30:17+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for q in 'timeframe=5m&asset_class=equity' 'timeframe=1d&asset_class=crypto' 'timeframe=1d&asset_class=equity'; do echo "== $q"; curl -s -m30 "$H/indicators/suggested?$q"; echo; done
+curl -s -m60 "$H/indicators/AAPL?indicators=ema:9,ema:21" | python3 -c "import sys,json; d=json.load(sys.stdin); print([ (i['name'],[l['label'] for l in i['lines']]) for i in d['indicators']])"
+curl -s -m60 "$H/indicators/AAPL?indicators=vwap:week,ema:50" | python3 -c "import sys,json; d=json.load(sys.stdin); print([ (i['name'],[l['label'] for l in i['lines']]) for i in d['indicators']])"
+--- output ---
+== timeframe=5m&asset_class=equity
+{"indicators":["ema:9","ema:21","vwap","rsi"]}
+== timeframe=1d&asset_class=crypto
+{"indicators":["ema:50","ema:200","vwap:week","rsi"]}
+== timeframe=1d&asset_class=equity
+{"indicators":["ma","volume","rsi","macd"]}
+[('ema', ['EMA(9)']), ('ema', ['EMA(21)'])]
+[('vwap', ['VWAP (week)']), ('ema', ['EMA(50)'])]
+
+EXIT=0 (0.3s)

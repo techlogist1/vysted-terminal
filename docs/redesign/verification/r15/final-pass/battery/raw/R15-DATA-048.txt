@@ -1,0 +1,9 @@
+# R15-DATA-048 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:50:54+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in RELIANCE.NS CREST.NS AMAL.NS; do echo -n "\$ GET /fundamentals/$s roce: "; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/fundamentals/$s" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('roce'),json.dumps((d.get('field_meta') or {}).get('roce'))[:200])"; done
+--- output ---
+$ GET /fundamentals/RELIANCE.NS roce: 0.08993784539668614 {"status": "ok", "provider": "derived", "as_of": "2026-10-03T11:50:33.895851+00:00", "reason": null, "label": null, "basis_note": "annual EBIT / (total assets - current liabilities)"}
+$ GET /fundamentals/CREST.NS roce: 0.03686193809422806 {"status": "ok", "provider": "derived", "as_of": "2026-10-03T11:50:36.319561+00:00", "reason": null, "label": null, "basis_note": "annual EBIT / (total assets - current liabilities)"}
+$ GET /fundamentals/AMAL.NS roce: 0.22332467349866908 {"status": "ok", "provider": "derived", "as_of": "2026-10-03T11:50:52.078185+00:00", "reason": null, "label": null, "basis_note": "annual EBIT / (total assets - current liabilities)"}
+
+EXIT=0 (21.3s)

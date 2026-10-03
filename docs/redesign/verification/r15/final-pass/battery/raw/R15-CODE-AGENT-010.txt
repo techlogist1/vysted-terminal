@@ -1,0 +1,27 @@
+# R15-CODE-AGENT-010 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:11:33+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+ID=$(cat $B/out/run034.id); echo "run $ID: $(curl -s -m 10 "$H/runs/$ID" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('status'),d.get('usage'))")"
+for a in cancel resume start answer; do echo "--$a"; curl -s -m 10 -X POST "$H/runs/$ID/$a" -H 'content-type: application/json' -d '{"answer":"x"}' -w '\nHTTP %{http_code}\n' | cut -c1-200; done
+echo "--row after"; curl -s -m 10 "$H/runs/$ID" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('status'),d.get('usage'))"
+echo "--unknown"; curl -s -m 10 -X POST "$H/runs/nonexistent/cancel" -w '\nHTTP %{http_code}\n'
+--- output ---
+run b6070adaa669481e80858170fd4bde47: done None
+--cancel
+{"detail":"run 'b6070adaa669481e80858170fd4bde47' is done; it cannot become cancelled"}
+HTTP 409
+--resume
+{"detail":"run 'b6070adaa669481e80858170fd4bde47' is done; it cannot become running"}
+HTTP 409
+--start
+{"detail":"run 'b6070adaa669481e80858170fd4bde47' is done; it cannot become running"}
+HTTP 409
+--answer
+{"detail":"run 'b6070adaa669481e80858170fd4bde47' is done; it cannot become running"}
+HTTP 409
+--row after
+done None
+--unknown
+{"detail":"unknown run: 'nonexistent'"}
+HTTP 404
+
+EXIT=0 (0.1s)

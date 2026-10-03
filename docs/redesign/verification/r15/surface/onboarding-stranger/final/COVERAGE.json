@@ -1,0 +1,62 @@
+[
+ {
+  "id": "safety-disclaimer-flow",
+  "area": "onboarding",
+  "surface": "First-launch ToS / disclaimer flow",
+  "entry": "src/modules/safety/DisclaimerFlow.tsx:47 (FirstLaunchTosDialog), :132 (BrokerFirstConnectDialog), :228 (DisclaimerFlow)",
+  "states": [
+   "first-launch-unacked",
+   "acked",
+   "broker-first-connect-warning"
+  ],
+  "drive": "browser",
+  "notes": "GET /safety/disclaimer-status, POST /safety/disclaimer-ack. DisclaimerFlow.test.tsx exists. Gate: FIRST_LAUNCH_TOS_ACCOUNT keychain namespace (store/safety.ts:56).",
+  "driven": "partial",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/final/20-onboarding-replay.json T1 (terms dialog rendered first, onboarding held; no-brokerage + data/AI-can-be-wrong + licence text) and T2 (accept -> keychain_set app-meta:first-launch-terms, onboarding opens). Keychain-denied branch T11 still a silent dead end: attached to R15-UI-044 (blocked_tier4). broker-first-connect state removed with D81 (/safety/disclaimer-status 404, http-log B14)."
+ },
+ {
+  "id": "onboarding-flow",
+  "area": "onboarding",
+  "surface": "First-run onboarding wizard",
+  "entry": "src/components/OnboardingFlow.tsx:103",
+  "states": [
+   "welcome(:182)",
+   "cloud(:195, CloudStep :338)",
+   "local(:198, LocalStep :439)",
+   "done(:208, DoneStep :648)"
+  ],
+  "drive": "browser",
+  "notes": "LocalStep surfaces hardware-fit + Ollama recommendation. A real model pull is long-running/state-changing, not triggered.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/final/20-onboarding-replay.json T2-T8, T10 + http-log.jsonl K01-K10/U01-U05: welcome copy, Escape held, Cloud step (empty/whitespace Save disabled, Get a key -> openrouter.ai/keys, fake and trailing-space fake key -> 'That key wasn't accepted by OpenRouter', no keychain write, default stays ollama), Local step (M1 Pro 16 GB, qwen3:8b fits, Use -> ollama/qwen3:8b, DoneStep, app-meta onboarding-complete=local), relaunch stays closed, CTA open('local') lands on the local step, Skip -> onboarding-complete=skip. Ollama-down branch rendered only from a stubbed status (live pull NEEDS-GUI)."
+ },
+ {
+  "id": "onboarding-banner",
+  "area": "onboarding",
+  "surface": "First-run 'add your AI key' banner",
+  "entry": "src/components/OnboardingBanner.tsx:21",
+  "states": [
+   "hidden(probed=false OR hasAnyKey OR dismissed)",
+   "shown(no key in keychain)"
+  ],
+  "drive": "browser",
+  "notes": "Driven by real keychain probe (store/provider-keys.ts).",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/final/20-onboarding-replay.json T1 (keyless default ollama/qwen2.5:7b ready -> banner hidden), T9 (default model not pulled -> banner shown with the public-providers disclosure), T9 dismiss -> app-meta onboarding-banner-dismissed, stays hidden."
+ },
+ {
+  "id": "hardware-fit-check",
+  "area": "onboarding",
+  "surface": "Local-model hardware-fit scoring (onboarding LocalStep + Settings FitRow)",
+  "entry": "src/lib/hardware-fit.ts; src/components/SettingsPanel.tsx:680 (FitRow)",
+  "states": [
+   "fits",
+   "marginal",
+   "does-not-fit"
+  ],
+  "drive": "api",
+  "notes": "GET /system/hardware,/system/local-model-recommendation.",
+  "driven": "ok",
+  "evidence": "docs/redesign/verification/r15/surface/onboarding-stranger/final/http-log.jsonl B02/B03 (M1 Pro 16 GB, qwen3:8b/qwen2.5:7b/llama3.1:8b green; recommendation qwen3:8b ~7.8 GiB) + replay T5 rendered 'runs locally \u00b7 ~7.8 GB'. marginal state unreachable on this 16 GB machine (unchanged)."
+ }
+]

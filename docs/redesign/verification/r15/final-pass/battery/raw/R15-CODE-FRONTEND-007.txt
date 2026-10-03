@@ -1,0 +1,16 @@
+# R15-CODE-FRONTEND-007 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'P5: accept changes the lot\|a bound lot that is gone' src/lib/host-actions.test.ts; grep -n 'portfolioId' src/lib/host-actions.ts | head -8
+--- output ---
+1835:  it("P5: accept changes the lot the diff showed in portfolio A, not portfolio B's", async () => {
+1862:  it("a bound lot that is gone by accept fails honestly instead of hitting another lot", async () => {
+721:function lotOrdinal(portfolioId: string, holding: Holding): string {
+722:  const lots = (portfolioById(portfolioId)?.holdings ?? []).filter(
+863:  | { name: "portfolio_add_position"; portfolioId: string; holding: HoldingDraft; problem: string }
+866:      portfolioId: string;
+874:      portfolioId: string;
+890:  | { kind: "holding-added"; portfolioId: string; holdingId: string; symbol: string }
+891:  | { kind: "holding"; portfolioId: string; holding: Holding; index: number }
+1035:        portfolioId: activePortfolio()?.id ?? "",
+
+EXIT=0 (0.0s)

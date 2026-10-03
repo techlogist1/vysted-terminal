@@ -1,0 +1,12 @@
+# R15-LEAD-013 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:08+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p013.py 2>&1 | grep -v Warning
+--- output ---
+snapshot_date 2026-09-24 count 503
+delisted still present: []
+BXP/NVR/UDR present: {'BXP': True, 'NVR': True, 'UDR': True}
+wikipedia tickers parsed: 502
+in live not in pack: []
+in pack not in live: ['CBOE']
+
+EXIT=0 (1.3s)

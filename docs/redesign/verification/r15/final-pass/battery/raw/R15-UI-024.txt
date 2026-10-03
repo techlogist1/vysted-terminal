@@ -1,0 +1,13 @@
+# R15-UI-024 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'TaskList\|TaskItem' src/modules/notes/NotesPanel.tsx | head -4; grep -n 'Task list\|wikilink' src/modules/notes/NotesToolbar.test.tsx | head -4
+--- output ---
+33:import { TaskList, TaskItem } from "@tiptap/extension-list";
+130:      TaskList,
+131:      TaskItem.configure({ nested: true }),
+84:  it("the Task list button toggles a task list (extension is registered)", async () => {
+90:    fireEvent.click(screen.getByRole("button", { name: "Task list" }));
+95:  it("Insert [[wikilink]] WRAPS a selection instead of deleting it (repro e)", async () => {
+102:    fireEvent.click(screen.getByRole("button", { name: "Insert [[wikilink]]" }));
+
+EXIT=0 (0.0s)

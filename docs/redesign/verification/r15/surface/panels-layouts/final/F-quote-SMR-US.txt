@@ -1,0 +1,4 @@
+GET /quotes/SMR
+status=200
+---
+{"symbol":"SMR","price":7.75,"change":-0.07000000000000028,"change_percent":-0.8951406649616405,"volume":25900400.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-10-02T20:00:02Z","provider":"yfinance","freshness":"eod"}

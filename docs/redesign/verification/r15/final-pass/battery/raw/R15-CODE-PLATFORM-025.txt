@@ -1,0 +1,18 @@
+# R15-CODE-PLATFORM-025 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:14+0530
+
+$ git merge-base --is-ancestor 9985b00e HEAD && echo 'closure 9985b00e is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 9985b00e NOT an ancestor'
+[exit 0] [0.02s]
+closure 9985b00e is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-PLATFORM-025\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+docs/BLUEPRINT.md:249:5. Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)
+docs/BLUEPRINT.md:322:- Drag-drop panel layout (resize, hide; pop-out to a second window is v1.0 roadmap — R15-CODE-PLATFORM-025)
+
+
+$ grep -n -i 'multi-window\|pop-out' docs/BLUEPRINT.md | head -5
+[exit 0] [0.01s]
+249:5. Multi-tab layout (dockview, shipped); multi-window (v1.0 roadmap, deferred — R15-CODE-PLATFORM-025)
+322:- Drag-drop panel layout (resize, hide; pop-out to a second window is v1.0 roadmap — R15-CODE-PLATFORM-025)
+

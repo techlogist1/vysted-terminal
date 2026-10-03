@@ -1,0 +1,18 @@
+# R15-CODE-FRONTEND-032 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n "FRONTEND-032" src/modules/chat/ChatSidebar.test.tsx src/modules/chat/ChatSidebar.tsx src/store/proposed-changes.ts | cut -c1-200; grep -n 'rejectAllChanges' src/modules/chat/ChatSidebar.tsx | head
+--- output ---
+src/modules/chat/ChatSidebar.test.tsx:747:  it("/clear rejects a pending write_note and acks it failed (R15-CODE-FRONTEND-032)", async () => {
+src/modules/chat/ChatSidebar.test.tsx:762:  it("switching to a new chat space rejects pending proposals (R15-CODE-FRONTEND-032)", () => {
+src/modules/chat/ChatSidebar.tsx:604:  // can never apply a change reviewed against another thread (R15-CODE-FRONTEND-032).
+449:  const rejectAllChanges = useProposedChangesStore((state) => state.rejectAll);
+593:        rejectAllChanges();
+600:  }, [pendingChangeCount, acceptAllChanges, rejectAllChanges]);
+609:      rejectAllChanges();
+611:  }, [activeSpaceId, rejectAllChanges]);
+678:          rejectAllChanges();
+725:    [clearHistory, enqueueSlashChange, exportConversation, rejectAllChanges],
+762:        rejectAllChanges();
+1202:      rejectAllChanges,
+
+EXIT=0 (0.0s)

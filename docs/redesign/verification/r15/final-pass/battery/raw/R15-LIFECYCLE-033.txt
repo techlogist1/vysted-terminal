@@ -1,0 +1,13 @@
+# R15-LIFECYCLE-033 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:40+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m10 -X POST -H 'Content-Type: application/json' -d '{"weight":3.0}' -w '\nHTTP %{http_code}\n' "$H/system/provider-health/trip"; curl -s -m10 -X POST -w '\nHTTP %{http_code}\n' "$H/system/provider-health/reset"; curl -s -m10 -w '\nHTTP %{http_code}\n' "$H/system/provider-health" | head -c 300; echo
+--- output ---
+{"detail":"Not Found"}
+HTTP 404
+{"detail":"Not Found"}
+HTTP 404
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":2,"throttles_total":40.0},"fallthroughs":[]}
+HTTP 200
+
+
+EXIT=0 (0.0s)

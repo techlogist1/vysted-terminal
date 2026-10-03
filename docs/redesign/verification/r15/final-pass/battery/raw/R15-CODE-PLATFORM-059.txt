@@ -1,0 +1,11 @@
+# R15-CODE-PLATFORM-059 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'lock().unwrap().take()' src-tauri/src/*.rs; echo "if-let scrutinee form:"; grep -n 'if let Some.*lock().unwrap().take()' src-tauri/src/*.rs || echo none
+--- output ---
+src-tauri/src/lib.rs:780:                let child = state.0.lock().unwrap().take();
+src-tauri/src/openbb_mcp.rs:190:        let child = state.0.lock().unwrap().take();
+src-tauri/src/sec_edgar_mcp.rs:185:        let child = state.0.lock().unwrap().take();
+if-let scrutinee form:
+none
+
+EXIT=0 (0.0s)

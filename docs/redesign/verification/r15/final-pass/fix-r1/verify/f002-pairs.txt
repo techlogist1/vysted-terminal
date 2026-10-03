@@ -1,0 +1,21 @@
+nse 3519 bse 5072
+sample nse [('RELIANCE', ('Reliance Industries Limited', 'EQ')), ('HDFCBANK', ('HDFC Bank Limited', 'EQ'))]
+sample bse [('RELIANCE', ('Reliance Industries Ltd', 'A', '500325', 'INE002A01018')), ('HDFCBANK', ('HDFC Bank Ltd', 'A', '500180', 'INE040A01034'))]
+pairs 2471
+--- flipped (old>=.75, new<.75):
+0.45 0.83 GSTL | Globesecure Technologies Limited | Globalspace Technologies Ltd
+--- band new in [0.6,0.9):
+0.61 0.61 KALYANI | Kalyani Commercials Limited | Kalyani Cast-Tech Ltd
+0.78 0.83 21STCENMGM | 21st Century Management Services Limited | Twentyfirst Century Management Services Ltd
+0.82 0.82 SANDESH | The Sandesh Limited | Sandesh Ltd
+0.83 0.83 BOMDYEING | Bombay Dyeing & Mfg Company Limited | Bombay Dyeing & Manufacturing Company Ltd
+0.84 0.84 SHREDIGCEM | Shree Digvijay Cement Co.Ltd | Shree Digvijay Cement Company Ltd
+0.86 0.86 KAMATHOTEL | Kamat Hotels (I) Limited | Kamat Hotels (India) Ltd
+0.86 0.86 RUBYMILLS | The Ruby Mills Limited | Ruby Mills Ltd
+0.87 0.87 BERGEPAINT | Berger Paints (I) Limited | Berger Paints India Ltd
+0.87 0.87 WSI | W S Industries (I) Limited | W. S. Industries (India) Ltd
+0.88 0.88 BANCOINDIA | Banco Products (I) Limited | Banco Products (India) Ltd
+0.88 0.88 FEDERALBNK | The Federal Bank  Limited | Federal Bank Ltd
+0.89 0.89 ANDHRSUGAR | The Andhra Sugars Limited | Andhra Sugars Ltd
+0.89 0.89 INDIACEM | The India Cements Limited | India Cements Ltd
+0.90 0.90 KTKBANK | The Karnataka Bank Limited | Karnataka Bank Ltd

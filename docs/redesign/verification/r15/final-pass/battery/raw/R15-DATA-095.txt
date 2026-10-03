@@ -1,0 +1,10 @@
+# R15-DATA-095 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:10+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p095.py 2>&1 | grep -v Warning
+--- output ---
+existing db created by current module, columns: 52 False
+simulated next numeric field: ebitda_margin in _NUMERIC_FIELDS = True in _ALL_COLUMNS = True
+after _connect() on the EXISTING db: ebitda_margin present = True
+[(0,)]
+
+EXIT=0 (0.2s)

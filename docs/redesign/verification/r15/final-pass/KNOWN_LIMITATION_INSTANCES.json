@@ -1,0 +1,108 @@
+[
+ {
+  "key": "maintainer:kl-1",
+  "id": "R15-LEAD-038",
+  "scenario": "AC-6",
+  "lane": "ollama llama3.1:8b",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/AC-6/writer-auto.stdout",
+  "note": "custom:fp-writer under auto narrated a portfolio add + note as done although the tool result said dispatched_unconfirmed / do not report it as done; headless (no frontend ack); nothing applied",
+  "class_entry": "R15-LEAD-038",
+  "decisions_section": "4.12",
+  "triage": "known_limitation (final-triage)"
+ },
+ {
+  "key": "investor:kl-1",
+  "id": "R15-LEAD-037",
+  "scenario": "RS-1",
+  "lane": "ollama llama3.1:8b",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/raw/investor/rs1-ollama-deep.jsonl",
+  "note": "DEEP brief SUNRAJDI (15:16-15:22 IST, :52381): the synthesis prompt's METRIC FACTS carried market cap display '₹6.63 cr' (value 66,310,172), but the brief prints 'Market cap: ₹ 66.31 cr (basis: provider market cap)' (10x) and 'Market capitalization as of 2026-09-30: ₹ 45.25 cr [7]' cited to the fundamentals snapshot, which carries neither. The digit string 66.31 matches the raw value at a millions scale, so a value-only grounding passes it (LEAD-037 mechanism). Also 'Net profit ₹ 2.95 cr [1]' against filed EPS 0.23 x 5.33 M shares (~₹0.12 cr): unverified. The deterministic structured card still shows ₹6.63 cr.",
+  "class_entry": "R15-LEAD-037",
+  "decisions_section": "4.11",
+  "triage": "known_limitation (final-triage)"
+ },
+ {
+  "key": "investor:kl-2",
+  "id": "R15-LEAD-030",
+  "scenario": "RS-1",
+  "lane": "ollama llama3.1:8b",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/raw/investor/rs1-ollama-normal.jsonl",
+  "note": "FAST brief SUNRAJDI (15:15 IST): the answer says 'The brief also contains news articles related to the company' while structured.news.data is [] (and fundamentals was dropped on timeout). A content claim with no ok tool result behind it, not a figure.",
+  "triage": "refuted by final-triage: no figure, outside the R4 class; R1b model prose (see TRIAGE.md)"
+ },
+ {
+  "key": "investor:kl-3",
+  "id": "R15-LEAD-030",
+  "scenario": "DS-3",
+  "lane": "ollama llama3.1:8b",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/raw/investor/kpit-ollama.log",
+  "note": "FAST research KPIT (15:11 IST): resolve gave KPITTECH (NSE) cleanly, yet the answer invents an ambiguity: 'Do you want to research KPIT Technologies, a US-listed company or KPITTECH, an Indian listed company on NSE?' plus an unrelated candidate list (BSOFT, EXATO, IKOMA, ELNET, EMIAC). No tool result names a US listing.",
+  "triage": "refuted by final-triage: no figure, outside the R4 class; R1b model prose (see TRIAGE.md)"
+ },
+ {
+  "key": "investor:kl-4",
+  "id": "R15-LEAD-030",
+  "scenario": "AC-1",
+  "lane": "ollama llama3.1:8b",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/raw/investor/ac1/ac1-ollama-p4-conflict.log",
+  "note": "corporate_announcements('AMAL LTD') returned ok:true, yet the model replied it 'couldn't retrieve' them and that Amal 'is not part of the NSE/BSE exchange' (Amal Ltd is BSE/NSE-listed); claim with no tool result behind it. Insider-claim handling itself was correctly cautious.",
+  "triage": "refuted by final-triage: no figure, outside the R4 class; R1b model prose (see TRIAGE.md)"
+ },
+ {
+  "key": "drive-research-briefs:kl-1",
+  "id": "R15-LEAD-030",
+  "scenario": "drive:research-briefs FAST (Sonata)",
+  "lane": "ollama llama3.1:8b",
+  "evidence_file": "docs/redesign/verification/r15/surface/research-briefs/final/02-normal-sonata-llama-keptprev.stdout.txt",
+  "note": "Chat stated 'market cap Rs 1.14 crore (~$143M)' while the fundamentals leg timed out and market_cap was None; figure with no ok tool call behind it.",
+  "class_entry": "R15-LEAD-030",
+  "decisions_section": "4.9",
+  "triage": "known_limitation (final-triage)"
+ },
+ {
+  "key": "drive-screener:kl-1",
+  "id": "R15-LEAD-030",
+  "class_entry": "R15-LEAD-030",
+  "decisions_section": "4.9",
+  "scenario": "drive:screener agent-authored screen",
+  "lane": "ollama llama3.1:8b",
+  "prompt": "Set up a screener on the NSE full market: P/E below 20, ROE above 15% and debt to equity under 0.5, then run it.",
+  "evidence_file": "docs/redesign/verification/r15/surface/screener/final/40-agent-screen-llama.stdout.txt",
+  "note": "Only call was write_screener_filters (staged under ask, ok:true); no screener_run. Chat then stated '15 stocks matched' and market caps (RELIANCE Rs 6.31T vs Rs 15.8T served) with no ok tool call behind them. Chat prose only; the panel, on accept, renders the true run (41-agent-tooluse-accept-replay.json: 536 matched).",
+  "triage": "known_limitation (final-triage)"
+ },
+ {
+  "key": "drive-composer-chat:kl-1",
+  "id": "R15-LEAD-037",
+  "class_entry": "R15-LEAD-037",
+  "decisions_section": "4.11",
+  "scenario": "composer-chat t2 compare",
+  "lane": "ollama llama3.1:8b",
+  "prompt": "How does it compare with Mazagon Dock on valuation — which one is cheaper?",
+  "evidence_file": "docs/redesign/verification/r15/surface/composer-chat/final/12-t2-compare.json",
+  "note": "compare_symbols(['MDL.NS','IBULHSGFIN.NS']) ok but for the wrong companies; reply labels 132.48 (SAMMAANCAP) as Cochin and 64.9 (Marvel Decor) as Mazagon, mcaps 15,232/7,632 cr; real Cochin 1287 / 33,858 cr (13-t2-readback.txt). No ok call for either named subject.",
+  "triage": "known_limitation (final-triage)"
+ },
+ {
+  "key": "drive-composer-chat:kl-2",
+  "id": "R15-LEAD-030",
+  "class_entry": "R15-LEAD-030",
+  "decisions_section": "4.9",
+  "scenario": "composer-chat ASK chart",
+  "lane": "ollama llama3.1:8b",
+  "prompt": "Pull up Bharat Dynamics on the chart and add the RSI indicator",
+  "evidence_file": "docs/redesign/verification/r15/surface/composer-chat/final/23-ask-chart.json",
+  "note": "Only set_chart_symbol/set_chart_indicators (staged). Reply prints 'Price: 130.60, RSI (14): 40.23, P/E 6.32, Dividend Yield 2.12%' and 'a PSU under MDL'; real BDL 1087.9 (shared :52800 /quotes/BDL.NS). Model adds a 'knowledge cutoff' disclaimer; no errored call in the turn, so the fail-safe does not fire.",
+  "triage": "known_limitation (final-triage)"
+ },
+ {
+  "key": "battery1-known-limitation-agent033-bdl-figures",
+  "class_entry": "R15-LEAD-030",
+  "decisions_section": "4.9",
+  "lane": "ollama llama3.1:8b",
+  "prompt": "battery:1 AGENT-033 ASK chart prompt (Bharat Dynamics)",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/battery/raw/R15-AGENT-033.txt",
+  "note": "BDL price/market cap/P/E/50-day MA printed with no tool call behind them; staging notice fired correctly",
+  "triage": "known_limitation (final-triage)"
+ }
+]

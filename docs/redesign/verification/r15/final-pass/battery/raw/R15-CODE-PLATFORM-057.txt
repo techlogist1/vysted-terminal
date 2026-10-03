@@ -1,0 +1,13 @@
+# R15-CODE-PLATFORM-057 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:04+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'on_wait\|WAITING_EVENT\|fn on_wait_called_before_sleep\|MIGRATE_SELF_DISMISS_WAIT_SECS' src-tauri/src/keychain.rs | head
+--- output ---
+244:    const MIGRATE_SELF_DISMISS_WAIT_SECS: u64 = 140;
+248:    pub const WAITING_EVENT: &str = "keychain-migrate:waiting";
+267:                let _ = app.emit(WAITING_EVENT, secs);
+320:                MIGRATE_SELF_DISMISS_WAIT_SECS
+322:            wait(MIGRATE_SELF_DISMISS_WAIT_SECS);
+526:        fn on_wait_called_before_sleep() {
+
+EXIT=0 (0.0s)

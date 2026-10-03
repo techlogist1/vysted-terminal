@@ -1,0 +1,12 @@
+# R15-CODE-DATA-004 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:37+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for r in IN US none; do echo -n "region $r: "; if [ $r = none ]; then curl -s -m 20 "$H/screener/default-universe"; else curl -s -m 20 -H "X-Vysted-Region: $r" "$H/screener/default-universe"; fi; echo; done; grep -n 'default-universe\|universeChosen' "$C/src/store/screener.ts" | head -3
+--- output ---
+region IN: {"universe":"nifty50"}
+region US: {"universe":"sp500"}
+region none: {"universe":"nifty50"}
+161:  universeChosen: boolean;
+298:  universeChosen: false,
+317:  setUniverse: (id) => set({ universe: id, universeChosen: true }),
+
+EXIT=0 (0.1s)

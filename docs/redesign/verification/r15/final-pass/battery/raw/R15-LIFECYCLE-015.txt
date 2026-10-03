@@ -1,0 +1,10 @@
+# R15-LIFECYCLE-015 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:33+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/probe40.py 015 2>&1 | grep -v -i warning
+--- output ---
+newest-first: True
+after restart list newest-first: True get(oldest) found: True
+files 3
+after 39 runs, get(oldest) still found: True
+
+EXIT=0 (0.2s)

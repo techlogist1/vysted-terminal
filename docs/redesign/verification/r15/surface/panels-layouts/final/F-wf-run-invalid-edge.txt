@@ -1,0 +1,8 @@
+POST(SSE) /workflow/run
+status=200
+{"spec": {"id": "wf-r15-panels", "name": "R15 quote->compare", "version": 1, "updatedAt": 1790133114888, "nodes": [{"id": "q", "type": "data.fetch_quote", "position": {"x": 0, "y": 0}, "config": {"symbol": "RELIANCE"}}, {"id": "j", "type": "transform.json_path", "position": {"x": 200, "y": 0}, "config": {"path": "price"}}, {"id": "c", "type": "logic.compare", "position": {"x": 400, "y": 0}, "config": {"op": "gt", "b": 1000}}], "edges": [{"id": "e1", "sourceNode": "q", "sourcePort": "quote", "targetNode": "j", "targetPort": "input"}, {"id": "e2", "sourceNode": "j", "sourcePort": "value", "targetNode": "c", "targetPort": "a"}, {"id": "e3", "sourceNode": "zzz", "sourcePort": "x", "targetNode": "c", "targetPort": "b"}]}, "inputs": {}}
+---
+data: {"kind":"run-start","runId":"030c9760-59e2-494e-a36d-bf8151c042b0","startedAt":1791025544919}
+
+data: {"kind":"run-error","runId":"030c9760-59e2-494e-a36d-bf8151c042b0","message":"edge e3 references unknown source node 'zzz'","durationMs":0.0}
+

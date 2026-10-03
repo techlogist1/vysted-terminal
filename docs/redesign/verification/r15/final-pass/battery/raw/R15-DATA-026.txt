@@ -1,0 +1,8 @@
+# R15-DATA-026 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:27:31+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 100 -H 'X-Vysted-Region: IN' "$H/fundamentals/DHANBANK/income?period=quarterly" | python3 -c "import sys,json;d=json.load(sys.stdin);print(list(d.keys()));print(d.get('periods'))"
+--- output ---
+['symbol', 'periods', 'lines', 'provider', 'gaps']
+['2026-06-30', '2026-03-31', '2025-12-31', '2025-09-30', '2025-06-30', '2025-03-31']
+
+EXIT=0 (0.2s)

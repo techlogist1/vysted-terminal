@@ -1,0 +1,10 @@
+# R15-UI-086 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:55+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'R15-UI-086' src/components/CommandPalette.test.tsx; grep -n '<kbd' src/components/CommandPalette.tsx | head -4
+--- output ---
+170:  it("an action row shows its current (remapped) chord as a <kbd> (R15-UI-086)", () => {
+436:      <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control border px-1 py-0.5">
+475:        <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control shrink-0 border px-1 py-0.5">
+
+EXIT=0 (0.0s)

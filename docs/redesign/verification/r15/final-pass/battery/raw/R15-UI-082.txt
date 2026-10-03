@@ -1,0 +1,11 @@
+# R15-UI-082 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:26:30+0530
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-5853128959122284772.json 'http://127.0.0.1:52861/workspace' | head -c 600
+[exit 0] [0.01s]
+{"status":"saved","name":"मेरा लेआउट"}
+[http 200 0.002200s]
+
+$ curl -s -m 100 -w '\n[http %{http_code} %{time_total}s]' -X POST -H 'Content-Type: application/json' -H 'X-Vysted-Region: US' --data @/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/body-703571656578149588.json 'http://127.0.0.1:52861/workspace' | head -c 600
+[exit 0] [0.01s]
+{"detail":"Workspace name 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' is too long to save (260 bytes when encoded, max 200)."}
+[http 400 0.001060s]

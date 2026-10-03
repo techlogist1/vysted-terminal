@@ -1,0 +1,19 @@
+# R15-CODE-PLATFORM-062 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:22+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- _httpGetOk scripts/smoke-test-sidecars.test.mjs | head -3; test -f scripts/smoke-test-sidecars.test.mjs || echo 'MISSING scripts/smoke-test-sidecars.test.mjs'
+[exit 0] [0.01s]
+9:const { _httpGetOk, _STATE_DIR, _scopedOrphanPreflight, _shouldProbeExchanges } =
+24:describe("_httpGetOk (R15-CODE-PLATFORM-062)", () => {
+36:    const notFound = await _httpGetOk("https://example.invalid/a");
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-PLATFORM-062\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+scripts/smoke-test-sidecars.mjs:404: * server at all" (R15-CODE-PLATFORM-062) — a 404 and an offline host are
+scripts/smoke-test-sidecars.test.mjs:24:describe("_httpGetOk (R15-CODE-PLATFORM-062)", () => {
+

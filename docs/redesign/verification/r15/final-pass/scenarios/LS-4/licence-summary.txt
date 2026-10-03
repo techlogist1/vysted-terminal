@@ -1,0 +1,6 @@
+closure 124 not_installed []
+copyleft/restrictive-looking: 1
+   ('frozendict', '2.4.7', 'LGPL v3 OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)')
+no licence metadata: 2
+   ('fredapi', '0.5.2')
+   ('peewee', '4.5.2')

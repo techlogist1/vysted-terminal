@@ -1,0 +1,8 @@
+# R15-CODE-PLATFORM-037 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:37+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'CODE-PLATFORM-037' src/modules/chat/streaming.test.ts src/modules/chat/streaming.ts | cut -c1-200
+--- output ---
+src/modules/chat/streaming.test.ts:314:// ── One terminal callback per stream call (R15-AGENT-029 / CODE-PLATFORM-037 / LIFECYCLE-005) ──
+src/modules/chat/streaming.ts:375: *  relabelled a malformed frame (R15-CODE-PLATFORM-037). */
+
+EXIT=0 (0.0s)

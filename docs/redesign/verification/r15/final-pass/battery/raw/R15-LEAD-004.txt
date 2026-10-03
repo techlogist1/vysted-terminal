@@ -1,0 +1,33 @@
+# R15-LEAD-004 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:19:43+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/fundamentals/NDTV' | grep -oE 'half-yearly[^"]*|quarter of the trailing[^"]*|"revenue_ttm"[^,]*|\[http.*'
+[exit 0] [16.26s]
+"revenue_ttm":5378679808.0
+"revenue_ttm":{"status":"flagged"
+quarter of the trailing year unfiled or unparsed; kept, flagged
+quarter of the trailing year unfiled or unparsed; kept, flagged
+[http 200 16.244412s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/fundamentals/JONJUA' | grep -oE 'half-yearly[^"]*|quarter of the trailing[^"]*|"revenue_ttm"[^,]*|\[http.*'
+[exit 0] [4.41s]
+"revenue_ttm":239033504.0
+"revenue_ttm":{"status":"flagged"
+quarter of the trailing year unfiled or unparsed; kept, flagged
+quarter of the trailing year unfiled or unparsed; kept, flagged
+[http 200 4.392617s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/fundamentals/TCS.NS' | grep -oE 'half-yearly[^"]*|quarter of the trailing[^"]*|"revenue_ttm"[^,]*|\[http.*'
+[exit 0] [16.50s]
+"revenue_ttm":2758590000000.0
+"revenue_ttm":{"status":"ok"
+[http 200 16.479845s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/fundamentals/DHANBANK' | grep -oE 'half-yearly[^"]*|quarter of the trailing[^"]*|"revenue_ttm"[^,]*|\[http.*'
+[exit 0] [2.13s]
+"revenue_ttm":18710600000.0
+"revenue_ttm":{"status":"ok"
+[http 200 2.111759s]
+

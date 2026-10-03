@@ -1,0 +1,20 @@
+# R15-DOCS-018 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:46:45+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+sed -n '/^### 3.3/,/^### 3.4/p' docs/CURRENT_STATE.md | grep -n -i 'nse_direct\|jugaad\|bse\|preference\|asset class\|yfinance' | head -12; curl -s -m 30 "$H/health" | python3 -c "import sys,json;print(json.load(sys.stdin)['providers'].get('quote'))"
+--- output ---
+5:installed providers in **preference order** until one succeeds — `asset_class`
+7:`ProviderDeclaration` table — id, model-keys served, preference rank,
+10:hand-maintained). `get_quote`/`get_history` stay **synchronous** (ccxt/yfinance
+13:preference-order fallthrough. For region `IN`, three keyless providers
+14:outrank the broad default on `quote`/`ohlcv`: `nse_direct` (rank 15,
+16:jugaad-data), `bse` (rank 25, the micro-cap EOD default for groups NSE never
+17:listed) — IN fundamentals still fall through to yfinance (no region-scoped
+20:- **`yfinance_provider.py`** — the no-key default for equities, region-gated:
+21:  for `IN` requests `nse_direct`/`nse`/`bse` (ranks 15/20/25) all rank ahead
+24:  `BRK-B` rewrite; **dividend-yield divided by 100** (yfinance 1.3.0 returns a
+40:- **`earnings_provider.py`** — yfinance calendar/estimates/surprises. Fiscal
+43:- **`analyst_ratings_extended.py`** — yfinance has **no individual-analyst
+ccxt (nse_direct fallback; nse, bse, yfinance failing)
+
+EXIT=0 (0.0s)

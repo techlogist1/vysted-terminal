@@ -1,0 +1,18 @@
+# R15-AGENT-063 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:14:06+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p22_063.py 2>&1 | grep -v Warning; "$IP" $B/sc/p22_063c.py 2>&1 | grep -v Warning; echo '$ live /news?symbols=BTC/USDT,ETH/USDT'; curl -s -m60 "$H/news?symbols=BTC/USDT,ETH/USDT&limit=10" | python3 -c "import sys,json; d=json.load(sys.stdin); d=d if isinstance(d,list) else d.get('items',d); print(len(d)); [print(x['title'][:80],x['symbols'],x['sentiment_label']) for x in d[:8]]"
+--- output ---
+(*, id: str, title: str, summary: str | None = None, url: str, source: str, published_at: datetime.datetime | None, symbols: list[str] = [], sentiment: float | None = None, sentiment_label: str | None = None, provider: str, via_symbol_feed: bool = False) -> None
+BTC/USDT {'BTC/USDT': ['BTC/USDT', 'BTC', 'bitcoin']}
+ETH/USDT {'ETH/USDT': ['ETH/USDT', 'ETH', 'ethereum']}
+SOL/USDT {'SOL/USDT': ['SOL/USDT', 'SOL', 'solana']}
+DOGE {'DOGE': ['DOGE']}
+'Bitcoin options expiry looms' ['BTC/USDT'] -0.1531 negative
+'Ethereum ETF inflows surge' ['ETH/USDT'] 0.0 neutral
+'Solana outage hits validators' ['SOL/USDT'] 0.0 neutral
+$ live /news?symbols=BTC/USDT,ETH/USDT
+2
+Bitcoin holds near $84,000, Ethereum moves towards $2,700 as buyers remain activ ['BTC/USDT', 'ETH/USDT'] positive
+Bitcoin leads crypto market rebound above $85K as short liquidations accelerate ['BTC/USDT', 'ETH/USDT'] positive
+
+EXIT=0 (3.1s)

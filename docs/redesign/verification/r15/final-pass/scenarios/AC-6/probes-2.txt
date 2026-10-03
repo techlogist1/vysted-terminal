@@ -1,0 +1,17 @@
+### create id=copilot1
+{"detail":[{"type":"value_error","loc":["body","id"],"msg":"Value error, custom-agent id must start with 'custom:' (got 'copilot1')","input":"copilot1","ctx":{"error":{}}}]} HTTP 422
+### create id=researcher
+{"detail":[{"type":"value_error","loc":["body","id"],"msg":"Value error, custom-agent id must start with 'custom:' (got 'researcher')","input":"researcher","ctx":{"error":{}}}]} HTTP 422
+### create id=custom:../../x
+{"id":"custom:../../x","name":"FP","philosophy":"x","system_prompt":"s","tools":["price_data"],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1791020756,"updated_at":1791020756} HTTP 201
+### create id=custom:copilot
+{"id":"custom:copilot","name":"FP","philosophy":"x","system_prompt":"s","tools":["price_data"],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1791020757,"updated_at":1791020757} HTTP 201
+### create id=custom:fp-writer
+{"detail":"custom agent 'custom:fp-writer' already exists"} HTTP 409
+roster ['buffett', 'copilot', 'dalio', 'druckenmiller', 'graham', 'klarman', 'lynch', 'marks', 'munger', 'portfolio_advisor', 'researcher', 'soros', 'strategy_critic']
+### GET encoded
+{"id":"custom:../../x","name":"FP","philosophy":"x","system_prompt":"s","tools":["price_data"],"default_provider":"ollama","default_model":"llama3.1:8b","icon":null,"created_at":1791020756,"updated_at
+### DELETE encoded
+ HTTP 204
+### list
+['custom:copilot', 'custom:fp-extra', 'custom:fp-writer']

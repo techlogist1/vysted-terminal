@@ -1,0 +1,10 @@
+# R15-AGENT-073 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:21+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p22_073.py 2>&1 | grep -v Warning
+--- output ---
+spec ollama qwen2.5:7b
+anthropic override no model -> claude-opus-4-8 | registry claude-opus-4-8
+ollama same provider -> qwen2.5:7b
+unknown prov -> ValueError no default model for provider 'nosuchprov'; pass a model
+
+EXIT=0 (1.7s)

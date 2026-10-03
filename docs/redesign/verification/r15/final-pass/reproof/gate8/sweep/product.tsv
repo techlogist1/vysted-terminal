@@ -1,0 +1,3 @@
+root	class	path	line	reason	text
+docs	product	docs/RELEASE_RUNBOOK.md	648	REVIEW	lists `plugins/brokers`, `plugins/tradesa-v2`, `sidecar/services/broker_base.py`,
+docs	product	docs/RELEASE_RUNBOOK.md	649	REVIEW	`sidecar/services/brokers` and `sidecar/services/kill_switch.py`. They are also licensed

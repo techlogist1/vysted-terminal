@@ -1,0 +1,56 @@
+# R15-AGENT-087 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:08+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ test -e src/store/agent-mode.test.ts && echo 'present src/store/agent-mode.test.ts' && grep -c 'test\|it(' src/store/agent-mode.test.ts || echo 'MISSING src/store/agent-mode.test.ts'
+[exit 0] [0.00s]
+present src/store/agent-mode.test.ts
+4
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-AGENT-087\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+
+
+$ grep -rn 'alt+1\|Ask/Edit/Build\|four modes' src/store/agent-mode.ts specs | cut -c1-220 | head -8; echo "stale-mode hits: $(grep -rn 'alt+1\|Ask/Edit/Build' src/store/agent-mode.ts specs | wc -l)"
+[exit 0] [0.01s]
+src/store/agent-mode.ts:3: * (FR-003; see REBUILD_SPEC.md:179 for the collapse from the old four modes).
+specs/001-agent-native-redesign/spec.md:1112:- **Agent Run** — an invocation with a mode (Ask/Edit/Build/Delegate), a context snapshot, a
+specs/001-agent-native-redesign/spec.md:1434:- **SC-029** Model swap preserves context on every path; Enter sends in every composer; one mode system — the two-mode + autonomy-axis spine (`REBUILD_SPEC.md:179`), not the o
+stale-mode hits:        1
+
+
+$ sed -n '1,25p' src/store/agent-mode.ts
+[exit 0] [0.00s]
+/**
+ * Agent-mode store — the current two-mode intent + autonomy-axis model
+ * (FR-003; see REBUILD_SPEC.md:179 for the collapse from the old four modes).
+ *
+ * Holds the active mode (Agent / Delegate, `types/agent-modes.ts`). Mode is
+ * shown in the agent surface and switchable by keyboard (⌥1–⌥2). It rides the
+ * workspace blob so a cockpit reopens in the mode the user left it in. Read vs
+ * edit vs build is an inferred intent within "Agent" mode, classified and
+ * gated server-side (`classify_intent` in the sidecar); autonomy (ask/auto) is
+ * the orthogonal "how much confirmation" axis. This store is the frontend's
+ * display + dispatch state for mode only.
+ */
+
+import { create } from "zustand";
+
+import { DEFAULT_AGENT_MODE, isAgentMode, type AgentMode } from "../../types/agent-modes";
+
+interface AgentModeState {
+  mode: AgentMode;
+  setMode: (mode: AgentMode) => void;
+}
+
+export const useAgentModeStore = create<AgentModeState>((set) => ({
+  mode: DEFAULT_AGENT_MODE,
+  setMode: (mode) => set({ mode: isAgentMode(mode) ? mode : DEFAULT_AGENT_MODE }),
+
+
+$ (follow-up) grep -rn 'Ask/Edit/Build' specs
+specs/001-agent-native-redesign/spec.md:1112:- **Agent Run** — an invocation with a mode (Ask/Edit/Build/Delegate), a context snapshot, a

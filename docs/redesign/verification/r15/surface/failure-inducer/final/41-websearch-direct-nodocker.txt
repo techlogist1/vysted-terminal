@@ -1,0 +1,2 @@
+{"case": "0:dead_custom_url_127.0.0.1:9", "secs": 0.9, "result": {"ok": true, "backend": "keyless-fallback", "query": "Kaynes Technology India news", "n_results": 5}}
+{"case": "1:no_custom_url_nodocker_keyless", "secs": 12.0, "result": {"ok": false, "query": "Kaynes Technology India news", "message": "keyless web search has no engine available right now \u2014 DuckDuckGo: unreachable; Brave: rate-limiting; Mojeek: rate-limiting. Wait a moment and retry, or add an Exa key / local SearXNG for a dedicated route.", "reason": "rate_limited", "n_results": 0}}

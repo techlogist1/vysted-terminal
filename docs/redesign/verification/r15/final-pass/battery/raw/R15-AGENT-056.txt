@@ -1,0 +1,14 @@
+# R15-AGENT-056 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'R15-AGENT-056\|"arrange_layout", { pattern: "default" }' src/lib/host-actions.test.ts | head; grep -n 'Reset the panel arrangement' src/lib/host-actions.ts; grep -n 'resetToDefaultLayout' src/store/workspace.ts | head -3
+--- output ---
+102:    const reset = describeHostAction("arrange_layout", { pattern: "default" });
+113:    expect(applyHostAction("arrange_layout", { pattern: "default" })).toMatch(/default/i);
+1929:describe("arrange_layout's default is a layout-only reset (R15-AGENT-056)", () => {
+2016:    expect(applyHostAction("arrange_layout", { pattern: "default" })).toMatch(/default/i);
+1302:        title: "Reset the panel arrangement (drawings and modules kept)",
+1723:      return done("Reset the panel arrangement to the default (drawings and modules kept)");
+92:  resetToDefaultLayout: () => void;
+182:  resetToDefaultLayout: () => {
+
+EXIT=0 (0.0s)

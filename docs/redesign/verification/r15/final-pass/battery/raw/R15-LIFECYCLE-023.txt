@@ -1,0 +1,14 @@
+# R15-LIFECYCLE-023 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:35+0530
+
+$ git merge-base --is-ancestor 68bb7aa4 HEAD && echo 'closure 68bb7aa4 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 68bb7aa4 NOT an ancestor'
+[exit 0] [0.02s]
+closure 68bb7aa4 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-LIFECYCLE-023\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/main.tsx:20: *  (R15-LIFECYCLE-023). Outside the Tauri shell the invoke fails: console only. */
+src/components/PanelHost.test.tsx:108: * R15-LIFECYCLE-023: PanelHost hands dockview a component map in which every
+src/components/PanelHost.tsx:27: * Keeps one panel's render throw inside that panel (R15-LIFECYCLE-023): without
+src-tauri/src/lib.rs:521:/// Append one renderer line (a React render error, R15-LIFECYCLE-023) to the
+

@@ -1,0 +1,8 @@
+# R15-UI-036 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n -E 'R15-UI-036' src/modules/portfolio/PortfolioPanel.test.tsx src/modules/portfolio/PortfolioPanel.tsx | cut -c1-200
+--- output ---
+src/modules/portfolio/PortfolioPanel.test.tsx:213:  it("refreshes quotes on the Watchlist interval and dates the totals by the oldest quote (R15-UI-036)", async () => {
+src/modules/portfolio/PortfolioPanel.tsx:245:  // Prices refresh on the Watchlist's cadence (R15-UI-036) — a portfolio left
+
+EXIT=0 (0.0s)

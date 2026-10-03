@@ -1,0 +1,57 @@
+# R15-AGENT-050 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:23:09+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py/R15-AGENT-050.py 2>&1 | grep -v "^WARNING\|DEBUG" | tail -c 9000
+[exit 0] [0.93s]
+(messages: 'list[LLMMessage]') -> 'tuple[list[dict[str, Any]] | None, list[dict[str, Any]]]'
+def _split_system_and_messages(
+    messages: list[LLMMessage],
+) -> tuple[list[dict[str, Any]] | None, list[dict[str, Any]]]:
+    """Pull system messages out as ``system`` blocks and convert the rest.
+
+    Anthropic uses a top-level ``system`` parameter, not a ``"system"`` role
+    inside the messages list. Each system message is its own text block so
+    the stable first one (the agent's persona and capabilities) carries a
+    cache breakpoint and the per-turn date and terminal preamble after it
+    never invalidate it (R15-AGENT-050). A second breakpoint sits on the last
+    tool result, so each tool round reads the previous rounds from cache.
+    """
+    system_blocks: list[dict[str, Any]] = []
+    rest: list[dict[str, Any]] = []
+    for message in messages:
+        if message.role == "system":
+            if message.content:  # the API rejects an empty text block
+                system_blocks.append({"type": "text", "text": message.content})
+            continue
+        if message.role == "tool":
+            # Anthropic tool results are a content block, not a top-level role.
+            block = {
+                "type": "tool_result",
+                "tool_use_id": message.tool_call_id or "",
+                "content": message.content,
+            }
+            # Parallel calls: every result of one call turn rides ONE user
+            # message; one message per result teaches Claude to stop calling
+            # tools in parallel (Anthropic's parallel tool use guidance).
+            if rest and _is_tool_result_turn(rest[-1]):
+                rest[-1]["content"].append(block)
+            else:
+                rest.append({"role": "user", "content": [block]})
+            continue
+        if message.role == "assistant" and message.metadata and message.metadata.get("tool_calls"):
+            # Reconstruct the assistant tool_use turn so the following
+            # tool_result blocks associate by id (runtime carries the calls in
+            # metadata).
+            blocks: list[dict[str, Any]] = []
+            if message.content:
+                blocks.append({"type": "text", "text": message.content})
+            for tc in message.metadata["tool_calls"]:
+                blocks.append(
+                    {
+                        "type": "tool_use",
+                        "id": tc.get("id", ""),
+                        "name": tc.get("name", ""),
+                        "input": tc.get("input", {}),
+                    }
+                )
+            rest.
+

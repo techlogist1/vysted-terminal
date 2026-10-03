@@ -1,0 +1,11 @@
+# R15-DATA-107 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:07+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b13_scr.py 107 2>&1 | grep -v Warning
+--- output ---
+MAZDOCK {'exchange': 'NSE', 'scrip_code': '543237', 'isin': 'INE249Z01020', 'name': 'Mazagon Dock Shipbuilders Limited', 'group': 'A'}
+MAZDOCK.NS {'exchange': 'NSE', 'scrip_code': '543237', 'isin': 'INE249Z01020', 'name': 'Mazagon Dock Shipbuilders Limited', 'group': 'A'}
+RELIANCE.BO {'exchange': 'BSE', 'scrip_code': '500325', 'isin': 'INE002A01018', 'name': 'Reliance Industries Ltd', 'group': 'A'}
+543237 None
+_bse_lookup value type: _BseRow
+
+EXIT=0 (0.2s)

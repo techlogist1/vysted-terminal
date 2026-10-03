@@ -1,0 +1,9 @@
+# R15-LEAD-026 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:10+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in ZZQXNOTASYM QQZZFAKE.NS SPY; do echo -n "/history/$s: "; curl -s -m 100 -w ' HTTP=%{http_code}' "$H/history/$s" -o /tmp/fb2l.json; python3 -c "import json;d=json.load(open('/tmp/fb2l.json'));print(' bars',len(d.get('bars') or []),'provider',d.get('provider'),'reason',d.get('reason'))"; done
+--- output ---
+/history/ZZQXNOTASYM:  HTTP=200 bars 0 provider none reason unknown_symbol
+/history/QQZZFAKE.NS:  HTTP=200 bars 0 provider none reason None
+/history/SPY:  HTTP=200 bars 251 provider yfinance reason None
+
+EXIT=0 (5.4s)

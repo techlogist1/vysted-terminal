@@ -1,0 +1,49 @@
+=== /health
+{"status":"ok","service":"vysted-sidecar","version":"0.9.0","providers":{"analyst_rating":"openbb-mcp (yfinance fallback)","balance_sheet":"openbb-mcp (yfinance fallback)","cash_flow":"openbb-mcp (yfinance fallback)","fundamentals":"openbb-mcp (yfinance fallback)","income_statement":"openbb-mcp (yfinance fallback)","macro_series":"openbb-mcp","ohlcv":"ccxt (nse_direct, nse, bse, yfinance fallback)","quote":"ccxt (nse_direct, nse, bse, yfinance fallback)","openbb-mcp":"available"},"agents_degraded":[]}
+HTTP:200 0.010082s
+=== /history/AAPL?timeframe=1d&range=1mo
+{"detail":"Could not reach the data provider — check your internet connection.","code":"network","action":"Retry once you are back online."}
+HTTP:503 0.044971s
+=== /history/MSFT?timeframe=1d&range=1mo
+{"detail":"Could not reach the data provider — check your internet connection.","code":"network","action":"Retry once you are back online."}
+HTTP:503 0.002409s
+=== /quotes/AAPL
+{"detail":"Could not reach the data provider — check your internet connection.","code":"network","action":"Retry once you are back online."}
+HTTP:503 0.003797s
+=== /quotes/%20%20%20
+{"detail":"Could not reach the data provider — check your internet connection.","code":"network","action":"Retry once you are back online."}
+HTTP:503 0.003398s
+=== /quotes/%24%24%24
+{"detail":"Could not reach the data provider — check your internet connection.","code":"network","action":"Retry once you are back online."}
+HTTP:503 0.005548s
+=== /quotes?symbols=RELIANCE,TCS,AAPL
+[{"symbol":"RELIANCE","price":1167.7,"change":-19.299999999999955,"change_percent":-1.6259477674810408,"volume":16771221.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"nse","freshness":"eod"},{"symbol":"TCS","price":2075.0,"change":24.40000000000009,"change_percent":1.1898956403004044,"volume":3428501.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"nse","freshness":"eod"}]
+HTTP:200 8.642871s
+=== /fundamentals/TCS
+{"symbol":"TCS.NS","name":"Tata Consultancy Services Limited","sector":"Technology","industry":"Information Technology Services","sector_source":null,"currency":null,"financial_currency":null,"ratio_price":null,"market_cap":7507531530240.0,"pe_ratio":15.08323,"forward_pe":12.80243,"peg_ratio":2.71,"price_to_book":6.8478684,"price_to_sales":null,"ev_to_ebitda":null,"book_value":null,"dividend_yield":0.0313,"dividend_per_share":null,"eps":null,"beta":0.166,"fifty_two_week_high":null,"fifty_two_week_low":null,"fifty_two_week_change":null,"fifty_two_week_high_date":null,"fifty_two_week_low_date":null,"listing_date":null,"first_trade_date":null,"forward_pe_fiscal_year":null,"roe":null,"roa":null,
+HTTP:200 5.056224s
+=== /fundamentals/AAPL
+{"symbol":"AAPL","name":"Apple Inc.","sector":"Technology","industry":"Consumer Electronics","sector_source":null,"currency":null,"financial_currency":null,"ratio_price":null,"market_cap":4869931925504.0,"pe_ratio":38.31114,"forward_pe":34.821583,"peg_ratio":2.64,"price_to_book":45.338314,"price_to_sales":null,"ev_to_ebitda":null,"book_value":null,"dividend_yield":0.0032,"dividend_per_share":null,"eps":null,"beta":1.085,"fifty_two_week_high":null,"fifty_two_week_low":null,"fifty_two_week_change":null,"fifty_two_week_high_date":null,"fifty_two_week_low_date":null,"listing_date":null,"first_trade_date":null,"forward_pe_fiscal_year":null,"roe":null,"roa":null,"gross_margin":null,"operating_marg
+HTTP:200 0.763735s
+=== /news
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP:502 0.759421s
+=== /news?symbols=AAPL&limit=3
+{"detail":"The data provider returned an unexpected response.","code":"provider_error","action":"Retry, or try again later."}
+HTTP:502 0.763073s
+=== /indicators/AAPL?indicators=rsi
+{"detail":"Could not reach the data provider — check your internet connection.","code":"network","action":"Retry once you are back online."}
+HTTP:503 0.004248s
+=== /macro/GDP
+{"detail":"provider is required for a series id"}
+HTTP:422 0.001137s
+=== /earnings/AAPL/history
+{"symbol":"AAPL","history":[],"as_of":"2026-10-03T11:33:54.858197Z"}
+HTTP:200 0.002459s
+=== /search/status
+{"tier":"t1_keyless","available":true,"engines":[{"id":"ddg","label":"DuckDuckGo","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":3.0,"detail":"DuckDuckGo available"},{"id":"brave","label":"Brave","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Brave available"},{"id":"mojeek","label":"Mojeek","state":"closed","cooldown_remaining_s":0.0,"min_interval_s":2.0,"detail":"Mojeek available"}]}
+HTTP:200 0.001170s
+=== /system/provider-health
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":0,"throttles_total":0.0},"fallthroughs":[{"provider":"yfinance","model_key":"fundamentals","count":10,"last_error":"yfinance fundamentals failed for 'AAPL': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 9 after 0 ms: Could not connect to server. See https://curl.se/libcurl/c/libcurl-errors.html first for more details.","last_at":1791027233.254554},{"provider":"yfinance","model_key":"ohlcv","count":3,"last_error":"yfinance history failed for 'AAPL': Failed to perform, curl: (7) Failed to connect to 127.0.0.1 port 9 after 0 ms: Could not connect to server. See http
+HTTP:200 0.001020s
+DONE

@@ -1,0 +1,10 @@
+'Write a note on Cochin Shipyard: valuation looks stretched at ~54x tra' -> edit actionable= None
+'screen for Indian defence and shipbuilding stocks with P/E below 60 an' -> edit actionable= None
+'screen for defence stocks P/E < 40' -> edit actionable= None
+'Save this screen as Defence value' -> edit actionable= None
+'jot down that HAL looks expensive' -> edit actionable= None
+'Add both of them — Cochin Shipyard and Mazagon Dock — to my watchlist.' -> edit actionable= None
+'Arrange my workspace to compare Cochin Shipyard and Bharat Dynamics si' -> build actionable= None
+'Pull up Bharat Dynamics on the chart and add the RSI indicator' -> edit actionable= None
+'What does Cochin Shipyard do, and what is its P/E?' -> read actionable= None
+'[Act as a fundamental analyst] is BDL cheap vs peers?' -> read actionable= None

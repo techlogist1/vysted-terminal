@@ -1,0 +1,19 @@
+# R15-UI-078 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:43+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- 'validateHolding rejects blank cost, qty>1e12, na' src/store/portfolios.test.ts | head -3; test -f src/store/portfolios.test.ts || echo 'MISSING src/store/portfolios.test.ts'
+[exit 0] [0.00s]
+76:describe("validateHolding rejects blank cost, qty>1e12, names the field for 1,000 (R15-UI-078)", () => {
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-UI-078\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.29s]
+src/modules/portfolio/PortfolioPanel.test.tsx:501:  it("R15-UI-078: a blank cost basis is refused, not saved as 0", async () => {
+src/modules/portfolio/PortfolioPanel.test.tsx:508:  it("R15-UI-078: a comma-formatted quantity like '1,000' names the field, not a generic message", async () => {
+src/modules/portfolio/PortfolioPanel.test.tsx:515:  it("R15-UI-078: an absurd quantity (1e20) is refused, not saved unbounded", async () => {
+src/store/portfolios.test.ts:76:describe("validateHolding rejects blank cost, qty>1e12, names the field for 1,000 (R15-UI-078)", () => {
+

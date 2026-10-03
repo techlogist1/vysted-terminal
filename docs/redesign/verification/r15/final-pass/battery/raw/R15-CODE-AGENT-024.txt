@@ -1,0 +1,21 @@
+# R15-CODE-AGENT-024 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:19+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C/sidecar"; for m in _resolve_endpoint is_available status _get_client _decode_tool_result _call_tool _last_tool_call_ok _last_error; do printf '%-22s openbb:%s sec:%s\n' $m $(grep -c "def $m\|^$m" services/openbb_mcp_provider.py) $(grep -c "def $m\|^$m" services/sec_filings_provider.py); done
+grep -n 'LocalMcpSubprocess' services/openbb_mcp_provider.py services/sec_filings_provider.py services/mcp_client.py | head
+grep -n 'def test_local_mcp_subprocess_resolves_and_decodes_once' tests/test_mcp_client.py
+--- output ---
+_resolve_endpoint      openbb:0 sec:0
+is_available           openbb:1 sec:1
+status                 openbb:1 sec:1
+_get_client            openbb:0 sec:0
+_decode_tool_result    openbb:1 sec:1
+_call_tool             openbb:1 sec:1
+_last_tool_call_ok     openbb:0 sec:0
+_last_error            openbb:0 sec:0
+services/openbb_mcp_provider.py:114:_subprocess = mcp_client.LocalMcpSubprocess("openbb-mcp", port_env=_PORT_ENV, host_env=_HOST_ENV)
+services/sec_filings_provider.py:69:_subprocess = mcp_client.LocalMcpSubprocess("sec-edgar-mcp", port_env=_PORT_ENV, host_env=_HOST_ENV)
+services/mcp_client.py:301:# LocalMcpSubprocess — shared shape for a Tauri-spawned, env-var-discovered
+services/mcp_client.py:306:class LocalMcpSubprocess:
+314:def test_local_mcp_subprocess_resolves_and_decodes_once(monkeypatch: pytest.MonkeyPatch) -> None:
+
+EXIT=0 (0.0s)

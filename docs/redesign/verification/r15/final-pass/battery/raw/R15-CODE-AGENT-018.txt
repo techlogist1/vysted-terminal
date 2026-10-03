@@ -1,0 +1,9 @@
+# R15-CODE-AGENT-018 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:26+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" -c "from services import agent_runtime as a; print(a._STAGEABLE_PLAN_ACTIONS == a._READ_SAFE_PANEL_ACTIONS); print(sorted(a._STAGEABLE_PLAN_ACTIONS)); print(sorted(a._READ_SAFE_PANEL_ACTIONS))" 2>&1 | grep -v Warning
+--- output ---
+False
+['add_to_watchlist', 'arrange_layout', 'close_panel', 'focus_panel', 'open_panel', 'set_chart_indicators', 'set_chart_symbol']
+['add_to_watchlist', 'arrange_layout', 'open_company_overview', 'open_panel', 'set_chart_indicators', 'set_chart_symbol']
+
+EXIT=0 (1.3s)

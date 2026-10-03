@@ -1,0 +1,18 @@
+# R15-CODE-PLATFORM-028 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+ls scripts/*.test.mjs; grep -n 'include' vitest.config.ts; for f in scripts/*.test.mjs; do echo "$f: $(grep -cE '^\s*(it|test)\(' $f)"; done
+--- output ---
+scripts/audit-design-tokens.test.mjs
+scripts/sidecar-freshness-gate.test.mjs
+scripts/sidecar-specs.test.mjs
+scripts/sidecar-staleness.test.mjs
+scripts/smoke-test-sidecars.test.mjs
+11:    include: ["src/**/*.test.{ts,tsx}", "plugins/**/*.test.{ts,tsx}", "scripts/**/*.test.mjs"],
+scripts/audit-design-tokens.test.mjs: 6
+scripts/sidecar-freshness-gate.test.mjs: 1
+scripts/sidecar-specs.test.mjs: 1
+scripts/sidecar-staleness.test.mjs: 8
+scripts/smoke-test-sidecars.test.mjs: 9
+
+EXIT=0 (0.0s)

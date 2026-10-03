@@ -1,0 +1,9 @@
+# R15-CODE-AGENT-023 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:31:31+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+python3 $B/sc/b4_023.py
+--- output ---
+missing-arg call: {"jsonrpc": "2.0", "id": 2, "result": {"content": [{"type": "text", "text": "{\"ok\":false,\"error\":\"missing or non-string query\"}"}], "structuredContent": {"ok": false, "error": "missing or non-string query"}, "isError": false}}
+bad-input call result isError: True {"jsonrpc": "2.0", "id": 2, "result": {"content": [{"type": "text", "text": "tool 'price_data' raised: correctness gate: empty series for 'ZZZNOTASYMBOL999' from 'yfinance'"}], "isError": true}}
+unknown tool: {"jsonrpc": "2.0", "id": 2, "result": {"content": [{"type": "text", "text": "Unknown tool: 'nonexistent_tool_x'"}], "isError": true}}
+
+EXIT=0 (1.6s)

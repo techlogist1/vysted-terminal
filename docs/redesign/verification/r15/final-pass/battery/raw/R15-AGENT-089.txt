@@ -1,0 +1,14 @@
+# R15-AGENT-089 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:20+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+from services import planner as p, agent_runtime as a
+print('close_panel' in p.PLAN_ACTIONS, 'focus_panel' in p.PLAN_ACTIONS)
+print(sorted(a._STAGEABLE_PLAN_ACTIONS))
+print(p._coerce_steps([{'action':'close_panel','args':{'panel':'news'}},{'action':'focus_panel','args':{'panel':'chart'}},{'action':'set_chart_symbol','args':{'symbol':'TCS'}},{'action':'bogus'}]))
+PY
+--- output ---
+True True
+['add_to_watchlist', 'arrange_layout', 'close_panel', 'focus_panel', 'open_panel', 'set_chart_indicators', 'set_chart_symbol']
+[PlanStep(action='close_panel', args={'panel': 'news'}, rationale=''), PlanStep(action='focus_panel', args={'panel': 'chart'}, rationale=''), PlanStep(action='set_chart_symbol', args={'symbol': 'TCS'}, rationale='')]
+
+EXIT=0 (1.2s)

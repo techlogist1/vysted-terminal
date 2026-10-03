@@ -1,0 +1,18 @@
+== RELIANCE
+ resolved ('RELIANCE', 'Reliance Industries Limited', 'NSE', 'INE002A01018', '500325') disamb False
+  cand RELIANCE Reliance Industries Limited NSE INE002A01018 500325
+  cand RELIANCE Reliance Industries Ltd BSE INE002A01018 500325
+== ZEAL
+ resolved None disamb True
+  cand ZEAL Zeal Global Services Limited NSE None None
+  cand ZEAL Zeal Aqua Ltd BSE INE819S01025 539963
+== SEL
+ resolved None disamb True
+  cand SEL Sungarner Energies Limited NSE None None
+  cand SEL Sanathnagar Enterprises Ltd BSE INE367E01033 509423
+== FOCUS
+ resolved None disamb True
+  cand FOCUS Focus Lighting and Fixtures Limited NSE None None
+  cand FOCUS Focus Business Solution Ltd BSE INE0DXR01010 543312
+== disclosures/corporate-actions ZEAL: ['NSE'] BSE ZEAL is a different company; only the NSE feed is served ['NSE', 'NSE', 'NSE']
+== disclosures/corporate-actions SEL: ['NSE'] BSE SEL is a different company; only the NSE feed is served []

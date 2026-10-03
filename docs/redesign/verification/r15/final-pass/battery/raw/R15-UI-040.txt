@@ -1,0 +1,9 @@
+# R15-UI-040 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; git grep -n 'adopts a live sidecar run\|a failed cancel leaves the run running' -- src/lib/delegate-runs.test.ts | cut -c1-200; curl -s -m 10 -o /dev/null -w 'GET /runs %{http_code}\n' "$H/runs"
+--- output ---
+src/lib/delegate-runs.test.ts:209:  it("adopts a live sidecar run the store never saw (a webview reload), once", async () => {
+src/lib/delegate-runs.test.ts:243:  it("a failed cancel leaves the run running with a retry message", async () => {
+GET /runs 200
+
+EXIT=0 (0.0s)

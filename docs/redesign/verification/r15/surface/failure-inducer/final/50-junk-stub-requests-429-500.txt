@@ -1,0 +1,6 @@
+{"t": 1791026906.901757, "m": "POST", "path": "/v1/chat/completions", "model": "junk-429", "n": 1, "stream": true}
+{"t": 1791026907.908305, "m": "POST", "path": "/v1/chat/completions", "model": "junk-429", "n": 2, "stream": true}
+{"t": 1791026908.91563, "m": "POST", "path": "/v1/chat/completions", "model": "junk-429", "n": 3, "stream": true}
+{"t": 1791026909.009776, "m": "POST", "path": "/v1/chat/completions", "model": "junk-500", "n": 1, "stream": true}
+{"t": 1791026909.061791, "m": "POST", "path": "/v1/chat/completions", "model": "junk-500", "n": 2, "stream": true}
+{"t": 1791026909.7873862, "m": "POST", "path": "/v1/chat/completions", "model": "junk-500", "n": 3, "stream": true}

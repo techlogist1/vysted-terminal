@@ -1,0 +1,8 @@
+# R15-CODE-PLATFORM-077 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:07+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b15_p077.py 2>&1 | grep -v Warning
+--- output ---
+before: ['old-0', 'old-1', 'old-2', 'old-3', 'old-4', 'old-5', 'old-6', 'old-7']
+after : ['build-current', 'old-4', 'old-5', 'old-6', 'old-7'] count= 5 MAX_BACKUPS= 5
+
+EXIT=0 (0.1s)

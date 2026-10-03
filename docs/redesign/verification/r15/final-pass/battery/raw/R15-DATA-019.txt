@@ -1,0 +1,12 @@
+# R15-DATA-019 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:48+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in JUMBO TTC AMAL; do echo "\$ GET /disclosures/announcements?symbol=$s&limit=25 [IN]"; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/disclosures/announcements?symbol=$s&limit=25" | python3 -c "import sys,json;d=json.load(sys.stdin);print({k:d.get(k) for k in ('count','sources','errors','coverage','windows','note')})"; done
+--- output ---
+$ GET /disclosures/announcements?symbol=JUMBO&limit=25 [IN]
+{'count': 19, 'sources': ['BSE'], 'errors': {}, 'coverage': 'covered', 'windows': {'BSE': {'window_start': '2026-04-06', 'window_end': '2026-10-03'}}, 'note': None}
+$ GET /disclosures/announcements?symbol=TTC&limit=25 [IN]
+{'count': 17, 'sources': ['BSE'], 'errors': {}, 'coverage': 'covered', 'windows': {'BSE': {'window_start': '2026-04-06', 'window_end': '2026-10-03'}}, 'note': None}
+$ GET /disclosures/announcements?symbol=AMAL&limit=25 [IN]
+{'count': 21, 'sources': ['NSE', 'BSE'], 'errors': {}, 'coverage': 'covered', 'windows': {'NSE': {'window_start': None, 'window_end': '2026-10-03'}, 'BSE': {'window_start': '2026-04-06', 'window_end': '2026-10-03'}}, 'note': None}
+
+EXIT=0 (0.7s)

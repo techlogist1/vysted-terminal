@@ -1,0 +1,9 @@
+# R15-LIFECYCLE-011 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'terminated' src/store/app.ts | head -4; grep -n 'refused call flips connected' src/store/app.test.ts
+--- output ---
+83: *  `vysted://sidecar-terminated` (emitted with the reason when the engine
+93:      listen<string>("vysted://sidecar-terminated", (event) => markReachable(false, event.payload)),
+28:  it("a refused call flips connected to error; a later answer flips back and re-runs a panel load", async () => {
+
+EXIT=0 (0.0s)

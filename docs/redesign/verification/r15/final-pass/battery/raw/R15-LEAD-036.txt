@@ -1,0 +1,19 @@
+# R15-LEAD-036 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:09+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio, pytest, sys
+sys.path.insert(0,'tests')
+import test_agent_runtime as T
+mp=pytest.MonkeyPatch()
+dump='```json\n{"symbol":"SBIN","pe_ratio":11.42,"market_cap":7234000000000,"eps":71.18}\n```\n'
+async def m():
+    got=await T._cross_round(mp,'Checking.\n',('fundamentals',{'symbol':'SBIN'},{'ok':False,'error':'upstream 503'}),[dump])
+    print(repr(got)); print('fence markers:',got.count('```'),'| figure leaked:',any(x in got for x in ('11.42','7234000000000','71.18')))
+asyncio.run(m())
+mp.undo()
+PY
+--- output ---
+'Checking.\nThe fundamentals tool returned no data for this in this turn.\n\n'
+fence markers: 0 | figure leaked: False
+
+EXIT=0 (1.4s)

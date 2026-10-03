@@ -1,0 +1,22 @@
+# R15-LIFECYCLE-013 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:45+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '$ launch {"prompt":"Use the price_data tool for AAPL, then summarize.","provider":"ollama","model":"llama3.1:8b","budget":{"max_tokens":1000}}'
+R=$(curl -s -m 30 -X POST "$H/agents/copilot/runs" -H 'content-type: application/json' -d '{"prompt":"Use the price_data tool for AAPL, then summarize.","provider":"ollama","model":"llama3.1:8b","budget":{"max_tokens":1000}}'); echo "$R"
+RID=$(echo "$R" | python3 -c "import sys,json;print(json.load(sys.stdin)['run_id'])"); python3 $B/pollrun.py $RID 200
+echo "\$ POST /runs/$RID/resume"; curl -s -m 30 -w ' [%{http_code}]\n' -X POST "$H/runs/$RID/resume" -H 'content-type: application/json' -d '{}'
+python3 $B/pollrun.py $RID 200
+--- output ---
+$ launch {"prompt":"Use the price_data tool for AAPL, then summarize.","provider":"ollama","model":"llama3.1:8b","budget":{"max_tokens":1000}}
+{"run_id":"073899917b134f17933b9bf9222f8ea6"}
+{"status": "error", "provider": "ollama", "model": "llama3.1:8b", "cost": {"tokens": 6430, "spend_usd": 0.0, "steps": 1}, "detail": "token ceiling 1000 reached (6430 used)"}
+answer_len 0
+answer_start: 
+answer_end: 
+$ POST /runs/073899917b134f17933b9bf9222f8ea6/resume
+{"resumed":true} [200]
+{"status": "error", "provider": "ollama", "model": "llama3.1:8b", "cost": {"tokens": 12883, "spend_usd": 0.0, "steps": 2}, "detail": "token ceiling 1000 reached (6453 used)"}
+answer_len 0
+answer_start: 
+answer_end: 
+
+EXIT=0 (36.4s)

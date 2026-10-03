@@ -1,0 +1,382 @@
+{
+ "S1-default": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 502,
+   "result_count": 4,
+   "matched": 4,
+   "rows": 4,
+   "partial": false,
+   "throttled": false,
+   "coverage": "screened 502 of 503 — 1 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screener> SavedNo saved screensSave screenscreened 502 of 503 — 1 unavailable4 live1 unavailable — 1 missing pe_ratioquotes 0s ago · valuation 0s ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (USD)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (USD)Dividend yield (frac, 0.02 = 2%)EPS (USD)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ  ..... ><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders4 matched · showing top 4 by market cap (502 evaluated, 1 skipped, 422 ms) Export CSVsp500SymbolNameSectorMarket cap▼P/EFwd P/EROED/EDivPrice1d %VolumeMUMicron Technology, Inc.Technology$1.21T14.775.2566.64%0.06330.05%$1,074.89-2.05%26.5MWDCWestern Digital CorporationTechnology$150B15.4313.08130.85%0.134360.11%$415.29-10.22%24.7MUBERUber Technologies, Inc.Technology$139B14.8715.4137.16%0.518720.00%$68.11+0.34%15.5MACNAccenture plcTechnology$122B15.9013.5624.41%0.250353.11%$198.90-6.31%10.0M",
+  "request": {
+   "url": "http://127.0.0.1:52842/screener/run/stream",
+   "body": {
+    "universe": "sp500",
+    "criteria": [
+     {
+      "field": "pe_ratio",
+      "operator": "lt",
+      "value": 20
+     },
+     {
+      "field": "market_cap",
+      "operator": "gt",
+      "value": 100000000000
+     },
+     {
+      "field": "sector",
+      "operator": "eq",
+      "value": "Technology"
+     }
+    ],
+    "limit": 200,
+    "sort_by": "market_cap",
+    "sort_dir": "desc"
+   }
+  }
+ },
+ "S2a-wide": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 4236,
+   "result_count": 200,
+   "matched": 3064,
+   "rows": 200,
+   "partial": true,
+   "throttled": true,
+   "coverage": "screened 4,236 of 5,891 — 1,655 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screener> SavedNo saved screensSave screenPARTIALscreened 4,236 of 5,891 — 1,655 unavailable200 live1,655 unavailable — 1,294 missing pe_ratio · 185 rate-limited · 176 not foundquotes 5m ago · valuation 5m ago · deep fields 85d ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (INR)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity  ..... 0B36.2028.7917.09%0.018650.00%₹420.25-3.00%886KNBCCNBCC (India) LimitedIndustrials₹209B28.1527.6424.62%0.000080.93%₹77.40-1.40%6.2MANANTRAJAnant Raj LimitedReal Estate₹208B35.4020.3210.03%0.117030.00%₹577.00-3.66%1.5MSHRIPISTONSPR Auto Technologies LimitedConsumer Cyclical₹207B34.8923.5019.41%0.65220.00%₹4,465.10-4.05%187KIRBIRB Infrastructure Developers LimitedIndustrials₹205B21.7711.994.55%0.9560.97%₹16.98-2.92%10.8MDEEPAKNTRDeepak Nitrite LimitedBasic Materials₹203B25.9624.0513.42%0.279030.00%₹1,492.00-2.47%157KCEMPROCemindia Projects LimitedIndustrials₹203B33.7020.6925.06%0.377110.00%₹1,180.00-1.02%222KSAGILITYSagility LimitedTechnology₹202B20.3614.5910.28%0.114970.00%₹43.17+1.39%11.7MCHENNPETROChennai Petroleum Corporation LimitedEnergy₹200B4.783.3437.57%0.17680.00%₹1,341.00-6.64%1.8M"
+ },
+ "S2b-show-more": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 4236,
+   "result_count": 400,
+   "matched": 3064,
+   "rows": 400,
+   "partial": true,
+   "throttled": true,
+   "coverage": "screened 4,236 of 5,891 — 1,655 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSE5891 tickers · equityRun screener> SavedNo saved screensSave screenPARTIALscreened 4,236 of 5,891 — 1,655 unavailable400 live1,655 unavailable — 1,294 missing pe_ratio · 361 rate-limitedquotes 5m ago · valuation 5m ago · deep fields 85d ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (INR)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Curre ..... +0.11%31.6KCERACera Sanitaryware LimitedConsumer Cyclical₹65.6B32.3021.7313.79%0.031720.00%₹5,086.00-0.04%5.3KSUPRAJITSuprajit Engineering LimitedConsumer Cyclical₹65.5B35.0918.6213.00%0.690790.00%₹477.60-0.75%89.2KKOVAIKovai Medical Center and Hospital LimitedHealthcare₹65.4B25.52—19.43%0.305280.00%₹5,981.00-0.43%10.4KBAJAJCONBajaj Consumer Care LimitedConsumer Defensive₹64.9B29.5021.9529.49%0.020920.00%₹497.00+0.29%519KDBLDilip Buildcon LimitedIndustrials₹64.7B5.1716.1317.37%1.160.00%₹398.00-2.02%134KNEWGENNewgen Software Technologies LimitedTechnology₹64.6B20.6015.6417.65%0.022140.00%₹456.80-2.36%630KDCBBANKDCB Bank LimitedFinancial Services₹64.4B8.195.8312.05%0.8548520.00%₹200.00-1.74%842KSHARDACROPSharda Cropchem LimitedBasic Materials₹64.3B10.278.6719.96%0.001040.00%₹713.00-1.45%129K",
+  "request_limit": [
+   400
+  ],
+  "rows_after": 400
+ },
+ "S3-malformed": {
+  "status": "error",
+  "error": "Formula: unexpected character '%' (col 21)",
+  "result": null,
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screenerFormula: unexpected character '%' (col 21)Retry> SavedNo saved screensSave screen> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (INR)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (INR)52w low (INR)1y change (frac)Insider ..... /EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (INR)52w low (INR)1y change (frac)Insider holding (Yahoo)Institutional holding (frac)Price (INR)1-day %Volume><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemizedpe < 20 and roe > 15% ^ unexpected character '%'Examplesvalue + qualityyield, low debtcalm compoundersCould not load resultsThe screener run failed. Retry — if it persists, loosen a criterion or check the data engine.Retry",
+  "network_calls": 0
+ },
+ "S4-preset-after-nested": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 49,
+   "result_count": 17,
+   "matched": 17,
+   "rows": 17,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 49 of 50 — 1 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSE50 tickers · equityRun screener> SavedNo saved screensSave screenscreened 49 of 50 — 1 unavailable17 live1 unavailable — 1 missing debt_to_equityquotes 5m ago · valuation 5m ago · deep fields 12h ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (INR)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ Yo ..... 721.1430.28%0.563520.00%₹10,045.00-7.62%1.5MCOALINDIACoal India LimitedEnergy₹2.59T8.327.4226.15%0.116296.24%₹420.40-1.08%7.5MNESTLEINDNestlé India LimitedConsumer Defensive₹2.52T66.2152.6495.04%0.086210.00%₹1,307.70-0.18%1.6MDIVISLABDivi's Laboratories LimitedHealthcare₹2.46T84.0461.4717.45%0.000420.00%₹9,249.00-0.46%567KASIANPAINTAsian Paints LimitedConsumer Cyclical₹2.31T48.5539.6922.30%0.178470.00%₹2,407.00+0.18%1.0MEICHERMOTEicher Motors LimitedConsumer Cyclical₹1.90T32.8925.3923.00%0.020480.00%₹6,920.00-3.22%817KWIPROWipro LimitedTechnology₹1.58T12.6611.4616.13%0.273985.05%₹159.35+0.54%18.5MTRENTTrent LimitedConsumer Cyclical₹1.38T76.3350.6425.90%0.360340.00%₹2,580.00-1.59%897KBRITANNIABritannia Industries LimitedConsumer Defensive₹1.15T44.2536.7151.00%0.268750.00%₹4,778.00-1.08%363K",
+  "request": [
+   {
+    "url": "http://127.0.0.1:52842/screener/run/stream",
+    "body": {
+     "universe": "nifty50",
+     "criteria": [
+      {
+       "field": "held_percent_insiders",
+       "operator": "gt",
+       "value": 0.4
+      },
+      {
+       "field": "roe",
+       "operator": "gt",
+       "value": 0.12
+      },
+      {
+       "field": "debt_to_equity",
+       "operator": "lt",
+       "value": 1
+      }
+     ],
+     "limit": 200,
+     "sort_by": "market_cap",
+     "sort_dir": "desc"
+    }
+   }
+  ],
+  "state_after": {
+   "universe": "nifty50",
+   "criteria": [
+    {
+     "field": "held_percent_insiders",
+     "operator": "gt",
+     "value": 0.4
+    },
+    {
+     "field": "roe",
+     "operator": "gt",
+     "value": 0.12
+    },
+    {
+     "field": "debt_to_equity",
+     "operator": "lt",
+     "value": 1
+    }
+   ],
+   "advanced": false,
+   "formula": "",
+   "group": null
+  }
+ },
+ "S6-error-frame": {
+  "status": "error",
+  "error": "missing universe snapshot 'nifty50.json'",
+  "result": null,
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screenermissing universe snapshot 'nifty50.json'Retry> SavedNo saved screensSave screen> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (INR)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (INR)52w low (INR)1y change (frac)Insider h ..... Book value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (INR)52w low (INR)1y change (frac)Insider holding (Yahoo)Institutional holding (frac)Price (INR)1-day %Volume><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compoundersCould not load resultsThe screener run failed. Retry — if it persists, loosen a criterion or check the data engine.Retry"
+ },
+ "S7-custom": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 3,
+   "result_count": 3,
+   "matched": 3,
+   "rows": 3,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 3 of 3 — 0 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSE50 tickers · equityRun screener> SavedNo saved screensSave screenscreened 3 of 3 — 0 unavailable3 livequotes 5m ago · valuation 5m ago · deep fields 12h ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (INR)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (INR)52w low (INR)1y change (frac)Insider holding (Yahoo)Institutional holding (frac)Price (INR)1-day %Volume><≥≤betweenCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders3 matched · showing top 3 by market cap (3 evaluated, 3 ms) Export CSVcustomSymbolNameSectorMarket cap▼P/EFwd P/EROED/EDivPrice1d %VolumeRELIANCEReliance Industries LimitedEnergy₹15.8T21.1416.358.27%0.462780.00%₹1,167.70-1.63%16.7MTCSTata Consultancy Services LimitedTechnology₹7.51T15.0812.8047.74%0.102113.17%₹2,075.00+1.19%3.4MINFYInfosys LimitedTechnology₹4.19T13.3012.9432.00%0.095410.05%₹1,035.00+4.11%15.1M",
+  "run_disabled_when_empty": true,
+  "request": {
+   "url": "http://127.0.0.1:52842/screener/run/stream",
+   "body": {
+    "universe": "custom",
+    "criteria": [
+     {
+      "field": "pe_ratio",
+      "operator": "gt",
+      "value": 0
+     }
+    ],
+    "limit": 200,
+    "sort_by": "market_cap",
+    "sort_dir": "desc",
+    "custom_symbols": [
+     "RELIANCE",
+     "TCS",
+     "INFY"
+    ]
+   }
+  },
+  "symbols": [
+   "RELIANCE.NS",
+   "TCS.NS",
+   "INFY.NS"
+  ]
+ },
+ "S8-zero-evaluated": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 0,
+   "result_count": 0,
+   "matched": 0,
+   "rows": 0,
+   "partial": true,
+   "throttled": true,
+   "coverage": "screened 0 of 3 — 3 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screener> SavedNo saved screensSave screenPARTIALscreened 0 of 3 — 3 unavailable3 unavailable — 3 rate-limited> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (INR)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (INR)52w low (INR)1y change (frac)Insider holding (Yahoo)Institutional holding (frac)Price (INR)1-day %Volume><≥≤betweenCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders0 matched · showing top 0 by market cap (0 evaluated, 3 skipped, 1 ms) Export CSVcustomNothing could be screenedThe data provider is throttled; retry in a moment.Retry"
+ },
+ "S8b-zero-match": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 49,
+   "result_count": 0,
+   "matched": 0,
+   "rows": 0,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 49 of 50 — 1 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSE50 tickers · equityRun screener> SavedNo saved screensSave screenscreened 49 of 50 — 1 unavailable1 unavailable — 1 missing pe_ratio> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (INR)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (INR)52w low (INR)1y change (frac)Insider holding (Yahoo)Institutional holding (frac)Price (INR)1-day %Volume><≥≤betweentoCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders0 matched · showing top 0 by market cap (49 evaluated, 1 skipped, 2 ms) Export CSVnifty50No rows matched the criteriaNo stocks in this universe passed every filter. Loosen a threshold or reset to the defaults.Reset filters"
+ },
+ "S9-saved": {
+  "status": "idle",
+  "error": null,
+  "result": null,
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSELoading universe…Run screener> SavedNo saved screensSave screen> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNumericStringSetMarket cap (INR)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (INR)52w low (INR)1y change (frac)Insider holding (Yahoo)Institutional holding (frac)Pri ..... arket cap (INR)P/E ratioForward P/EPEG ratioPrice / BookPrice / SalesEV / EBITDABook value (INR)Dividend yield (frac, 0.02 = 2%)EPS (INR)BetaROE (frac, 0.2 = 20%)ROA (frac)Gross margin (frac)Operating margin (frac)Net margin (frac)Debt / Equity (ratio)Current ratioQuick ratioRevenue growth (MRQ YoY, frac)Earnings growth (MRQ YoY, frac)52w high (INR)52w low (INR)1y change (frac)Insider holding (Yahoo)Institutional holding (frac)Price (INR)1-day %Volume><≥≤betweenandNumericStringSetSectorIndustryCurrencyequalsCustom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemizedFields: roe — run the screener to apply.Examplesvalue + qualityyield, low debtcalm compoundersNo results yetSet your criteria above and run the screener to find matching stocks.Run screener",
+  "blob_savedScreens": [
+   {
+    "name": "roe20",
+    "universe": "nse-all",
+    "criteria": [
+     {
+      "field": "pe_ratio",
+      "operator": "lt",
+      "value": 20
+     },
+     {
+      "field": "market_cap",
+      "operator": "gt",
+      "value": 100000000000
+     },
+     {
+      "field": "sector",
+      "operator": "eq",
+      "value": "Technology"
+     }
+    ],
+    "group": null,
+    "formula": "roe > 0.2",
+    "combinator": "and"
+   }
+  ],
+  "restored_from_blob": [
+   "roe20"
+  ],
+  "loaded": {
+   "universe": "nse-all",
+   "formula": "roe > 0.2"
+  },
+  "after_delete": 0
+ },
+ "S10-tenth-sort": {
+  "status": "ready",
+  "error": null,
+  "result": {
+   "evaluated": 50,
+   "result_count": 50,
+   "matched": 50,
+   "rows": 50,
+   "partial": false,
+   "throttled": true,
+   "coverage": "screened 50 of 50 — 0 unavailable"
+  },
+  "panelText": "UniverseS&P 500NIFTY 50Crypto top 50Custom tickersNSE — full marketBSE — full marketIndia — NSE + BSE50 tickers · equityRun screener> SavedNo saved screensSave screenscreened 50 of 50 — 0 unavailable50 livequotes 5m ago · valuation 5m ago · deep fields 12h ago> ScreensQuality compoundersSound valueGARPDividend + low debtHigh-margin leadersDeep valueMegacap qualityHigh insider holding (Yahoo)CriteriaSimpleNestedMatch ALLMatch ANYAdd criterionNo criteria — every universe member will match.Custom formulaevaluated server-side with the criteria · rows missing a field are skipped, itemized29 fields (pe_ratio, market_cap, roe, …) · abs, min, max · and / or / not, + - * /, comparisonsExamplesvalue + qualityyield, low debtcalm compounders50 matched · showing top 50 by P/E (50 evaluated, 11 ms) Expo .....  LimitedBasic Materials₹2.09T12.778.4712.01%0.725980.00%₹941.85+0.01%5.9MWIPROWipro LimitedTechnology₹1.58T12.6611.4616.13%0.273985.05%₹159.35+0.54%18.5MPOWERGRIDPower Grid Corporation of India LimitedUtilities₹2.37T12.4713.1515.82%1.510.00%₹254.55-2.28%11.0MJSWSTEELJSW Steel LimitedBasic Materials₹3.01T12.1716.9224.77%0.953740.00%₹1,233.00-1.63%3.2MSBINState Bank of IndiaFinancial Services₹8.81T10.209.0715.18%1.320.00%₹954.10-0.56%7.4MNTPCNTPC LimitedUtilities₹3.06T9.6311.1813.66%1.280.00%₹315.10-2.37%10.1MCOALINDIACoal India LimitedEnergy₹2.59T8.327.4226.15%0.116296.24%₹420.40-1.08%7.5MONGCOil and Natural Gas Corporation LimitedEnergy₹2.80T6.435.3511.71%0.425480.00%₹222.37-1.52%13.1MTMPVTata Motors Passenger Vehicles LimitedConsumer Cyclical₹1.03T—5.88-3.01%0.703640.00%₹279.40-1.45%15.3M",
+  "body_rows": 50,
+  "tenth_row": "HINDUNILVRHindustan Unilever LimitedConsumer Defensive₹4.31T40.8234.5621.70%0.030160.00%₹1,836.00-2.29%1.3M",
+  "sort_request": [
+   [
+    "pe_ratio",
+    "desc"
+   ]
+  ],
+  "first_after_sort": [
+   "DIVISLABDivi's Laboratories LimitedHealthcare₹2.46T84.0461.4717.45%0.000420.00%₹",
+   "TRENTTrent LimitedConsumer Cyclical₹1.38T76.3350.6425.90%0.360340.00%₹2,580.00-1",
+   "TITANTitan Company LimitedConsumer Cyclical₹4.01T69.4450.7736.67%1.950.00%₹4,515"
+  ]
+ },
+ "S11-agent": {
+  "census_input": {
+   "criteria": "[{\"field\":\"pe_ratio\",\"operator\":\"lt\",\"value\":20},{\"field\":\"roe\",\"operator\":\"gt\",\"value\":{\"min\":15,\"max\":15}}, {\"field\":\"debt_to_equity\",\"operator\":\"lt\",\"value\":0.5}]",
+   "universe": "nse-all"
+  },
+  "string_criteria": {
+   "describe": {
+    "kind": "panel",
+    "title": "Write screener filters",
+    "before": "Screener: 3 criteria",
+    "after": "Screener: no well-formed criteria — can't apply"
+   },
+   "apply": {
+    "status": "failed",
+    "label": null,
+    "reason": "no well-formed screener criteria"
+   }
+  },
+  "array_criteria": {
+   "describe": {
+    "kind": "panel",
+    "title": "Write screener filters",
+    "before": "Screener: 3 criteria",
+    "after": "Screener: 2 criteria · nse-all; dropped roe: value must be a number — review then Run"
+   },
+   "apply": {
+    "status": "applied",
+    "label": "Wrote 2 of 3 screener criteria; dropped roe: value must be a number — review and Run"
+   },
+   "store": {
+    "universe": "nse-all",
+    "criteria": [
+     {
+      "field": "pe_ratio",
+      "operator": "lt",
+      "value": 20
+     },
+     {
+      "field": "debt_to_equity",
+      "operator": "lt",
+      "value": 0.5
+     }
+    ]
+   }
+  },
+  "flat_group": {
+   "describe": {
+    "kind": "panel",
+    "title": "Write screener filters",
+    "before": "Screener: 2 criteria",
+    "after": "Screener: 2 criteria · nifty50 — review then Run"
+   },
+   "apply": {
+    "status": "applied",
+    "label": "Wrote 2 screener criteria — review and Run"
+   },
+   "run_request": [
+    {
+     "universe": "nifty50",
+     "criteria": [
+      {
+       "field": "pe_ratio",
+       "operator": "lt",
+       "value": 12
+      },
+      {
+       "field": "dividend_yield",
+       "operator": "gt",
+       "value": 0.03
+      }
+     ],
+     "limit": 200,
+     "sort_by": "market_cap",
+     "sort_dir": "desc",
+     "group": {
+      "combinator": "or",
+      "criteria": [
+       {
+        "field": "pe_ratio",
+        "operator": "lt",
+        "value": 12
+       },
+       {
+        "field": "dividend_yield",
+        "operator": "gt",
+        "value": 0.03
+       }
+      ]
+     }
+    }
+   ],
+   "result_count": 6
+  }
+ }
+}

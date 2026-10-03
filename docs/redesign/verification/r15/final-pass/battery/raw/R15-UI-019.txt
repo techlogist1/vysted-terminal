@@ -1,0 +1,10 @@
+# R15-UI-019 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'no banner for a working local model\|a dismissal survives a remount' src/components/OnboardingBanner.test.tsx; grep -n 'useKeylessReadiness' src/components/OnboardingBanner.tsx | head -2
+--- output ---
+44:  it("no banner for a working local model with no cloud key", async () => {
+65:  it("a dismissal survives a remount", async () => {
+8:import { useKeylessReadiness } from "@/lib/provider-validation";
+39:  const readiness = useKeylessReadiness(defaultProvider, model, keyless && !hasAnyKey);
+
+EXIT=0 (0.0s)

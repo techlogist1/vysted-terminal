@@ -1,0 +1,14 @@
+# R15-DATA-068 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:06:33+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for p in earnings/AAPL/history earnings/AAPL/surprises earnings/AAPL/estimates earnings/upcoming fundamentals/AAPL/ratings fundamentals/AAPL/ratings/history fundamentals/AAPL/ratings/individual fundamentals/AAPL/ratings/price-target-history; do echo -n "$p: "; curl -s -m 100 -w ' HTTP=%{http_code}' "$H/$p" -o /tmp/fb2e.json; python3 -c "import json;d=json.load(open('/tmp/fb2e.json'));print(' as_of',d.get('as_of') if isinstance(d,dict) else 'LIST')"; done
+--- output ---
+earnings/AAPL/history:  HTTP=200 as_of 2026-10-03T12:06:29.066046Z
+earnings/AAPL/surprises:  HTTP=200 as_of 2026-10-03T12:06:29.448622Z
+earnings/AAPL/estimates:  HTTP=200 as_of 2026-10-03T12:06:30.060204Z
+earnings/upcoming:  HTTP=200 as_of 2026-10-03T12:06:30.241493Z
+fundamentals/AAPL/ratings:  HTTP=200 as_of 2026-10-03T12:06:30.464708Z
+fundamentals/AAPL/ratings/history:  HTTP=200 as_of 2026-10-03T12:06:31.164620Z
+fundamentals/AAPL/ratings/individual:  HTTP=200 as_of 2026-10-03T12:06:32.000463Z
+fundamentals/AAPL/ratings/price-target-history:  HTTP=200 as_of 2026-10-03T12:06:33.127075Z
+
+EXIT=0 (6.5s)

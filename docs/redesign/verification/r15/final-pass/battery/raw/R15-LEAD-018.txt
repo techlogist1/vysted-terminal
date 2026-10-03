@@ -1,0 +1,10 @@
+# R15-LEAD-018 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:21+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/probe40.py 018 2>&1 | grep -v Warning
+--- output ---
+fixture reasoning chunks 24 content chunks 1
+thinking len 296 answer len 0
+answer repr: ''
+PASS
+
+EXIT=0 (0.9s)

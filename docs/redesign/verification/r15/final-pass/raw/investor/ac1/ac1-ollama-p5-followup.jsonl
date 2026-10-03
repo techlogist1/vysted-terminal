@@ -1,0 +1,38 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_9a9424dca7d44b148b6bddfd90bb4681", "name": "price_data", "input": {"symbol": "KPIT.NS", "timeframe": "1d", "asset_class": "equity", "range": "1d"}}
+{"kind": "tool_result", "tool_call_id": "call_9a9424dca7d44b148b6bddfd90bb4681", "name": "price_data", "ok": false, "error": "provider error: correctness gate: empty series for 'KPIT.NS' from 'yfinance'"}
+{"kind": "delta", "text": "We"}
+{"kind": "delta", "text": " couldn"}
+{"kind": "delta", "text": "'t"}
+{"kind": "delta", "text": " retrieve"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " KP"}
+{"kind": "delta", "text": "IT"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": "'s"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": " does"}
+{"kind": "delta", "text": " not"}
+{"kind": "delta", "text": " include"}
+{"kind": "delta", "text": " this"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " moment"}
+{"kind": "delta", "text": "."}
+{"kind": "done", "usage": {"input_tokens": 1748, "output_tokens": 31, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

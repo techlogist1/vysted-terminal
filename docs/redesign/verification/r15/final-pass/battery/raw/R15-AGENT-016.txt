@@ -1,0 +1,29 @@
+# R15-AGENT-016 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:07+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import sys; sys.path.insert(0, "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb3/sc")
+from wf import *
+for label,cfg in [("no-creds ai.agent_invoke strategy_critic",{"agent_id":"strategy_critic","prompt":"critique a 50/200 SMA cross"}),("unknown agent_id",{"agent_id":"nope_agent","prompt":"x"})]:
+    code,txt,ev=run([node("a","ai.agent_invoke",**cfg)],[],timeout=90)
+    print(label,"HTTP",code)
+    for t,e in ev: print((e["kind"],e.get("nodeType"),None,(e.get("message") or None)))
+    print()
+code,txt,ev=run([node("a","ai.agent_invoke",agent_id="buffett",api_key="x")],[])
+print("node config api_key HTTP",code,":",txt[:400])
+PY
+--- output ---
+no-creds ai.agent_invoke strategy_critic HTTP 200
+('run-start', None, None, None)
+('node-start', 'ai.agent_invoke', None, None)
+('node-error', None, None, 'ai.agent_invoke (strategy_critic): No Anthropic API key is set — add it in Settings.')
+('run-error', None, None, "failures in nodes: ['a']")
+
+unknown agent_id HTTP 200
+('run-start', None, None, None)
+('node-start', 'ai.agent_invoke', None, None)
+('node-error', None, None, "ai.agent_invoke (nope_agent): unknown agent: 'nope_agent'")
+('run-error', None, None, "failures in nodes: ['a']")
+
+node config api_key HTTP 422 : {"detail":[{"type":"value_error","loc":["body","spec","nodes",0,"config"],"msg":"Value error, node config must not carry 'api_key'; the run uses the selected provider's key from the request","input":{"agent_id":"buffett","api_key":"x"},"ctx":{"error":{}}}]}
+
+EXIT=0 (0.2s)

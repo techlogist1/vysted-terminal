@@ -1,0 +1,12 @@
+# R15-RELEASE-006 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; echo "literal blocks:"; grep -n 'extraFiles: \[join(ROOT, "scripts", "ensure-' scripts/smoke-test-sidecars.mjs || echo "none"; grep -n "stale.dirs\|stale.opts\|spec.stale" scripts/sidecar-specs.mjs | head -4; node -e 'import("./scripts/sidecar-specs.mjs").then(m=>{m.assertAllFresh(m.targetTriple());console.log("assertAllFresh ok")}).catch(e=>console.log("assertAllFresh threw",e.message))'
+--- output ---
+literal blocks:
+none
+208: * `spec.stale` the builder uses, so the gate cannot certify a different source
+213:    assertFresh(binaryPath(spec.name, triple), spec.stale.dirs, spec.stale.opts);
+251:  const stale = present && isStale(outPath, spec.stale.dirs, spec.stale.opts);
+assertAllFresh ok
+
+EXIT=0 (0.2s)

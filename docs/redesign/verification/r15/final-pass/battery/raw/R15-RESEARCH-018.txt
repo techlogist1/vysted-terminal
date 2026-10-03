@@ -1,0 +1,14 @@
+# R15-RESEARCH-018 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:46+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/t018.py 2>&1 | grep -v Warning
+--- output ---
+Kaynes Technology IN -> KAYNES
+    What do recent SEC filings and insider trades sh -> ['corporate_announcements', 'web_search']
+    What is the sector outlook? -> ['news', 'web_search']
+    Is there a second-quarter guidance change? -> ['corporate_announcements', 'news', 'web_search']
+Apple Inc AAPL US -> AAPL
+    What do recent SEC filings and insider trades sh -> ['sec_filings_list', 'web_search']
+    What is the sector outlook? -> ['news', 'web_search']
+    Is there a second-quarter guidance change? -> ['news', 'web_search']
+
+EXIT=0 (4.9s)

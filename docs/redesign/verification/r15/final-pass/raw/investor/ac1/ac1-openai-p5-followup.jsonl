@@ -1,0 +1,76 @@
+{"kind": "tool_use", "tool_call_id": "call_305fe632bcba48f992e5b8c93c6537c7", "name": "price_data", "input": {"symbol": "KPITTECH"}}
+{"kind": "tool_use", "tool_call_id": "call_2664c318984946e7bca79df34db8ad2f", "name": "fundamentals", "input": {"symbol": "KPITTECH"}}
+{"kind": "tool_result", "tool_call_id": "call_305fe632bcba48f992e5b8c93c6537c7", "name": "price_data", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_2664c318984946e7bca79df34db8ad2f", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " current"}
+{"kind": "delta", "text": " share"}
+{"kind": "delta", "text": " price"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " KP"}
+{"kind": "delta", "text": "IT"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "492"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "00"}
+{"kind": "delta", "text": "**,"}
+{"kind": "delta", "text": " which"}
+{"kind": "delta", "text": " reflects"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " decrease"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "7"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": "1"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "42"}
+{"kind": "delta", "text": "%"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " from"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " previous"}
+{"kind": "delta", "text": " close"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "The"}
+{"kind": "delta", "text": " Price"}
+{"kind": "delta", "text": "-to"}
+{"kind": "delta", "text": "-E"}
+{"kind": "delta", "text": "arnings"}
+{"kind": "delta", "text": " ("}
+{"kind": "delta", "text": "P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": ")"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " approximately"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "23"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " \n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " more"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": " analysis"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 16739, "output_tokens": 72, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": "gpt-4o-mini-2024-07-18"}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.01465}

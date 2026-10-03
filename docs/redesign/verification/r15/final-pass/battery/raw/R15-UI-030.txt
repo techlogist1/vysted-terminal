@@ -1,0 +1,9 @@
+# R15-UI-030 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:51+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'R15-UI-030' src/modules/macro/MacroPanel.test.tsx src/modules/macro/MacroPanel.tsx | head
+--- output ---
+src/modules/macro/MacroPanel.test.tsx:116:  it("a provider tab loads that provider's own default once, never through the cold-boot retry (R15-UI-030)", async () => {
+src/modules/macro/MacroPanel.tsx:52:  // 502. Only the mount default rides the hook (R15-UI-030).
+
+EXIT=0 (0.0s)

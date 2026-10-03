@@ -1,0 +1,7 @@
+live pairs 111
+undocumented 0
+[]
+ORIGIN: - **Origin guard** — the sidecar binds to `127.0.0.1` only and answers `403`
+ORIGIN:   (`{"detail": "origin not allowed"}`; a WebSocket closes with `1008`) to any
+ORIGIN:   request whose `Origin` header is not one of `ALLOWED_ORIGINS` in
+ORIGIN:   `Origin` (curl, the Python MCP bridge) passes. The same list drives the CORS

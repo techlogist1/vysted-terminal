@@ -1,0 +1,11 @@
+# R15-CODE-DATA-010 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:21+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/probe84.py 010 2>&1 | grep -v Warning
+--- output ---
+rows before 3
+earnings:AAPL:x -> None
+disclosures:RELIANCE:y -> None
+rows after reading 2 stale keys 1 (ratings:TCS:z not read, untouched)
+fresh row survives: True
+
+EXIT=0 (0.1s)

@@ -1,0 +1,19 @@
+# R15-LIFECYCLE-020 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:16:39+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+L=/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/final-pass/logs/final-battery-2-sidecar.log
+echo "sidecar log $L: lines matching 'screener warm|screener: warm' since boot:"; grep -c -i 'screener warm\|screener: warm' $L
+echo "first /screener/run in log:"; grep -n -m1 'screener/run' $L | cut -c1-160
+cd "$C/sidecar"; grep -n "_warm_follow_region\|def _ensure_warm\|create_task" routers/screener.py | head -8; grep -n "screener" app.py | grep -i "warm\|lifespan\|startup" | head -5
+curl -s -m5 "$H/system/provider-health" | head -c 200
+--- output ---
+sidecar log /Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/final-pass/logs/final-battery-2-sidecar.log: lines matching 'screener warm|screener: warm' since boot:
+0
+first /screener/run in log:
+568:2026-10-03 17:37:29,657 INFO uvicorn.access: 127.0.0.1:59968 - "POST /screener/run HTTP/1.1" 200
+140:        task = asyncio.create_task(_run())
+128:        # Kick off the screener's warm-universe precompute (R4 / FR-126). It spawns
+132:        screener_service.start_warm_precompute()
+161:                await screener_service.stop_warm_precompute()
+163:                _log.debug("screener.stop_warm_precompute raised on shutdown: %s", exc)
+{"yahoo":{"open":false,"cooldown_remaining":0.0,"consecutive_throttles":0.0,"consecutive_opens":0,"opens_total":2,"throttles_total":40.0},"fallthroughs":[{"provider":"nse","model_key":"ohlcv","count":
+EXIT=0 (0.0s)

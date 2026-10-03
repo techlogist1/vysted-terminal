@@ -1,0 +1,10 @@
+# R15-DATA-054 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:06:25+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in RELIANCE CREST AMAL; do echo -n "$s.NS: "; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/fundamentals/$s.NS" | python3 -c "
+import sys,json;d=json.load(sys.stdin);print('basis',d.get('basis') or d.get('statement_basis') or (d.get('field_meta') or {}).get('basis'), [k for k in d if 'basis' in k])"; done
+--- output ---
+RELIANCE.NS: basis consolidated ['basis', 'growth_basis']
+CREST.NS: basis consolidated ['basis', 'growth_basis']
+AMAL.NS: basis {'status': 'unavailable', 'provider': 'exchange-filings', 'as_of': '2026-10-03T12:06:25.571461+00:00', 'reason': 'no NSE/BSE filing states a basis', 'label': None, 'basis_note': None} ['basis', 'growth_basis']
+
+EXIT=0 (43.0s)

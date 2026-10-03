@@ -1,0 +1,25 @@
+# R15-AGENT-076 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:07+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- test_tools_construction_error_logs_and_emits_not sidecar/tests/test_llm_ollama.py | head -3; test -f sidecar/tests/test_llm_ollama.py || echo 'MISSING sidecar/tests/test_llm_ollama.py'
+[exit 0] [0.01s]
+239:async def test_tools_construction_error_logs_and_emits_notice(
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-AGENT-076\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+Binary file sidecar/tests/__pycache__/test_llm_ollama.cpython-313-pytest-9.0.3.pyc matches
+sidecar/tests/test_llm_ollama.py:242:    """R15-AGENT-076: a tool schema the SDK rejects client-side (its own
+sidecar/services/llm/ollama.py:180:        # round then answers without tools and says so (R15-AGENT-076).
+
+
+$ grep -n 'logger\|tools_construction\|notice' sidecar/services/llm/ollama.py | head -8
+[exit 0] [0.01s]
+45:logger = logging.getLogger(__name__)
+197:                    logger.warning(
+206:                        step_kind="notice",
+

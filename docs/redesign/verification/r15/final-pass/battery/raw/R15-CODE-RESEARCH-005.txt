@@ -1,0 +1,28 @@
+# R15-CODE-RESEARCH-005 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:23+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- test_no_research_module_imports_a_private_name_a sidecar/tests/test_research_module_boundary.py | head -3; test -f sidecar/tests/test_research_module_boundary.py || echo 'MISSING sidecar/tests/test_research_module_boundary.py'
+[exit 0] [0.01s]
+18:def test_no_research_module_imports_a_private_name_across_modules() -> None:
+
+
+$ grep -n -F -- test_shared_round_helpers_are_public_deep_export sidecar/tests/test_research_module_boundary.py | head -3; test -f sidecar/tests/test_research_module_boundary.py || echo 'MISSING sidecar/tests/test_research_module_boundary.py'
+[exit 0] [0.01s]
+33:def test_shared_round_helpers_are_public_deep_exports() -> None:
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-RESEARCH-005\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+sidecar/tests/test_research_module_boundary.py:1:"""R15-CODE-RESEARCH-005: no research module imports another's private names.
+Binary file sidecar/tests/__pycache__/test_research_module_boundary.cpython-313-pytest-9.0.3.pyc matches
+
+
+$ grep -n 'from .deep import\|from services.research.deep import\|deep\._' sidecar/services/research/iter.py sidecar/services/research/verify.py | head -8
+[exit 0] [0.01s]
+sidecar/services/research/iter.py:41:from services.research.deep import (
+sidecar/services/research/verify.py:62:from services.research.deep import (
+

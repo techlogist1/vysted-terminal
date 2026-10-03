@@ -1,0 +1,30 @@
+# R15-RESEARCH-027 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:48:03+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd /Users/lokavyasingh/Documents/dev/vysted-terminal
+python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb0/vy.py invoke copilot "Research NVDA briefly." --provider ollama --model llama3.1:8b --port 52860 --timeout 280 --out $B/out/res.events.jsonl > $B/out/res.txt 2>&1; echo "vy exit $?"
+python3 - <<PY
+import json
+ev=[json.loads(l) for l in open("$B/out/res.events.jsonl") if l.strip()]
+st=[e for e in ev if e.get("kind")=="research_step"]
+for e in st: print(e.get("latency_ms"), e.get("status"), str(e.get("detail"))[:110])
+PY
+--- output ---
+vy exit 0
+None ok research:begin 5c9e3ea04039452198c2a5f3d879a1e4 depth=normal query=NVDA
+None ok resolving "NVDA"
+1436 ok resolved → NVDA
+None ok pulling market data for NVDA
+None ok searching the web for NVIDIA CORP
+0 ok ownership cross-check
+0 ok declared dividend cross-check
+0 ok 52-week range cross-check
+0 ok market-cap witness cross-check
+31 ok growth cross-check
+31 ok earnings quality cross-check
+142 ok dividend TTM cross-check
+2258 ok pulled 4/4 data sources
+8002 skipped no web backend — structured only
+None ok assembling the research bundle
+None ok Staged for your review, not applied yet: publish_brief NVDA. Accept it below to apply.
+
+EXIT=0 (78.1s)

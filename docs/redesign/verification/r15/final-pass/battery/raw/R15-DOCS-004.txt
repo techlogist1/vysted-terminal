@@ -1,0 +1,35 @@
+# R15-DOCS-004 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:26+0530
+
+$ git merge-base --is-ancestor f407107 HEAD && echo 'closure f407107 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure f407107 NOT an ancestor'
+[exit 0] [0.02s]
+closure f407107 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-DOCS-004\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.29s]
+src/lib/design-doc-citations.test.ts:7: * R15-DOCS-004 pin: PRODUCT_DESIGN_DECISIONS.md's banner marks §0–§7, §9, §10
+src/lib/design-doc-citations.test.ts:37:describe("R15-DOCS-004: no live source cites a superseded PDD section", () => {
+
+
+$ head -14 docs/redesign/PRODUCT_DESIGN_DECISIONS.md | cut -c1-240
+[exit 0] [0.01s]
+# Vysted R4 — Product Design Decisions (the taste authority)
+
+> **SUPERSEDED (R15-DOCS-004):** §0–§7, §9, §10 describe the "Warm Graphite" palette
+> (warm near-black ramp, amber accent `#d89a4e`, Inter sans) and its specific sizing/hex
+> values. That palette was reversed twice — R6 "Pure Black" (pure-neutral ramp, OpenCode
+> peach accent `#fab283`) and R9 (Linear/Cursor-anchored scale, JetBrains Mono only) — and
+> neither reversal was recorded here. Those sections are **dead**; the current palette,
+> type, and scale authority is **`docs/redesign/VYSTED_DESIGN.md`** (colors, type, spacing
+> tokens) and **`docs/redesign/R9_DESIGN_SYSTEM.md`** (control/spacing scale). §8 and
+> §11–§16 are **still binding** — they describe structural/behavioral patterns (empty
+> states, the `DataTable`/editor/composer/palette patterns, the enforcement gate) through
+> token _names_, which the current palette still defines (see `styles/tokens.css`'s "names
+> are historical, not literal" note); only the _values_ changed. Do not cite §0–§7, §9, or
+> §10 from source code — `src/lib/design-doc-citations.test.ts` fails the build if you do.
+
+
+$ grep -n 'PRODUCT_DESIGN_DECISIONS' styles/tokens.css | head -3
+[exit 0] [0.00s]
+21: * lockstep or the chart drifts (FR-030). See docs/redesign/PRODUCT_DESIGN_DECISIONS.md.
+

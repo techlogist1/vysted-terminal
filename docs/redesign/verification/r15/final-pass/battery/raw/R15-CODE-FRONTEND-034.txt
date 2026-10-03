@@ -1,0 +1,9 @@
+# R15-CODE-FRONTEND-034 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'a reworded Kept label still acks kept_previous\|the apply result carries its ack status' src/store/proposed-changes.test.ts src/lib/host-actions.test.ts
+--- output ---
+src/store/proposed-changes.test.ts:205:  it("a reworded Kept label still acks kept_previous", async () => {
+src/lib/host-actions.test.ts:1126:  it("the apply result carries its ack status (D39 §4) — kept_previous, applied, failed", async () => {
+
+EXIT=0 (0.0s)

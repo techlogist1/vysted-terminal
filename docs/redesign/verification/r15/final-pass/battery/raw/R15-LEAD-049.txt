@@ -1,0 +1,16 @@
+# R15-LEAD-049 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:19:36+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/resolve?q=TATAMOTORS' | head -c 1500
+[exit 0] [0.41s]
+{"ok":true,"query":"TATAMOTORS","region":"IN","resolved":{"symbol":"TMPV","name":"Tata Motors Passenger Vehicles Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"TMPV.NS","confidence":1.0,"isin":"INE155A01022","bse_code":"500570","industry":"Automobile and Auto Components / Passenger Cars & Utility Vehicles","former_name":"TATAMOTORS","board":"mainboard","exchange_group":"A","face_value":2.0,"rename":{"renamed_from":"TATAMOTORS","renamed_to":"TMPV","effective_date":"2025-10-24","note":"TATAMOTORS was renamed to TMPV on NSE (effective 2025-10-24); the resolver answers the current symbol."}},"needs_disambiguation":false,"candidates":[{"symbol":"TMPV","name":"Tata Motors Passenger Vehicles Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"TMPV.NS","confidence":1.0,"isin":"INE155A01022","bse_code":"500570","industry":"Automobile and Auto Components / Passenger Cars & Utility Vehicles","former_name":"TATAMOTORS","board":"mainboard","exchange_group":"A","face_value":2.0,"rename":{"renamed_from":"TATAMOTORS","renamed_to":"TMPV","effective_date":"2025-10-24","note":"TATAMOTORS was renamed to TMPV on NSE (effective 2025-10-24); the resolver answers the current symbol."}},{"symbol":"TMCV","name":"Tata Motors Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"TMCV.NS","confidence":0.6897,"isin":"INE1TAE01010","bse_code":"544569","industry":"Capital Goods / Commercial Vehicles","former_name":null,"boar
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/quotes/TMPV.NS'
+[exit 0] [5.80s]
+{"symbol":"TMPV","price":279.4,"change":-4.100000000000023,"change_percent":-1.4462081128747875,"volume":15258191.0,"open":280.0,"high":281.3,"low":273.35,"prev_close":283.5,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"nse_direct","freshness":"eod"}
+[http 200 5.788598s]
+
+$ grep -c TATAMOTORS /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/services/screener_universes/nifty50.json; grep -c TMPV /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/services/screener_universes/nifty50.json
+[exit 0] [0.01s]
+0
+1
+

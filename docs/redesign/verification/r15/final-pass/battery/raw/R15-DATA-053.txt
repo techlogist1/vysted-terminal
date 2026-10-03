@@ -1,0 +1,11 @@
+# R15-DATA-053 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:19:19+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/quotes/ICON.BO?asset_class=equity'
+[exit 0] [0.30s]
+{"symbol":"ICON","price":63.25,"change":0.25,"change_percent":0.3968253968253968,"volume":2400.0,"open":63.25,"high":63.25,"low":63.25,"prev_close":63.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"bse","freshness":"eod"}
+[http 200 0.272631s]
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/quotes/ICONIKSPEV.BO?asset_class=equity'
+[exit 0] [0.81s]
+{"symbol":"ICONIKSPEV","price":31.98,"change":-1.6799999999999962,"change_percent":-4.991087344028509,"volume":7934.0,"open":33.66,"high":33.66,"low":31.98,"prev_close":33.66,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"bse","freshness":"eod"}
+[http 200 0.794739s]

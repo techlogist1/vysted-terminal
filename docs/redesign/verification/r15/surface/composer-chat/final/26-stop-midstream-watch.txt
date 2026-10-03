@@ -1,0 +1,27 @@
+stop turn launched 16:17:45, harness exit 16:18:35 (stop clicked at ~40s)
+16:18:43
+6
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no expl
+  return np.datetime64(dt)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no expl
+  return np.datetime64(dt)
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-cand/sidecar/.venv/lib/python3.13/site-packages/jugaad_data/util.py:38: UserWarning: no expl
+  return np.datetime64(dt)
+2026-10-03 16:17:49,524 INFO httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-10-03 16:17:49,531 INFO httpx: HTTP Request: GET http://127.0.0.1:11434/api/tags "HTTP/1.1 200 OK"
+2026-10-03 16:17:49,531 INFO uvicorn.access: 127.0.0.1:62020 - "POST /llm/keys/validate HTTP/1.1" 200
+2026-10-03 16:17:49,550 INFO uvicorn.access: 127.0.0.1:62021 - "POST /agents/copilot/invoke HTTP/1.1" 200
+2026-10-03 16:19:04,092 WARNING services.provider_health: provider health: yahoo circuit OPEN for 65s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+16:19:53
+Python  61800 lokavyasingh   28u  IPv4 0x8dbe9618110f56b2      0t0  TCP 127.0.0.1:61828->127.0.0.1:11434 (ESTABLISHED)
+Python  61800 lokavyasingh   34u  IPv4 0xcfd4ea626c2af8b8      0t0  TCP 127.0.0.1:60584->127.0.0.1:11434 (ESTABLISHED)
+Python  61800 lokavyasingh   62u  IPv4 0x15af2c021d78f7f7      0t0  TCP 127.0.0.1:57233->127.0.0.1:11434 (ESTABLISHED)
+Python  61800 lokavyasingh   98u  IPv4 0x2398f476c3f9ccfe      0t0  TCP 127.0.0.1:58516->127.0.0.1:11434 (ESTABLISHED)
+Python  61800 lokavyasingh  132u  IPv4 0x1cc99c8e44471e64      0t0  TCP 127.0.0.1:61675->127.0.0.1:11434 (ESTABLISHED)
+Python  61800 lokavyasingh  139u  IPv4 0x5c2e0efbd4a0aae0      0t0  TCP 127.0.0.1:62037->127.0.0.1:11434 (ESTABLISHED)
+{"models":[{"name":"llama3.1:8b","model":"llama3.1:8b","size":6831990784,"digest":"46e0c10c039e019119339687c3c1757cc81b9da49709a3b3924863ba87ca666e","details":{"parent_model":"","format":"gguf","family":"llama","families":["llama"],"parameter_size":"8.0B","quantization_level":"Q4_K_M"},"expires_at":
+16:20:03
+run 2 (27-stop-midstream-b): FP_STOP_AT_S=75
+--- run 2 sidecar lines from 16:20:42 (stop clicked ~16:21:21) checked at 16:22:43
+ollama conns:
+       6

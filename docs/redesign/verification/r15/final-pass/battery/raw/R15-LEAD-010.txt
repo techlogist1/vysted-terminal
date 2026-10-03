@@ -1,0 +1,14 @@
+# R15-LEAD-010 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:33:38+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 100 "$H/sec/filings?symbol=AAPL&form_type=10-K" | python3 -c "import sys,json;d=json.load(sys.stdin);f=d.get('filings',[]);print('10-K list',len(f),[(x.get('accession'),x.get('form_type'),x.get('filed_date')) for x in f[:3]])"
+for a in 0000320193-25-000079 0000320193-24-000123 0000320193-21-000105; do curl -s -m 100 -w ' @@%{http_code}' "$H/sec/filings/$a?identifier=AAPL" | python3 -c "import sys,json;t=sys.stdin.read();b,h=t.rsplit(' @@',1)
+try:
+  d=json.loads(b);print('$a','HTTP',h,(d.get('filing') or {}).get('form_type'),(d.get('filing') or {}).get('filed_date'),'sections',len(d.get('sections') or []))
+except Exception: print('$a','HTTP',h,b[:200])"; done
+--- output ---
+10-K list 32 [('0000320193-25-000079', '10-K', '2025-10-31'), ('0000320193-24-000123', '10-K', '2024-11-01'), ('0000320193-23-000106', '10-K', '2023-11-03')]
+0000320193-25-000079 HTTP 200 10-K 2025-10-31 sections 2
+0000320193-24-000123 HTTP 200 10-K 2024-11-01 sections 2
+0000320193-21-000105 HTTP 200 10-K 2021-10-29 sections 2
+
+EXIT=0 (0.1s)

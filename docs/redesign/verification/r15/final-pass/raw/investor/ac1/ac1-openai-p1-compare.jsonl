@@ -1,0 +1,183 @@
+{"kind": "tool_use", "tool_call_id": "call_b9ed15f2fac54423875f69ab08740185", "name": "resolve_symbol", "input": {"query": "KPIT Technologies", "region": "IN"}}
+{"kind": "tool_use", "tool_call_id": "call_ecfab7ff6ee349f7a5a0e048c3c40b4b", "name": "resolve_symbol", "input": {"query": "Tata Elxsi", "region": "IN"}}
+{"kind": "tool_result", "tool_call_id": "call_b9ed15f2fac54423875f69ab08740185", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_ecfab7ff6ee349f7a5a0e048c3c40b4b", "name": "resolve_symbol", "ok": true, "error": null}
+{"kind": "tool_use", "tool_call_id": "call_385e48cedcb34797b963be01397bedee", "name": "fundamentals", "input": {"symbol": "KPITTECH"}}
+{"kind": "tool_use", "tool_call_id": "call_c9e30af27b4d40b2b9607330690fd851", "name": "fundamentals", "input": {"symbol": "TATAELXSI"}}
+{"kind": "tool_result", "tool_call_id": "call_385e48cedcb34797b963be01397bedee", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "tool_result", "tool_call_id": "call_c9e30af27b4d40b2b9607330690fd851", "name": "fundamentals", "ok": true, "error": null}
+{"kind": "delta", "text": "Here"}
+{"kind": "delta", "text": " is"}
+{"kind": "delta", "text": " the"}
+{"kind": "delta", "text": " comparison"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "KP"}
+{"kind": "delta", "text": "IT"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "ata"}
+{"kind": "delta", "text": " El"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": "si"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " their"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capitalization"}
+{"kind": "delta", "text": ":\n\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " Metric"}
+{"kind": "delta", "text": "         "}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " KP"}
+{"kind": "delta", "text": "IT"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " Tata"}
+{"kind": "delta", "text": " El"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": "si"}
+{"kind": "delta", "text": " Limited"}
+{"kind": "delta", "text": "    "}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": "----------------"}
+{"kind": "delta", "text": "--"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": "----------------"}
+{"kind": "delta", "text": "---------"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": "----------------"}
+{"kind": "delta", "text": "-------"}
+{"kind": "delta", "text": "|\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " Ratio"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "   "}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "23"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "                  "}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "29"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "41"}
+{"kind": "delta", "text": "                "}
+{"kind": "delta", "text": " |\n"}
+{"kind": "delta", "text": "|"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "Market"}
+{"kind": "delta", "text": " Cap"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": "  "}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "394"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "             "}
+{"kind": "delta", "text": " |"}
+{"kind": "delta", "text": " \u20b9"}
+{"kind": "delta", "text": "19"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "268"}
+{"kind": "delta", "text": " cr"}
+{"kind": "delta", "text": "           "}
+{"kind": "delta", "text": " |\n\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "KP"}
+{"kind": "delta", "text": "IT"}
+{"kind": "delta", "text": " Technologies"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "23"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "10"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " capitalization"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "13"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "394"}
+{"kind": "delta", "text": " cro"}
+{"kind": "delta", "text": "res"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ".\n"}
+{"kind": "delta", "text": "-"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "T"}
+{"kind": "delta", "text": "ata"}
+{"kind": "delta", "text": " El"}
+{"kind": "delta", "text": "x"}
+{"kind": "delta", "text": "si"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " has"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " higher"}
+{"kind": "delta", "text": " P"}
+{"kind": "delta", "text": "/E"}
+{"kind": "delta", "text": " ratio"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "29"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": "41"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " cap"}
+{"kind": "delta", "text": " of"}
+{"kind": "delta", "text": " **"}
+{"kind": "delta", "text": "\u20b9"}
+{"kind": "delta", "text": "19"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": "268"}
+{"kind": "delta", "text": " cro"}
+{"kind": "delta", "text": "res"}
+{"kind": "delta", "text": "**"}
+{"kind": "delta", "text": ".\n\n"}
+{"kind": "delta", "text": "If"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " need"}
+{"kind": "delta", "text": " further"}
+{"kind": "delta", "text": " analysis"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " different"}
+{"kind": "delta", "text": " metrics"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " just"}
+{"kind": "delta", "text": " let"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " know"}
+{"kind": "delta", "text": "!"}
+{"kind": "done", "usage": {"input_tokens": 17240, "output_tokens": 175, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": "gpt-4o-mini-2024-07-18"}, "finish_reason": "stop", "context_window": null, "spend_usd": 0.022473}

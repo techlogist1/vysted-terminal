@@ -1,0 +1,67 @@
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "heartbeat"}
+{"kind": "tool_use", "tool_call_id": "call_9ec4d63860f94354bf5caa93de338623", "name": "get_terminal_state", "input": {}}
+{"kind": "tool_result", "tool_call_id": "call_9ec4d63860f94354bf5caa93de338623", "name": "get_terminal_state", "ok": true, "error": null}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": "'m"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " terminal"}
+{"kind": "delta", "text": " cop"}
+{"kind": "delta", "text": "ilot"}
+{"kind": "delta", "text": " that"}
+{"kind": "delta", "text": " can"}
+{"kind": "delta", "text": " assist"}
+{"kind": "delta", "text": " with"}
+{"kind": "delta", "text": " analyzing"}
+{"kind": "delta", "text": " stocks"}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " providing"}
+{"kind": "delta", "text": " insights"}
+{"kind": "delta", "text": " based"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " available"}
+{"kind": "delta", "text": " data"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "I"}
+{"kind": "delta", "text": " have"}
+{"kind": "delta", "text": " various"}
+{"kind": "delta", "text": " tools"}
+{"kind": "delta", "text": " at"}
+{"kind": "delta", "text": " my"}
+{"kind": "delta", "text": " disposal"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " fetch"}
+{"kind": "delta", "text": " real"}
+{"kind": "delta", "text": "-time"}
+{"kind": "delta", "text": " information"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " display"}
+{"kind": "delta", "text": " charts"}
+{"kind": "delta", "text": ","}
+{"kind": "delta", "text": " and"}
+{"kind": "delta", "text": " generate"}
+{"kind": "delta", "text": " brief"}
+{"kind": "delta", "text": "s"}
+{"kind": "delta", "text": " about"}
+{"kind": "delta", "text": " companies"}
+{"kind": "delta", "text": "."}
+{"kind": "delta", "text": " "}
+{"kind": "delta", "text": "Would"}
+{"kind": "delta", "text": " you"}
+{"kind": "delta", "text": " like"}
+{"kind": "delta", "text": " me"}
+{"kind": "delta", "text": " to"}
+{"kind": "delta", "text": " focus"}
+{"kind": "delta", "text": " on"}
+{"kind": "delta", "text": " a"}
+{"kind": "delta", "text": " specific"}
+{"kind": "delta", "text": " company"}
+{"kind": "delta", "text": " or"}
+{"kind": "delta", "text": " provide"}
+{"kind": "delta", "text": " market"}
+{"kind": "delta", "text": " overview"}
+{"kind": "delta", "text": "?"}
+{"kind": "done", "usage": {"input_tokens": 1656, "output_tokens": 59, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}

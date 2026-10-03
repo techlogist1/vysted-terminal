@@ -1,0 +1,27 @@
+# R15-CODE-AGENT-015 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:26+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio
+from services import sec_filings_provider as sp
+from services.agent_tools import sec_tools
+calls=[]
+class R:
+    def model_dump(self,mode=None): return {}
+async def lf(ident, form_type=None, limit=None): calls.append(('list_filings',limit)); return R()
+async def ins(*a, **k): calls.append(('insider',k.get('limit'))); return R()
+sp.is_available=lambda: True; sp.list_filings=lf
+for n in ('get_insider_transactions','insider_transactions','list_insider_transactions'):
+    if hasattr(sp,n): setattr(sp,n,ins)
+async def go():
+    for lim in (100000,-1,0,'x',None,15):
+        a={'symbol':'AAPL'}
+        if lim is not None: a['limit']=lim
+        await sec_tools._sec_filings_list(a)
+        try: await sec_tools._sec_insider_transactions(dict(a))
+        except Exception as e: print('insider err',type(e).__name__,e)
+asyncio.run(go()); print(calls)
+PY
+--- output ---
+[('list_filings', 100), ('insider', 100), ('list_filings', 1), ('insider', 1), ('list_filings', 1), ('insider', 1), ('list_filings', 20), ('insider', 30), ('list_filings', 20), ('insider', 30), ('list_filings', 15), ('insider', 15)]
+
+EXIT=0 (0.4s)

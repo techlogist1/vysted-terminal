@@ -1,0 +1,16 @@
+# R15-DATA-114 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:19:36+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/quant/option/chain/NIFTY' | tail -c 120
+[exit 0] [0.04s]
+ility":null}],"as_of":"2026-10-01","provider":"nse-fo-bhavcopy","currency":"INR","freshness":"eod"}
+[http 200 0.025887s]
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/quant/option/chain/NIFTY' | tail -c 120
+[exit 0] [0.04s]
+ility":null}],"as_of":"2026-10-01","provider":"nse-fo-bhavcopy","currency":"INR","freshness":"eod"}
+[http 200 0.026560s]
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: IN'  'http://127.0.0.1:52861/quant/option/chain/NIFTY' | tail -c 120
+[exit 0] [0.04s]
+ility":null}],"as_of":"2026-10-01","provider":"nse-fo-bhavcopy","currency":"INR","freshness":"eod"}
+[http 200 0.025876s]

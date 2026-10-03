@@ -1,0 +1,9 @@
+# R15-UI-072 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:34+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n -F 'R15-UI-072' src/modules/chat/ModelControl.test.tsx; grep -n -F 'ChevronDown' src/modules/chat/ModelControl.tsx
+--- output ---
+30:  it("R15-UI-072: the trigger contains a chevron icon", () => {
+4:import { ChevronDown, Cpu, RefreshCw } from "lucide-react";
+178:        <ChevronDown
+
+EXIT=0 (0.0s)

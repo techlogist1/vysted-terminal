@@ -1,0 +1,17 @@
+# R15-AGENT-030 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:05+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import httpx
+from services.errors import error_frame, humanize
+for e in (RuntimeError('runs_store: database connection is closed'), ValueError("could not parse depth 'ultra2'"), TypeError("f() got an unexpected keyword argument 'research_depth'"), KeyError('connect_args')):
+    f=error_frame(e); print(type(e).__name__,'->',f.get('code'),'|',f.get('message'),'|',f.get('detail'))
+h=humanize(None, httpx.ConnectError('refused')); print('real ConnectError humanize ->', getattr(h,'kind',h))
+PY
+--- output ---
+RuntimeError -> internal | The terminal hit an internal error. | RuntimeError: runs_store: database connection is closed
+ValueError -> internal | The terminal hit an internal error. | ValueError: could not parse depth 'ultra2'
+TypeError -> internal | The terminal hit an internal error. | TypeError: f() got an unexpected keyword argument 'research_depth'
+KeyError -> internal | The terminal hit an internal error. | KeyError: 'connect_args'
+real ConnectError humanize -> HumanError(message='Could not reach the AI provider — check your network.', action='Check your internet connection and try again.', detail='refused', code='network')
+
+EXIT=0 (0.1s)

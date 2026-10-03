@@ -1,0 +1,9 @@
+# R15-AGENT-032 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:44:59+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'R15-AGENT-032' src/modules/chat/ChatSidebar.test.tsx; grep -n "Couldn't apply" src/modules/chat/ChatSidebar.tsx | head -3
+--- output ---
+859:  it("under AUTO a failing auto-apply writes no 'Applied:' line, it says why (R15-AGENT-032)", async () => {
+308:    return `Couldn't apply: ${title}${change?.detail ? ` — ${change.detail}` : ""}`;
+
+EXIT=0 (0.0s)

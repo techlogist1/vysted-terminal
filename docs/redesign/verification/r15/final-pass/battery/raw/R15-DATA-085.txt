@@ -1,0 +1,7 @@
+# R15-DATA-085 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:50+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 60 -H "X-Vysted-Region: IN" "$H/macro/NY.GDP.MKTP.CD?provider=world-bank" | python3 -c "import sys,json;d=json.load(sys.stdin);print('title',d.get('title'))"
+--- output ---
+title GDP (current US$) — IND
+
+EXIT=0 (2.0s)

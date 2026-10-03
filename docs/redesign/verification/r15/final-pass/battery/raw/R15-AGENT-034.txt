@@ -1,0 +1,21 @@
+# R15-AGENT-034 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:20+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+echo '$ POST /agents/copilot/runs budget {} (ollama llama3.1:8b, OK prompt)'; R=$(curl -s -m 30 -X POST "$H/agents/copilot/runs" -H 'content-type: application/json' -d '{"prompt":"Reply with the single word OK. Do not use tools.","provider":"ollama","model":"llama3.1:8b","budget":{}}'); echo "launch: $R"; ID=$(echo "$R" | python3 -c "import sys,json;print(json.load(sys.stdin).get('run_id',''))"); echo "$ID" > $B/out/run034.id
+for n in $(seq 1 40); do S=$(curl -s -m 10 "$H/runs/$ID" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('status'))"); [ "$S" = done -o "$S" = error -o "$S" = cancelled ] && break; sleep 2; done
+curl -s -m 10 "$H/runs/$ID" | python3 -c "import sys,json;d=json.load(sys.stdin);print('stored budget',d.get('budget'),'| status',d.get('status'),'| usage',d.get('usage'),'| answer',repr((d.get('output') or d.get('answer') or '')[:80]))"
+for b in '{"max_steps":0}' '{"max_spend_usd":-1}' '{"max_wall_seconds":0}'; do echo "budget=$b"; curl -s -m 10 -X POST "$H/agents/copilot/runs" -H 'content-type: application/json' -d "{\"prompt\":\"x\",\"budget\":$b}" -w '\nHTTP %{http_code}\n' | cut -c1-220; done
+--- output ---
+$ POST /agents/copilot/runs budget {} (ollama llama3.1:8b, OK prompt)
+launch: {"run_id":"b6070adaa669481e80858170fd4bde47"}
+stored budget {'max_tokens': 120000, 'max_spend_usd': 1.0, 'max_wall_seconds': 600.0, 'max_steps': 12} | status done | usage None | answer '{"name": "ask_user", "parameters": {"Pause this background run and ask the user '
+budget={"max_steps":0}
+{"detail":[{"type":"greater_than","loc":["body","budget","max_steps"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0}}]}
+HTTP 422
+budget={"max_spend_usd":-1}
+{"detail":[{"type":"greater_than","loc":["body","budget","max_spend_usd"],"msg":"Input should be greater than 0","input":-1,"ctx":{"gt":0.0}}]}
+HTTP 422
+budget={"max_wall_seconds":0}
+{"detail":[{"type":"greater_than","loc":["body","budget","max_wall_seconds"],"msg":"Input should be greater than 0","input":0,"ctx":{"gt":0.0}}]}
+HTTP 422
+
+EXIT=0 (4.2s)

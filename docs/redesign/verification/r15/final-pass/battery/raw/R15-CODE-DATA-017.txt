@@ -1,0 +1,8 @@
+# R15-CODE-DATA-017 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:36+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b23_set109.py 2>&1 | grep -v Warning | grep -i 'DATA-017\|017'
+--- output ---
+DATA-017 rows[0]: TATASTEEL score 1.0 band 6
+DATA-017 decide().outcome = bound (want bound, not disambiguate)
+
+EXIT=0 (0.9s)

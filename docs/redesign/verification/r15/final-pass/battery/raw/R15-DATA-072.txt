@@ -1,0 +1,28 @@
+# R15-DATA-072 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:15:02+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C/sidecar"; grep -c 'record_success(provider_health.YAHOO)' services/yfinance_provider.py
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio, inspect, pandas as pd
+from services import provider_health as ph, yfinance_provider as y
+class T:
+    def __init__(s,*a,**k): pass
+    def history(s,*a,**k):
+        idx=pd.date_range('2026-09-01',periods=3,freq='D',tz='UTC')
+        return pd.DataFrame({'Open':[1,2,3],'High':[1,2,3],'Low':[1,2,3],'Close':[1,2,3],'Volume':[1,1,1]},index=idx)
+y.yf.Ticker=T
+for _ in range(3): ph.record_rate_limited(ph.YAHOO)
+print('after trip open=',ph.is_open(ph.YAHOO))
+try:
+    b=asyncio.run(y.get_history('MSFT','1d')) if inspect.iscoroutinefunction(y.get_history) else y.get_history('MSFT','1d')
+    print('bars',len(b.bars) if hasattr(b,'bars') else len(b))
+except Exception as e: print('ERR',type(e).__name__,e)
+print('after successful get_history open=',ph.is_open(ph.YAHOO), ph.status(ph.YAHOO))
+PY
+--- output ---
+9
+provider health: yahoo circuit OPEN for 59s (consecutive opens=1) — callers serve stale/seed basis until it half-opens
+after trip open= True
+bars 3
+after successful get_history open= False {'open': False, 'cooldown_remaining': 0.0, 'consecutive_throttles': 0.0, 'consecutive_opens': 0, 'opens_total': 1, 'throttles_total': 3.0}
+
+EXIT=0 (0.6s)

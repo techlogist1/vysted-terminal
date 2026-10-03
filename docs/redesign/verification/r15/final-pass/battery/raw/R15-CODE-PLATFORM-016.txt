@@ -1,0 +1,14 @@
+# R15-CODE-PLATFORM-016 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:24+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'runWorkflow' src/modules/node-editor/NodeEditorPanel.tsx | head -3; grep -n 'describe("useWorkflowStore.runWorkflow' src/store/workflow.test.ts; grep -n 'pendingNotifications\|appendEvent' src/store/workflow.ts | head -4
+--- output ---
+20: * The run goes through `useWorkflowStore.runWorkflow` (the one client for
+413:      await useWorkflowStore.getState().runWorkflow(spec, undefined, {
+222:describe("useWorkflowStore.runWorkflow — SSE consumption", () => {
+98:  pendingNotifications: DesktopNotificationIntent[];
+101:  appendEvent: (event: WorkflowRunEvent) => void;
+242:  pendingNotifications: [],
+244:  appendEvent: (event) => {
+
+EXIT=0 (0.0s)

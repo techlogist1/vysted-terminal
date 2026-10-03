@@ -1,0 +1,41 @@
+{
+ "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/research-briefs/final/05-normal-tataelxsi-llama-clean.jsonl": {
+  "phase": "published",
+  "applied": [
+   {
+    "name": "publish_brief",
+    "label": "Published the FAST research brief",
+    "phaseAfter": "published"
+   }
+  ],
+  "errors": [],
+  "engineNotices": [],
+  "brief": {
+   "symbol": "TATAELXSI",
+   "depth": "quick",
+   "mode": "FAST",
+   "webAvailable": false,
+   "webReason": "rate_limited",
+   "note": "Web search was rate-limited — retry in a moment",
+   "sourceCount": 0,
+   "sourcesStored": 0,
+   "sourcesRendered": 0,
+   "markdownLen": 0,
+   "markersInBody": [],
+   "maxMarker": 0,
+   "markersAfterSanitize": 0,
+   "execution": {
+    "runId": "9a6bcec0eedd47f4af5ef84ca9ac499c",
+    "requestedDepth": "normal",
+    "loop": "fast",
+    "backend": null,
+    "startedAt": 1791024032.356596,
+    "finishedAt": 1791024040.070055,
+    "degradedReason": null
+   },
+   "metrics": null
+  },
+  "anchors": [],
+  "renderedText": " Save .md Save PDF Save PNGFASTTATAELXSI0 sources FASTstructured dataEOD as of 2026-10-03Tata ElxsiWeb search was rate-limitedWeb search was rate-limited — retry in a moment"
+ }
+}

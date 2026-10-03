@@ -1,0 +1,15 @@
+# R15-LEAD-059 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:27+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+echo "\$ GET /resolve?q=FOCUS [IN]"; curl -s -m 60 -H "X-Vysted-Region: IN" "$H/resolve?q=FOCUS" | head -c 500; echo
+echo "\$ GET /disclosures/announcements?symbol=FOCUS&limit=50 [IN]"; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/disclosures/announcements?symbol=FOCUS&limit=50" | python3 -c "
+import sys,json,collections;d=json.load(sys.stdin);a=d.get('announcements') or []
+print('count',d.get('count'),'by exchange',collections.Counter(x.get('exchange') or x.get('source') for x in a),'note',d.get('note'))
+print('rows mentioning 543312:',sum('543312' in json.dumps(x) for x in a))"
+--- output ---
+$ GET /resolve?q=FOCUS [IN]
+{"ok":true,"query":"FOCUS","region":"IN","resolved":null,"needs_disambiguation":true,"candidates":[{"symbol":"FOCUS","name":"Focus Lighting and Fixtures Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"FOCUS.NS","confidence":1.0,"isin":null,"bse_code":null,"industry":null,"former_name":null,"board":"mainboard","exchange_group":null,"face_value":2.0},{"symbol":"FOCUS","name":"Focus Business Solution Ltd","exchange":"BSE","region":"IN","asset_class":"equity","yahoo_sy
+$ GET /disclosures/announcements?symbol=FOCUS&limit=50 [IN]
+count 44 by exchange Counter({'NSE': 44}) note BSE FOCUS is a different company; only the NSE feed is served
+rows mentioning 543312: 0
+
+EXIT=0 (1.1s)

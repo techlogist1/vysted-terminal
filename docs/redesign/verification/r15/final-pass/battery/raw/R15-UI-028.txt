@@ -1,0 +1,10 @@
+# R15-UI-028 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:12+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'R15-UI-028' src --include=*.test.* | cut -c1-200
+--- output ---
+src/modules/quant/GreeksDashboard.test.tsx:80:    // R15-UI-028 residual: rho (per unit rate) reads in market units too.
+src/modules/quant/OptionPricerPanel.test.tsx:70:  it("R15-UI-028: in region IN, ₹ price and vega/theta in market units", async () => {
+src/modules/quant/units.test.ts:5:describe("toMarketUnits (R15-UI-028, R15-UI-051)", () => {
+src/modules/quant/units.test.ts:13:  it("reads rho per 1% rate move (R15-UI-028 residual: rho was still unlabelled)", () => {
+
+EXIT=0 (0.0s)

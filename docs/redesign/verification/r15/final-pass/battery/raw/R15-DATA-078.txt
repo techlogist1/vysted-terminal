@@ -1,0 +1,10 @@
+# R15-DATA-078 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:46:22+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -rniE 'alpha_vantage|AlphaVantage|alphavantage' sidecar/ --exclude-dir=.venv --exclude-dir=__pycache__ --exclude-dir=tests; echo sidecar-grep-exit=$?; grep -n -i alpha sidecar/requirements.txt; echo req-grep-exit=$?; grep -n -i 'alpha' docs/BLUEPRINT.md
+--- output ---
+sidecar-grep-exit=1
+req-grep-exit=1
+266:18. yfinance fallback (no API key needed for basic use; R15-DATA-078 — alpha_vantage was
+
+EXIT=0 (0.3s)

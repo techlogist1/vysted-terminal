@@ -1,0 +1,22 @@
+# R15-CROSS-PLATFORM-011 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:24+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- 'rejecting keychain keeps seen:true once markSeen' src/store/onboarding.test.ts | head -3; test -f src/store/onboarding.test.ts || echo 'MISSING src/store/onboarding.test.ts'
+[exit 0] [0.00s]
+49:  it("rejecting keychain keeps seen:true once markSeen ran (R15-CROSS-PLATFORM-011)", async () => {
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CROSS-PLATFORM-011\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src/components/KeyEntryDialog.test.tsx:66:  it("a missing OS secret store shows the typed unavailable state (R15-CROSS-PLATFORM-011)", async () => {
+src/lib/keychain.ts:73: * — the Rust core prefixes those errors (R15-CROSS-PLATFORM-011).
+src/store/onboarding.test.ts:49:  it("rejecting keychain keeps seen:true once markSeen ran (R15-CROSS-PLATFORM-011)", async () => {
+src/store/onboarding.ts:10: * Secret Service provider) it would reappear every launch (R15-CROSS-PLATFORM-011).
+src-tauri/src/lib.rs:531:/// (R15-CROSS-PLATFORM-011).
+src-tauri/src/lib.rs:927:        // R15-CROSS-PLATFORM-011: the onboarding flags live in a data-dir file,
+src-tauri/src/keychain.rs:265:            // boot), never after a 140 s block (R15-CROSS-PLATFORM-011).
+

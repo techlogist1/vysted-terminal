@@ -1,0 +1,13 @@
+# R15-AGENT-044 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:04+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+for q in "Mazagon%20Dock" MAZAGONDOCK "Cochin%20Shipyard"; do echo -n "\$ GET /resolve?q=$q [IN]: "; curl -s -m 60 -H "X-Vysted-Region: IN" "$H/resolve?q=$q" | head -c 260; echo; done
+grep -n "MAZAGONDOCK\|Mazagon" "$C/src/lib/host-actions.test.ts" | head -3
+--- output ---
+$ GET /resolve?q=Mazagon%20Dock [IN]: {"ok":true,"query":"Mazagon Dock","region":"IN","resolved":{"symbol":"MAZDOCK","name":"Mazagon Dock Shipbuilders Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"MAZDOCK.NS","confidence":0.92,"isin":"INE249Z01020","bse_code":"5432
+$ GET /resolve?q=MAZAGONDOCK [IN]: {"ok":false,"query":"MAZAGONDOCK","region":"IN","message":"No instrument matched 'MAZAGONDOCK'.","resolved":null,"needs_disambiguation":false,"candidates":[],"rename_lane":"available"}
+$ GET /resolve?q=Cochin%20Shipyard [IN]: {"ok":true,"query":"Cochin Shipyard","region":"IN","resolved":{"symbol":"COCHINSHIP","name":"Cochin Shipyard Limited","exchange":"NSE","region":"IN","asset_class":"equity","yahoo_symbol":"COCHINSHIP.NS","confidence":1.0,"isin":"INE704P01025","bse_code":"540678
+226:    // The live /resolve answers for "Mazagon Dock" (bound) and the invented
+227:    // ticker "MAZAGONDOCK" (no listing, no candidate).
+229:      resolved: { symbol: "MAZDOCK", name: "Mazagon Dock Shipbuilders Limited" },
+
+EXIT=0 (2.2s)

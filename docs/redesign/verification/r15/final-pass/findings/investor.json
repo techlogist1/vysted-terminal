@@ -1,0 +1,179 @@
+[
+ {
+  "key": "investor:1",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-048",
+  "scenario": "DS-1",
+  "title": "Regression of R15-DATA-048: AMAL (NSE, the default IN bind, Rs 868 Cr) serves market_cap and shares_outstanding unavailable while the same ISIN on BSE (AMAL.BO) serves both in the same sidecar",
+  "area": "data-smallcaps",
+  "repro": "GET /fundamentals/AMAL with X-Vysted-Region IN (or /fundamentals/AMAL.NS) -> market_cap null, field_meta.market_cap unavailable provider did not publish this field; GET /fundamentals/AMAL.BO -> market_cap 8690951168, shares_outstanding 12362662 (ISIN INE841D01013 on both rows of /resolve?q=AMAL); screener.in/company/AMAL/consolidated/ Market Cap Rs 868 Cr",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/DS-1.md",
+  "suspected_files": [
+   "sidecar/services/yfinance_provider.py"
+  ]
+ },
+ {
+  "key": "investor:2",
+  "kind": "new_defect",
+  "severity": "high",
+  "register_id": null,
+  "scenario": "DS-2",
+  "title": "Every NSE Emerge (SME) listing has no fundamentals at all: /fundamentals 404 telling the user to check a valid symbol, and income/balance return empty 200s with no reason",
+  "area": "data-smallcaps",
+  "repro": "GET /fundamentals/YASHOPTICS (X-Vysted-Region IN; resolves NSE SME, yahoo_symbol YASHOPTICS-SM.NS) -> 404 {detail: The data provider has no data for this symbol or series - check the symbol.}; same for SUMAX, QUALIANCE, GANESHIN, VOLERCAR; GET /fundamentals/YASHOPTICS/income and /balance -> 200 periods [] lines [] with no reason; Equity Overview renders Fundamentals unavailable with that hint. screener.in/company/YASHOPTICS/ shows Market Cap Rs 335 Cr, P/E 37.0, FY26 sales 53.99 Cr. Direct yfinance probe: YASHOPTICS-SM.NS info has no marketCap/eps/statements (raw/investor/yf-sme.txt), so no provider covers the board and the app has no exchange-filing fallback for NSE SME",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/DS-2.md",
+  "suspected_files": [
+   "sidecar/services/provider_registry.py",
+   "sidecar/services/correctness_gate.py",
+   "sidecar/services/exchange_financials.py",
+   "src/modules/equity-overview/EquityOverviewPanel.tsx"
+  ]
+ },
+ {
+  "key": "investor:3",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-013",
+  "scenario": "DS-2",
+  "title": "Regression of R15-DATA-013: when the exchange-filed overlay replaces EPS/net income, P/E stays computed on the provider EPS the payload itself says is not served (SUNRAJDI P/E 155.5 beside served EPS 0.23 at price 12.44; true ~54-55), and the flag reason quotes a third, also-wrong implied P/E 141.1",
+  "area": "data-smallcaps",
+  "repro": "GET /fundamentals/SUNRAJDI (IN) -> eps 0.23 (provider bse, reason: the provider 0.08 disagrees - not served), net_income_ttm 1,220,000 (bse), pe_ratio 155.5 status flagged reason ...470,000 / 5,330,400 = 0.09 ... the P/E it implies at the ratio price 12.44 is 141.1; screener.in/company/523425/ Stock P/E 55.2. correctness_gate.py:703-790 _FILED_SIZES overlay replaces eps/net_income_ttm but never recomputes pe_ratio, and the earlier P/E flag (:417) reasons from the un-overlaid provider net income",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/DS-2.md",
+  "suspected_files": [
+   "sidecar/services/correctness_gate.py"
+  ]
+ },
+ {
+  "key": "investor:4",
+  "kind": "regression",
+  "severity": "medium",
+  "register_id": "R15-DATA-113",
+  "scenario": "DS-3",
+  "title": "Regression of R15-DATA-113: SIFY analyst revenue estimate (USD-sized 191.7M) is labelled revenue_currency INR, a ~64x understatement against Sify actual quarterly revenue INR 12,352 M, rendered by the Earnings estimate grid",
+  "area": "data-smallcaps",
+  "repro": "GET /earnings/SIFY/estimates (US) -> revenue_estimate_mean 191700000.0, revenue_currency INR, analyst count 1; same sidecar GET /fundamentals/SIFY -> revenue_ttm 46,506,049,536 financial_currency INR (quarterly ~11.6 bn INR). Sify 6-K ex99.1 filed 2026-07-16 (https://www.sec.gov/Archives/edgar/data/1094324/000155485526001544/ex991_1.htm): Revenue was INR 12,352 Million. earnings_provider.py:124-155 _revenue_currency: scale check vs INR total revenue fails (0.016), then falls back to country India -> INR, i.e. labels the estimate with the very currency the scale check just ruled out; EpsEstimateGrid.tsx:73-129 renders it",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/DS-3.md",
+  "suspected_files": [
+   "sidecar/services/earnings_provider.py"
+  ]
+ },
+ {
+  "key": "investor:5",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-CODE-DATA-001",
+  "scenario": "DS-4",
+  "title": "Regression of R15-CODE-DATA-001 (class R15-LEAD-059): NSE SME GSTL (Globesecure Technologies) is stamped with BSE GSTL Globalspace Technologies' ISIN/scrip code, so its announcements, results calendar, corporate actions and shareholding splits merge a different company's BSE filings",
+  "area": "data-smallcaps",
+  "repro": "GET /resolve?q=GSTL (IN) -> NSE Globesecure Technologies, confidence 1.0, needs_disambiguation false, isin INE632W01016, bse_code 540654 (that is BSE Globalspace Technologies; NSE Emerge SME_EQUITY_L.csv gives Globesecure ISIN INE00WS01056). Same sidecar: /disclosures/results?symbol=GSTL lists 10 events with company 'GlobalSpace Technologies Limited' exchange BSE; /disclosures/announcements?symbol=GSTL merges BSE rows of Globalspace beside NSE Globesecure rows; /disclosures/corporate-actions?symbol=GSTL mixes a BSE rights issue and a BSE final dividend 0.2 into GSTL's actions; /disclosures/shareholding carries split_source BSE (FII 0.15%). Mechanism: symbol_resolver._bse_row_is_same_company (:1493-1511) accepts the BSE row when SequenceMatcher(_company_name_key) >= _SAME_COMPANY_NAME_RATIO 0.75 (:1480); 'globesecuretechnologies' vs 'globalspacetechnologies' scores 0.826, so dual_listed_bse_code (:768) returns 540654 and _enrich_instrument stamps the ISIN. The shared 'technologies' suffix dominates the ratio.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/DS-4.md",
+  "suspected_files": [
+   "sidecar/services/symbol_resolver.py",
+   "sidecar/services/corporate_disclosures.py"
+  ]
+ },
+ {
+  "key": "investor:6",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "DS-4",
+  "title": "Symbol autocomplete never offers the BSE company of a same-ticker collision: 'Zeal Aqua', 'Sanathnagar Enterprises', ZEAL.BO and SEL.BO return only the NSE namesake or nothing, though /resolve binds the BSE company",
+  "area": "data-smallcaps",
+  "repro": "GET /resolve/autocomplete?q=Zeal%20Aqua (IN) -> candidates []; q=Sanathnagar%20Enterprises -> []; q=ZEAL.BO -> only NSE ZEAL Zeal Global Services (ZEAL-SM.NS); q=SEL.BO -> NSE SEL Sungarner Energies first, no Sanathnagar. Same sidecar GET /resolve?q=ZEAL.BO -> BSE Zeal Aqua Ltd INE819S01025 539963, and /resolve?q=ZEAL lists both companies. Mechanism: symbol_resolver.autocomplete (:1637) skips every BSE row whose ticker exists in the NSE master ('dual-listed symbols are skipped so the canonical NSE row is the one candidate'), assuming same ticker = same company, which _bse_row_is_same_company already knows is false for FOCUS/ZEAL/SEL; it also drops the .BO pin by matching on the stripped bare ticker. A user typing the BSE company's name in the picker cannot select it.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/DS-4.md",
+  "suspected_files": [
+   "sidecar/services/symbol_resolver.py"
+  ]
+ },
+ {
+  "key": "investor:7",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "DS-6",
+  "title": "RELIANCE.BO earnings history is two quarters stale against the same company's NSE listing (latest 2025-12-31 vs 2026-06-30) and its analyst consensus counts differ (36 vs 26 analysts), with no staleness or listing-basis note",
+  "area": "data-smallcaps",
+  "repro": "Same sidecar, region IN, 15:09 IST: GET /earnings/RELIANCE.NS/history -> periods 2026-06-30 (EPS 15.48), 2026-03-31, 2025-12-31, 2025-09-30; GET /earnings/RELIANCE.BO/history -> 2025-12-31, 2025-09-30, 2025-06-30, 2025-03-31 (the two newest filed quarters missing). GET /fundamentals/RELIANCE.NS/ratings -> target_mean 1676.85, 5/20/0/0/1; /fundamentals/RELIANCE.BO/ratings -> target_mean 1716.65, 9/25/0/1/1. One ISIN, one company; the lanes pass the listing's Yahoo feed through as-is, so a BSE-pinned user sees an earnings table that stops at Dec 2025.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/DS-6.md",
+  "suspected_files": [
+   "sidecar/services/earnings_provider.py",
+   "sidecar/services/yfinance_provider.py"
+  ]
+ },
+ {
+  "key": "investor:8",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "DS-7",
+  "title": "Ownership witness flags a near-agreeing institutions figure with a false reason: Yahoo 0.00% vs filed 0.03% (AMAL) is flagged 'disagrees ... beyond 3pp'",
+  "area": "data-smallcaps",
+  "repro": "GET /fundamentals/AMAL (IN) -> held_percent_institutions 0.0, field_meta flagged: 'yfinance institutions 0.00% disagrees with the BSE shareholding filing for the quarter ended 2026-06-30 (institutional holding: 0.03%) beyond 3pp'. Same for ICON (0.27%) and SUNRAJDI (0.17%). correctness_gate.reconcile_ownership (:478-525) flags on zero_mismatch (one side zero) but always writes 'beyond 3pp' in the reason, so the stated rule is false and an immaterial 0.03pp gap reads as a disagreement in the Equity Overview.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/DS-7.md",
+  "suspected_files": [
+   "sidecar/services/correctness_gate.py"
+  ]
+ },
+ {
+  "key": "investor:9",
+  "kind": "chain",
+  "severity": "high",
+  "register_id": "R15-DATA-013",
+  "scenario": "AC-1",
+  "title": "Asked directly 'Is that number right?', the copilot (gpt-4o-mini) tells the user SUNRAJDI's P/E of 155.5 'is indeed right' while listing EPS 0.23 at price 12.44 beside it (true P/E ~54): investor:3's mis-reasoned flag is read as confirmation",
+  "area": "agent-finance",
+  "repro": "vy invoke copilot 'Why does Sunraj Diamond Exports show a P/E around 155? Is that number right?' --provider openai --model gpt-4o-mini, sidecar :52381 (d38b5d1a source), 15:16:51 IST. Tools: resolve_symbol ok, fundamentals ok. Answer: 'P/E ratio of 155.5. This value is indeed right as per the latest available data ... EPS \u20b90.23 ... P/E 155.5'. The fundamentals payload serves eps 0.23 (BSE-filed, sum of 4 quarters) and pe_ratio 155.5 flagged with a reason that reasons from Yahoo's EPS 0.08 ('the P/E it implies at the ratio price 12.44 is 141.1'), so neither the flag nor the model points to the ~54 the served EPS implies (screener.in 55.2). Chain of investor:3: correctness_gate's filed-EPS overlay replaces eps but leaves pe_ratio and its flag on the provider basis.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/AC-1.md",
+  "suspected_files": [
+   "sidecar/services/correctness_gate.py",
+   "sidecar/agents/copilot.json"
+  ]
+ },
+ {
+  "key": "investor:10",
+  "kind": "new_defect",
+  "severity": "medium",
+  "register_id": "",
+  "scenario": "AC-1",
+  "title": "'Should I buy Amal Ltd?' gets a buy lean justified by an industry P/E comparison no tool fetched ('reasonable P/E in comparison to other firms in the industry ... you may consider this a good point for investment')",
+  "area": "agent-finance",
+  "repro": "vy invoke copilot 'Should I buy Amal Ltd shares now?' --provider openai --model gpt-4o-mini, :52381, 15:17:12 IST. Tools called: resolve_symbol, price_data AMAL, fundamentals AMAL only (no peer, sector or screener call; the fundamentals payload carries sector/industry names but no industry P/E). Answer ends: 'Given the positive revenue and earnings growth, along with a reasonable P/E ratio in comparison to other firms in the industry, you may consider this a good point for investment.' The comparative claim has no tool result behind it, and the copilot prompt (sidecar/agents/copilot.json) gives no stance for buy/sell questions, so a paid model turns a single-name lookup into an endorsement.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/AC-1.md",
+  "suspected_files": [
+   "sidecar/agents/copilot.json",
+   "sidecar/services/figure_grounding.py"
+  ]
+ },
+ {
+  "key": "investor:11",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "",
+  "scenario": "RS-1",
+  "title": "DEEP research overran its 180 s wall budget by 79 s (259 s run) on the local lane: the final synthesis call is not boxed by the remaining wall, only the audit is",
+  "area": "research",
+  "repro": "vy invoke copilot \"research Sunraj Diamond Exports\" --provider ollama --model llama3.1:8b --options {\"research_depth\":\"deep\"}, :52381, 15:16:43-15:22:46 IST. execution started_at 1791020844.05, finished_at 1791021103.07 (259 s) against depth.py DEEP wall_seconds=180. Steps: round 1 overran its 90 s slice, wind-down round 2, then synthesize took 79,000 ms; the citation step reports audit skipped (-79s wall remaining < 15s). research/iter.py guards new rounds and the audit with remaining_wall, but the synthesis call runs after the wall is spent with no cap of its own.",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/RS-1.md",
+  "suspected_files": [
+   "sidecar/services/research/iter.py",
+   "sidecar/services/research/deep.py"
+  ]
+ },
+ {
+  "key": "investor:12",
+  "kind": "regression",
+  "severity": "high",
+  "register_id": "R15-RESEARCH-001",
+  "scenario": "RS-2",
+  "title": "Deep brief for FOCUS (Focus Lighting and Fixtures) states unrelated common-word headlines (Flydubai pilot podcast, European shares) as the company's own sentiment and strategy",
+  "area": "research relevance gate (IN target, common-word symbol/brand)",
+  "repro": "vy invoke copilot on :52381, provider openai gpt-4o-mini, deep depth, prompt about Focus Lighting and Fixtures (FOCUS), 3 Oct 15:22 IST. Sources [8] livemint Flydubai pilot podcast (Focus on flying, not selfies) and ET European shares (focus on inflation data) are kept; brief asserts a -0.6369 sentiment hit to FOCUS brand and that FOCUS aims to counter the podcast by promoting aviation safety [8]. Root cause read: relevance._entity_signals (:650-690) scores any >=4-char symbol/brand token in the title as distinctive (1.0), and the COMMON_WORD_TICKERS gate (:746) runs only for non-IN targets; FOCUS is in COMMON_WORD_TICKERS. Overlaps open R15-LEAD-056 (alias is a common word).",
+  "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/RS-2.md",
+  "suspected_files": [
+   "sidecar/services/research/relevance.py",
+   "sidecar/services/news_provider.py"
+  ]
+ }
+]

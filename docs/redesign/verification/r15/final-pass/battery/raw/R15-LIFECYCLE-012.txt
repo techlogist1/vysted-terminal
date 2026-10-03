@@ -1,0 +1,19 @@
+# R15-LIFECYCLE-012 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:42:41+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+#!/bin/sh
+cat $B/out/L-LIFECYCLE-012.txt
+--- output ---
+launch: 201 {'run_id': '5bf79b81a30d47ee926e59124e003199'}
+--- mid-flight row: {'status': 'running', 'cost': {'tokens': 6428, 'spend_usd': 0.0, 'steps': 1}, 'detail': None} | DB (status, checkpoint_json len): ('running', 49)
+--- killing own sidecar sleep pid 18819 (stdin EOF) at 18:12:27
+port closed: True after 1.0 s; worker alive: False
+--- DB after kill, before restart: ('running', 49)
+rebooted, /health 200 after 3.0 s
+new pids: {'sleep_pid': 28129, 'sh_pid': 28128, 'worker_pid': 28130, 'port': 52863}
+--- after restart GET /runs/{id}: {'status': 'error', 'detail': 'interrupted by sidecar restart', 'cost': {'tokens': 6428, 'spend_usd': 0.0, 'steps': 1}} | DB: ('error', 49)
+--- POST resume: 200 {'resumed': True}
+--- POST cancel: 200 {'cancelled': True}
+final: cancelled cancelled by user
+EXIT=0
+
+EXIT=0 (0.0s)

@@ -1,0 +1,13 @@
+# R15-CROSS-PLATFORM-012 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:02+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/t012c.py 2>&1 | grep -v Warning; grep -n 'resolve_cache_dir\|--cache-dir' "$C/src-tauri/src/lib.rs" | head -4
+--- output ---
+data_cache.db_path -> /var/folders/1s/3bgs17xd07z839yf5kj6mc3m0000gn/T/cache-ktw3illu/data_cache.db
+cache dir files: ['data_cache.db', 'data_cache.db-shm', 'data_cache.db-wal']
+data dir files : []
+fallback (no cache dir) -> True
+278:fn resolve_cache_dir(app: &AppHandle) -> String {
+399:    let cache_dir = resolve_cache_dir(app);
+407:                "--cache-dir",
+
+EXIT=0 (0.1s)

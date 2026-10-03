@@ -1,0 +1,21 @@
+# R15-CODE-FRONTEND-018 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:12+0530
+
+$ git merge-base --is-ancestor 806a90c HEAD && echo 'closure 806a90c is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 806a90c NOT an ancestor'
+[exit 0] [0.02s]
+closure 806a90c is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-CODE-FRONTEND-018\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.31s]
+
+
+$ (cwd final-cand) grep -n 'savedScreens' src/lib/workspace.ts | head -5; grep -n 'savedScreens' src/lib/workspace.test.ts | head -3
+176:  savedScreens?: SavedScreen[];
+561:    key: "savedScreens",
+563:    read: () => ({ savedScreens: useScreenerStore.getState().savedScreens }),
+565:      if (Array.isArray(workspace.savedScreens)) {
+568:          .setSavedScreens(deserializeSavedScreens(JSON.stringify(workspace.savedScreens)));
+173:      savedScreens: [],
+1357:  savedScreens: true,
+1631:      savedScreens: [() => useScreenerStore.getState().saveScreen("Cheap tech")],
+[exit 0]

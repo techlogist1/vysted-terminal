@@ -1,0 +1,15 @@
+# R15-CODE-PLATFORM-070 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:07+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; python3 $B/sc/t070.py 2>&1 | tail -30
+--- output ---
+var() with fallback checked: 111 disagree: 8
+(110, '--font-serif', 'ui-monospace, "SF Mono", monospace', 'var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace')
+(150, '--font-serif', 'ui-sans-serif, system-ui, sans-serif', 'var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace')
+(186, '--font-mono', 'ui-monospace, monospace', 'var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace')
+(294, '--font-mono', 'ui-monospace, monospace', 'var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace')
+(301, '--font-mono', 'ui-monospace, monospace', 'var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace')
+(384, '--ease-instrument', 'ease', 'cubic-bezier(0.2, 0, 0, 1)')
+(422, '--radius-control', '4px', '0.25rem')
+(520, '--radius-control', '4px', '0.25rem')
+
+EXIT=0 (0.0s)

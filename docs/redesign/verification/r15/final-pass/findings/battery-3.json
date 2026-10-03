@@ -1,0 +1,14 @@
+[
+  {
+    "key": "battery3-agent022-local-text-toolcall",
+    "kind": "known_limitation",
+    "severity": "low",
+    "register_id": "R15-AGENT-022",
+    "scenario": "battery:3 live re-run of the AGENT-022 Sumax add-position prompt on keyless ollama llama3.1:8b",
+    "title": "Local llama3.1:8b printed the portfolio_add_position call as text JSON (twice) instead of issuing a tool call; no write and no claimed write",
+    "area": "copilot / keyless local-model lane",
+    "repro": "python3 vy.py against :52863, provider ollama model llama3.1:8b, the AGENT-022 Sumax prompt; observe the reply text carrying the tool-call JSON",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/battery/raw/R15-AGENT-022.txt",
+    "suspected_files": []
+  }
+]

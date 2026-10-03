@@ -1,0 +1,10 @@
+# R15-DATA-041 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:29:50+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py4/R15-DATA-041.py 2>&1 | grep -v '^DEBUG' | tail -c 9000
+[exit 0] [20.57s]
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'RELIANCE.NS': Too Many Requests. Rate limited. Try after a while.
+provider yfinance failed for fundamentals, falling through: yfinance fundamentals rate-limited for 'RENTOMOJO.NS': Too Many Requests. Rate limited. Try after a while.
+relative: {"best": null, "worst": null, "note": "windows not comparable: RENTOMOJO has 11 bars since 2026-09-17"}
+symbols: [{"symbol": "RELIANCE", "return_pct": null, "bars": 128, "window_start": "2026-03-27", "window_bars": null, "error": null}, {"symbol": "RENTOMOJO", "return_pct": null, "bars": 11, "window_start": "2026-09-17", "window_bars": null, "error": null}]
+note/message: {"note": null, "message": null, "ok": true}
+

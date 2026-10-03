@@ -1,0 +1,12 @@
+# R15-UI-064 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:55+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'R15-UI-064' src/modules/chart/ChartPanel.test.tsx | head; grep -n 'visible' src/modules/chart/ChartPanel.tsx | grep -i 'left' | head -3
+--- output ---
+1238:  it("a % comparison overlay gets sorted, de-duplicated points on a VISIBLE left scale (R15-UI-064)", async () => {
+1275:  it("two single-line indicators never share a colour (R15-UI-064)", async () => {
+200: * each value is `(close[i] / close[0] - 1) * 100` on its own (visible) left
+1091:      chart.applyOptions({ leftPriceScale: { visible: false } });
+1122:        leftPriceScale: { visible: compareNormalize, borderColor: CHART_BORDER },
+
+EXIT=0 (0.0s)

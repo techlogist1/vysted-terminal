@@ -1,0 +1,5 @@
+mw fns ['_lookup', 'asdict', 'dataclass', 'get_market_cap_witness', 'is_applicable', 'is_india_listing', 'should_cross_check']
+ICON.NS served None witness 544426 7859946.0 -> mcap None | no meta
+SUNRAJDI.BO served None witness 523425 5329386.0 -> mcap 66084386.4 | ('derived', 'ratio price x master share count (12.4 x 5,329,386, shares from BSE ListOfScripData (bundled India master) (as')
+ZEAL.NS served None witness 539963 126061909.0 -> mcap None | no meta
+ICON.NS served 1000000000.0 witness 544426 7859946.0 -> mcap 1000000000.0 | no meta

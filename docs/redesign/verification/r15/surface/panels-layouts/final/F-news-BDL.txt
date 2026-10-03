@@ -1,0 +1,4 @@
+GET /news?symbols=BDL&limit=20
+status=200
+---
+[{"id":"f37aec853550f460","title":"Bharat Dynamics among 5 capital goods stocks that hit 52-week lows and slipped up to 17% in a month","summary":"Five capital goods stocks hit fresh 52-week lows as Sensex tumbles","url":"https://economictimes.indiatimes.com/markets/stocks/news/bharat-dynamics-among-5-capital-goods-stocks-that-hit-52-week-lows-and-slipped-up-to-17-in-a-month/slideshow/134619866.cms","source":"Stocks-Markets-Economic Times","published_at":"2026-10-01T12:53:47Z","symbols":["BDL"],"sentiment":0.2023,"sentiment_label":"positive","provider":"rss","via_symbol_feed":false}]

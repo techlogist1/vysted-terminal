@@ -1,0 +1,12 @@
+# R15-CODE-AGENT-016 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:17+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/ag16.py 2>&1 | grep -v Warning
+--- output ---
+agent zz-bad.json: schema violation at ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']
+agents directory not found at /var/folders/1s/3bgs17xd07z839yf5kj6mc3m0000gn/T/tmptxes741u/agents/nope; no agents will load
+baseline roster 13
+with openrouter agent: roster 14 degraded []
+with bad agent: roster 14 degraded [('zz-bad.json', "schema violation: ['defaultProvider']: 'notaprovider' is not one of ['")]
+missing dir: ({}, [{'file': 'nope', 'reason': 'agents directory not found'}])
+
+EXIT=0 (1.3s)

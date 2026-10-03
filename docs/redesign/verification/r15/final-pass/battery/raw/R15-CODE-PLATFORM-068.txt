@@ -1,0 +1,9 @@
+# R15-CODE-PLATFORM-068 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:36+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/p068.py 2>&1 | grep -v Warning
+--- output ---
+registry after reset: 0
+after create_app() alone: 24 == register_all(): True
+sample: ['action.log', 'action.notify_desktop', 'action.webhook', 'ai.agent_invoke']
+
+EXIT=0 (3.0s)

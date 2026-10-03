@@ -1,0 +1,14 @@
+# R15-AGENT-058 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:29:28+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py4/R15-AGENT-058.py 2>&1 | grep -v '^DEBUG' | tail -c 9000
+[exit 0] [2.85s]
+provider nse_direct failed for quote, falling through: nse_direct: '^BSESN' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: '^BSESN' is not a known NSE instrument
+provider nse_direct failed for quote, falling through: nse_direct: '^NSEI' is not a known NSE instrument
+provider nse failed for quote, falling through: nse: '^NSEI' is not a known NSE instrument
+provider bse failed for quote, falling through: bse: '^BSESN' is not a known BSE instrument
+provider bse failed for quote, falling through: bse: '^NSEI' is not a known BSE instrument
+provider yfinance failed for quote, falling through: yfinance quote rate-limited for '^NSEI': Too Many Requests. Rate limited. Try after a while.
+market_overview with news down: {"ok": true, "region": "IN", "headlines": [], "headlines_error": "news feed unavailable: all news sources failed"}
+indices: [{"symbol": "^NSEI", "name": "Nifty 50", "error": "no data for ^NSEI: yfinance quote rate-limited for '^NSEI': Too Many Requests. Rate limited. Try after a while."}, {"symbol": "^BSESN", "name": "BSE Sensex", "price": 71909.7, "change": -570.5890625000029, "change_percent": -0.7872334256393239, "currency": "INR", "market_state": null, "provider": "yfinance"}]
+

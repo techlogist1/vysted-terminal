@@ -1,0 +1,9 @@
+# R15-CODE-FRONTEND-002 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -rn 'R15-CODE-FRONTEND-002' src --include=*.test.ts* | cut -c1-220
+--- output ---
+src/lib/workspace.test.ts:606:  it("opening a research space mid-stream stops the reply and parks it, stopped, under the chat tab (R15-CODE-FRONTEND-002)", async () => {
+src/store/research-spaces.test.ts:223:  it("a chat tab's conversation survives a research-space round trip (R15-CODE-FRONTEND-002)", () => {
+src/store/agent-spaces.test.ts:57:  it("switching tab mid-stream stops the run first and archives the partial as stopped (R15-CODE-FRONTEND-002)", () => {
+
+EXIT=0 (0.0s)

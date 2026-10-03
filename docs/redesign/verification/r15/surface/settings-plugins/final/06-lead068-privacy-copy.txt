@@ -1,0 +1,19 @@
+R15-LEAD-068 re-check @d38b5d1a: grep -n 'Nothing leaves this machine' src/components/SettingsPanel.tsx
+122:                Local-first &amp; bring-your-own-keys. Nothing leaves this machine except calls you
+123-                make to providers you configure.
+124-              </p>
+
+Line 1324 region:
+
+  return (
+    <div role="radiogroup" aria-label="Research tier" className="flex flex-col gap-3">
+      <TierCard
+        selected={researchTier === "tier_a"}
+        name="Unlimited (Local)"
+        description="Private local search via SearXNG, paired with your active chat model. Unmetered and free — nothing leaves this machine but the pages it fetches."
+        onSelect={() => setResearchTier("tier_a")}
+      >
+        <SearxngManagedFlow />
+      </TierCard>
+      <TierCard
+        selected={researchTier === "tier_b"}

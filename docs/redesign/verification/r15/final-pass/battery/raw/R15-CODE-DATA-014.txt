@@ -1,0 +1,12 @@
+# R15-CODE-DATA-014 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:21+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'void filingsByIdentifier' src/modules/sec/SecFilingsPanel.tsx src/modules/sec/InsiderTradingTable.tsx; echo grep-exit-$?; grep -n 'useSecStore((s)' src/modules/sec/SecFilingsPanel.tsx | head -3; grep -n 'R15-CODE-DATA-014' src/modules/sec/SecFilingsPanel.test.tsx
+--- output ---
+grep-exit-1
+41:  const activeIdentifier = useSecStore((s) => s.activeIdentifier);
+42:  const setActiveIdentifier = useSecStore((s) => s.setActiveIdentifier);
+43:  const loadFilings = useSecStore((s) => s.loadFilings);
+82:  it("R15-CODE-DATA-014: a filingsByIdentifier update after mount re-renders the row count", async () => {
+
+EXIT=0 (0.0s)

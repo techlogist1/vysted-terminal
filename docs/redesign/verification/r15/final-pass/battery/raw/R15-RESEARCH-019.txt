@@ -1,0 +1,47 @@
+# R15-RESEARCH-019 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:33:36+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py6/R15-RESEARCH-019.py 2>&1 | grep -v '^DEBUG\|falling through' | tail -c 9000
+[exit 0] [5.52s]
+https://httpbin.org/status/403 -> VisitResult {'reason': 'HTTP 403', 'text': 'None'}
+http://169.254.169.254/latest/meta-data/ -> VisitResult {'reason': 'blocked non-public or non-http(s) URL', 'text': 'None'}
+https://httpbin.org/image/png -> VisitResult {'reason': 'unsupported content type: image/png', 'text': 'None'}
+
+
+$ echo '--- earlier probe of this id (batch4) ---'; /bin/cat /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/old/R15-RESEARCH-019.txt
+[exit 0] [0.01s]
+--- earlier probe of this id (batch4) ---
+# R15-RESEARCH-019 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:30:31+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py4/R15-RESEARCH-019.py 2>&1 | grep -v '^DEBUG' | tail -c 9000
+[exit 0] [1.92s]
+fetch_page https://www.investing.com/equities/reliance-industries -> {'ok': True, 'url': 'https://www.investing.com/equities/reliance-industries', 'final_url': 'https://www.investing.com/equities/reliance-industries', 'title': 'Reliance Industries Stock Price Today | NSE: RELI Live - Investing.com', 'truncated': False, 'chars': 4790}
+fetch_page http://169.254.169.254/latest/meta-data/ -> {'ok': False, 'url': 'http://169.254.169.254/latest/meta-data/', 'error': 'blocked non-public or non-http(s) URL'}
+async def visit_for_research(url: str, *, max_chars: int = RESEARCH_VISIT_MAX_CHARS) -> VisitResult:
+    """The research-shaped visit: extracted page text, or why it could not be read.
+
+    Soft by design — a researcher with no page text still has the SERP
+    snippets; a visit failure must never fail the round, but its ``reason``
+    (``HTTP 403``, a blocked URL, an unsupported type) is returned so the loop
+    records it as a step instead of the filing silently vanishing. The caller is
+    responsible for fencing the returned text with
+    :func:`services.search.scrub.wrap_untrusted` before it enters a prompt.
+
+    A ``.pdf`` URL gets the wider :data:`PDF_RESEARCH_MAX_CHARS` budget —
+    results filings carry their numbers deep in tables, and starving them was
+    the "no quarterly results announced" failure mode.
+
+    R9 scanned-filing honesty: a PDF with image-only pages gets the one-line
+    :func:`scanned_pages_note` APPENDED to its excerpt (partial text layer) or
+    RETURNED as the excerpt (no text layer at all) — the researcher prompt then
+    treats the missing figures as unparsed scans, never as "not announced".
+    """
+    budget = max(max_chars, PDF_RESEARCH_MAX_CHARS) if _is_pdf_url(url) else max_chars
+    if _is_pdf_url(url) and _needs_impersonated_pdf_lane(url):
+        # Exchange-archive filing: the primary document for the run — read deeper.
+        budget = max(budget, PDF_EXCHANGE_MAX_CHARS)
+    try:
+        page = await fetch_page(url, max_chars=budget)
+    except Exception as exc:  # noqa: BLE001 — belt-and-suspenders; fetch_page shouldn't raise
+      
+
+

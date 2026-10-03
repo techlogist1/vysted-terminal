@@ -1,0 +1,20 @@
+# R15-UI-053 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:57+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 60 "$H/macro/catalog?provider=imf" -o /tmp/fb2c.json; python3 -c "
+import json;d=json.load(open('/tmp/fb2c.json'));s=d['entries']
+print('\n'.join((x.get('id') or x.get('series_id')) for x in s))" > /tmp/fb2ids.txt; echo "catalog ids: $(wc -l < /tmp/fb2ids.txt)"
+while read id; do echo -n "$id: "; curl -s -m 60 -w ' HTTP=%{http_code}' "$H/macro/$id?provider=imf" -o /tmp/fb2m.json; python3 -c "import json;d=json.load(open('/tmp/fb2m.json'));print(' obs',len(d.get('observations') or d.get('points') or []) if isinstance(d,dict) else d)"; done < /tmp/fb2ids.txt; rm -f /tmp/fb2c.json /tmp/fb2ids.txt /tmp/fb2m.json
+--- output ---
+catalog ids:       10
+WEO/USA.NGDP_RPCH.A:  HTTP=200 obs 52
+QNEA/USA.B1GQ.Q.SA.XDC.Q:  HTTP=200 obs 306
+CPI/USA.CPI._T.IX.M:  HTTP=200 obs 859
+WEO/USA.NGDPD.A:  HTTP=200 obs 52
+WEO/G163.NGDP_RPCH.A:  HTTP=200 obs 40
+WEO/JPN.NGDP_RPCH.A:  HTTP=200 obs 52
+WEO/CHN.NGDP_RPCH.A:  HTTP=200 obs 52
+WEO/IND.NGDP_RPCH.A:  HTTP=200 obs 52
+CPI/IND.CPI._T.IX.M:  HTTP=200 obs 1519
+WEO/IND.PCPIPCH.A:  HTTP=200 obs 52
+
+EXIT=0 (15.2s)

@@ -1,0 +1,27 @@
+# R15-RESEARCH-010 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:51:36+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+K="sk-or-v1-<redacted-synthetic-test-key>"
+echo 'COMMAND 1: POST /llm/keys/validate {provider:openrouter, api_key:<fake canary>}'; curl -s -m 60 -X POST "$H/llm/keys/validate" -H 'content-type: application/json' -d "{\"provider\":\"openrouter\",\"api_key\":\"$K\"}"; echo
+cd /Users/lokavyasingh/Documents/dev/vysted-terminal
+echo 'COMMAND 2: vy.py invoke copilot <deep research prompt> --provider ollama --model llama3.1:8b --tier tier_b --header X-Vysted-OpenRouter-Key=<fake canary>'
+python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb0/vy.py invoke copilot "Do deep research on Reliance Industries latest quarterly results." --provider ollama --model llama3.1:8b --tier tier_b --header "X-Vysted-OpenRouter-Key=$K" --port 52860 --timeout 280 --out $B/out/r010.events.jsonl > $B/out/r010.txt 2>&1; echo "vy exit $?"
+grep -E "research_step|tool_result|done:" $B/out/r010.txt | cut -c1-330 | head -12; grep -c "$K" $B/out/r010.txt $B/out/r010.events.jsonl | sed 's/^/canary key echoed count: /'
+--- output ---
+COMMAND 1: POST /llm/keys/validate {provider:openrouter, api_key:<fake canary>}
+{"ok":false,"reason":"invalid","detail":"OpenRouter rejected this key."}
+COMMAND 2: vy.py invoke copilot <deep research prompt> --provider ollama --model llama3.1:8b --tier tier_b --header X-Vysted-OpenRouter-Key=<fake canary>
+vy exit 0
+[  35.9s] research_step: {"kind": "research_step", "tool_call_id": "call_988419489db64c3087cee2eb945cb817", "tool": "research", "step_kind": "engine", "detail": "research:begin 8eec7ce7fd534e4bb74b46eda2a96694 depth=deep query=Reliance Industries \u2014 latest quarterly results", "latency_ms": null, "status": "ok", "index": 1}
+[  38.4s] research_step: {"kind": "research_step", "tool_call_id": "call_988419489db64c3087cee2eb945cb817", "tool": "research", "step_kind": "engine", "detail": "research-model:perplexity/sonar-reasoning-pro \u2014 hosted research model (deep stop, via OpenRouter)", "latency_ms": null, "status": "ok", "index": 2}
+[  38.6s] research_step: {"kind": "research_step", "tool_call_id": "call_988419489db64c3087cee2eb945cb817", "tool": "research", "step_kind": "engine", "detail": "OpenRouter rejected the request \u2014 check that your OpenRouter API key is valid and active.", "latency_ms": null, "status": "error", "index": 3}
+[  38.6s] tool_result: {"kind": "tool_result", "tool_call_id": "call_988419489db64c3087cee2eb945cb817", "name": "research", "ok": false, "error": "OpenRouter rejected the request \u2014 check that your OpenRouter API key is valid and active."}
+[  54.8s] research_step: {"kind": "research_step", "tool_call_id": "call_3d75df4443df4f6dbf1b25fc6e61f16c", "tool": "research", "step_kind": "engine", "detail": "research:begin f21f217f97b643f390eadd9d6c136f3f depth=normal query=Reliance Industries", "latency_ms": null, "status": "ok", "index": 1}
+[  54.8s] research_step: {"kind": "research_step", "tool_call_id": "call_3d75df4443df4f6dbf1b25fc6e61f16c", "tool": "research", "step_kind": "engine", "detail": "research-model:perplexity/sonar \u2014 hosted research model (normal stop, via OpenRouter)", "latency_ms": null, "status": "ok", "index": 2}
+[  55.0s] research_step: {"kind": "research_step", "tool_call_id": "call_3d75df4443df4f6dbf1b25fc6e61f16c", "tool": "research", "step_kind": "engine", "detail": "OpenRouter rejected the request \u2014 check that your OpenRouter API key is valid and active.", "latency_ms": null, "status": "error", "index": 3}
+[  55.0s] tool_result: {"kind": "tool_result", "tool_call_id": "call_3d75df4443df4f6dbf1b25fc6e61f16c", "name": "research", "ok": false, "error": "OpenRouter rejected the request \u2014 check that your OpenRouter API key is valid and active."}
+[  61.8s] done: {"kind": "done", "usage": {"input_tokens": 2123, "output_tokens": 110, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+=== ok · 61.8s · events {'heartbeat': 3, 'tool_use': 2, 'research_step': 6, 'tool_result': 2, 'delta': 393, 'done': 1} · usage in=2123 out=110 · est $0.00000 · llama3.1:8b
+canary key echoed count: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb0/out/r010.txt:0
+canary key echoed count: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/fb0/out/r010.events.jsonl:0
+
+EXIT=0 (62.4s)

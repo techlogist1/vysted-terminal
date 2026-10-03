@@ -1,0 +1,128 @@
+[
+ {
+  "viewport": "1920x1080",
+  "template": "research-cockpit",
+  "result": {
+   "applied": "research-cockpit",
+   "downgraded": false
+  },
+  "error": null,
+  "apiCalls": [
+   "getPanel",
+   "addPanel",
+   "hasMaximizedGroup"
+  ]
+ },
+ {
+  "viewport": "1920x1080",
+  "template": "macro-scan",
+  "result": {
+   "applied": "macro-scan",
+   "downgraded": false
+  },
+  "error": null,
+  "apiCalls": [
+   "getPanel",
+   "addPanel",
+   "hasMaximizedGroup"
+  ]
+ },
+ {
+  "viewport": "1920x1080",
+  "template": "single-focus",
+  "result": {
+   "applied": "single-focus",
+   "downgraded": false
+  },
+  "error": null,
+  "apiCalls": [
+   "getPanel",
+   "addPanel",
+   "hasMaximizedGroup"
+  ]
+ },
+ {
+  "viewport": "1280x800",
+  "template": "research-cockpit",
+  "result": {
+   "applied": "research-cockpit",
+   "downgraded": false
+  },
+  "error": null,
+  "apiCalls": [
+   "getPanel",
+   "addPanel",
+   "hasMaximizedGroup"
+  ]
+ },
+ {
+  "viewport": "1280x800",
+  "template": "macro-scan",
+  "result": {
+   "applied": "macro-scan",
+   "downgraded": false
+  },
+  "error": null,
+  "apiCalls": [
+   "getPanel",
+   "addPanel",
+   "hasMaximizedGroup"
+  ]
+ },
+ {
+  "viewport": "1280x800",
+  "template": "single-focus",
+  "result": {
+   "applied": "single-focus",
+   "downgraded": false
+  },
+  "error": null,
+  "apiCalls": [
+   "getPanel",
+   "addPanel",
+   "hasMaximizedGroup"
+  ]
+ },
+ {
+  "viewport": "1024x768",
+  "template": "research-cockpit",
+  "result": {
+   "applied": "essentials-research",
+   "downgraded": true
+  },
+  "error": null,
+  "apiCalls": [
+   "getPanel",
+   "addPanel",
+   "hasMaximizedGroup"
+  ]
+ },
+ {
+  "viewport": "1024x768",
+  "template": "macro-scan",
+  "result": {
+   "applied": "single-focus",
+   "downgraded": true
+  },
+  "error": null,
+  "apiCalls": [
+   "getPanel",
+   "addPanel",
+   "hasMaximizedGroup"
+  ]
+ },
+ {
+  "viewport": "1024x768",
+  "template": "single-focus",
+  "result": {
+   "applied": "single-focus",
+   "downgraded": false
+  },
+  "error": null,
+  "apiCalls": [
+   "getPanel",
+   "addPanel",
+   "hasMaximizedGroup"
+  ]
+ }
+]

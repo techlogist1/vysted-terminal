@@ -1,0 +1,11 @@
+# R15-DATA-043 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:33:41+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 110 -X POST "$H/screener/run" -H 'content-type: application/json' -d '{"universe":"custom","custom_symbols":["AAPL","RELIANCE.NS","MSFT","TCS.NS"],"criteria":[],"sort_by":"market_cap","sort_dir":"desc"}' | python3 -c "import sys,json;d=json.load(sys.stdin);print({k:d.get(k) for k in ('universe','evaluated_count','result_count','coverage','throttled')});[print({k:r.get(k) for k in ('symbol','market_cap','price','currency')}) for r in d.get('rows',[])]"
+--- output ---
+{'universe': 'custom', 'evaluated_count': 4, 'result_count': 4, 'coverage': 'screened 4 of 4 — 0 unavailable · spans INR, USD — ranked within each currency', 'throttled': False}
+{'symbol': 'RELIANCE.NS', 'market_cap': 15801867304960.0, 'price': 1167.7, 'currency': 'INR'}
+{'symbol': 'TCS.NS', 'market_cap': 7507531530240.0, 'price': 2075.0, 'currency': 'INR'}
+{'symbol': 'AAPL', 'market_cap': 4869931925504.0, 'price': 333.69000244140625, 'currency': 'USD'}
+{'symbol': 'MSFT', 'market_cap': 3842942959616.0, 'price': 517.530029296875, 'currency': 'USD'}
+
+EXIT=0 (3.3s)

@@ -1,0 +1,16 @@
+# R15-LIFECYCLE-027 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:32+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"
+grep -n 'HEALTH_PROBE_TIMEOUT_MS\|DEFAULT_REQUEST_TIMEOUT_MS\|AbortSignal' src/lib/sidecar-client.ts | head -6; grep -n 'never-settling /health probe\|request timeouts' src/lib/sidecar-client.test.ts | head; grep -n 'persistence.load is called exactly once' src/lib/plugin-bootstrap.test.ts
+--- output ---
+140:const HEALTH_PROBE_TIMEOUT_MS = 5_000;
+155:        signal: AbortSignal.timeout(HEALTH_PROBE_TIMEOUT_MS),
+190:function timedOut(signal: AbortSignal | null | undefined): boolean {
+195:function withDeadline(signal?: AbortSignal, timeoutMs?: number): AbortSignal | undefined {
+199:  const deadline = AbortSignal.timeout(timeoutMs);
+200:  return signal ? AbortSignal.any([signal, deadline]) : deadline;
+432:describe("request timeouts", () => {
+464:  it("a never-settling /health probe is bounded per round (AbortSignal.timeout), not one eternal fetch", async () => {
+80:  it("persistence.load is called exactly once per catalog plugin", async () => {
+
+EXIT=0 (0.0s)

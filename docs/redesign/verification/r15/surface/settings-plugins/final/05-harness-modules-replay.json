@@ -1,0 +1,65 @@
+{
+ "moduleRows": [
+  "Chart enabled",
+  "Watchlist enabled",
+  "News enabled",
+  "Portfolio enabled",
+  "Equity Overview enabled",
+  "AI Assistant enabled [disabled]",
+  "Research enabled",
+  "Platform enabled [disabled]",
+  "Plugin Manager enabled",
+  "Marketplace enabled",
+  "Agent Builder enabled",
+  "Node Editor enabled",
+  "Backtest enabled",
+  "Macro enabled",
+  "SEC Filings enabled",
+  "Quant enabled",
+  "Earnings enabled",
+  "Analyst Ratings enabled",
+  "Screener enabled",
+  "Notes enabled"
+ ],
+ "enabledMapAfterToggles": {
+  "chart": true,
+  "watchlist": true,
+  "news": true,
+  "portfolio": true,
+  "equity-overview": true,
+  "chat": true,
+  "research": true,
+  "platform": true,
+  "plugin-manager": true,
+  "marketplace": true,
+  "agent-builder": true,
+  "node-editor": true,
+  "backtest": true,
+  "macro": true,
+  "sec-filings": true,
+  "quant": true,
+  "earnings": true,
+  "analyst-ratings": true,
+  "screener": true,
+  "notes": false
+ },
+ "notesCmdsBefore": [
+  "notes.open"
+ ],
+ "notesCmdsAfter": [],
+ "openPanelPortfolioWhileDisabled_addPanelCalls": 0,
+ "openPanelAfterReenable_addPanelCalls": 1,
+ "openErr": null,
+ "marketplaceAdds": 1,
+ "marketplacePanelIdAdds": 0,
+ "marketplaceSpec": "registered",
+ "region": {
+  "before": {
+   "value": "IN",
+   "store": "IN",
+   "rowText": "Region & localeNumber formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses.RegionDefaults to India.United StatesIndiaGlobal"
+  },
+  "afterStore": "US",
+  "rowAfter": "Region & localeNumber formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses.RegionDefaults to India.United StatesIndiaGlobal"
+ }
+}

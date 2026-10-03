@@ -1,0 +1,28 @@
+# R15-LEAD-012 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:27+0530
+
+$ git merge-base --is-ancestor 5e14731 HEAD && echo 'closure 5e14731 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure 5e14731 NOT an ancestor'
+[exit 0] [0.02s]
+closure 5e14731 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-LEAD-012\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+scripts/build-python.mjs:6:// ensure script resolves and verifies 3.13 here instead (R15-LEAD-012).
+
+
+$ grep -rn '3\.13' scripts/*.mjs | cut -c1-200 | head -8
+[exit 0] [0.01s]
+scripts/build-python.mjs:4:// declares Python 3.13; a bare `python3` follows whatever the OS package
+scripts/build-python.mjs:6:// ensure script resolves and verifies 3.13 here instead (R15-LEAD-012).
+scripts/build-python.mjs:12:const WANT = "3.13";
+scripts/build-python.mjs:14:/** "3.13" for an interpreter command, or null when it cannot be run. */
+scripts/build-python.mjs:27: * The command for a Python 3.13 interpreter: `VYSTED_PYTHON` when set, else the
+scripts/build-python.mjs:28: * first of `python3.13`, `py -3.13` (Windows) or a plain `python3`/`python`
+scripts/build-python.mjs:29: * that reports 3.13. Throws a message naming the fix when none does.
+scripts/build-python.mjs:44:    platform() === "win32" ? ["py -3.13", "python3.13", "python"] : ["python3.13", "python3"];
+
+
+$ sidecar/.venv/bin/python3 --version
+[exit 0] [0.01s]
+Python 3.13.13
+

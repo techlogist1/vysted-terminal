@@ -1,0 +1,167 @@
+{
+ "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/surface/research-briefs/final/03b-ultra-datapatterns-4omini.jsonl": {
+  "phase": "in_flight",
+  "applied": [
+   {
+    "name": "publish_brief",
+    "label": "Published the DEEP research brief",
+    "phaseAfter": "published"
+   }
+  ],
+  "errors": [
+   "transport: The stream ended before the answer finished."
+  ],
+  "engineNotices": [
+   "Your active model — openai/gpt-4o-mini · Heavy mode (3 parallel angles + cross-check)",
+   "Your active model — openai/gpt-4o-mini · Heavy mode (3 parallel angles + cross-check)"
+  ],
+  "brief": {
+   "symbol": "DATAPATTNS",
+   "depth": "heavy",
+   "mode": "DEEP",
+   "backend": "native",
+   "webAvailable": false,
+   "sourceCount": 13,
+   "sourcesStored": 13,
+   "sourcesRendered": 13,
+   "markdownLen": 4114,
+   "markersInBody": [
+    11,
+    12,
+    12,
+    1,
+    2,
+    1,
+    4,
+    1,
+    12,
+    4,
+    12,
+    12,
+    4,
+    4,
+    12,
+    1
+   ],
+   "maxMarker": 12,
+   "markersAfterSanitize": 16,
+   "execution": {
+    "runId": "e3920ca76b924ee09b39408fbb756f5f",
+    "requestedDepth": "ultra",
+    "loop": "heavy",
+    "backend": "native",
+    "startedAt": 1791023186.54247,
+    "finishedAt": 1791023471.475338,
+    "degradedReason": null
+   },
+   "metrics": {
+    "symbol": "DATAPATTNS",
+    "provider": "nse_direct",
+    "asOf": 1790812800000,
+    "price": 4251.3,
+    "change": -35.599999999999454,
+    "changePercent": -0.8304369124542084,
+    "currency": "INR",
+    "assetClass": "equity",
+    "items": [
+     {
+      "label": "Below 52-week high",
+      "value": "-14.97% · vs 52w high",
+      "title": "(52w high - price) / 52w high"
+     },
+     {
+      "label": "52-week price change (Yahoo)",
+      "value": "+49.60% · trailing 52 weeks",
+      "title": "trailing 52 weeks"
+     },
+     {
+      "label": "Dividend yield",
+      "value": "0.24% · fraction of price",
+      "title": "dividend per share / price"
+     },
+     {
+      "label": "Dividend per share",
+      "value": "₹10.00 · per share, INR",
+      "title": "per share, INR"
+     },
+     {
+      "label": "Revenue growth",
+      "value": "+16.81% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Earnings growth",
+      "value": "-13.49% · quarterly YoY (MRQ)",
+      "title": "quarterly YoY (MRQ)"
+     },
+     {
+      "label": "Promoter group (exchange filing)",
+      "value": "42.41% · NSE shareholding filing, 2026-06-30",
+      "title": "NSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Institutional holding (exchange filing)",
+      "value": "24.48% · BSE shareholding filing, 2026-06-30",
+      "title": "BSE shareholding filing, 2026-06-30"
+     },
+     {
+      "label": "Market cap",
+      "value": "₹238B"
+     },
+     {
+      "label": "P/E",
+      "value": "88.43"
+     },
+     {
+      "label": "Fwd P/E",
+      "value": "52.47"
+     },
+     {
+      "label": "Price/Book",
+      "value": "13.70"
+     },
+     {
+      "label": "EPS",
+      "value": "47.86"
+     },
+     {
+      "label": "Beta",
+      "value": "0.538"
+     },
+     {
+      "label": "ROE",
+      "value": "15.43%"
+     },
+     {
+      "label": "Net margin",
+      "value": "28.46%"
+     },
+     {
+      "label": "Debt/Equity",
+      "value": "0.00304"
+     },
+     {
+      "label": "Revenue",
+      "value": "₹9.41B"
+     },
+     {
+      "label": "52w range",
+      "value": "2,131–5,000"
+     },
+     {
+      "label": "Volume",
+      "value": "306K"
+     }
+    ],
+    "conflicts": [
+     {
+      "text": "Sources disagree on held percent insiders: 52.231 (yfinance (heldPercentInsiders)) vs 42.41 (NSE shareholding filing) — The provider's heldPercentInsiders (52.23%) counts INSIDERS — a superset that mixes promoter-group holders with other insider rows and can carry stale, individually-dated as-of dates — while the NSE shareholding filing reports the strict PROMOTER GROUP at 42.41% as of 2026-06-30. Insiders and promoter-group are different by definition; both figures are shown, neither replaced.",
+      "kind": "data_conflict"
+     }
+    ]
+   }
+  },
+  "anchors": [],
+  "renderedText": "Researching — HEAVY · 0.0sData Patterns (India) Limited — order bookResearching0.0sEngineYour active model — openai/gpt-4o-mini · Heavy mode (3 parallel angles + cross-check)Planningexpert panel: 3 parallel angle(s)2455msPlanning[angle 1: Analyze the fundamentals & valuation of Data Pat] round 1: seeded 3 sub-question(s) (planning rides round 2)0msPlanning[angle 2: Investigate the competitive position & market la] round 1: seeded 3 sub-question(s) (planning rides round 2)0msPlanning[angle 3: Identify the risks & catalysts affecting Data Pa] round 1: seeded 3 sub-question(s) (planning rides round 2)0msGathering data[angle 1: Analyze the fundamentals & valuation of Data Pat] researcher: What is the recent price action and trend for DATAPATTNS?9512msGathering data[angle 1: Analyze the fundamentals & valuation of Data Pat] researcher: What do the latest fundamentals say about DATAPATTNS?9512msGathering data[angle 1: Analyze the fundamentals & valuation of Data Pat] researcher: What recent news or catalysts affect DATAPATTNS?9512msGathering data[angle 2: Investigate the competitive position & market la] researcher: What is the recent price action and trend for DATAPATTNS?10587msGathering data[angle 2: Investigate the competitive position & market la] researcher: What do the latest fundamentals say about DATAPATTNS?10587msGathering data[angle 2: Investigate the competitive position & market la] researcher: What recent news or catalysts affect DATAPATTNS?10587msGathering data[angle 3: Identify the risks & catalysts affecting Data Pa] researcher: What is the recent price action and trend for DATAPATTNS?12354msGathering data[angle 3: Identify the risks & catalysts affecting Data Pa] researcher: What do the latest fundamentals say about DATAPATTNS?12354msGathering data[angle 3: Identify the risks & catalysts affecting Data Pa] researcher: What recent news or catalysts affect DATAPATTNS?12354msDistilling into the report[angle 1: Analyze the fundamentals & valuation of Data Pat] distilled 3 finding(s) into the working report (2163 chars, 7 source(s))5928msDistilling into the report[angle 3: Identify the risks & catalysts affecting Data Pa] distilled 3 finding(s) into the working report (1664 chars, 7 source(s))4379msAssessing coverage[angle 1: Analyze the fundamentals & valuation of Data Pat] assessed coverage2093msDistilling into the report[angle 2: Investigate the competitive position & market la] distilled 3 finding(s) into the working report (1848 chars, 7 source(s))7315msAssessing coverage[angle 3: Identify the risks & catalysts affecting Data Pa] assessed coverage1599msAssessing coverage[angle 2: Investigate the competitive position & market la] assessed coverage1509msPlanning[angle 1: Analyze the fundamentals & valuation of Data Pat] round 2: rebuilt workspace → 3 sub-question(s)2349msPlanning[angle 3: Identify the risks & catalysts affecting Data Pa] round 2: rebuilt workspace → 3 sub-question(s)2096msPlanning[angle 2: Investigate the competitive position & market la] round 2: rebuilt workspace → 3 sub-question(s)1813msGathering data[angle 2: Investigate the competitive position & market la] researcher: What are the key competitors in the defense and aerospace segments for Data Patterns (India) Limited?3855msGathering data[angle 2: Investigate the competitive position & market la] researcher: What is the current market share held by Data Patterns (India) Limited within its industry?3855msGathering data[angle 2: Investigate the competitive position & market la] researcher: Are there any recent contracts or partnerships that could significantly influence future sales for Data Patterns (India) Limited?3855msGathering data[angle 1: Analyze the fundamentals & valuation of Data Pat] researcher: What is the total order book value for Data Patterns (India) Limited as of Q3 2026?10158msGathering data[angle 1: Analyze the fundamentals & valuation of Data Pat] researcher: What were the earnings figures for the previous quarters leading up to June 30, 2026, and what is the trend for these figures?10158msGathering data[angle 1: Analyze the fundamentals & valuation of Data Pat] researcher: What specific factors led to the 13.49% decline in earnings despite revenue growth?10158msGathering data[angle 3: Identify the risks & catalysts affecting Data Pa] researcher: What specific regulatory challenges might impact Data Patterns (India) Limited?9835msGathering data[angle 3: Identify the risks & catalysts affecting Data Pa] researcher: How will the declining earnings growth affect the company's investment attractiveness moving forward?9835msGathering data[angle 3: Identify the risks & catalysts affecting Data Pa] researcher: Are there any upcoming projects or contracts that could positively influence the order book?9835msDistilling into the report[angle 2: Investigate the competitive position & market la] distilled 3 finding(s) into the working report (2679 chars, 7 source(s))6604msAssessing coverage[angle 2: Investigate the competitive position & market la] assessed coverage1215msDistilling into the report[angle 3: Identify the risks & catalysts affecting Data Pa] distilled 3 finding(s) into the working report (1827 chars, 8 source(s))4130msDistilling into the report[angle 1: Analyze the fundamentals & valuation of Data Pat] distilled 3 finding(s) into the working report (2644 chars, 8 source(s))5633msAssessing coverage[angle 3: Identify the risks & catalysts affecting Data Pa] assessed coverage1382msPlanning[angle 2: Investigate the competitive position & market la] round 3: rebuilt workspace → 3 sub-question(s)3395msAssessing coverage[angle 1: Analyze the fundamentals & valuation of Data Pat] assessed coverage2097msPlanning[angle 3: Identify the risks & catalysts affecting Data Pa] round 3: rebuilt workspace → 3 sub-question(s)2031msPlanning[angle 1: Analyze the fundamentals & valuation of Data Pat] round 3: rebuilt workspace → 2 sub-question(s)1432msGathering data[angle 2: Investigate the competitive positi"
+ }
+}

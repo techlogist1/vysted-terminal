@@ -1,0 +1,10 @@
+# R15-DATA-039 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:27:34+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in INFY AAPL; do echo "== $s"; curl -s -m 100 "$H/sec/filings?symbol=$s" | python3 -c "import sys,json,collections;d=json.load(sys.stdin);f=d.get('filings',d if isinstance(d,list) else []);print('count',len(f),collections.Counter(x.get('form_type') or x.get('form') for x in f).most_common(8))"; done
+--- output ---
+== INFY
+count 40 [('6-K', 16), ('3', 10), ('4', 8), ('3/A', 2), ('F-6 POS', 1), ('F-6EF', 1), ('20-F', 1), ('144', 1)]
+== AAPL
+count 40 [('4', 22), ('144', 9), ('8-K', 3), ('10-Q', 2), ('3', 1), ('8-K/A', 1), ('SD', 1), ('SCHEDULE 13G', 1)]
+
+EXIT=0 (2.5s)

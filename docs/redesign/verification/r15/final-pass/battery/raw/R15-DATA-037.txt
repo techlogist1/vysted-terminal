@@ -1,0 +1,29 @@
+# R15-DATA-037 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:25:28+0530
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: US' 'http://127.0.0.1:52861/history/BTC/USDT?range=1mo&asset_class=crypto' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');print(t[:200]);d=json.loads(t[:i]);print('bars',len(d.get('bars',[])),'provider',d.get('provider'),t[i:])"
+[exit 0] [2.86s]
+{"symbol":"BTC/USDT","timeframe":"1d","bars":[{"timestamp":"2026-09-04T00:00:00Z","open":81270.37,"high":81427.75,"low":78660.0,"close":79660.77,"volume":19198.62549},{"timestamp":"2026-09-05T00:00:00
+bars 30 provider ccxt:binance 
+[http 200 2.840136s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: US' 'http://127.0.0.1:52861/history/BTC/USDT?range=1y&asset_class=crypto' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');print(t[:200]);d=json.loads(t[:i]);print('bars',len(d.get('bars',[])),'provider',d.get('provider'),t[i:])"
+[exit 0] [2.46s]
+{"symbol":"BTC/USDT","timeframe":"1d","bars":[{"timestamp":"2025-10-04T00:00:00Z","open":122232.21,"high":122800.0,"low":121510.0,"close":122391.0,"volume":8208.16678},{"timestamp":"2025-10-05T00:00:0
+bars 365 provider ccxt:binance 
+[http 200 2.443796s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: US' 'http://127.0.0.1:52861/history/BTC/USDT?range=5y&asset_class=crypto' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');print(t[:200]);d=json.loads(t[:i]);print('bars',len(d.get('bars',[])),'provider',d.get('provider'),t[i:])"
+[exit 0] [2.75s]
+{"symbol":"BTC/USDT","timeframe":"1d","bars":[{"timestamp":"2021-10-04T00:00:00Z","open":48200.01,"high":49536.12,"low":46891.0,"close":49224.94,"volume":46796.49372},{"timestamp":"2021-10-05T00:00:00
+bars 1826 provider ccxt:binance 
+[http 200 2.732005s]
+
+
+$ curl -s -m 90 -w '\n[http %{http_code} %{time_total}s]' -H 'X-Vysted-Region: US' 'http://127.0.0.1:52861/history/ETH/USDT?range=1mo&timeframe=1h&asset_class=crypto' | python3 -c "import sys,json;t=sys.stdin.read();i=t.rfind('\n[http');print(t[:200]);d=json.loads(t[:i]);print('bars',len(d.get('bars',[])),'provider',d.get('provider'),t[i:])"
+[exit 0] [1.80s]
+{"symbol":"ETH/USDT","timeframe":"1h","bars":[{"timestamp":"2026-09-03T12:00:00Z","open":2407.2,"high":2427.0,"low":2405.09,"close":2423.27,"volume":18391.3684},{"timestamp":"2026-09-03T13:00:00Z","op
+bars 720 provider ccxt:binance 
+[http 200 1.786842s]
+

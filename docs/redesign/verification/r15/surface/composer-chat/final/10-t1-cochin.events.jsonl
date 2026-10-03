@@ -1,0 +1,121 @@
+{"t":2.578,"_request":{"agentId":"copilot","prompt":"What does Cochin Shipyard do, and what's its current share price, P/E and market cap?","contextSnapshot":{"focusedSource":null,"bySource":{"__terminal__":{"focusedPanel":null,"focusedSymbol":"^NSEI","charts":[],"watchlist":{"symbols":["^NSEI","RELIANCE.NS","TCS.NS","HDFCBANK.NS"],"selected":null},"portfolio":{"positionCount":0,"totalValue":null,"activePortfolioId":"default","activePortfolioName":"Portfolio","holdings":[]},"brief":{"phase":"empty"},"otherPanels":[],"openPanels":[],"region":"IN","capturedAt":1791023230731},"__notes__":{"general":"","bySymbol":{}}},"capturedAt":1791023230731},"provider":"ollama","model":"llama3.1:8b","mode":"agent","autonomy":"ask","options":{"history":[],"deepResearchBackend":"native","researchDepth":"normal"}}}
+{"t":12.6,"event":{"kind":"heartbeat"}}
+{"t":22.6,"event":{"kind":"heartbeat"}}
+{"t":32.601,"event":{"kind":"heartbeat"}}
+{"t":42.608,"event":{"kind":"heartbeat"}}
+{"t":52.61,"event":{"kind":"heartbeat"}}
+{"t":62.612,"event":{"kind":"heartbeat"}}
+{"t":72.614,"event":{"kind":"heartbeat"}}
+{"t":79.725,"event":{"kind":"tool_use","toolCallId":"call_e3ceb517922543838aae42b82581a5ac","name":"fundamentals","input":{"symbol":"COCHINSHIP.NS"}}}
+{"t":87.797,"event":{"kind":"tool_result","toolCallId":"call_e3ceb517922543838aae42b82581a5ac","name":"fundamentals","ok":true}}
+{"t":97.834,"event":{"kind":"heartbeat"}}
+{"t":107.834,"event":{"kind":"heartbeat"}}
+{"t":117.835,"event":{"kind":"heartbeat"}}
+{"t":127.837,"event":{"kind":"heartbeat"}}
+{"t":133.279,"event":{"kind":"delta","text":"C"}}
+{"t":133.28,"event":{"kind":"delta","text":"och"}}
+{"t":133.288,"event":{"kind":"delta","text":"in"}}
+{"t":133.289,"event":{"kind":"delta","text":" Ship"}}
+{"t":133.289,"event":{"kind":"delta","text":"yard"}}
+{"t":133.289,"event":{"kind":"delta","text":" Limited"}}
+{"t":133.289,"event":{"kind":"delta","text":" is"}}
+{"t":133.289,"event":{"kind":"delta","text":" an"}}
+{"t":133.289,"event":{"kind":"delta","text":" Indian"}}
+{"t":133.289,"event":{"kind":"delta","text":" ship"}}
+{"t":133.289,"event":{"kind":"delta","text":"building"}}
+{"t":133.289,"event":{"kind":"delta","text":" company"}}
+{"t":133.289,"event":{"kind":"delta","text":" that"}}
+{"t":133.289,"event":{"kind":"delta","text":" specializes"}}
+{"t":133.289,"event":{"kind":"delta","text":" in"}}
+{"t":133.289,"event":{"kind":"delta","text":" designing"}}
+{"t":133.289,"event":{"kind":"delta","text":" and"}}
+{"t":133.289,"event":{"kind":"delta","text":" building"}}
+{"t":133.289,"event":{"kind":"delta","text":" ships"}}
+{"t":133.289,"event":{"kind":"delta","text":","}}
+{"t":133.289,"event":{"kind":"delta","text":" submarines"}}
+{"t":133.29,"event":{"kind":"delta","text":","}}
+{"t":133.29,"event":{"kind":"delta","text":" and"}}
+{"t":133.29,"event":{"kind":"delta","text":" offshore"}}
+{"t":133.29,"event":{"kind":"delta","text":" platforms"}}
+{"t":133.29,"event":{"kind":"delta","text":"."}}
+{"t":133.29,"event":{"kind":"delta","text":" "}}
+{"t":133.578,"event":{"kind":"delta","text":"The"}}
+{"t":133.578,"event":{"kind":"delta","text":" company"}}
+{"t":133.579,"event":{"kind":"delta","text":" was"}}
+{"t":133.579,"event":{"kind":"delta","text":" established"}}
+{"t":133.583,"event":{"kind":"delta","text":" in"}}
+{"t":133.583,"event":{"kind":"delta","text":" "}}
+{"t":134.23,"event":{"kind":"delta","text":"197"}}
+{"t":134.23,"event":{"kind":"delta","text":"2"}}
+{"t":134.23,"event":{"kind":"delta","text":" and"}}
+{"t":134.23,"event":{"kind":"delta","text":" is"}}
+{"t":134.23,"event":{"kind":"delta","text":" headquartered"}}
+{"t":134.23,"event":{"kind":"delta","text":" in"}}
+{"t":134.235,"event":{"kind":"delta","text":" Koch"}}
+{"t":134.235,"event":{"kind":"delta","text":"i"}}
+{"t":134.235,"event":{"kind":"delta","text":","}}
+{"t":134.235,"event":{"kind":"delta","text":" India"}}
+{"t":134.235,"event":{"kind":"delta","text":".\n\n"}}
+{"t":135.062,"event":{"kind":"delta","text":"The"}}
+{"t":135.062,"event":{"kind":"delta","text":" current"}}
+{"t":135.062,"event":{"kind":"delta","text":" share"}}
+{"t":135.062,"event":{"kind":"delta","text":" price"}}
+{"t":135.062,"event":{"kind":"delta","text":" of"}}
+{"t":135.062,"event":{"kind":"delta","text":" Co"}}
+{"t":135.062,"event":{"kind":"delta","text":"chin"}}
+{"t":135.063,"event":{"kind":"delta","text":" Ship"}}
+{"t":135.069,"event":{"kind":"delta","text":"yard"}}
+{"t":135.069,"event":{"kind":"delta","text":" is"}}
+{"t":135.069,"event":{"kind":"delta","text":" ₹"}}
+{"t":135.069,"event":{"kind":"delta","text":"128"}}
+{"t":135.069,"event":{"kind":"delta","text":"7"}}
+{"t":135.069,"event":{"kind":"delta","text":".\n"}}
+{"t":135.427,"event":{"kind":"delta","text":"The"}}
+{"t":135.428,"event":{"kind":"delta","text":" P"}}
+{"t":135.428,"event":{"kind":"delta","text":"/E"}}
+{"t":135.428,"event":{"kind":"delta","text":" ratio"}}
+{"t":135.428,"event":{"kind":"delta","text":" is"}}
+{"t":135.428,"event":{"kind":"delta","text":" "}}
+{"t":135.726,"event":{"kind":"delta","text":"49"}}
+{"t":135.727,"event":{"kind":"delta","text":"."}}
+{"t":135.727,"event":{"kind":"delta","text":"748"}}
+{"t":135.727,"event":{"kind":"delta","text":"74"}}
+{"t":135.727,"event":{"kind":"delta","text":".\n"}}
+{"t":136.85,"event":{"kind":"delta","text":"The"}}
+{"t":136.851,"event":{"kind":"delta","text":" market"}}
+{"t":136.851,"event":{"kind":"delta","text":" capital"}}
+{"t":136.851,"event":{"kind":"delta","text":"ization"}}
+{"t":136.851,"event":{"kind":"delta","text":" is"}}
+{"t":136.851,"event":{"kind":"delta","text":" ₹"}}
+{"t":136.857,"event":{"kind":"delta","text":"33"}}
+{"t":136.857,"event":{"kind":"delta","text":","}}
+{"t":136.857,"event":{"kind":"delta","text":"858"}}
+{"t":136.857,"event":{"kind":"delta","text":" crore"}}
+{"t":136.857,"event":{"kind":"delta","text":" ("}}
+{"t":136.857,"event":{"kind":"delta","text":"approximately"}}
+{"t":136.857,"event":{"kind":"delta","text":" $"}}
+{"t":136.857,"event":{"kind":"delta","text":"4"}}
+{"t":136.857,"event":{"kind":"delta","text":"."}}
+{"t":136.858,"event":{"kind":"delta","text":"3"}}
+{"t":136.858,"event":{"kind":"delta","text":" billion"}}
+{"t":136.858,"event":{"kind":"delta","text":" USD"}}
+{"t":136.858,"event":{"kind":"delta","text":").\n\n"}}
+{"t":137.986,"event":{"kind":"delta","text":"Please"}}
+{"t":137.987,"event":{"kind":"delta","text":" note"}}
+{"t":137.987,"event":{"kind":"delta","text":" that"}}
+{"t":137.987,"event":{"kind":"delta","text":" these"}}
+{"t":137.987,"event":{"kind":"delta","text":" figures"}}
+{"t":137.987,"event":{"kind":"delta","text":" are"}}
+{"t":137.987,"event":{"kind":"delta","text":" subject"}}
+{"t":137.987,"event":{"kind":"delta","text":" to"}}
+{"t":137.987,"event":{"kind":"delta","text":" change"}}
+{"t":137.987,"event":{"kind":"delta","text":" and"}}
+{"t":137.991,"event":{"kind":"delta","text":" may"}}
+{"t":137.992,"event":{"kind":"delta","text":" not"}}
+{"t":137.992,"event":{"kind":"delta","text":" reflect"}}
+{"t":137.992,"event":{"kind":"delta","text":" the"}}
+{"t":137.992,"event":{"kind":"delta","text":" current"}}
+{"t":137.992,"event":{"kind":"delta","text":" market"}}
+{"t":137.992,"event":{"kind":"delta","text":" situation"}}
+{"t":137.992,"event":{"kind":"delta","text":"."}}
+{"t":137.992,"event":{"kind":"done","usage":{"inputTokens":4776,"outputTokens":106},"finishReason":"stop","contextWindow":16384,"spendUsd":0}}

@@ -1,0 +1,8 @@
+# R15-CODE-RESEARCH-002 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:10:00+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/t002.py 2>&1 | grep -v Warning
+--- output ---
+hits ['async', 'sync', 'async'] keys ['derived', 'fundamentals', 'price'] price ok True
+{'price': "{'ok': True, 'provider': 'nse_direct', 'data': {'symbol': 'RELIANCE', 'price': 1167.7, 'change': -19.299999999999955, 'change_percent': -1.6259477674810408, 'volume': 16771221.0, 'open': 1180.1, 'high': 1183.9, 'low': 1160.8, 'prev_close': 1187.0, 'currency': 'INR', 'market_state': 'CLOSED', 'timest", 'fundamentals': "{'ok': True, 'provider': 'yfinance', 'data': {'symbol': 'RELIANCE.NS', 'name': 'Reliance Industries Limited', 'sector': 'Energy', 'industry': 'Oil, Gas & Consumable Fuels / Refineries & Marketing', 'sector_source': 'resolver', 'currency': 'INR', 'financial_currency': None, 'ratio_price': 1167.7, 'ma", 'derived': "{'ok': True, 'provider': 'derived', 'data': {'drawdown_from_high': {'value': 0.27553046283658017, 'label': 'Below 52-week high', 'basis': 'vs 52w high', 'formula': '(52w high - price) / 52w high', 'unit': 'fraction', 'display': '27.55%'}, 'fifty_two_week_change': {'value': -0.15076363, 'label': '52-"}
+
+EXIT=0 (26.8s)

@@ -1,0 +1,13 @@
+# R15-UI-076 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:34+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'export const DEFAULT_REGION' src/lib/region.ts; grep -n 'IN_DEFAULT_SYMBOLS\|US_DEFAULT_SYMBOLS' src/store/symbols.ts | head -5; grep -rn 'R15-UI-076' src --include=*.test.* | head -3
+--- output ---
+39:export const DEFAULT_REGION: Region = "IN";
+40:const US_DEFAULT_SYMBOLS: SymbolEntry[] = [
+49:const IN_DEFAULT_SYMBOLS: SymbolEntry[] = [
+59:  return region === "IN" ? IN_DEFAULT_SYMBOLS : US_DEFAULT_SYMBOLS;
+src/lib/workspace.test.ts:800:    // No view to inherit from: the IN-default chart symbol (R15-UI-076).
+src/modules/panel-context-publishers.test.tsx:25:// IN (R15-UI-076), so seed the US list explicitly.
+src/modules/chart/ChartPanel.test.tsx:213:  // IN (R15-UI-076), so seed the US symbol explicitly.
+
+EXIT=0 (0.0s)

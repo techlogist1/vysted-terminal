@@ -1,0 +1,14 @@
+# R15-DATA-046 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:04:52+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for r in IN US; do echo -n "$r NY.GDP.MKTP.KD.ZG: "; curl -s -m 60 -H "X-Vysted-Region: $r" "$H/macro/NY.GDP.MKTP.KD.ZG?provider=world-bank" | python3 -c "
+import sys,json;d=json.load(sys.stdin);o=d.get('observations') or d.get('points') or []
+print(d.get('title'),'| last',o[-1] if o else None)"; done
+echo -n "IN FP.CPI.TOTL.ZG: "; curl -s -m 60 -H "X-Vysted-Region: IN" "$H/macro/FP.CPI.TOTL.ZG?provider=world-bank" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('title'))"
+echo -n "outside world api.worldbank.org IND 2025: "; curl -s -m 30 "https://api.worldbank.org/v2/country/IND/indicator/NY.GDP.MKTP.KD.ZG?format=json&date=2025" | python3 -c "import sys,json;d=json.load(sys.stdin);print([(x['date'],x['value']) for x in d[1]] if len(d)>1 and d[1] else d)"
+--- output ---
+IN NY.GDP.MKTP.KD.ZG: GDP growth (annual %) — IND | last {'date': '2025-01-01T00:00:00Z', 'value': 7.56666179284244, 'is_projection': False}
+US NY.GDP.MKTP.KD.ZG: GDP growth (annual %) — USA | last {'date': '2025-01-01T00:00:00Z', 'value': 2.16138195623856, 'is_projection': False}
+IN FP.CPI.TOTL.ZG: Inflation, consumer prices (annual %) — IND
+outside world api.worldbank.org IND 2025: [('2025', 7.56666179284244)]
+
+EXIT=0 (2.1s)

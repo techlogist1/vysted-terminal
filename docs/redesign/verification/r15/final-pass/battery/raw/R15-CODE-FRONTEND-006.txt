@@ -1,0 +1,9 @@
+# R15-CODE-FRONTEND-006 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:02:11+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n "runWorkflow\|consumeSse" src/modules/node-editor/NodeEditorPanel.tsx | head -4; grep -n 'pendingNotifications' src/modules/node-editor/NodeEditorPanel.test.tsx | head -3
+--- output ---
+20: * The run goes through `useWorkflowStore.runWorkflow` (the one client for
+413:      await useWorkflowStore.getState().runWorkflow(spec, undefined, {
+341:    expect(useWorkflowStore.getState().pendingNotifications).toMatchObject([
+
+EXIT=0 (0.0s)

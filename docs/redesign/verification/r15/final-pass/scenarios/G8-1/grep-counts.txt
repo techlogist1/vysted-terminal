@@ -1,0 +1,6 @@
+src      117
+sidecar      257
+src-tauri        3
+plugins        0
+types       11
+scripts       14

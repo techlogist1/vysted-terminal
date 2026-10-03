@@ -1,0 +1,8 @@
+# R15-DATA-022 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:27:31+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 100 -w '\n@@HTTP %{http_code}\n' -H 'X-Vysted-Region: IN' "$H/disclosures/shareholding?symbol=SMR" | cut -c1-500
+--- output ---
+{"symbol":"SMR","count":1,"patterns":[{"symbol":"SMR","quarter_end":"2026-06-04","quarter_basis":null,"promoter_percent":65.74,"fii_percent":9.88,"dii_percent":0.84,"institutions_percent":10.72,"public_percent":34.26,"public_basis":"incl. institutions","public_non_institutional_percent":23.55,"employee_trusts_percent":null,"submission_date":"2026-06-08","xbrl_url":"https://www.bseindia.com/XBRLFILES/SHPXBRLDataXML/544774_86202616343_SP.html","source":"BSE","split_source":null,"split_as_of":null,
+@@HTTP 200
+
+EXIT=0 (0.6s)

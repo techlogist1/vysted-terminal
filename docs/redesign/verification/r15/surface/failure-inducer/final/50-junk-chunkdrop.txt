@@ -1,0 +1,4 @@
+[   0.0s] error: {"kind": "error", "message": "Something went wrong with OpenAI.", "action": "Try again or switch provider in Settings.", "detail": "peer closed connection without sending complete message body (incomplete chunked read)", "code": "unknown"}
+[   0.0s] done: {"kind": "done", "usage": null, "finish_reason": null, "context_window": null, "spend_usd": null}
+=== ASSISTANT TEXT ===
+

@@ -1,0 +1,16 @@
+# R15-DATA-013 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:05:27+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+for s in DAL SMR JNPR DHOOTTRANS; do echo "\$ GET /fundamentals/$s [IN]"; curl -s -m 100 -H "X-Vysted-Region: IN" "$H/fundamentals/$s" | python3 -c "
+import sys,json;d=json.load(sys.stdin);fm=d.get('field_meta') or {}
+print('eps',d.get('eps'),'pe',d.get('pe_ratio'),'| meta.eps',json.dumps(fm.get('eps'))[:200],'| meta.pe',json.dumps(fm.get('pe_ratio'))[:200])"; done
+--- output ---
+$ GET /fundamentals/DAL [IN]
+eps 2.0500000000000016 pe 5.6044946 | meta.eps {"status": "ok", "provider": "bse", "as_of": "2026-06-30", "reason": "exchange-filed (BSE) figure served; the provider's 8.90 disagrees with it \u2014 not served", "label": "standalone, sum of 4 filed | meta.pe {"status": "flagged", "provider": "yfinance", "as_of": "2025-03-12T03:58:51+00:00", "reason": "trailing EPS 8.9 disagrees by 77% with the payload's net income / shares outstanding (10,200,000 / 5,010,
+$ GET /fundamentals/SMR [IN]
+eps 5.58 pe 16.675629 | meta.eps {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-03T12:05:12.985823+00:00", "reason": "trailing EPS 5.58 disagrees by 58% with the payload's net income / shares outstanding (247,484,992 | meta.pe {"status": "flagged", "provider": "yfinance", "as_of": "2026-10-01T06:44:22+00:00", "reason": "trailing EPS 5.58 disagrees by 58% with the payload's net income / shares outstanding (247,484,992 / 18,6
+$ GET /fundamentals/JNPR [IN]
+eps 0.91 pe 296.4835 | meta.eps {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T12:05:16.392249+00:00", "reason": null, "label": null, "basis_note": null} | meta.pe {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:49+00:00", "reason": null, "label": null, "basis_note": null}
+$ GET /fundamentals/DHOOTTRANS [IN]
+eps 21.22 pe 68.143265 | meta.eps {"status": "ok", "provider": "yfinance", "as_of": "2026-10-03T12:05:18.213208+00:00", "reason": null, "label": null, "basis_note": null} | meta.pe {"status": "ok", "provider": "yfinance", "as_of": "2026-10-01T09:59:58+00:00", "reason": null, "label": null, "basis_note": null}
+
+EXIT=0 (21.8s)

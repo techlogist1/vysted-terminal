@@ -1,0 +1,9 @@
+sp500 200 503
+nifty50 200 50
+crypto-top50 200 50
+nse-all 200 3506
+bse-all 200 5042
+india-all 200 5891
+custom 400 {'detail': 'custom universe is resolved per-request; pass custom_symbols on /screener/run'}
+bogus 422 {'detail': [{'type': 'literal_error', 'loc': ['query', 'id'], 'msg': "Input should be 'sp500', 'nifty50', 'crypto-top50', 'custom', 'nse-all', 'bse-al
+{"universe":"nifty50"}

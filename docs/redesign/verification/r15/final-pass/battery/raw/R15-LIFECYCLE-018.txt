@@ -1,0 +1,8 @@
+# R15-LIFECYCLE-018 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:43:31+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/b19_018.py 2>&1 | grep -v Warning
+--- output ---
+== concurrent first reads: ['http://127.0.0.1:52999', 'http://127.0.0.1:52999'] refresh calls: [('start', 0.0, False), ('end', 1.5, False)]
+== later read (pure in-memory): http://127.0.0.1:52999 0.0 s; refresh calls total 1
+
+EXIT=0 (1.6s)

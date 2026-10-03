@@ -1,0 +1,11 @@
+# R15-RESEARCH-006 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:37+0530
+
+$ git merge-base --is-ancestor c81d879 HEAD && echo 'closure c81d879 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure c81d879 NOT an ancestor'
+[exit 0] [0.02s]
+closure c81d879 is an ancestor of d38b5d1a
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-RESEARCH-006\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+sidecar/tests/test_research_verify.py:546:# --- R15-RESEARCH-006: the claim loop is bounded by the round's own wall -------
+

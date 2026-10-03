@@ -1,0 +1,33 @@
+# R15-CODE-RESEARCH-001 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:23:21+0530
+
+$ PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/final-data-final-battery-1 ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/py/R15-CODE-RESEARCH-001.py 2>&1 | grep -v "^WARNING\|DEBUG" | tail -c 9000
+[exit 0] [0.39s]
+_clamp(360,30,360,360)? signature-based checks:
+def _clamp(value: Any, lo: int, hi: int, default: int) -> int:
+    """Coerce ``value`` to an int in ``[lo, hi]``, falling back to ``default``."""
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return default
+    return max(lo, min(hi, n))
+
+research wall_seconds schema: {'type': 'integer', 'description': '30-360 seconds (deep/heavy only). Omit it: each depth sets its own budget (deep 180, heavy 360).'}
+104:def _clamp(value: Any, lo: int, hi: int, default: int) -> int:
+232:        max_wall_seconds=max(60, wall - cross_reserve),
+320:                budget=BudgetGuard(max_steps=6, max_wall_seconds=_CROSS_CHECK_RESERVE_SECS),
+461:    wall_seconds: Any = None,
+476:        wall_seconds: Wall-clock budget, clamped to ``[30, max(300, the
+498:    rounds_i = _clamp(rounds, 1, 5, profile.rounds)
+499:    wall = _clamp(wall_seconds, 30, max(300, profile.wall_seconds), profile.wall_seconds)
+
+services/research/depth.py:27:iter working-report char cap, the default wall budget, coverage strictness,
+services/research/depth.py:32:research-model lane's wall/cost tables in
+services/research/depth.py:129:    #: Default wall-clock budget in seconds (0 = n/a for the fast pass).
+services/research/depth.py:130:    wall_seconds: int
+services/research/depth.py:162:        wall_seconds=0,
+services/research/depth.py:180:        # the round slice adapts to observed LLM latency — this wall bump gives
+services/research/depth.py:183:        wall_seconds=180,
+services/research/depth.py:201:        # consuming the wall and the cross-check round honestly skipping; the
+services/research/depth.py:203:        wall_seconds=360,
+
+

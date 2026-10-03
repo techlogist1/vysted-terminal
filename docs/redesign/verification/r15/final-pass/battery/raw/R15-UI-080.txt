@@ -1,0 +1,10 @@
+# R15-UI-080 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:34+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'function isInternalProvenance\|startsWith("vysted://")\|source-provenance-chip' src/modules/research/BriefPanel.tsx; grep -n 'a vysted:// source renders a provenance chip' src/modules/research/BriefPanel.test.tsx
+--- output ---
+244:function isInternalProvenance(source: BriefSource): boolean {
+245:  return source.url.startsWith("vysted://");
+294:              data-testid="source-provenance-chip"
+353:  it("a vysted:// source renders a provenance chip, no external link, and no favicon lookup", () => {
+
+EXIT=0 (0.0s)

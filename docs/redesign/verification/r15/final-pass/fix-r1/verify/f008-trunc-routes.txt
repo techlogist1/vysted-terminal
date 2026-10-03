@@ -1,0 +1,36 @@
+52889 /custom-agents -> 200
+52889 /runs -> 200
+52889 /plugins -> 200
+52889 /portfolio/positions -> 200
+52889 /workflow/saved -> 200
+52889 /fundamentals/TCS.NS -> 200
+52889 /quotes/RELIANCE.NS -> 200
+backups
+custom_agents.db
+custom_agents.db.corrupt-20261003-193724-841909
+data_cache.db
+data_cache.db-shm
+data_cache.db-wal
+data_cache.db.corrupt-20261003-193621-359744
+delegate_runs.db
+delegate_runs.db.corrupt-20261003-193724-850835
+dev-keystore.json
+fundamentals_cache.db
+fundamentals_cache.db.corrupt-20261003-193621-409340
+notes
+plugins.db
+plugins.db.corrupt-20261003-193724-861183
+portfolio.db
+portfolio.db.corrupt-20261003-193724-870735
+resolver_masters
+searxng
+workflows.db
+workflows.db.corrupt-20261003-193621-409624
+workspaces
+1643e3259b98 vs 1643e3259b98 trunc/custom_agents.db.corrupt-20261003-193724-841909
+6f6c99c5de07 vs 6f6c99c5de07 trunc/data_cache.db.corrupt-20261003-193621-359744
+8093b120b7f0 vs 8093b120b7f0 trunc/delegate_runs.db.corrupt-20261003-193724-850835
+39cc3ad48eaa vs 39cc3ad48eaa trunc/fundamentals_cache.db.corrupt-20261003-193621-409340
+b2177282a93c vs b2177282a93c trunc/plugins.db.corrupt-20261003-193724-861183
+2627d04ad257 vs 2627d04ad257 trunc/portfolio.db.corrupt-20261003-193724-870735
+730cf9be7575 vs 730cf9be7575 trunc/workflows.db.corrupt-20261003-193621-409624

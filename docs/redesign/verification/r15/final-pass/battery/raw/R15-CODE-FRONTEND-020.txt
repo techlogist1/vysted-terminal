@@ -1,0 +1,14 @@
+# R15-CODE-FRONTEND-020 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:18:32+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+cd "$C"; grep -n 'brand_new_tool' src/modules/agent-builder/agent-builder.test.tsx; grep -n 'tool-ids\|FRONTEND-020' sidecar/tests/test_custom_agents_router.py | head; echo '$ live GET /custom-agents/tool-ids'; curl -s -m 20 -w ' [%{http_code}]\n' "$H/custom-agents/tool-ids" | cut -c1-300
+--- output ---
+342:        return new Response(JSON.stringify(["brand_new_tool"]), { status: 200 });
+349:    const button = await screen.findByRole("button", { name: "brand_new_tool" });
+73:# Tool ids (R15-UI-003 / R15-CODE-FRONTEND-020)
+83:    response = client.get("/custom-agents/tool-ids")
+89:    """`/tool-ids` must resolve to the dedicated route, not `/{agent_id:path}`
+91:    response = client.get("/custom-agents/tool-ids")
+$ live GET /custom-agents/tool-ids
+["add_chart_drawing","add_to_watchlist","analyst_history","analyst_individual","arrange_layout","ask_user","backtest_summary","close_panel","compare_symbols","compute_greeks","corporate_actions","corporate_announcements","earnings_call_transcript","earnings_estimates","earnings_history","earnings_up
+
+EXIT=0 (0.0s)

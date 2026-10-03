@@ -1,0 +1,42 @@
+# R15-RELEASE-009 probe (final-battery-1, candidate d38b5d1a, sidecar :52861) at 2026-10-03T17:31:36+0530
+
+$ git merge-base --is-ancestor d2da4535 HEAD && echo 'closure d2da4535 is an ancestor of '$(git rev-parse --short HEAD) || echo 'closure d2da4535 NOT an ancestor'
+[exit 0] [0.02s]
+closure d2da4535 is an ancestor of d38b5d1a
+
+
+$ grep -n -F -- tests::smoke_bind_budget_matches_supervisor src-tauri/src/lib.rs | head -3; test -f src-tauri/src/lib.rs || echo 'MISSING src-tauri/src/lib.rs'
+[exit 0] [0.01s]
+
+
+$ grep -rn --exclude-dir=node_modules --exclude-dir=.venv -- 'R15-RELEASE-009\b' sidecar src src-tauri/src scripts docs/BLUEPRINT.md docs/CURRENT_STATE.md 2>/dev/null | cut -c1-220 | head -10
+[exit 0] [0.30s]
+src-tauri/src/lib.rs:1120:        // R15-RELEASE-009: the smoke test's MCP bind budget is the supervisor's
+
+
+$ grep -n 'MCP_PORT_WAIT_SECS\|ATTEMPTS\|smoke_bind_budget' src-tauri/src/lib.rs | head -8
+[exit 0] [0.01s]
+180:pub(crate) const MCP_PORT_WAIT_SECS: u64 = 45;
+184:/// unbounding startup — total worst case ~`MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS`.
+185:pub(crate) const MCP_PORT_WAIT_ATTEMPTS: u32 = 2;
+193:pub(crate) const MAIN_SIDECAR_WAIT_ATTEMPTS: u32 = 6;
+196:/// `MCP_PORT_WAIT_SECS`. Returns `true` on the first successful TCP connect.
+198:/// The total budget is `MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS`; the
+454:        // sidecar waits 45s x MAIN_SIDECAR_WAIT_ATTEMPTS (270s), not the MCP
+458:            MCP_PORT_WAIT_SECS,
+
+
+$ grep -n -i 'bind.*budget\|BUDGET\|90' scripts/smoke-test-sidecars.mjs | head -6
+[exit 0] [0.01s]
+107:// Main-sidecar boot budget. The --onefile binary cold-extracts its `_MEI*`
+109:// lifespan before /health serves; that's ~90s cold on an M1 (Phase 9.5 S0-1).
+115:// MCP bind budget — aligned with the Rust supervisor's MCP_PORT_WAIT_SECS(45) x
+116:// MCP_PORT_WAIT_ATTEMPTS(2) = 90s. A cold `_MEI*` extraction binds at ~34s
+117:// isolated on an M1 (Phase 9.5 measurement); 90s covers contended cold boots.
+118:const MCP_BIND_TIMEOUT_MS = 90_000;
+
+
+$ (follow-up) grep -rn 'fn write_atomic_round_trip_leaves_no_tmp\|fn clear_mcp_endpoint_file_removes_existing\|fn smoke_bind_budget_matches_supervisor' src-tauri/src
+src-tauri/src/lib.rs:891:    fn write_atomic_round_trip_leaves_no_tmp() {
+src-tauri/src/lib.rs:941:    fn clear_mcp_endpoint_file_removes_existing() {
+src-tauri/src/lib.rs:1119:    fn smoke_bind_budget_matches_supervisor() {

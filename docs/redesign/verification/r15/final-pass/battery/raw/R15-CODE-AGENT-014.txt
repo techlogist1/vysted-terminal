@@ -1,0 +1,22 @@
+# R15-CODE-AGENT-014 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:09:25+00:00 | own sidecar :52862 (final-battery-2) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import asyncio
+from services import agent_tools as at
+from services.errors import ProviderError
+async def boom(args): raise RuntimeError('kaboom')
+async def perr(args): raise ProviderError('upstream 503')
+at.register_tool('zz_boom', boom) if hasattr(at,'register_tool') else None
+at.register_tool('zz_perr', perr) if hasattr(at,'register_tool') else None
+async def m():
+    for t in ('zz_boom','zz_perr'):
+        print(t,'->',await at.invoke_tool(t,{}))
+asyncio.run(m())
+PY
+cd "$C/sidecar"; echo "'news fetch failed' prefix: $(grep -rn 'news fetch failed' services | wc -l)"
+--- output ---
+zz_boom -> {'ok': False, 'error': 'unexpected error: kaboom'}
+zz_perr -> {'ok': False, 'error': 'provider error: upstream 503'}
+'news fetch failed' prefix:        0
+
+EXIT=0 (0.3s)

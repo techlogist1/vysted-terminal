@@ -1,0 +1,138 @@
+{
+ "1-add": {
+  "store": [
+   {
+    "symbol": "RELIANCE.NS",
+    "quantity": 10,
+    "costBasis": 1200,
+    "assetClass": "equity",
+    "note": "core, \"long\" hold"
+   },
+   {
+    "symbol": "AAPL",
+    "quantity": 5,
+    "costBasis": 180,
+    "assetClass": "equity",
+    "note": null
+   }
+  ],
+  "blob": [
+   {
+    "symbol": "RELIANCE.NS",
+    "quantity": 10,
+    "costBasis": 1200,
+    "assetClass": "equity",
+    "note": "core, \"long\" hold"
+   },
+   {
+    "symbol": "AAPL",
+    "quantity": 5,
+    "costBasis": 180,
+    "assetClass": "equity",
+    "note": null
+   }
+  ],
+  "match": true
+ },
+ "2-pnl": {
+  "rawQuotes": {
+   "RELIANCE.NS": 1167.7,
+   "AAPL": 333.69000244140625
+  },
+  "expectedPnl": {
+   "RELIANCE.NS": -322.99999999999955,
+   "AAPL": 768.4500122070312
+  },
+  "bus": {
+   "positionCount": 2,
+   "totalValue": null,
+   "totalValueNote": "holdings span multiple currencies (INR, USD) — no cross-currency total; read per-holding values",
+   "activePortfolioId": "default",
+   "activePortfolioName": "Portfolio",
+   "holdings": [
+    {
+     "id": "h-99e6816f-d416-48f5-b84c-8577cb9b5f75",
+     "symbol": "RELIANCE.NS",
+     "quantity": 10,
+     "costBasis": 1200,
+     "assetClass": "equity",
+     "currency": "INR",
+     "marketValue": 11677,
+     "pnl": -323
+    },
+    {
+     "id": "h-3c06b3a7-19f3-4efe-847e-2120204b83dc",
+     "symbol": "AAPL",
+     "quantity": 5,
+     "costBasis": 180,
+     "assetClass": "equity",
+     "currency": "USD",
+     "marketValue": 1668.4500122070312,
+     "pnl": 768.4500122070312
+    }
+   ]
+  }
+ },
+ "3-csv": [
+  {
+   "name": "vysted-portfolio-portfolio.csv",
+   "content": "Symbol,Quantity,Cost basis,Asset class,Currency,Price,Market value,P&L,P&L %,Weight %,Note\nRELIANCE.NS,10,1200,equity,INR,1167.7,11677,-323,-2.6916666666666664,,\"core, \"\"long\"\" hold\"\nAAPL,5,180,equity,USD,333.69000244140625,1668.4500122070312,768.4500122070312,85.38333468967014,,"
+  }
+ ],
+ "4-update": {
+  "store": [
+   {
+    "symbol": "RELIANCE.NS",
+    "quantity": 10,
+    "costBasis": 1200,
+    "assetClass": "equity",
+    "note": "core, \"long\" hold"
+   },
+   {
+    "symbol": "AAPL",
+    "quantity": 8,
+    "costBasis": 190,
+    "assetClass": "equity",
+    "note": null
+   }
+  ],
+  "blob": [
+   {
+    "symbol": "RELIANCE.NS",
+    "quantity": 10,
+    "costBasis": 1200,
+    "assetClass": "equity",
+    "note": "core, \"long\" hold"
+   },
+   {
+    "symbol": "AAPL",
+    "quantity": 8,
+    "costBasis": 190,
+    "assetClass": "equity",
+    "note": null
+   }
+  ],
+  "match": true
+ },
+ "5-delete": {
+  "store": [
+   {
+    "symbol": "AAPL",
+    "quantity": 8,
+    "costBasis": 190,
+    "assetClass": "equity",
+    "note": null
+   }
+  ],
+  "blob": [
+   {
+    "symbol": "AAPL",
+    "quantity": 8,
+    "costBasis": 190,
+    "assetClass": "equity",
+    "note": null
+   }
+  ],
+  "match": true
+ }
+}

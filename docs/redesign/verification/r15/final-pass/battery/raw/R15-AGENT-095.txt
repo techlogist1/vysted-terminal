@@ -1,0 +1,17 @@
+# R15-AGENT-095 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T11:45:14+00:00 | own sidecar :52860 (final-battery-0) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" $B/sc/inproc_ratio.py 2>&1 | grep -v Warning
+--- output ---
+adr_ratio WIT: OSError('edgar unreachable')
+== AGENT-095 (_guard_ratio_claims vs sourced ads_ratio=6, filed 2026-06-26)
+_share_counts('2026-06-26: One SIFY ADS represents six equity shares.') = {'1', '6'}
+KEPT     | 2026-06-26: One SIFY ADS represents six equity shares.
+KEPT     | June 26, 2026: each SIFY ADS represents 6 equity shares.
+KEPT     | 26-06-2026 filing: one SIFY ADR represents six equity shares.
+REPLACED | As of 2026-06-26 each SIFY ADS represents 5 equity shares.
+== LEAD-031 (LeakHold partial marker, chunks not in the tests)
+shown='' held='Sure. {"name": "fundamentals", "arg'
+== LEAD-032 (_fetch raises OSError; second lookup must not re-fetch)
+None None None fetch calls: 1
+
+EXIT=0 (1.5s)

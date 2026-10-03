@@ -1,0 +1,21 @@
+# R15-AGENT-012 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:26:07+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+"$IP" - <<'PY' 2>&1 | grep -v Warning
+import inspect
+from services.budget_guard import BudgetGuard
+from models.llm import LLMUsage
+from services.llm import oneshot
+print('oneshot.complete_with_usage exists:', hasattr(oneshot,'complete_with_usage'), '| returns (str, usage):', 'usage' in inspect.getsource(oneshot.complete_with_usage).lower())
+b=BudgetGuard(max_steps=10, max_tokens=600000, max_spend_usd=3.0)
+b.record(LLMUsage(input_tokens=40000, output_tokens=3000),'gpt-4o-mini','openai')
+print('BudgetGuard.cost() after one metered openai call:', b.cost())
+b2=BudgetGuard(max_steps=10, max_tokens=1000)
+b2.record(LLMUsage(input_tokens=2000, output_tokens=0),'gpt-4o-mini','openai')
+print('token ceiling trips:', b2.breach())
+PY
+--- output ---
+oneshot.complete_with_usage exists: True | returns (str, usage): True
+BudgetGuard.cost() after one metered openai call: {'tokens': 43000, 'spend_usd': 0.0258, 'steps': 1}
+token ceiling trips: token ceiling 1000 reached (2000 used)
+
+EXIT=0 (0.9s)

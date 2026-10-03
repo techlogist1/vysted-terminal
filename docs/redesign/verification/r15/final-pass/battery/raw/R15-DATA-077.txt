@@ -1,0 +1,10 @@
+# R15-DATA-077 | candidate d38b5d1a2487bd52fe8a7e741a3a5266e3206611 | 2026-10-03T12:29:02+00:00 | own sidecar :52863 (final-battery-3) | in-process = final-cand sidecar/.venv
+--- command ---
+curl -s -m 30 "$H/data-sources" | python3 -c "import sys,json;d=json.load(sys.stdin);print([(p['id'],p.get('region')) for p in d['providers'] if 'IN' in (p.get('region') or [])])"
+cd "$C"; grep -n 'declares the three India keyless lanes' src/lib/marketplace.test.ts; grep -n 'id: "nse_direct"' src/lib/marketplace.ts
+--- output ---
+[('nse_direct', ['IN']), ('nse', ['IN']), ('bse', ['IN'])]
+121:  it("declares the three India keyless lanes with a stable id (matches the resolver)", () => {
+206:    id: "nse_direct",
+
+EXIT=0 (0.0s)
