@@ -545,22 +545,18 @@ asset or re-point it at the tag once pushed (`gh release edit v0.9.0 --tag v0.9.
 gh release edit v0.9.0 --draft=false
 ```
 
-**Do not tag before the rc gate passes.** `git tag --list 'r15*'` is empty at S — no
-`r15-rc1` tag exists yet. `R15_GATE_RC1.md:3` reads "**Verdict: FAIL.** Do not tag rc1." for
-round 1 (candidate `1d6511c89bb27f1785f7af4d2290983b2852d70a`); later rounds ran
-at later shas. This step runs only after a round shows a PASS verdict, against the
-sha that round evaluated.
+**The gate has passed; this is the sha.** `r15-launch` (annotated `a8fd7d3b`) and `r15-rc2`
+both resolve to `1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056`, the certified release head
+(code identical to the verified `b796f6a9`). `origin/main` is an ancestor of that commit, so
+the 9a `--no-ff` merge commit has exactly the tree of `r15-launch`. Before tagging, prove it:
 
-**Precedent for tag format** (existing tags, e.g. `v0.8.0`): an annotated tag,
-`tagger`/message form `<version> — <one-line description>` followed by a short changelog
-body (`git cat-file -p v0.8.0`). Tag the exact sha the rc gate's round-2 PASS verdict
-evaluated — never bare `HEAD`, which may have moved since the gate ran. Operator runs, e.g.:
+```sh
+git diff --quiet r15-launch HEAD && echo "merge tree == r15-launch"   # on main, after 9a
+```
 
-```
-# operator runs this — <gated-sha> is the sha the rc1 gate round-2 PASS verdict names
-git tag -a v0.9.0 <gated-sha> -m "v0.9.0 — <summary>"
-git push origin v0.9.0
-```
+**Tag format** follows `v0.8.0` (`git cat-file -p v0.8.0`): an annotated tag with the message
+form `<version> — <one-line description>` and a short changelog body. Tag the merge commit by
+its sha (`git rev-parse HEAD` right after 9a), never a bare `HEAD` typed later.
 
 **No release pipeline exists yet** — Tier-4, `DECISIONS_FOR_OPERATOR.md §2.9`,
 R15-RELEASE-002. Quoted verbatim (`DECISIONS_FOR_OPERATOR.md:146-152`):
