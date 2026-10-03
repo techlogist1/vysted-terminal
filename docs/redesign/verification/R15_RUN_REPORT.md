@@ -2,7 +2,53 @@
 
 # R15 LAUNCH — run report
 
-## Outcome so far
+## Outcome (final, 4 Oct 2026)
+
+R15 finished. Vysted Terminal 0.9.0 is tagged `r15-launch` at commit `1fddb2b1` on branch
+`004-r4-experience-rebuild` (the same commit also carries `r15-rc2`), pushed to GitHub. It is not merged
+to `main` and has no `v0.9.0` tag; both are yours (`docs/RELEASE_RUNBOOK.md` §9).
+
+What the run did, in plain terms. It audited the whole product, filed 803 defect entries in one
+register, and fixed 629 of them. It removed trading from the product permanently (no broker
+connection, no orders, no paper account) and relicensed the core to PolyForm Strict 1.0.0 plus a
+commercial licence. No critical or high entry is open at the launch tag. 43 mediums and 72 lows are
+open and filed for 0.9.1 (`docs/redesign/BACKLOG_0.9.1.md`); 35 entries wait on decisions only you
+can make; 4 wait on a human clicking through the packaged app.
+
+How it was checked. The full CI chain (`pnpm ci-local`: vitest 2048, cargo 32, pytest 4013) and the
+sidecar binary smoke test passed on the launch code (certified at `b796f6a9`, identical to `1fddb2b1`
+outside docs). A clean-profile production bundle was built from it and launched as a user would:
+it came up healthy in 114 s with live watchlist data (`r15/stage-d/bundle-rc2b/`). One final
+adversarial pass by a fresh model found 58 new entries; every critical and high among them was fixed
+and certified by a separate verifier before the tag. A data directory written by the 0.8.0 sidecar
+opened under the 0.9.0 sidecar with nothing lost (`r15/stage-d/upgrade-0.8.0/UPGRADE.md`).
+
+What was not checked, and why. The GUI half of the final pass did not run at the launch commit: the
+run's own launch of the unsigned app raised a macOS login-keychain prompt, which the run is forbidden
+to answer, and it blocked the screen (R15-LEAD-143, DECISIONS 5.15). For the same reason the app side
+of the 0.8.0 upgrade, a fresh dmg install, and two GUI checks (R15-LIFECYCLE-008 copy diagnostics,
+R15-UI-022 chart drawing tools) are untested and are first in `docs/HAND_TESTING_GUIDE.md`. That
+prompt is gone now (checked 01:25 IST 4 Oct). Nothing about Windows was verified
+(`docs/WINDOWS_MANUAL_CHECK.md`). The build is unsigned, so any other Mac refuses it until you sign
+and notarize it.
+
+What is waiting for you. A draft GitHub release `v0.9.0` exists, unpublished, with the unsigned dmg
+attached (228,480,607 bytes). The button sequence — merge, tag, sign, swap the dmg on the draft,
+publish — is section 2 of `docs/redesign/OPERATOR_BRIEFING.md`; the decisions in priority order are at
+the top of `docs/redesign/DECISIONS_FOR_OPERATOR.md`.
+
+State left on this Mac. The isolated stack runs on 127.0.0.1:52152 (sidecar from source, version
+0.9.0) with the two MCP sidecars from the launch bundle on 52153/52154, data in the session
+scratchpad. The run's caffeinate (pid 91760) was released at 01:23 IST 4 Oct; no `pmset` setting
+was ever changed (`r15/stage-d/release/PMSET_REVERT.md`). Your installed `/Applications/Vysted.app`
+(0.8.0), real app data and keystore were never written.
+
+Measured wall-clock for the closing stretch: bundle build 659 s, bundle launch check about 6 min,
+GUI half 9.3 min (blocked), carry-forward judge 16.2 min, re-runs 13.3 min, r15-rc2 to r15-launch
+46 min, docs promotion 31.4 min, 0.8.0 upgrade proof 36.4 min, draft upload 2.75 min. r15-rc1 to
+r15-rc2 took 20.7 h.
+
+## Earlier narrative (superseded — kept as history; written before rc1)
 
 R15 has not tagged a release candidate yet. The newest tag is still `r13-bedrock` (`6a40f83`),
 which remains the fallback release line. (at the rc1 tag: the newest tag becomes `r15-rc1` at the

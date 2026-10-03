@@ -24,7 +24,7 @@ This checks that a real user's data survives an in-place upgrade. If you have a 
 1. Install and launch the 0.8.0 build. Add a watchlist symbol, one manual portfolio position, and one note. Quit.
 2. Install 0.9.0 over it (same Applications folder, same data directory — do not move the app aside first). Launch.
 3. Good: the watchlist symbol, the portfolio position and the note are all still there, and the version in Settings/diagnostics now reads 0.9.0. Bad: any of the three is missing, or the app fails to launch at all against the 0.8.0-shaped data. This exercises the now-fixed R15-LIFECYCLE-024 (schema versioning and a pre-touch backup of the data dir) — a failure here would be a regression on a fixed register entry, not a new open item.
-4. A separate, sidecar-side headless proof of the same upgrade path is being produced in parallel; if it exists by the time you read this it is at `docs/redesign/verification/r15/stage-d/upgrade-0.8.0/` — this guide does not assume or depend on its result, since the app-side check above is the one only a human can run.
+4. The sidecar half of this upgrade is already proven headless (`docs/redesign/verification/r15/stage-d/upgrade-0.8.0/UPGRADE.md`: PASS — positions, custom agent, workflow, notes and plugin config seeded by the 0.8.0 sidecar all survived the 0.9.0 sidecar's first boot). It never drove the app, so the app-side check above is still the one only a human can run.
 
 ### 1c. Two GUI checks the register is waiting on
 

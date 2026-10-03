@@ -43,7 +43,7 @@ pkill caffeinate
 pmset -g assertions
 ```
 
-`pkill caffeinate` ends every caffeinate on the machine, including ones you started yourself; to be selective, `kill <pid>` the pids `pgrep -fl caffeinate` shows. A caffeinate release is also planned as a run-ending stage of `r15/tooling/final-pass.js`. **Operator to confirm:** whether that stage actually ran at the end of this run — it is not recorded in the run-state or ledger either way.
+`pkill caffeinate` ends every caffeinate on the machine, including ones you started yourself; to be selective, `kill <pid>` the pids `pgrep -fl caffeinate` shows. **Close-out (01:23 IST Sun 4 Oct 2026):** the run's last caffeinate, pid 91760 (`caffeinate -dimsu`, started 02:41 IST 3 Oct), was released by the lead with `kill 91760`. Afterwards `pgrep -fl caffeinate` showed only pid 52241 (`caffeinate -i -t 300`, whose parent is the Claude app; not the run's, left alone — `pkill caffeinate` would end it too). No run-owned power assertion remains.
 
 ## Other system settings this run touched
 

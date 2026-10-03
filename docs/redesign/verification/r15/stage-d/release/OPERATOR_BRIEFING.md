@@ -14,7 +14,7 @@ The two caveats: the build is unsigned and not notarized, so another Mac refuses
 
 ## 2. Public-button sequence
 
-These are the operator-only steps, in order. Nothing here has been run by an agent. An agent never pushes, tags, signs, uploads or publishes.
+These are the operator-only steps, in order. None of them has been run by an agent. The run did one preparatory thing for step 4: it created the **draft** release `v0.9.0` (unpublished, no tag created; URL `https://github.com/techlogist1/vysted-terminal/releases/tag/untagged-aa0651ce8e3deed21db2`, visible only to repo writers) with the **unsigned** dmg attached. No agent pushes to `main`, creates a `v*` tag, signs, or publishes.
 
 1. **Merge `004-r4-experience-rebuild` to `main`, with a merge commit.** This also gives the 3-OS CI its first ever signal on the branch (R15-RELEASE-004). Full command sequence: `docs/RELEASE_RUNBOOK.md` section 9a.
    ```sh
@@ -41,13 +41,18 @@ These are the operator-only steps, in order. Nothing here has been run by an age
    shasum -a 256 "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg"
    ```
    Keep `VYSTED_SKIP_DEV_SIGN=1` set for this build too: it only skips the lead's local self-signed dev-signing identity on the three inner sidecar binaries (`docs/RELEASE_RUNBOOK.md` section 4) — unrelated to your Developer ID signing of the outer `.app`/`.dmg`, which `pnpm tauri build` applies itself by reading `APPLE_SIGNING_IDENTITY` (or `bundle.macOS.signingIdentity` in `src-tauri/tauri.conf.json`, a Tier-1 file, not set at this sha). Omitting the env var here would dev-sign the sidecar binaries with the lead's local cert, which is never meant to ship. The current unsigned reference numbers are 228,480,607 bytes / sha256 `9940d41b7ed6725aaabb6bb1709dc48b4f8ec51facd0696e376c68401139bc53` — these will change once you sign and notarize; use the fresh `shasum` output above for the release body, not these.
-4. **Create the draft release and attach the signed dmg.**
+4. **Replace the unsigned dmg on the existing draft with the signed one.** The draft already exists (created by the run at 01:19 IST 4 Oct against `1fddb2b1`), so this is an upload, not a create:
+   ```sh
+   gh release upload v0.9.0 "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg" --clobber
+   gh release view v0.9.0 --json isDraft,assets --jq '{isDraft, assets:[.assets[]|{name,size}]}'
+   ```
+   GitHub stores the asset as `Vysted.Terminal_0.9.0_aarch64.dmg` (spaces become dots), so `--clobber` replaces the unsigned one by that name. Update the sha256 line in the release body (`gh release edit v0.9.0 --notes-file <edited body>`) to the signed `shasum` from step 3. If the draft was deleted, recreate it:
    ```sh
    gh release create v0.9.0 --draft --target 1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056 --title "Vysted Terminal 0.9.0" \
      --notes-file docs/redesign/verification/r15/stage-d/release/GITHUB_RELEASE_v0.9.0.md \
      "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg"
    ```
-   `--target` lets you create the draft before the tag is pushed, from the exact commit the gate evaluated. If the draft already exists, attach with `gh release upload v0.9.0 "src-tauri/target/release/bundle/dmg/Vysted Terminal_0.9.0_aarch64.dmg" --clobber`.
+   `--target` creates the draft from the exact commit the gate evaluated, before or after the tag is pushed.
 5. **Publish.** Before this, get a real commercial contact address into `LICENSING.md` and `COMMERCIAL_LICENSE.md` (R15-DOCS-002: the placeholder domain has no mail records), because a published release is a public announcement.
    ```sh
    gh release edit v0.9.0 --draft=false
@@ -126,7 +131,7 @@ Nobody has built or run this branch on Windows. The list of what to check on you
 **New since the drafts were written** — these are operator-attended, no computer-use grant covers them, and none were exercised by the final adversarial pass (its GUI half was not tested at the launch head, DECISIONS 5.15):
 
 - **A fresh install and first launch.** Download the dmg onto a clean or representative Mac, install, and launch cold. `HAND_TESTING_GUIDE.md` section 1 is written for exactly this and should be your first stop before anything else in that guide.
-- **The 0.8.0-to-0.9.0 upgrade, app side.** Install 0.8.0, create some state (a watchlist, a portfolio position, a note), install 0.9.0 over it, and confirm that state survives. `HAND_TESTING_GUIDE.md` section 2 has the steps. A separate, sidecar-side headless proof of the same upgrade path is being produced in parallel; when done it will live at `docs/redesign/verification/r15/stage-d/upgrade-0.8.0/` — that path does not exist yet as this briefing is written, and this briefing does not claim or assume any result from it.
+- **The 0.8.0-to-0.9.0 upgrade, app side.** Install 0.8.0, create some state (a watchlist, a portfolio position, a note), install 0.9.0 over it, and confirm that state survives. `HAND_TESTING_GUIDE.md` section 2 has the steps. The sidecar half of the same upgrade is proven headless (`docs/redesign/verification/r15/stage-d/upgrade-0.8.0/UPGRADE.md`: PASS — the 0.9.0 sidecar opened a data dir seeded by the 0.8.0 sidecar and no user-created object was lost or changed in meaning). The app half (installed 0.8.0 app replaced by the 0.9.0 dmg) was not tested: launching the unsigned app raised a login-keychain prompt the run must not answer (R15-LEAD-143).
 - **R15-LIFECYCLE-008 and R15-UI-022, packaged-app GUI checks.** "Copy diagnostics" in Settings, and the chart drawing tools (anchor placement, Text label, Lock). `HAND_TESTING_GUIDE.md` section 3 has both.
 
 **Everything else awaiting manual check or your decision:**

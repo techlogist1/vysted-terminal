@@ -4,6 +4,33 @@ Things R15 did that reverse a standing rule of yours, or that are yours alone to
 (Tier-4). Newest concerns at the top of each section. Each entry: what, why, my
 recommendation, and how to undo it in one step.
 
+## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026, r15-launch = `1fddb2b1`)
+
+Do these in this order; each line names where the detail lives.
+
+1. **Hand-test the unsigned dmg on this Mac** before anything public: fresh install and first launch,
+   the 0.8.0 → 0.9.0 upgrade (app half; the sidecar half passed headless), R15-LIFECYCLE-008 (Copy
+   diagnostics) and R15-UI-022 (chart drawing tools). `docs/HAND_TESTING_GUIDE.md` §1–3. None of these
+   ran at the launch commit (5.15). If a login-keychain prompt appears on that launch, it is R15-LEAD-143
+   (the unsigned build asking for the release keychain item); Deny is safe. The prompt the run raised
+   at 23:47 IST 3 Oct is gone (no SecurityAgent process at 01:25 IST 4 Oct).
+2. **Put a real commercial contact address** in `LICENSING.md` and `COMMERCIAL_LICENSE.md`
+   (R15-DOCS-002) — a published release announces it.
+3. **Merge → tag → sign → swap dmg → publish**: `docs/redesign/OPERATOR_BRIEFING.md` §2 (commands) and
+   §3 (what Apple signing and notarization need from you; 2.8). The draft release `v0.9.0` already
+   exists with the unsigned dmg.
+4. **Windows check on the ROG**: `docs/WINDOWS_MANUAL_CHECK.md` (R15-CODE-AGENT-001 Windows half and
+   the NSIS items; nothing Windows was verified).
+5. **Read, no action needed:** 5.15 (launch tagged without the final pass's GUI half) and 5.14 (moot —
+   the fail-safe fixed both highs).
+6. **The Tier-4 bucket** (35 `blocked_tier4` entries, unfunded lanes 2.1, Docker, CI, plugin model):
+   sequenced in `docs/redesign/BACKLOG_0.9.1.md`; nothing in it blocks 0.9.0.
+7. **One leftover worktree for you to keep or discard:** `.claude/worktrees/wf_4ed38558-4d0-26`
+   (branch `worktree-agent-rc1-4c6dfe8-fix-r1-W1-citation-pseudo-class`) holds 346 lines of
+   uncommitted rc1-round-2 citation-grammar writer code (26 Sep) that a later round superseded. The
+   run did not delete it because it is uncommitted work. Discard: `git worktree remove --force
+.claude/worktrees/wf_4ed38558-4d0-26`.
+
 > **Operator ruling, 07:50 IST 26 Sep (verbatim on the lead's disk, git-ignored):** LEAD-035 accepted as
 > option (b) with concurrence (§4.10); DOCS-026 rides the single pre-authorised CLAUDE.md commit (§5.11);
 > every other Tier-4 item in this file (signing, release pipeline, CI, unfunded lanes, Docker, plugin
