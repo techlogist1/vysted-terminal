@@ -3207,7 +3207,7 @@
    "tier4": true,
    "operator_areas": [],
    "status": "blocked_tier4",
-   "note": "blocked_tier4: fix requires editing a Tier-1 file (.github/ and/or src-tauri/tauri.conf.json); see docs/redesign/DECISIONS_FOR_OPERATOR.md section 2.9."
+   "note": "blocked_tier4: fix requires editing a Tier-1 file (.github/ and/or src-tauri/tauri.conf.json); see docs/redesign/DECISIONS_FOR_OPERATOR.md section 2.9. || xadv attach keyless:A2 @d38b5d1a (docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md): README.md:88-90 is in RELEASE-002's repro; blocked_tier4 entry, attach per R3."
   },
   {
    "id": "R15-RELEASE-003",
@@ -8460,7 +8460,7 @@
    "tier4": true,
    "operator_areas": [],
    "status": "blocked_tier4",
-   "note": "blocked_tier4 (batch-10 PLAN.md §4 deferred list): CLAUDE.md edit + BLUEPRINT §2 locked-decision wording (see DECISIONS_FOR_OPERATOR.md 2.19)."
+   "note": "blocked_tier4 (batch-10 PLAN.md §4 deferred list): CLAUDE.md edit + BLUEPRINT §2 locked-decision wording (see DECISIONS_FOR_OPERATOR.md 2.19). || xadv attach keyless:A1 @d38b5d1a (docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md): README.md:27 is in DOCS-003's files/evidence; blocked_tier4 entry, attach per R3."
   },
   {
    "id": "R15-DOCS-004",
@@ -16912,7 +16912,7 @@
    ],
    "tier4": false,
    "status": "open",
-   "note": "Filed by the batch-30 register adjudicator from stage-c/batch-29/VERDICTS.md 'Issues noticed' item 4 (source: verifier batch-29, fresh case, explicitly out of R15-LEAD-049's fix_shape). Grepped the register (TATAMOTORS, /quotes, former-name, rename hint): no existing entry covers the direct-quote path; R15-LEAD-049 covers the universe-seed mechanism only and is left as the sibling entry, not a duplicate."
+   "note": "Filed by the batch-30 register adjudicator from stage-c/batch-29/VERDICTS.md 'Issues noticed' item 4 (source: verifier batch-29, fresh case, explicitly out of R15-LEAD-049's fix_shape). Grepped the register (TATAMOTORS, /quotes, former-name, rename hint): no existing entry covers the direct-quote path; R15-LEAD-049 covers the universe-seed mechanism only and is left as the sibling entry, not a duplicate. || xadv attach realuser:6 @d38b5d1a (docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md): Same direct-lookup-without-former-name-fallback mechanism as LEAD-053 (open); new instances."
   },
   {
    "id": "R15-LEAD-054",
@@ -17002,7 +17002,7 @@
    ],
    "status": "open",
    "source": "verifier batch-30",
-   "note": "Filed by the batch-30 register adjudicator from stage-c/batch-30/VERDICTS.md 'Issues noticed' item 2 (source: verifier batch-30, outside any entry's diff; pre-existing, identical at base 19a70e80). Grepped the register (amazon com, keycorp, name alias artefact, strip_corporate_suffix): no existing entry covers a master-name derivation artefact surviving into the alias; distinct from R15-DATA-030 (over/under-match on already-correct aliases)."
+   "note": "Filed by the batch-30 register adjudicator from stage-c/batch-30/VERDICTS.md 'Issues noticed' item 2 (source: verifier batch-30, outside any entry's diff; pre-existing, identical at base 19a70e80). Grepped the register (amazon com, keycorp, name alias artefact, strip_corporate_suffix): no existing entry covers a master-name derivation artefact surviving into the alias; distinct from R15-DATA-030 (over/under-match on already-correct aliases). || xadv attach realuser:4 @d38b5d1a (docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md): Same file and mechanism as LEAD-057 (open low): symbol_resolver suffix strip leaves registry slash artefacts. realuser:4 hits the sibling _canonical_name (:918-930; _EDGE_PUNCT has no '/'). Attached; recommend re-grading LEAD-057 to medium and one shared slash-suffix strip for both helpers."
   },
   {
    "id": "R15-LEAD-058",
@@ -19546,6 +19546,175 @@
    "operator_areas": [],
    "status": "open",
    "note": "Filed 3 Oct 15:33 IST by the lead from the d38b5d1 GUI verify of R15-LIFECYCLE-001 (beyond that entry's stated repro; gate rule change 1).",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-127",
+   "title": "Research binds the named US instrument, then fills the brief with the session-region namesake's price/fundamentals (Halliburton -> Hindustan Aeronautics INR 4,601 / P/E 33 / mcap 3.08T, no conflict); copilot price_data/fundamentals have no region channel",
+   "severity": "critical",
+   "area": "research",
+   "subsystem": "research-extraction-synthesis",
+   "files": [],
+   "repro": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md (key realuser:3, realuser:5): fast.py:624/654-656/351-359 drop ResearchTarget.region; legs get the bare symbol under the ambient session region. In-process probe at d38b5d1a: Halliburton/SailPoint/Ferrari/Carnival/PTC bind US, legs run {'symbol':X} under IN. No DATA-002 commit (8f8f5f34, 102da1c4, f053f472, 60fdc925, b91ddef3, 4d7bc887) touched any sidecar file, so this was never attempted. Admitted as new, critical under R2 (wrong money data shown as true).",
+   "evidence": "docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md; docs/redesign/verification/r15/final-pass/findings/xadv-*.json; scenarios/xadv-*.md",
+   "root_cause": "",
+   "fix_shape": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md",
+   "defect_class": "",
+   "raw_ids": [
+    "realuser:3",
+    "realuser:5"
+   ],
+   "tier4": false,
+   "operator_areas": "",
+   "status": "open",
+   "note": "Admitted 3 Oct by the xadv triage (fresh claude-opus-5-5, wf_c2823a4f-338) at d38b5d1a. Critical: one bounded fix round before r15-rc2.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-128",
+   "title": "Research brief drops an NSE small cap's price when the 6-month history fetch is slow: price_data fetches history before the quote inside the 6 s box",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-fast",
+   "files": [],
+   "repro": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md (key keyless:4): price_data.py:48-56 runs get_history then get_quote one after the other; fast.py boxes it at 6 s and keeps only the quote. Not a regression of RESEARCH-027 (that entry added the box; this is the leg's internal order).",
+   "evidence": "docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md; docs/redesign/verification/r15/final-pass/findings/xadv-*.json; scenarios/xadv-*.md",
+   "root_cause": "",
+   "fix_shape": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md",
+   "defect_class": "",
+   "raw_ids": [
+    "keyless:4"
+   ],
+   "tier4": false,
+   "operator_areas": "",
+   "status": "open",
+   "note": "Admitted 3 Oct by the xadv triage (fresh claude-opus-5-5, wf_c2823a4f-338) at d38b5d1a. Filed for 0.9.1 under the current bar.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-129",
+   "title": "README keyless section repeats the false promises R15-UI-052 removed from the app (keyless web research via DuckDuckGo, 'fully offline'); BYOK list omits OpenRouter",
+   "severity": "medium",
+   "area": "docs",
+   "subsystem": "readme",
+   "files": [],
+   "repro": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md (key keyless:3): Confirmed at README.md:41-42,60-62,70-73 at the sha. UI-052's files never included README, so this is new, not a regression. No register entry covers it.",
+   "evidence": "docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md; docs/redesign/verification/r15/final-pass/findings/xadv-*.json; scenarios/xadv-*.md",
+   "root_cause": "",
+   "fix_shape": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md",
+   "defect_class": "",
+   "raw_ids": [
+    "keyless:3"
+   ],
+   "tier4": false,
+   "operator_areas": "",
+   "status": "open",
+   "note": "Admitted 3 Oct by the xadv triage (fresh claude-opus-5-5, wf_c2823a4f-338) at d38b5d1a. Filed for 0.9.1 under the current bar.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-130",
+   "title": "Palette/watchlist autocomplete cannot find a company by former name or BSE scrip code though /resolve binds both",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "symbol-resolution",
+   "files": [],
+   "repro": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md (key realuser:1): Probe at :52800: autocomplete 'zomato' -> ETERNAL (DATA-018's pin holds) but 'Zomato Ltd', 'indiabulls housing', 'cadila', '513353' -> []. Sibling of DATA-018/UI-039 (fixed); their repros pass, so this is new.",
+   "evidence": "docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md; docs/redesign/verification/r15/final-pass/findings/xadv-*.json; scenarios/xadv-*.md",
+   "root_cause": "",
+   "fix_shape": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md",
+   "defect_class": "",
+   "raw_ids": [
+    "realuser:1"
+   ],
+   "tier4": false,
+   "operator_areas": "",
+   "status": "open",
+   "note": "Admitted 3 Oct by the xadv triage (fresh claude-opus-5-5, wf_c2823a4f-338) at d38b5d1a. Filed for 0.9.1 under the current bar.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-131",
+   "title": "Identity cross-check flags the correct company as a possible mis-resolution ('&' vs 'and', 0.40); raw BSE '-$' suffix shown as the name on 310 scrips",
+   "severity": "medium",
+   "area": "data",
+   "subsystem": "identity-crosscheck",
+   "files": [],
+   "repro": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md (key realuser:2): identity_crosscheck.py tokenizes [a-z0-9]+ without symbol_resolver._NAME_CANON_MAP. A false warning reaches /fundamentals and the brief. No duplicate in the register.",
+   "evidence": "docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md; docs/redesign/verification/r15/final-pass/findings/xadv-*.json; scenarios/xadv-*.md",
+   "root_cause": "",
+   "fix_shape": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md",
+   "defect_class": "",
+   "raw_ids": [
+    "realuser:2"
+   ],
+   "tier4": false,
+   "operator_areas": "",
+   "status": "open",
+   "note": "Admitted 3 Oct by the xadv triage (fresh claude-opus-5-5, wf_c2823a4f-338) at d38b5d1a. Filed for 0.9.1 under the current bar.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-132",
+   "title": "NSE EOD warm stamps a holiday (2 Oct) as the trade date on 1 Oct's bhavcopy rows",
+   "severity": "low",
+   "area": "data",
+   "subsystem": "nse-eod",
+   "files": [],
+   "repro": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md (key keyless:1): fetch_latest stamps the requested date instead of the rows' DATE1 and ignores the holiday table. The prices are the true last close, so only the date label is wrong. Low. Distinct from LIFECYCLE-022 and DATA-073.",
+   "evidence": "docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md; docs/redesign/verification/r15/final-pass/findings/xadv-*.json; scenarios/xadv-*.md",
+   "root_cause": "",
+   "fix_shape": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md",
+   "defect_class": "",
+   "raw_ids": [
+    "keyless:1"
+   ],
+   "tier4": false,
+   "operator_areas": "",
+   "status": "open",
+   "note": "Admitted 3 Oct by the xadv triage (fresh claude-opus-5-5, wf_c2823a4f-338) at d38b5d1a. Filed for 0.9.1 under the current bar.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-133",
+   "title": "Never-installed Ollama is told 'start Ollama' and the guided setup with the install link never opens",
+   "severity": "low",
+   "area": "agent",
+   "subsystem": "chat-onboarding",
+   "files": [],
+   "repro": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md (key keyless:2): 'unreachable' covers both cases; ChatSidebar.tsx:845-851 opens setup only on model_not_pulled/not_configured. Sibling of AGENT-028 (fixed, not-pulled case). New.",
+   "evidence": "docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md; docs/redesign/verification/r15/final-pass/findings/xadv-*.json; scenarios/xadv-*.md",
+   "root_cause": "",
+   "fix_shape": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md",
+   "defect_class": "",
+   "raw_ids": [
+    "keyless:2"
+   ],
+   "tier4": false,
+   "operator_areas": "",
+   "status": "open",
+   "note": "Admitted 3 Oct by the xadv triage (fresh claude-opus-5-5, wf_c2823a4f-338) at d38b5d1a. Filed for 0.9.1 under the current bar.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-134",
+   "title": "The 8 s FAST web-round box is shorter than the keyless chain's 6 s per-engine deadlines; Mojeek is never reached and a timeout is reported as 'no web backend'",
+   "severity": "low",
+   "area": "research",
+   "subsystem": "research-fast",
+   "files": [],
+   "repro": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md (key keyless:5): fast.py:120,693 vs keyless.py:263 confirmed. Distinct from LEAD-065 (web-only branch box).",
+   "evidence": "docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md; docs/redesign/verification/r15/final-pass/findings/xadv-*.json; scenarios/xadv-*.md",
+   "root_cause": "",
+   "fix_shape": "See docs/redesign/verification/r15/final-pass/XADV_TRIAGE.md",
+   "defect_class": "",
+   "raw_ids": [
+    "keyless:5"
+   ],
+   "tier4": false,
+   "operator_areas": "",
+   "status": "open",
+   "note": "Admitted 3 Oct by the xadv triage (fresh claude-opus-5-5, wf_c2823a4f-338) at d38b5d1a. Filed for 0.9.1 under the current bar.",
    "closure_evidence": ""
   }
  ],
