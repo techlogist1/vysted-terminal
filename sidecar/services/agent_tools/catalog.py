@@ -239,6 +239,18 @@ def _cap(id: str, **fields: Any) -> tuple[str, Capability]:
     return id, Capability(id=id, **fields)
 
 
+#: R15-LEAD-127: the per-call listing region of ``price_data``/``fundamentals``.
+_LISTING_REGION: dict[str, Any] = {
+    "type": "string",
+    "enum": ["US", "IN", "GLOBAL"],
+    "description": (
+        "The listing's region. Pass the region resolve_symbol returned "
+        "when it differs from the session's (e.g. HAL is Halliburton "
+        "in US, Hindustan Aeronautics in IN); omit to use the session's."
+    ),
+}
+
+
 # ---------------------------------------------------------------------------
 # The catalog — declared once, in domain order.
 # ---------------------------------------------------------------------------
@@ -265,6 +277,7 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                         "description": "e.g. 1mo, 6mo, 1y",
                     },
                     "asset_class": {"type": "string", "enum": _ASSET_ENUM, "default": "equity"},
+                    "region": {**_LISTING_REGION},
                 },
                 ["symbol"],
             ),
@@ -335,7 +348,10 @@ CAPABILITY_CATALOG: dict[str, Capability] = dict(
                 "profile for a symbol. Use for value/quality analysis."
             ),
             input_schema=_obj(
-                {"symbol": {"type": "string", "description": "Equity ticker, e.g. AAPL"}},
+                {
+                    "symbol": {"type": "string", "description": "Equity ticker, e.g. AAPL"},
+                    "region": {**_LISTING_REGION},
+                },
                 ["symbol"],
             ),
             domain="fundamentals",

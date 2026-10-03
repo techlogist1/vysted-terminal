@@ -402,6 +402,7 @@ async def run_iter_research(
                 tool_call,
                 target.symbol,
                 region=region,
+                listing_region=target.region,
                 canonical_name=target.name,
                 leg_timeout_s=DEEP_SNAPSHOT_LEG_TIMEOUT_S,
             )
@@ -1017,6 +1018,7 @@ async def run_heavy_research(
             tool_call,
             target.symbol,
             region=region,
+            listing_region=target.region,
             canonical_name=target.name,
             leg_timeout_s=DEEP_SNAPSHOT_LEG_TIMEOUT_S,
         )

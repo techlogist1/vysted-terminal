@@ -184,6 +184,17 @@ async def _ads_ratio(symbol: str, fundamentals: Any) -> dict[str, Any]:
 
 
 async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
+    """``fundamentals`` scoped to the optional ``region`` arg (R15-LEAD-127).
+
+    Every leg (fetch, retry, canonicalization) runs under that region, so
+    ``{symbol: 'HAL', region: 'US'}`` reaches Halliburton under session IN.
+    """
+    from services.agent_tools.price_data import in_region, listing_region
+
+    return await in_region(listing_region(args), _fundamentals_impl(args))
+
+
+async def _fundamentals_impl(args: dict[str, Any]) -> dict[str, Any]:
     """Return valuation ratios + a company profile for ``symbol``.
 
     The Strategy Critic uses fundamentals to challenge value/growth
@@ -193,6 +204,8 @@ async def _fundamentals(args: dict[str, Any]) -> dict[str, Any]:
 
     Args:
         symbol: Ticker. Required.
+        region: optional ``US`` / ``IN`` / ``GLOBAL`` listing region; omitted
+            keeps the session region.
 
     Falls back through the same registry path as ``GET /fundamentals``;
     openbb-mcp when bundled, yfinance otherwise. The registry's
