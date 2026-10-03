@@ -2,7 +2,7 @@
 
 887 raw findings -> 801 entries + 76 rejections. critical: 18 . high: 134 . medium: 355 . low: 294
 
-Status: blocked_tier4: 35 . fixed: 627 . needs_gui: 4 . not_a_defect: 6 . open: 115 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 629 . needs_gui: 4 . not_a_defect: 6 . open: 113 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -350,7 +350,7 @@ Status: blocked_tier4: 35 . fixed: 627 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-FINAL-020** [medium] Keyless web search: the Brave engine (impersonated fetch) gets HTTP 429 while a plain-UA curl from the same host gets 200 in the same minute, so keyless web_search returns zero rows on this network — _open_
 - **R15-FINAL-025** [low] DEEP research overran its 180 s wall budget by 79 s (259 s) on the local lane: the final synthesis call is not boxed by the remaining wall — _open_
 - **R15-LEAD-136** [high] Any NSE ticker that is an ordinary English word but is not on COMMON_WORD_TICKERS scores as a distinctive match on unrelated headlines, so briefs state them as the company's own news (CAMPUS, SAFARI, ETERNAL) — _fixed_
-- **R15-LEAD-141** [high] 3-letter NSE tickers that are English words skip the common-word rule (the word list is 4+ letters and the occurrence rule covers only lowercase), so a sentence-initial or Title-Case use scores short-only 0.60 and is kept on an India host (ACE 'Ace shuttler PV Sindhu storms into final', DEN, CUB, PAR, KEN) — _open_
+- **R15-LEAD-141** [high] 3-letter NSE tickers that are English words skip the common-word rule (the word list is 4+ letters and the occurrence rule covers only lowercase), so a sentence-initial or Title-Case use scores short-only 0.60 and is kept on an India host (ACE 'Ace shuttler PV Sindhu storms into final', DEN, CUB, PAR, KEN) — _fixed_
 - **R15-LEAD-142** [medium] Recall regression from the LEAD-136 fix: brand-only and list headlines for the 234 NSE word tickers now drop ('Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks', 'Titan, Trent lead Nifty gains...', 'Trent rallies 5% as Zudio...' were kept at base) — _open_
 
 ### Data on small or obscure stocks (174)
@@ -527,7 +527,7 @@ Status: blocked_tier4: 35 . fixed: 627 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-FINAL-012** [medium] RELIANCE.BO earnings history is two quarters stale against the NSE listing of the same company (latest 2025-12-31 vs 2026-06-30) and its analyst consensus differs (36 vs 26 analysts), with no staleness or listing-basis note — _open_
 - **R15-FINAL-024** [low] Ownership witness flags a near-agreeing institutions figure with a false reason: Yahoo 0.00% vs filed 0.03% (AMAL) is flagged 'disagrees ... beyond 3pp' — _fixed_
 - **R15-FINAL-027** [low] News titles keep raw HTML entities: the News Feed shows 'F&amp;O Talk: ...' literally (and the agent news tool gets the same) — _fixed_
-- **R15-LEAD-137** [high] Derived SME market cap and P/E use the weighted share count implied by filed TTM NI/EPS, so recently listed SME names show market cap and P/E ~23% low (CURIS 128.6 Cr / 18.59 vs 167 Cr / 24.1) — _open_
+- **R15-LEAD-137** [high] Derived SME market cap and P/E use the weighted share count implied by filed TTM NI/EPS, so recently listed SME names show market cap and P/E ~23% low (CURIS 128.6 Cr / 18.59 vs 167 Cr / 24.1) — _fixed_
 - **R15-LEAD-139** [low] SUMAX/QUALIANCE /fundamentals is still a 404 whose body carries action 'Check the symbol or series id.' beside the correct typed not-covered detail — _open_
 
 ## All entries by severity
@@ -1329,9 +1329,9 @@ Status: blocked_tier4: 35 . fixed: 627 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-FINAL-037 | low | release | release-runbook | RELEASE_RUNBOOK.md's 'verbatim' ci-local block differs from package.json ci-local | fixed | F-DOCS-006 |
 | R15-FINAL-038 | low | platform | mcp | MCP discovery file advertises protocol 2025-06-18 while /mcp/status reports 2025-11-25; the Rust sync comment points at a constant that does not exist | open | F-DOCS-008 |
 | R15-LEAD-136 | high | research | research-relevance | Any NSE ticker that is an ordinary English word but is not on COMMON_WORD_TICKERS scores as a distinctive match on unrelated headlines, so briefs state them as the company's own news (CAMPUS, SAFARI, ETERNAL) | fixed |  |
-| R15-LEAD-137 | high | data | fundamentals-sme | Derived SME market cap and P/E use the weighted share count implied by filed TTM NI/EPS, so recently listed SME names show market cap and P/E ~23% low (CURIS 128.6 Cr / 18.59 vs 167 Cr / 24.1) | open |  |
+| R15-LEAD-137 | high | data | fundamentals-sme | Derived SME market cap and P/E use the weighted share count implied by filed TTM NI/EPS, so recently listed SME names show market cap and P/E ~23% low (CURIS 128.6 Cr / 18.59 vs 167 Cr / 24.1) | fixed |  |
 | R15-LEAD-138 | medium | agent | agent-tools | The copilot/MCP fundamentals tool skips the SME exchange-filings fallback: MCP fundamentals VOLERCAR returns ok:false 'No data provider covers...' while REST /fundamentals serves values | open |  |
 | R15-LEAD-139 | low | data | fundamentals-sme | SUMAX/QUALIANCE /fundamentals is still a 404 whose body carries action 'Check the symbol or series id.' beside the correct typed not-covered detail | open |  |
 | R15-LEAD-140 | medium | portfolio | quotes | A cold 100-name NSE batch takes ~171 s, over the 120 s client QUOTES_BATCH_TIMEOUT_MS, so the first portfolio refresh of a large cold portfolio aborts (the next refresh is 9.4 s, 100/100) | open |  |
-| R15-LEAD-141 | high | research | research-relevance | 3-letter NSE tickers that are English words skip the common-word rule (the word list is 4+ letters and the occurrence rule covers only lowercase), so a sentence-initial or Title-Case use scores short-only 0.60 and is kept on an India host (ACE 'Ace shuttler PV Sindhu storms into final', DEN, CUB, PAR, KEN) | open |  |
+| R15-LEAD-141 | high | research | research-relevance | 3-letter NSE tickers that are English words skip the common-word rule (the word list is 4+ letters and the occurrence rule covers only lowercase), so a sentence-initial or Title-Case use scores short-only 0.60 and is kept on an India host (ACE 'Ace shuttler PV Sindhu storms into final', DEN, CUB, PAR, KEN) | fixed |  |
 | R15-LEAD-142 | medium | research | research-relevance | Recall regression from the LEAD-136 fix: brand-only and list headlines for the 234 NSE word tickers now drop ('Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks', 'Titan, Trent lead Nifty gains...', 'Trent rallies 5% as Zudio...' were kept at base) | open |  |

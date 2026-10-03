@@ -988,6 +988,7 @@ are facts only. Neither of us is a lawyer, and the legal call is yours.
   - r15-rc2 tags the head where the fail-safe lands, after that head's own fresh verifier. This replaces "the round-3 head" above.
   - If the verifier certifies both entries on their stated repros, open critical and high is 0 and this question is moot: rc2 proceeds without waiting for the default, and that will be recorded here.
   - If any high is still open, (a) or (b) applies as written.
+- **Fail-safe landing outcome (23:19 IST 3 Oct):** both entries certified on their stated repros at `b796f6a9`, merged into 004 as `1fddb2b1`. R15-LEAD-137 (P/E on the current share count) and R15-LEAD-141 (3-letter word tickers) are fixed, not just fail-safed. Open critical and high is 0, so this question is moot: neither option is taken, no round 4 runs, and rc2 proceeds without waiting for the 02:45 IST default.
 
 ## 6. Operator rule changes recorded during the rc1 gate (27 Sep 2026)
 

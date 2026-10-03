@@ -20743,9 +20743,9 @@
    "raw_ids": [],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "Filed by the lead from the rc2 round-2 verifier's candidate N2 (proposed high) under gate rule change 1: beyond FINAL-005's stated repro (no fundamentals / no reason), introduced by its round-2 fallback; FINAL-005 stays fixed. | Round 3 attempt 1 (8b2f883c, merged a5abb7ec) NOT CERTIFIED on its stated instance: market cap now on the NSE issued size (CURIS 166.9 Cr vs screener 167; 8 names within 0.5%), but pe_ratio still price / summed filed EPS (CURIS 18.59 vs 24.1; SHETHJI, FINBUD, JAYESH, GREENLEAF same) because the overlay runs twice: provider_registry.py:641 filings-only pass sets cap/NI, then correctness_gate.py:1314 re-runs with filings_only=False and _rebase_pe_on_filed_eps (:826-827) overwrites it. Verifier candidate N1 is this entry, not a new one. Certification failures: 1. DECISIONS 5.14 governs.",
-   "closure_evidence": ""
+   "status": "fixed",
+   "note": "Filed by the lead from the rc2 round-2 verifier's candidate N2 (proposed high) under gate rule change 1: beyond FINAL-005's stated repro (no fundamentals / no reason), introduced by its round-2 fallback; FINAL-005 stays fixed. | Round 3 attempt 1 (8b2f883c, merged a5abb7ec) NOT CERTIFIED on its stated instance: market cap now on the NSE issued size (CURIS 166.9 Cr vs screener 167; 8 names within 0.5%), but pe_ratio still price / summed filed EPS (CURIS 18.59 vs 24.1; SHETHJI, FINBUD, JAYESH, GREENLEAF same) because the overlay runs twice: provider_registry.py:641 filings-only pass sets cap/NI, then correctness_gate.py:1314 re-runs with filings_only=False and _rebase_pe_on_filed_eps (:826-827) overwrites it. Verifier candidate N1 is this entry, not a new one. Certification failures: 1. DECISIONS 5.14 governs. | Attempt 2 certified (5.14 fail-safe landing).",
+   "closure_evidence": "70150817 (5.14 fail-safe landing, merged b796f6a9): market cap = ratio price x NSE issued size (or filed paid-up / face value), P/E = that cap / TTM NI, else typed null; the gate's second overlay pass keeps a filings-only shell filings-only. Fresh Opus verifier CERTIFIED via the live route + a TestClient double-pass test that fails on b7d37fd9: CURIS 24.14 / 166.9 Cr vs screener 24.1 / 167; SHETHJI, FINBUD, VOLERCAR, GANESHIN, JAYESH, GREENLEAF within ~3%; fresh ACCPL 23.38 vs 23.4, ATCENERGY typed null; main-board FINAL-003 rebase unchanged. docs/redesign/verification/r15/stage-c/rc2-failsafe/VERIFY.md"
   },
   {
    "id": "R15-LEAD-138",
@@ -20829,9 +20829,9 @@
    "raw_ids": [],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "Filed by the lead from the rc2 round-3 verifier's candidate N2 (proposed high) under gate rule change 1: a short-only 0.60 keep is not LEAD-136's stated 'distinctive symbol match', so a new entry. Pre-existing at base (unchanged by round 3).",
-   "closure_evidence": ""
+   "status": "fixed",
+   "note": "Filed by the lead from the rc2 round-3 verifier's candidate N2 (proposed high) under gate rule change 1: a short-only 0.60 keep is not LEAD-136's stated 'distinctive symbol match', so a new entry. Pre-existing at base (unchanged by round 3). | Attempt 1 certified (5.14 fail-safe landing).",
+   "closure_evidence": "469110d0 (5.14 fail-safe landing, merged b796f6a9): word list rebuilt with a 3-letter floor (234,289 words), 3-letter words count only for the target's own ticker, Title-Case use needs an anchor. Fresh Opus verifier CERTIFIED: NSE word intersection 251 incl. 17 three-letter (ACE, CUB, DEN, KEN, PAR fall out of the enumeration); fresh HAL, BEL, SIS, MAL, TIL dropped as prose and kept anchored; live ACE/CUB/OIL/BEL/SIS briefs clean; Titan/Trent list scores pinned at b7d37fd9 (LEAD-142 not worsened). docs/redesign/verification/r15/stage-c/rc2-failsafe/VERIFY.md"
   },
   {
    "id": "R15-LEAD-142",
