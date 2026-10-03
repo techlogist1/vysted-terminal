@@ -19566,9 +19566,9 @@
    ],
    "tier4": false,
    "operator_areas": "",
-   "status": "open",
+   "status": "fixed",
    "note": "Admitted 3 Oct by the xadv triage (fresh claude-opus-5-5, wf_c2823a4f-338) at d38b5d1a. Critical: one bounded fix round before r15-rc2.",
-   "closure_evidence": ""
+   "closure_evidence": "39b9bfcf (merged into 004): snapshot_structured(listing_region) scopes the price/fundamentals/witness fan-out to target.region (gather_fast, iter x2, deep_research); price_data + fundamentals take an optional region (catalog-derived TOOL_SCHEMAS/MCP). Fresh Opus verifier CERTIFIED: ci-local EXIT=0 (vitest 2032, pytest 3935/1 skip), smoke EXIT=0, Gate 8 8 passed, 57 fixed entries on touched files hold (1230 passed); live under session IN: Halliburton HAL/US 31.85 USD, SailPoint SAIL/US 20.43 USD, fresh Transcontinental Realty TCI/US 44.40 USD (grounded vs stockanalysis.com 2 Oct closes); copilot fundamentals/price_data {HAL, region US} -> Halliburton USD, omitted -> Hindustan Aeronautics INR. docs/redesign/verification/r15/stage-c/lead127/{FIX,VERIFY}.md."
   },
   {
    "id": "R15-LEAD-128",
@@ -19715,6 +19715,27 @@
    "operator_areas": "",
    "status": "open",
    "note": "Admitted 3 Oct by the xadv triage (fresh claude-opus-5-5, wf_c2823a4f-338) at d38b5d1a. Filed for 0.9.1 under the current bar.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-135",
+   "title": "Research's news leg still fetches the bare ticker under the session region, so a US name colliding with an Indian ticker carries the Indian namesake's headlines (Halliburton brief under IN tops with a Hindustan Aeronautics results story)",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-fast",
+   "files": [
+    "sidecar/services/research/fast.py"
+   ],
+   "repro": "Session region IN, research FAST 'Halliburton' at the LEAD-127 fix (39b9bfcf): structured price/fundamentals are HAL/US (fixed), but the top news item is \"India's Hindustan Aeronautics posts strong quarterly results\".",
+   "evidence": "docs/redesign/verification/r15/stage-c/lead127/VERIFY.md (residual section; present at base, outside the LEAD-127 claim).",
+   "root_cause": "gather_fast's news leg runs outside the listing-region scope that LEAD-127 added to snapshot_structured, so it resolves the bare ticker through config.get_region().",
+   "fix_shape": "Run the news leg under the same config.set_request_region(target.region) scope (or pass the resolved region/company name to the news query); test with the LEAD-127 collision set (HAL, RACE, CCL, TCI).",
+   "defect_class": "region-scope",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "Filed by the lead from the LEAD-127 verifier residual under gate rule change 1 (DECISIONS 6.1): beyond the entry's stated repro, so a new entry; does not reopen LEAD-127. Medium: the figures are right and the headline is visibly about another company; filed for 0.9.1.",
    "closure_evidence": ""
   }
  ],

@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 755 entries + 76 rejections. critical: 17 . high: 124 . medium: 336 . low: 278
+887 raw findings -> 756 entries + 76 rejections. critical: 17 . high: 124 . medium: 337 . low: 278
 
-Status: blocked_tier4: 35 . fixed: 597 . needs_gui: 4 . not_a_defect: 6 . open: 99 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 598 . needs_gui: 4 . not_a_defect: 6 . open: 99 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -259,7 +259,7 @@ Status: blocked_tier4: 35 . fixed: 597 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-LEAD-121** [low] llama3.1:8b prints USD portfolio holdings with the rupee sign although each holding carries currency:'USD' (IN default region) — _open_
 - **R15-LEAD-133** [low] Never-installed Ollama is told 'start Ollama' and the guided setup with the install link never opens — _open_
 
-### Research / web search (70)
+### Research / web search (71)
 
 - **R15-AGENT-001** [critical] Chat narrates derived money figures 10-100x wrong: fraction values labelled unit 'percent' are read as percent, and a raw-rupee market cap is mis-scaled by the model — _fixed_
 - **R15-DATA-003** [critical] Research treats a US-bound AMAL as the Indian Amal Ltd for ownership: the ownership applicability gate checks bare-ticker NSE/BSE master membership, so Amalgamated Financial's brief states 'Promoter group (exchange filing) 71.35%' from Amal Ltd's BSE shareholding and raises a false conflict — _fixed_
@@ -328,9 +328,10 @@ Status: blocked_tier4: 35 . fixed: 597 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-RESEARCH-041** [low] The 'structured data only - no web' brief banner can never fire: briefFromInput counts vysted:// and exchange rows as web availability, so zero-web DEEP/ULTRA briefs never get the promised affordance — _fixed_
 - **R15-RESEARCH-042** [low] The research cockpit's brief has no floor of >=3 cited sources (SC-016): nothing enforces or measures source count per brief, and with no web backend FAST publishes structured-only with fewer — _fixed_
 - **R15-LEAD-120** [low] Bare 2-letter ticker absent from the company name (KO / Coca-Cola) still fails the non-IN relevance gate; _entity_signals credits a ticker mention only for len(symbol)>=3 — _open_
-- **R15-LEAD-127** [critical] Research binds the named US instrument, then fills the brief with the session-region namesake's price/fundamentals (Halliburton -> Hindustan Aeronautics INR 4,601 / P/E 33 / mcap 3.08T, no conflict); copilot price_data/fundamentals have no region channel — _open_
+- **R15-LEAD-127** [critical] Research binds the named US instrument, then fills the brief with the session-region namesake's price/fundamentals (Halliburton -> Hindustan Aeronautics INR 4,601 / P/E 33 / mcap 3.08T, no conflict); copilot price_data/fundamentals have no region channel — _fixed_
 - **R15-LEAD-128** [medium] Research brief drops an NSE small cap's price when the 6-month history fetch is slow: price_data fetches history before the quote inside the 6 s box — _open_
 - **R15-LEAD-134** [low] The 8 s FAST web-round box is shorter than the keyless chain's 6 s per-engine deadlines; Mojeek is never reached and a timeout is reported as 'no web backend' — _open_
+- **R15-LEAD-135** [medium] Research's news leg still fetches the bare ticker under the session region, so a US name colliding with an Indian ticker carries the Indian namesake's headlines (Halliburton brief under IN tops with a Hindustan Aeronautics results story) — _open_
 
 ### Data on small or obscure stocks (162)
 
@@ -1248,7 +1249,7 @@ Status: blocked_tier4: 35 . fixed: 597 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LEAD-124 | medium | lifecycle | mcp | sec-edgar-mcp is killed while still extracting on a cold or busy launch (~91 s) and /sec routes return 501 for the whole session | open |  |
 | R15-LEAD-125 | low | lifecycle | boot | After the data engine dies or fails to start, panels and chat show their own generic copy; only the status chip names the reason | open |  |
 | R15-LEAD-126 | medium | lifecycle | boot | The main data engine takes about 100 s to answer /health on an idle warm launch, behind the MCP binds, so a user waits over a minute and a half before any panel loads | open |  |
-| R15-LEAD-127 | critical | research | research-extraction-synthesis | Research binds the named US instrument, then fills the brief with the session-region namesake's price/fundamentals (Halliburton -> Hindustan Aeronautics INR 4,601 / P/E 33 / mcap 3.08T, no conflict); copilot price_data/fundamentals have no region channel | open | realuser:3, realuser:5 |
+| R15-LEAD-127 | critical | research | research-extraction-synthesis | Research binds the named US instrument, then fills the brief with the session-region namesake's price/fundamentals (Halliburton -> Hindustan Aeronautics INR 4,601 / P/E 33 / mcap 3.08T, no conflict); copilot price_data/fundamentals have no region channel | fixed | realuser:3, realuser:5 |
 | R15-LEAD-128 | medium | research | research-fast | Research brief drops an NSE small cap's price when the 6-month history fetch is slow: price_data fetches history before the quote inside the 6 s box | open | keyless:4 |
 | R15-LEAD-129 | medium | docs | readme | README keyless section repeats the false promises R15-UI-052 removed from the app (keyless web research via DuckDuckGo, 'fully offline'); BYOK list omits OpenRouter | open | keyless:3 |
 | R15-LEAD-130 | medium | data | symbol-resolution | Palette/watchlist autocomplete cannot find a company by former name or BSE scrip code though /resolve binds both | open | realuser:1 |
@@ -1256,3 +1257,4 @@ Status: blocked_tier4: 35 . fixed: 597 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LEAD-132 | low | data | nse-eod | NSE EOD warm stamps a holiday (2 Oct) as the trade date on 1 Oct's bhavcopy rows | open | keyless:1 |
 | R15-LEAD-133 | low | agent | chat-onboarding | Never-installed Ollama is told 'start Ollama' and the guided setup with the install link never opens | open | keyless:2 |
 | R15-LEAD-134 | low | research | research-fast | The 8 s FAST web-round box is shorter than the keyless chain's 6 s per-engine deadlines; Mojeek is never reached and a timeout is reported as 'no web backend' | open | keyless:5 |
+| R15-LEAD-135 | medium | research | research-fast | Research's news leg still fetches the bare ticker under the session region, so a US name colliding with an Indian ticker carries the Indian namesake's headlines (Halliburton brief under IN tops with a Hindustan Aeronautics results story) | open |  |
