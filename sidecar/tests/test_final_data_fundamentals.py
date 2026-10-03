@@ -622,6 +622,88 @@ def test_a_provider_sized_listing_keeps_its_pe_on_the_filed_eps() -> None:
     assert kept.market_cap is None
 
 
+def _route_through_the_gate(monkeypatch: pytest.MonkeyPatch, symbol: str):  # noqa: ANN202
+    """GET /fundamentals/<symbol> (IN) with the REAL correctness gate: the
+    filings shell (first overlay pass) then ``apply_witnesses`` (second pass),
+    in the order the route makes them. Only the identity / basis / master-count
+    network reads are stubbed."""
+    from fastapi.testclient import TestClient
+
+    from app import create_app
+    from routers import fundamentals as route
+    from services import exchange_financials, market_cap_witness
+
+    async def none(*_args: object) -> None:
+        return None
+
+    monkeypatch.setattr(exchange_financials, "filed_basis", none)
+    monkeypatch.setattr(route, "_identity_note", none)
+    monkeypatch.setattr(market_cap_witness, "get_market_cap_witness", none)
+    return TestClient(create_app()).get(
+        f"/fundamentals/{symbol}", headers={"X-Vysted-Region": "IN"}
+    )
+
+
+def test_curis_route_pe_survives_the_gates_second_overlay_pass(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """R15-LEAD-137 attempt 2 (DECISIONS 5.14): the gate re-ran the overlay on
+    the filled shell and its EPS rebase overwrote the current-count P/E with
+    price / summed filed EPS (CURIS 18.59 against screener's 24.1)."""
+    filed = FiledPeriods("nse", "standalone", _CURIS_PERIODS, issued_shares=8_084_434.0)
+    _sme_lanes(monkeypatch, {"CURIS-SM.NS": filed})
+    resp = _route_through_the_gate(monkeypatch, "CURIS")
+
+    assert resp.status_code == 200, resp.text
+    f = resp.json()
+    assert f["market_cap"] == pytest.approx(135.0 * 8_084_434.0)
+    assert f["pe_ratio"] == pytest.approx(135.0 * 8_084_434.0 / _CURIS_INCOME)
+    assert f["pe_ratio"] != pytest.approx(135.0 / 11.11)  # the weighted-count figure
+    note = f["field_meta"]["pe_ratio"]["basis_note"] or ""
+    assert "market cap on the current share count" in note
+    assert "EPS" not in note
+
+
+def test_no_current_count_route_pe_stays_a_typed_null_through_the_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """No current share count: the gate's second pass must not fill the typed
+    null P/E with price / filed EPS."""
+    periods = tuple(
+        FiledPeriod(p.start, p.end, p.revenue, p.net_profit, p.eps, paid_up=1.0, face_value=0.0)
+        for p in _CURIS_PERIODS
+    )
+    _sme_lanes(monkeypatch, {"CURIS-SM.NS": FiledPeriods("nse", "standalone", periods)})
+    resp = _route_through_the_gate(monkeypatch, "CURIS")
+
+    assert resp.status_code == 200, resp.text
+    f = resp.json()
+    assert f["eps"] == pytest.approx(11.11)
+    assert f["market_cap"] is None
+    assert f["pe_ratio"] is None
+    for name in ("market_cap", "pe_ratio"):
+        meta = f["field_meta"][name]
+        assert meta["status"] == "unavailable", name
+        assert "current share count unavailable" in (meta["reason"] or ""), name
+
+
+def test_a_provider_sized_listing_keeps_its_filed_eps_pe_on_a_second_pass() -> None:
+    """The main-board rebase (R15-FINAL-003) is unchanged and idempotent."""
+    sized = Fundamentals(
+        symbol="NDTV.NS",
+        currency="INR",
+        revenue_ttm=4.0e9,
+        ratio_price=135.0,
+        pe_ratio=40.0,
+        provider="yfinance",
+    )
+    filed = FiledPeriods("nse", "standalone", _CURIS_PERIODS, issued_shares=8_084_434.0)
+    once = correctness_gate.overlay_filed_periods(sized, filed)
+    twice = correctness_gate.overlay_filed_periods(once, filed)
+    assert twice.pe_ratio == pytest.approx(135.0 / 11.11)
+    assert twice.market_cap is None
+
+
 def test_the_emerge_lane_reads_the_issued_size_and_survives_its_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

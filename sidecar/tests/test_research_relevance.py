@@ -650,6 +650,104 @@ def test_every_nse_word_symbol_needs_an_anchor() -> None:
     assert not failures, failures
 
 
+def test_every_nse_word_symbol_needs_an_anchor_in_title_case() -> None:
+    """R15-LEAD-141: the enumeration INCLUDES 3-letter words (ACE, DEN, CUB, PAR,
+    KEN fall out of it), and a sentence-initial Title-Case word use is dropped for
+    every symbol in it while an anchored headline is kept. Marquee family names
+    (RELIANCE) are the brand written alone and stay exempt by design."""
+    pairs = _nse_word_symbols()
+    three = sorted(sym for sym, _ in pairs if len(sym) == 3)
+    print(f"NSE symbols in the word list: {len(pairs)} ({len(three)} three-letter: {three})")
+    assert {"ACE", "DEN", "CUB", "PAR", "KEN"} <= set(three)
+    url = "https://economictimes.indiatimes.com/markets/stocks/news/a"
+    marquee = relevance._marquee_families()
+    failures = []
+    for sym, name in pairs:
+        target = _target(symbol=sym, name=name)
+        title = f"{sym.capitalize()} of the day: what it means for your weekend"
+        if sym.lower() not in marquee and relevance.row_relevant(_row(url, title), target=target):
+            failures.append(("kept", sym, title))
+        anchored = f"{sym} shares hit upper circuit on NSE"
+        if not relevance.row_relevant(_row(url, anchored), target=target):
+            failures.append(("dropped", sym, anchored))
+    assert not failures, failures
+
+
+_THREE_LETTER_WORD_CASES = [
+    # (symbol, resolved name, prose headlines, company headlines)
+    (
+        "ACE",
+        "Action Construction Equipment Limited",
+        ["Ace shuttler PV Sindhu storms into final"],
+        [
+            "ACE shares jump 6% on order win",
+            "Action Construction Equipment Q2 profit rises",
+            "NSE: ACE hits 52-week high",
+            "Ace Q2 results: profit up 30%",
+        ],
+    ),
+    (
+        "DEN",
+        "Den Networks Limited",
+        ["Den of thieves: police bust Mumbai cyber fraud ring"],
+        ["Den Networks Q1 loss narrows", "DEN surges 8% after results"],
+    ),
+    (
+        "CUB",
+        "City Union Bank Limited",
+        ["Cub reporter's scoop rattles Delhi"],
+        ["City Union Bank Q2 net profit rises 12%", "CUB shares rally on NSE"],
+    ),
+    (
+        "PAR",
+        "Par Drugs And Chemicals Limited",
+        ["Par for the course: markets shrug off Fed in India"],
+        ["Par Drugs And Chemicals shares hit upper circuit", "PAR Drugs Q1 results"],
+    ),
+    (
+        "KEN",
+        "Ken Enterprises Limited",
+        ["Ken Griffin's Citadel posts record gains, Indian desk grows"],
+        ["Ken Enterprises IPO subscribed 3 times", "KEN shares list at premium on NSE"],
+    ),
+]
+
+
+@pytest.mark.parametrize(("symbol", "name", "dropped", "kept"), _THREE_LETTER_WORD_CASES)
+def test_three_letter_word_ticker_needs_an_anchor(
+    symbol: str, name: str, dropped: list[str], kept: list[str]
+) -> None:
+    """R15-LEAD-141: a 3-letter word ticker used Title-Case or sentence-initial
+    is prose on an India host, not the short-symbol tier's 0.60 keep."""
+    target = _target(symbol=symbol, name=name)
+    url = "https://economictimes.indiatimes.com/a"
+    for title in dropped:
+        row = _row(url, title)
+        assert relevance.entity_match(row, target=target) <= relevance.WEAK_MATCH_CEILING, title
+        assert not relevance.row_relevant(row, target=target), title
+    for title in kept:
+        assert relevance.row_relevant(_row(url, title), target=target), title
+
+
+def test_three_letter_words_leave_brand_list_headlines_unchanged() -> None:
+    """LEAD-142 is filed separately: the 3-letter word entries must not move the
+    4+-letter brand/list headline scores (pinned to the b7d37fd9 values)."""
+    url = "https://economictimes.indiatimes.com/a"
+    titan = _target(symbol="TITAN", name="Titan Company Limited")
+    trent = _target(symbol="TRENT", name="Trent Limited")
+    pinned = {
+        "Titan, Trent lead Nifty gains as consumer stocks rally": (0.25, 0.25),
+        "Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks": (0.25, 0.0),
+        "Trent rallies 5% as Zudio store count crosses 800": (0.0, 0.25),
+    }
+    for title, (want_titan, want_trent) in pinned.items():
+        assert relevance.entity_match(_row(url, title), target=titan) == want_titan, title
+        assert relevance.entity_match(_row(url, title), target=trent) == want_trent, title
+    # A 3-letter brand token that is not the ticker keeps its base score too.
+    zee = _target(symbol="ZEEL", name="Zee Entertainment Enterprises Limited")
+    assert relevance.entity_match(_row(url, "Zee bags cricket rights"), target=zee) == 0.6
+
+
 _PROPER_NOUN_WORD_CASES = [
     # (symbol, resolved name, prose headlines, company headlines)
     (
