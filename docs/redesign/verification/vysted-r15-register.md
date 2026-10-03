@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 799 entries + 76 rejections. critical: 18 . high: 133 . medium: 354 . low: 294
+887 raw findings -> 801 entries + 76 rejections. critical: 18 . high: 134 . medium: 355 . low: 294
 
-Status: blocked_tier4: 35 . fixed: 626 . needs_gui: 4 . not_a_defect: 6 . open: 114 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 627 . needs_gui: 4 . not_a_defect: 6 . open: 115 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -272,7 +272,7 @@ Status: blocked_tier4: 35 . fixed: 626 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-FINAL-030** [low] write_note files a note under the literal company name ('COCHIN SHIPYARD') instead of the ticker, so the symbol's note view (COCHINSHIP) stays empty — _fixed_
 - **R15-LEAD-138** [medium] The copilot/MCP fundamentals tool skips the SME exchange-filings fallback: MCP fundamentals VOLERCAR returns ok:false 'No data provider covers...' while REST /fundamentals serves values — _open_
 
-### Research / web search (76)
+### Research / web search (78)
 
 - **R15-AGENT-001** [critical] Chat narrates derived money figures 10-100x wrong: fraction values labelled unit 'percent' are read as percent, and a raw-rupee market cap is mis-scaled by the model — _fixed_
 - **R15-DATA-003** [critical] Research treats a US-bound AMAL as the Indian Amal Ltd for ownership: the ownership applicability gate checks bare-ticker NSE/BSE master membership, so Amalgamated Financial's brief states 'Promoter group (exchange filing) 71.35%' from Amal Ltd's BSE shareholding and raises a false conflict — _fixed_
@@ -349,7 +349,9 @@ Status: blocked_tier4: 35 . fixed: 626 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-FINAL-018** [medium] With the ULTRA slider one user turn fans out into N sequential full ULTRA heavy runs (4 research calls -> ~19 min, ~$1.25, each brief replacing the last) — _open_
 - **R15-FINAL-020** [medium] Keyless web search: the Brave engine (impersonated fetch) gets HTTP 429 while a plain-UA curl from the same host gets 200 in the same minute, so keyless web_search returns zero rows on this network — _open_
 - **R15-FINAL-025** [low] DEEP research overran its 180 s wall budget by 79 s (259 s) on the local lane: the final synthesis call is not boxed by the remaining wall — _open_
-- **R15-LEAD-136** [high] Any NSE ticker that is an ordinary English word but is not on COMMON_WORD_TICKERS scores as a distinctive match on unrelated headlines, so briefs state them as the company's own news (CAMPUS, SAFARI, ETERNAL) — _open_
+- **R15-LEAD-136** [high] Any NSE ticker that is an ordinary English word but is not on COMMON_WORD_TICKERS scores as a distinctive match on unrelated headlines, so briefs state them as the company's own news (CAMPUS, SAFARI, ETERNAL) — _fixed_
+- **R15-LEAD-141** [high] 3-letter NSE tickers that are English words skip the common-word rule (the word list is 4+ letters and the occurrence rule covers only lowercase), so a sentence-initial or Title-Case use scores short-only 0.60 and is kept on an India host (ACE 'Ace shuttler PV Sindhu storms into final', DEN, CUB, PAR, KEN) — _open_
+- **R15-LEAD-142** [medium] Recall regression from the LEAD-136 fix: brand-only and list headlines for the 234 NSE word tickers now drop ('Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks', 'Titan, Trent lead Nifty gains...', 'Trent rallies 5% as Zudio...' were kept at base) — _open_
 
 ### Data on small or obscure stocks (174)
 
@@ -1326,8 +1328,10 @@ Status: blocked_tier4: 35 . fixed: 626 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-FINAL-036 | low | docs | current-state | CURRENT_STATE.md cites a missing build report, the deleted monte_carlo.py and an absent ConnectCard.tsx, and reports 0.8.0 and 619 vitest / 942 pytest | open | F-DOCS-005 |
 | R15-FINAL-037 | low | release | release-runbook | RELEASE_RUNBOOK.md's 'verbatim' ci-local block differs from package.json ci-local | fixed | F-DOCS-006 |
 | R15-FINAL-038 | low | platform | mcp | MCP discovery file advertises protocol 2025-06-18 while /mcp/status reports 2025-11-25; the Rust sync comment points at a constant that does not exist | open | F-DOCS-008 |
-| R15-LEAD-136 | high | research | research-relevance | Any NSE ticker that is an ordinary English word but is not on COMMON_WORD_TICKERS scores as a distinctive match on unrelated headlines, so briefs state them as the company's own news (CAMPUS, SAFARI, ETERNAL) | open |  |
+| R15-LEAD-136 | high | research | research-relevance | Any NSE ticker that is an ordinary English word but is not on COMMON_WORD_TICKERS scores as a distinctive match on unrelated headlines, so briefs state them as the company's own news (CAMPUS, SAFARI, ETERNAL) | fixed |  |
 | R15-LEAD-137 | high | data | fundamentals-sme | Derived SME market cap and P/E use the weighted share count implied by filed TTM NI/EPS, so recently listed SME names show market cap and P/E ~23% low (CURIS 128.6 Cr / 18.59 vs 167 Cr / 24.1) | open |  |
 | R15-LEAD-138 | medium | agent | agent-tools | The copilot/MCP fundamentals tool skips the SME exchange-filings fallback: MCP fundamentals VOLERCAR returns ok:false 'No data provider covers...' while REST /fundamentals serves values | open |  |
 | R15-LEAD-139 | low | data | fundamentals-sme | SUMAX/QUALIANCE /fundamentals is still a 404 whose body carries action 'Check the symbol or series id.' beside the correct typed not-covered detail | open |  |
 | R15-LEAD-140 | medium | portfolio | quotes | A cold 100-name NSE batch takes ~171 s, over the 120 s client QUOTES_BATCH_TIMEOUT_MS, so the first portfolio refresh of a large cold portfolio aborts (the next refresh is 9.4 s, 100/100) | open |  |
+| R15-LEAD-141 | high | research | research-relevance | 3-letter NSE tickers that are English words skip the common-word rule (the word list is 4+ letters and the occurrence rule covers only lowercase), so a sentence-initial or Title-Case use scores short-only 0.60 and is kept on an India host (ACE 'Ace shuttler PV Sindhu storms into final', DEN, CUB, PAR, KEN) | open |  |
+| R15-LEAD-142 | medium | research | research-relevance | Recall regression from the LEAD-136 fix: brand-only and list headlines for the 234 NSE word tickers now drop ('Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks', 'Titan, Trent lead Nifty gains...', 'Trent rallies 5% as Zudio...' were kept at base) | open |  |

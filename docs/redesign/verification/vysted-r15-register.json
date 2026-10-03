@@ -19735,7 +19735,7 @@
    "tier4": false,
    "operator_areas": [],
    "status": "open",
-   "note": "Filed by the lead from the LEAD-127 verifier residual under gate rule change 1 (DECISIONS 6.1): beyond the entry's stated repro, so a new entry; does not reopen LEAD-127. Medium: the figures are right and the headline is visibly about another company; filed for 0.9.1.",
+   "note": "Filed by the lead from the LEAD-127 verifier residual under gate rule change 1 (DECISIONS 6.1): beyond the entry's stated repro, so a new entry; does not reopen LEAD-127. Medium: the figures are right and the headline is visibly about another company; filed for 0.9.1. | Round-3 verifier N4: still present at a5abb7ec (known).",
    "closure_evidence": ""
   },
   {
@@ -20721,9 +20721,9 @@
    "raw_ids": [],
    "tier4": false,
    "operator_areas": [],
-   "status": "open",
-   "note": "Filed by the lead from the final re-proof's refusal of R15-FINAL-004, under gate rule change 1. Round 2 in flight (rc2-round2). | Round 2 attempt 1 (30306bf2, merged ae6ffff0) NOT CERTIFIED on the class repro: fresh TITAN ('Tech titan Elon Musk unveils new rocket' keep=True) and CUPID fail — the bundled web2 list holds only capitalised 'Titan'. CAMPUS/SAFARI/ETERNAL/FOCUS/RAIN and controls pass; no regression. Verifier candidate N5 (TITAN, CUPID, TRENT, APOLLO …) is this entry's class, folded here, not a new entry. Certification failures: 1.",
-   "closure_evidence": ""
+   "status": "fixed",
+   "note": "Filed by the lead from the final re-proof's refusal of R15-FINAL-004, under gate rule change 1. Round 2 in flight (rc2-round2). | Round 2 attempt 1 (30306bf2, merged ae6ffff0) NOT CERTIFIED on the class repro: fresh TITAN ('Tech titan Elon Musk unveils new rocket' keep=True) and CUPID fail — the bundled web2 list holds only capitalised 'Titan'. CAMPUS/SAFARI/ETERNAL/FOCUS/RAIN and controls pass; no regression. Verifier candidate N5 (TITAN, CUPID, TRENT, APOLLO …) is this entry's class, folded here, not a new entry. Certification failures: 1. | Round 3 attempt 2 certified.",
+   "closure_evidence": "a91d3373 (round 3 attempt 2, merged a5abb7ec): case-folded web2 membership (232,989 words) + list-independent lowercase-occurrence rule + snippet corroboration; test_every_nse_word_symbol_needs_an_anchor enumerates the 234 NSE symbols in the word list (TITAN, CUPID, TRENT, APOLLO fall out). Fresh Opus verifier CERTIFIED: fresh MAZDA, LINCOLN, NILE, CROWN dropped on unrelated use, anchored kept, FOCUS/CAMPUS/SAFARI/ETERNAL/RAIN + controls hold; live Titan brief carries only its own headline. docs/redesign/verification/r15/stage-c/rc2-round3/VERIFY.md"
   },
   {
    "id": "R15-LEAD-137",
@@ -20744,7 +20744,7 @@
    "tier4": false,
    "operator_areas": [],
    "status": "open",
-   "note": "Filed by the lead from the rc2 round-2 verifier's candidate N2 (proposed high) under gate rule change 1: beyond FINAL-005's stated repro (no fundamentals / no reason), introduced by its round-2 fallback; FINAL-005 stays fixed.",
+   "note": "Filed by the lead from the rc2 round-2 verifier's candidate N2 (proposed high) under gate rule change 1: beyond FINAL-005's stated repro (no fundamentals / no reason), introduced by its round-2 fallback; FINAL-005 stays fixed. | Round 3 attempt 1 (8b2f883c, merged a5abb7ec) NOT CERTIFIED on its stated instance: market cap now on the NSE issued size (CURIS 166.9 Cr vs screener 167; 8 names within 0.5%), but pe_ratio still price / summed filed EPS (CURIS 18.59 vs 24.1; SHETHJI, FINBUD, JAYESH, GREENLEAF same) because the overlay runs twice: provider_registry.py:641 filings-only pass sets cap/NI, then correctness_gate.py:1314 re-runs with filings_only=False and _rebase_pe_on_filed_eps (:826-827) overwrites it. Verifier candidate N1 is this entry, not a new one. Certification failures: 1. DECISIONS 5.14 governs.",
    "closure_evidence": ""
   },
   {
@@ -20810,6 +20810,48 @@
    "operator_areas": [],
    "status": "open",
    "note": "Filed by the lead from the rc2 round-2 verifier's candidate N4 under gate rule change 1. Filed for 0.9.1.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-141",
+   "title": "3-letter NSE tickers that are English words skip the common-word rule (the word list is 4+ letters and the occurrence rule covers only lowercase), so a sentence-initial or Title-Case use scores short-only 0.60 and is kept on an India host (ACE 'Ace shuttler PV Sindhu storms into final', DEN, CUB, PAR, KEN)",
+   "severity": "high",
+   "area": "research",
+   "subsystem": "research-relevance",
+   "files": [
+    "sidecar/services/research/relevance.py"
+   ],
+   "repro": "At a5abb7ec, relevance scoring for target ACE (NSE) keeps 'Ace shuttler PV Sindhu storms into final' at 0.60 short-only on an India host; same for DEN 'Den of thieves...', CUB, PAR, KEN. Class: any 3-letter NSE word ticker used as a word in Title Case or sentence-initially.",
+   "evidence": "docs/redesign/verification/r15/stage-c/rc2-round3/VERIFY.md",
+   "root_cause": "The bundled word list starts at 4 letters and the list-independent occurrence rule covers only lowercase use; the short-only 0.60 signal is kept on an India host.",
+   "fix_shape": "Extend the anchoring requirement to 3-letter word tickers (case-folded) for Title-Case/sentence-initial use: count only with a cashtag/ticker form, exchange context or a corroborating company-name token.",
+   "defect_class": "common-word-ticker",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "Filed by the lead from the rc2 round-3 verifier's candidate N2 (proposed high) under gate rule change 1: a short-only 0.60 keep is not LEAD-136's stated 'distinctive symbol match', so a new entry. Pre-existing at base (unchanged by round 3).",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-142",
+   "title": "Recall regression from the LEAD-136 fix: brand-only and list headlines for the 234 NSE word tickers now drop ('Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks', 'Titan, Trent lead Nifty gains...', 'Trent rallies 5% as Zudio...' were kept at base)",
+   "severity": "medium",
+   "area": "research",
+   "subsystem": "research-relevance",
+   "files": [
+    "sidecar/services/research/relevance.py"
+   ],
+   "repro": "At a5abb7ec, relevance scoring for TITAN/TRENT drops the three headlines above (live feed for the first).",
+   "evidence": "docs/redesign/verification/r15/stage-c/rc2-round3/VERIFY.md",
+   "root_cause": "The anchoring rule treats a Title-Case brand mention inside a market list or with a brand token (Zudio) as uncorroborated.",
+   "fix_shape": "Accept list/market context (Nifty, Sensex, 'stocks to buy', other tickers in a list) and known brand tokens as corroboration.",
+   "defect_class": "recall",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "Filed by the lead from the rc2 round-3 verifier's candidate N3 under gate rule change 1. Fail-safe direction (drops rather than misattributes). Filed for 0.9.1.",
    "closure_evidence": ""
   }
  ],
