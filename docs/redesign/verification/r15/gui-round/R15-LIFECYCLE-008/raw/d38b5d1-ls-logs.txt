@@ -1,0 +1,8 @@
+2026-10-03T08:05:56Z
+total 4144
+drwxr-xr-x@  4 lokavyasingh  wheel      128 Oct  3 13:34 .
+drwxr-xr-x@ 18 lokavyasingh  wheel      576 Oct  3 13:35 ..
+-rw-r--r--@  1 lokavyasingh  wheel    24524 Oct  3 13:35 vysted.log
+-rw-r--r--@  1 lokavyasingh  wheel  2097122 Oct  3 13:34 vysted.log.1
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-LIFECYCLE-008/Library/Application Support/com.vysted.terminal/logs/vysted.log 24524 bytes
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-round-home-R15-LIFECYCLE-008/Library/Application Support/com.vysted.terminal/logs/vysted.log.1 2097122 bytes
