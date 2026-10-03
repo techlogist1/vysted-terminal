@@ -1,0 +1,120 @@
+{
+ "ok": true,
+ "needs_disambiguation": true,
+ "query": "IDEX Corporation",
+ "candidates": [
+  {
+   "symbol": "KEYCORP",
+   "name": "Key Corporation Ltd",
+   "exchange": "BSE",
+   "score": 0.7429,
+   "yahoo_symbol": "KEYCORP.BO"
+  },
+  {
+   "symbol": "KACL",
+   "name": "Kaiser Corporation Ltd",
+   "exchange": "BSE",
+   "score": 0.7368,
+   "yahoo_symbol": "KACL.BO"
+  },
+  {
+   "symbol": "RANDER",
+   "name": "Rander Corporation Ltd",
+   "exchange": "BSE",
+   "score": 0.7368,
+   "yahoo_symbol": "RANDER.BO"
+  },
+  {
+   "symbol": "MEGACOR",
+   "name": "Mega Corporation Ltd",
+   "exchange": "BSE",
+   "score": 0.7222,
+   "yahoo_symbol": "MEGACOR.BO"
+  },
+  {
+   "symbol": "MPILCORPL",
+   "name": "MPIL Corporation Ltd",
+   "exchange": "BSE",
+   "score": 0.7222,
+   "yahoo_symbol": "MPILCORPL.BO"
+  },
+  {
+   "symbol": "IEHC",
+   "name": "IEH Corp",
+   "exchange": "US",
+   "score": 0.8942,
+   "yahoo_symbol": "IEHC"
+  }
+ ],
+ "message": "'IDEX Corporation' matches more than one listed instrument \u2014 which did you mean? KEYCORP (Key Corporation Ltd), KACL (Kaiser Corporation Ltd), RANDER (Rander Corporation Ltd), MEGACOR (Mega Corporation Ltd), MPILCORPL (MPIL Corporation Ltd), IEHC (IEH Corp)",
+ "execution_loop": "fast",
+ "depth": "normal",
+ "execution": {
+  "run_id": "9de0bd0271cd4e49a6dceba32f334313",
+  "requested_depth": "normal",
+  "loop": "fast",
+  "backend": null,
+  "started_at": 1791021046.680754,
+  "finished_at": 1791021047.8020391,
+  "degraded_reason": null
+ },
+ "brief": {
+  "query": "IDEX Corporation",
+  "disambiguation": {
+   "query": "IDEX Corporation",
+   "candidates": [
+    {
+     "symbol": "KEYCORP",
+     "name": "Key Corporation Ltd",
+     "exchange": "BSE",
+     "score": 0.7429,
+     "yahoo_symbol": "KEYCORP.BO"
+    },
+    {
+     "symbol": "KACL",
+     "name": "Kaiser Corporation Ltd",
+     "exchange": "BSE",
+     "score": 0.7368,
+     "yahoo_symbol": "KACL.BO"
+    },
+    {
+     "symbol": "RANDER",
+     "name": "Rander Corporation Ltd",
+     "exchange": "BSE",
+     "score": 0.7368,
+     "yahoo_symbol": "RANDER.BO"
+    },
+    {
+     "symbol": "MEGACOR",
+     "name": "Mega Corporation Ltd",
+     "exchange": "BSE",
+     "score": 0.7222,
+     "yahoo_symbol": "MEGACOR.BO"
+    },
+    {
+     "symbol": "MPILCORPL",
+     "name": "MPIL Corporation Ltd",
+     "exchange": "BSE",
+     "score": 0.7222,
+     "yahoo_symbol": "MPILCORPL.BO"
+    },
+    {
+     "symbol": "IEHC",
+     "name": "IEH Corp",
+     "exchange": "US",
+     "score": 0.8942,
+     "yahoo_symbol": "IEHC"
+    }
+   ]
+  },
+  "execution": {
+   "run_id": "9de0bd0271cd4e49a6dceba32f334313",
+   "requested_depth": "normal",
+   "loop": "fast",
+   "backend": null,
+   "started_at": 1791021046.680754,
+   "finished_at": 1791021047.8020391,
+   "degraded_reason": null
+  }
+ }
+}

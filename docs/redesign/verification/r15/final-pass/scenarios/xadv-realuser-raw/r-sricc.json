@@ -1,0 +1,646 @@
+{
+ "ok": true,
+ "query": "Sri Chakra Cement",
+ "resolved": {
+  "ok": true,
+  "query": "Sri Chakra Cement",
+  "region": "IN",
+  "status": "bound",
+  "reason": "score 1.00 >= accept at band 4",
+  "resolved": {
+   "symbol": "SRICC",
+   "name": "Sri Chakra Cement Ltd",
+   "exchange": "BSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "SRICC.BO",
+   "confidence": 1.0,
+   "isin": "INE827D01020",
+   "bse_code": "518053",
+   "industry": null,
+   "former_name": null,
+   "board": "mainboard",
+   "exchange_group": "X",
+   "face_value": 10.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "SRICC",
+    "name": "Sri Chakra Cement Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "SRICC.BO",
+    "confidence": 1.0,
+    "isin": "INE827D01020",
+    "bse_code": "518053",
+    "industry": null,
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "X",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "TVSSRICHAK",
+    "name": "TVS Srichakra Limited",
+    "exchange": "NSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "TVSSRICHAK.NS",
+    "confidence": 0.66,
+    "isin": "INE421C01016",
+    "bse_code": "509243",
+    "industry": "Auto Parts",
+    "former_name": "SRICHAKTYR",
+    "board": "mainboard",
+    "exchange_group": "B",
+    "face_value": 10.0
+   }
+  ]
+ },
+ "symbol": "SRICC",
+ "structured": {
+  "price": {
+   "ok": true,
+   "provider": "bse",
+   "data": {
+    "symbol": "SRICC",
+    "price": 32.82,
+    "change": 0.0,
+    "change_percent": 0.0,
+    "volume": 494.0,
+    "open": 32.82,
+    "high": 32.82,
+    "low": 32.82,
+    "prev_close": 32.82,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-10-01T00:00:00Z",
+    "provider": "bse",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": false,
+   "provider": null,
+   "error": "fundamentals timed out after 6s \u2014 dropped",
+   "reason": "provider_error"
+  },
+  "derived": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "drawdown_from_high": {
+     "value": null,
+     "label": "Below 52-week high",
+     "basis": "vs 52w high",
+     "formula": "(52w high - price) / 52w high",
+     "unit": "fraction"
+    },
+    "fifty_two_week_change": {
+     "value": null,
+     "label": "52-week price change (Yahoo)",
+     "basis": "trailing 52 weeks",
+     "unit": "fraction"
+    },
+    "dividend_yield": {
+     "value": null,
+     "label": "Dividend yield",
+     "basis": "fraction of price",
+     "unit": "fraction"
+    },
+    "dividend_per_share": {
+     "value": null,
+     "label": "Dividend per share",
+     "basis": "per share, listing currency",
+     "unit": "currency"
+    },
+    "revenue_growth": {
+     "value": null,
+     "label": "Revenue growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction"
+    },
+    "earnings_growth": {
+     "value": null,
+     "label": "Earnings growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction"
+    },
+    "market_cap": {
+     "value": null,
+     "label": "Market cap",
+     "basis": "provider market cap",
+     "unit": "currency"
+    },
+    "conflicts": []
+   }
+  },
+  "news": {
+   "ok": true,
+   "provider": null,
+   "data": []
+  },
+  "filings": {
+   "ok": true,
+   "provider": "bse",
+   "data": {
+    "symbol": "SRICC",
+    "exchange": null,
+    "coverage": "covered",
+    "sources": [
+     "BSE"
+    ],
+    "errors": {},
+    "count": 20,
+    "announcements": [
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/96580ef6-ac49-48c0-b9f1-68dafc94e3c7.pdf",
+      "ts": "2026-10-01T14:06:04.730000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Resignation of Director",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/507608ab-5396-4062-8056-5973d678622a.pdf",
+      "ts": "2026-08-25T21:45:31.333000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4caf37a2-ecec-413e-a2c5-28720aee9f4f.pdf",
+      "ts": "2026-08-19T22:09:45.317000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/960223be-b752-4756-b075-7a1f1eaf4081.pdf",
+      "ts": "2026-08-19T16:06:40.580000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/16c55822-5967-4451-af3d-1dd04536b23a.pdf",
+      "ts": "2026-08-19T16:04:36.677000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf926f4a-5e70-4d21-82a3-1b0e736840b5.pdf",
+      "ts": "2026-08-15T08:42:08.840000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Results-Financial Results For June 30, 2026",
+      "category": "Result",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e408dc54-28f7-402d-a69f-98fa16d94253.pdf",
+      "ts": "2026-08-14T18:02:16.907000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Consideration Of Financial Results And CFO Appointment",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/46c1b38f-78a1-490b-aeb8-23473c609139.pdf",
+      "ts": "2026-08-14T17:53:19.393000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Board Meeting Intimation for Consideration Of Unaudited Financial Results For The Quarter Ended 30Th June 2026",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/99a17e82-9b32-4a14-b239-b4dbbe319b31.pdf",
+      "ts": "2026-08-05T19:23:03.420000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Announcement Under Regulation 30 (LODR)-Updates(Receipt Of Demand Notice)",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3b2dc7e0-81bc-49d4-a8c6-65b04537f970.pdf",
+      "ts": "2026-08-01T22:06:18.457000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Intimation Regarding Lay Off Of Workmen Of The Company'S Unit Situated At Sri Narasimhapuri, Karampudi, Andhra Pradesh",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e0b30b79-d787-4de5-b025-d98bbb2e526d.pdf",
+      "ts": "2026-07-29T19:05:12.800000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7bbb475d-8f12-4287-a98d-610b3050993b.pdf",
+      "ts": "2026-07-27T17:52:17.050000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/550e2d6f-6be9-433c-bc4d-22edcea64478.pdf",
+      "ts": "2026-07-25T14:30:50.640000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Corporate Action-Fixes Record Date For 44Th AGM To Be Held On 19Th August 2026",
+      "category": "Corp. Action",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/fd10b2ea-e1b5-4b53-9052-ef954744d86c.pdf",
+      "ts": "2026-07-24T19:08:50.403000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Meeting Updates",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b9e48c42-5fee-4de1-a0e2-cc49dc8064fb.pdf",
+      "ts": "2026-07-24T19:04:28.863000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b84d2dec-f7a7-4c88-90bc-9dbb98b030e4.pdf",
+      "ts": "2026-07-24T19:02:31.483000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Corporate Action-Fixes Book Closure For 44Th Annual General Meeting",
+      "category": "Corp. Action",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c8dccf66-b51e-473a-97fc-56925a11f424.pdf",
+      "ts": "2026-07-24T18:59:03.470000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting-AGM On 19Th August, 2026 At 12.00 Noon",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/27a31783-319c-4792-b54d-ca94a5e741ce.pdf",
+      "ts": "2026-07-24T18:56:47.810000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8fd9131d-ece3-41c2-8730-2a81cfe3cff7.pdf",
+      "ts": "2026-07-15T19:24:48.407000+05:30"
+     },
+     {
+      "symbol": "SRICC",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f499c09f-565d-42bd-8321-9bf05b8d9481.pdf",
+      "ts": "2026-06-30T21:43:45.617000+05:30"
+     }
+    ]
+   }
+  },
+  "source_floor": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "cited": 0,
+    "floor": 3
+   },
+   "note": "0 sources (below 3)"
+  }
+ },
+ "web": {
+  "available": false,
+  "citations": [],
+  "results": [],
+  "reason": "timeout",
+  "note": "Web search did not answer within 8s \u2014 structured data only"
+ },
+ "suggested_layout": "research-cockpit",
+ "suggested_indicators": [
+  "ma",
+  "volume",
+  "rsi",
+  "macd"
+ ],
+ "execution_loop": "fast",
+ "depth": "normal",
+ "execution": {
+  "run_id": "99b7626cff4342e1b83565c42214d572",
+  "requested_depth": "normal",
+  "loop": "fast",
+  "backend": null,
+  "started_at": 1791020860.757068,
+  "finished_at": 1791020869.318485,
+  "degraded_reason": null
+ },
+ "brief": {
+  "query": "Sri Chakra Cement",
+  "symbol": "SRICC",
+  "mode": "fast",
+  "depth": "quick",
+  "execution": {
+   "run_id": "99b7626cff4342e1b83565c42214d572",
+   "requested_depth": "normal",
+   "loop": "fast",
+   "backend": null,
+   "started_at": 1791020860.757068,
+   "finished_at": 1791020869.318485,
+   "degraded_reason": null
+  },
+  "markdown": "",
+  "sources": [],
+  "structured": {
+   "price": {
+    "ok": true,
+    "provider": "bse",
+    "data": {
+     "symbol": "SRICC",
+     "price": 32.82,
+     "change": 0.0,
+     "change_percent": 0.0,
+     "volume": 494.0,
+     "open": 32.82,
+     "high": 32.82,
+     "low": 32.82,
+     "prev_close": 32.82,
+     "currency": "INR",
+     "market_state": "CLOSED",
+     "timestamp": "2026-10-01T00:00:00Z",
+     "provider": "bse",
+     "freshness": null
+    }
+   },
+   "fundamentals": {
+    "ok": false,
+    "provider": null,
+    "error": "fundamentals timed out after 6s \u2014 dropped",
+    "reason": "provider_error"
+   },
+   "derived": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "drawdown_from_high": {
+      "value": null,
+      "label": "Below 52-week high",
+      "basis": "vs 52w high",
+      "formula": "(52w high - price) / 52w high",
+      "unit": "fraction"
+     },
+     "fifty_two_week_change": {
+      "value": null,
+      "label": "52-week price change (Yahoo)",
+      "basis": "trailing 52 weeks",
+      "unit": "fraction"
+     },
+     "dividend_yield": {
+      "value": null,
+      "label": "Dividend yield",
+      "basis": "fraction of price",
+      "unit": "fraction"
+     },
+     "dividend_per_share": {
+      "value": null,
+      "label": "Dividend per share",
+      "basis": "per share, listing currency",
+      "unit": "currency"
+     },
+     "revenue_growth": {
+      "value": null,
+      "label": "Revenue growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction"
+     },
+     "earnings_growth": {
+      "value": null,
+      "label": "Earnings growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction"
+     },
+     "market_cap": {
+      "value": null,
+      "label": "Market cap",
+      "basis": "provider market cap",
+      "unit": "currency"
+     },
+     "conflicts": []
+    }
+   },
+   "news": {
+    "ok": true,
+    "provider": null,
+    "data": []
+   },
+   "filings": {
+    "ok": true,
+    "provider": "bse",
+    "data": {
+     "symbol": "SRICC",
+     "exchange": null,
+     "coverage": "covered",
+     "sources": [
+      "BSE"
+     ],
+     "errors": {},
+     "count": 20,
+     "announcements": [
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Closure of Trading Window",
+       "category": "Insider Trading / SAST",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachLive/96580ef6-ac49-48c0-b9f1-68dafc94e3c7.pdf",
+       "ts": "2026-10-01T14:06:04.730000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Resignation of Director",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/507608ab-5396-4062-8056-5973d678622a.pdf",
+       "ts": "2026-08-25T21:45:31.333000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4caf37a2-ecec-413e-a2c5-28720aee9f4f.pdf",
+       "ts": "2026-08-19T22:09:45.317000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/960223be-b752-4756-b075-7a1f1eaf4081.pdf",
+       "ts": "2026-08-19T16:06:40.580000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/16c55822-5967-4451-af3d-1dd04536b23a.pdf",
+       "ts": "2026-08-19T16:04:36.677000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Change in Management",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/bf926f4a-5e70-4d21-82a3-1b0e736840b5.pdf",
+       "ts": "2026-08-15T08:42:08.840000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Results-Financial Results For June 30, 2026",
+       "category": "Result",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e408dc54-28f7-402d-a69f-98fa16d94253.pdf",
+       "ts": "2026-08-14T18:02:16.907000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Board Meeting Outcome for Consideration Of Financial Results And CFO Appointment",
+       "category": "Board Meeting",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/46c1b38f-78a1-490b-aeb8-23473c609139.pdf",
+       "ts": "2026-08-14T17:53:19.393000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Board Meeting Intimation for Consideration Of Unaudited Financial Results For The Quarter Ended 30Th June 2026",
+       "category": "Board Meeting",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/99a17e82-9b32-4a14-b239-b4dbbe319b31.pdf",
+       "ts": "2026-08-05T19:23:03.420000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Announcement Under Regulation 30 (LODR)-Updates(Receipt Of Demand Notice)",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/3b2dc7e0-81bc-49d4-a8c6-65b04537f970.pdf",
+       "ts": "2026-08-01T22:06:18.457000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Intimation Regarding Lay Off Of Workmen Of The Company'S Unit Situated At Sri Narasimhapuri, Karampudi, Andhra Pradesh",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/e0b30b79-d787-4de5-b025-d98bbb2e526d.pdf",
+       "ts": "2026-07-29T19:05:12.800000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Reg. 34 (1) Annual Report.",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7bbb475d-8f12-4287-a98d-610b3050993b.pdf",
+       "ts": "2026-07-27T17:52:17.050000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/550e2d6f-6be9-433c-bc4d-22edcea64478.pdf",
+       "ts": "2026-07-25T14:30:50.640000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Corporate Action-Fixes Record Date For 44Th AGM To Be Held On 19Th August 2026",
+       "category": "Corp. Action",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/fd10b2ea-e1b5-4b53-9052-ef954744d86c.pdf",
+       "ts": "2026-07-24T19:08:50.403000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Meeting Updates",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b9e48c42-5fee-4de1-a0e2-cc49dc8064fb.pdf",
+       "ts": "2026-07-24T19:04:28.863000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Reg. 34 (1) Annual Report.",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/b84d2dec-f7a7-4c88-90bc-9dbb98b030e4.pdf",
+       "ts": "2026-07-24T19:02:31.483000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Corporate Action-Fixes Book Closure For 44Th Annual General Meeting",
+       "category": "Corp. Action",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c8dccf66-b51e-473a-97fc-56925a11f424.pdf",
+       "ts": "2026-07-24T18:59:03.470000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Shareholder Meeting-AGM On 19Th August, 2026 At 12.00 Noon",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/27a31783-319c-4792-b54d-ca94a5e741ce.pdf",
+       "ts": "2026-07-24T18:56:47.810000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Compliances-Certificate under Reg. 74 (5) of SEBI (DP) Regulations, 2018",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8fd9131d-ece3-41c2-8730-2a81cfe3cff7.pdf",
+       "ts": "2026-07-15T19:24:48.407000+05:30"
+      },
+      {
+       "symbol": "SRICC",
+       "exchange": "BSE",
+       "headline": "Closure of Trading Window",
+       "category": "Insider Trading / SAST",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/f499c09f-565d-42bd-8321-9bf05b8d9481.pdf",
+       "ts": "2026-06-30T21:43:45.617000+05:30"
+      }
+     ]
+    }
+   },
+   "source_floor": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "cited": 0,
+     "floor": 3
+    },
+    "note": "0 sources (below 3)"
+   }
+  },
+  "cost": null,
+  "web_available": false,
+  "note": "Web search did not answer within 8s \u2014 structured data only",
+  "web_reason": "timeout",
+  "backend": null
+ }
+}

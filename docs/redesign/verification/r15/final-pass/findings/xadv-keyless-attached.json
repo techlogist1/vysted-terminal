@@ -1,0 +1,14 @@
+[
+  {
+    "key": "keyless:A1",
+    "id": "R15-DOCS-003",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-keyless-6.md",
+    "note": "README.md:26-27 still says 'Next.js static-export frontend' at d38b5d1a"
+  },
+  {
+    "key": "keyless:A2",
+    "id": "R15-RELEASE-002",
+    "evidence_file": "docs/redesign/verification/r15/final-pass/scenarios/xadv-keyless-6.md",
+    "note": "README.md:87-90 sends a stranger to Releases; gh api .../releases length = 0 on 3 Oct 2026"
+  }
+]

@@ -1,0 +1,39 @@
+== Bank of America Corporation
+ RESOLVED None True
+   PANINDIAC Pan India Corporation Ltd BSE
+   RANDER Rander Corporation Ltd BSE
+   MEGACOR Mega Corporation Ltd BSE
+   HARAFIN Haryana Financial Corporation Ltd BSE
+   FLORACORP Flora Corporation Ltd BSE
+   BAC BANK OF AMERICA CORP /DE/ US
+== Danaher Corporation
+ RESOLVED None True
+   RANDER Rander Corporation Ltd BSE
+   KACL Kaiser Corporation Ltd BSE
+   SANBLUE Sanblue Corporation Ltd BSE
+   PARSHWANA Parshwanath Corporation Ltd BSE
+   KEYCORP Key Corporation Ltd BSE
+   AES AES CORP US
+== Amphenol Corporation
+ RESOLVED None True
+   MPILCORPL MPIL Corporation Ltd BSE
+   EMROCK Emrock Corporation Ltd BSE
+   KEYCORP Key Corporation Ltd BSE
+   KACL Kaiser Corporation Ltd BSE
+   RANDER Rander Corporation Ltd BSE
+   AES AES CORP US
+== Newmont Corporation
+ RESOLVED None True
+   EMROCK Emrock Corporation Ltd BSE
+   NEUEON Neueon Corporation Limited NSE
+   KEMISTAR Kemistar Corporation Ltd BSE
+   STEP2COR Step Two Corporation Ltd BSE
+   KEYCORP Key Corporation Ltd BSE
+   GERN GERON CORP US
+== TJX Companies
+ RESOLVED ('TJX', 'TJX COMPANIES INC /DE/', 'US') False
+   TJX TJX COMPANIES INC /DE/ US
+   COST COSTCO WHOLESALE CORP /NEW US
+   WEN Wendy's Co US
+   BWMG Brownie's Marine Group, Inc US
+   ELA Envela Corp US

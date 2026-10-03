@@ -1,0 +1,56 @@
+=== Kirloskar Oil Engines
+RESOLVED: ('KIRLOSENG', 'Kirloskar Oil Engines Limited', 'NSE', 1.0, None) | disamb False
+  cand KIRLOSENG | Kirloskar Oil Engines Limited NSE 1.0 | former None
+  cand KIRLOSIND | Kirloskar Industries Limited NSE 0.99 | former Kirloskar Oil Engines Limited
+  cand CUMMINSIND | Cummins India Limited NSE 0.5986 | former KIRLOSKCUM
+=== kirloskar oil
+RESOLVED: ('KIRLOSENG', 'Kirloskar Oil Engines Limited', 'NSE', 0.92, None) | disamb False
+  cand KIRLOSENG | Kirloskar Oil Engines Limited NSE 0.92 | former None
+  cand KIRLOSIND | Kirloskar Industries Limited NSE 0.9108 | former Kirloskar Oil Engines Limited
+  cand CUMMINSIND | Cummins India Limited NSE 0.6789 | former KIRLOSKCUM
+  cand KIRLOSBROS | Kirloskar Brothers Limited NSE 0.6154 | former None
+=== Kirloskar Oil Engines Ltd
+RESOLVED: ('KIRLOSENG', 'Kirloskar Oil Engines Limited', 'NSE', 1.0, None) | disamb False
+  cand KIRLOSENG | Kirloskar Oil Engines Limited NSE 1.0 | former None
+  cand KIRLOSIND | Kirloskar Industries Limited NSE 0.99 | former Kirloskar Oil Engines Limited
+  cand CUMMINSIND | Cummins India Limited NSE 0.7162 | former KIRLOSKCUM
+  cand KIRLOSBROS | Kirloskar Brothers Limited NSE 0.6667 | former None
+  cand KIRLFER | Kirloskar Ferrous Industries Limited NSE 0.6557 | former None
+=== KOEL
+RESOLVED: None | disamb False
+=== Indiabulls Housing Finance
+RESOLVED: ('SAMMAANCAP', 'Sammaan Capital Limited', 'NSE', 0.99, 'IBULHSGFIN') | disamb False
+  cand SAMMAANCAP | Sammaan Capital Limited NSE 0.99 | former IBULHSGFIN
+  cand MANRAJH | Manraj Housing Finance Ltd BSE 0.6923 | former None
+  cand STARHFL | Star Housing Finance Ltd BSE 0.68 | former None
+  cand PNBHOUSING | PNB Housing Finance Limited NSE 0.6792 | former None
+  cand AADHARHFC | Aadhar Housing Finance Limited NSE 0.6429 | former None
+=== indiabulls housing
+RESOLVED: ('SAMMAANCAP', 'Sammaan Capital Limited', 'NSE', 0.9108, 'IBULHSGFIN') | disamb False
+  cand SAMMAANCAP | Sammaan Capital Limited NSE 0.9108 | former IBULHSGFIN
+  cand IBULLSLTD | Indiabulls Limited NSE 0.6667 | former YAARI
+  cand INDBNK | Ind Bank Housing Ltd BSE 0.6316 | former None
+  cand RTNPOWER | RattanIndia Power Limited NSE 0.6129 | former IBPOW
+=== IBULHSGFIN
+RESOLVED: ('SAMMAANCAP', 'Sammaan Capital Limited', 'NSE', 1.0, 'IBULHSGFIN') | disamb False
+  cand SAMMAANCAP | Sammaan Capital Limited NSE 1.0 | former IBULHSGFIN
+=== Sammaan Capital
+RESOLVED: ('SAMMAANCAP', 'Sammaan Capital Limited', 'NSE', 1.0, 'IBULHSGFIN') | disamb False
+  cand SAMMAANCAP | Sammaan Capital Limited NSE 1.0 | former IBULHSGFIN
+  cand MANTRA | Mantra Capital Ltd BSE 0.6667 | former None
+  cand SODHACAP | Sodhani Capital Ltd BSE 0.6471 | former None
+  cand KALYANCAP | Kalyan Capitals Ltd BSE 0.6471 | former None
+  cand AMPL | AMPL Capital Ltd BSE 0.6452 | former None
+=== Angel Broking
+RESOLVED: ('ANGELONE', 'Angel One Limited', 'NSE', 0.99, 'ANGELBRKG') | disamb False
+  cand ANGELONE | Angel One Limited NSE 0.99 | former ANGELBRKG
+=== Cadila Healthcare
+RESOLVED: ('ZYDUSLIFE', 'Zydus Lifesciences Limited', 'NSE', 0.99, 'CADILAHC') | disamb False
+  cand ZYDUSLIFE | Zydus Lifesciences Limited NSE 0.99 | former CADILAHC
+  cand CHCL | Cian Healthcare Ltd BSE 0.7222 | former None
+  cand AMWILL | Amwill Health Care Ltd BSE 0.7179 | former None
+  cand WARDHEALTH | Wardwizard Healthcare Ltd BSE 0.7143 | former None
+  cand CHANDAN | Chandan Healthcare Limited NSE 0.6977 | former None
+=== Ruchi Soya
+RESOLVED: ('PATANJALI', 'Patanjali Foods Limited', 'NSE', 0.9108, 'Ruchi Soya Industries Limited') | disamb False
+  cand PATANJALI | Patanjali Foods Limited NSE 0.9108 | former Ruchi Soya Industries Limited

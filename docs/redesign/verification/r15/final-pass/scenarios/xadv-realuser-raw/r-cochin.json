@@ -1,0 +1,972 @@
+{
+ "ok": true,
+ "query": "Cochin Minerals and Rutile",
+ "resolved": {
+  "ok": true,
+  "query": "Cochin Minerals",
+  "region": "IN",
+  "status": "bound",
+  "reason": "score 0.92 >= accept at band 2",
+  "resolved": {
+   "symbol": "COCHINM",
+   "name": "Cochin Minerals & Rutiles Ltd-$",
+   "exchange": "BSE",
+   "region": "IN",
+   "asset_class": "equity",
+   "yahoo_symbol": "COCHINM.BO",
+   "confidence": 0.92,
+   "isin": "INE105D01013",
+   "bse_code": "513353",
+   "industry": null,
+   "former_name": null,
+   "board": "mainboard",
+   "exchange_group": "X",
+   "face_value": 10.0
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "COCHINM",
+    "name": "Cochin Minerals & Rutiles Ltd-$",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "COCHINM.BO",
+    "confidence": 0.92,
+    "isin": "INE105D01013",
+    "bse_code": "513353",
+    "industry": null,
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "X",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "KACHCHH",
+    "name": "Kachchh Minerals Ltd",
+    "exchange": "BSE",
+    "region": "IN",
+    "asset_class": "equity",
+    "yahoo_symbol": "KACHCHH.BO",
+    "confidence": 0.6286,
+    "isin": "INE059E01010",
+    "bse_code": "531778",
+    "industry": null,
+    "former_name": null,
+    "board": "mainboard",
+    "exchange_group": "X",
+    "face_value": 10.0
+   },
+   {
+    "symbol": "NAMM",
+    "name": "Namib Minerals",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "NAMM",
+    "confidence": 0.6897,
+    "isin": null,
+    "bse_code": null,
+    "industry": null,
+    "former_name": null,
+    "board": null,
+    "exchange_group": null,
+    "face_value": null
+   },
+   {
+    "symbol": "NAMMW",
+    "name": "Namib Minerals",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "NAMMW",
+    "confidence": 0.6897,
+    "isin": null,
+    "bse_code": null,
+    "industry": null,
+    "former_name": null,
+    "board": null,
+    "exchange_group": null,
+    "face_value": null
+   },
+   {
+    "symbol": "AUMN",
+    "name": "Golden Minerals Co",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "AUMN",
+    "confidence": 0.6667,
+    "isin": null,
+    "bse_code": null,
+    "industry": null,
+    "former_name": "APEX SILVER MINES LTD",
+    "board": null,
+    "exchange_group": null,
+    "face_value": null
+   },
+   {
+    "symbol": "WMLLF",
+    "name": "Wealth Minerals Ltd.",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "WMLLF",
+    "confidence": 0.66,
+    "isin": null,
+    "bse_code": null,
+    "industry": null,
+    "former_name": "WEALTH MINERALS",
+    "board": null,
+    "exchange_group": null,
+    "face_value": null
+   }
+  ]
+ },
+ "symbol": "COCHINM",
+ "structured": {
+  "price": {
+   "ok": true,
+   "provider": "bse",
+   "data": {
+    "symbol": "COCHINM",
+    "price": 293.4,
+    "change": -5.400000000000034,
+    "change_percent": -1.807228915662662,
+    "volume": 3677.0,
+    "open": 295.0,
+    "high": 303.0,
+    "low": 293.0,
+    "prev_close": 298.8,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-10-01T00:00:00Z",
+    "provider": "bse",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "openbb-mcp",
+   "data": {
+    "symbol": "COCHINM.BO",
+    "name": "Cochin Minerals and Rutile Limited",
+    "sector": "Basic Materials",
+    "industry": "Other Industrial Metals & Mining",
+    "sector_source": null,
+    "currency": null,
+    "financial_currency": "INR",
+    "ratio_price": null,
+    "market_cap": 2325118720.0,
+    "pe_ratio": null,
+    "forward_pe": null,
+    "peg_ratio": null,
+    "price_to_book": null,
+    "price_to_sales": null,
+    "ev_to_ebitda": null,
+    "book_value": null,
+    "dividend_yield": null,
+    "dividend_per_share": null,
+    "eps": 27.61,
+    "beta": 1.028,
+    "fifty_two_week_high": null,
+    "fifty_two_week_low": null,
+    "fifty_two_week_change": null,
+    "fifty_two_week_high_date": null,
+    "fifty_two_week_low_date": null,
+    "listing_date": null,
+    "first_trade_date": null,
+    "forward_pe_fiscal_year": null,
+    "roe": null,
+    "roa": null,
+    "gross_margin": null,
+    "operating_margin": null,
+    "profit_margin": null,
+    "debt_to_equity": null,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": null,
+    "basis": null,
+    "revenue_ttm": 3436670000.0,
+    "net_income_ttm": 216220000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": null,
+    "revenue_growth": 0.7469323112140328,
+    "earnings_growth": 2.7900214263850627,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": null,
+    "held_percent_institutions": null,
+    "dividend_per_share_ttm": null,
+    "revenue_growth_computed": 0.7469323112140328,
+    "earnings_growth_computed": 2.7900214263850627,
+    "growth_computed_quarters": {
+     "mrq": "2026-06-30",
+     "prior": "2025-06-30"
+    },
+    "field_meta": {
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "bse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "unavailable",
+      "provider": "yfinance",
+      "reason": "dividend history unavailable"
+     }
+    },
+    "provider": "openbb-mcp",
+    "identity_note": null,
+    "market_cap_witness": {
+     "shares_outstanding": 7830018.0,
+     "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)",
+     "scrip_code": "513353",
+     "as_of": "2026-06-11"
+    }
+   }
+  },
+  "derived": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "drawdown_from_high": {
+     "value": null,
+     "label": "Below 52-week high",
+     "basis": "vs 52w high",
+     "formula": "(52w high - price) / 52w high",
+     "unit": "fraction"
+    },
+    "fifty_two_week_change": {
+     "value": null,
+     "label": "52-week price change (Yahoo)",
+     "basis": "trailing 52 weeks",
+     "unit": "fraction"
+    },
+    "dividend_yield": {
+     "value": null,
+     "label": "Dividend yield",
+     "basis": "fraction of price",
+     "unit": "fraction"
+    },
+    "dividend_per_share": {
+     "value": null,
+     "label": "Dividend per share",
+     "basis": "per share, listing currency",
+     "unit": "currency"
+    },
+    "revenue_growth": {
+     "value": 0.7469323112140328,
+     "label": "Revenue growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction",
+     "display": "74.69%"
+    },
+    "earnings_growth": {
+     "value": 2.7900214263850627,
+     "label": "Earnings growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction",
+     "display": "279.00%"
+    },
+    "market_cap": {
+     "value": 2325118720.0,
+     "label": "Market cap",
+     "basis": "provider market cap",
+     "unit": "currency",
+     "display": "2.33B"
+    },
+    "conflicts": [
+     {
+      "field": "identity",
+      "kind": "identity_conflict",
+      "similarity": 0.4,
+      "sources": [
+       {
+        "provider": "resolver (canonical master)",
+        "value": "Cochin Minerals & Rutiles Ltd-$"
+       },
+       {
+        "provider": "openbb-mcp",
+        "value": "Cochin Minerals and Rutile Limited"
+       }
+      ],
+      "note": "The fundamentals provider (openbb-mcp) reports the company name 'Cochin Minerals and Rutile Limited' for COCHINM, which materially disagrees with the resolver's canonical name 'Cochin Minerals & Rutiles Ltd-$' (token-set similarity 40% < 50%). This can indicate a symbol rename or a mis-resolution; the identities are NOT reconciled automatically.",
+      "symbol": "COCHINM",
+      "conflict_kind": "data_conflict"
+     }
+    ]
+   }
+  },
+  "news": {
+   "ok": true,
+   "provider": null,
+   "data": []
+  },
+  "filings": {
+   "ok": true,
+   "provider": "bse",
+   "data": {
+    "symbol": "COCHINM",
+    "exchange": null,
+    "coverage": "covered",
+    "sources": [
+     "BSE"
+    ],
+    "errors": {},
+    "count": 20,
+    "announcements": [
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/18e910c6-bae9-47e2-91ba-fc887998e517.pdf",
+      "ts": "2026-09-26T16:22:48.360000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/75648901-e9c7-42c3-99fe-b6a47daad7a3.pdf",
+      "ts": "2026-09-26T16:11:23.720000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Disclosure under Regulation 30A of LODR",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ebff6e08-6f59-4b9a-afb3-efd062f2fd90.pdf",
+      "ts": "2026-09-26T15:06:20.313000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7f813194-c4d0-4f72-a162-75bb48f089ac.pdf",
+      "ts": "2026-09-26T11:11:44.120000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/55028ba3-c58b-4d2e-a68a-d9c9e3322f62.pdf",
+      "ts": "2026-09-25T21:24:27.390000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Closure of Trading Window",
+      "category": "Insider Trading / SAST",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c4670179-367e-443b-8d0c-317d5f76d848.pdf",
+      "ts": "2026-09-25T15:10:13.127000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d7c49eb6-3690-4a85-a927-c824f133deca.pdf",
+      "ts": "2026-09-15T15:30:09.953000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Credit Rating",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/5a51b3f0-3d74-4592-b23d-c3a5955e7156.pdf",
+      "ts": "2026-09-08T18:23:40.280000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/2283346f-a1a0-4dbc-b27a-44caadd5634d.pdf",
+      "ts": "2026-09-04T10:56:25.860000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Reg. 34 (1) Annual Report.",
+      "category": "Others",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8de83cfc-9748-4434-90fb-27ad55f3333f.pdf",
+      "ts": "2026-09-03T11:27:09.807000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Notice Of Annual General Meeting Scheduled On 25/09/2026",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/a2a5087c-8ed6-4f82-b2ef-e45492bb31b9.pdf",
+      "ts": "2026-09-02T19:01:16.337000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Fixes Book Closure From 19Th September, 2026 To 25Th September, 2026 (Both Days Inclusive)",
+      "category": "Corp. Action",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/a91e3c32-e70f-4d81-b336-fac08bfa9a9e.pdf",
+      "ts": "2026-08-29T13:07:40.930000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Annual General Meeting On 25Th September, 2026",
+      "category": "AGM/EGM",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4cb40e7e-0af7-4aad-b908-f8aa5bbacbae.pdf",
+      "ts": "2026-08-22T12:51:48.603000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/70f90ad7-fffb-4248-b1b7-e48f521a678d.pdf",
+      "ts": "2026-08-06T12:37:03.990000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0f5bd196-e58c-4bf9-812a-e39791cecf4c.pdf",
+      "ts": "2026-08-05T15:56:31.770000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Unaudited Standalone Financial Results For The Quarter Ended June 30,2026",
+      "category": "Result",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8c56ff30-b681-4df4-91e5-afbea2169a31.pdf",
+      "ts": "2026-08-05T15:46:56.377000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Board Meeting Outcome for Outcome Of Board Meeting On 05.08.2026",
+      "category": "Board Meeting",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ecb06f6b-e454-4119-b10f-cc0da9baa7f6.pdf",
+      "ts": "2026-08-05T15:36:34.230000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Resignation of Director",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/11c7c87b-aad1-475a-8c91-a187662cae6c.pdf",
+      "ts": "2026-08-05T14:53:05.950000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Announcement under Regulation 30 (LODR)-Resignation of Chairman",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c9cc2bfa-85bd-4a32-beb8-12c76da577de.pdf",
+      "ts": "2026-08-05T14:47:31.893000+05:30"
+     },
+     {
+      "symbol": "COCHINM",
+      "exchange": "BSE",
+      "headline": "Disclosure Under Regulation 30 Of SEBI LODR Regulations,2015",
+      "category": "Company Update",
+      "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7c0bde74-737e-4d05-bf51-9a8227ff680f.pdf",
+      "ts": "2026-08-04T19:05:42.263000+05:30"
+     }
+    ]
+   }
+  },
+  "source_floor": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "cited": 0,
+    "floor": 3
+   },
+   "note": "0 sources (below 3)"
+  }
+ },
+ "web": {
+  "available": false,
+  "citations": [],
+  "results": [],
+  "reason": "timeout",
+  "note": "Web search did not answer within 8s \u2014 structured data only"
+ },
+ "suggested_layout": "research-cockpit",
+ "suggested_indicators": [
+  "ma",
+  "volume",
+  "rsi",
+  "macd"
+ ],
+ "execution_loop": "fast",
+ "depth": "normal",
+ "execution": {
+  "run_id": "5d03738ca45641e09c3c5a3d092e932b",
+  "requested_depth": "normal",
+  "loop": "fast",
+  "backend": null,
+  "started_at": 1791020565.811451,
+  "finished_at": 1791020574.8091562,
+  "degraded_reason": null
+ },
+ "brief": {
+  "query": "Cochin Minerals and Rutile",
+  "symbol": "COCHINM",
+  "mode": "fast",
+  "depth": "quick",
+  "execution": {
+   "run_id": "5d03738ca45641e09c3c5a3d092e932b",
+   "requested_depth": "normal",
+   "loop": "fast",
+   "backend": null,
+   "started_at": 1791020565.811451,
+   "finished_at": 1791020574.8091562,
+   "degraded_reason": null
+  },
+  "markdown": "",
+  "sources": [],
+  "structured": {
+   "price": {
+    "ok": true,
+    "provider": "bse",
+    "data": {
+     "symbol": "COCHINM",
+     "price": 293.4,
+     "change": -5.400000000000034,
+     "change_percent": -1.807228915662662,
+     "volume": 3677.0,
+     "open": 295.0,
+     "high": 303.0,
+     "low": 293.0,
+     "prev_close": 298.8,
+     "currency": "INR",
+     "market_state": "CLOSED",
+     "timestamp": "2026-10-01T00:00:00Z",
+     "provider": "bse",
+     "freshness": null
+    }
+   },
+   "fundamentals": {
+    "ok": true,
+    "provider": "openbb-mcp",
+    "data": {
+     "symbol": "COCHINM.BO",
+     "name": "Cochin Minerals and Rutile Limited",
+     "sector": "Basic Materials",
+     "industry": "Other Industrial Metals & Mining",
+     "sector_source": null,
+     "currency": null,
+     "financial_currency": "INR",
+     "ratio_price": null,
+     "market_cap": 2325118720.0,
+     "pe_ratio": null,
+     "forward_pe": null,
+     "peg_ratio": null,
+     "price_to_book": null,
+     "price_to_sales": null,
+     "ev_to_ebitda": null,
+     "book_value": null,
+     "dividend_yield": null,
+     "dividend_per_share": null,
+     "eps": 27.61,
+     "beta": 1.028,
+     "fifty_two_week_high": null,
+     "fifty_two_week_low": null,
+     "fifty_two_week_change": null,
+     "fifty_two_week_high_date": null,
+     "fifty_two_week_low_date": null,
+     "listing_date": null,
+     "first_trade_date": null,
+     "forward_pe_fiscal_year": null,
+     "roe": null,
+     "roa": null,
+     "gross_margin": null,
+     "operating_margin": null,
+     "profit_margin": null,
+     "debt_to_equity": null,
+     "current_ratio": null,
+     "quick_ratio": null,
+     "roce": null,
+     "basis": null,
+     "revenue_ttm": 3436670000.0,
+     "net_income_ttm": 216220000.0,
+     "free_cash_flow": null,
+     "shares_outstanding": null,
+     "revenue_growth": 0.7469323112140328,
+     "earnings_growth": 2.7900214263850627,
+     "growth_basis": "mrq_yoy",
+     "held_percent_insiders": null,
+     "held_percent_institutions": null,
+     "dividend_per_share_ttm": null,
+     "revenue_growth_computed": 0.7469323112140328,
+     "earnings_growth_computed": 2.7900214263850627,
+     "growth_computed_quarters": {
+      "mrq": "2026-06-30",
+      "prior": "2025-06-30"
+     },
+     "field_meta": {
+      "revenue_ttm": {
+       "status": "ok",
+       "provider": "bse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+       "basis_note": null
+      },
+      "net_income_ttm": {
+       "status": "ok",
+       "provider": "bse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+       "basis_note": null
+      },
+      "eps": {
+       "status": "ok",
+       "provider": "bse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "standalone, sum of 4 filed quarters to 2026-06-30",
+       "basis_note": null
+      },
+      "revenue_growth": {
+       "status": "ok",
+       "provider": "bse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+       "basis_note": null
+      },
+      "earnings_growth": {
+       "status": "ok",
+       "provider": "bse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "standalone, period to 2026-06-30 vs the same period to 2025-06-30",
+       "basis_note": null
+      },
+      "dividend_per_share_ttm": {
+       "status": "unavailable",
+       "provider": "yfinance",
+       "reason": "dividend history unavailable"
+      }
+     },
+     "provider": "openbb-mcp",
+     "identity_note": null,
+     "market_cap_witness": {
+      "shares_outstanding": 7830018.0,
+      "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)",
+      "scrip_code": "513353",
+      "as_of": "2026-06-11"
+     }
+    }
+   },
+   "derived": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "drawdown_from_high": {
+      "value": null,
+      "label": "Below 52-week high",
+      "basis": "vs 52w high",
+      "formula": "(52w high - price) / 52w high",
+      "unit": "fraction"
+     },
+     "fifty_two_week_change": {
+      "value": null,
+      "label": "52-week price change (Yahoo)",
+      "basis": "trailing 52 weeks",
+      "unit": "fraction"
+     },
+     "dividend_yield": {
+      "value": null,
+      "label": "Dividend yield",
+      "basis": "fraction of price",
+      "unit": "fraction"
+     },
+     "dividend_per_share": {
+      "value": null,
+      "label": "Dividend per share",
+      "basis": "per share, listing currency",
+      "unit": "currency"
+     },
+     "revenue_growth": {
+      "value": 0.7469323112140328,
+      "label": "Revenue growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction",
+      "display": "74.69%"
+     },
+     "earnings_growth": {
+      "value": 2.7900214263850627,
+      "label": "Earnings growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction",
+      "display": "279.00%"
+     },
+     "market_cap": {
+      "value": 2325118720.0,
+      "label": "Market cap",
+      "basis": "provider market cap",
+      "unit": "currency",
+      "display": "2.33B"
+     },
+     "conflicts": [
+      {
+       "field": "identity",
+       "kind": "identity_conflict",
+       "similarity": 0.4,
+       "sources": [
+        {
+         "provider": "resolver (canonical master)",
+         "value": "Cochin Minerals & Rutiles Ltd-$"
+        },
+        {
+         "provider": "openbb-mcp",
+         "value": "Cochin Minerals and Rutile Limited"
+        }
+       ],
+       "note": "The fundamentals provider (openbb-mcp) reports the company name 'Cochin Minerals and Rutile Limited' for COCHINM, which materially disagrees with the resolver's canonical name 'Cochin Minerals & Rutiles Ltd-$' (token-set similarity 40% < 50%). This can indicate a symbol rename or a mis-resolution; the identities are NOT reconciled automatically.",
+       "symbol": "COCHINM",
+       "conflict_kind": "data_conflict"
+      }
+     ]
+    }
+   },
+   "news": {
+    "ok": true,
+    "provider": null,
+    "data": []
+   },
+   "filings": {
+    "ok": true,
+    "provider": "bse",
+    "data": {
+     "symbol": "COCHINM",
+     "exchange": null,
+     "coverage": "covered",
+     "sources": [
+      "BSE"
+     ],
+     "errors": {},
+     "count": 20,
+     "announcements": [
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/18e910c6-bae9-47e2-91ba-fc887998e517.pdf",
+       "ts": "2026-09-26T16:22:48.360000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Shareholder Meeting / Postal Ballot-Scrutinizer''s Report",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/75648901-e9c7-42c3-99fe-b6a47daad7a3.pdf",
+       "ts": "2026-09-26T16:11:23.720000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Disclosure under Regulation 30A of LODR",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ebff6e08-6f59-4b9a-afb3-efd062f2fd90.pdf",
+       "ts": "2026-09-26T15:06:20.313000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7f813194-c4d0-4f72-a162-75bb48f089ac.pdf",
+       "ts": "2026-09-26T11:11:44.120000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Shareholder Meeting / Postal Ballot-Outcome of AGM",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/55028ba3-c58b-4d2e-a68a-d9c9e3322f62.pdf",
+       "ts": "2026-09-25T21:24:27.390000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Closure of Trading Window",
+       "category": "Insider Trading / SAST",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c4670179-367e-443b-8d0c-317d5f76d848.pdf",
+       "ts": "2026-09-25T15:10:13.127000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/d7c49eb6-3690-4a85-a927-c824f133deca.pdf",
+       "ts": "2026-09-15T15:30:09.953000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Credit Rating",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/5a51b3f0-3d74-4592-b23d-c3a5955e7156.pdf",
+       "ts": "2026-09-08T18:23:40.280000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/2283346f-a1a0-4dbc-b27a-44caadd5634d.pdf",
+       "ts": "2026-09-04T10:56:25.860000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Reg. 34 (1) Annual Report.",
+       "category": "Others",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8de83cfc-9748-4434-90fb-27ad55f3333f.pdf",
+       "ts": "2026-09-03T11:27:09.807000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Notice Of Annual General Meeting Scheduled On 25/09/2026",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/a2a5087c-8ed6-4f82-b2ef-e45492bb31b9.pdf",
+       "ts": "2026-09-02T19:01:16.337000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Fixes Book Closure From 19Th September, 2026 To 25Th September, 2026 (Both Days Inclusive)",
+       "category": "Corp. Action",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/a91e3c32-e70f-4d81-b336-fac08bfa9a9e.pdf",
+       "ts": "2026-08-29T13:07:40.930000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Annual General Meeting On 25Th September, 2026",
+       "category": "AGM/EGM",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/4cb40e7e-0af7-4aad-b908-f8aa5bbacbae.pdf",
+       "ts": "2026-08-22T12:51:48.603000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Newspaper Publication",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/70f90ad7-fffb-4248-b1b7-e48f521a678d.pdf",
+       "ts": "2026-08-06T12:37:03.990000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Change in Directorate",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/0f5bd196-e58c-4bf9-812a-e39791cecf4c.pdf",
+       "ts": "2026-08-05T15:56:31.770000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Unaudited Standalone Financial Results For The Quarter Ended June 30,2026",
+       "category": "Result",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/8c56ff30-b681-4df4-91e5-afbea2169a31.pdf",
+       "ts": "2026-08-05T15:46:56.377000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Board Meeting Outcome for Outcome Of Board Meeting On 05.08.2026",
+       "category": "Board Meeting",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/ecb06f6b-e454-4119-b10f-cc0da9baa7f6.pdf",
+       "ts": "2026-08-05T15:36:34.230000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Resignation of Director",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/11c7c87b-aad1-475a-8c91-a187662cae6c.pdf",
+       "ts": "2026-08-05T14:53:05.950000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Announcement under Regulation 30 (LODR)-Resignation of Chairman",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/c9cc2bfa-85bd-4a32-beb8-12c76da577de.pdf",
+       "ts": "2026-08-05T14:47:31.893000+05:30"
+      },
+      {
+       "symbol": "COCHINM",
+       "exchange": "BSE",
+       "headline": "Disclosure Under Regulation 30 Of SEBI LODR Regulations,2015",
+       "category": "Company Update",
+       "attachment_url": "https://www.bseindia.com/xml-data/corpfiling/AttachHis/7c0bde74-737e-4d05-bf51-9a8227ff680f.pdf",
+       "ts": "2026-08-04T19:05:42.263000+05:30"
+      }
+     ]
+    }
+   },
+   "source_floor": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "cited": 0,
+     "floor": 3
+    },
+    "note": "0 sources (below 3)"
+   }
+  },
+  "cost": null,
+  "web_available": false,
+  "note": "Web search did not answer within 8s \u2014 structured data only",
+  "web_reason": "timeout",
+  "backend": null
+ }
+}

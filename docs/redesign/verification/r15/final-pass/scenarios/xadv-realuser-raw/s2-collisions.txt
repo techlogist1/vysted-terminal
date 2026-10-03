@@ -1,0 +1,18 @@
+== HAL region=default
+{"symbol":"HAL","price":4601.0,"change":-67.0,"change_percent":-1.4353041988003428,"volume":739864.0,"open":4666.0,"high":4699.7,"low":4559.3,"prev_close":4668.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider":"nse_direct
+  F: {'symbol': 'HAL.NS', 'name': 'Hindustan Aeronautics Limited', 'currency': 'INR', 'market_cap': 3077033689088.0, 'pe_ratio': 33.003372, 'eps': 139.38, 'revenue_ttm': 337849800000.0, 'net_income_ttm': 93214700000.0, 'book_value': 613.676, 'roe': 0.22712610384901777, 'fifty_two_week_high': 5149.9, 'fifty_two_week_low': 3479.1, 'sector': 'Industrials'}
+== HAL region=US
+{"symbol":"HAL","price":31.850000381469727,"change":3.8146972514141453e-7,"change_percent":1.1977071433011445e-6,"volume":8102800.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-10-02T20:00:03Z","pr
+  F: {'symbol': 'HAL', 'name': 'Halliburton Company', 'currency': 'USD', 'market_cap': 26607419392.0, 'pe_ratio': 16.675394, 'eps': 1.91, 'revenue_ttm': 22372999168.0, 'net_income_ttm': 1602000000.0, 'book_value': 13.201, 'roe': 0.14917, 'fifty_two_week_high': 43.59, 'fifty_two_week_low': 21.46, 'sector': 'Energy'}
+== IEX region=default
+{"symbol":"IEX","price":105.98,"change":-1.019999999999996,"change_percent":-0.9532710280373795,"volume":3180623.0,"open":107.01,"high":107.38,"low":104.18,"prev_close":107.0,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provider
+  F: {'symbol': 'IEX.NS', 'name': 'Indian Energy Exchange Limited', 'currency': 'INR', 'market_cap': 94248050688.0, 'pe_ratio': 18.592983, 'eps': 5.7, 'revenue_ttm': 6317723000.0, 'net_income_ttm': 5069812000.0, 'book_value': 15.247, 'roe': 0.3715338146401177, 'fifty_two_week_high': 160.27, 'fifty_two_week_low': 104.18, 'sector': 'Financial Services'}
+== IEX region=US
+{"symbol":"IEX","price":232.99000549316406,"change":3.140005493164068,"change_percent":1.3661107214113848,"volume":641100.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-10-02T20:03:30Z","provider":
+  F: {'symbol': 'IEX', 'name': 'IDEX Corporation', 'currency': None, 'market_cap': 17175998464.0, 'pe_ratio': 33.57205, 'eps': None, 'revenue_ttm': None, 'net_income_ttm': None, 'book_value': None, 'roe': None, 'fifty_two_week_high': None, 'fifty_two_week_low': None, 'sector': 'Industrials'}
+== SAIL region=default
+{"symbol":"SAIL","price":174.5,"change":-6.990000000000009,"change_percent":-3.8514518706264855,"volume":26206885.0,"open":180.5,"high":181.67,"low":170.67,"prev_close":181.49,"currency":"INR","market_state":"CLOSED","timestamp":"2026-10-01T00:00:00Z","provide
+  F: {'symbol': 'SAIL.NS', 'name': 'Steel Authority of India Limited', 'currency': None, 'market_cap': 720776658944.0, 'pe_ratio': 16.859903, 'eps': 10.34, 'revenue_ttm': 1111347500000.0, 'net_income_ttm': 42722700000.0, 'book_value': None, 'roe': None, 'fifty_two_week_high': None, 'fifty_two_week_low': None, 'sector': 'Basic Materials'}
+== SAIL region=US
+{"symbol":"SAIL","price":20.43000030517578,"change":-0.21999969482421733,"change_percent":-1.0653738248146118,"volume":6806000.0,"open":null,"high":null,"low":null,"prev_close":null,"currency":"USD","market_state":null,"timestamp":"2026-10-02T20:00:00Z","provi
+  F: {'symbol': 'SAIL', 'name': 'SailPoint, Inc.', 'currency': 'USD', 'market_cap': 11663724544.0, 'pe_ratio': None, 'eps': -0.34, 'revenue_ttm': 1165543936.0, 'net_income_ttm': -197224000.0, 'book_value': 12.019, 'roe': -0.02884, 'fifty_two_week_high': 24.0, 'fifty_two_week_low': 10.3, 'sector': 'Technology'}

@@ -1,0 +1,568 @@
+{
+ "ok": true,
+ "query": "Halliburton",
+ "resolved": {
+  "ok": true,
+  "query": "Halliburton",
+  "region": "IN",
+  "status": "bound",
+  "reason": "score 0.97 >= accept at band 3",
+  "resolved": {
+   "symbol": "HAL",
+   "name": "HALLIBURTON CO",
+   "exchange": "US",
+   "region": "US",
+   "asset_class": "equity",
+   "yahoo_symbol": "HAL",
+   "confidence": 0.97,
+   "isin": "US4062161017",
+   "bse_code": null,
+   "industry": null,
+   "former_name": null,
+   "board": null,
+   "exchange_group": null,
+   "face_value": null
+  },
+  "needs_disambiguation": false,
+  "candidates": [
+   {
+    "symbol": "HAL",
+    "name": "HALLIBURTON CO",
+    "exchange": "US",
+    "region": "US",
+    "asset_class": "equity",
+    "yahoo_symbol": "HAL",
+    "confidence": 0.97,
+    "isin": "US4062161017",
+    "bse_code": null,
+    "industry": null,
+    "former_name": null,
+    "board": null,
+    "exchange_group": null,
+    "face_value": null
+   }
+  ]
+ },
+ "symbol": "HAL",
+ "structured": {
+  "price": {
+   "ok": true,
+   "provider": "nse_direct",
+   "data": {
+    "symbol": "HAL",
+    "price": 4601.0,
+    "change": -67.0,
+    "change_percent": -1.4353041988003428,
+    "volume": 739864.0,
+    "open": 4666.0,
+    "high": 4699.7,
+    "low": 4559.3,
+    "prev_close": 4668.0,
+    "currency": "INR",
+    "market_state": "CLOSED",
+    "timestamp": "2026-10-01T00:00:00Z",
+    "provider": "nse_direct",
+    "freshness": null
+   }
+  },
+  "fundamentals": {
+   "ok": true,
+   "provider": "openbb-mcp",
+   "data": {
+    "symbol": "HAL.NS",
+    "name": null,
+    "sector": null,
+    "industry": null,
+    "sector_source": null,
+    "currency": null,
+    "financial_currency": "INR",
+    "ratio_price": null,
+    "market_cap": 3077033689088.0,
+    "pe_ratio": 33.003372,
+    "forward_pe": 26.64076,
+    "peg_ratio": null,
+    "price_to_book": 7.4974413,
+    "price_to_sales": null,
+    "ev_to_ebitda": null,
+    "book_value": null,
+    "dividend_yield": 0.0043,
+    "dividend_per_share": null,
+    "eps": 139.38,
+    "beta": 0.499,
+    "fifty_two_week_high": null,
+    "fifty_two_week_low": null,
+    "fifty_two_week_change": null,
+    "fifty_two_week_high_date": null,
+    "fifty_two_week_low_date": null,
+    "listing_date": null,
+    "first_trade_date": null,
+    "forward_pe_fiscal_year": null,
+    "roe": null,
+    "roa": null,
+    "gross_margin": null,
+    "operating_margin": null,
+    "profit_margin": null,
+    "debt_to_equity": null,
+    "current_ratio": null,
+    "quick_ratio": null,
+    "roce": null,
+    "basis": null,
+    "revenue_ttm": 337849800000.0,
+    "net_income_ttm": 93214700000.0,
+    "free_cash_flow": null,
+    "shares_outstanding": null,
+    "revenue_growth": 0.1444612067623848,
+    "earnings_growth": 0.14880363066116478,
+    "growth_basis": "mrq_yoy",
+    "held_percent_insiders": null,
+    "held_percent_institutions": null,
+    "dividend_per_share_ttm": 45.0,
+    "revenue_growth_computed": 0.1444612067623848,
+    "earnings_growth_computed": 0.14880363066116478,
+    "growth_computed_quarters": {
+     "mrq": "2026-06-30",
+     "prior": "2025-06-30"
+    },
+    "field_meta": {
+     "revenue_ttm": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "net_income_ttm": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "eps": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+      "basis_note": null
+     },
+     "revenue_growth": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "earnings_growth": {
+      "status": "ok",
+      "provider": "nse",
+      "as_of": "2026-06-30",
+      "reason": null,
+      "label": "consolidated, period to 2026-06-30 vs the same period to 2025-06-30",
+      "basis_note": null
+     },
+     "dividend_per_share_ttm": {
+      "status": "ok",
+      "provider": "yfinance",
+      "reason": null,
+      "label": null
+     }
+    },
+    "provider": "openbb-mcp",
+    "identity_note": null,
+    "earnings_quality": {
+     "reported_net_income": 91156000000.0,
+     "normalized_income": 91740350805.18074,
+     "unusual_items": -779000000.0,
+     "tax_effect": -194649194.819259,
+     "one_off_net": -584350805.1807404,
+     "distortion_fraction": 0.006410448080002856,
+     "period": "2026-03-31"
+    },
+    "market_cap_witness": {
+     "shares_outstanding": 668774997.0,
+     "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)",
+     "scrip_code": "541154",
+     "as_of": "2026-06-11"
+    }
+   }
+  },
+  "derived": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "drawdown_from_high": {
+     "value": null,
+     "label": "Below 52-week high",
+     "basis": "vs 52w high",
+     "formula": "(52w high - price) / 52w high",
+     "unit": "fraction"
+    },
+    "fifty_two_week_change": {
+     "value": null,
+     "label": "52-week price change (Yahoo)",
+     "basis": "trailing 52 weeks",
+     "unit": "fraction"
+    },
+    "dividend_yield": {
+     "value": 0.0043,
+     "label": "Dividend yield",
+     "basis": "fraction of price",
+     "unit": "fraction",
+     "display": "0.43%"
+    },
+    "dividend_per_share": {
+     "value": null,
+     "label": "Dividend per share",
+     "basis": "per share, listing currency",
+     "unit": "currency"
+    },
+    "revenue_growth": {
+     "value": 0.1444612067623848,
+     "label": "Revenue growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction",
+     "display": "14.45%"
+    },
+    "earnings_growth": {
+     "value": 0.14880363066116478,
+     "label": "Earnings growth",
+     "basis": "quarterly YoY (MRQ)",
+     "unit": "fraction",
+     "display": "14.88%"
+    },
+    "market_cap": {
+     "value": 3077033689088.0,
+     "label": "Market cap",
+     "basis": "provider market cap",
+     "unit": "currency",
+     "display": "3.08T"
+    },
+    "conflicts": []
+   }
+  },
+  "news": {
+   "ok": true,
+   "provider": "rss",
+   "data": [
+    {
+     "id": "a6bde39b2fa1ee3e",
+     "title": "India's Hindustan Aeronautics posts strong quarterly results on project execution, deliveries",
+     "summary": "Aug 12 (Reuters) - India's Hindustan Aeronautics reported a nearly 15% rise in first-quarter profit on Wednesday, buoyed by robust execution of defence orders and steady progress on project deliveries",
+     "url": "https://sg.finance.yahoo.com/news/indias-hindustan-aeronautics-posts-strong-094857106.html?.tsrc=rss",
+     "source": "Yahoo! Finance: HAL.NS News",
+     "published_at": "2026-08-12T09:48:57Z",
+     "symbols": [
+      "HAL"
+     ],
+     "sentiment": 0.8957,
+     "sentiment_label": "positive",
+     "provider": "rss",
+     "via_symbol_feed": true
+    }
+   ]
+  },
+  "filings": {
+   "ok": false,
+   "provider": null,
+   "error": "filings timed out after 6s \u2014 dropped",
+   "reason": "provider_error"
+  },
+  "source_floor": {
+   "ok": true,
+   "provider": "derived",
+   "data": {
+    "cited": 0,
+    "floor": 3
+   },
+   "note": "0 sources (below 3)"
+  }
+ },
+ "web": {
+  "available": false,
+  "citations": [],
+  "results": [],
+  "reason": "timeout",
+  "note": "Web search did not answer within 8s \u2014 structured data only"
+ },
+ "suggested_layout": "research-cockpit",
+ "suggested_indicators": [
+  "ma",
+  "volume",
+  "rsi",
+  "macd"
+ ],
+ "execution_loop": "fast",
+ "depth": "normal",
+ "execution": {
+  "run_id": "6b5d4ab2a45444898dd50023239e6366",
+  "requested_depth": "normal",
+  "loop": "fast",
+  "backend": null,
+  "started_at": 1791020991.427555,
+  "finished_at": 1791020999.429805,
+  "degraded_reason": null
+ },
+ "brief": {
+  "query": "Halliburton",
+  "symbol": "HAL",
+  "mode": "fast",
+  "depth": "quick",
+  "execution": {
+   "run_id": "6b5d4ab2a45444898dd50023239e6366",
+   "requested_depth": "normal",
+   "loop": "fast",
+   "backend": null,
+   "started_at": 1791020991.427555,
+   "finished_at": 1791020999.429805,
+   "degraded_reason": null
+  },
+  "markdown": "",
+  "sources": [],
+  "structured": {
+   "price": {
+    "ok": true,
+    "provider": "nse_direct",
+    "data": {
+     "symbol": "HAL",
+     "price": 4601.0,
+     "change": -67.0,
+     "change_percent": -1.4353041988003428,
+     "volume": 739864.0,
+     "open": 4666.0,
+     "high": 4699.7,
+     "low": 4559.3,
+     "prev_close": 4668.0,
+     "currency": "INR",
+     "market_state": "CLOSED",
+     "timestamp": "2026-10-01T00:00:00Z",
+     "provider": "nse_direct",
+     "freshness": null
+    }
+   },
+   "fundamentals": {
+    "ok": true,
+    "provider": "openbb-mcp",
+    "data": {
+     "symbol": "HAL.NS",
+     "name": null,
+     "sector": null,
+     "industry": null,
+     "sector_source": null,
+     "currency": null,
+     "financial_currency": "INR",
+     "ratio_price": null,
+     "market_cap": 3077033689088.0,
+     "pe_ratio": 33.003372,
+     "forward_pe": 26.64076,
+     "peg_ratio": null,
+     "price_to_book": 7.4974413,
+     "price_to_sales": null,
+     "ev_to_ebitda": null,
+     "book_value": null,
+     "dividend_yield": 0.0043,
+     "dividend_per_share": null,
+     "eps": 139.38,
+     "beta": 0.499,
+     "fifty_two_week_high": null,
+     "fifty_two_week_low": null,
+     "fifty_two_week_change": null,
+     "fifty_two_week_high_date": null,
+     "fifty_two_week_low_date": null,
+     "listing_date": null,
+     "first_trade_date": null,
+     "forward_pe_fiscal_year": null,
+     "roe": null,
+     "roa": null,
+     "gross_margin": null,
+     "operating_margin": null,
+     "profit_margin": null,
+     "debt_to_equity": null,
+     "current_ratio": null,
+     "quick_ratio": null,
+     "roce": null,
+     "basis": null,
+     "revenue_ttm": 337849800000.0,
+     "net_income_ttm": 93214700000.0,
+     "free_cash_flow": null,
+     "shares_outstanding": null,
+     "revenue_growth": 0.1444612067623848,
+     "earnings_growth": 0.14880363066116478,
+     "growth_basis": "mrq_yoy",
+     "held_percent_insiders": null,
+     "held_percent_institutions": null,
+     "dividend_per_share_ttm": 45.0,
+     "revenue_growth_computed": 0.1444612067623848,
+     "earnings_growth_computed": 0.14880363066116478,
+     "growth_computed_quarters": {
+      "mrq": "2026-06-30",
+      "prior": "2025-06-30"
+     },
+     "field_meta": {
+      "revenue_ttm": {
+       "status": "ok",
+       "provider": "nse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+       "basis_note": null
+      },
+      "net_income_ttm": {
+       "status": "ok",
+       "provider": "nse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+       "basis_note": null
+      },
+      "eps": {
+       "status": "ok",
+       "provider": "nse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "consolidated, sum of 4 filed quarters to 2026-06-30",
+       "basis_note": null
+      },
+      "revenue_growth": {
+       "status": "ok",
+       "provider": "nse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "consolidated, period to 2026-06-30 vs the same period to 2025-06-30",
+       "basis_note": null
+      },
+      "earnings_growth": {
+       "status": "ok",
+       "provider": "nse",
+       "as_of": "2026-06-30",
+       "reason": null,
+       "label": "consolidated, period to 2026-06-30 vs the same period to 2025-06-30",
+       "basis_note": null
+      },
+      "dividend_per_share_ttm": {
+       "status": "ok",
+       "provider": "yfinance",
+       "reason": null,
+       "label": null
+      }
+     },
+     "provider": "openbb-mcp",
+     "identity_note": null,
+     "earnings_quality": {
+      "reported_net_income": 91156000000.0,
+      "normalized_income": 91740350805.18074,
+      "unusual_items": -779000000.0,
+      "tax_effect": -194649194.819259,
+      "one_off_net": -584350805.1807404,
+      "distortion_fraction": 0.006410448080002856,
+      "period": "2026-03-31"
+     },
+     "market_cap_witness": {
+      "shares_outstanding": 668774997.0,
+      "source": "BSE ListOfScripData (bundled India master) (as of 2026-06-11)",
+      "scrip_code": "541154",
+      "as_of": "2026-06-11"
+     }
+    }
+   },
+   "derived": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "drawdown_from_high": {
+      "value": null,
+      "label": "Below 52-week high",
+      "basis": "vs 52w high",
+      "formula": "(52w high - price) / 52w high",
+      "unit": "fraction"
+     },
+     "fifty_two_week_change": {
+      "value": null,
+      "label": "52-week price change (Yahoo)",
+      "basis": "trailing 52 weeks",
+      "unit": "fraction"
+     },
+     "dividend_yield": {
+      "value": 0.0043,
+      "label": "Dividend yield",
+      "basis": "fraction of price",
+      "unit": "fraction",
+      "display": "0.43%"
+     },
+     "dividend_per_share": {
+      "value": null,
+      "label": "Dividend per share",
+      "basis": "per share, listing currency",
+      "unit": "currency"
+     },
+     "revenue_growth": {
+      "value": 0.1444612067623848,
+      "label": "Revenue growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction",
+      "display": "14.45%"
+     },
+     "earnings_growth": {
+      "value": 0.14880363066116478,
+      "label": "Earnings growth",
+      "basis": "quarterly YoY (MRQ)",
+      "unit": "fraction",
+      "display": "14.88%"
+     },
+     "market_cap": {
+      "value": 3077033689088.0,
+      "label": "Market cap",
+      "basis": "provider market cap",
+      "unit": "currency",
+      "display": "3.08T"
+     },
+     "conflicts": []
+    }
+   },
+   "news": {
+    "ok": true,
+    "provider": "rss",
+    "data": [
+     {
+      "id": "a6bde39b2fa1ee3e",
+      "title": "India's Hindustan Aeronautics posts strong quarterly results on project execution, deliveries",
+      "summary": "Aug 12 (Reuters) - India's Hindustan Aeronautics reported a nearly 15% rise in first-quarter profit on Wednesday, buoyed by robust execution of defence orders and steady progress on project deliveries",
+      "url": "https://sg.finance.yahoo.com/news/indias-hindustan-aeronautics-posts-strong-094857106.html?.tsrc=rss",
+      "source": "Yahoo! Finance: HAL.NS News",
+      "published_at": "2026-08-12T09:48:57Z",
+      "symbols": [
+       "HAL"
+      ],
+      "sentiment": 0.8957,
+      "sentiment_label": "positive",
+      "provider": "rss",
+      "via_symbol_feed": true
+     }
+    ]
+   },
+   "filings": {
+    "ok": false,
+    "provider": null,
+    "error": "filings timed out after 6s \u2014 dropped",
+    "reason": "provider_error"
+   },
+   "source_floor": {
+    "ok": true,
+    "provider": "derived",
+    "data": {
+     "cited": 0,
+     "floor": 3
+    },
+    "note": "0 sources (below 3)"
+   }
+  },
+  "cost": null,
+  "web_available": false,
+  "note": "Web search did not answer within 8s \u2014 structured data only",
+  "web_reason": "timeout",
+  "backend": null
+ }
+}
