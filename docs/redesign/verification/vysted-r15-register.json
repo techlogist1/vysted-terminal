@@ -20877,6 +20877,28 @@
    "status": "open",
    "note": "Filed by the lead at 00:08 IST 4 Oct from the GUI-half preflight's blocked_env stop. Not answered: left for the operator to Deny. Filed for 0.9.1 / the signing briefing.",
    "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-144",
+   "title": "A double-suffixed spelling (RELIANCE.NS.NS) is normalised to the known listing by /fundamentals (200, NSE filings fallback, P/E and market cap typed null) but 404s on /quotes; five slash-containing symbols 404 with a bare {\"detail\":\"Not Found\"} and no typed code",
+   "severity": "low",
+   "area": "data",
+   "subsystem": "symbol-normalisation",
+   "files": [
+    "sidecar/routers/fundamentals.py",
+    "sidecar/routers/quotes.py"
+   ],
+   "repro": "Isolated sidecar at 1fddb2b1: GET /fundamentals/RELIANCE.NS.NS -> 200 (was a typed 404 at d38b5d1a); GET /quotes/RELIANCE.NS.NS -> 404. Slash symbols: byte-identical to the d38b5d1a record.",
+   "evidence": "docs/redesign/verification/r15/final-pass/rerun-launch/RERUN.md",
+   "root_cause": "The FINAL-005 filings fallback resolves through a normaliser that strips a repeated exchange suffix; the quotes route does not share it. Slash paths never reach the router, so FastAPI's default 404 answers.",
+   "fix_shape": "One shared symbol normaliser for both routes (either both accept or both refuse a repeated suffix); a typed 404 handler for unmatched paths.",
+   "defect_class": "consistency",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "Filed by the lead at 00:39 IST 4 Oct from the pre-launch re-run's adjacent notes under gate rule change 1. Serves the right company with typed nulls (no wrong figure). Filed for 0.9.1.",
+   "closure_evidence": ""
   }
  ],
  "rejections": [

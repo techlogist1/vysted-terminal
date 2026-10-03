@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 802 entries + 76 rejections. critical: 18 . high: 134 . medium: 355 . low: 295
+887 raw findings -> 803 entries + 76 rejections. critical: 18 . high: 134 . medium: 355 . low: 296
 
-Status: blocked_tier4: 35 . fixed: 629 . needs_gui: 4 . not_a_defect: 6 . open: 114 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 629 . needs_gui: 4 . not_a_defect: 6 . open: 115 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -353,7 +353,7 @@ Status: blocked_tier4: 35 . fixed: 629 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-LEAD-141** [high] 3-letter NSE tickers that are English words skip the common-word rule (the word list is 4+ letters and the occurrence rule covers only lowercase), so a sentence-initial or Title-Case use scores short-only 0.60 and is kept on an India host (ACE 'Ace shuttler PV Sindhu storms into final', DEN, CUB, PAR, KEN) — _fixed_
 - **R15-LEAD-142** [medium] Recall regression from the LEAD-136 fix: brand-only and list headlines for the 234 NSE word tickers now drop ('Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks', 'Titan, Trent lead Nifty gains...', 'Trent rallies 5% as Zudio...' were kept at base) — _open_
 
-### Data on small or obscure stocks (174)
+### Data on small or obscure stocks (175)
 
 - **R15-DATA-001** [critical] Income / balance-sheet / cash-flow statements (and one /fundamentals identity) for Indian tickers that collide with a US ticker serve the US company's real financials under the Indian name (DAL->Delta, CHTR->Charter, SAFE->Safehold, CSL->Carlisle, ICON->Icon Energy, AMAL->Amalgamated, SMR->NuScale, TTC->Toro, SUMAX->a US muni fund) — _fixed_
 - **R15-DATA-002** [critical] A bare ticker that exists in both the US and Indian masters binds silently to the session region, and every data panel re-queries the bare symbol, so the user who picked NASDAQ:AMAL or NYSE:SMR gets Amal Ltd / SMR Jewels quote, ratios and 52w range (and, for SMR, NuScale statements under the same header) — _blocked_tier4_
@@ -529,6 +529,7 @@ Status: blocked_tier4: 35 . fixed: 629 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-FINAL-027** [low] News titles keep raw HTML entities: the News Feed shows 'F&amp;O Talk: ...' literally (and the agent news tool gets the same) — _fixed_
 - **R15-LEAD-137** [high] Derived SME market cap and P/E use the weighted share count implied by filed TTM NI/EPS, so recently listed SME names show market cap and P/E ~23% low (CURIS 128.6 Cr / 18.59 vs 167 Cr / 24.1) — _fixed_
 - **R15-LEAD-139** [low] SUMAX/QUALIANCE /fundamentals is still a 404 whose body carries action 'Check the symbol or series id.' beside the correct typed not-covered detail — _open_
+- **R15-LEAD-144** [low] A double-suffixed spelling (RELIANCE.NS.NS) is normalised to the known listing by /fundamentals (200, NSE filings fallback, P/E and market cap typed null) but 404s on /quotes; five slash-containing symbols 404 with a bare {"detail":"Not Found"} and no typed code — _open_
 
 ## All entries by severity
 
@@ -1336,3 +1337,4 @@ Status: blocked_tier4: 35 . fixed: 629 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LEAD-141 | high | research | research-relevance | 3-letter NSE tickers that are English words skip the common-word rule (the word list is 4+ letters and the occurrence rule covers only lowercase), so a sentence-initial or Title-Case use scores short-only 0.60 and is kept on an India host (ACE 'Ace shuttler PV Sindhu storms into final', DEN, CUB, PAR, KEN) | fixed |  |
 | R15-LEAD-142 | medium | research | research-relevance | Recall regression from the LEAD-136 fix: brand-only and list headlines for the 234 NSE word tickers now drop ('Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks', 'Titan, Trent lead Nifty gains...', 'Trent rallies 5% as Zudio...' were kept at base) | open |  |
 | R15-LEAD-143 | low | distribution | keychain-signing | An unsigned 0.9.0 release launch raises a login-keychain SecurityAgent consent prompt at boot when vysted-terminal keychain items from another build exist; VYSTED_DATA_DIR isolates the data dir but not the keychain, so an isolated launch check still touches the real login keychain (and a window-only capture never shows the prompt) | open |  |
+| R15-LEAD-144 | low | data | symbol-normalisation | A double-suffixed spelling (RELIANCE.NS.NS) is normalised to the known listing by /fundamentals (200, NSE filings fallback, P/E and market cap typed null) but 404s on /quotes; five slash-containing symbols 404 with a bare {"detail":"Not Found"} and no typed code | open |  |
