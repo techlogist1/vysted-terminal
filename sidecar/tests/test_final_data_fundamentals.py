@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import date
 
 import pytest
@@ -119,3 +120,62 @@ def test_zero_beside_a_large_filed_institutions_figure_is_flagged_truthfully() -
     meta = out.field_meta["held_percent_institutions"]
     assert meta.status == "flagged"
     assert "0.00%" in meta.reason and "12.00%" in meta.reason and "beyond 3pp" in meta.reason
+
+
+# --- R15-FINAL-009: missing market cap derived from the BSE master count -------
+
+
+def _no_filings(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services import exchange_financials
+
+    async def none(_listing: str) -> None:
+        return None
+
+    monkeypatch.setattr(exchange_financials, "get_filed_periods", none)
+    correctness_gate.reset_witness_cache_for_tests()
+
+
+def _served(symbol: str, **fields: float) -> Fundamentals:
+    return Fundamentals(symbol=symbol, provider="nse", currency="INR", ratio_price=703.0, **fields)
+
+
+def test_amal_ns_market_cap_is_derived_from_the_master_share_count(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import market_cap_witness
+
+    _no_filings(monkeypatch)
+    master = market_cap_witness._lookup("AMAL.NS")
+    assert master is not None and master.scrip_code == "506597"
+
+    out = asyncio.run(correctness_gate.apply_witnesses(_served("AMAL.NS")))
+
+    assert out.shares_outstanding == master.shares_outstanding
+    assert out.market_cap == pytest.approx(703.0 * master.shares_outstanding)
+    meta = out.field_meta["market_cap"]
+    assert meta.status == "ok" and meta.provider == "derived"
+    assert "master share count" in meta.basis_note and "BSE ListOfScripData" in meta.basis_note
+    assert out.field_meta["shares_outstanding"].provider == "derived"
+
+
+def test_a_served_market_cap_is_never_overridden(monkeypatch: pytest.MonkeyPatch) -> None:
+    _no_filings(monkeypatch)
+    out = asyncio.run(
+        correctness_gate.apply_witnesses(
+            _served("AMAL.NS", market_cap=8_690_951_168.0, shares_outstanding=12_362_662.0)
+        )
+    )
+    assert out.market_cap == 8_690_951_168.0
+    assert out.shares_outstanding == 12_362_662.0
+    assert out.field_meta is None
+
+
+def test_another_companys_bse_row_under_the_same_ticker_is_not_used(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """NSE ZEAL (Zeal Global) vs BSE ZEAL (Zeal Aqua): the master row keyed by
+    the ticker is the other company's share count."""
+    _no_filings(monkeypatch)
+    out = asyncio.run(correctness_gate.apply_witnesses(_served("ZEAL.NS")))
+    assert out.market_cap is None
+    assert out.shares_outstanding is None

@@ -42,6 +42,7 @@ from services import (
     exchange_financials,
     fundamentals_store,
     locale,
+    market_cap_witness,
     ownership_check,
     symbol_resolver,
     yfinance_provider,
@@ -1019,6 +1020,54 @@ def reconcile_52w_range(
     return _merge_meta(f, {}, flagged)
 
 
+def fill_market_cap_from_master(
+    f: Fundamentals, witness: market_cap_witness.MarketCapWitness | None
+) -> Fundamentals:
+    """Derive a missing ``market_cap`` (and ``shares_outstanding``) for an
+    Indian listing from the app's own BSE-derived master share count
+    (R15-FINAL-009: AMAL.NS served neither while AMAL.BO served both).
+
+    Only when the provider published neither figure, the ratio price is
+    known, and the master row is this listing's own company: the BSE row
+    under an NSE ticker can be another company (NSE ZEAL vs BSE Zeal Aqua),
+    so an NSE listing needs its same-company BSE dual listing to carry that
+    scrip code. Stamped ``derived`` with the basis; never overrides a value."""
+    price = f.ratio_price
+    if witness is None or f.market_cap is not None or f.shares_outstanding is not None:
+        return f
+    if price is None or price <= 0:
+        return f
+    bare = locale.strip_exchange_suffix(f.symbol).removesuffix("-SM")
+    own_code = (
+        symbol_resolver.dual_listed_bse_code(bare)
+        if f.symbol.strip().upper().endswith(".NS")
+        else symbol_resolver.bse_scrip_code(bare)
+    )
+    if own_code != witness.scrip_code:
+        return f
+    shares = witness.shares_outstanding
+    meta = dict(f.field_meta or {})
+    price_meta = meta.get("ratio_price")
+    meta["shares_outstanding"] = FieldMeta(
+        status="ok",
+        provider="derived",
+        as_of=witness.as_of,
+        basis_note=f"BSE scrip {witness.scrip_code} share count from {witness.source}",
+    )
+    meta["market_cap"] = FieldMeta(
+        status="ok",
+        provider="derived",
+        as_of=price_meta.as_of if price_meta is not None else witness.as_of,
+        basis_note=(
+            f"ratio price x master share count ({price:,.4g} x {shares:,.0f}, "
+            f"shares from {witness.source})"
+        ),
+    )
+    return f.model_copy(
+        update={"shares_outstanding": shares, "market_cap": price * shares, "field_meta": meta}
+    )
+
+
 async def _dividend_witness(symbol: str) -> dividend_history.DividendTTM | None:
     """The paid-TTM dividend history for ``symbol``; a failed round-trip is
     ``None`` so :func:`_cached_witness` does not keep it."""
@@ -1046,6 +1095,8 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         the research snapshot runs (R15-DATA-047/049);
       * for a yfinance-served 52-week range on an Indian listing, a year of
         NSE + BSE daily bars → :func:`reconcile_52w_range` (R15-DATA-015/016);
+      * for an Indian listing with no published market cap, the bundled BSE
+        master share count → :func:`fill_market_cap_from_master`;
       * for an Indian listing, the exchange-filed results →
         :func:`overlay_filed_periods` (D-B7-1). A trailing revenue served from
         the filings is not reconciled against Yahoo's statements; one left as
@@ -1086,7 +1137,12 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
             "range52w", f.symbol, lambda: range_check.get_venue_history(f.symbol)
         )
 
-    exchange, annual, quarter_ends, equity, paid, venues, filed = await asyncio.gather(
+    async def master_shares() -> market_cap_witness.MarketCapWitness | None:
+        if f.market_cap is not None or not market_cap_witness.is_applicable(f.symbol):
+            return None
+        return await market_cap_witness.get_market_cap_witness(f.symbol)
+
+    exchange, annual, quarter_ends, equity, paid, venues, filed, master = await asyncio.gather(
         ownership(),
         statement("income", yfinance_provider.get_income_statement, check_revenue),
         statement("quarters", yfinance_provider.get_quarterly_period_ends, check_revenue),
@@ -1094,7 +1150,9 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         dividends(),
         venue_history(),
         exchange_financials.get_filed_periods(f.symbol),
+        master_shares(),
     )
+    f = fill_market_cap_from_master(f, master)
     if check_ownership:
         f = reconcile_ownership(f, exchange)
     if filed is not None:
@@ -1119,6 +1177,7 @@ __all__ = [
     "CorrectnessError",
     "apply_exchange_financials",
     "apply_witnesses",
+    "fill_market_cap_from_master",
     "overlay_filed_periods",
     "reconcile_52w_range",
     "reconcile_book_value",
