@@ -1,0 +1,11 @@
+0ab48b25cba617ed3a4acca0161813b314c095ef63544bb4af60769eb1012977  ./backups/unversioned-2026-10-04/data_cache.db
+625d674ca5422f9dff8c848542e7f45295efdb4e4743f34c24128afcb8f09ec5  ./backups/unversioned-2026-10-04/data_cache.db-shm
+4896d2901e51fa8395d5100b9ad95cd976083444f10286aacd4f1d6485f837a2  ./backups/unversioned-2026-10-04/data_cache.db-wal
+71d72bb9ffd93a82bee1e492d1fe3a6e5b41417b3c85c301fa4cdf19b5639e52  ./backups/unversioned-2026-10-04/plugins.db
+0ab48b25cba617ed3a4acca0161813b314c095ef63544bb4af60769eb1012977  ./data_cache.db
+d71fc8b339a8c8eb5523dcbf4bb120adde8364a53b047635ee4e6e15ca2056e2  ./data_cache.db-shm
+ef99214a175ba5efe9f71fef8995e08798ccca3466d7c08202e7847c6de4c109  ./data_cache.db-wal
+59cc1ffc176b942a5a35e802e0f92da37a40eaa0af7e6b55fdcba38981615154  ./fundamentals_cache.db
+ccad1c26551307fdafbca0cf722ef3813e19e65ee86258168ebc691791b97c8c  ./plugins.db
+a1d56571bc5b296ee95adeae114f72784c6675ae365575db67b0459a51b48e3d  ./resolver_masters/nse_instruments.json
+6cdbb3a10db4f5094e434c9c409696aa056e5ca4c4be7cd270e3a98059175253  ./workflows.db

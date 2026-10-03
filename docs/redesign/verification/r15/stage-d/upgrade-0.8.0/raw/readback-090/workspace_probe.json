@@ -1,0 +1,120 @@
+{
+    "enabledModules": {
+        "agent-builder": true,
+        "chart": true,
+        "news": true,
+        "node-editor": true,
+        "portfolio": true,
+        "screener": false,
+        "watchlist": true
+    },
+    "layout": {
+        "activeGroup": "1",
+        "grid": {
+            "height": 1080,
+            "orientation": "HORIZONTAL",
+            "root": {
+                "data": [
+                    {
+                        "data": {
+                            "activeView": "chart-1",
+                            "id": "1",
+                            "views": [
+                                "chart-1"
+                            ]
+                        },
+                        "size": 1280,
+                        "type": "leaf"
+                    },
+                    {
+                        "data": [
+                            {
+                                "data": {
+                                    "activeView": "watchlist-1",
+                                    "id": "2",
+                                    "views": [
+                                        "watchlist-1"
+                                    ]
+                                },
+                                "size": 540,
+                                "type": "leaf"
+                            },
+                            {
+                                "data": {
+                                    "activeView": "portfolio-1",
+                                    "id": "3",
+                                    "views": [
+                                        "portfolio-1"
+                                    ]
+                                },
+                                "size": 540,
+                                "type": "leaf"
+                            }
+                        ],
+                        "size": 640,
+                        "type": "branch"
+                    }
+                ],
+                "size": 1080,
+                "type": "branch"
+            },
+            "width": 1920
+        },
+        "panels": {
+            "chart-1": {
+                "contentComponent": "chart",
+                "id": "chart-1",
+                "title": "Chart"
+            },
+            "portfolio-1": {
+                "contentComponent": "portfolio",
+                "id": "portfolio-1",
+                "title": "Portfolio"
+            },
+            "watchlist-1": {
+                "contentComponent": "watchlist",
+                "id": "watchlist-1",
+                "title": "Watchlist"
+            }
+        }
+    },
+    "name": "Research_Desk-2",
+    "notes": [
+        {
+            "body": "Data-centre capex cycle; watch hyperscaler guidance on 2027 spend.",
+            "id": "note-1",
+            "title": "NVDA thesis",
+            "updatedAt": 1775000000000
+        }
+    ],
+    "watchlist": [
+        {
+            "assetClass": "equity",
+            "symbol": "AAPL"
+        },
+        {
+            "assetClass": "equity",
+            "symbol": "MSFT"
+        },
+        {
+            "assetClass": "equity",
+            "symbol": "NVDA"
+        },
+        {
+            "assetClass": "equity",
+            "symbol": "SPY"
+        },
+        {
+            "assetClass": "equity",
+            "symbol": "QQQ"
+        },
+        {
+            "assetClass": "crypto",
+            "symbol": "BTC/USDT"
+        },
+        {
+            "assetClass": "crypto",
+            "symbol": "ETH/USDT"
+        }
+    ]
+}

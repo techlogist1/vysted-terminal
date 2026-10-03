@@ -1,0 +1,1 @@
+{"plugin_id":"vysted-news","enabled":false,"settings":{"sources":["reuters","wsj"],"sentiment":"on","maxItems":40},"granted_secret_ids":["newsapi-key"]} HTTP200

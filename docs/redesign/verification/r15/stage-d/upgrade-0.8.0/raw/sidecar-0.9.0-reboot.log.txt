@@ -1,0 +1,20 @@
+2026-10-04 01:07:36,893 INFO services.backtest_strategies: backtest_strategies: registered mean_reversion, trend_following, regime_aware, custom
+2026-10-04 01:07:36,893 INFO services.agent_tools: agent_tools: registered v0.5.0 tools (price_data, fundamentals)
+2026-10-04 01:07:36,894 INFO services.agent_tools: agent_tools: registered v0.6.0 domains: macro, sec, quant, earnings+analyst, screener, news, market_overview, resolve_symbol, compare_symbols, web_search, research, disclosures, backtest-custom
+2026-10-04 01:07:38,365 INFO uvicorn.error: Started server process [48991]
+2026-10-04 01:07:38,365 INFO uvicorn.error: Waiting for application startup.
+2026-10-04 01:07:38,370 INFO mcp.server.streamable_http_manager: StreamableHTTP session manager started
+2026-10-04 01:07:38,424 INFO uvicorn.error: Application startup complete.
+2026-10-04 01:07:38,430 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:52152 (Press CTRL+C to quit)
+2026-10-04 01:07:38,788 INFO services.fundamentals_warm: fundamentals warm: seeded 5891 india rows
+2026-10-04 01:07:38,857 INFO services.fundamentals_warm: fundamentals warm: bhavcopy EOD applied to 2923 NSE rows (trade date 2026-10-02)
+2026-10-04 01:07:38,996 INFO services.fundamentals_warm: fundamentals warm: seed pack applied to 5050 rows (2026-07-08)
+2026-10-04 01:07:39,830 INFO uvicorn.access: 127.0.0.1:49844 - "GET /health HTTP/1.1" 200
+2026-10-04 01:07:39,842 INFO uvicorn.access: 127.0.0.1:49845 - "GET /portfolio/positions HTTP/1.1" 200
+2026-10-04 01:07:39,895 INFO uvicorn.access: 127.0.0.1:49846 - "GET /custom-agents HTTP/1.1" 200
+2026-10-04 01:07:39,936 INFO uvicorn.access: 127.0.0.1:49847 - "GET /workflow/saved HTTP/1.1" 200
+2026-10-04 01:07:39,976 INFO uvicorn.access: 127.0.0.1:49848 - "GET /workspace/Main%20Desk HTTP/1.1" 200
+2026-10-04 01:07:40,017 INFO uvicorn.access: 127.0.0.1:49849 - "GET /workspace/Research_Desk-2 HTTP/1.1" 200
+2026-10-04 01:07:40,060 INFO uvicorn.access: 127.0.0.1:49850 - "GET /health HTTP/1.1" 200
+2026-10-04 01:07:40,380 INFO httpx: HTTP Request: GET http://127.0.0.1:8888/search?q=test&format=json "HTTP/1.1 200 OK"
+2026-10-04 01:07:40,639 INFO httpx: HTTP Request: GET http://127.0.0.1:8888/search?q=test&format=json "HTTP/1.1 200 OK"

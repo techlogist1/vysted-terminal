@@ -1,0 +1,9 @@
+== custom_agents.db user_version=0
+custom_agents 1
+== data_cache.db user_version=0
+cache 1
+== portfolio.db user_version=0
+positions 3
+sqlite_sequence 1
+== workflows.db user_version=0
+workflows 1

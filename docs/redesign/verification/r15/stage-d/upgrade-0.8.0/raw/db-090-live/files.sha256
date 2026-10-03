@@ -1,0 +1,19 @@
+7f57791c13158a4ee32e6bb524a82411bc531c1d4291c6bc04ba350f4cff4e18  ./backups/unversioned-2026-10-04/custom_agents.db
+0ab48b25cba617ed3a4acca0161813b314c095ef63544bb4af60769eb1012977  ./backups/unversioned-2026-10-04/data_cache.db
+4436ffc492ad233fc739e6249461aa3cecc59ee85d39e93f3a11095a8b0e9211  ./backups/unversioned-2026-10-04/data_cache.db-shm
+1241aaa49033e421c29c334d5c237709378cc6db8db2800519a5354e91734d96  ./backups/unversioned-2026-10-04/data_cache.db-wal
+24d2991e3835bd38e99af2d7ba1ce33a941af251c6c179bdc655ca2f6f684b0a  ./backups/unversioned-2026-10-04/portfolio.db
+cf5fd607c5726ef2b1b3015a20fe941839b8517f4f57751b5329774b4d35f4d2  ./backups/unversioned-2026-10-04/workflows.db
+e92fe62bc1bffad5a4df5cb8321f7ca6948c19e63cd055da93b6c2352870cfa7  ./backups/unversioned-2026-10-04/workspaces/Main Desk.vysted-workspace
+3632e5b2ad122d693ccc50d2b754154d75c5eafcf4e18ac1662251b615552d6f  ./backups/unversioned-2026-10-04/workspaces/Research_Desk-2.vysted-workspace
+facdbf674996ec0fe9e4cbdf4c7e25245fec31b4584f2efce9489ace25e153fc  ./custom_agents.db
+0ab48b25cba617ed3a4acca0161813b314c095ef63544bb4af60769eb1012977  ./data_cache.db
+b7387107db794d35b29720a19b05d157c8db58896431a4cb5e2cd0a064d5b1fc  ./data_cache.db-shm
+188d330cc49b47ed71437c094c2a92268ebee9da6a1d08a10a02d05116da31d9  ./data_cache.db-wal
+399dc529f3ca254462646300c61fc8f5a71034b970131b87e960c087fe2f505a  ./fundamentals_cache.db
+2ee49d57aefe108ae920d301e6301813b9337b2d38b664296b6f093f3bdbc567  ./portfolio.db
+11289e0ad61bf7b1b8766b835026268bbe4bb81fceae8ee737d3c60dd58e3e95  ./resolver_masters/bse_instruments.json
+a1d56571bc5b296ee95adeae114f72784c6675ae365575db67b0459a51b48e3d  ./resolver_masters/nse_instruments.json
+1b67edc61d7793ae5a89ad8e569c1e8791aaa9c413e4ac408ec1f6e5a92996bc  ./workflows.db
+e92fe62bc1bffad5a4df5cb8321f7ca6948c19e63cd055da93b6c2352870cfa7  ./workspaces/Main Desk.vysted-workspace
+3632e5b2ad122d693ccc50d2b754154d75c5eafcf4e18ac1662251b615552d6f  ./workspaces/Research_Desk-2.vysted-workspace
