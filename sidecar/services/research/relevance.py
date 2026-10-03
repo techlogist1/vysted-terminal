@@ -538,10 +538,12 @@ logger = logging.getLogger(__name__)
 
 @functools.cache
 def _english_words() -> frozenset[str]:
-    """Dictionary words of 4+ letters, CASE-FOLDED — every alphabetic entry of
+    """Dictionary words of 3+ letters, CASE-FOLDED — every alphabetic entry of
     Webster's 2nd International (public domain, the BSD ``/usr/share/dict/web2``),
     lower-cased, so a proper-noun-only entry ("Titan", "Apollo", "Trent", "Cupid")
-    counts: a ticker that is any dictionary entry is ambiguous (R15-LEAD-136).
+    counts: a ticker that is any dictionary entry is ambiguous (R15-LEAD-136). The
+    3-letter entries cover ACE, DEN, CUB, PAR, KEN, which otherwise scored on the
+    short-symbol tier from a Title-Case word use (R15-LEAD-141).
     Bundled with ``services.resolver_masters``."""
     try:
         raw = resources.files("services.resolver_masters").joinpath("english_words.txt.gz")
@@ -563,14 +565,18 @@ def _marquee_families() -> frozenset[str]:
         return frozenset()
 
 
-def _reads_as_word(token: str, *, india: bool) -> bool:
+def _reads_as_word(token: str, *, india: bool, ticker: str = "") -> bool:
     """Does a name/ticker token also read as ordinary English? A curated
     :data:`COMMON_WORD_TICKERS` entry always does; for an Indian target any
     dictionary entry does too, matched case-folded (CAMPUS, SAFARI, ETERNAL,
-    TITAN, TRENT — R15-LEAD-136), unless it is a marquee family name."""
+    TITAN, TRENT — R15-LEAD-136), unless it is a marquee family name. A 3-letter
+    entry counts only when it IS the target's ``ticker`` (ACE, DEN, CUB —
+    R15-LEAD-141); 3-letter brand tokens (Zee, Yes, Gas) keep their base path."""
     if token.upper() in COMMON_WORD_TICKERS:
         return True
     low = token.lower()
+    if len(low) < 4 and low != ticker.lower():
+        return False
     return india and low.isalpha() and low in _english_words() and low not in _marquee_families()
 
 
@@ -796,7 +802,7 @@ def _entity_signals(
     name_toks = name_tokens(target.name)
 
     def prose(token: str) -> bool:
-        return _reads_as_word(token, india=india) and not _word_used_as_name(
+        return _reads_as_word(token, india=india, ticker=symbol) and not _word_used_as_name(
             token, title, name_toks, snippet
         )
 
@@ -814,7 +820,7 @@ def _entity_signals(
             or symbol in host
             or bool(re.search(rf"[/=]{re.escape(symbol)}(?![a-z0-9])", url_lc))
         )
-        if sym_hit and _reads_as_word(symbol, india=india):
+        if sym_hit and _reads_as_word(symbol, india=india, ticker=symbol):
             # Host/path hits ("campusreform.org", "/safari-tours") are prose
             # too; a ``symbol=CAMPUS`` quote url is the ticker.
             sym_hit = not prose(symbol) or bool(
