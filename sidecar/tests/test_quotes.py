@@ -406,3 +406,29 @@ async def test_a_large_batch_never_starves_a_single_quote(monkeypatch: pytest.Mo
     assert batch_resp.status_code == 200
     assert len(batch_resp.json()) == 150
     assert batch_regions == {"IN"}
+
+
+def test_batch_members_take_the_nse_bulk_lane_and_a_single_does_not(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-FINAL-006: a batch member's NSE calls ride the throttle's bulk lane
+    (so an interactive quote is paced ahead of them); a single quote does not."""
+    from services import nse_provider, provider_registry
+
+    lanes: dict[str, bool] = {}
+
+    def quote(symbol: str, asset_class: str = "equity") -> Quote:  # noqa: ARG001
+        lanes[symbol] = nse_provider.bulk_lane.get()
+        return Quote(
+            symbol=symbol,
+            price=1.0,
+            change=0.0,
+            change_percent=0.0,
+            timestamp=datetime.now(tz=UTC),
+            provider="nse_direct",
+        )
+
+    monkeypatch.setattr(provider_registry, "get_quote", quote)
+    assert client.get("/quotes", params={"symbols": "TCS.NS,INFY.NS"}).status_code == 200
+    assert client.get("/quotes/SBIN.NS").status_code == 200
+    assert lanes == {"TCS.NS": True, "INFY.NS": True, "SBIN.NS": False}
