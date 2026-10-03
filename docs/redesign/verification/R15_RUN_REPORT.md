@@ -32,6 +32,28 @@ prompt is gone now (checked 01:25 IST 4 Oct). Nothing about Windows was verified
 (`docs/WINDOWS_MANUAL_CHECK.md`). The build is unsigned, so any other Mac refuses it until you sign
 and notarize it.
 
+The GUI half after the launch (4 Oct 2026, 01:45–03:15 IST, at `1fddb2b1`). You were at the Mac for
+the start. The release dmg was installed fresh and launched at 01:47:23. It was the local copy, which
+has the same sha256 (`9940d41b…`) as the draft's asset; downloading the draft timed out twice on TLS.
+The login-keychain prompt (R15-LEAD-143) came up 5 s later and you answered **Always Allow**. The app
+reached `/health` 0.9.0 and its first screen was captured: PASS (`docs/redesign/verification/r15/gui-close/fresh-install/FRESH_INSTALL.md`).
+The keychain still held this Mac's terms acknowledgement, so this tested a fresh install, not a
+first-run profile. A rig round followed (4 agents, 65.7 min). Its result: 0 passed, 0 failed,
+1 partial, nothing filed (`docs/redesign/verification/r15/gui-close/VERDICTS.md`).
+
+- **0.8.0 → 0.9.0 upgrade.** The release app was opened on a copy of your May 0.8.0 backup profile.
+  Through its own sidecar it read back 84 of 84 positions, the layout, 0 agents and 0 workflows, all
+  identical. Nothing was driven on screen. On macOS 26 the rig cannot bring a window in front of
+  another app (cooperative activation), and it aborted with "frontmost app is Zed". That half still
+  needs a manual check.
+- **R15-LIFECYCLE-008 (partial).** Run on the debug bundle built at `1fddb2b1`. Log rotation was shown
+  at boot: a 2 MB log rotated to `vysted.log.1`, and the new log had fresh timestamped lines from all
+  four processes. Copy diagnostics was not driven, because the screen locked and then you were active.
+- **Not tested.** R15-UI-022 and the six parked scenarios (UI-5, UI-7 first run, RS-2/AC-1, favicon
+  fallback, arrange-compare, composer collapse). The lane stopped under the presence rules.
+
+No critical or high came up, so there was no fix round and `r15-launch` stays at `1fddb2b1`.
+
 What is waiting for you. A draft GitHub release `v0.9.0` exists, unpublished, with the unsigned dmg
 attached (228,480,607 bytes). The button sequence — merge, tag, sign, swap the dmg on the draft,
 publish — is section 2 of `docs/redesign/OPERATOR_BRIEFING.md`; the decisions in priority order are at

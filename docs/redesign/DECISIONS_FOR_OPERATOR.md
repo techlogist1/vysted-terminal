@@ -4,16 +4,18 @@ Things R15 did that reverse a standing rule of yours, or that are yours alone to
 (Tier-4). Newest concerns at the top of each section. Each entry: what, why, my
 recommendation, and how to undo it in one step.
 
-## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026, r15-launch = `1fddb2b1`)
+## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026, updated 03:15 IST after the GUI pass; r15-launch = `1fddb2b1`, unmoved)
 
 Do these in this order; each line names where the detail lives.
 
-1. **Hand-test the unsigned dmg on this Mac** before anything public: fresh install and first launch,
-   the 0.8.0 → 0.9.0 upgrade (app half; the sidecar half passed headless), R15-LIFECYCLE-008 (Copy
-   diagnostics) and R15-UI-022 (chart drawing tools). `docs/HAND_TESTING_GUIDE.md` §1–3. None of these
-   ran at the launch commit (5.15). If a login-keychain prompt appears on that launch, it is R15-LEAD-143
-   (the unsigned build asking for keychain items an earlier build stored); Deny keeps those keys away from the unsigned build and it runs keyless, Allow grants it access. The prompt the run raised
-   at 23:47 IST 3 Oct is gone (no SecurityAgent process at 01:25 IST 4 Oct).
+1. **Finish the hand-test of the unsigned dmg** before anything public (`docs/HAND_TESTING_GUIDE.md`
+   §1–3). The GUI pass on 4 Oct (`docs/redesign/verification/r15/gui-close/VERDICTS.md`) covered part of it. Done: the fresh dmg install and
+   launch passed, and you answered the R15-LEAD-143 keychain prompt **Always Allow** at 01:55 IST. The
+   release app read back a copy of your 0.8.0 profile intact (84/84 positions, layout, agents,
+   workflows). Log rotation was shown. Still to do by hand: the on-screen half of the 0.8.0 → 0.9.0
+   upgrade, Copy diagnostics (R15-LIFECYCLE-008), the chart drawing tools (R15-UI-022), and the six
+   parked scenarios in `r15/final-pass/NEEDS_GUI.md` (UI-5, UI-7 first run on a profile with no terms
+   acknowledgement in the keychain, RS-2/AC-1, favicon fallback, arrange-compare, composer collapse).
 2. **Put a real commercial contact address** in `LICENSING.md` and `COMMERCIAL_LICENSE.md`
    (R15-DOCS-002) — a published release announces it.
 3. **Merge → tag → sign → swap dmg → publish**: `docs/redesign/OPERATOR_BRIEFING.md` §2 (commands) and
@@ -25,7 +27,13 @@ Do these in this order; each line names where the detail lives.
    the fail-safe fixed both highs).
 6. **The Tier-4 bucket** (35 `blocked_tier4` entries, unfunded lanes 2.1, Docker, CI, plugin model):
    sequenced in `docs/redesign/BACKLOG_0.9.1.md`; nothing in it blocks 0.9.0.
-7. **One leftover worktree for you to keep or discard:** `.claude/worktrees/wf_4ed38558-4d0-26`
+7. **Before the next rig-driven GUI round:** on macOS 26 the rig's activation call
+   (`scripts/rig/rig.py` `real_activate`, `activateWithOptions_` with IgnoringOtherApps) is ignored
+   when a background process asks. The rig therefore cannot bring Vysted in front of another app, and
+   it aborts with exit 4 ("frontmost app is 'Zed'"). Either give the rig an activation path macOS 26
+   honours (for example `open -a` or LaunchServices), or leave Vysted frontmost when you step away.
+   Every future GUI round hits this otherwise.
+8. **One leftover worktree for you to keep or discard:** `.claude/worktrees/wf_4ed38558-4d0-26`
    (branch `worktree-agent-rc1-4c6dfe8-fix-r1-W1-citation-pseudo-class`) holds 346 lines of
    uncommitted rc1-round-2 citation-grammar writer code (26 Sep) that a later round superseded. The
    run did not delete it because it is uncommitted work. Discard: `git worktree remove --force
