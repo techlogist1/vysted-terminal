@@ -19873,9 +19873,9 @@
     "data-smallcaps",
     "ui-panels"
    ],
-   "status": "open",
-   "note": "not certified by fix-r1 and re-proof: GET /fundamentals/VOLERCAR (IN) still has eps/pe/revenue/net income null with no field_meta reason (reproof/recert/fund-VOLERCAR.json); YASHOPTICS fixed, SUMAX typed reason. Certification failures: 2. | Round 2 in flight (rc2-round2, Opus high, changed strategy).",
-   "closure_evidence": ""
+   "status": "fixed",
+   "note": "not certified by fix-r1 and re-proof: GET /fundamentals/VOLERCAR (IN) still has eps/pe/revenue/net income null with no field_meta reason (reproof/recert/fund-VOLERCAR.json); YASHOPTICS fixed, SUMAX typed reason. Certification failures: 2. | Round 2 in flight (rc2-round2, Opus high, changed strategy). | Round 2 certified (attempt 2, changed strategy: root cause = SME half-year-only Sep/Mar filings broke the trailing walk).",
+   "closure_evidence": "0b87a505 (merged 7f273b03 -> ae6ffff0): best-effort trailing (half-year less quarter) + typed field_meta on every null headline field. Fresh Opus verifier CERTIFIED: VOLERCAR revenue 54.70 Cr / NI 3.30 Cr / EPS 2.95 / P/E 73.27 / mcap 241.5 Cr (screener.in mcap 241 Cr, P/E 73.0); SUMAX/QUALIANCE typed not-covered; fresh CURIS values, E2ERAIL typed reason. docs/redesign/verification/r15/stage-c/rc2-round2/VERIFY.md"
   },
   {
    "id": "R15-FINAL-006",
@@ -19901,9 +19901,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "open",
-   "note": "not certified by fix-r1 and re-proof: idle cold single quotes 0.4-2.1 s, but with 100 cold NSE quotes in flight (16-wide) single cold quotes took 19.5-21.2 s (reproof/recert/f006-single-latency.txt); nse_provider._Throttle is one global FIFO pacer. Certification failures: 2. | Round 2 in flight (rc2-round2, Opus high, changed strategy).",
-   "closure_evidence": ""
+   "status": "fixed",
+   "note": "not certified by fix-r1 and re-proof: idle cold single quotes 0.4-2.1 s, but with 100 cold NSE quotes in flight (16-wide) single cold quotes took 19.5-21.2 s (reproof/recert/f006-single-latency.txt); nse_provider._Throttle is one global FIFO pacer. Certification failures: 2. | Round 2 in flight (rc2-round2, Opus high, changed strategy). | Round 2 certified (attempt 2, server-side priority lane).",
+   "closure_evidence": "8fe1595f (merged 7f273b03 -> ae6ffff0): nse_provider bulk_lane ContextVar; interactive singles take the earliest future bulk slot (same slot set, upstream rate unchanged); per-lane sessions/locks. Fresh Opus verifier CERTIFIED: with the 100-name batch in flight, cold singles 0.69-1.75 s vs idle median 1.17 s (2x = 2.34 s); batch 100/100. docs/redesign/verification/r15/stage-c/rc2-round2/VERIFY.md"
   },
   {
    "id": "R15-FINAL-007",
@@ -20722,7 +20722,94 @@
    "tier4": false,
    "operator_areas": [],
    "status": "open",
-   "note": "Filed by the lead from the final re-proof's refusal of R15-FINAL-004, under gate rule change 1. Round 2 in flight (rc2-round2).",
+   "note": "Filed by the lead from the final re-proof's refusal of R15-FINAL-004, under gate rule change 1. Round 2 in flight (rc2-round2). | Round 2 attempt 1 (30306bf2, merged ae6ffff0) NOT CERTIFIED on the class repro: fresh TITAN ('Tech titan Elon Musk unveils new rocket' keep=True) and CUPID fail — the bundled web2 list holds only capitalised 'Titan'. CAMPUS/SAFARI/ETERNAL/FOCUS/RAIN and controls pass; no regression. Verifier candidate N5 (TITAN, CUPID, TRENT, APOLLO …) is this entry's class, folded here, not a new entry. Certification failures: 1.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-137",
+   "title": "Derived SME market cap and P/E use the weighted share count implied by filed TTM NI/EPS, so recently listed SME names show market cap and P/E ~23% low (CURIS 128.6 Cr / 18.59 vs 167 Cr / 24.1)",
+   "severity": "high",
+   "area": "data",
+   "subsystem": "fundamentals-sme",
+   "files": [
+    "sidecar/services/correctness_gate.py",
+    "sidecar/services/exchange_financials.py"
+   ],
+   "repro": "At ae6ffff0, region IN: GET /fundamentals/CURIS -> market_cap 128.6 Cr, pe_ratio 18.59; screener.in 167 Cr, 24.1. Class: any SME name whose share count changed within the trailing window (post-IPO, fresh issue).",
+   "evidence": "docs/redesign/verification/r15/stage-c/rc2-round2/VERIFY.md",
+   "root_cause": "FINAL-005 round-2 fallback derives market cap = price x (TTM NI / TTM EPS), a weighted-average share count that lags a fresh issue; the EPS used for P/E is likewise weighted.",
+   "fix_shape": "Take the current share count from an authoritative source (NSE quote API issuedSize, or filed paid-up capital / face value when face value > 0) for market cap, and compute P/E as market cap / TTM NI; when no current share count is available leave market cap (and P/E if it depends on it) null with a typed reason rather than a weighted-count figure.",
+   "defect_class": "derived-figure",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "Filed by the lead from the rc2 round-2 verifier's candidate N2 (proposed high) under gate rule change 1: beyond FINAL-005's stated repro (no fundamentals / no reason), introduced by its round-2 fallback; FINAL-005 stays fixed.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-138",
+   "title": "The copilot/MCP fundamentals tool skips the SME exchange-filings fallback: MCP fundamentals VOLERCAR returns ok:false 'No data provider covers...' while REST /fundamentals serves values",
+   "severity": "medium",
+   "area": "agent",
+   "subsystem": "agent-tools",
+   "files": [
+    "sidecar/services/agent_tools/fundamentals.py",
+    "sidecar/routers/fundamentals.py"
+   ],
+   "repro": "At ae6ffff0: MCP fundamentals {symbol: VOLERCAR} under IN -> ok:false; GET /fundamentals/VOLERCAR -> values.",
+   "evidence": "docs/redesign/verification/r15/stage-c/rc2-round2/VERIFY.md",
+   "root_cause": "get_fundamentals_from_filings is only called from routers/fundamentals.py:120.",
+   "fix_shape": "Route the agent tool through the same fallback the REST route uses.",
+   "defect_class": "surface-parity",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "Filed by the lead from the rc2 round-2 verifier's candidate N1 under gate rule change 1. Filed for 0.9.1.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-139",
+   "title": "SUMAX/QUALIANCE /fundamentals is still a 404 whose body carries action 'Check the symbol or series id.' beside the correct typed not-covered detail",
+   "severity": "low",
+   "area": "data",
+   "subsystem": "fundamentals-sme",
+   "files": [
+    "sidecar/routers/fundamentals.py"
+   ],
+   "repro": "At ae6ffff0: GET /fundamentals/SUMAX (IN) -> 404, action 'Check the symbol or series id.'",
+   "evidence": "docs/redesign/verification/r15/stage-c/rc2-round2/VERIFY.md",
+   "root_cause": "The not-covered SME path keeps the generic not-found action.",
+   "fix_shape": "Return the typed not-covered shell (200 with field_meta) or drop the misleading action for a real listing.",
+   "defect_class": "copy",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "Filed by the lead from the rc2 round-2 verifier's candidate N3 under gate rule change 1. Filed for 0.9.1.",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-140",
+   "title": "A cold 100-name NSE batch takes ~171 s, over the 120 s client QUOTES_BATCH_TIMEOUT_MS, so the first portfolio refresh of a large cold portfolio aborts (the next refresh is 9.4 s, 100/100)",
+   "severity": "medium",
+   "area": "portfolio",
+   "subsystem": "quotes",
+   "files": [
+    "src/modules/portfolio/api.ts",
+    "sidecar/routers/quotes.py"
+   ],
+   "repro": "At ae6ffff0: 100 cold NSE names via GET /quotes batch -> 170.9 s; client budget 120 s.",
+   "evidence": "docs/redesign/verification/r15/stage-c/rc2-round2/VERIFY.md",
+   "root_cause": "The throttle's upstream pacing bounds a cold batch above the client budget.",
+   "fix_shape": "Stream/partial batch results or size the client budget to the batch length; keep the in-flight guard.",
+   "defect_class": "latency",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "Filed by the lead from the rc2 round-2 verifier's candidate N4 under gate rule change 1. Filed for 0.9.1.",
    "closure_evidence": ""
   }
  ],

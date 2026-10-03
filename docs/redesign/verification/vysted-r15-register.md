@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 795 entries + 76 rejections. critical: 18 . high: 132 . medium: 352 . low: 293
+887 raw findings -> 799 entries + 76 rejections. critical: 18 . high: 133 . medium: 354 . low: 294
 
-Status: blocked_tier4: 35 . fixed: 624 . needs_gui: 4 . not_a_defect: 6 . open: 112 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 626 . needs_gui: 4 . not_a_defect: 6 . open: 114 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -134,7 +134,7 @@ Status: blocked_tier4: 35 . fixed: 624 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-UI-093** [low] The @-mention instrument picker shows symbol, exchange and name but never the FR-101 '[exchange: price chg%]' live price/change — _fixed_
 - **R15-UI-094** [low] The Equity Overview AI narrative is a flat summary + insights pair, not FR-124's five typed sections (The Take, business, storyline, balanced bull/bear, risks) — _fixed_
 - **R15-LEAD-122** [medium] Screener 'Export CSV' writes the file but shows no saved path, toast or error (the result of downloadCsv is discarded) — _open_
-- **R15-FINAL-006** [high] Portfolio quote fan-out wedges the sidecar: per-symbol /quotes GETs abort at the 30 s client budget, the in-flight guard releases on the abort while the server keeps working, and each tick re-requests every symbol (0/100 resolved over 210 s; RELIANCE quote >40 s on the same sidecar) — _open_
+- **R15-FINAL-006** [high] Portfolio quote fan-out wedges the sidecar: per-symbol /quotes GETs abort at the 30 s client budget, the in-flight guard releases on the abort while the server keeps working, and each tick re-requests every symbol (0/100 resolved over 210 s; RELIANCE quote >40 s on the same sidecar) — _fixed_
 - **R15-FINAL-017** [medium] A holding whose symbol answers 404 raises the transport-failure banner 'Couldn't refresh live quotes' with a Retry that can never succeed, and the 404 is re-requested every 5 s — _fixed_
 - **R15-FINAL-019** [medium] Settings SearXNG card tells a user whose Docker/OrbStack is installed but stopped that Docker 'isn't available' and to install it, ignoring docker.cli_present/daemon_running and the sidecar's 'start Docker/OrbStack' detail — _open_
 - **R15-FINAL-026** [low] Screener freshness line prints unrounded float seconds ('quotes 41.64699196815491s ago') — _open_
@@ -142,7 +142,7 @@ Status: blocked_tier4: 35 . fixed: 624 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-FINAL-033** [low] A whitespace-only Avg cost saves the holding at cost basis 0, and a hex quantity '0x10' saves as 16 — _fixed_
 - **R15-FINAL-034** [low] Brief header reads 'web + structured data' directly above the 'Structured data only - no web sources found' banner on a filings-only brief — _open_
 
-### Agent / chat (126)
+### Agent / chat (127)
 
 - **R15-AGENT-002** [high] Stop does not stop: aborting the chat stream leaves the in-flight tool task (research, LLM and web calls) running for minutes, spending the BYOK key and holding the single Ollama slot — _fixed_
 - **R15-AGENT-003** [high] At the 6-round tool cap the capped round's tool calls are streamed to the UI (and may be auto-applied as host actions) but never dispatched, and the turn ends with no answer text — _fixed_
@@ -270,6 +270,7 @@ Status: blocked_tier4: 35 . fixed: 624 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-FINAL-014** [medium] Ollama lane: a tool call leaked as a Python-literal dict (None/True/False) is not rescued; the raw call blob is shown as the assistant reply — _open_
 - **R15-FINAL-016** [medium] arrange_layout custom reports success ('Arranged sec_filings_list' / 'Arranged your panels') when no panel token resolves and the layout is unchanged — _fixed_
 - **R15-FINAL-030** [low] write_note files a note under the literal company name ('COCHIN SHIPYARD') instead of the ticker, so the symbol's note view (COCHINSHIP) stays empty — _fixed_
+- **R15-LEAD-138** [medium] The copilot/MCP fundamentals tool skips the SME exchange-filings fallback: MCP fundamentals VOLERCAR returns ok:false 'No data provider covers...' while REST /fundamentals serves values — _open_
 
 ### Research / web search (76)
 
@@ -350,7 +351,7 @@ Status: blocked_tier4: 35 . fixed: 624 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-FINAL-025** [low] DEEP research overran its 180 s wall budget by 79 s (259 s) on the local lane: the final synthesis call is not boxed by the remaining wall — _open_
 - **R15-LEAD-136** [high] Any NSE ticker that is an ordinary English word but is not on COMMON_WORD_TICKERS scores as a distinctive match on unrelated headlines, so briefs state them as the company's own news (CAMPUS, SAFARI, ETERNAL) — _open_
 
-### Data on small or obscure stocks (172)
+### Data on small or obscure stocks (174)
 
 - **R15-DATA-001** [critical] Income / balance-sheet / cash-flow statements (and one /fundamentals identity) for Indian tickers that collide with a US ticker serve the US company's real financials under the Indian name (DAL->Delta, CHTR->Charter, SAFE->Safehold, CSL->Carlisle, ICON->Icon Energy, AMAL->Amalgamated, SMR->NuScale, TTC->Toro, SUMAX->a US muni fund) — _fixed_
 - **R15-DATA-002** [critical] A bare ticker that exists in both the US and Indian masters binds silently to the session region, and every data panel re-queries the bare symbol, so the user who picked NASDAQ:AMAL or NYSE:SMR gets Amal Ltd / SMR Jewels quote, ratios and 52w range (and, for SMR, NuScale statements under the same header) — _blocked_tier4_
@@ -517,13 +518,15 @@ Status: blocked_tier4: 35 . fixed: 624 . needs_gui: 4 . not_a_defect: 6 . open: 
 - **R15-FINAL-001** [critical] A bare-ticker portfolio lot is re-priced against a different listing when the session region changes: INFY 20 @ Rs1,500 shows -$29,779.20 (-99.26%) under region US, and the CSV export carries it — _fixed_
 - **R15-FINAL-002** [high] NSE SME GSTL (Globesecure Technologies) is stamped with BSE GSTL Globalspace Technologies' ISIN INE632W01016 / scrip 540654, so its results calendar, announcements, corporate actions and shareholding split merge a different company's BSE filings — _fixed_
 - **R15-FINAL-003** [high] After the exchange-filed overlay replaces EPS, P/E stays on the provider EPS the payload says is not served (SUNRAJDI P/E 155.5 beside served EPS 0.23 at 12.44; true ~54), the flag reason quotes a third implied P/E 141.1, and the copilot tells the user the 155.5 'is indeed right' — _fixed_
-- **R15-FINAL-005** [high] Every NSE Emerge (SME) listing has no fundamentals: /fundamentals 404s telling the user to check the symbol, and income/balance return empty 200s with no reason (YASHOPTICS, SUMAX, QUALIANCE, GANESHIN, VOLERCAR) — _open_
+- **R15-FINAL-005** [high] Every NSE Emerge (SME) listing has no fundamentals: /fundamentals 404s telling the user to check the symbol, and income/balance return empty 200s with no reason (YASHOPTICS, SUMAX, QUALIANCE, GANESHIN, VOLERCAR) — _fixed_
 - **R15-FINAL-009** [medium] AMAL (NSE, the default IN bind) serves market_cap and shares_outstanding unavailable while the same ISIN on BSE (AMAL.BO) serves both in the same sidecar — _fixed_
 - **R15-FINAL-010** [medium] SIFY analyst revenue estimate (USD-sized 191.7M) is labelled revenue_currency INR, a ~64x understatement against Sify's quarterly revenue INR 12,352 M, and the Earnings estimate grid renders it — _fixed_
 - **R15-FINAL-011** [medium] Symbol autocomplete never offers the BSE company of a same-ticker collision: 'Zeal Aqua', 'Sanathnagar Enterprises', ZEAL.BO and SEL.BO return only the NSE namesake or nothing, though /resolve binds the BSE company — _fixed_
 - **R15-FINAL-012** [medium] RELIANCE.BO earnings history is two quarters stale against the NSE listing of the same company (latest 2025-12-31 vs 2026-06-30) and its analyst consensus differs (36 vs 26 analysts), with no staleness or listing-basis note — _open_
 - **R15-FINAL-024** [low] Ownership witness flags a near-agreeing institutions figure with a false reason: Yahoo 0.00% vs filed 0.03% (AMAL) is flagged 'disagrees ... beyond 3pp' — _fixed_
 - **R15-FINAL-027** [low] News titles keep raw HTML entities: the News Feed shows 'F&amp;O Talk: ...' literally (and the agent news tool gets the same) — _fixed_
+- **R15-LEAD-137** [high] Derived SME market cap and P/E use the weighted share count implied by filed TTM NI/EPS, so recently listed SME names show market cap and P/E ~23% low (CURIS 128.6 Cr / 18.59 vs 167 Cr / 24.1) — _open_
+- **R15-LEAD-139** [low] SUMAX/QUALIANCE /fundamentals is still a 404 whose body carries action 'Check the symbol or series id.' beside the correct typed not-covered detail — _open_
 
 ## All entries by severity
 
@@ -1289,8 +1292,8 @@ Status: blocked_tier4: 35 . fixed: 624 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-FINAL-002 | high | data | resolver | NSE SME GSTL (Globesecure Technologies) is stamped with BSE GSTL Globalspace Technologies' ISIN INE632W01016 / scrip 540654, so its results calendar, announcements, corporate actions and shareholding split merge a different company's BSE filings | fixed | investor:5 |
 | R15-FINAL-003 | high | data | fundamentals-profile | After the exchange-filed overlay replaces EPS, P/E stays on the provider EPS the payload says is not served (SUNRAJDI P/E 155.5 beside served EPS 0.23 at 12.44; true ~54), the flag reason quotes a third implied P/E 141.1, and the copilot tells the user the 155.5 'is indeed right' | fixed | investor:3, investor:9 |
 | R15-FINAL-004 | high | research | research-relevance | Deep brief for FOCUS (Focus Lighting and Fixtures) states unrelated common-word headlines (Flydubai pilot podcast 'Focus on flying', European shares 'focus on inflation data') as the company's own sentiment and strategy | fixed | investor:12 |
-| R15-FINAL-005 | high | data | fundamentals-profile | Every NSE Emerge (SME) listing has no fundamentals: /fundamentals 404s telling the user to check the symbol, and income/balance return empty 200s with no reason (YASHOPTICS, SUMAX, QUALIANCE, GANESHIN, VOLERCAR) | open | investor:2 |
-| R15-FINAL-006 | high | ui | portfolio | Portfolio quote fan-out wedges the sidecar: per-symbol /quotes GETs abort at the 30 s client budget, the in-flight guard releases on the abort while the server keeps working, and each tick re-requests every symbol (0/100 resolved over 210 s; RELIANCE quote >40 s on the same sidecar) | open | drive-portfolio-notes:1 |
+| R15-FINAL-005 | high | data | fundamentals-profile | Every NSE Emerge (SME) listing has no fundamentals: /fundamentals 404s telling the user to check the symbol, and income/balance return empty 200s with no reason (YASHOPTICS, SUMAX, QUALIANCE, GANESHIN, VOLERCAR) | fixed | investor:2 |
+| R15-FINAL-006 | high | ui | portfolio | Portfolio quote fan-out wedges the sidecar: per-symbol /quotes GETs abort at the 30 s client budget, the in-flight guard releases on the abort while the server keeps working, and each tick re-requests every symbol (0/100 resolved over 210 s; RELIANCE quote >40 s on the same sidecar) | fixed | drive-portfolio-notes:1 |
 | R15-FINAL-007 | high | agent | agent-tools | With the Portfolio panel closed, get_portfolio stamps every non-crypto holding with the session region's currency, so a USD AAPL lot is served to the agent as currency INR and the copilot states 'AAPL - 2 shares, cost basis Rs190' | fixed | drive-portfolio-notes:2 |
 | R15-FINAL-008 | high | lifecycle | persistence | A corrupt SQLite store is never quarantined: a corrupt data_cache.db (pure cache) fails sidecar startup on every launch, and a corrupt custom_agents.db / delegate_runs.db / plugins.db 500s every route of that store until the file is deleted by hand | fixed | FI-FINAL-CORRUPT-CACHE-BRICKS-BOOT, maintainer:5 |
 | R15-FINAL-009 | medium | data | fundamentals-profile | AMAL (NSE, the default IN bind) serves market_cap and shares_outstanding unavailable while the same ISIN on BSE (AMAL.BO) serves both in the same sidecar | fixed | investor:1 |
@@ -1324,3 +1327,7 @@ Status: blocked_tier4: 35 . fixed: 624 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-FINAL-037 | low | release | release-runbook | RELEASE_RUNBOOK.md's 'verbatim' ci-local block differs from package.json ci-local | fixed | F-DOCS-006 |
 | R15-FINAL-038 | low | platform | mcp | MCP discovery file advertises protocol 2025-06-18 while /mcp/status reports 2025-11-25; the Rust sync comment points at a constant that does not exist | open | F-DOCS-008 |
 | R15-LEAD-136 | high | research | research-relevance | Any NSE ticker that is an ordinary English word but is not on COMMON_WORD_TICKERS scores as a distinctive match on unrelated headlines, so briefs state them as the company's own news (CAMPUS, SAFARI, ETERNAL) | open |  |
+| R15-LEAD-137 | high | data | fundamentals-sme | Derived SME market cap and P/E use the weighted share count implied by filed TTM NI/EPS, so recently listed SME names show market cap and P/E ~23% low (CURIS 128.6 Cr / 18.59 vs 167 Cr / 24.1) | open |  |
+| R15-LEAD-138 | medium | agent | agent-tools | The copilot/MCP fundamentals tool skips the SME exchange-filings fallback: MCP fundamentals VOLERCAR returns ok:false 'No data provider covers...' while REST /fundamentals serves values | open |  |
+| R15-LEAD-139 | low | data | fundamentals-sme | SUMAX/QUALIANCE /fundamentals is still a 404 whose body carries action 'Check the symbol or series id.' beside the correct typed not-covered detail | open |  |
+| R15-LEAD-140 | medium | portfolio | quotes | A cold 100-name NSE batch takes ~171 s, over the 120 s client QUOTES_BATCH_TIMEOUT_MS, so the first portfolio refresh of a large cold portfolio aborts (the next refresh is 9.4 s, 100/100) | open |  |
