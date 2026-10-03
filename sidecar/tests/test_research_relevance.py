@@ -499,3 +499,114 @@ def test_common_word_in_ticker_needs_the_full_name_or_a_ticker_anchor() -> None:
         for title in kept:
             row = _row("https://example.com/a", title)
             assert relevance.row_relevant(row, target=target), title
+
+
+# --- R15-LEAD-136: ANY dictionary-word Indian name needs an anchor ------------
+
+_WORD_NAME_CASES = [
+    # (symbol, resolved name, prose headlines, company headlines)
+    (
+        "CAMPUS",
+        "Campus Activewear Limited",
+        ["Campus placements surge as IT hiring revives", "Back to campus: retailers bet on demand"],
+        ["Campus Activewear Q2 profit rises 18%", "Campus shares jump after brokerage upgrade"],
+    ),
+    (
+        "SAFARI",
+        "Safari Industries (India) Limited",
+        [
+            "Safari tourism booms in Kenya as visitors return",
+            "Apple Safari update fixes security flaw",
+        ],
+        [
+            "Safari Industries Q1 results beat estimates",
+            "Safari Industries stock hits 52-week high",
+        ],
+    ),
+    (
+        "ETERNAL",
+        "ETERNAL LIMITED",
+        ["The eternal debate: growth vs value investing"],
+        ["Eternal shares rise as Blinkit orders grow", "Eternal Ltd Q2 profit falls on costs"],
+    ),
+    # Three more real NSE symbols that are English words and are in no curated
+    # list — the rule is the dictionary property, not an enumeration.
+    (
+        "PERSISTENT",
+        "Persistent Systems Limited",
+        ["Persistent inflation keeps the RBI cautious"],
+        ["Persistent Systems wins $100 million deal", "Persistent Q3 revenue grows 5%"],
+    ),
+    (
+        "TRIDENT",
+        "Trident Limited",
+        ["Trident missile test draws scrutiny"],
+        ["Trident shares rally on export orders", "NSE: TRIDENT hits upper circuit"],
+    ),
+    (
+        "SYMPHONY",
+        "Symphony Limited",
+        ["A symphony of rate cuts lifts bond markets"],
+        ["Symphony Q4 profit doubles on summer demand", "SYMPHONY gains 6% after results"],
+    ),
+]
+
+
+@pytest.mark.parametrize(("symbol", "name", "dropped", "kept"), _WORD_NAME_CASES)
+def test_dictionary_word_indian_name_needs_an_anchor(
+    symbol: str, name: str, dropped: list[str], kept: list[str]
+) -> None:
+    """R15-LEAD-136: an NSE name that is a dictionary word but in no curated list
+    scored 1.0 on any headline carrying the word, so a brief cited "Apple Safari
+    update" as Safari Industries news. The word alone is prose; it names the
+    company only when anchored (another name token, Ltd/shares/Qn after it, the
+    ALL-CAPS ticker, an NSE/BSE marker)."""
+    from services import symbol_resolver
+
+    assert symbol_resolver.is_nse_symbol(symbol)
+    assert symbol not in relevance.COMMON_WORD_TICKERS
+    target = _target(symbol=symbol, name=name)
+    for title in dropped:
+        row = _row("https://economictimes.indiatimes.com/a", title)
+        assert relevance.entity_match(row, target=target) <= relevance.WEAK_MATCH_CEILING, title
+        assert not relevance.row_relevant(row, target=target), title
+    for title in kept:
+        row = _row("https://economictimes.indiatimes.com/a", title)
+        assert relevance.row_relevant(row, target=target), title
+
+
+def test_word_symbol_in_host_or_path_is_prose_but_quote_url_is_the_ticker() -> None:
+    target = _target(symbol="SAFARI", name="Safari Industries (India) Limited")
+    assert not relevance.row_relevant(
+        _row("https://www.safaribookings.com/safari-tours", "Best tours this winter"),
+        target=target,
+    )
+    assert relevance.row_relevant(
+        _row("https://www.nseindia.com/get-quotes/equity?symbol=SAFARI", "Equity quote"),
+        target=target,
+    )
+
+
+def test_non_word_and_marquee_indian_names_unchanged() -> None:
+    """Non-word names (INFY, ROUTE's own name) and marquee family names (Reliance
+    — a dictionary word the resolver binds as the brand) still count alone."""
+    reliance = _target(symbol="RELIANCE", name="Reliance Industries Limited")
+    infy = _target(symbol="INFY", name="Infosys Limited")
+    assert relevance.row_relevant(
+        _row("https://x.example/a", "Reliance to buy stake in X"), target=reliance
+    )
+    assert relevance.row_relevant(
+        _row("https://x.example/a", "Infosys wins European deal"), target=infy
+    )
+    assert relevance.row_relevant(
+        _row("https://x.example/a", "Route Mobile wins telecom deal"), target=ROUTE
+    )
+
+
+def test_dictionary_gate_is_india_scoped() -> None:
+    """A US brand that is a dictionary word (Apple) keeps its brand signal —
+    the non-IN path has its own gates and trusts the per-symbol feed."""
+    aapl = _target(symbol="AAPL", name="Apple Inc.", exchange="NASDAQ", region="US")
+    assert relevance.row_relevant(
+        _row("https://x.example/a", "Apple unveils new iPhone"), target=aapl
+    )

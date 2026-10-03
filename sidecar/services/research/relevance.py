@@ -14,7 +14,12 @@ Pure functions, no network, no LLM — fully unit-testable.
 
 from __future__ import annotations
 
+import functools
+import gzip
+import json
+import logging
 import re
+from importlib import resources
 from typing import Any
 
 from services.research import finance
@@ -528,6 +533,78 @@ def anchored_ticker(ticker: str, text: str) -> bool:
     )
 
 
+logger = logging.getLogger(__name__)
+
+
+@functools.cache
+def _english_words() -> frozenset[str]:
+    """Lower-case dictionary words of 4+ letters — Webster's 2nd International
+    (public domain, the BSD ``/usr/share/dict/web2``; capitalised proper nouns
+    excluded), bundled with ``services.resolver_masters``."""
+    try:
+        raw = resources.files("services.resolver_masters").joinpath("english_words.txt.gz")
+        return frozenset(gzip.decompress(raw.read_bytes()).decode("utf-8").split())
+    except (OSError, ModuleNotFoundError, ValueError) as exc:  # bundling bug
+        logger.error("relevance: missing bundled english_words.txt.gz: %s", exc)
+        return frozenset()
+
+
+@functools.cache
+def _marquee_families() -> frozenset[str]:
+    """Bare family names the resolver binds as a company (``reliance``, ``tata``):
+    written alone they ARE the brand, dictionary word or not."""
+    try:
+        raw = resources.files("services.resolver_masters").joinpath("marquee_aliases.json")
+        return frozenset(json.loads(raw.read_text("utf-8")).get("aliases", {}))
+    except (OSError, ModuleNotFoundError, ValueError) as exc:
+        logger.error("relevance: missing bundled marquee_aliases.json: %s", exc)
+        return frozenset()
+
+
+def _reads_as_word(token: str, *, india: bool) -> bool:
+    """Does a name/ticker token also read as ordinary English? A curated
+    :data:`COMMON_WORD_TICKERS` entry always does; for an Indian target any
+    dictionary word does too (CAMPUS, SAFARI, ETERNAL — R15-LEAD-136), unless it
+    is a marquee family name."""
+    if token.upper() in COMMON_WORD_TICKERS:
+        return True
+    return (
+        india and token.isalpha() and token in _english_words() and token not in _marquee_families()
+    )
+
+
+# ponytail: a bare word-brand + verb ("Persistent wins deal") reads as prose and
+# drops; an alias/brand table is the upgrade if news recall for those names matters.
+#: Words that, right after the name word, make it the company: a corporate
+#: suffix or a security noun ("Eternal Ltd", "Safari shares", "Campus Q2").
+_NAME_FOLLOWERS = r"ltd|limited|inc|corp|shares?|stocks?|scrip|ipo|q[1-4]|fy\s?\d{2,4}"
+
+
+def _word_used_as_name(token: str, title: str, name_toks: list[str]) -> bool:
+    """Is a word-like token (:func:`_reads_as_word`) used AS the company in
+    ``title`` (original case)? Only when anchored: an :func:`anchored_ticker`
+    form, the ticker written ALL-CAPS in a mixed-case title, NSE/BSE context in
+    the title, or the word followed by another of the company's name tokens or
+    a :data:`_NAME_FOLLOWERS` word ("Safari Industries", "Eternal shares").
+    "Apple Safari update" and "Campus placements surge" are prose."""
+    upper = token.upper()
+    if anchored_ticker(upper, title):
+        return True
+    if re.search(r"(?<![A-Za-z])(?:NSE|BSE)(?![A-Za-z])", title):
+        return True
+    if any(c.islower() for c in title) and re.search(
+        rf"(?<![A-Za-z0-9]){re.escape(upper)}(?![A-Za-z0-9])", title
+    ):
+        return True
+    follow = "|".join([re.escape(t) for t in name_toks if t != token] + [_NAME_FOLLOWERS])
+    return bool(
+        re.search(
+            rf"(?<![a-z0-9]){re.escape(token)}(?:['’]s)?\s+(?:{follow})(?![a-z0-9])",
+            title.lower(),
+        )
+    )
+
+
 _TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9.&-]*")
 
 
@@ -661,14 +738,21 @@ def _entity_signals(
       target. A symbol that appears ONLY inside a foreign index token
       (``KSE-100``) is NOT counted as a signal at all.
 
-    A symbol or brand token that is a :data:`COMMON_WORD_TICKERS` word (FOCUS,
-    IN included) is English prose, not a name: it counts only when ``title``
-    (original case) writes it as a ticker (:func:`anchored_ticker`), or when the
-    full distinctive name matches below (R15-FINAL-004).
+    A symbol or name token that reads as an ordinary word (:func:`_reads_as_word`:
+    FOCUS, CAMPUS, SAFARI, ETERNAL) is prose, not a name: it counts only when
+    :func:`_word_used_as_name` finds it anchored in ``title``, or when the full
+    multi-token name matches below (R15-FINAL-004, R15-LEAD-136).
     """
     symbol = target.symbol.lower()
     distinctive_sig = False
     short_sig = False
+    india = is_india_target(target)
+    name_toks = name_tokens(target.name)
+
+    def prose(token: str) -> bool:
+        return _reads_as_word(token, india=india) and not _word_used_as_name(
+            token, title, name_toks
+        )
 
     if len(symbol) >= 3:
         # The index-form exclusion only applies under foreign-market evidence
@@ -681,8 +765,12 @@ def _entity_signals(
             or symbol in host
             or bool(re.search(rf"[/=]{re.escape(symbol)}(?![a-z0-9])", url_lc))
         )
-        if sym_hit and symbol.upper() in COMMON_WORD_TICKERS:
-            sym_hit = anchored_ticker(symbol.upper(), title)
+        if sym_hit and _reads_as_word(symbol, india=india):
+            # Host/path hits ("campusreform.org", "/safari-tours") are prose
+            # too; a ``symbol=CAMPUS`` quote url is the ticker.
+            sym_hit = not prose(symbol) or bool(
+                re.search(rf"={re.escape(symbol)}(?![a-z0-9])", url_lc)
+            )
         if sym_hit:
             if len(symbol) >= _SHORT_SYMBOL_LEN:
                 distinctive_sig = True
@@ -691,7 +779,7 @@ def _entity_signals(
 
     branded = brand_tokens(target.name)
     for token in branded:
-        if token.upper() in COMMON_WORD_TICKERS and not anchored_ticker(token.upper(), title):
+        if prose(token):
             continue
         if _bounded(token, title_lc) or (len(token) >= 4 and token in host):
             if len(token) >= _SHORT_SYMBOL_LEN:
@@ -699,7 +787,8 @@ def _entity_signals(
             else:
                 short_sig = True
 
-    distinctive = name_tokens(target.name)
+    # A one-word name that is a word ("ETERNAL") is prose on its own.
+    distinctive = [] if len(name_toks) == 1 and prose(name_toks[0]) else name_toks
     if distinctive and all(_bounded(t, title_lc) for t in distinctive):
         # A single short distinctive token is still short; ≥2 together, or any
         # long one, is distinctive (covers "Global Industries").
