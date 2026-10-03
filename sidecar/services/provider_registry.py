@@ -42,6 +42,7 @@ from models.fundamentals import (
     AnalystRating,
     BalanceSheet,
     CashFlowStatement,
+    FieldMeta,
     FinancialStatement,
     Fundamentals,
     IncomeStatement,
@@ -51,7 +52,9 @@ from services import (
     bse_provider,
     ccxt_provider,
     correctness_gate,
+    exchange_financials,
     india_provider,
+    locale,
     nse_provider,
     openbb_mcp_provider,
     provider_health,
@@ -552,17 +555,90 @@ async def get_fundamentals(symbol: str, region: str | None = None) -> Fundamenta
 
     ``fallback_ok=_fundamentals_has_data`` refuses to serve an all-null shell as
     success (R13 D3): if the only surviving result is empty of real data, the
-    last provider error (or an honest not_found → 404) is raised instead."""
+    last provider error (or an honest not_found → 404) is raised instead.
+
+    When every provider is not_found for a known NSE/BSE listing (Yahoo serves
+    nothing for an NSE Emerge ``-SM.NS`` name), the 404 says no provider covers
+    the listing instead of "check the symbol" (R15-FINAL-005). No network: the
+    screener/warm crawlers ride this path, so the exchange-filed fallback
+    (:func:`get_fundamentals_from_filings`) is the caller's choice."""
     eff = _effective_region(symbol, region)
-    return await _resolve_async(
-        "fundamentals",
-        "equity",
-        eff,
-        _fundamentals_validator(symbol, eff),
-        symbol,
-        accept=_fundamentals_screener_complete,
-        fallback_ok=_fundamentals_has_data,
+    try:
+        return await _resolve_async(
+            "fundamentals",
+            "equity",
+            eff,
+            _fundamentals_validator(symbol, eff),
+            symbol,
+            accept=_fundamentals_screener_complete,
+            fallback_ok=_fundamentals_has_data,
+        )
+    except ProviderError as exc:
+        listing = yfinance_provider._yahoo_symbol(symbol)
+        if exc.kind != "not_found" or not _is_known_india_listing(listing):
+            raise
+        board = "NSE Emerge (SME)" if listing.strip().upper().endswith("-SM.NS") else "NSE/BSE"
+        raise ProviderError.authored(
+            f"No data provider covers fundamentals for this {board} listing.", kind="not_found"
+        ) from exc
+
+
+def _is_known_india_listing(listing: str) -> bool:
+    """A ``.NS``/``.BO`` listing whose bare ticker an exchange master lists — a
+    typo stays a plain not_found ("check the symbol")."""
+    if not listing.strip().upper().endswith((".NS", ".BO")):
+        return False
+    bare = locale.strip_exchange_suffix(listing).removesuffix("-SM")
+    return symbol_resolver.is_nse_symbol(bare) or symbol_resolver.is_bse_symbol(bare)
+
+
+async def get_fundamentals_from_filings(symbol: str, not_found: ProviderError) -> Fundamentals:
+    """Stand in for an Indian listing every provider answered ``not_found``
+    (``not_found`` is the error :func:`get_fundamentals` raised) with the
+    exchange-filed results (R15-FINAL-005); re-raises ``not_found`` for any
+    other listing, and states that no filing exists when none does. One NSE
+    walk per call (cached a day): for the single-symbol surfaces, never a
+    crawler."""
+    listing = yfinance_provider._yahoo_symbol(symbol)
+    if not_found.kind != "not_found" or not _is_known_india_listing(listing):
+        raise not_found
+    served = await _fundamentals_from_filings(symbol, listing, _effective_region(symbol, None))
+    if served is not None:
+        return served
+    raise ProviderError.authored(
+        f"{not_found} The exchange holds no results filing to build them from.", kind="not_found"
+    ) from not_found
+
+
+async def _fundamentals_from_filings(symbol: str, listing: str, region: str) -> Fundamentals | None:
+    """Fundamentals built from the exchange-filed results alone (R15-FINAL-005):
+    revenue / net income / EPS TTM and the filed growth through the same
+    overlay the witnesses run, priced by the quote lane so the P/E and market
+    cap are derived. ``None`` only when no filing could be read."""
+    filed = await exchange_financials.get_filed_periods(listing)
+    if filed is None:
+        return None
+    try:
+        quote: Quote | None = await asyncio.to_thread(get_quote, symbol, "equity", region)
+    except ProviderError:
+        quote = None
+    meta: dict[str, FieldMeta] = {}
+    if quote is not None:
+        meta["ratio_price"] = FieldMeta(
+            status="ok",
+            provider=quote.provider,
+            as_of=quote.timestamp.isoformat() if quote.timestamp else None,
+        )
+    shell = Fundamentals(
+        symbol=listing,
+        currency="INR",
+        ratio_price=quote.price if quote is not None else None,
+        provider=filed.venue,
+        field_meta=meta,
     )
+    # Served even when the filings size nothing: each null headline field then
+    # carries the typed reason the overlay states (R15-FINAL-005 round 2).
+    return correctness_gate.overlay_filed_periods(shell, filed)
 
 
 #: A period end this close to the expected one is that period (fiscal calendars
@@ -612,19 +688,35 @@ def _mark_gaps[S: FinancialStatement](statement: S) -> S:
     )
 
 
+def _with_empty_reason[S: FinancialStatement](statement: S, symbol: str) -> S:
+    """An empty statement says why (R15-FINAL-005), never a bare empty 200."""
+    if statement.periods:
+        return statement
+    listing = yfinance_provider._yahoo_symbol(symbol)
+    reason = (
+        "No data provider covers financial statements for this NSE Emerge (SME) listing."
+        if listing.strip().upper().endswith("-SM.NS")
+        else "The data provider returned no periods for this statement."
+    )
+    return statement.model_copy(update={"reason": reason})
+
+
 async def get_income_statement(
     symbol: str, region: str | None = None, period: StatementPeriod = "annual"
 ) -> IncomeStatement:
     """Return the income statement excerpt for ``symbol`` (``period`` annual or quarterly)."""
-    return _mark_gaps(
-        await _resolve_async(
-            "income_statement",
-            "equity",
-            _effective_region(symbol, region),
-            _statement_validator(symbol),
-            symbol,
-            period,
-        )
+    return _with_empty_reason(
+        _mark_gaps(
+            await _resolve_async(
+                "income_statement",
+                "equity",
+                _effective_region(symbol, region),
+                _statement_validator(symbol),
+                symbol,
+                period,
+            )
+        ),
+        symbol,
     )
 
 
@@ -632,15 +724,18 @@ async def get_balance_sheet(
     symbol: str, region: str | None = None, period: StatementPeriod = "annual"
 ) -> BalanceSheet:
     """Return the balance sheet excerpt for ``symbol`` (``period`` annual or quarterly)."""
-    return _mark_gaps(
-        await _resolve_async(
-            "balance_sheet",
-            "equity",
-            _effective_region(symbol, region),
-            _statement_validator(symbol),
-            symbol,
-            period,
-        )
+    return _with_empty_reason(
+        _mark_gaps(
+            await _resolve_async(
+                "balance_sheet",
+                "equity",
+                _effective_region(symbol, region),
+                _statement_validator(symbol),
+                symbol,
+                period,
+            )
+        ),
+        symbol,
     )
 
 
@@ -648,15 +743,18 @@ async def get_cash_flow(
     symbol: str, region: str | None = None, period: StatementPeriod = "annual"
 ) -> CashFlowStatement:
     """Return the cash-flow statement excerpt for ``symbol`` (``period`` annual or quarterly)."""
-    return _mark_gaps(
-        await _resolve_async(
-            "cash_flow",
-            "equity",
-            _effective_region(symbol, region),
-            _statement_validator(symbol),
-            symbol,
-            period,
-        )
+    return _with_empty_reason(
+        _mark_gaps(
+            await _resolve_async(
+                "cash_flow",
+                "equity",
+                _effective_region(symbol, region),
+                _statement_validator(symbol),
+                symbol,
+                period,
+            )
+        ),
+        symbol,
     )
 
 

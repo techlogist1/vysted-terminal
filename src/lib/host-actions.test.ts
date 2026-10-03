@@ -164,6 +164,38 @@ describe("host-actions", () => {
     expect(maximizeSpy).toHaveBeenCalledTimes(1);
   });
 
+  it("R15-FINAL-016: a custom arrange that places nothing fails naming the token; a comma string arranges", () => {
+    const addPanel = vi.fn();
+    useWorkspaceStore.setState({
+      dockviewApi: {
+        panels: [],
+        width: 1600,
+        getPanel: () => undefined,
+        addPanel,
+        hasMaximizedGroup: () => false,
+        exitMaximizedGroup: vi.fn(),
+        maximizeGroup: vi.fn(),
+      } as never,
+      openPanel: vi.fn(),
+    } as never);
+    const unknown = applyIntent(
+      parseHostAction("arrange_layout", { pattern: "custom", panels: ["sec_filings_list"] }),
+    );
+    expect(unknown.label).toBeNull();
+    expect(unknown.reason).toContain('"sec_filings_list"');
+    expect(addPanel).not.toHaveBeenCalled();
+
+    const label = applyHostAction("arrange_layout", {
+      pattern: "custom",
+      panels: "chart, sec-filings, nope",
+    });
+    expect(label).toBe('Arranged chart + sec-filings (no panel named "nope")');
+    expect(addPanel.mock.calls.map(([opts]) => (opts as { id: string }).id)).toEqual([
+      "chart",
+      "sec-filings",
+    ]);
+  });
+
   it("open_panel returns null when the panel did not actually open (disabled module)", () => {
     const openPanel = vi.fn(); // a no-op open — the module is disabled
     useWorkspaceStore.setState({
@@ -1294,8 +1326,22 @@ describe("portfolio host actions (E6 — tracked portfolio writes)", () => {
         id: "default",
         name: "Portfolio",
         holdings: [
-          { id: "h-1", symbol: "TCS", quantity: 5, costBasis: 2500, assetClass: "equity" },
-          { id: "h-2", symbol: "TCS", quantity: 20, costBasis: 3900, assetClass: "equity" },
+          {
+            id: "h-1",
+            symbol: "TCS",
+            quantity: 5,
+            costBasis: 2500,
+            assetClass: "equity",
+            region: "IN",
+          },
+          {
+            id: "h-2",
+            symbol: "TCS",
+            quantity: 20,
+            costBasis: 3900,
+            assetClass: "equity",
+            region: "IN",
+          },
         ],
       },
     ]);
@@ -1336,6 +1382,36 @@ describe("write_note / remove_from_watchlist / set_region / save_screen (R10)", 
     expect(applyHostAction("write_note", { scope: "general", text: "  " })).toBeNull();
     const diff = describeHostAction("write_note", { scope: "RELIANCE", text: "x", mode: "append" });
     expect(diff.kind).toBe("data-write");
+  });
+
+  it("R15-FINAL-030: a note scoped by company name files under the resolved ticker; a ticker scope is unchanged", async () => {
+    useWorkspaceStore.setState({ openPanel: vi.fn() } as never);
+    sidecarGetMock.mockReset();
+    sidecarGetMock.mockResolvedValueOnce({
+      resolved: { symbol: "COCHINSHIP", name: "Cochin Shipyard Limited" },
+      needs_disambiguation: false,
+      candidates: [{ symbol: "COCHINSHIP", name: "Cochin Shipyard Limited" }],
+    });
+    expect(
+      await applyHostActionAsync("write_note", { scope: "Cochin Shipyard", text: "Stretched." }),
+    ).toBe('Appended to the COCHINSHIP note (resolved from "Cochin Shipyard")');
+    expect(useNotesStore.getState().noteFor("COCHINSHIP")).toBe("Stretched.");
+    expect(useNotesStore.getState().bySymbol["COCHIN SHIPYARD"]).toBeUndefined();
+
+    sidecarGetMock.mockResolvedValueOnce({
+      resolved: null,
+      needs_disambiguation: false,
+      candidates: [],
+    });
+    expect(
+      await applyHostActionAsync("write_note", { scope: "Nonesuch Works", text: "Hm." }),
+    ).toMatch(/"Nonesuch Works" did not resolve to a listing/);
+    expect(useNotesStore.getState().bySymbol["NONESUCH WORKS"]).toBe("Hm.");
+
+    sidecarGetMock.mockReset();
+    await applyHostActionAsync("write_note", { scope: "TCS.NS", text: "Ticker." });
+    expect(sidecarGetMock).not.toHaveBeenCalled();
+    expect(useNotesStore.getState().bySymbol["TCS.NS"]).toBe("Ticker.");
   });
 
   it("write_note honours the catalog-documented args: 'global' is General, mode defaults to append", () => {
@@ -1682,7 +1758,14 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
         id: "A",
         name: "A",
         holdings: [
-          { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+          {
+            id: "h-a",
+            symbol: "TCS",
+            quantity: 10,
+            costBasis: 2500,
+            assetClass: "equity",
+            region: "IN",
+          },
         ],
       },
     ]);
@@ -1810,14 +1893,28 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
           id: "A",
           name: "A",
           holdings: [
-            { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+            {
+              id: "h-a",
+              symbol: "TCS",
+              quantity: 10,
+              costBasis: 2500,
+              assetClass: "equity",
+              region: "IN",
+            },
           ],
         },
         {
           id: "B",
           name: "B",
           holdings: [
-            { id: "h-b", symbol: "TCS", quantity: 99, costBasis: 3900, assetClass: "equity" },
+            {
+              id: "h-b",
+              symbol: "TCS",
+              quantity: 99,
+              costBasis: 3900,
+              assetClass: "equity",
+              region: "IN",
+            },
           ],
         },
       ],
@@ -1902,7 +1999,14 @@ describe("describe/apply parity over one parsed intent (R15-CODE-FRONTEND-011)",
     expect(vi.mocked(fetch).mock.calls.length).toBe(fetchCalls); // Undo acks nothing new
     const holdings = usePortfoliosStore.getState().portfolios.find((p) => p.id === "A")!.holdings;
     expect(holdings).toEqual([
-      { id: "h-a", symbol: "TCS", quantity: 10, costBasis: 2500, assetClass: "equity" },
+      {
+        id: "h-a",
+        symbol: "TCS",
+        quantity: 10,
+        costBasis: 2500,
+        assetClass: "equity",
+        region: "IN",
+      },
     ]);
     expect(useProposedChangesStore.getState().changes[0].status).toBe("undone");
   });

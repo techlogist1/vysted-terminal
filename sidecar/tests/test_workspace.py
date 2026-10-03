@@ -268,6 +268,24 @@ def test_corrupt_workspace_is_quarantined_and_served_from_bak(client: TestClient
     assert client.get("/workspace").json() == ["research"]
 
 
+def test_a_deleted_workspace_is_never_restored_from_its_backup(client: TestClient) -> None:
+    """R15-FINAL-031: delete takes the ``.bak`` with it, so a later corrupt
+    workspace of the same name cannot be recovered to the deleted content."""
+    from config import get_workspaces_dir
+    from services.workspace_store import WORKSPACE_SUFFIX
+
+    client.post("/workspace", json={"name": "research", "workspace": {"v": "A"}})
+    client.post("/workspace", json={"name": "research", "workspace": {"v": "B"}})
+    assert client.delete("/workspace/research").status_code == 204
+    client.post("/workspace", json={"name": "research", "workspace": {"v": "C"}})
+    (get_workspaces_dir() / f"research{WORKSPACE_SUFFIX}").write_text('{"trunc', encoding="utf-8")
+
+    response = client.get("/workspace/research")
+
+    assert response.status_code == 404
+    assert "A" not in response.text
+
+
 def test_non_object_workspace_without_backup_is_404_not_500(client: TestClient) -> None:
     from config import get_workspaces_dir
     from services.workspace_store import WORKSPACE_SUFFIX

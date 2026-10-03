@@ -1472,12 +1472,20 @@ def _annotate_renamed_symbols(resolution: Resolution) -> Resolution:
 
 
 #: Name-key similarity at or above which an NSE row and the same-ticker BSE row
-#: are one company. Measured over the bundled masters: every genuine dual-listed
-#: equity whose spellings differ scores >= 0.81 ("Black Rose Inds." / "Black Rose
-#: Industries"), while the same-ticker different-company pairs score <= 0.61
-#: (FOCUS: Focus Lighting / Focus Business Solution 0.40; KALYANI: Kalyani
-#: Commercials / Kalyani Cast-Tech 0.61).
+#: are one company, judged on the keys with generic trailing words dropped
+#: (:data:`_GENERIC_NAME_WORDS`: the shared suffix otherwise dominates the ratio,
+#: Globesecure / Globalspace Technologies scored 0.83). Measured over the bundled
+#: non-ETF dual-listed pairs: genuine pairs whose spellings differ score >= 0.78
+#: ("21st Century" / "Twentyfirst Century" 0.78; Black Rose Inds. / Industries and
+#: D.B.Corp 1.0), while the same-ticker different-company pairs score <= 0.61
+#: (GSTL 0.45, FOCUS 0.49, ZEAL 0.56, KALYANI 0.61).
 _SAME_COMPANY_NAME_RATIO = 0.75
+
+#: Generic trailing words that say what kind of company, not which one.
+_GENERIC_NAME_WORDS = frozenset(
+    "technologies technology tech industries inds industry enterprises enterprise "
+    "solutions solution services service infra infrastructure systems products".split()
+)
 
 
 def _company_name_key(name: str) -> str:
@@ -1486,6 +1494,17 @@ def _company_name_key(name: str) -> str:
     letters and digits kept ("D.B.Corp Limited" and "D. B. Corp Ltd" → "dbcorp")."""
     tokens = name.lower().removesuffix("-$").replace("&", " and ").split()
     while len(tokens) > 1 and tokens[-1].strip(_EDGE_PUNCT) in ("ltd", "limited"):
+        tokens.pop()
+    return "".join(ch for ch in "".join(tokens) if ch.isalnum())
+
+
+def _same_company_key(name: str) -> str:
+    """:func:`_company_name_key` with a DVR share-class suffix ("Ltd_DVR") and
+    generic trailing words dropped, so only the distinguishing name is compared."""
+    tokens = name.lower().replace("_dvr", "").removesuffix("-$").replace("&", " and ").split()
+    while len(tokens) > 1 and tokens[-1].strip(_EDGE_PUNCT) in ("ltd", "limited"):
+        tokens.pop()
+    while len(tokens) > 1 and tokens[-1].strip(_EDGE_PUNCT) in _GENERIC_NAME_WORDS:
         tokens.pop()
     return "".join(ch for ch in "".join(tokens) if ch.isalnum())
 
@@ -1507,7 +1526,7 @@ def _bse_row_is_same_company(inst: Instrument, bse_entry: tuple[str, str, str, s
         return False
     if inst.asset_class == "etf":
         return True
-    ratio = SequenceMatcher(None, _company_name_key(inst.name), _company_name_key(name)).ratio()
+    ratio = SequenceMatcher(None, _same_company_key(inst.name), _same_company_key(name)).ratio()
     return ratio >= _SAME_COMPANY_NAME_RATIO
 
 
@@ -1669,15 +1688,19 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
         s = _score(sym, name)
         if s is not None:
             out.append(_instrument_nse(sym, *s))
-    # BSE-only names (the micro-cap tail) — dual-listed symbols are skipped so
-    # the canonical NSE row is the one (and only) candidate for that instrument,
-    # keeping the list deduplicated and NSE-preferred without a second pass.
-    for sym, (name, _group, _code, _isin) in _bse_master().items():
-        if sym in nse_symbols:
+    # BSE names the NSE master does not already list: a BSE row under an NSE
+    # ticker is skipped only when it is the SAME company (the canonical NSE row
+    # stands for it); a same-ticker different company (Zeal Aqua beside NSE
+    # ZEAL) is its own instrument and is offered (R15-FINAL-011).
+    for sym, entry in _bse_master().items():
+        s = _score(sym, entry[0])
+        if s is None:
             continue
-        s = _score(sym, name)
-        if s is not None:
-            out.append(_instrument_bse(sym, *s))
+        if sym in nse_symbols and _bse_row_is_same_company(
+            _instrument_nse(sym, 1.0, BAND_EXACT_TICKER), entry
+        ):
+            continue
+        out.append(_instrument_bse(sym, *s))
     for sym, name in _us_master().items():
         s = _score(sym, name)
         if s is not None:
@@ -1690,7 +1713,11 @@ def autocomplete(query: str, region: str | None = None, limit: int = 8) -> list[
     if retired is not None:
         out = [i for i in out if (i.symbol, i.exchange) != (retired.symbol, retired.exchange)]
     # Locale breaks ties as a SORT KEY, never an additive score bonus.
-    out.sort(key=lambda i: (i.score, _locale_rank(region, i.region)), reverse=True)
+    bo_query = query.strip().upper().endswith(".BO")
+    out.sort(
+        key=lambda i: (i.score, bo_query and i.exchange == "BSE", _locale_rank(region, i.region)),
+        reverse=True,
+    )
     if retired is not None:
         out.insert(0, retired)
     # The same identity stages as :func:`resolve` (enrichment, then the rename

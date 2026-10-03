@@ -291,3 +291,36 @@ def test_default_upcoming_universe_is_cached_per_region(
     client.get("/earnings/upcoming", headers={"X-Vysted-Region": "US"})
     client.get("/earnings/upcoming", headers={"X-Vysted-Region": "IN"})
     assert calls["n"] == 2
+
+
+def test_a_rate_limited_history_raises_and_is_not_cached(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """R15-LEAD-071: a Yahoo 429 on ``earnings_history`` was swallowed as an
+    empty history and cached for 24 h. It now answers 429 and stores nothing,
+    so the next call refetches."""
+    from services import earnings_provider
+
+    class YFRateLimitError(Exception):
+        pass
+
+    calls = {"n": 0}
+
+    class _Ticker:
+        def __init__(self, _symbol: str) -> None:
+            calls["n"] += 1
+
+        @property
+        def earnings_history(self) -> Any:
+            raise YFRateLimitError("Too Many Requests. Rate limited. Try after a while.")
+
+        earnings_dates = None
+        info: dict[str, Any] = {"currency": "USD"}
+
+    monkeypatch.setattr(earnings_provider, "_yf_ticker", _Ticker)
+    first = client.get("/earnings/MSFT/history")
+    assert first.status_code == 429
+    assert first.json()["code"] == "rate_limited"
+    second = client.get("/earnings/MSFT/history")
+    assert second.status_code == 429
+    assert calls["n"] == 2  # refetched: the throttle was never cached

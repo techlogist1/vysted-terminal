@@ -276,6 +276,30 @@ describe("workspace serialization", () => {
     expect(useKeybindingsStore.getState().bindingFor("palette.open")).toBe("mod+shift+p");
   });
 
+  it("restores a pre-region holding stamped with the blob's own saved region (R15-FINAL-001)", () => {
+    useWorkspaceStore.setState({ dockviewApi: createFakeDockviewApi(LAYOUT_A) as never });
+    useSettingsStore.setState({ region: "US" });
+    deserializeWorkspace({
+      name: "pre-region",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      settings: { region: "IN" } as never,
+      portfolios: {
+        list: [
+          {
+            id: "pf-1",
+            name: "Core",
+            holdings: [
+              { id: "h1", symbol: "INFY", quantity: 20, costBasis: 1500, assetClass: "equity" },
+            ] as never,
+          },
+        ],
+        activeId: "pf-1",
+      },
+    });
+    expect(usePortfoliosStore.getState().portfolios[0].holdings[0].region).toBe("IN");
+  });
+
   it("migrates pre-R9 searchSettings blobs into the two-tier vocabulary on restore", async () => {
     const fakeApi = createFakeDockviewApi(LAYOUT_A);
     useWorkspaceStore.setState({ dockviewApi: fakeApi as never });
@@ -1500,7 +1524,14 @@ describe("persisted-slice registry + gated autosave (R15-LIFECYCLE-003, CODE-FRO
             id: "pf-1",
             name: "Core",
             holdings: [
-              { id: "h1", symbol: "TCS", quantity: 10, costBasis: 3500, assetClass: "equity" },
+              {
+                id: "h1",
+                symbol: "TCS",
+                quantity: 10,
+                costBasis: 3500,
+                assetClass: "equity",
+                region: "IN",
+              },
             ],
           },
         ],

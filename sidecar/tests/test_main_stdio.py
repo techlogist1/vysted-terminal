@@ -11,6 +11,11 @@ loop or binding a port.
 from __future__ import annotations
 
 import asyncio
+import signal
+import socket
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 
@@ -72,3 +77,29 @@ def test_mcp_stdio_branch_builds_full_catalog_tool_set(
     )
 
     mcp_server._reset_for_tests()
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX exit status (SIGABRT)")
+def test_a_taken_port_exits_non_zero_without_aborting(tmp_path: Path) -> None:
+    """R15-FINAL-028: with the stdin watchdog holding the stdin lock, a normal
+    interpreter exit after uvicorn's bind failure aborted (134 / SIGABRT)."""
+    with socket.socket() as taken:
+        taken.bind(("127.0.0.1", 0))
+        taken.listen()
+        port = taken.getsockname()[1]
+        log = tmp_path / "stderr.log"
+        with open(log, "wb") as stderr:
+            child = subprocess.Popen(
+                [sys.executable, "main.py", "--port", str(port), "--data-dir", str(tmp_path)],
+                cwd=Path(main.__file__).parent,
+                stdin=subprocess.PIPE,  # held open, as the Tauri core does
+                stdout=subprocess.DEVNULL,
+                stderr=stderr,
+            )
+            try:
+                code = child.wait(timeout=110)
+            finally:
+                child.kill()
+                child.stdin.close()  # type: ignore[union-attr]
+    tail = log.read_text(encoding="utf-8", errors="replace")[-2000:]
+    assert code not in (0, -signal.SIGABRT, 134), tail

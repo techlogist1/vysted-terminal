@@ -6,7 +6,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 vi.mock("@/lib/host-actions", () => ({
   loadSymbolIntoChart: vi.fn(),
@@ -14,6 +14,7 @@ vi.mock("@/lib/host-actions", () => ({
 
 import { loadSymbolIntoChart } from "@/lib/host-actions";
 import * as sidecarClient from "@/lib/sidecar-client";
+import { focusedSymbolFromBus } from "@/modules/chat/context-provider";
 import { usePanelContextBus } from "@/store/panel-context";
 import { useSecStore } from "@/store/sec";
 
@@ -230,6 +231,15 @@ describe("SecFilingsPanel", () => {
       tab: string;
     };
     expect(payload).toMatchObject({ identifier: "AAPL", tab: "filings" });
+  });
+
+  it("R15-LEAD-077: the focused SEC panel's identifier is the snapshot's focused symbol", async () => {
+    render(<SecFilingsPanel />);
+    act(() => useSecStore.getState().setActiveIdentifier("MSFT"));
+    await waitFor(() => {
+      const bus = usePanelContextBus.getState().lastEventBySource;
+      expect(focusedSymbolFromBus(bus, "sec-filings")).toBe("MSFT");
+    });
   });
 
   it("clicking the company name/identifier loads it into the chart (R15-AGENT-053)", async () => {

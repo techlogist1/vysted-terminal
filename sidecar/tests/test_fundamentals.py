@@ -600,8 +600,12 @@ def _filing(promoter: float | None, institutions: float | None, public: float | 
         ("JONJUA.BO", "held_percent_insiders", 0.46623, (29.67, 0.0, 70.33), "flagged"),
         # SAFE: 73.84% against a filed 73.58% sits inside the 3pp band.
         ("SAFE.BO", "held_percent_insiders", 0.7384, (73.58, 0.1, 26.32), "ok"),
-        # NAPEROL institutions leg: 0 against a filed 1.77% (zero vs non-zero).
-        ("NAPEROL.BO", "held_percent_institutions", 0.0, (60.0, 1.77, 38.23), "flagged"),
+        # NAPEROL institutions leg: 0 against a filed 1.77% sits inside the 3pp
+        # band. Was "flagged" under the zero-vs-non-zero rule, which R15-FINAL-024
+        # retired: it flagged 0.00% vs 0.03% (AMAL) with a false "beyond 3pp".
+        ("NAPEROL.BO", "held_percent_institutions", 0.0, (60.0, 1.77, 38.23), "ok"),
+        # The same zero beyond the band still flags.
+        ("NAPEROL.BO", "held_percent_institutions", 0.0, (60.0, 12.0, 28.0), "flagged"),
     ],
 )
 def test_ownership_is_flagged_when_the_exchange_filing_disagrees(

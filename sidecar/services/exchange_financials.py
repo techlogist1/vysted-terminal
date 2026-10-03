@@ -80,6 +80,9 @@ class FiledPeriod:
     eps: float | None
     filed: date | None = None
     url: str | None = None
+    #: How a period no filing reports was derived from two that do; ``None``
+    #: for a filed period (R15-FINAL-005).
+    derived: str | None = None
 
     @property
     def months(self) -> int:
@@ -94,22 +97,26 @@ class FiledPeriods:
     basis: str
     periods: tuple[FiledPeriod, ...]
 
-    def trailing(self) -> tuple[FiledPeriod, ...] | None:
+    def trailing(self, *, best_effort: bool = False) -> tuple[FiledPeriod, ...] | None:
         """The contiguous filed periods covering the 12 months to the newest
         period end (four quarters, two halves), or ``None`` when the filings
-        leave a hole in that year (a half-yearly filer's missing quarter)."""
-        chain: list[FiledPeriod] = []
-        months = 0
-        for period in self.periods:
-            if months >= 12:
-                break
-            if chain and abs((chain[-1].start - period.end).days - 1) > _CONTIGUITY_DAYS:
-                if period.end >= chain[-1].start:
-                    continue  # an overlapping longer period ending on the same date
-                return None
-            chain.append(period)
-            months += period.months
-        return tuple(chain) if months == 12 else None
+        leave a hole in that year (a half-yearly filer's missing quarter).
+
+        ``best_effort`` (R15-FINAL-005, for a listing no provider sizes): a
+        quarter the filings omit is derived as its filed half-year less the
+        filed quarter inside it (an NSE Emerge filer's Sep/Mar filing carries
+        only the 6-month context), and failing a chain to the newest end, the
+        newest complete chain ending earlier is returned — its first period
+        names the end it runs to."""
+        chain = _chain(self.periods)
+        if chain is not None or not best_effort:
+            return chain
+        periods = _with_derived_quarters(self.periods)
+        for start in range(len(periods)):
+            chain = _chain(periods[start:])
+            if chain is not None:
+                return chain
+        return None
 
     def cadence(self) -> str:
         """``half-yearly`` only when NO 3-month period is filed anywhere on
@@ -134,6 +141,77 @@ class FiledPeriods:
             if other.months == period.months and off <= _YEAR_AGO_WINDOW_DAYS:
                 return other
         return None
+
+
+def _chain(periods: Iterable[FiledPeriod]) -> tuple[FiledPeriod, ...] | None:
+    """The contiguous periods (newest first) covering 12 months back from the
+    first one's end, or ``None`` on a hole."""
+    chain: list[FiledPeriod] = []
+    months = 0
+    for period in periods:
+        if months >= 12:
+            break
+        if chain and abs((chain[-1].start - period.end).days - 1) > _CONTIGUITY_DAYS:
+            if period.end >= chain[-1].start:
+                continue  # an overlapping longer period ending on the same date
+            return None
+        if months + period.months > 12:
+            continue  # a half-year where only its later quarter still fits
+        chain.append(period)
+        months += period.months
+    return tuple(chain) if months == 12 else None
+
+
+def _less(whole: float | None, part: float | None) -> float | None:
+    return whole - part if whole is not None and part is not None else None
+
+
+def _with_derived_quarters(periods: tuple[FiledPeriod, ...]) -> tuple[FiledPeriod, ...]:
+    """``periods`` plus each unfiled quarter of a filed half-year whose other
+    quarter is filed: revenue and profit by subtraction, EPS on the half's
+    implied share count (its profit / its EPS), so a bonus issue between the
+    two filings cannot skew it. Ordered as :func:`_assemble` orders, a filed
+    period before a derived one ending on the same date."""
+    have = {(p.start, p.end) for p in periods}
+    derived: list[FiledPeriod] = []
+    for half in (p for p in periods if p.months == 6):
+        for quarter in periods:
+            inside = quarter.start == half.start or quarter.end == half.end
+            if quarter.months != 3 or not inside:
+                continue
+            if quarter.start == half.start:
+                span = (quarter.end + timedelta(days=1), half.end)
+            else:
+                span = (half.start, quarter.start - timedelta(days=1))
+            if span in have:
+                continue
+            have.add(span)
+            profit = _less(half.net_profit, quarter.net_profit)
+            eps = (
+                profit * half.eps / half.net_profit
+                if profit is not None and half.eps and half.net_profit
+                else None
+            )
+            note = (
+                f"{span[0]}..{span[1]} derived as the filed half-year {half.start}..{half.end} "
+                f"less its filed quarter {quarter.start}..{quarter.end}"
+            )
+            derived.append(
+                FiledPeriod(
+                    *span,
+                    _less(half.revenue, quarter.revenue),
+                    profit,
+                    eps,
+                    half.filed,
+                    half.url,
+                    note,
+                )
+            )
+    return tuple(
+        sorted(
+            (*periods, *derived), key=lambda p: (p.end, p.derived is None, -p.months), reverse=True
+        )
+    )
 
 
 # --- NSE lane ------------------------------------------------------------------
