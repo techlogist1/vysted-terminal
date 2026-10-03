@@ -98,6 +98,7 @@ _BULK_BLOCK_PATH = "/api/historicalOR/bulk-block-short-deals"
 _SAST_PATH = "/api/corporate-sast-reg29"
 _FINANCIAL_FILINGS_PATH = "/api/integrated-filing-results"
 _FINANCIALS_TYPE = "Integrated Filing- Financials"
+_GET_QUOTE_API_PATH = "/api/NextApi/apiClient/GetQuoteApi"
 _ARCHIVE_BASE = "https://nsearchives.nseindia.com/"
 
 # Browser headers for the API hits. TLS fingerprint, User-Agent and the
@@ -814,6 +815,37 @@ def get_financial_filings(symbol: str) -> list[dict]:
     return _data_rows(_FINANCIAL_FILINGS_PATH, payload)
 
 
+def get_issued_size(symbol: str) -> float | None:
+    """The listing's CURRENT issued share count from the quote page's own API,
+    or ``None`` when NSE does not state one (R15-LEAD-137).
+
+    Observed live 2026-10-03 (``api/quote-equity`` 403s from this vantage; this
+    path serves): ``functionName=getMetaData`` names ``activeSeries`` (an Emerge
+    name can trade ``ST``, not ``SM`` — CURIS), and ``getSymbolData`` for that
+    series carries ``equityResponse[0].tradeInfo.issuedSize`` (CURIS 8,084,434,
+    VOLERCAR 11,143,527). Read only; rides the same throttled lane. Raises
+    :class:`ProviderError` on a transport failure or block."""
+    bare = _require_nse(symbol)
+    referer = _quote_referer(bare)
+    meta = _get_json(_GET_QUOTE_API_PATH, {"functionName": "getMetaData", "symbol": bare}, referer)
+    series = meta.get("activeSeries") if isinstance(meta, dict) else None
+    if not isinstance(series, list) or not series or not isinstance(series[0], str):
+        return None
+    params = {
+        "functionName": "getSymbolData",
+        "marketType": "N",
+        "series": series[0],
+        "symbol": bare,
+    }
+    payload = _get_json(_GET_QUOTE_API_PATH, params, referer)
+    try:
+        trade = payload["equityResponse"][0]["tradeInfo"]  # type: ignore[index]
+    except (KeyError, IndexError, TypeError):
+        return None
+    size = _num(trade.get("issuedSize")) if isinstance(trade, dict) else None
+    return size if size is not None and size > 0 else None
+
+
 def get_archive_text(url: str) -> str:
     """One throttled GET of an NSE archive document (a results XBRL) on the
     cookie-danced session. Only ``nsearchives.nseindia.com`` URLs are fetched."""
@@ -907,6 +939,7 @@ __all__ = [
     "get_corporate_announcements",
     "get_financial_filings",
     "get_history",
+    "get_issued_size",
     "get_quote",
     "get_results_calendar",
     "get_shareholding_master",
