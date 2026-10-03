@@ -317,6 +317,29 @@ def test_undated_rss_item_has_no_date_and_sorts_last(monkeypatch: pytest.MonkeyP
     assert items[1].published_at is None
 
 
+def test_rss_titles_and_summaries_are_html_unescaped() -> None:
+    """R15-FINAL-027: a double-escaped feed title ("F&amp;amp;O" in the XML) reached
+    the UI as the literal "F&amp;O". Titles and summaries are decoded once."""
+    rss = (
+        '<?xml version="1.0"?><rss version="2.0"><channel><title>Feed</title>'
+        "<item><title>F&amp;amp;O Talk: Nifty &amp;#8377;25,000</title>"
+        "<link>https://example.com/fo</link>"
+        "<description>Tata &amp;amp; Sons</description></item>"
+        "</channel></rss>"
+    )
+    transport = httpx.MockTransport(lambda request: httpx.Response(200, text=rss))
+
+    async def run() -> list[NewsItem]:
+        async with httpx.AsyncClient(transport=transport) as client:
+            return await news_provider.fetch_rss(
+                client, "https://example.com/feed", fallback_source="x"
+            )
+
+    (item,) = asyncio.run(run())
+    assert item.title == "F&O Talk: Nifty \u20b925,000"
+    assert item.summary == "Tata & Sons"
+
+
 def test_fetch_news_survives_partial_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     """One source fails its retries; the other succeeds → partial success (no raise)."""
     good = _news_item("ok", "Working feed item")

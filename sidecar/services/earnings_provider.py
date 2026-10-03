@@ -135,24 +135,23 @@ def _revenue_currency(payload: dict[str, Any], sample_estimate: float | None) ->
     figure) and compare it with ``total_revenue`` (already on the payload, in
     ``financialCurrency`` by construction — no extra fetch). Within
     ``_REVENUE_SCALE_BAND``, trust ``financialCurrency``. Otherwise fall back
-    to the issuer's home-market currency from ``_COUNTRY_CURRENCY``. If
-    neither answer is determinable, ``None`` — never a guessed label.
+    to the issuer's home-market currency from ``_COUNTRY_CURRENCY``, unless
+    that is the currency the scale check ruled out. If neither answer is
+    determinable, ``None`` — never a guessed label.
     """
     financial_currency = payload.get("financial_currency")
     total_revenue = payload.get("total_revenue")
-    if (
-        financial_currency
-        and sample_estimate is not None
-        and total_revenue
-        and _REVENUE_SCALE_BAND[0]
-        <= (sample_estimate * 4) / total_revenue
-        <= _REVENUE_SCALE_BAND[1]
-    ):
-        return str(financial_currency)
-    country = payload.get("country")
-    if country in _COUNTRY_CURRENCY:
-        return _COUNTRY_CURRENCY[country]
-    return None
+    ruled_out: str | None = None
+    if financial_currency and sample_estimate is not None and total_revenue:
+        ratio = (sample_estimate * 4) / total_revenue
+        if _REVENUE_SCALE_BAND[0] <= ratio <= _REVENUE_SCALE_BAND[1]:
+            return str(financial_currency)
+        ruled_out = str(financial_currency)
+    fallback = _COUNTRY_CURRENCY.get(payload.get("country") or "")
+    # The home-market currency is no answer when it is the very currency the
+    # scale check just ruled out (SIFY: a USD-sized estimate beside INR
+    # revenue, country India; R15-FINAL-010).
+    return None if fallback == ruled_out else fallback
 
 
 def _eps_currency(payload: dict[str, Any], sample_eps: float | None) -> str | None:
@@ -213,6 +212,21 @@ def _yf_ticker(symbol: str) -> Any:
     return yf.Ticker(symbol)
 
 
+def _optional(ticker: Any, attr: str, symbol: str) -> Any:
+    """One optional yfinance accessor: a failure is ``None`` (the field is
+    simply absent), except a throttle, which raises ``rate_limited`` so the
+    router's cache never stores the empty answer it would otherwise become
+    (R15-LEAD-071: a 429 on ``earnings_history`` was cached for 24 h)."""
+    try:
+        return getattr(ticker, attr)
+    except Exception as exc:  # noqa: BLE001 — optional accessor
+        if provider_health.is_rate_limit(exc):
+            raise ProviderError(
+                f"yfinance {attr} throttled for {symbol!r}", kind="rate_limited"
+            ) from exc
+        return None
+
+
 def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
     """Return a dict of the yfinance calendar (dates + estimates).
 
@@ -226,22 +240,12 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
     try:
         ticker = _yf_ticker(normalized)
         calendar = getattr(ticker, "calendar", None) or {}
-        try:
-            earnings_dates = ticker.earnings_dates
-        except Exception:  # noqa: BLE001 — optional accessor
-            earnings_dates = None
-        try:
-            info = ticker.info or {}
-        except Exception:  # noqa: BLE001
-            info = {}
-        try:
-            est_frame = ticker.earnings_estimate
-        except Exception:  # noqa: BLE001
-            est_frame = None
-        try:
-            rev_frame = ticker.revenue_estimate
-        except Exception:  # noqa: BLE001
-            rev_frame = None
+        earnings_dates = _optional(ticker, "earnings_dates", symbol)
+        info = _optional(ticker, "info", symbol) or {}
+        est_frame = _optional(ticker, "earnings_estimate", symbol)
+        rev_frame = _optional(ticker, "revenue_estimate", symbol)
+    except ProviderError:
+        raise
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance earnings calendar failed for {symbol!r}: {exc}") from exc
 
@@ -268,18 +272,11 @@ def _fetch_history_sync(symbol: str) -> dict[str, Any]:
     normalized = _yahoo_symbol(symbol)
     try:
         ticker = _yf_ticker(normalized)
-        try:
-            history = ticker.earnings_history
-        except Exception:  # noqa: BLE001
-            history = None
-        try:
-            earnings_dates = ticker.earnings_dates
-        except Exception:  # noqa: BLE001
-            earnings_dates = None
-        try:
-            info = ticker.info or {}
-        except Exception:  # noqa: BLE001
-            info = {}
+        history = _optional(ticker, "earnings_history", symbol)
+        earnings_dates = _optional(ticker, "earnings_dates", symbol)
+        info = _optional(ticker, "info", symbol) or {}
+    except ProviderError:
+        raise
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance earnings history failed for {symbol!r}: {exc}") from exc
     return {

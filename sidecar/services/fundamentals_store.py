@@ -192,9 +192,10 @@ def _db_path() -> str:
 
 
 def _connect() -> sqlite3.Connection:
-    conn = sqlite3.connect(_db_path())
-    conn.row_factory = sqlite3.Row
-    if schema_version.migrate(conn, _STEPS) == len(_STEPS):
+    conn, version = schema_version.open_migrated(
+        _db_path(), _STEPS, row_factory=sqlite3.Row, quiet=True
+    )
+    if version == len(_STEPS):
         # Kept on every open of a current-version DB so a column added to
         # ``_ALL_COLUMNS`` reaches it with no new step (R15-DATA-095).
         _reconcile(conn)

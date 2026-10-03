@@ -10,11 +10,11 @@
  */
 
 import { researchSpaceName } from "@/lib/workspace";
-import { regionConfig, type Region } from "@/lib/region";
+import { type Region } from "@/lib/region";
 import { useBriefStore } from "@/store/brief";
 import { useNotesStore } from "@/store/notes";
 import { usePanelContextBus } from "@/store/panel-context";
-import { usePortfoliosStore } from "@/store/portfolios";
+import { listingCurrency, usePortfoliosStore } from "@/store/portfolios";
 import { useResearchSpacesStore } from "@/store/research-spaces";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
@@ -46,9 +46,10 @@ export interface TerminalHolding {
   /**
    * The cost basis's currency (R15-AGENT-091) — without it the model guesses
    * one per holding (an INR cost basis read back as a USD figure). A
-   * resolved quote's currency, else the region default; never absent.
+   * resolved quote's currency, else the listing's own ({@link listingCurrency});
+   * `null` = unknown, never the session region's (R15-FINAL-007).
    */
-  currency: string;
+  currency: string | null;
   /** Live market value, or null when no quote resolved (provenance-honest). */
   marketValue?: number | null;
   /** Unrealised P&L, or null when no quote resolved. */
@@ -155,16 +156,6 @@ function asString(value: unknown): string | null {
   return typeof value === "string" && value ? value : null;
 }
 
-/** The currency a holding reports when the source didn't carry one (older bus
- *  payload, or the store-fallback path with no live quote): a crypto pair's
- *  quote side (`BTC/USDT` -> `USDT`), else the active region's default. */
-function fallbackCurrency(symbol: string, assetClass: string): string {
-  if (assetClass === "crypto" && symbol.includes("/")) {
-    return symbol.split("/")[1];
-  }
-  return regionConfig(useSettingsStore.getState().region).currency;
-}
-
 /** Coerce the bus payload's `holdings` array into `TerminalHolding[]` — older
  *  payloads (pre multi-portfolio truth) carry no `holdings`, yielding `[]`. */
 function extractHoldings(value: unknown): TerminalHolding[] {
@@ -188,7 +179,7 @@ function extractHoldings(value: unknown): TerminalHolding[] {
       quantity: Number(row.quantity ?? 0),
       costBasis: Number(row.costBasis ?? 0),
       assetClass,
-      currency: asString(row.currency) ?? fallbackCurrency(symbol, assetClass),
+      currency: asString(row.currency) ?? listingCurrency(symbol, assetClass),
       marketValue,
       pnl,
     });
@@ -222,7 +213,7 @@ function portfolioFromStore(): TerminalPortfolio | null {
       assetClass: h.assetClass,
       // No live quote was joined (panel closed) — fall back the same way the
       // panel-published path does (R15-AGENT-091).
-      currency: fallbackCurrency(h.symbol, h.assetClass),
+      currency: listingCurrency(h.symbol, h.assetClass),
       marketValue: null,
       pnl: null,
     })),

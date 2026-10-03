@@ -127,6 +127,9 @@ _STANDALONE_VERDICT_WORDS = (
 )
 
 
+_EMPHASIS_EDGE_RE = re.compile(r"(?<!\w)[_`]+|[_`]+(?!\w)")
+
+
 def _parse_verdict(text: str) -> tuple[str, str]:
     """Parse an LLM verdict completion to ``(verdict, detail)`` — conservative.
 
@@ -146,11 +149,15 @@ def _parse_verdict(text: str) -> tuple[str, str]:
     low = first_line.lower()
     if not low:
         return _VERDICT_UNVERIFIED, "no verdict returned"
-    head = _VERDICT_TOKENS.get(leading_token(first_line))
+    # ``_UNVERIFIED_`` / ``__UNVERIFIED__``: ``_`` is a word character, so it
+    # defeats ``\b`` and the leading-token strip. Drop emphasis underscores and
+    # backticks at word edges (snake_case interiors stay) before reading the word.
+    plain = _EMPHASIS_EDGE_RE.sub("", first_line)
+    head = _VERDICT_TOKENS.get(leading_token(plain))
     if head is not None:
         return head, first_line
     for word, verdict in _STANDALONE_VERDICT_WORDS:
-        if re.search(rf"\b{word}\b", first_line):
+        if re.search(rf"\b{word}\b", plain):
             return verdict, first_line
     if any(marker in low for marker in _DISAGREE_MARKERS):
         return _VERDICT_DISAGREE, first_line

@@ -191,6 +191,21 @@ def test_sources_rail_is_never_renumbered() -> None:
     assert [s.url for s in out.sources] == before
 
 
+def test_parse_verdict_reads_through_underscore_and_star_emphasis() -> None:
+    """R15-LEAD-060: ``_`` is a word character, so ``_UNVERIFIED_`` defeated both
+    the ``\\b`` scan and the leading-token strip and fell through to the
+    marker scan, where "confirms" read as agree."""
+    for text in (
+        "_UNVERIFIED_ - no source confirms the figure",
+        "__UNVERIFIED__ - no source confirms the figure",
+        "*UNVERIFIED* - no source confirms the figure",
+        "`UNVERIFIED` - no source confirms the figure",
+    ):
+        assert _parse_verdict(text)[0] == "unverified", text
+    assert _parse_verdict("_AGREE_ - consistent across both")[0] == "agree"
+    assert _parse_verdict("_DISAGREE_ - sources differ")[0] == "disagree"
+
+
 def test_parse_verdict_is_conservative() -> None:
     assert _parse_verdict("DISAGREE — sources differ")[0] == "disagree"
     # "the sources disagree" contains "agree" as a substring — disagreement wins.

@@ -3,7 +3,7 @@
 Reader: the lead or operator cutting the 0.9.0 release, step by step. Sourced from
 `docs/redesign/verification/r15/stage-d/FACTS.md` (sha `4d893147`) and the sha's own
 scripts/docs; promoted here ahead of rc2 as docs-promotion pass 1. The merge-to-main and
-`v0.9.0` tag steps below (§1, §9) are written for the operator and are not executed by this
+`v0.9.0` tag step below (§9) is written for the operator and is not executed by this
 promotion — nothing in this document has been run against a release-candidate sha yet. §4/§5's
 `<!-- fill at rc2 -->` markers record real build/smoke evidence still pending the actual
 release-candidate run; refresh this file once that evidence exists.
@@ -12,8 +12,7 @@ release-candidate run; refresh this file once that evidence exists.
 
 - [ ] 0. Prerequisites: `PATH` + sidecar venv activated (§0) — `pnpm ci-local` fails without it
 - [ ] rc gate round 2 verdict PASS at the candidate sha (confirmed at the tag)
-- [ ] 1. Merge `worktree-agent-r15-version-0.9.0` (version bump to `0.9.0`) right after the
-     r15-rc1 tag
+- [ ] 1. Confirm the five version sources read `0.9.0` (no merge step; the bump is in the candidate)
 - [ ] 2. `pnpm install --frozen-lockfile`
 - [ ] 3. `pnpm ci-local`
 - [ ] 4. Build the three sidecar binaries
@@ -31,13 +30,11 @@ release-candidate run; refresh this file once that evidence exists.
 
 ## 0. Prerequisites (one shell, before §2)
 
-`pnpm ci-local` (§3) calls bare `python`, `pytest`, `cargo`, `ruff` and `node`, and `pip`
-via `python -m pip` (`package.json:20` — see §3's verbatim command). On a stock macOS shell, `python` and
-`pytest` are not on `PATH` (`which python python3 pytest ruff cargo node pnpm` at the sha's
-toolchain →`python`: not found, `python3`: `/opt/homebrew/bin/python3`, `pytest`: not found,
-`ruff`/`cargo`/`node`/`pnpm`: found), so step 3 dies at `python -m pip install
-ruff==0.15.12` (`command not found: python`) after already spending the lint/typecheck
-minutes. CI does not have this gap — its `python` comes from `actions/setup-python`,
+`pnpm ci-local` (§3) calls `python3 -m pip`, then bare `ruff`, `pytest`, `cargo` and `node`
+(`package.json` `ci-local` — see §3's verbatim command). On a stock macOS shell `pytest` and
+`ruff` are not on `PATH` until the sidecar venv is active, so step 3 dies at `ruff check
+sidecar` (or `pytest`) with `command not found` after already spending the lint/typecheck
+minutes. CI does not have this gap — its Python comes from `actions/setup-python`,
 `python-version: "3.13"` (`.github/workflows/test.yml:41`) — so the local mirror needs the
 same interpreter made available explicitly:
 
@@ -66,141 +63,17 @@ confirm before starting:
   (`.github/workflows/{build,lint,test}.yml`, each `version: 10.32.1`); a different local
   pnpm can resolve dependencies differently than CI.
 
-## 1. Version bump to 0.9.0
+## 1. Version — already 0.9.0
 
-What: every load-bearing version string moves from `0.8.0` to `0.9.0` in the same commit.
-Who: lead.
-
-**Do not hand-edit these files.** A prepared branch already carries the bump:
-`worktree-agent-r15-version-0.9.0`, two commits on top of `1db862d0` — `517da226
-chore(release): bump version to 0.9.0` and `c1e9164c docs: the single CLAUDE.md commit for
-the 0.9.0 release` (`git log --oneline -3 worktree-agent-r15-version-0.9.0`). Neither commit
-is an ancestor of this sha (`git merge-base --is-ancestor 517da226 HEAD` fails at S). The
-tracked run-state log records the merge plan: "MERGE PLAN (right after the r15-rc1 tag):
-`git restore CLAUDE.md` first (the branch carries a held local hunk;
-`scratchpad/claude-md-local.diff` keeps a copy), then `merge --no-ff`"
-(`docs/redesign/verification/vysted-r15-run-state.md`, VERSION BRANCH entry) — merging it now
-would tag a tree the gate never evaluated. Step: **merge `worktree-agent-r15-version-0.9.0`
-into the release-candidate branch right after the r15-rc1 tag**, restoring `CLAUDE.md` first
-per that note, then confirm the rc gate's register and grep criteria still hold on the merged
-tree before proceeding to §2.
-
-**What `517da226` touches — 8 files, audited here so a re-run or a manual rebase can be
-checked against this list** (its own commit message: "Version sources: package.json,
-src-tauri/Cargo.toml (+ Cargo.lock via cargo update -p vysted-terminal --offline),
-src-tauri/tauri.conf.json (version string only), sidecar/app.py FastAPI(version=...),
-HOST_VERSION in src/lib/plugin-bootstrap.ts. Also the README status line and the
-marketplace store test fixture whose comment says it matches HOST_VERSION."):
-
-- `package.json:3` — `"version": "0.8.0"`
-- `src-tauri/Cargo.toml:3`
-- `src-tauri/tauri.conf.json:4`
-- `sidecar/app.py:329` — `FastAPI(title="Vysted Terminal Sidecar", version="0.8.0", …)`
-- `src/lib/plugin-bootstrap.ts:38` — `export const HOST_VERSION = "0.8.0";`
-- `src-tauri/Cargo.lock:5486-5487` — the `vysted-terminal` package block, via
-  `cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml`
-  (CLAUDE.md "Versioning & process": "At bump: grep for stale version strings and run
-  `cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml`.")
-- `README.md:53` — the "Honest status" line: "...and version strings sit at `0.8.0` pending
-  a release cut" (confirmed at S: `git show S:README.md` line 53).
-- `src/store/marketplace.test.ts:46` — `new PluginRuntime({ hostVersion: "0.8.0", ... })`,
-  whose own comment says the fixture "matches HOST*VERSION so every catalog plugin satisfies
-  requiredHostVersion" (`:43-45`) — the one non-source fixture the bump commit chose to move
-  because its comment makes that claim explicitly; every \_other* `"0.8.0"` test fixture below
-  is left alone on purpose.
-
-If for any reason the branch cannot be merged and the five-plus-three edits must be
-reproduced by hand instead, edit exactly this 8-line list and regenerate `Cargo.lock` with
-the `cargo update` command above — do not additionally touch any file in the "not a bump
-target" list below.
-
-**Not bump targets.** Every other `0.8.0` occurrence FACTS's `git grep` classes
-`load_bearing` is a false positive of that tag, not a bump target — verified individually
-against the code at the sha:
-
-- `package.json:77` — `prettier-plugin-tailwindcss` pinned to `0.8.0`; an unrelated dep, not
-  the app version.
-- `src-tauri/Cargo.lock:281,290,758,2426,2443,3351,3368` — seven unrelated-crate
-  `version = "0.8.0"` lines (`git grep -n '0\.8\.0' -- src-tauri/Cargo.lock` at the sha finds
-  8 hits total: these seven plus `:5487` above).
-- `plugins/vysted-lenses/manifest.json:6`, `plugins/vysted-news/manifest.json:6`,
-  `plugins/yfinance/manifest.json:6` — each `"requiredHostVersion": "0.8.0"`. This is a
-  **minimum-host pin**, not a value that tracks the host version: `checkCompatibility`
-  rejects a plugin only when `!hostSatisfies(hostVersion, requiredHostVersion)`
-  (`src/lib/plugin-runtime.ts:403,411`), and `hostSatisfies(host, required)` is `host >=
-required` by semver (`:151-157`). `0.9.0` satisfies `0.8.0`, so these three do not need
-  editing for this bump; only raise one if that plugin starts requiring a 0.9.0+ host
-  feature.
-- `sidecar/tests/test_data_cache.py:131,133,141,142,150` — `0.8.0`/`0.8.1` used as arbitrary
-  cache-build-tag literals in test fixtures, not the app version (FACTS).
-- `sidecar/tests/test_schema_version.py:220,223,228,229,239` — same pattern, a new file at
-  this sha: `data_cache.ensure_build("0.8.0")` then `("0.9.0")` are arbitrary build-tag
-  strings exercising "back the data dir up once on a build change, never twice for the same
-  build" (`:210-239`, confirmed read) — not a version statement, and note `"0.9.0"` is
-  already used here as a fixture literal, unrelated to this bump.
-- `src/components/SettingsPanel.test.tsx:886` — a `/system/diagnostics` response fixture,
-  `{ version: "0.8.0", logTail: [...] }` (`:885-886`); the test's own assertions
-  (`:894-900`) check `preview.textContent` for the `logTail` line and the
-  `writeText`/"Copied" flow — none assert the version string, so this `"0.8.0"` is an
-  arbitrary fixture literal, not a bump target.
-- `src/lib/plugin-agents.test.ts:77` and `src/modules/marketplace/MarketplacePanel.test.tsx:40`
-  — two more new-at-this-sha call sites, each `new PluginRuntime({ hostVersion: "0.8.0", … })`
-  — a fixture host version chosen to satisfy every catalog plugin's `requiredHostVersion`
-  (`marketplace.test.ts`'s own comment on the same pattern: "host version matches
-  HOST_VERSION so every catalog plugin satisfies requiredHostVersion"), not an assertion on
-  the real app version.
-- `src/lib/plugin-runtime.test.ts:511,521,530,555,558,560,563,564,565,568,569` —
-  `hostSatisfies`/`PluginRuntime` unit tests that use `"0.8.0"` as one arbitrary semver
-  operand to exercise the comparison itself; the comparison behaviour is what's under test,
-  not the app's actual version — not a bump target. (`src/store/marketplace.test.ts:46` looks
-  like the same pattern but is NOT in this list — the bump commit moves it; see §1's bump
-  list above.)
-- `src/lib/plugin-runtime.ts:133` — a doc-comment example string (`written as ">=0.8.0"
-parses to its floor [0,8,0]`), not a version statement.
-- `src/lib/workspace.test.ts:1574` — a doc comment, `/** v0.8.0 rows */`, labeling a fixture
-  shape, not the app version.
-
-Then the grep that proves nothing load-bearing is left (excludes the historical/prose docs
-FACTS itself excludes — CHANGELOG.md, docs/archive, docs/redesign/verification,
-docs/screenshots, pnpm-lock.yaml — since those are intentionally-preserved history, not
-load-bearing):
-
-```
-git grep -n '0\.8\.0' -- . \
-  ':!CHANGELOG.md' ':!docs/archive' ':!docs/redesign/verification' \
-  ':!docs/screenshots' ':!pnpm-lock.yaml'
-```
-
-Expected output at S (confirmed by running it): **99 lines**, in two categories:
-
-- **55 prose hits** — `BLOCKERS.md`, `README.md`, `docs/CURRENT_STATE.md`, `docs/redesign/*`
-  reports, `docs/research/phase-10/*`. 54 of these are historical/narrative, not
-  source-of-truth (the README/BLOCKERS/CURRENT_STATE drafts from this same Stage D wave
-  carry corrected 0.9.0 prose, promoted separately at rc2). The 55th, `README.md:53`, is
-  **not** historical narrative — it is a current-state claim ("version strings sit at
-  `0.8.0` pending a release cut") and is one of the bump commit's 8 edits (§1 above).
-- **44 source/lock/test/manifest hits**, every one confirmed non-bump-target above except the
-  7 that flip on the bump: `package.json` (2: `:3` bumps, `:77` the dep pin doesn't),
-  `src-tauri/Cargo.lock` (8: `:5487` bumps via `cargo update`, the other 7 don't),
-  the three `plugins/*/manifest.json:6` `requiredHostVersion` pins (don't),
-  `sidecar/app.py` (1, bumps), `src-tauri/Cargo.toml` (1, bumps),
-  `src-tauri/tauri.conf.json` (1, bumps), `src/lib/plugin-bootstrap.ts` (1, bumps),
-  `src/lib/plugin-runtime.ts:133`, `sidecar/tests/test_data_cache.py` (5),
-  `sidecar/tests/test_schema_version.py` (5), `src/components/SettingsPanel.test.tsx:886`,
-  `src/lib/plugin-agents.test.ts:77`, `src/lib/plugin-runtime.test.ts` (11),
-  `src/lib/workspace.test.ts:1574`, `src/modules/marketplace/MarketplacePanel.test.tsx:40`
-  (none of these last dozen bump), and `src/store/marketplace.test.ts:46` (bumps — reclassified
-  in §1 above; every other test-fixture line on this list is left alone on purpose).
-
-**Confirmed by running the grep against the actual bump commit, `517da226`
-(`git grep -n '0\.8\.0' 517da226 -- . <same excludes> | wc -l`): 91**, i.e. 99 minus the 8
-lines that flip (`package.json:3`, `src-tauri/Cargo.toml:3`, `src-tauri/tauri.conf.json:4`,
-`sidecar/app.py:329`, `src/lib/plugin-bootstrap.ts:38`, `src-tauri/Cargo.lock:5487` via
-`cargo update`, `README.md:53`, `src/store/marketplace.test.ts:46`) — everything else on the
-list above is unchanged by design (54 prose + 37 source = 91). A residual still at or near
-99, or any hit against one of those 8 lines, means the bump was incomplete. Confirm this
-count again once `worktree-agent-r15-version-0.9.0` is merged into the release-candidate
-branch, in case later Stage-C batches added a new `0.8.0` occurrence upstream of the merge.
+No version-bump step remains. The bump landed on the integration branch (`06879089`), so
+the five load-bearing sources already read `0.9.0` at the candidate: `package.json:3`,
+`src-tauri/Cargo.toml` (+ `Cargo.lock`), `src-tauri/tauri.conf.json`, `sidecar/app.py`
+`FastAPI(version=…)` and `HOST_VERSION` in `src/lib/plugin-bootstrap.ts`. The superseded
+`worktree-agent-r15-version-0.9.0` branch is NOT merged; do not merge it. Confirm with
+`git grep -n '"0\.9\.0"' -- package.json src-tauri/tauri.conf.json src/lib/plugin-bootstrap.ts`
+and the smoke test's `/health` version assertion (§5), which fails if any source drifts.
+The `requiredHostVersion` pins in `plugins/*/manifest.json` are a floor, not a bump target:
+leave them.
 
 ### 1b. CHANGELOG entry
 
@@ -249,16 +122,24 @@ What: the full local mirror of CI. Who: lead.
 pnpm ci-local
 ```
 
-Verbatim from `package.json:ci-local` (`FACTS.md`):
+Verbatim from `package.json:ci-local` (one command, `&&`-joined; wrapped here with `\`):
 
 ```
-pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && \
-pnpm format:check && pnpm typecheck && \
+pnpm install --frozen-lockfile && \
+node scripts/ensure-all-sidecars.mjs && \
+pnpm lint && \
+pnpm format:check && \
+pnpm typecheck && \
 cargo fmt --manifest-path src-tauri/Cargo.toml --check && \
 cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && \
-python -m pip install ruff==0.15.12 && ruff check sidecar && ruff format --check sidecar && \
-pnpm test && cargo test --manifest-path src-tauri/Cargo.toml && \
-cd sidecar && python -m pip install -r requirements-dev.txt && pytest
+python3 -m pip install ruff==0.15.12 && \
+ruff check sidecar && \
+ruff format --check sidecar && \
+vitest run --coverage && \
+cargo test --manifest-path src-tauri/Cargo.toml && \
+cd sidecar && \
+python3 -m pip install -r requirements-dev.txt && \
+pytest
 ```
 
 `pnpm lint` itself changed at this sha: `package.json`'s `lint` script is now `"eslint . &&
@@ -273,7 +154,7 @@ CLAUDE.md: "`pnpm ci-local` mirrors CI byte-for-byte … If it's skipped or red 
 the tag is invalid."
 
 Expected output: no full `ci-local` run exists yet against the release-candidate sha itself
-(that sha does not exist until §1's merge + rc gate round 2). `R15_GATE_RC1.md` (round 1,
+(that sha does not exist until the rc gate's final round). `R15_GATE_RC1.md` (round 1,
 verdict **FAIL**, candidate `1d6511c89bb27f1785f7af4d2290983b2852d70a`, "Do not tag rc1")
 records the most recent full-chain run on record: item 4, "`ci-local` — **PASS** —
 ... vitest 1825/1825, cargo 19, pytest 3150 passed and 1 skipped, `EXIT=0`" (`:18`), and
@@ -456,8 +337,8 @@ targets, producing:
 - `src-tauri/target/release/bundle/dmg/Vysted Terminal_<version>_aarch64.dmg`
 
 **Observed pattern** (`stage-d/bundle-rehearsal/REHEARSAL.md`, sha `64e9470e`, still on
-version `0.8.0` since the version-bump branch is unmerged there — re-confirm the version
-segment once `0.9.0` is live): `Vysted Terminal_0.8.0_aarch64.dmg`, 228.6 MB. `VYSTED_SKIP_
+version `0.8.0` because the bump had not landed there — the candidate reads `0.9.0`, so the
+version segment will differ): `Vysted Terminal_0.8.0_aarch64.dmg`, 228.6 MB. `VYSTED_SKIP_
 DEV_SIGN=1 pnpm tauri build` exited 0 in 196s (cargo release 2m29s cold); the log had no
 `[dev-sign] signed` line, and `beforeBuildCommand` logged "present and fresh — skipping
 build" for all three sidecars.
@@ -634,8 +515,8 @@ Who: **operator runs this.**
 
 **Do not tag before the rc gate passes.** `git tag --list 'r15*'` is empty at S — no
 `r15-rc1` tag exists yet. `R15_GATE_RC1.md:3` reads "**Verdict: FAIL.** Do not tag rc1." for
-round 1 (candidate `1d6511c89bb27f1785f7af4d2290983b2852d70a`); round 2 launches once
-batch-24 merges (§1). This step runs only after a round shows a PASS verdict, against the
+round 1 (candidate `1d6511c89bb27f1785f7af4d2290983b2852d70a`); later rounds ran
+at later shas. This step runs only after a round shows a PASS verdict, against the
 sha that round evaluated.
 
 **Precedent for tag format** (existing tags, e.g. `v0.8.0`): an annotated tag,
@@ -756,8 +637,8 @@ decision to ship 0.9.0 macOS/Linux-only pending that verification -->
 (`gh release delete v0.9.0`), leaving the git tag in place unless the operator also wants it
 gone (`git tag -d v0.9.0 && git push origin :refs/tags/v0.9.0`) — operator-only, same as §9.
 
-**Reverting the version bump**: revert the version-bump commit from §1
-(`git revert <bump-commit-sha>`), which returns every load-bearing file to `0.8.0`, then
+**Reverting the version bump**: revert the version-bump commit (`06879089`;
+`git revert <bump-commit-sha>`), which returns every load-bearing file to `0.8.0`, then
 re-run `cargo update -p vysted-terminal --offline --manifest-path src-tauri/Cargo.toml` to
 sync `Cargo.lock` back down.
 
@@ -775,7 +656,7 @@ matter how urgent the rollback.
 
 - pull the published GitHub Release for the prior tag, once one exists (§9); or
 - fix forward on `004-r4-experience-rebuild` from the pre-bump commit (the commit before
-  `worktree-agent-r15-version-0.9.0` merged, i.e. before §1's merge step), rebuilding via
+  the `06879089` version bump), rebuilding via
   §2-§6 from that tree — this stays post-D81 and on the current licence, unlike any tag.
 
 To inspect an older tree read-only without checking it out over local edits, use

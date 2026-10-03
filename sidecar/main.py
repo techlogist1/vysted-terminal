@@ -132,12 +132,24 @@ def run_mcp_stdio() -> None:
 
 
 def run_http(host: str, port: int) -> None:
-    """Serve the FastAPI app (incl. the mounted /mcp transport) under uvicorn."""
+    """Serve the FastAPI app (incl. the mounted /mcp transport) under uvicorn.
+
+    Exits with ``os._exit`` once uvicorn is done: a normal interpreter exit
+    aborts (SIGABRT, 134) because the stdin watchdog thread holds the stdin
+    lock, which turned a taken port into a crash instead of a clean non-zero
+    exit (R15-FINAL-028).
+    """
     _register_runtime_extensions()
     threading.Thread(target=_exit_when_parent_closes_stdin, daemon=True).start()
-    # log_config=None: uvicorn's loggers propagate to the root handler below,
-    # so its lines carry the same timestamps as the sidecar's own.
-    uvicorn.run(app, host=host, port=port, log_level="info", log_config=None)
+    code = 0
+    try:
+        # log_config=None: uvicorn's loggers propagate to the root handler below,
+        # so its lines carry the same timestamps as the sidecar's own.
+        uvicorn.run(app, host=host, port=port, log_level="info", log_config=None)
+    except SystemExit as exc:  # uvicorn's exit when the server did not start
+        code = exc.code if isinstance(exc.code, int) else 1
+    logging.shutdown()
+    os._exit(code)
 
 
 def _configure_logging() -> None:

@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+import html
 import logging
 import os
 import re
@@ -140,10 +141,12 @@ def _stable_id(url: str, title: str) -> str:
 
 
 def _clean(text: str | None) -> str | None:
-    """Strip HTML tags and collapse whitespace; return ``None`` if empty."""
+    """Strip HTML tags, decode entities (``&amp;`` to ``&``), collapse whitespace.
+
+    Returns ``None`` if the result is empty."""
     if not text:
         return None
-    stripped = _TAG_RE.sub(" ", text)
+    stripped = html.unescape(_TAG_RE.sub(" ", text))
     collapsed = " ".join(stripped.split())
     return collapsed or None
 

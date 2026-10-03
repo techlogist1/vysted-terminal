@@ -648,7 +648,7 @@ def _symbol_only_in_index_form(symbol: str, title_lc: str) -> bool:
 
 
 def _entity_signals(
-    target: ResearchTarget, *, title_lc: str, host: str, url_lc: str
+    target: ResearchTarget, *, title: str, title_lc: str, host: str, url_lc: str
 ) -> tuple[bool, bool]:
     """Classify how strongly the title/host/url NAMES the target as
     ``(distinctive, short_only)``:
@@ -660,6 +660,11 @@ def _entity_signals(
       ITC, M&M): collision-prone, so it needs corroboration for an Indian
       target. A symbol that appears ONLY inside a foreign index token
       (``KSE-100``) is NOT counted as a signal at all.
+
+    A symbol or brand token that is a :data:`COMMON_WORD_TICKERS` word (FOCUS,
+    IN included) is English prose, not a name: it counts only when ``title``
+    (original case) writes it as a ticker (:func:`anchored_ticker`), or when the
+    full distinctive name matches below (R15-FINAL-004).
     """
     symbol = target.symbol.lower()
     distinctive_sig = False
@@ -676,6 +681,8 @@ def _entity_signals(
             or symbol in host
             or bool(re.search(rf"[/=]{re.escape(symbol)}(?![a-z0-9])", url_lc))
         )
+        if sym_hit and symbol.upper() in COMMON_WORD_TICKERS:
+            sym_hit = anchored_ticker(symbol.upper(), title)
         if sym_hit:
             if len(symbol) >= _SHORT_SYMBOL_LEN:
                 distinctive_sig = True
@@ -684,6 +691,8 @@ def _entity_signals(
 
     branded = brand_tokens(target.name)
     for token in branded:
+        if token.upper() in COMMON_WORD_TICKERS and not anchored_ticker(token.upper(), title):
+            continue
         if _bounded(token, title_lc) or (len(token) >= 4 and token in host):
             if len(token) >= _SHORT_SYMBOL_LEN:
                 distinctive_sig = True
@@ -735,7 +744,7 @@ def _strong_entity_score(
     for entity identity (a snippet passing-mention is still the leak shape).
     """
     distinctive_sig, short_sig = _entity_signals(
-        target, title_lc=title.lower(), host=host, url_lc=url_lc
+        target, title=title, title_lc=title.lower(), host=host, url_lc=url_lc
     )
     if distinctive_sig:
         return 1.0

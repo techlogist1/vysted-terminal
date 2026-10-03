@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { usePortfoliosStore, validateHolding, type HoldingInput } from "./portfolios";
+import { useSettingsStore } from "./settings";
 
 /**
  * The portfolios store's holding writes — the ONE write path for the panel and
@@ -126,5 +127,47 @@ describe("updateHolding / removeHolding", () => {
     expect(holdings()).toHaveLength(1);
     usePortfoliosStore.getState().removeHolding("default", holdings()[0].id);
     expect(holdings()).toHaveLength(0);
+  });
+});
+
+describe("holding region (R15-FINAL-001)", () => {
+  it("stamps the session region at add and keeps it through a region switch and an edit", () => {
+    useSettingsStore.setState({ region: "IN" });
+    const id = usePortfoliosStore.getState().addHolding("default", { ...RELIANCE, symbol: "INFY" });
+    useSettingsStore.setState({ region: "US" });
+    usePortfoliosStore.getState().updateHolding("default", id!, { ...RELIANCE, symbol: "INFY" });
+    expect(holdings()[0].region).toBe("IN");
+  });
+
+  it("a holding added under US stays US", () => {
+    useSettingsStore.setState({ region: "US" });
+    usePortfoliosStore.getState().addHolding("default", { ...RELIANCE, symbol: "TCS" });
+    useSettingsStore.setState({ region: "IN" });
+    expect(holdings()[0].region).toBe("US");
+  });
+
+  it("restore stamps a region-less blob holding with the given region, keeps a saved one", () => {
+    usePortfoliosStore.getState().setAll(
+      [
+        {
+          id: "p",
+          name: "P",
+          holdings: [
+            { id: "a", symbol: "INFY", quantity: 1, costBasis: 1, assetClass: "equity" },
+            {
+              id: "b",
+              symbol: "AAPL",
+              quantity: 1,
+              costBasis: 1,
+              assetClass: "equity",
+              region: "US",
+            },
+          ] as never,
+        },
+      ],
+      "p",
+      "IN",
+    );
+    expect(holdings().map((h) => h.region)).toEqual(["IN", "US"]);
   });
 });

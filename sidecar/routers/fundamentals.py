@@ -45,6 +45,7 @@ from services import (
     resolution_policy,
     symbol_resolver,
 )
+from services.errors import ProviderError
 from services.yfinance_provider import _yahoo_symbol
 
 router = APIRouter(prefix="/fundamentals", tags=["fundamentals"])
@@ -108,8 +109,15 @@ async def get_fundamentals(symbol: str) -> Fundamentals:
     fractions are reconciled against the exchange shareholding filing and flagged
     (never replaced) where they disagree. ``basis`` is the company's filed
     accounting basis (R15-DATA-054), ``None`` when no filing says.
+    An Indian listing no provider covers is built from its exchange filings
+    (R15-FINAL-005).
     """
-    fundamentals = await provider_registry.get_fundamentals(symbol)
+    try:
+        fundamentals = await provider_registry.get_fundamentals(symbol)
+    except ProviderError as exc:
+        # An NSE Emerge (SME) name no provider covers: built from the exchange
+        # filings here, never on the registry's crawler path (R15-FINAL-005).
+        fundamentals = await provider_registry.get_fundamentals_from_filings(symbol, exc)
     fundamentals = await correctness_gate.apply_witnesses(fundamentals)
     fundamentals.identity_note = await _identity_note(symbol, fundamentals)
     fundamentals.basis = await exchange_financials.filed_basis(fundamentals.symbol)
