@@ -184,14 +184,22 @@ def test_another_companys_bse_row_under_the_same_ticker_is_not_used(
 # --- R15-FINAL-005: NSE Emerge (SME) fundamentals from the exchange filings ----
 
 #: YASHOPTICS as NSE served it (live probe 2026-10-03, evidence
-#: fix-r1/data-fundamentals/final-005-yashoptics-filed-periods.txt).
+#: fix-r1/data-fundamentals/final-005-yashoptics-filed-periods.txt; paid-up
+#: equity 247,656,000 at face value 10 on every filing, R15-LEAD-137 probe).
+_YASH_PAID_UP = {"paid_up": 247_656_000.0, "face_value": 10.0}
 _YASH_FILED = FiledPeriods(
     venue="nse",
     basis="standalone",
     periods=(
-        FiledPeriod(date(2025, 10, 1), date(2026, 3, 31), 306_140_000.0, 59_271_000.0, 2.39),
-        FiledPeriod(date(2025, 4, 1), date(2025, 9, 30), 233_758_000.0, 31_210_000.0, 1.26),
-        FiledPeriod(date(2024, 10, 1), date(2025, 3, 31), 237_077_000.0, 50_384_000.0, 2.03),
+        FiledPeriod(
+            date(2025, 10, 1), date(2026, 3, 31), 306_140_000.0, 59_271_000.0, 2.39, **_YASH_PAID_UP
+        ),
+        FiledPeriod(
+            date(2025, 4, 1), date(2025, 9, 30), 233_758_000.0, 31_210_000.0, 1.26, **_YASH_PAID_UP
+        ),
+        FiledPeriod(
+            date(2024, 10, 1), date(2025, 3, 31), 237_077_000.0, 50_384_000.0, 2.03, **_YASH_PAID_UP
+        ),
     ),
 )
 
@@ -277,7 +285,10 @@ def test_yashoptics_fundamentals_come_from_the_nse_filings(
     assert f["revenue_ttm"] == pytest.approx(539_898_000.0)  # 53.99 Cr, screener FY26
     assert f["net_income_ttm"] == pytest.approx(90_481_000.0)
     assert f["eps"] == pytest.approx(3.65)
-    assert f["pe_ratio"] == pytest.approx(135.0 / 3.65)
+    # R15-LEAD-137: priced on the current count (filed paid-up / face value),
+    # never the weighted count NI / EPS implies.
+    assert f["pe_ratio"] == pytest.approx(135.0 * 24_765_600.0 / 90_481_000.0)
+    assert f["market_cap"] == pytest.approx(135.0 * 24_765_600.0)
     meta = f["field_meta"]
     assert meta["revenue_ttm"]["provider"] == "nse"
     assert "sum of 2 filed half-years" in meta["revenue_ttm"]["label"]
@@ -355,6 +366,7 @@ _VOLERCAR_FILED = FiledPeriods(
         FiledPeriod(date(2025, 4, 1), date(2025, 9, 30), 262_386_000.0, 21_322_000.0, 1.91),
         FiledPeriod(date(2025, 4, 1), date(2025, 6, 30), 123_519_000.0, 12_704_000.0, 1.14),
     ),
+    issued_shares=11_143_527.0,  # NSE quote issued size, live 2026-10-03 (R15-LEAD-137)
 )
 #: GANESHIN consolidated (live probe 2026-10-03): consolidated filings start at
 #: Sep-25, so Apr-Jun 2025 has no consolidated quarter and no chain reaches
@@ -386,9 +398,9 @@ def test_volercar_ttm_is_built_from_its_half_year_less_the_filed_quarter(
     assert f["revenue_ttm"] == pytest.approx(_VOLERCAR_TTM_REVENUE)  # 54.70 Cr
     assert f["net_income_ttm"] == pytest.approx(_VOLERCAR_TTM_INCOME)
     assert f["eps"] == pytest.approx(_VOLERCAR_TTM_EPS)
-    assert f["pe_ratio"] == pytest.approx(135.0 / _VOLERCAR_TTM_EPS)
-    shares = _VOLERCAR_TTM_INCOME / _VOLERCAR_TTM_EPS
-    assert f["market_cap"] == pytest.approx(135.0 * shares)
+    # R15-LEAD-137: market cap on the current issued count, P/E = it / TTM income.
+    assert f["market_cap"] == pytest.approx(135.0 * 11_143_527.0)
+    assert f["pe_ratio"] == pytest.approx(135.0 * 11_143_527.0 / _VOLERCAR_TTM_INCOME)
     meta = f["field_meta"]
     revenue = meta["revenue_ttm"]
     assert (revenue["provider"], revenue["as_of"]) == ("nse", "2026-06-30")
@@ -398,7 +410,8 @@ def test_volercar_ttm_is_built_from_its_half_year_less_the_filed_quarter(
     )
     assert meta["pe_ratio"]["provider"] == "derived"
     assert meta["market_cap"]["provider"] == "derived"
-    assert "imply" in meta["market_cap"]["basis_note"]
+    assert "current share count" in meta["market_cap"]["basis_note"]
+    assert "NSE quote issued size" in meta["market_cap"]["basis_note"]
 
 
 def test_the_derived_fill_never_replaces_a_provider_size() -> None:
@@ -420,7 +433,7 @@ def test_the_derived_fill_never_replaces_a_provider_size() -> None:
     )
     served = correctness_gate.overlay_filed_periods(shell, _VOLERCAR_FILED)
     assert served.revenue_ttm == pytest.approx(_VOLERCAR_TTM_REVENUE)
-    assert served.pe_ratio == pytest.approx(216.3 / _VOLERCAR_TTM_EPS)
+    assert served.pe_ratio == pytest.approx(216.3 * 11_143_527.0 / _VOLERCAR_TTM_INCOME)
     assert served.field_meta is not None
     assert all(served.field_meta[name].status == "ok" for name in _HEADLINE)
 
@@ -502,3 +515,176 @@ def test_an_unread_filing_states_why_each_headline_field_is_null(
     for name in _HEADLINE:
         reason = served.field_meta[name].reason or ""
         assert "no exchange-filed results could be read" in reason, name
+
+
+# --- R15-LEAD-137: SME market cap / P/E on the CURRENT share count -------------
+
+#: CURIS as NSE served it (live probe 2026-10-03): listed 14-Nov-2025, so the
+#: H1 FY26 filing carries the pre-IPO paid-up capital (5,934,400 shares) and the
+#: H2 one the post-IPO 8,084,400; the NSE quote's issued size is 8,084,434. The
+#: summed filed EPS (7.10 + 4.01) sits on the weighted count, 6.2 M shares.
+_CURIS_PERIODS = (
+    FiledPeriod(
+        date(2025, 10, 1),
+        date(2026, 3, 31),
+        327_199_000.0,
+        27_054_000.0,
+        4.01,
+        paid_up=80_844_000.0,
+        face_value=10.0,
+    ),
+    FiledPeriod(
+        date(2025, 4, 1),
+        date(2025, 9, 30),
+        279_089_000.0,
+        42_109_000.0,
+        7.1,
+        paid_up=59_344_000.0,
+        face_value=10.0,
+    ),
+)
+_CURIS_INCOME = 27_054_000.0 + 42_109_000.0
+
+
+def _curis_shell() -> Fundamentals:
+    return Fundamentals(symbol="CURIS-SM.NS", currency="INR", ratio_price=206.5, provider="nse")
+
+
+def test_curis_market_cap_and_pe_use_the_current_issued_count_not_ni_over_eps() -> None:
+    filed = FiledPeriods("nse", "standalone", _CURIS_PERIODS, issued_shares=8_084_434.0)
+    served = correctness_gate.overlay_filed_periods(_curis_shell(), filed)
+
+    # Revenue, net income and EPS stay the filings' own (round 2).
+    assert served.revenue_ttm == pytest.approx(606_288_000.0)
+    assert served.net_income_ttm == pytest.approx(_CURIS_INCOME)
+    assert served.eps == pytest.approx(11.11)
+    # screener.in / NSE: 167 Cr, P/E 24.1 — not 128.6 Cr / 18.59.
+    assert served.market_cap == pytest.approx(206.5 * 8_084_434.0)
+    assert round(served.market_cap / 1e7, 1) == 166.9
+    assert served.pe_ratio == pytest.approx(206.5 * 8_084_434.0 / _CURIS_INCOME)
+    assert round(served.pe_ratio, 1) == 24.1
+    weighted = 206.5 * _CURIS_INCOME / 11.11
+    assert abs(served.market_cap - weighted) / served.market_cap > 0.2
+    meta = served.field_meta or {}
+    assert meta["market_cap"].status == "ok"
+    assert meta["market_cap"].provider == "derived"
+    assert "NSE quote issued size" in (meta["market_cap"].basis_note or "")
+    assert "current share count" in (meta["pe_ratio"].basis_note or "")
+
+
+def test_curis_without_the_quote_count_falls_back_to_the_newest_filed_paid_up() -> None:
+    filed = FiledPeriods("nse", "standalone", _CURIS_PERIODS)
+    served = correctness_gate.overlay_filed_periods(_curis_shell(), filed)
+
+    assert served.market_cap == pytest.approx(206.5 * 8_084_400.0)
+    assert served.pe_ratio == pytest.approx(206.5 * 8_084_400.0 / _CURIS_INCOME)
+    note = (served.field_meta or {})["market_cap"].basis_note or ""
+    assert "paid-up equity capital / face value (80,844,000 / 10)" in note
+
+
+def test_no_current_share_count_leaves_market_cap_and_pe_null_with_a_typed_reason() -> None:
+    """VOLERCAR files a face value of 0 and the quote count was not read: no
+    current count, so no market cap or P/E (never the weighted NI / EPS one)."""
+    periods = tuple(
+        FiledPeriod(
+            p.start, p.end, p.revenue, p.net_profit, p.eps, paid_up=111_435_000.0, face_value=0.0
+        )
+        for p in _VOLERCAR_FILED.periods
+    )
+    filed = FiledPeriods("nse", "standalone", periods)
+    shell = Fundamentals(symbol="VOLERCAR-SM.NS", currency="INR", ratio_price=216.3, provider="nse")
+    served = correctness_gate.overlay_filed_periods(shell, filed)
+
+    assert served.revenue_ttm == pytest.approx(_VOLERCAR_TTM_REVENUE)
+    assert served.eps == pytest.approx(_VOLERCAR_TTM_EPS)
+    assert served.market_cap is None
+    assert served.pe_ratio is None
+    meta = served.field_meta or {}
+    for name in ("market_cap", "pe_ratio"):
+        assert meta[name].status == "unavailable", name
+        assert "current share count unavailable" in (meta[name].reason or ""), name
+
+
+def test_a_provider_sized_listing_keeps_its_pe_on_the_filed_eps() -> None:
+    """The main-board (provider-sized) path is untouched: P/E stays price /
+    filed EPS (R15-FINAL-003), no market cap is derived."""
+    sized = Fundamentals(
+        symbol="NDTV.NS",
+        currency="INR",
+        revenue_ttm=4.0e9,
+        ratio_price=135.0,
+        pe_ratio=40.0,
+        provider="yfinance",
+    )
+    filed = FiledPeriods("nse", "standalone", _CURIS_PERIODS, issued_shares=8_084_434.0)
+    kept = correctness_gate.overlay_filed_periods(sized, filed)
+    assert kept.pe_ratio == pytest.approx(135.0 / 11.11)
+    assert kept.market_cap is None
+
+
+def test_the_emerge_lane_reads_the_issued_size_and_survives_its_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import exchange_financials, nse_provider
+
+    filed = FiledPeriods("nse", "standalone", _CURIS_PERIODS)
+    monkeypatch.setattr(exchange_financials, "_nse_periods", lambda _bare: filed)
+    asked: list[str] = []
+
+    def issued(bare: str) -> float:
+        asked.append(bare)
+        return 8_084_434.0
+
+    monkeypatch.setattr(nse_provider, "get_issued_size", issued)
+    assert exchange_financials._fetch("CURIS-SM.NS").issued_shares == 8_084_434.0
+    assert exchange_financials._fetch("RELIANCE.NS").issued_shares is None
+    assert asked == ["CURIS"]
+
+    def blocked(_bare: str) -> float:
+        raise nse_provider.ProviderError("nse_direct: blocked")
+
+    monkeypatch.setattr(nse_provider, "get_issued_size", blocked)
+    out = exchange_financials._fetch("CURIS-SM.NS")
+    assert out.issued_shares is None
+    current = out.current_shares()
+    assert current is not None and current[0] == 8_084_400.0
+
+
+def test_get_issued_size_reads_the_active_series_trade_info(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import nse_provider
+
+    calls: list[dict[str, str]] = []
+
+    def fake(path: str, params: dict[str, str], _referer: str) -> object:
+        calls.append(params)
+        if params["functionName"] == "getMetaData":
+            return {"symbol": "CURIS", "activeSeries": ["ST"]}
+        return {"equityResponse": [{"tradeInfo": {"issuedSize": 8084434, "faceValue": 10}}]}
+
+    monkeypatch.setattr(nse_provider, "_get_json", fake)
+    monkeypatch.setattr(nse_provider.symbol_resolver, "is_nse_symbol", lambda _b: True)
+    assert nse_provider.get_issued_size("CURIS") == 8_084_434.0
+    assert calls[1]["series"] == "ST"
+
+    monkeypatch.setattr(nse_provider, "_get_json", lambda *_a: {"equityResponse": [{}]})
+    assert nse_provider.get_issued_size("CURIS") is None
+
+
+def test_parse_nse_xbrl_reads_paid_up_capital_and_face_value() -> None:
+    from services.exchange_financials import parse_nse_xbrl
+
+    xml = """<xbrl xmlns="http://www.xbrl.org/2003/instance"
+      xmlns:in-capmkt="http://www.sebi.gov.in/xbrl/2025-05-31/in-capmkt">
+      <context id="OneD"><entity/><period><startDate>2025-10-01</startDate>
+        <endDate>2026-03-31</endDate></period></context>
+      <in-capmkt:RevenueFromOperations contextRef="OneD">327199000</in-capmkt:RevenueFromOperations>
+      <in-capmkt:ProfitLossForPeriod contextRef="OneD">27054000</in-capmkt:ProfitLossForPeriod>
+      <in-capmkt:PaidUpValueOfEquityShareCapital contextRef="OneD"
+        >80844000</in-capmkt:PaidUpValueOfEquityShareCapital>
+      <in-capmkt:FaceValueOfEquityShareCapital contextRef="OneD"
+        >10</in-capmkt:FaceValueOfEquityShareCapital>
+    </xbrl>"""
+    (period,) = parse_nse_xbrl(xml)
+    assert (period.paid_up, period.face_value) == (80_844_000.0, 10.0)

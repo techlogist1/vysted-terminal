@@ -783,8 +783,10 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
             status="ok", provider=filed.venue, as_of=when, reason=reason, label=label
         )
 
+    #: No provider size (an NSE Emerge listing): the filings alone size it.
+    filings_only = all(getattr(f, name) is None for name, _ in _FILED_SIZES)
     trail = filed.trailing()
-    if trail is None and all(getattr(f, name) is None for name, _ in _FILED_SIZES):
+    if trail is None and filings_only:
         # No provider size to keep (an NSE Emerge listing): fill from a derived
         # quarter or the newest complete earlier year, stating which (R15-FINAL-005).
         trail = filed.trailing(best_effort=True)
@@ -821,9 +823,8 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
                 )
                 basis_note = None
             serve(name, total, label, off, basis_note, size_as_of)
-        if "eps" in updates:
+        if "eps" in updates and not filings_only:
             _rebase_pe_on_filed_eps(f, updates["eps"], size_as_of, meta, updates)
-        _fill_market_cap_from_filed(f, updates, meta, size_as_of)
         if "revenue_ttm" in updates or "net_income_ttm" in updates:
             updates["financial_currency"] = None if f.currency == "INR" else "INR"
             if not old_basis_is_inr:
@@ -858,34 +859,85 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
             serve(name, growth, label, served is not None and _growth_disagrees(served, growth))
             updates["growth_basis"] = "mrq_yoy"
     _state_headline_gaps(f, updates, meta, filed, trail)
+    if filings_only:
+        _size_on_current_count(f, filed, updates, meta)
     if not updates and meta == (f.field_meta or {}):
         return f
     updates["field_meta"] = meta
     return f.model_copy(update=updates)
 
 
-def _fill_market_cap_from_filed(
-    f: Fundamentals, updates: dict[str, Any], meta: dict[str, FieldMeta], as_of: str
+def _size_on_current_count(
+    f: Fundamentals,
+    filed: exchange_financials.FiledPeriods,
+    updates: dict[str, Any],
+    meta: dict[str, FieldMeta],
 ) -> None:
-    """A market cap no provider or master serves, on the share count the filed
-    TTM net income / TTM EPS imply (R15-FINAL-005)."""
-    income, eps, price = updates.get("net_income_ttm"), updates.get("eps"), f.ratio_price
-    if f.market_cap is not None or not income or not eps or not price or price <= 0:
+    """Market cap and P/E for a listing the filings alone size (R15-LEAD-137):
+    market cap = ratio price x the CURRENT share count
+    (:meth:`~services.exchange_financials.FiledPeriods.current_shares`), P/E =
+    that market cap / the exchange-filed TTM net income. Never the weighted
+    count TTM net income / EPS implies: it lags a fresh issue (CURIS served
+    128.6 Cr / 18.59 against 167 Cr / 24.1). No current count: both null with
+    a typed reason. A provider or master market cap is never replaced."""
+    current = filed.current_shares()
+    price = f.ratio_price if f.ratio_price is not None and f.ratio_price > 0 else None
+    income = updates.get("net_income_ttm")
+    eps_served = "eps" in updates or f.pe_ratio is not None
+
+    def gap(name: str, why: str) -> None:
+        updates[name] = None
+        meta[name] = FieldMeta(
+            status="unavailable",
+            provider=filed.venue,
+            reason=f"not published by the data provider; {why}",
+        )
+
+    if current is None:
+        why = (
+            "current share count unavailable — neither the NSE quote's issued size nor a "
+            "filed paid-up equity capital at a positive face value could be read, and the "
+            "weighted count the trailing net income / EPS imply is not used"
+        )
+        if f.market_cap is None:
+            gap("market_cap", why)
+        if income is not None or eps_served:
+            gap("pe_ratio", why)
         return
-    shares = income / eps
-    if shares <= 0:
+    shares, source = current
+    if price is None:
+        if eps_served:
+            gap("pe_ratio", "no price to derive it from")
+        return  # a null market cap already states "no price"
+    cap = price * shares
+    if f.market_cap is None:
+        price_meta = meta.get("ratio_price")
+        updates["market_cap"] = cap
+        meta["market_cap"] = FieldMeta(
+            status="ok",
+            provider="derived",
+            as_of=price_meta.as_of if price_meta is not None else None,
+            basis_note=(
+                f"ratio price x current share count ({price:,.4g} x {shares:,.0f}, "
+                f"shares from the {source})"
+            ),
+        )
+    if income is None:
+        if eps_served:
+            gap("pe_ratio", "the filings report no trailing net income to divide it by")
         return
-    # ponytail: a weighted-average implied share count, drifts after a fresh
-    # issue; the filed paid-up capital / face value is the upgrade (VOLERCAR
-    # files a face value of 0, so it needs this fallback anyway).
-    updates["market_cap"] = price * shares
-    meta["market_cap"] = FieldMeta(
+    if income <= 0:
+        gap("pe_ratio", f"the trailing net income {income:,.0f} is not positive — no trailing P/E")
+        return
+    income_meta = meta.get("net_income_ttm")
+    updates["pe_ratio"] = cap / income
+    meta["pe_ratio"] = FieldMeta(
         status="ok",
         provider="derived",
-        as_of=as_of,
+        as_of=income_meta.as_of if income_meta is not None else None,
         basis_note=(
-            f"ratio price x the share count the exchange-filed TTM net income / TTM EPS "
-            f"imply ({price:,.4g} x {shares:,.0f})"
+            f"market cap on the current share count / exchange-filed TTM net income "
+            f"({price:,.4g} x {shares:,.0f} / {income:,.0f}, shares from the {source})"
         ),
     )
 
@@ -916,7 +968,6 @@ def _state_headline_gaps(
     else:
         sizes = f"the {venue} filings do not report it for every period of the trailing year"
     eps = updates.get("eps", f.eps)
-    income = updates.get("net_income_ttm", f.net_income_ttm)
     reasons = {
         "revenue_ttm": sizes,
         "net_income_ttm": sizes,
@@ -929,11 +980,11 @@ def _state_headline_gaps(
             else "no price to derive it from"
         ),
         "market_cap": (
-            f"no trailing net income / EPS to imply a share count from ({sizes})"
-            if eps is None or income is None
-            else "no price to derive it from"
+            "no price to derive it from"
             if not f.ratio_price
-            else "the trailing net income / EPS imply no positive share count"
+            else "current share count unavailable"
+            if filed is not None
+            else f"current share count unavailable ({sizes})"
         ),
     }
     for name in _HEADLINE_FIELDS:
