@@ -1,0 +1,10 @@
+- 2026-10-03 05:12:25 booted own sidecar :52310 from candidate worktree on data copy rc1-round-6-rc2-data-rc1-gate8
+- sidecar sleep pid 49015, worker 49016, /health ok v0.9.0
+- (a) openapi 111 method+path; grep hits: GET /disclosures/shareholding (corporate filing data), GET /portfolio/positions (legacy read-only ledger). PASS.
+- (b) catalog/TOOL_SCHEMAS/KNOWN_TOOL_IDS 56, registered 33, MCP list_tools 39 == live /mcp tools/list on :52310 (39, identical). Hits only get_portfolio/portfolio_* (tracked portfolio) + shareholding_pattern. PASS.
+- (c) pytest test_no_trading_surface.py 8 passed EXIT=0 (main-repo venv interpreter; candidate venv has no pytest).
+- (d) rg raw to scratch gate8-6-rc2/; classified; 0 product hits across 5 roots.
+- (e) p1 headless vitest (scratch e2e/p1.e2e.tsx): add 3, P&L recompute match 3/3, CSV 11 cols, update, delete, notes, watchlist, workspace save+readback all match.
+- agent run1 harness error: context file was camelCase (frontend maps to snake_case in streaming.ts:225-229), sidecar saw empty by_source; renamed run1 files *-run1-harness-camelcase*; rerun with wire shape.
+- 2026-10-03 05:29:32 gated add staged (ledger sha unchanged b142bb6f), applied via enqueue+accept, readback match; stopped sidecar by killing sleep pid 49015
+- 2026-10-03 05:30:38 wrote GATE8.md, gate8.json, findings/rc1-gate8.json (1 low new_defect, 0 gate8). PASS.

@@ -1,0 +1,9 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand; grep -n 'brand_new_tool' src/modules/agent-builder/agent-builder.test.tsx; grep -n 'tool-ids\|FRONTEND-020' sidecar/tests/test_custom_agents_router.py | head
+342:        return new Response(JSON.stringify(["brand_new_tool"]), { status: 200 });
+349:    const button = await screen.findByRole("button", { name: "brand_new_tool" });
+73:# Tool ids (R15-UI-003 / R15-CODE-FRONTEND-020)
+83:    response = client.get("/custom-agents/tool-ids")
+89:    """`/tool-ids` must resolve to the dedicated route, not `/{agent_id:path}`
+91:    response = client.get("/custom-agents/tool-ids")
+EXIT=0

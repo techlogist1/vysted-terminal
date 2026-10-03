@@ -1,0 +1,4 @@
+candidate ace7dd76; command: grep -n -E 'R15-AGENT-043' src/lib/host-actions.test.ts; heavy lane runs the vitest
+363:  it("write_screener_filters says which malformed criterion it dropped, in label and ack (R15-AGENT-043)", () => {
+384:  it("save_screen whose every criterion is malformed refuses instead of saving the current filters (R15-AGENT-043)", () => {
+exit=0

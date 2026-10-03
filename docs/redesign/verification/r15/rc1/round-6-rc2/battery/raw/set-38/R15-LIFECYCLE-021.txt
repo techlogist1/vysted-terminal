@@ -1,0 +1,6 @@
+# in-process (candidate venv): nse_provider._get_json raises (dead session), 4 NSE quotes via provider_registry.get_quote, then provider_health.fallthroughs()
+== quote RELIANCE.NS: {'provider': 'nse', 'price': 1167.7}
+== quote TCS.NS: {'provider': 'nse', 'price': 2075.0}
+== quote INFY.NS: {'provider': 'nse', 'price': 1035.0}
+== quote HDFCBANK.NS: {'provider': 'nse', 'price': 721.2}
+== provider_health.fallthroughs(): [{'provider': 'nse_direct', 'model_key': 'quote', 'count': 4, 'last_error': 'nse_direct: simulated dead nseindia session (connection refused)', 'last_at': 1790989273.792175}]

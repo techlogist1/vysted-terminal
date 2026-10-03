@@ -1,0 +1,3 @@
+[
+  {"key":"rc1-battery-8:1","kind":"environment","severity":"low","register_id":"R15-RESEARCH-008","title":"Keyless web_search engines are all blocked from this network today (Brave 429, Mojeek 403 automated-queries, DDG 202 challenge); the 'rotate to a live third engine' half of RESEARCH-008 cannot be shown","repro":"curl_cffi chrome GET search.brave.com -> 429; curl mojeek -> 403 'automated queries'; html.duckduckgo.com -> 202 challenge; in-process _web_search returns the honest 'no engine available ... rate-limiting' in ~9-10 s (no 40 s timeout)","evidence_file":"docs/redesign/verification/r15/rc1/round-6-rc2/battery/raw/set-8/R15-RESEARCH-008-direct-probe.txt","suspected_files":[]}
+]

@@ -1,0 +1,8 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: in-process ToolKind members + projected kinds; grep mcp_endpoint in sidecar/
+ToolKind members: ('read_handler', 'per_invocation', 'host_action')
+mcp-projected non-read_handler kinds: {'read_handler'}
+grep mcp_endpoint in sidecar/services sidecar/models:
+(no hits)
+pinned test: 176:def test_toolkind_has_no_unprojected_mcp_endpoint() -> None:
+EXIT=0

@@ -1,0 +1,17 @@
+# R15-DATA-046 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:31:49Z, sidecar :52348
+# kind=sh
+# command:
+#   for s in NY.GDP.MKTP.KD.ZG FP.CPI.TOTL.ZG; do
+#    echo "--- region IN $s"; curl -s -m60 -H 'X-Vysted-Region: IN' "http://127.0.0.1:52348/macro/$s?provider=world-bank" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('title') or d.get('name'), '| last obs:', (d.get('observations') or d.get('data') or d.get('points') or [])[-2:])"
+#   done
+#   echo "--- US control (region US)"; curl -s -m60 -H 'X-Vysted-Region: US' "http://127.0.0.1:52348/macro/NY.GDP.MKTP.KD.ZG?provider=world-bank" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('title') or d.get('name'))"
+#   echo "--- world bank API India 2025"; curl -s -m30 "https://api.worldbank.org/v2/country/IND/indicator/NY.GDP.MKTP.KD.ZG?format=json&date=2024:2025" | head -c 400
+# output:
+--- region IN NY.GDP.MKTP.KD.ZG
+GDP growth (annual %) — IND | last obs: [{'date': '2024-01-01T00:00:00Z', 'value': 7.09927893176518, 'is_projection': False}, {'date': '2025-01-01T00:00:00Z', 'value': 7.56666179284244, 'is_projection': False}]
+--- region IN FP.CPI.TOTL.ZG
+Inflation, consumer prices (annual %) — IND | last obs: [{'date': '2024-01-01T00:00:00Z', 'value': 4.95303550973661, 'is_projection': False}, {'date': '2025-01-01T00:00:00Z', 'value': 2.39884954182294, 'is_projection': False}]
+--- US control (region US)
+GDP growth (annual %) — USA
+--- world bank API India 2025
+[{"page":1,"pages":1,"per_page":50,"total":2,"sourceid":"2","lastupdated":"2026-07-13"},[{"indicator":{"id":"NY.GDP.MKTP.KD.ZG","value":"GDP growth (annual %)"},"country":{"id":"IN","value":"India"},"countryiso3code":"IND","date":"2025","value":7.56666179284244,"unit":"","obs_status":"","decimal":1},{"indicator":{"id":"NY.GDP.MKTP.KD.ZG","value":"GDP growth (annual %)"},"country":{"id":"IN","value# exit=0

@@ -1,0 +1,34 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p038.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import asyncio
+from services.search.base import SearchError, SearchResponse
+from services.search.breaker import breaker_for, reset_breakers
+from services.search.keyless import KeylessSearchBackend, ENGINE_CHAIN
+from services.search.pacing import reset_queue
+from services.search.keyless import ATTEMPTS_PER_ENGINE
+from services.search.breaker import DEFAULT_FAIL_THRESHOLD, DEFAULT_COOLDOWN_SECS
+print("ATTEMPTS_PER_ENGINE",ATTEMPTS_PER_ENGINE,"FAIL_THRESHOLD",DEFAULT_FAIL_THRESHOLD,"COOLDOWN",DEFAULT_COOLDOWN_SECS)
+reset_breakers(); reset_queue()
+calls=[]
+class Bad:
+    async def search(self,q,*,options=None):
+        calls.append(1); raise SearchError("boom")
+async def ns(_): return None
+eid=ENGINE_CHAIN[0]
+b=KeylessSearchBackend(engines={eid:Bad()},sleeper=ns)
+async def go():
+    try: await b.search("x")
+    except SearchError as e: print("search1 raised:",str(e)[:80])
+    br=breaker_for(eid); print("after 1 failed search: engine_calls",len(calls),"state",br.state,"failures",getattr(br,'_failures',None))
+    try: await b.search("x")
+    except SearchError as e: print("search2 raised:",str(e)[:80])
+    print("after 2 failed searches: state",br.state)
+asyncio.run(go())
+--- output ---
+ATTEMPTS_PER_ENGINE 2 FAIL_THRESHOLD 2 COOLDOWN 45.0
+search1 raised: keyless web search has no engine available right now — DuckDuckGo: unreachable; 
+after 1 failed search: engine_calls 2 state closed failures 1
+search2 raised: keyless web search has no engine available right now — DuckDuckGo: unreachable; 
+after 2 failed searches: state open
+EXIT=0

@@ -1,0 +1,22 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p005.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import ast, pathlib
+d=pathlib.Path("services/research"); leaks=[]; n=0
+for p in sorted(d.rglob("*.py")):
+    for node in ast.walk(ast.parse(p.read_text())):
+        if isinstance(node,ast.ImportFrom) and (node.module or "").startswith("services.research"):
+            for a in node.names:
+                n+=1
+                if a.name.startswith("_"): leaks.append(f"{p.name}: {node.module}.{a.name}")
+print("cross-module services.research imports scanned:",n); print("private-name leaks:",leaks)
+import re
+for f in ("iter.py","verify.py"):
+    m=re.search(r"from services\.research\.deep import \((.*?)\)",pathlib.Path("services/research/"+f).read_text(),re.S)
+    print(f,"imports from deep:",[x.strip() for x in m.group(1).split(",") if x.strip()] if m else None)
+--- output ---
+cross-module services.research imports scanned: 106
+private-name leaks: []
+iter.py imports from deep: ['BUDGET_STOP_NOTE', 'MIN_ROUND_WALL_SECS', 'ROUND_MODEL', 'ROUND_PROVIDER', 'SYNTHESIS_TIMEOUT_NOTE', 'SYNTHESIS_TRUNCATED_NOTE', 'WEB_ONLY_FLOOR_NOTE', 'Findings', 'LLMCall', 'OnStep', 'ToolCall', 'VisitCall', 'build_structured_floor', 'coverage_floor_met', 'emit_step', 'finalize_markdown', 'is_web_search_source', 'join_notes', 'record_snapshot_sources', 'record_structured', 'record_web', 'reflect_says_complete', 'remaining_wall', 'round_wall_limit', 'run_researcher', 'safe_llm', 'snapshot_context', 'split_subquestions', 'structured_feeds_available', 'structured_source_gathered', 'synthesis_llm', 'synthesize_brief', 'visit_failure_step']
+verify.py imports from deep: ['LLMCall', 'OnStep', 'ToolCall', 'emit_step', 'leading_token', 'remaining_wall', 'safe_llm', 'safe_tool']
+EXIT=0

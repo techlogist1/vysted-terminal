@@ -1,0 +1,33 @@
+# R15-CODE-AGENT-006 at ace7dd7
+$ grep registry imports in src/store
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/llm-providers.ts:18:import { modelForProvider, 
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/llm-providers.ts:29:  /** Config-driven default
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/llm-providers.ts:35:/** The provider catalog, p
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/llm-providers.ts:38:export const DEFAULT_PROVID
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/model-selection.ts:14:import registry from "../
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/model-selection.ts:17:/** One provider row of `
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/model-selection.ts:32:export const REGISTRY_PRO
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/model-selection.ts:36:  REGISTRY_PROVIDERS.map(
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/model-selection.ts:43:  Object.fromEntries(REGI
+$ compare GET /llm/providers vs model_registry.json (ids,default_model,known_models)
+live providers 8 registry 8
+['id', 'label', 'requires_key', 'default_base_url', 'default_model', 'known_models']
+anthropic claude-opus-4-8 OK
+openai gpt-4.1-mini OK
+gemini gemini-2.5-pro OK
+groq llama-3.3-70b-versatile OK
+ollama qwen2.5:7b OK
+deepseek deepseek-chat OK
+xai grok-4 OK
+openrouter deepseek/deepseek-v4-flash OK
+diffs 0
+$ any hand-copied default tables left in TS?
+43:  defaultModel: row.default_model,
+69:  default_model?: string | null;
+114:        defaultModel: row.default_model ?? undefined,
+pinned: src/store/model-selection.test.ts
+3:import registry from "../../sidecar/config/model_registry.json";
+14:// model_registry.json, never hand copies (the old guard compared two TS copies).
+15:describe("model-selection — the tables are the registry JSON", () => {
+17:    expect(DEFAULT_PROVIDERS.map((p) => p.id)).toEqual(registry.providers.map((r) => r.id));
+18:    for (const row of registry.providers) {

@@ -1,0 +1,11 @@
+# Set: batch-6/W4-research-funnel (set-23) — candidate ace7dd76, sidecar :52340 + in-process (candidate venv, own data dir copy)
+
+| id | repro run | observed | verdict |
+|---|---|---|---|
+| R15-CODE-RESEARCH-002 | in-process fast.snapshot_structured(RELIANCE, IN) with growth_check.should_cross_check raising (sync) and dividend_history.get_dividend_ttm / market_cap_witness.get_market_cap_witness raising (async) | hits ['async','sync','async'] all fired; returned keys derived/fundamentals/price, price ok True; nothing escaped (first attempt hit the 6s leg timeout cold; rerun with leg_timeout_s=60) | holds |
+| R15-RESEARCH-017 | deep_research._run_loop for deep and ultra with run_iter_research / run_heavy_research raising | neither escapes: ok:False, 'the heavy research loop failed: RuntimeError...', execution_loop heavy (deep: iter), identical shape. NOTE adjacent: the single-pass fallback the batch-6 verdict described was deleted by 9703eee7 (R15-CODE-RESEARCH-003), so both depths now return an honest ok:False instead of a degraded brief; the entry's repro (ULTRA escapes, DEEP degrades) no longer reproduces either way; pinned by tests/test_b6_research_funnel.py::test_ultra_heavy_raise_is_an_honest_failure | holds |
+| R15-RESEARCH-018 | deep.run_researcher with recording tool_call, real resolve_target | KAYNES IN: filings/SEC q -> corporate_announcements+web_search; 'sector' -> news+web_search; 'second-quarter' -> corporate_announcements+news+web_search (no sec_filings_list); control AAPL US: SEC q -> sec_filings_list, sector/second -> news | holds |
+| R15-RESEARCH-012 | disclosures.gather_floor for KAYNES, CGPOWER, JONJUA live | results filings pulled to front of floor rows (KAYNES raw pos [2,15,21..] but rows lead with results corrigendum/Financial Results; CGPOWER results first; JONJUA outcome + unaudited results first) | holds |
+| R15-RESEARCH-016 | iter.run_iter_research (the ULTRA explorer path, bound target, pre-seeded snapshot['disclosures'] rows from real gather_floor JONJUA), stub llm, no model run | brief.sources carries the 5 BSE filing sources + vysted://price (7 sources); pre-seeded floor is cited. Full ULTRA llama run not repeated (lock/time) | holds |
+
+COVERAGE: 5/5 ids raw; no raw: none

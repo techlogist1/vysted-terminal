@@ -1,0 +1,79 @@
+# R15-CODE-FRONTEND-026 at ace7dd76 (pinned test existence + source check; vitest not run, heavy lane owns)
+$ grep -n -F 'b still pending' src/store/workflow.test.ts
+156:  it("append a, take, append b -> b still pending", () => {
+exit=0
+$ grep -n -F 'drainNotifications' src/store/workflow.ts
+exit=0
+# R15-CODE-FRONTEND-026 source
+$ grep -rn "drainNotifications\|takeNotifications\|pendingNotifications" src --include=*.ts --include=*.tsx | grep -v test
+src/lib/desktop-notification.ts:8: * intent into `pendingNotifications`; this bridge subscribes to that
+src/lib/desktop-notification.ts:86:          const intents = useWorkflowStore.getState().takeNotifications();
+src/lib/desktop-notification.ts:102:      if (state.pendingNotifications === previous.pendingNotifications) return;
+src/lib/desktop-notification.ts:103:      if (state.pendingNotifications.length > 0) {
+src/store/workflow.ts:98:  pendingNotifications: DesktopNotificationIntent[];
+src/store/workflow.ts:107:  takeNotifications: () => DesktopNotificationIntent[];
+src/store/workflow.ts:242:  pendingNotifications: [],
+src/store/workflow.ts:250:      const pendingNotifications = intent
+src/store/workflow.ts:251:        ? [...state.pendingNotifications, intent]
+src/store/workflow.ts:252:        : state.pendingNotifications;
+src/store/workflow.ts:259:      return { runs, activeRun, pendingNotifications };
+src/store/workflow.ts:273:  clearAll: () => set({ runs: {}, activeRun: null, pendingNotifications: [] }),
+src/store/workflow.ts:275:  takeNotifications: () => {
+src/store/workflow.ts:276:    const taken = get().pendingNotifications;
+src/store/workflow.ts:277:    set({ pendingNotifications: [] });
+src/store/workflow.ts:474:  return state.pendingNotifications;
+    });
+    const drained = takeNotifications();
+    expect(drained).toHaveLength(1);
+    expect(useWorkflowStore.getState().pendingNotifications).toEqual([]);
+  });
+
+  it("append a, take, append b -> b still pending", () => {
+    const { appendEvent, takeNotifications } = useWorkflowStore.getState();
+    const notify = (nodeId: string, title: string) =>
+      appendEvent({
+        kind: "node-output",
+        runId: "r1",
+        nodeId,
+        outputs: { intent: "desktop-notification", notified: true, title, message: "M" },
+        durationMs: 1,
+      });
+    notify("na", "a");
+    const taken = takeNotifications();
+    notify("nb", "b");
+    expect(taken.map((i) => i.title)).toEqual(["a"]);
+    expect(useWorkflowStore.getState().pendingNotifications.map((i) => i.title)).toEqual(["b"]);
+  });
+
+  it("clearRun drops one run's log; clearAll drops all", () => {
+    const { appendEvent, clearRun, clearAll } = useWorkflowStore.getState();
+    appendEvent({ kind: "run-start", runId: "r1", startedAt: 1 });
+--- bridge source
+        for (;;) {
+          const intents = useWorkflowStore.getState().takeNotifications();
+          if (intents.length === 0) break;
+          for (const intent of intents) {
+            if (!active) return;
+            await _sendOne(intent);
+          }
+        }
+      } finally {
+        isFlushing = false;
+      }
+    };
+    // Flush whatever the store already has at mount.
+    if (selectPendingNotifications(useWorkflowStore.getState()).length > 0) {
+      void flush();
+    }
+    const unsubscribe = useWorkflowStore.subscribe((state, previous) => {
+      if (state.pendingNotifications === previous.pendingNotifications) return;
+      if (state.pendingNotifications.length > 0) {
+        void flush();
+      }
+    });
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, []);
+}

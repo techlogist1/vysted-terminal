@@ -1,0 +1,4 @@
+columns ['id', 'name', 'spec_json', 'updated_at']
+$ GET /workflow/saved -> 200 workflows=['b21-good'] unreadable=[{'id': 'b21-bad', 'name': 'bad', 'reason': '1 validation error for WorkflowSpec\nremovedField\n  Extra inputs are not permitted [type=extra_forbidden, input_value=1, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden'}, {'id': 'b21-v2', 'name': 'v2', 'reason': 'saved with workflow schema version 2; this build reads version 1'}]
+$ GET /workflow/saved/b21-good -> 200 {"id":"b21-good","name":"good","description":null,"version":1,"nodes":[],"edges":[],"updatedAt":1}
+$ GET /workflow/saved/b21-v2 -> 409 {"detail":"saved with workflow schema version 2; this build reads version 1"}

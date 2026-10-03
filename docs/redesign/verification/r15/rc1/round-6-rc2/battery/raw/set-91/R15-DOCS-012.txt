@@ -1,0 +1,20 @@
+CMD: ls PIL generators + v0.6.0 teammate-e/sc screenshots
+"scripts/render_phase_6_*": No such file or directory (os error 2)
+teammate-f
+teammate-m
+"docs/screenshots/v0.6.0/teammate-e": No such file or directory (os error 2)
+"docs/screenshots/v0.6.0/teammate-sc": No such file or directory (os error 2)
+grep-count=1
+
+All six are also in the retired v0.6.0-era amber/charcoal palette
+(superseded by the zinc + cool-indigo system — see this repo's `CLAUDE.md`
+Gotchas), a further reason they can never stand in for a current release's
+verification screenshots.
+
+Their generator scripts (`scripts/render_phase_6_e_screenshots.py`,
+`scripts/render_phase_6_sc_screenshots.py`) are deleted (R15-CODE-PLATFORM-064):
+they depended on an undeclared `Pillow`, and `load_font` only tried
+Windows font paths, silently collapsing every requested size to
+`ImageFont.load_default()` on macOS/Linux — three "distinct" font sizes
+that were actually identical. Dead v0.6.0 tooling; not worth fixing in
+place. A real screenshot still requires a live `pnpm tauri dev` session

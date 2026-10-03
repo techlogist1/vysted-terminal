@@ -1,0 +1,9 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand; grep -n 'Patch an existing holding' src/store/portfolios.ts; echo grep_exit=$?; sed -n 168,172p src/store/portfolios.ts
+grep_exit=1
+  addHolding: (portfolioId: string, input: HoldingInput) => string | null;
+  /** Replace an existing holding's fields (not a partial merge); false when
+   *  the input is invalid or that portfolio holds no such holding (nothing
+   *  changes either way). */
+  updateHolding: (portfolioId: string, holdingId: string, input: HoldingInput) => boolean;
+EXIT=0

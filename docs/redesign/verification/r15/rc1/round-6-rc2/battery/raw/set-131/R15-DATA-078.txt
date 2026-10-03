@@ -1,0 +1,7 @@
+# probe at ace7dd7 in candidate worktree
+CMD: grep -rniE 'alpha_vantage|AlphaVantage|alphavantage' sidecar/ --exclude-dir=.venv --exclude-dir=__pycache__ --exclude-dir=tests; grep -n alpha sidecar/requirements.txt; grep -n alpha docs/BLUEPRINT.md
+exit(sidecar grep)=0
+-- requirements:
+exit(req grep)=1
+-- BLUEPRINT:
+266:18. yfinance fallback (no API key needed for basic use; R15-DATA-078 — alpha_vantage was

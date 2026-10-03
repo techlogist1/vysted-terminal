@@ -1,0 +1,14 @@
+$ POST /workflow/run: A=flow.sleep 4s (independent), B fast, C depends on B only
+0.02s run-start None
+0.02s node-start A
+0.02s node-start B
+0.02s node-output B
+0.02s node-start C
+0.02s node-output C
+4.03s node-output A
+4.03s run-complete None
+$ POST /workflow/run: flow.sleep seconds=6 with timeout_seconds=2
+0.02s run-start None None
+0.02s node-start S None
+2.02s node-error S node timed out after 2s
+2.02s run-error None failures in nodes: ['S']

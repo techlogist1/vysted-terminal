@@ -1,0 +1,4 @@
+CMD: sidecar/.venv/bin/python scratch b23_set109.py (in-process, candidate ace7dd76): autocomplete('TATASTEEL','IN') + resolution_policy.decide
+DATA-017 rows[0]: TATASTEEL score 1.0 band 6
+DATA-017 decide().outcome = bound (want bound, not disambiguate)
+EXIT=0

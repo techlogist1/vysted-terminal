@@ -1,0 +1,92 @@
+$ grep DataTable.tsx for loading/empty slots and keyboard-operable sort headers
+30: *  - Optional sortable header — `aria-sort` + a quiet caret that brightens to
+128:  /** Render `rows` skeleton placeholder rows instead of the body (R15-UI-068).
+129:   *  Takes precedence over `empty` and the real `rows`/`sections`. */
+130:  loading?: { rows: number };
+132:   *  `loading` is not set (R15-UI-068). Omit to render an empty `<tbody>`, as
+134:  empty?: React.ReactNode;
+203:  loading,
+204:  empty,
+212:  const isEmpty = !loading && totalRows === 0;
+238:      aria-busy={loading ? true : undefined}
+266:                aria-sort={
+282:                  // real <button> is focusable and fires onClick for both Enter
+283:                  // and Space natively. `aria-sort` stays on the `<th>` (the
+287:                  <button
+308:        {loading ? (
+309:          Array.from({ length: loading.rows }, (_, i) => (
+310:            <tr key={`skeleton-${i}`} className="border-charcoal-800 border-b" aria-hidden>
+318:        ) : isEmpty && empty !== undefined ? (
+324:              {empty}
+$ which panels use DataTable
+src/modules/quant/YieldCurvePanel.tsx
+src/modules/quant/OptionChainPanel.tsx
+src/modules/analyst-ratings/RatingsHistoryTable.tsx
+src/modules/analyst-ratings/IndividualAnalystTable.tsx
+src/modules/quant/GreeksDashboard.tsx
+src/modules/screener/ScreenerResultsTable.tsx
+src/modules/sec/InsiderTradingTable.tsx
+src/modules/sec/FilingsListTable.tsx
+src/modules/earnings/EpsEstimateGrid.tsx
+src/modules/equity-overview/EquityOverviewPanel.tsx
+src/modules/portfolio/PortfolioPanel.tsx
+src/modules/watchlist/WatchlistPanel.tsx
+$ hand-rolled <table in non-test src
+src/components/DataTable.tsx
+src/modules/research/brief-blocks.tsx
+src/modules/screener/ScreenerResultsTable.tsx
+src/modules/backtest/BacktestResultView.tsx
+src/modules/earnings/EarningsCalendarPanel.tsx
+src/modules/watchlist/WatchlistPanel.tsx
+src/modules/portfolio/PortfolioPanel.tsx
+
+$ grep -n "<table" + 3 lines of context per remaining hand-rolled site
+--- src/modules/screener/ScreenerResultsTable.tsx
+406-    return (
+407-      <div className="flex h-full flex-col gap-2">
+408-        <div className="border-charcoal-700 min-h-0 flex-1 overflow-auto rounded-none border">
+409:          <table className={cn("w-full table-fixed", TABLE_MIN_WIDTH)}>
+--- src/modules/watchlist/WatchlistPanel.tsx
+523-        className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto"
+524-      >
+525-        {rows === null ? (
+526:          <table className="w-full table-fixed border-collapse">
+--- src/modules/portfolio/PortfolioPanel.tsx
+1124-                        </div>
+1125-                        {metrics.correlation.symbols.length > 1 && (
+1126-                          <div className="mt-1 overflow-x-auto">
+1127:                            <table className="border-collapse">
+--- src/modules/earnings/EarningsCalendarPanel.tsx
+267-
+268-      <div className="flex-1 [scrollbar-gutter:stable] overflow-x-hidden overflow-y-auto p-3">
+269-        {upcomingStatus === "loading" || upcomingStatus === "idle" ? (
+270:          <table className="w-full table-fixed border-collapse">
+--
+325-            hint="No companies report in this window. Widen the day range or clear the watchlist filter."
+326-          />
+327-        ) : (
+328:          <table className="w-full table-fixed border-collapse">
+--- src/modules/research/brief-blocks.tsx
+917-    aligns[i] === "right" ? "text-right" : aligns[i] === "center" ? "text-center" : "text-left";
+918-  return (
+919-    <div className="border-charcoal-700 overflow-x-auto rounded-none border">
+920:      <table className="text-caption w-full border-collapse font-mono">
+--- src/modules/backtest/BacktestResultView.tsx
+239-        "max-h-64 overflow-x-auto overflow-y-auto" /* tokens-ok: trade-log scroll cap - layout, not rhythm */
+240-      }
+241-    >
+242:      <table className="w-full border-collapse">
+DisclaimerFlow.test.tsx
+DisclaimerFlow.tsx
+index.ts
+$ safety AuditLogViewer exists?
+"src/modules/safety/AuditLogViewer.tsx": No such file or directory (os error 2)
+$ test pins
+28:  it("renders headers and primary cell values", () => {
+35:  it("renders the null glyph for a missing value", () => {
+41:  it("right-aligns + applies tabular-nums to numeric cells", () => {
+48:  it("fires onSort and marks aria-sort on the active sortable header", () => {
+68:  it("makes a sortable header keyboard-operable (R15-UI-068)", () => {
+80:  it("renders skeleton rows and marks the table busy when loading (R15-UI-068)", () => {
+91:  it("renders the empty slot when there are zero rows and not loading (R15-UI-068)", () => {
+103:  it("renders grouped section header rows", () => {

@@ -1,0 +1,31 @@
+# rc1-battery-22 raw R15-CODE-RESEARCH-004 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -rnE 'locale_domains|preferredDomains|detect_searxng|KNOWN_BACKENDS|breaker_status|untrusted_context_message' --include=*.py sidecar/ | grep -v '/.venv/' | cut -c1-200; echo ---; wc -l sidecar/services/search/*.py; git diff --stat 6b91b8f..HEAD -- sidecar/services/search | tail -8
+sidecar/tests/test_web_search.py:191:    # (services.search.searxng.detect_searxng was deleted, R15-CODE-RESEARCH-004);
+sidecar/tests/test_search_exports.py:4:(``locale_domains``, ``KNOWN_BACKENDS``, ``detect_searxng``, ``breaker_status``,
+sidecar/tests/test_search_exports.py:5:``untrusted_context_message``, ``SearchResponse.metadata``) that was exported
+sidecar/services/search/base.py:138:    ``options`` — e.g. ``preferredDomains``/``maxResults``/``region``) into a
+---
+      29 sidecar/services/search/__init__.py
+     201 sidecar/services/search/base.py
+      96 sidecar/services/search/brave.py
+     149 sidecar/services/search/breaker.py
+     291 sidecar/services/search/ddg.py
+     814 sidecar/services/search/extract.py
+     141 sidecar/services/search/html_serp.py
+     369 sidecar/services/search/keyless.py
+      91 sidecar/services/search/mojeek.py
+     148 sidecar/services/search/pacing.py
+     137 sidecar/services/search/registry.py
+     110 sidecar/services/search/scrub.py
+     176 sidecar/services/search/searxng.py
+     246 sidecar/services/search/transport.py
+    2998 total
+ sidecar/services/search/ddg.py       | 167 +++++++++--------------------------
+ sidecar/services/search/html_serp.py | 141 +++++++++++++++++++++++++++++
+ sidecar/services/search/keyless.py   |  38 ++++++++
+ sidecar/services/search/mojeek.py    | 117 ++++++++----------------
+ sidecar/services/search/registry.py  |  47 ++++++++--
+ sidecar/services/search/scrub.py     |  24 +----
+ sidecar/services/search/searxng.py   | 102 ++-------------------
+ 11 files changed, 376 insertions(+), 487 deletions(-)
+EXIT=0

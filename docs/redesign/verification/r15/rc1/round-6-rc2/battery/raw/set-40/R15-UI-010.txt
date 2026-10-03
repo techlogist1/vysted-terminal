@@ -1,0 +1,15 @@
+RAW rc1-battery-12 @ ace7dd76 live :52352 (own sidecar)
+$ POST /backtest/run mean_reversion window=0
+{"detail":"`window` must be between 5 and 200"}
+http=422
+$ POST /backtest/run mean_reversion window=-5
+{"detail":"`window` must be between 5 and 200"}
+http=422
+$ POST /backtest/run mean_reversion window=""
+{"detail":"`window` must be an integer"}
+http=422
+$ POST /backtest/run mean_reversion window=1000000
+{"detail":"`window` must be between 5 and 200"}
+http=422
+$ GET /backtest/strategies (mean_reversion paramsSchema)
+{"type": "object", "properties": {"window": {"type": "integer", "default": 20, "minimum": 5, "maximum": 200, "description": "Rolling window for the z-score (bars)."}, "entry_z": {"type": "number", "default": -2.0, "description": "Enter long when z drops below this (typically negative)."}, "exit_z": {"type": "number", "default": 0.0, "description": "Exit when z rises above this."}, "position_size":

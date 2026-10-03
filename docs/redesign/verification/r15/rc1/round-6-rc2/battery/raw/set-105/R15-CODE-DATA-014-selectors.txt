@@ -1,0 +1,31 @@
+# rc1-battery-22 raw R15-CODE-DATA-014 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -n 'void ' src/modules/sec/SecFilingsPanel.tsx src/modules/sec/InsiderTradingTable.tsx; grep -n 'useSecStore(' src/modules/sec/SecFilingsPanel.tsx | head; sed -n 314,322p src/store/sec.ts; grep -n 'filingsByIdentifier' src/modules/sec/SecFilingsPanel.tsx | head
+src/modules/sec/SecFilingsPanel.tsx:99:      void loadFilings(symbol, formFilter === "all" ? undefined : formFilter);
+src/modules/sec/SecFilingsPanel.tsx:117:      void searchCompanies(q).then(() => {
+src/modules/sec/SecFilingsPanel.tsx:134:      void loadFilings(symbol, formFilter === "all" ? undefined : formFilter);
+src/modules/sec/SecFilingsPanel.tsx:144:        void loadFilings(activeIdentifier, value === "all" ? undefined : value);
+src/modules/sec/SecFilingsPanel.tsx:308:              void loadFilings(activeIdentifier, formFilter === "all" ? undefined : formFilter)
+src/modules/sec/InsiderTradingTable.tsx:108:  // store update after mount re-renders without a separate hook + void hack.
+src/modules/sec/InsiderTradingTable.tsx:129:      void loadInsider(identifier, form === "all" ? undefined : form);
+src/modules/sec/InsiderTradingTable.tsx:193:              onClick={() => void loadInsider(identifier, form === "all" ? undefined : form)}
+41:  const activeIdentifier = useSecStore((s) => s.activeIdentifier);
+42:  const setActiveIdentifier = useSecStore((s) => s.setActiveIdentifier);
+43:  const loadFilings = useSecStore((s) => s.loadFilings);
+44:  const filingsStatus = useSecStore((s) => s.filingsStatus);
+45:  const filingsError = useSecStore((s) => s.filingsError);
+46:  const activeAccession = useSecStore((s) => s.activeAccession);
+47:  const setActiveAccession = useSecStore((s) => s.setActiveAccession);
+48:  const searchResults = useSecStore((s) => s.searchResults);
+49:  const searchStatus = useSecStore((s) => s.searchStatus);
+50:  const searchError = useSecStore((s) => s.searchError);
+
+// ---------------------------------------------------------------------------
+// Stable-identity selectors
+//
+// These read via getState() and do NOT subscribe — call sites must not use
+// them inside a component render (R15-CODE-DATA-014). Prefer
+// `useSecStore((s) => s.filingsByIdentifier[filingsKey(...)] ?? EMPTY_FILINGS)`
+// directly, as SecFilingsPanel/InsiderTradingTable now do.
+// ---------------------------------------------------------------------------
+88:    return s.filingsByIdentifier[key] ?? EMPTY_FILINGS;
+EXIT=0

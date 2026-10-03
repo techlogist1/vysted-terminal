@@ -1,0 +1,29 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src-tauri; grep -rn 'set_var\|remove_var' src | head -20; echo grep_exit=$?; grep -n 'CROSS-PLATFORM-008' -r src | head; sed -n 470,490p src/lib.rs
+src/lib.rs:353:/// `Command` (never the process-wide env: `set_var` while GTK/WebKit threads
+grep_exit=0
+src/lib.rs:354:/// may call `getenv` is UB on POSIX, R15-CROSS-PLATFORM-008). An unavailable
+src/lib.rs:977:        // R15-CROSS-PLATFORM-008: the ports ride the main sidecar's own env; an
+src/lib.rs:993:        // R15-CROSS-PLATFORM-008: nothing in the core mutates the process env.
+        let bound = healthy;
+        wait_app.state::<SidecarStatus>().settle_boot(bound);
+        if bound {
+            diag_println!("[vysted] Python sidecar healthy on 127.0.0.1:{port}");
+            // FR-025: publish the loopback MCP endpoint so an external MCP
+            // client can discover it without scraping the console. Only on a
+            // confirmed-up sidecar — a failed boot leaves no stale file.
+            write_mcp_endpoint_file(&endpoint_data_dir, port);
+        } else {
+            diag_eprintln!("[vysted] Python sidecar did not come up on port {port}");
+        }
+    });
+}
+
+/// Run the boot on one background thread and return at once: start both MCP
+/// children (each `start_*` returns its port and its bind-wait step), then the
+/// main sidecar with both ports, then both bind waits concurrently.
+fn spawn_boot<A, SA, B, SB, M>(start_a: A, start_b: B, start_main: M) -> thread::JoinHandle<()>
+where
+    A: FnOnce() -> (Option<u16>, SA) + Send + 'static,
+    SA: FnOnce() + Send,
+EXIT=0

@@ -1,0 +1,17 @@
+# R15-LEAD-034 at ace7dd7 (live sidecar :52354, region IN header; NSE Emerge/SME symbols)
+$ curl -H 'X-Vysted-Region: IN' http://127.0.0.1:52354/fundamentals/INSPIRE
+{"symbol":"INSPIRE-SM.NS","name":"INSPIRE FILMS LIMITED","sector":null,"industry":null,"sector_source":null,"currency":"INR","financial_currency":null,"ratio_price":9.45,"market_cap":null,"pe_ratio":null,"forward_pe":null,"peg_ratio":null,"price_to_book":null,"price_to_sales":null,"ev_to_ebitda":null,"book_value":null,"dividend_yield":null,"dividend_per_share":null,"eps":0.27,"beta":null,"fifty_two_week_high":9.45,"f
+HTTP 200
+$ curl -H 'X-Vysted-Region: IN' http://127.0.0.1:52354/fundamentals/IPHL
+{"symbol":"IPHL-SM.NS","name":"INDIAN PHOSPHATE LIMITED","sector":null,"industry":null,"sector_source":null,"currency":"INR","financial_currency":null,"ratio_price":72.65,"market_cap":null,"pe_ratio":null,"forward_pe":null,"peg_ratio":null,"price_to_book":null,"price_to_sales":null,"ev_to_ebitda":null,"book_value":null,"dividend_yield":null,"dividend_per_share":null,"eps":8.78,"beta":null,"fifty_two_week_high":72.65,
+HTTP 200
+$ curl -H 'X-Vysted-Region: IN' http://127.0.0.1:52354/fundamentals/ISHAN
+{"symbol":"ISHAN-SM.NS","name":"ISHAN INTERNATIONAL LTD","sector":null,"industry":null,"sector_source":null,"currency":"INR","financial_currency":null,"ratio_price":0.45,"market_cap":null,"pe_ratio":null,"forward_pe":null,"peg_ratio":null,"price_to_book":null,"price_to_sales":null,"ev_to_ebitda":null,"book_value":null,"dividend_yield":null,"dividend_per_share":null,"eps":0.01,"beta":null,"fifty_two_week_high":0.45,"f
+HTTP 200
+$ curl -H 'X-Vysted-Region: IN' http://127.0.0.1:52354/fundamentals/RELIANCE
+{"symbol":"RELIANCE.NS","name":"Reliance Industries Limited","sector":"Energy","industry":"Oil, Gas & Consumable Fuels / Refineries & Marketing","sector_source":"resolver","currency":"INR","financial_currency":null,"ratio_price":1167.7,"market_cap":15801867304960.0,"pe_ratio":21.142494,"forward_pe":16.352873,"peg_ratio":0.82,"price_to_book":1.7479361,"price_to_sales":1.3988843,"ev_to_ebitda":11.098,"book_value":668.0
+HTTP 200
+$ grep -c "symbol mismatch" sidecar log (this boot)
+0
+$ grep -c "\-SM" in warn lines
+0

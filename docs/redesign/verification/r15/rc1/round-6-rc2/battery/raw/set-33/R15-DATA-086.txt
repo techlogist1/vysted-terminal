@@ -1,0 +1,7 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/ip.sh /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b4_086.py
+DOWN: ProviderError network World Bank search failed for 'unemployment': HTTPSConnectionPool(host='api.worldbank.org', port=443): Max retries exceeded with url: /v2/en/sources/2/concepts?per_page=1000&page=1&format=json (Caused by NameResolutionError("HTTPSConnection(host='api.worldbank.org', port=443): Failed to resolve 'api.worldbank.org' ([Errno 8] network down (probe))"))
+['Any', 'Callable', 'DB_FILENAME', 'MAX_BACKUPS', 'MAX_ROWS', 'Path', 'annotations', 'asyncio', 'clear', 'contextlib', 'db_path', 'ensure_build', 'get', 'get_cache_dir', 'get_data_dir', 'get_with_meta', 'invalidate', 'json', 'logger', 'logging']
+UP: 25 rows [('per_lm_alllm.adq_pop_tot', 'Adequacy of unemployment benefits and AL'), ('per_lm_alllm.ben_q1_tot', 'Benefit incidence of unemployment benefi'), ('per_lm_alllm.cov_pop_tot', 'Coverage of unemployment benefits and AL')]
+
+exit=0

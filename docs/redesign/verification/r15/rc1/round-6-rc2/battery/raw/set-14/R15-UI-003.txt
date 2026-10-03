@@ -1,0 +1,11 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar; echo tool-ids:; curl -s http://127.0.0.1:52350/custom-agents/tool-ids | python3 -c 'import sys,json;d=json.load(sys.stdin);d=d if isinstance(d,list) else d.get("tool_ids",d);print(len(d),[t for t in ("research","web_search","publish_brief") if t in d])'; ./.venv/bin/python3 -c 'from services.agent_tools.catalog import agent_selectable_tool_ids as f; print("catalog",len(f()))'
+curl -s -X POST http://127.0.0.1:52350/custom-agents -H 'content-type: application/json' -d '{"id":"custom:b10-ui003","name":"B10","philosophy":"p","system_prompt":"s","tools":["research","web_search","price_data"],"default_provider":"openrouter"}' | head -c 400; echo
+curl -s -X PUT http://127.0.0.1:52350/custom-agents/custom:b10-ui003 -H 'content-type: application/json' -d '{"name":"B10 renamed","philosophy":"p","system_prompt":"s","tools":["research","web_search","price_data"],"default_provider":"openrouter"}' | head -c 400; echo; curl -s -X DELETE http://127.0.0.1:52350/custom-agents/custom:b10-ui003 -w ' del=%{http_code}'
+tool-ids:
+56 ['research', 'web_search', 'publish_brief']
+catalog 56
+{"id":"custom:b10-ui003","name":"B10","philosophy":"p","system_prompt":"s","tools":["research","web_search","price_data"],"default_provider":"openrouter","default_model":null,"icon":null,"created_at":1790987798,"updated_at":1790987798}
+{"id":"custom:b10-ui003","name":"B10 renamed","philosophy":"p","system_prompt":"s","tools":["research","web_search","price_data"],"default_provider":"openrouter","default_model":null,"icon":null,"created_at":1790987798,"updated_at":1790987798}
+ del=204
+EXIT=0

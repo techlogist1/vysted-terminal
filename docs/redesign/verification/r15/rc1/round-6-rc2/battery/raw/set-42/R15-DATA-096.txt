@@ -1,0 +1,13 @@
+$ curl twice each of /fundamentals/AAPL/income /balance /cashflow /ratings (timings)
+-- income
+[http 200 0.228720s] {"symbol":"AAPL","periods":["2025-09-30","2024-09-30","2023-09-30","2022-09-30"],"lines":[{"label":"Tax Effect Of Unusual Items","values":{"2025-09-30
+[http 200 0.001203s] {"symbol":"AAPL","periods":["2025-09-30","2024-09-30","2023-09-30","2022-09-30"],"lines":[{"label":"Tax Effect Of Unusual Items","values":{"2025-09-30
+-- balance
+[http 200 0.250354s] {"symbol":"AAPL","periods":["2025-09-30","2024-09-30","2023-09-30","2022-09-30"],"lines":[{"label":"Treasury Shares Number","values":{"2025-09-30":nul
+[http 200 0.001286s] {"symbol":"AAPL","periods":["2025-09-30","2024-09-30","2023-09-30","2022-09-30"],"lines":[{"label":"Treasury Shares Number","values":{"2025-09-30":nul
+-- cashflow
+[http 200 0.351817s] {"symbol":"AAPL","periods":["2025-09-30","2024-09-30","2023-09-30","2022-09-30"],"lines":[{"label":"Free Cash Flow","values":{"2025-09-30":98767000000
+[http 200 0.001173s] {"symbol":"AAPL","periods":["2025-09-30","2024-09-30","2023-09-30","2022-09-30"],"lines":[{"label":"Free Cash Flow","values":{"2025-09-30":98767000000
+-- ratings
+[http 200 0.235515s] {"symbol":"AAPL","consensus":"buy","target_mean":328.09384,"target_high":405.0,"target_low":215.0,"strong_buy":6,"buy":19,"hold":13,"sell":3,"strong_s
+[http 200 0.001225s] {"symbol":"AAPL","consensus":"buy","target_mean":328.09384,"target_high":405.0,"target_low":215.0,"strong_buy":6,"buy":19,"hold":13,"sell":3,"strong_s

@@ -1,0 +1,15 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: cross_check in-process w/ claim lines starting with figures (live ollama ULTRA run replaced by in-process replica; spend/lock-free)
+EXIT: 0
+OUTPUT:
+split: ['40.5% revenue growth', '-0.4% earnings growth', '67.13953 P/E', '53.46% gross margin', '-24.4% change']
+
+
+Top numeric claims re-checked against fresh web evidence (at least 2 independent domains required per claim):
+
+- **UNVERIFIED** — 40.5% revenue growth (bloomberg.com, reuters.com) — UNVERIFIED - no source
+- **UNVERIFIED** — -0.4% earnings growth (bloomberg.com, reuters.com) — UNVERIFIED - no source
+- **UNVERIFIED** — 67.13953 P/E (bloomberg.com, reuters.com) — UNVERIFIED - no source
+- **UNVERIFIED** — 53.46% gross margin (bloomberg.com, reuters.com) — UNVERIFIED - no source
+- **UNVERIFIED** — -24.4% change (bloomberg.com, reuters.com) — UNVERIFIED - no source
+['cross-check: checked 5 numeric claim(s): 0 verified, 5 unverified, 0 disagreement(s)']

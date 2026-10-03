@@ -1,0 +1,19 @@
+# probe at ace7dd76 (candidate worktree), run 05:52:23
+$ ls src/lib/safe-filename.ts src/lib/safe-filename.test.ts
+src/lib/safe-filename.test.ts
+src/lib/safe-filename.ts
+$ grep -rn 'safeFilename' src --include=*.ts --include=*.tsx | grep -v test | head
+src/lib/safe-filename.ts:40:export function safeFilename(name: string): string {
+src/modules/notes/NotesPanel.tsx:42:import { safeFilename } from "@/lib/safe-filename";
+src/modules/notes/NotesPanel.tsx:252:  const exportBaseName = scope ? safeFilename(scope.toUpperCase()) : "general";
+src/modules/notes/notes-persistence.ts:14:import { safeFilename } from "@/lib/safe-filename";
+src/modules/notes/notes-persistence.ts:69:    const filename = scope ? `${safeFilename(scope.toUpperCase())}.md` : "general.md";
+$ cd sidecar && ./.venv/bin/python3 -c "print('node-less check only')"
+node-less check only
+$ node (v24, type-stripping) calling the candidate's safeFilename on the entry's repro inputs
+"NSE:RELIANCE" -> "NSE_RELIANCE"
+"CON" -> "CON_"
+"a:*?\"<>|b" -> "a_______b"
+"RELIANCE" -> "RELIANCE"
+"con.txt" -> "con.txt_"
+"  X. " -> "  X"

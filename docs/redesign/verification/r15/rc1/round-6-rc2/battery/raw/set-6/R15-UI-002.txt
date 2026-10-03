@@ -1,0 +1,5 @@
+candidate ace7dd76; probe: scratch vitest fe2.test.tsx rendering the real CommandPalette with the live /resolve/autocomplete of own sidecar :52356, default settings, type RELIANCE, click Tickers row, EXIT=0
+PROBE chart command before pick: null
+PROBE chart command after Tickers row pick: {"symbol":"RELIANCE","region":"IN","seq":1}
+PROBE useChartSyncBus symbol (opt-in bus) state: ["crosshair","visibleRange","symbol","subscriptions","setCrosshair","setVisibleRange","setSymbol","setSubscription","unregisterPanel"]
+source: 55:import { loadSymbolIntoChart } from "@/lib/host-actions"; 221:            loadSymbolIntoChart(item.symbolEntry.symbol, undefined, item.symbolEntry.region); 355:                  loadSymbolIntoChart(c.symbol, undefined, c.region); 

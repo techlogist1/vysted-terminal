@@ -1,0 +1,22 @@
+CMD: grep -n 'never the body|X-LLM-Key|api_key' routers/llm.py services/llm/base.py (design: key transport docs)
+57:    x_llm_key: str | None = Header(default=None, alias="X-LLM-Key"),
+61:    This route alone carries the key in the ``X-LLM-Key`` header — a GET can't
+62:    carry a body — so the OpenRouter path can narrow to the caller's
+64:    below carry it as an ``api_key`` JSON body field instead (never the query
+10:attaches it to the request body; the router unwraps it and forwards into
+-- pinned test
+402:def test_no_llm_route_echoes_the_key(
+routers/fundamentals.py:132:# BYOK credentials arrive in HEADERS (read-only GET path, never the body):
+routers/runs.py:99:#: The BYOK provider key for a resumed segment: a header, never the body; held
+routers/news.py:30:# HEADER (never the body/query, mirroring the read-only-plugin credential
+models/custom_agent.py:113:    The id comes from the URL path, never the body — that matches the
+grep 'never the body' EXIT=0 (1 = none left)
+returns ``True`` when a cheap probe against the provider succeeds.
+
+Keys are NEVER persisted on the adapter — they are passed in per call so the
+sidecar can hold them in memory only for the request lifecycle. The frontend
+keychain (``src/lib/keychain.ts``) reads the key from the OS keychain and
+attaches it to the request body; the router unwraps it and forwards into
+``stream_chat``.
+"""
+

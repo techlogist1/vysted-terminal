@@ -1,0 +1,11 @@
+# rc1-battery-22 raw R15-UI-091 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ for q in 'timeframe=5m&asset_class=equity' 'timeframe=1d&asset_class=crypto' 'timeframe=1d&asset_class=equity'; do echo "== $q"; curl -s -m30 "127.0.0.1:52362/indicators/suggested?$q"; echo; done; echo; curl -s -m60 '127.0.0.1:52362/indicators/AAPL?indicators=ema:9,ema:21' | head -c 500
+== timeframe=5m&asset_class=equity
+{"indicators":["ema:9","ema:21","vwap","rsi"]}
+== timeframe=1d&asset_class=crypto
+{"indicators":["ema:50","ema:200","vwap:week","rsi"]}
+== timeframe=1d&asset_class=equity
+{"indicators":["ma","volume","rsi","macd"]}
+
+{"symbol":"AAPL","timeframe":"1d","provider":"yfinance","indicators":[{"name":"ema","panel":"price","lines":[{"label":"EMA(9)","points":[{"time":"2025-10-03T00:00:00-04:00","value":null},{"time":"2025-10-06T00:00:00-04:00","value":null},{"time":"2025-10-07T00:00:00-04:00","value":null},{"time":"2025-10-08T00:00:00-04:00","value":null},{"time":"2025-10-09T00:00:00-04:00","value":null},{"time":"2025-10-10T00:00:00-04:00","value":null},{"time":"2025-10-13T00:00:00-04:00","value":null},{"time":"2025
+EXIT=0

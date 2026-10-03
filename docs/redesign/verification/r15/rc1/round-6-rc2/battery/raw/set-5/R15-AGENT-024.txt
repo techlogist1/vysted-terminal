@@ -1,0 +1,4 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, in-process python (cand sidecar/.venv) scratch script b16_w1.py driving agent_runtime.invoke_agent / _dispatch_tool_with_progress with a scripted provider, EXIT=0
+stringified criteria -> yielded input: ['{"criteria": [{"field": "pe_ratio", "operator": "lt", "value": 20}, {"field": "roe", "operator": "gt", "value": {"min": 15, "max": 15}}, {"field": "debt_to_equity", "operator": "lt", "value": 0.5}], "universe": "nse-all"}'] result={"ok": true, "status": "dispatched_unconfirmed", "detail": {"action": "write_screener_filters"}, "note": "Dispatched to the panel but NOT yet confirmed \u2014 verify with get_terminal_state before claiming success; do not report it as done."}
+--- frontend half (real applyHostActionAsync):
+PROBE write_screener_filters criteria list -> Wrote 2 screener criteria — review and Run

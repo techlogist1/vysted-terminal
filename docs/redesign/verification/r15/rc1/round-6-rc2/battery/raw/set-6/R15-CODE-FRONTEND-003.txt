@@ -1,0 +1,3 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; probe: scratch vitest (b16-fe/probe/fe1.test.ts, real host-actions + proposed-changes modules, sidecar-client mocked to own sidecar :52356), EXIT=0
+repro: Notes NVDA='my long thesis'; write_note {scope:'NVDA', text:'new line'} (no mode)
+PROBE write_note NVDA no mode -> Appended to the NVDA note {"NVDA":"my long thesis\n\nnew line"}

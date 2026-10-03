@@ -1,0 +1,7 @@
+CMD: GET /sec/filings/0000320193-23-000077?identifier=AAPL (old 10-Q outside last 40)
+
+HTTP=000
+CMD: GET /sec/filings/0000320193-26-000020?identifier=AAPL
+HTTP=200
+{'accession_number': None, 'form_type': '10-Q', 'company_name': 'Apple Inc.', 'filed_date': '2026-07-31', 'edgar_url': 'https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/'}
+EXIT=0

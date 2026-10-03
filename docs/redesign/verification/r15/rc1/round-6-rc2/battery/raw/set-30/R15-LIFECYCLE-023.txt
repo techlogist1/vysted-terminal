@@ -1,0 +1,6 @@
+$ grep -rn "ErrorBoundary\|componentDidCatch\|onCaughtError\|onUncaughtError" src --include=*.tsx --include=*.ts -l
+src/main.tsx
+src/components/PanelHost.tsx
+32:  onCaughtError: logRenderError("caught"),
+33:  onUncaughtError: logRenderError("uncaught"),
+src/components/PanelHost.test.tsx:113:  it("a throwing panel shows the crash card; a sibling panel still renders; Reload remounts it", () => {

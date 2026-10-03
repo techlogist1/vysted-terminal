@@ -1,0 +1,5 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ curl -s -m 100 '127.0.0.1:52340/fundamentals/DHANBANK/income?period=quarterly' | python3 -c "import sys,json;d=json.load(sys.stdin);print(list(d.keys()));print(d.get('periods') or [p.get('period') for p in d.get('rows',d.get('statements',[]))][:8])"
+exit=0
+['symbol', 'periods', 'lines', 'provider', 'gaps']
+['2026-06-30', '2026-03-31', '2025-12-31', '2025-09-30', '2025-06-30', '2025-03-31']

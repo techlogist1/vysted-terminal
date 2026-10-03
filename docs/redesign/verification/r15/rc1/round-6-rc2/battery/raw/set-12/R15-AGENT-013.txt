@@ -1,0 +1,13 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source (restarted once: first process exited at 06:05:32 with no shutdown log; log kept as bat9-sidecar-1.log)
+CMD: POST /agents/copilot/runs {provider ollama, llama3.1:8b, budget wall 450s} under /tmp/vysted-r15-ollama.lock; poll GET /runs/{run_id} to done (earlier attempts: a tool-heavy prompt hit the 200 s wall budget with no answer; a 'no tools' prompt made llama emit a pseudo tool call and pause on a question -- model behaviour, cancelled)
+lock acquired after 0s
+POST: {"run_id":"37cc72b7fd7849cd82164eb5391ff586"}
+
+status done cost {'tokens': 8893, 'spend_usd': 0.0, 'steps': 2} detail completed
+answer_len 583 (>500 -> not truncated at 500)
+answer_start: Let me rephrase that.  To answer your question, I need more information. However, I can tell you what a price-to-earning
+answer_end:  into its valuation and help investors make informed decisions.  Would you like me to research NVDA's current P/E ratio?
+transcript roles: ['user', 'assistant', 'assistant']
+host_actions [] brief None
+pinned test: sidecar/tests/test_run_manager.py::test_run_output_is_returned_untruncated_by_get_run (line 742)
+EXIT=0

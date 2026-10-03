@@ -1,0 +1,17 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p067.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import asyncio
+from services.workflow_nodes import research_nodes, macro_nodes
+async def main():
+    try: print("days=0 input:", await research_nodes.fetch_earnings_calendar({"days":0},{"days":7}))
+    except Exception as e: print("days=0 input ->",type(e).__name__,e)
+    for inp,cfg in (({"provider":""},{"provider":"fred","series_id":"GDP"}),({},{"provider":"nonsense","series_id":"GDP"})):
+        try: print("macro",inp,cfg,"->",await macro_nodes.fetch_macro_series(inp,cfg))
+        except Exception as e: print("macro",inp,cfg,"->",type(e).__name__,str(e)[:140])
+asyncio.run(main())
+--- output ---
+days=0 input -> ValueError data.fetch_earnings_calendar: 'days' must be in [1, 60]
+macro {'provider': ''} {'provider': 'fred', 'series_id': 'GDP'} -> ValueError data.fetch_macro_series: missing 'provider' (supply one of ['ecb', 'fred', 'imf', 'world-bank'])
+macro {} {'provider': 'nonsense', 'series_id': 'GDP'} -> ValueError data.fetch_macro_series: unknown provider 'nonsense'; supported: ['ecb', 'fred', 'imf', 'world-bank']
+EXIT=0

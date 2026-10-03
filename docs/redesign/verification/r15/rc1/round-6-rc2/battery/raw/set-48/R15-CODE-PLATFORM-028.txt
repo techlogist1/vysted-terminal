@@ -1,0 +1,25 @@
+# R15-CODE-PLATFORM-028 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:40:04Z, sidecar :52348
+# kind=sh
+# command:
+#   export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH
+#   echo '$ ls scripts/*.test.mjs'; ls scripts/*.test.mjs
+#   echo '$ vitest include'; grep -n "include" vitest.config.ts
+#   echo '$ test counts per file (it( / test( occurrences, not executed here)'; for f in scripts/*.test.mjs; do echo "$f: $(grep -cE '^\s*(it|test)\(' $f)"; done
+#   echo '$ staleness module is exercised'; grep -n "from \"./sidecar-staleness.mjs\"" scripts/sidecar-staleness.test.mjs
+# output:
+$ ls scripts/*.test.mjs
+scripts/audit-design-tokens.test.mjs
+scripts/sidecar-freshness-gate.test.mjs
+scripts/sidecar-specs.test.mjs
+scripts/sidecar-staleness.test.mjs
+scripts/smoke-test-sidecars.test.mjs
+$ vitest include
+11:    include: ["src/**/*.test.{ts,tsx}", "plugins/**/*.test.{ts,tsx}", "scripts/**/*.test.mjs"],
+$ test counts per file (it( / test( occurrences, not executed here)
+scripts/audit-design-tokens.test.mjs: 6
+scripts/sidecar-freshness-gate.test.mjs: 1
+scripts/sidecar-specs.test.mjs: 1
+scripts/sidecar-staleness.test.mjs: 8
+scripts/smoke-test-sidecars.test.mjs: 9
+$ staleness module is exercised
+# exit=1

@@ -1,0 +1,8 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar; PYTHONPATH=. ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rs3.py 2>&1 | grep -v Traceback | grep -E '^(run_|[a-z_]+ is_panel)'; grep -n 'def run_deep_research' services/research/deep.py; echo grep_exit=$?
+run_deep_research present in deep.py: False
+normal is_panel False -> {'ok': False, 'execution_loop': 'iter'} Deep research could not finish — the iter research loop failed: RuntimeError: forced.
+deep is_panel False -> {'ok': False, 'execution_loop': 'iter'} Deep research could not finish — the iter research loop failed: RuntimeError: forced.
+ultra is_panel True -> {'ok': False, 'execution_loop': 'heavy'} Deep research could not finish — the heavy research loop failed: RuntimeError: forced.
+grep_exit=1
+EXIT=0

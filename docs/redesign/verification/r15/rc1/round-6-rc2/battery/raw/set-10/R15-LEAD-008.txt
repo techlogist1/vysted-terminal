@@ -1,0 +1,29 @@
+# R15-LEAD-008 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:29:47Z, sidecar :52348
+# kind=py
+# command:
+#   import asyncio, httpx, json, openai
+#   from services.llm import get_provider, native_search
+#   from models.llm import LLMMessage
+#   print('native_search_available(xai,None,grok-4) =', native_search.native_search_available('xai', None, 'grok-4'))
+#   sent={}
+#   def handler(req):
+#       sent['url']=str(req.url); sent['body']=json.loads(req.content)
+#       return httpx.Response(200, json={'id':'x','object':'chat.completion','created':0,'model':'grok-4','choices':[{'index':0,'message':{'role':'assistant','content':'hi'},'finish_reason':'stop'}]})
+#   p=get_provider('xai')
+#   p._client=lambda key: openai.AsyncOpenAI(api_key='k', base_url=p._base_url, max_retries=0, http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler)))
+#   async def main():
+#       try:
+#           async for ev in p.stream_chat([LLMMessage(role='user',content='news on NVDA')],model='grok-4',api_key='k',tool_ids=['web_search','get_quote'],web_search=True): pass
+#       except Exception as e: print('stream end err',type(e).__name__,str(e)[:150])
+#   asyncio.run(main())
+#   b=sent.get('body',{})
+#   print('url',sent.get('url'))
+#   print('request keys:',sorted(b.keys()))
+#   print('search_parameters present:', 'search_parameters' in b, '; tool names:', [t.get('function',{}).get('name') for t in b.get('tools',[])])
+# output:
+no tool schema for retired tool id(s): get_quote
+native_search_available(xai,None,grok-4) = False
+url https://api.x.ai/v1/chat/completions
+request keys: ['messages', 'model', 'stream', 'stream_options', 'tools']
+search_parameters present: False ; tool names: ['web_search']
+# exit=0

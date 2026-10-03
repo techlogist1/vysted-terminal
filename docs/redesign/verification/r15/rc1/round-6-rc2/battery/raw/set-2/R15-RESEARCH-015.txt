@@ -1,0 +1,8 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: cross_check dual channel: one domain via both lanes vs distinct-lane control
+EXIT: 0
+OUTPUT:
+same domain both lanes -> unverified corroborated= False | only 1 independent source(s) found
+ md corroborated label: False
+distinct (control) -> agree corroborated= True | AGREE - both state $12.96
+ md corroborated label: True

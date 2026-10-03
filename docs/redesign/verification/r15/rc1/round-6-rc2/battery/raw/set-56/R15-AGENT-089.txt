@@ -1,0 +1,12 @@
+# rc1-battery-22 raw R15-AGENT-089 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ cd sidecar && .venv/bin/python3 -c "
+from services import planner as p, agent_runtime as a
+print('close_panel' in p.PLAN_ACTIONS, 'focus_panel' in p.PLAN_ACTIONS)
+print(sorted(a._STAGEABLE_PLAN_ACTIONS))
+raw='{\"steps\":[{\"action\":\"close_panel\",\"args\":{\"panel\":\"news\"}},{\"action\":\"focus_panel\",\"args\":{\"panel\":\"chart\"}},{\"action\":\"set_chart_symbol\",\"args\":{\"symbol\":\"TCS\"}}]}'
+import inspect; print([n for n in dir(p) if 'coerce' in n or 'parse' in n])
+"
+True True
+['add_to_watchlist', 'arrange_layout', 'close_panel', 'focus_panel', 'open_panel', 'set_chart_indicators', 'set_chart_symbol']
+['_coerce_steps']
+EXIT=0

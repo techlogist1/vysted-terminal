@@ -1,0 +1,26 @@
+# R15-AGENT-006 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:29:08Z, sidecar :52348
+# kind=py
+# command:
+#   import base64, json
+#   from google.genai import types
+#   from services.llm import gemini
+#   from models.llm import LLMMessage, LLMToolUseEvent
+#   sigs=[b'\xff\xfe\x00sigA', None, b'\x80sigC']
+#   tcs=[{'id':f'c{i}','name':f'tool{i}','input':{'i':i},**({'provider_meta':{'thought_signature':base64.b64encode(s).decode()}} if s else {})} for i,s in enumerate(sigs)]
+#   msgs=[LLMMessage(role='user',content='go'),
+#    LLMMessage(role='assistant',content='',metadata={'tool_calls':tcs}),
+#    *[LLMMessage(role='tool',content='{"ok":true}',metadata={'tool_call_id':t['id'],'name':t['name']}) for t in tcs]]
+#   sysm,contents=gemini._split_system_and_contents(msgs)
+#   for c in contents:
+#       types.Content.model_validate(c)
+#   model_turn=[c for c in contents if c['role']=='model'][0]
+#   print('model parts:',[ (p['function_call']['name'], p.get('thought_signature')) for p in model_turn['parts']])
+#   assert [p.get('thought_signature') for p in model_turn['parts']]==sigs
+#   ev=LLMToolUseEvent(tool_call_id='x',name='n',input={},provider_meta={'thought_signature':'AAA='})
+#   print('SSE dump has provider_meta:', 'provider_meta' in ev.model_dump())
+#   print('OK replay + Content.model_validate accepted all turns')
+# output:
+model parts: [('tool0', b'\xff\xfe\x00sigA'), ('tool1', None), ('tool2', b'\x80sigC')]
+SSE dump has provider_meta: False
+OK replay + Content.model_validate accepted all turns
+# exit=0

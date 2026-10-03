@@ -1,0 +1,10 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b4_045.py
+['COCHINSHIP', 'MAZAGONDOCK'] ok False | message: fewer than two symbols resolved — 1 of 2 returned a quote. MAZAGONDOCK: unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing — retry with the company name or the exact exchange ticker
+   {"symbol": "COCHINSHIP", "provider": "nse_direct", "quote": {"price": 1287.0, "change_percent": -2.129277566539924, "currency": "INR"}, "fundamentals": {"market_cap": 338584961024.0, "pe_ratio": 49.67194, "forward_pe": 28.791946, "peg_ratio": null, "price_to_book": 5.76507, "dividend_yield": 0.0087,
+   {"symbol": "MAZAGONDOCK", "error": "unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or the exact exchange ticker", "note": "unresolved name: 'MAZAGONDOCK' is not a known ticker and matched no listing \u2014 retry with the company name or
+['Cochin Shipyard', 'Mazagon Dock'] ok True | message: None
+   {"symbol": "COCHINSHIP", "requested": "Cochin Shipyard", "note": "resolved 'Cochin Shipyard' \u2192 'COCHINSHIP.NS'", "provider": "nse_direct", "quote": {"price": 1287.0, "change_percent": -2.129277566539924, "currency": "INR"}, "fundamentals": {"market_cap": 338584961024.0, "pe_ratio": 49.67194, "f
+   {"symbol": "MAZDOCK", "requested": "Mazagon Dock", "note": "resolved 'Mazagon Dock' \u2192 'MAZDOCK.NS'", "provider": "nse_direct", "quote": {"price": 2064.0, "change_percent": -2.318977756743966, "currency": "INR"}, "fundamentals": {"market_cap": 832576290816.0, "pe_ratio": 31.056274, "forward_pe":
+
+exit=0

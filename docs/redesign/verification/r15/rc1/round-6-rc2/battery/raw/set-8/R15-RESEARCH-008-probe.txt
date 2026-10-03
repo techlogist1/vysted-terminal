@@ -1,0 +1,18 @@
+# R15-RESEARCH-008 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:34:46Z, sidecar :52348
+# kind=sh
+# command:
+#   UA='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 Version/17.0 Safari/605.1.15'
+#   for u in "https://html.duckduckgo.com/html/?q=dixon+technologies+news" "https://search.brave.com/search?q=dixon+technologies+news" "https://www.mojeek.com/search?q=dixon+technologies+news"; do
+#    echo "--- $u"; curl -s -m20 -A "$UA" -o /tmp/b8_s.html -w "http=%{http_code} bytes=%{size_download} t=%{time_total}\n" "$u"; head -c 200 /tmp/b8_s.html | tr '\n' ' '; echo
+#   done
+# output:
+--- https://html.duckduckgo.com/html/?q=dixon+technologies+news
+http=202 bytes=14175 t=0.298257
+<!-- <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> --> <!DOCTYPE html> <html lang="en">  <head>     <link rel="canonical" href="https://duckduc
+--- https://search.brave.com/search?q=dixon+technologies+news
+http=200 bytes=271382 t=0.889252
+<!doctype html> <html class="" lang="en-in">   <head>     <meta charset="utf-8" />     <!-- Register error handler before SvelteKit loads. See $lib/errorHandler/errorHandler.ts -->     <script nonce="
+--- https://www.mojeek.com/search?q=dixon+technologies+news
+http=200 bytes=5512 t=0.671466
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="referrer" content="origin" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <meta name="apple-mobi
+# exit=0

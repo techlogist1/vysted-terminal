@@ -1,0 +1,8 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar && VYSTED_DATA_DIR=/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-data-rc1-battery-0-inproc ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/t001.py 2>&1 | tail -12
+exit=0
+fast 0
+normal 0
+deep 180
+ultra 360
+_clamp(360,30,max(300,360),360)= 360

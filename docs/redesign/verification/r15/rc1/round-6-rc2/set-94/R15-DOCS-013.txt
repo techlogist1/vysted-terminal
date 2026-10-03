@@ -1,0 +1,21 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar; sed -n 88,100p services/research/range_check.py; grep -n '_EXCHANGE_DIRECT_PROVIDERS' services/research/range_check.py | head -4; PYTHONPATH=. ./.venv/bin/python3 -c 'from services.research import range_check as r; print(r._EXCHANGE_DIRECT_PROVIDERS)'
+@dataclass(frozen=True)
+class Range52w:
+    """The 52-week high/low recomputed from the app's exchange-direct history.
+
+    ``high``/``low`` are the max intraday high / min intraday low over the
+    trailing 52-week window; ``coverage_days`` and ``bars`` back the
+    applicability gate and are carried as evidence; ``source`` is the provider
+    lane that actually served the series (``nse_direct`` / ``nse`` / ``bse`` —
+    only an exchange-direct lane can witness, see _EXCHANGE_DIRECT_PROVIDERS),
+    so a disagreement names which exchange series it came from.
+    """
+
+    high: float
+72:_EXCHANGE_DIRECT_PROVIDERS = frozenset({"nse_direct", "nse", "bse", "jugaad"})
+96:    only an exchange-direct lane can witness, see _EXCHANGE_DIRECT_PROVIDERS),
+209:    if source not in _EXCHANGE_DIRECT_PROVIDERS:
+213:        # it, so decline instead of computing. See _EXCHANGE_DIRECT_PROVIDERS.
+frozenset({'nse', 'nse_direct', 'bse', 'jugaad'})
+EXIT=0

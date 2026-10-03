@@ -1,0 +1,40 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ sed -n 1,14p sidecar/services/screener_universe_india.py; sed -n 28,40p sidecar/models/screener.py; cd sidecar && PYTHONPATH=. ./.venv/bin/python3 -c "
+import asyncio
+from services import screener_universe_india as u
+for k in ('nse-all','bse-all','india-all'):
+    r=u.load_india_universe(k)
+    r=asyncio.run(r) if asyncio.iscoroutine(r) else r
+    print(k, len(getattr(r,'symbols',r)))
+"
+exit=0
+"""Full-market India screener universes from the bundled resolver masters (R10, D40).
+
+Resolves the three India universe ids the contracts commit added to
+``models/screener.py``:
+
+  - ``nse-all``   — every NSE master row (EQ + ETF + SM/NSE Emerge) as
+    ``SYMBOL.NS``.
+  - ``bse-all``   — BSE master rows with STATUS == "Active" as ``SYMBOL.BO``
+    (the liquidity ``group`` is retained in the per-symbol meta).
+  - ``india-all`` — the union, NSE listing preferred: a BSE row whose SYMBOL
+    also appears in the NSE master is skipped (dual-listings screen once,
+    on the deeper-liquidity venue).
+
+The masters are the same bundled JSON snapshots the symbol resolver reads
+ScreenerUniverseId = Literal[
+    "sp500",
+    "nifty50",
+    "crypto-top50",
+    "custom",
+    # R10 (D40): full-market India universes resolved from the bundled resolver
+    # masters — nse-all (EQ + ETF + SM/NSE Emerge rows), bse-all (Active
+    # scrips), india-all (union, NSE listing preferred on dual-listings).
+    "nse-all",
+    "bse-all",
+    "india-all",
+]
+ScreenerAssetClass = Literal["equity", "crypto"]
+nse-all 3506
+bse-all 5042
+india-all 5891

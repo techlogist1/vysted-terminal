@@ -1,0 +1,6 @@
+CMD: grep -n 'saved layout with a plugin panel restores intact when the plugin registers after bootstrap' src/components/PanelHost.test.tsx; grep -n 'pluginsReady\|bootstrap' src/components/PanelHost.tsx | head
+248:  it("saved layout with a plugin panel restores intact when the plugin registers after bootstrap", async () => {
+124:  const pluginsReady = usePluginsStore((state) => state.pluginsReady);
+194:    if (pluginsReady) {
+229:  }, [api, pluginsReady]);
+EXIT=0

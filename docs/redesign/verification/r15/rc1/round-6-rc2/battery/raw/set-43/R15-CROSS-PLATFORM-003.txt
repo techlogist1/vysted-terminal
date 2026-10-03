@@ -1,0 +1,10 @@
+$ venv python: platform.system=Windows; detect_device(force=True).to_dict()
+{'ramBytes': 8589934592, 'ramGib': 8.0, 'gpuBudgetBytes': 4724464025, 'gpuBudgetGib': 4.4, 'totalCores': 8, 'perfCores': 8, 'isAppleSilicon': False, 'arch': 'arm64', 'chip': 'arm', 'osName': 'Windows', 'osVersion': '25.3.0', 'reserveBytes': 4294967296, 'estimated': True}
+exit=0
+$ real mac
+{'ramBytes': 17179869184, 'ramGib': 16.0, 'gpuBudgetBytes': 11338713661, 'gpuBudgetGib': 10.6, 'totalCores': 8, 'perfCores': 6, 'isAppleSilicon': True, 'arch': 'arm64', 'chip': 'Apple M1 Pro', 'osName': 'macOS', 'osVersion': '26.3', 'reserveBytes': 4294967296, 'estimated': False}
+91:    #: ``GlobalMemoryStatusEx`` was unreachable.
+223:def _detect_windows() -> DeviceProfile:
+224:    """Real RAM via ``kernel32!GlobalMemoryStatusEx`` (ctypes, no new
+235:        if not kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):
+270:            profile = _detect_windows()

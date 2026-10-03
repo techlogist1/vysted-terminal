@@ -1,0 +1,18 @@
+COMMAND: node probe region.ts (DEFAULT_REGION) + sed SettingsPanel.tsx Region hint lines 1420-1432; pinned SettingsPanel.test.tsx:480
+EXIT: 0
+OUTPUT:
+regions: DEFAULT_REGION=IN regionConfig(IN).label=India
+      <SectionHeader
+        id="settings-region"
+        title="Region & locale"
+        hint="Number formatting, plus which market's symbol resolver, trading calendar, macro/news providers and screener universe the sidecar uses."
+      />
+      <Card>
+        {/* Region / locale (R15-DATA-092): drives X-Vysted-Region on every
+            sidecar request — not just number formatting. Defaults to
+            DEFAULT_REGION (India), not REGIONS[0]. */}
+        <SettingRow label="Region" hint={`Defaults to ${regionConfig(DEFAULT_REGION).label}.`}>
+          <Select
+            aria-label="Region"
+            value={region}
+480:  it("Region & locale states the actual default and what region controls (R15-DATA-092)", () => {

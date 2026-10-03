@@ -1,0 +1,2 @@
+in-process cold resolver storm:
+unrelated to_thread waited 0.01s while 12 concurrent cold resolve_async ran (yf.Search stubbed); base reproduction was ~7-9.4s

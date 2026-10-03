@@ -1,0 +1,13 @@
+# probe at ace7dd76 (candidate worktree), run 05:52:23
+$ grep -n 'amber' src/components/DataTable.tsx src/modules/notes/NotesToolbar.tsx | head
+$ grep -n 'active' src/modules/notes/NotesToolbar.tsx | head -8
+10: * Each control reads `editor.isActive(x)` for its active state (a filled
+85:  active,
+91:  active?: boolean;
+100:      aria-pressed={active ?? false}
+107:        active
+116:        strokeWidth={active ? 2.25 : 2}
+217:  // Subscribe to editor changes so active states stay live without per-render thrash.
+276:          active={editor.isActive("heading", { level: 1 })}
+$ grep -n 'carries the fill class' src/modules/notes/NotesToolbar.test.tsx
+128:  it("the active toolbar button carries the fill class", async () => {

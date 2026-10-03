@@ -1,0 +1,5 @@
+CMD: launch copilot delegate run WITHOUT provider, model llama3.1:8b (ollama default); read cost
+# launch {"prompt":"Reply with the single word OK. Do not use tools.","model":"llama3.1:8b","budget":{}}
+launch resp: {"run_id":"61fcf8c48b764bccb071aed3cef5fc50"}
+final status poll: done (9 polls)
+{"id":"61fcf8c48b764bccb071aed3cef5fc50","agent_id":"copilot","agent_name":"Vysted Copilot","mode":"delegate","status":"done","cost":{"tokens":1798,"spend_usd":0.0,"steps":1},"budget":{"max_tokens":120000,"max_spend_usd":1.0,"max_wall_seconds":600.0,"max_steps":12},"provider":null,"model":"llama3.1:8b","plan":null,"activity":[],"detail":"completed","question":null,"created_at":1790985816,"updated_at":1790985851,"transcript":[{"role":"user","content":"Reply with the single word OK. Do not use tools."},{"role":"assistant","content":"{\"name\": \"ask_user\", \"parameters\": {\"Pause\": True, \"<nil>\": True, \"question\": \"OK\"}}"}],"checkpoint_messages":2,"answer":"{\"name\": \"ask_user\", \"parameters\": {\"Pause\": True, \"<nil>\": True, \"question\": \"OK\"}}","brief":null,"host_actions":[]}

@@ -1,0 +1,9 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd  sidecar :52350 (rc1-battery-10)
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar; PYTHONPATH=. ./.venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/ag16.py 2>&1 | grep -v '^20'
+agent zz-bad.json: schema violation at ['defaultProvider']: 'notaprovider' is not one of ['anthropic', 'openai', 'gemini', 'groq', 'ollama', 'deepseek', 'xai', 'openrouter']
+agents directory not found at /var/folders/1s/3bgs17xd07z839yf5kj6mc3m0000gn/T/tmpp3j_nbw2/agents/nope; no agents will load
+baseline roster 13
+with openrouter agent: roster 14 degraded []
+with bad agent: roster 14 degraded [('zz-bad.json', "schema violation: ['defaultProvider']: 'notaprovider' is not one of ['")]
+missing dir: ({}, [{'file': 'nope', 'reason': 'agents directory not found'}])
+EXIT=0

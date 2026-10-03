@@ -1,0 +1,5 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, in-process python (cand sidecar/.venv) scratch script b16_w1.py driving agent_runtime.invoke_agent / _dispatch_tool_with_progress with a scripted provider, EXIT=0
+provider rounds=7 yielded=['call_844bb319424e43869f2badb20a813970', 'call_cb5aedf30378425eb77dabe00afa88d9', 'call_c131ac320d8c497ab5d05662ac415f21', 'call_8bb22b83a74348a5b581bc00323d3acf', 'call_00faaf6f665e4a6caa2e07ad84ce5e49', 'call_1112805e85ad425cad63d42adb21c007'] dispatched=['call_844bb319424e43869f2badb20a813970', 'call_cb5aedf30378425eb77dabe00afa88d9', 'call_c131ac320d8c497ab5d05662ac415f21', 'call_8bb22b83a74348a5b581bc00323d3acf', 'call_00faaf6f665e4a6caa2e07ad84ce5e49', 'call_1112805e85ad425cad63d42adb21c007'] undispatched-announced=[]
+text frames=['I stopped after 6 tool rounds without reaching a final answer. Ask me to continue, or narrow the request.']
+last event=LLMDoneEvent
+fresh: capped round write_note under AUTO -> yielded names=['price_data', 'price_data', 'price_data', 'price_data', 'price_data', 'price_data']

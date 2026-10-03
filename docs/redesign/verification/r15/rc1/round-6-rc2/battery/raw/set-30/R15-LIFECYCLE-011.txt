@@ -1,0 +1,7 @@
+$ grep terminated handling
+src-tauri/src/lib.rs:430:                CommandEvent::Terminated(payload) => {
+src-tauri/src/lib.rs:434:                    let _ = events_app.emit("vysted://sidecar-terminated", reason);
+src/store/app.ts:83: *  `vysted://sidecar-terminated` (emitted with the reason when the engine
+src/store/app.ts:93:      listen<string>("vysted://sidecar-terminated", (event) => markReachable(false, event.payload)),
+src/store/app.test.ts:28:  it("a refused call flips connected to error; a later answer flips back and re-runs a panel load", async () => {
+src/store/app.test.ts:64:  it("while in error, /health is re-probed until the engine answers", async () => {

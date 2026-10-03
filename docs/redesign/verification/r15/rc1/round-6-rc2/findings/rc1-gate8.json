@@ -1,0 +1,14 @@
+[
+ {
+  "key": "rc1-gate8:1",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": "R15-AGENT-091",
+  "title": "llama3.1:8b get_portfolio answer prints USD holdings with the rupee sign although each holding carries currency:'USD' (IN default region)",
+  "repro": "Own sidecar :52310, context from captureAgentContext() with AAPL 8@200 USD, MSFT 3@400 USD; python3 scripts/r15/vy.py invoke copilot 'Read my portfolio with get_portfolio and list every holding with its quantity and cost basis.' --provider ollama --model llama3.1:8b --autonomy ask --context gate8/agent-context-get-portfolio.wire.json -> 'cost basis = \u20b9200 ... market value = \u20b92669.52'. R15-AGENT-091's own fix (currency field present) holds; figures are correct; only the currency symbol is wrong. Adjacent, not a Gate 8 break.",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-6-rc2/gate8/agent-get-portfolio.txt",
+  "suspected_files": [
+   "sidecar/services/agent_runtime.py"
+  ]
+ }
+]

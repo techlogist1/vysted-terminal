@@ -1,0 +1,14 @@
+[
+ {
+  "key": "rc1-battery-14:1",
+  "kind": "new_defect",
+  "severity": "low",
+  "register_id": null,
+  "title": "Bare 2-letter ticker absent from the company name (KO / Coca-Cola) still fails the non-IN relevance gate; _entity_signals credits ticker mentions only for len(symbol)>=3",
+  "repro": "relevance.row_relevant({'title':'KO shares climb as volumes recover','excerpt':'','url':'https://example.com/a','source':'x'}, target=<KO Coca-Cola Company NYSE US>) -> False (GE Aerospace passes only via brand token 'ge')",
+  "evidence_file": "docs/redesign/verification/r15/rc1/round-6-rc2/battery/raw/set-136/R15-LEAD-050.txt",
+  "suspected_files": [
+   "sidecar/services/research/relevance.py:668"
+  ]
+ }
+]

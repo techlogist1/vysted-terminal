@@ -1,0 +1,5 @@
+RAW rc1-battery-12 @ ace7dd76 in-process (candidate venv) probe 029
+$ cd sidecar && .venv/bin/python3 probe40.py 029
+totalReturn -4e-05 final equity 99996.0 trades [(40, 100.1, None)] tradeCount 0
+PASS
+exit=0

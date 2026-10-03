@@ -1,0 +1,7 @@
+CMD: PYTHONPATH=sidecar sidecar/.venv/bin/python3 b7_bt.py (in-process seeded random walk, 200 dates, N=1,2,4 buy-and-hold; run_backtest + _compute_metrics)
+N=1 points=200 sharpe=0.4852 date-sampled-sharpe(pstdev)=0.4852 annRet=0.07338 totalRet=0.04866
+N=2 points=200 sharpe=1.1897 date-sampled-sharpe(pstdev)=1.1897 annRet=0.13122 totalRet=0.09760
+N=4 points=200 sharpe=1.1375 date-sampled-sharpe(pstdev)=1.1375 annRet=0.08319 totalRet=0.06306
+sortino register series: 6.352097860237519 textbook: 6.352097860237523
+two identical losses sortino: -2.509980079602211
+EXIT=0

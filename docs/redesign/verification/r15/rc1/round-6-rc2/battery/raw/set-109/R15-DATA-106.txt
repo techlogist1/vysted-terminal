@@ -1,0 +1,7 @@
+CMD: sidecar/.venv/bin/python scratch b23_set109.py (in-process, candidate ace7dd76): enrich_nse_sectors.main() on a temp copy of india_sector_map.json with yfinance stubbed, 1 new symbol + 1 sectorless existing
+DATA-106 picked new: ['VAML'] existing sectorless: ['HMT']
+NSE symbols=2 | already sectored=0 | to fetch=2
+DONE — filled 2 sectors; total with_sector now 2272
+DATA-106 VAML keys==canonical7: True | 'industry' in rec: False | industry_raw: Software
+DATA-106 HMT keys==canonical7: True | 'industry' in rec: False | industry_raw: Software
+EXIT=0

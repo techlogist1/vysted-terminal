@@ -1,0 +1,44 @@
+# ace7dd76 source+test check
+$ sed keydown handler in ChartPanel.tsx
+Backspace first at line 143
+    horzLines: { color: CHART_GRID },
+  },
+  rightPriceScale: { borderColor: CHART_BORDER }, // charcoal-700
+  timeScale: { borderColor: CHART_BORDER, timeVisible: true, secondsVisible: false },
+  crosshair: { vertLine: { color: CHART_CROSSHAIR }, horzLine: { color: CHART_CROSSHAIR } },
+} as const;
+
+const CANDLE_THEME = {
+  upColor: POSITIVE, // positive
+  downColor: NEGATIVE, // negative
+  borderUpColor: POSITIVE,
+  borderDownColor: NEGATIVE,
+  wickUpColor: POSITIVE,
+  wickDownColor: NEGATIVE,
+} as const;
+
+const COMPARISON_LINE_COLOR = NEUTRAL; // sage-400
+
+/** Elements where Backspace/Delete edit text rather than the chart. */
+const TEXT_ENTRY_SELECTOR =
+  'input, textarea, select, [contenteditable]:not([contenteditable="false"])';
+
+/** Stable empty drawings reference so the store selector stays referentially equal. */
+const EMPTY_DRAWINGS: readonly DrawingSpec[] = Object.freeze([]);
+
+/** Convert an ISO-8601 timestamp to the lightweight-charts UTCTimestamp (seconds). */
+function toChartTime(iso: string): UTCTimestamp {
+  return Math.floor(new Date(iso).getTime() / 1000) as UTCTimestamp;
+}
+
+/**
+$ named tests
+899:    it("disables a locked drawing's delete control", async () => {
+977:  it("Backspace typed into a field outside the chart keeps the selected drawing (R15-UI-021)", async () => {
+1000:    fireEvent.keyDown(screen.getByLabelText("Composer"), { key: "Backspace" });
+1001:    fireEvent.keyDown(screen.getByLabelText("Symbol"), { key: "Backspace" });
+1006:      key: "Backspace",
+1011:  it("a locked drawing survives Delete (R15-UI-021)", async () => {
+1024:      locked: true,
+1106:  it("a pointerdown outside every chart clears the selection, so a later Backspace on body deletes nothing (R15-UI-021)", async () => {
+1145:    fireEvent.keyDown(document.body, { key: "Backspace" });

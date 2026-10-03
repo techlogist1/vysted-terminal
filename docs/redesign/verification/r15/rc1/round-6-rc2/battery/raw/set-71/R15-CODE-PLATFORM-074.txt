@@ -1,0 +1,15 @@
+# probe at ace7dd76 (candidate worktree /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand)
+$ grep -n 'clear_mcp_endpoint_file\|remove_file\|RunEvent' src-tauri/src/lib.rs
+14:use tauri::{AppHandle, Emitter, Manager, RunEvent};
+333:fn clear_mcp_endpoint_file(data_dir: &str) {
+334:    let _ = std::fs::remove_file(mcp_endpoint_path(data_dir));
+386:    clear_mcp_endpoint_file(&data_dir);
+432:                    clear_mcp_endpoint_file(&events_data_dir);
+592:            let _ = std::fs::remove_file(&tmp_path);
+770:        if let RunEvent::Exit = event {
+782:            clear_mcp_endpoint_file(&app_data_dir(app_handle).to_string_lossy());
+790:        clear_mcp_endpoint_file, mcp_endpoint_json, mcp_endpoint_path, parse_data_dir_override,
+934:    fn clear_mcp_endpoint_file_removes_existing() {
+939:        clear_mcp_endpoint_file(&data_dir);
+941:        clear_mcp_endpoint_file(&data_dir);
+EXIT=0

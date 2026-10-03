@@ -1,0 +1,4 @@
+in-process (candidate venv) OpenAIProvider._repair_tool_args with oneshot stubbed to reply with a schema echo
+tools with no required keys: 8
+echo accepted after fix: {'full': [], 'fenced': [], 'prose': [], 'placeholder': []}
+legit news args -> {'symbols': ['AAPL']}

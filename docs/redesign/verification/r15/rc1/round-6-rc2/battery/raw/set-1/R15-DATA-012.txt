@@ -1,0 +1,5 @@
+CMD: in-process resolver with injected rename rows (test seam), venv python
+NSDL NSDL National Securities Depository Ltd BSE NSDL.BO 1.0 rename= None
+SHREE SHREE Shree Marutinandan Tubes Ltd BSE SHREE.BO 1.0 rename= None
+ZOMATO ETERNAL ETERNAL LIMITED NSE ETERNAL.NS 1.0 rename= RenameAnnotation(renamed_from='ZOMATO', renamed_to='ETERNAL', effective_date='2025-04-09', note='ZOMATO was renamed to ETERNAL on NSE (effective 2025-04-09); the resolver answers the current symbol.')
+EXIT=0

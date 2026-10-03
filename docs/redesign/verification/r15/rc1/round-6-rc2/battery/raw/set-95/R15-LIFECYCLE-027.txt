@@ -1,0 +1,38 @@
+# R15-LIFECYCLE-027 at ace7dd7 (hung-socket repro needs the TS module under vitest/jsdom; source + pinned tests checked)
+$ grep timeout/signal in sidecar-client.ts
+140:const HEALTH_PROBE_TIMEOUT_MS = 5_000;
+150:        signal: AbortSignal.timeout(HEALTH_PROBE_TIMEOUT_MS),
+184:/** True when `signal` fired because its `timeoutMs` deadline passed. */
+185:function timedOut(signal: AbortSignal | null | undefined): boolean {
+186:  return (signal?.reason as { name?: unknown } | undefined)?.name === "TimeoutError";
+189:/** The caller's signal joined with an optional deadline. */
+190:function withDeadline(signal?: AbortSignal, timeoutMs?: number): AbortSignal | undefined {
+191:  if (!timeoutMs) {
+192:    return signal;
+194:  const deadline = AbortSignal.timeout(timeoutMs);
+195:  return signal ? AbortSignal.any([signal, deadline]) : deadline;
+201: * so the next call re-resolves it; a passed `timeoutMs` deadline becomes
+210:    if (init?.signal?.aborted) {
+211:      throw timedOut(init.signal) ? new SidecarError(504, SIDECAR_TIMED_OUT) : err;
+250:  signal?: AbortSignal;
+254:  timeoutMs?: number;
+258: *  `timeoutMs` — bounds an otherwise-eternal spinner on a hung route. */
+298:    signal: withDeadline(opts.signal, opts.timeoutMs),
+332:    timeoutMs: opts.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS,
+352:    if (timedOut(init.signal)) {
+$ plugin config double-load
+src/lib/plugin-bootstrap.ts:279:    const stored = await persistence.load(plugin.manifest.id).catch(() => null);
+src/lib/plugin-runtime.ts:221:   * call skips its own `persistence.load` round-trip — the boot loop reads
+src/lib/plugin-runtime.ts:262:          : await this.context.persistence.load(plugin.manifest.id);
+src/lib/plugin-runtime.ts:362:    const current = (await this.context.persistence.load(pluginId)) ?? this.defaultConfig(pluginId);
+src/lib/plugin-runtime.ts:374:    return (await this.context.persistence.load(pluginId)) ?? this.defaultConfig(pluginId);
+$ pinned tests
+24:  it("get_sidecar_port answering failed throws its reason at once, without a /health probe", async () => {
+81:  it("resolves only after /health responds ok, retrying connection-refused with backoff", async () => {
+250:  it("R15-CODE-FRONTEND-027: a call past its timeoutMs is SidecarError(504), not a hang", async () => {
+307:  it("sends the session region under a deadline", async () => {
+440:  it("a never-settling /health probe is bounded per round (AbortSignal.timeout), not one eternal fetch", async () => {
+480:  it("sidecarRequest attaches a bounding AbortSignal even when the caller supplies none", async () => {
+499:  it("sidecarRequest honours a caller-supplied signal (aborting it aborts the fetch)", async () => {
+51:  it("registers a pre-installed agent pack's agents once; a disabled one is not synced", async () => {
+80:  it("persistence.load is called exactly once per catalog plugin", async () => {

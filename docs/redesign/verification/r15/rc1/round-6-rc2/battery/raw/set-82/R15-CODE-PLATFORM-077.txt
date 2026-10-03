@@ -1,0 +1,5 @@
+ace7dd76 candidate venv; temp data dir with 8 pre-existing backups, then _backup_data_dir('build-current')
+COMMAND: python b15_p077.py (monkeypatched data_cache.get_data_dir)
+before: ['old-0', 'old-1', 'old-2', 'old-3', 'old-4', 'old-5', 'old-6', 'old-7']
+after : ['build-current', 'old-4', 'old-5', 'old-6', 'old-7'] count= 5 MAX_BACKUPS= 5
+EXIT=0

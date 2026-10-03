@@ -1,0 +1,21 @@
+candidate ace7dd76; probes on :52353
+$ POST unknown universe
+{"detail":[{"type":"literal_error","loc":["body","universe"],"msg":"Input should be 'sp500', 'nifty50', 'crypto-top50', 'custom', 'nse-all', 'bse-all' or 'india-all'","input":"nope","ctx":{"expected":"'sp500', 'nifty50', 'crypto-top50', 'custom', 'nse-all', 'bse-all' or 'india-all'"}}]}
+HTTP 422
+$ POST bad formula
+{"detail":[{"type":"value_error","loc":["body","formula"],"msg":"Value error, invalid formula: unexpected end of formula (col 13)","input":"market_cap >","ctx":{"error":{}}}]}
+HTTP 422
+$ source of handler (routers/screener.py)
+        return await screener.run_screener(request)
+    except screener_formula.FormulaError as exc:
+        # The engine re-compiles ``formula``; an unparseable one is the
+        # caller's (the request model already 422s it, so this is the backstop).
+        # Anything else raised here is an engine bug and stays a 500; an
+        # unknown universe id never reaches here (Literal -> 422).
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+def _sse_frame(payload: dict) -> bytes:
+    """One SSE ``data:`` frame (precedent ``routers/backtest.py``)."""
+    return f"data: {json.dumps(payload)}\n\n".encode()
+

@@ -1,0 +1,12 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52340
+$ cd /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand && python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/t070.py
+exit=0
+var() with fallback checked: 111 disagree: 8
+(110, '--font-serif', 'ui-monospace, "SF Mono", monospace', 'var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace')
+(150, '--font-serif', 'ui-sans-serif, system-ui, sans-serif', 'var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace')
+(186, '--font-mono', 'ui-monospace, monospace', 'var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace')
+(294, '--font-mono', 'ui-monospace, monospace', 'var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace')
+(301, '--font-mono', 'ui-monospace, monospace', 'var(--font-jetbrains-mono), ui-monospace, "SF Mono", "Cascadia Mono", monospace')
+(384, '--ease-instrument', 'ease', 'cubic-bezier(0.2, 0, 0, 1)')
+(422, '--radius-control', '4px', '0.25rem')
+(520, '--radius-control', '4px', '0.25rem')

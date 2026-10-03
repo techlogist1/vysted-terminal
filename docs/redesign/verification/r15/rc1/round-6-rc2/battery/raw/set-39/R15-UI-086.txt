@@ -1,0 +1,46 @@
+COMMAND: node probe formatBinding for every default (see kb.out) + grep CommandPalette.tsx PaletteItemRow (source) ; pinned test CommandPalette.test.tsx:170 'an action row shows its current (remapped) chord as a <kbd> (R15-UI-086)'
+EXIT: 0
+OUTPUT:
+palette.open [⌘K] -> palette.open
+agent.mode.agent [⌥1] -> agent.mode.agent
+agent.mode.delegate [⌥2] -> agent.mode.delegate
+agent.toggle [⌘B] -> agent.toggle
+changes.acceptAll [⌘↵] -> changes.acceptAll
+changes.rejectAll [⌘⌫] -> changes.rejectAll
+platform.save-workspace [⌘S] -> platform.save-workspace
+platform.load-workspace [⌘O] -> platform.load-workspace
+platform.open-settings [⌘,] -> platform.open-settings
+chart.open [⌘1] -> chart.open
+watchlist.open [⌘2] -> watchlist.open
+news.open [⌘3] -> news.open
+portfolio.open [⌘4] -> portfolio.open
+changes remap present: changes.acceptAll,changes.rejectAll
+function PaletteItemRow({ item, isRecent, onSelect, icon }: PaletteItemRowProps) {
+  // Resolved (remap-aware) binding for an action row's own command id — never
+  // a fabricated combo, so a row only ever shows a chord that actually fires.
+  const binding = useKeybindingsStore((state) =>
+    item.commandSpec ? state.bindingFor(item.commandSpec.id) : "",
+  );
+  return (
+    <Command.Item
+      value={item.id}
+      keywords={[item.label, item.description ?? ""].filter(Boolean)}
+      onSelect={onSelect}
+      className="aria-selected:bg-charcoal-800 rounded-control flex min-h-8 w-full cursor-pointer items-center gap-3 px-4 py-1 transition-colors"
+    >
+      {icon}
+      <div className="min-w-0 flex-1">
+        <div className="text-charcoal-100 text-body truncate">{item.label}</div>
+        {item.description && (
+          <div className="text-charcoal-500 text-caption truncate">{item.description}</div>
+        )}
+      </div>
+      {binding && (
+        <kbd className="border-charcoal-700 text-charcoal-500 text-micro rounded-control shrink-0 border px-1 py-0.5">
+          {formatBinding(binding)}
+        </kbd>
+      )}
+      {isRecent && <span className="text-charcoal-500 text-caption shrink-0">recent</span>}
+    </Command.Item>
+  );
+170:  it("an action row shows its current (remapped) chord as a <kbd> (R15-UI-086)", () => {

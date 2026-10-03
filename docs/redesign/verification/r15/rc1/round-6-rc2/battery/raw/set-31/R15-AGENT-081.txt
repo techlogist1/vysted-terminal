@@ -1,0 +1,19 @@
+# R15-AGENT-081 at ace7dd7
+$ in-process catalog open_company_overview description + host consumer
+--- open_company_overview
+Open the Equity Overview panel ON a company (fundamentals, statements, ratings) by ticker. Optional `highlight` names ONE metric to spotlight for the user (e.g. pe_ratio, market_cap, dividend_yield) — use it when explaining a specific metric ('what is a P/E ratio? show me on X').
+$ grep highlightMetric consumers
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/lib/host-actions.ts:350:  highlightMetric?: string,
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/lib/host-actions.ts:362:  useEquityCommandStore.getSt
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/modules/equity-overview/EquityOverviewPanel.tsx:864: 
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/modules/equity-overview/EquityOverviewPanel.tsx:867: 
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/equity-command.ts:21:   *  `highlightMetric` (R
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/equity-command.ts:27:  command: { symbol: strin
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/equity-command.ts:29:  loadSymbol: (symbol: str
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/equity-command.ts:34:  loadSymbol: (symbol, hig
+/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/src/store/equity-command.ts:36:      command: { symbol, s
+pinned: src/modules/equity-overview/EquityOverviewPanel.test.tsx
+573:  it("a highlight command spotlights that metric's row (R15-AGENT-081)", async () => {
+581:    const spotlit = await screen.findByText("P/E", { selector: "[data-highlighted]" });
+582:    expect(spotlit).toHaveAttribute("data-highlighted", "true");
+585:    expect(document.querySelectorAll("[data-highlighted]")).toHaveLength(1);

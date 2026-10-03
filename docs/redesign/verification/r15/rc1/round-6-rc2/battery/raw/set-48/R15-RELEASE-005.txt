@@ -1,0 +1,30 @@
+# R15-RELEASE-005 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:40:04Z, sidecar :52348
+# kind=sh
+# command:
+#   export PATH=$HOME/.nvm/versions/node/v24.15.0/bin:$HOME/.cargo/bin:$PATH
+#   echo '$ original regex repro'; node -e "console.log(/\.(py|txt|toml|cfg|ini|json|csv)\$/i.test('india_fundamentals_seed.json.gz'))"
+#   echo '$ extension allow-list left in sidecar-staleness.mjs?'; grep -n "SOURCE_EXT" scripts/sidecar-staleness.mjs || echo "no SOURCE_EXT allow-list"
+#   echo '$ regenerate-seed scenario in a tmp tree: .json.gz source newer than the binary'
+#   node --input-type=module -e '
+#   import { mkdtempSync, mkdirSync, writeFileSync, utimesSync } from "node:fs";
+#   import { join } from "node:path"; import { tmpdir } from "node:os";
+#   import { isStale } from "./scripts/sidecar-staleness.mjs";
+#   import { SIDECAR_SPECS } from "./scripts/sidecar-specs.mjs";
+#   const d = mkdtempSync(join(tmpdir(), "stale-")); mkdirSync(join(d,"services/screener_universes"),{recursive:true});
+#   const bin = join(d,"bin"); writeFileSync(bin,"x"); const t0=Date.now()/1000-100; utimesSync(bin,t0,t0);
+#   const seed = join(d,"services/screener_universes/india_fundamentals_seed.json.gz"); writeFileSync(seed,"old"); utimesSync(seed,t0-50,t0-50);
+#   console.log("seed older than bin -> isStale:", isStale(bin,[d]));
+#   utimesSync(seed,t0+50,t0+50);
+#   console.log("seed regenerated (newer, .json.gz only) -> isStale:", isStale(bin,[d]));
+#   const main = SIDECAR_SPECS[0]; console.log("main spec dirs:", JSON.stringify(main.sourceDirs ?? main.dirs ?? Object.keys(main)));
+#   '
+# output:
+$ original regex repro
+false
+$ extension allow-list left in sidecar-staleness.mjs?
+no SOURCE_EXT allow-list
+$ regenerate-seed scenario in a tmp tree: .json.gz source newer than the binary
+seed older than bin -> isStale: false
+seed regenerated (newer, .json.gz only) -> isStale: true
+main spec dirs: ["name","kind","sourceDir","requirements","pipExtras","identifier","addData","excludeDirs","pyinstallerFlags","stale"]
+# exit=0

@@ -1,0 +1,4 @@
+in-process (candidate venv) agent_invoke with config prompt_template='Typed prompt about {context}' (the palette form key)
+prompt received by invoke_agent: 'Typed prompt about CTX'
+result {'content': 'ok', 'agent_id': 'buffett'}
+471:        key: "prompt_template",

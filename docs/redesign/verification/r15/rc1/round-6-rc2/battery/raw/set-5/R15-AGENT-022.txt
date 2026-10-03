@@ -1,0 +1,9 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, in-process python (cand sidecar/.venv) scratch script b16_w1.py driving agent_runtime.invoke_agent / _dispatch_tool_with_progress with a scripted provider, EXIT=0
+run1 cost_basis null: yielded_tool_use=[] result={"ok": false, "error": "invalid arguments for portfolio_add_position: missing cost_basis \u2014 ask the user for it; do not guess"}
+run3 cost_basis 0: yielded_tool_use=['portfolio_add_position'] result={"ok": true, "status": "dispatched_unconfirmed", "detail": {"action": "portfolio_add_position", "symbol": "Sumax Enterprises"}, "note": "Dispatched to the panel but NOT yet confirmed \u2014 verify with get_terminal_state before claiming success; do not report it as done."}
+fresh: update without position_id: yielded_tool_use=[] result={"ok": false, "error": "invalid arguments for portfolio_update_position: missing position_id \u2014 ask the user for it; do not guess"}
+--- frontend half (scratch vitest fe3, real applyHostActionAsync):
+PROBE portfolio_add_position cost_basis= undefined -> null
+PROBE portfolio_add_position cost_basis= null -> null
+PROBE portfolio_add_position cost_basis= 0 -> Added 40 SUMAX.NS @ ₹0 to the portfolio
+PROBE portfolio_add_position cost_basis= abc -> null

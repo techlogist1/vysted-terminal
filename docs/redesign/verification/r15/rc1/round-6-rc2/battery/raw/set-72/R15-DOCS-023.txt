@@ -1,0 +1,22 @@
+COMMAND: grep README.md status paragraph; ls docs/redesign/P1_P3_BUILD_REPORT.md; grep CURRENT_STATE.md for P1_P3_BUILD_REPORT link
+OUTPUT:
+[grep exit 1 for old phrase]
+48:**Honest status:** green on every machine-checkable gate (`pnpm ci-local`, 619 vitest,
+179:## Status
+182:agent-write safety, macro/research/QuantLib, integrations hub). Status for the
+"docs/redesign/P1_P3_BUILD_REPORT.md": No such file or directory (os error 2)
+72:> `docs/redesign/P1_P3_BUILD_REPORT.md` was removed in the public-release
+[grep exit 0]
+## Status
+
+Phases 0–10 merged to `main` (data layer, charting, AI copilot, node editor + backtest,
+agent-write safety, macro/research/QuantLib, integrations hub). Status for the
+agent-native redesign — build phase, what's shipped vs still in flight — is
+tracked live in [`docs/CURRENT_STATE.md`](./docs/CURRENT_STATE.md), the
+current-state baseline; the original plan is
+[`docs/BLUEPRINT.md`](./docs/BLUEPRINT.md).
+
+> The user-facing redesign (P1/P2/P3) has now landed on the branch (not `main`).
+> `docs/redesign/P1_P3_BUILD_REPORT.md` was removed in the public-release
+> cleanup (`d3d9456c`); this §0.5 delta list is the surviving per-FR/SC
+> summary — `CHANGELOG.md` has the surrounding build-history entries.

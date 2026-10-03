@@ -1,0 +1,8 @@
+candidate ace7dd76; cmd: grep -n 'Trades|R15-UI-061' src/modules/backtest/BacktestResultView.tsx and .test.tsx (vitest owned by heavy lane)
+511:                Trades: <span className="text-charcoal-100">{metrics.tradeCount}</span>
+569:          Trades ({run.trades.filter((t) => t.exitedAt != null).length} closed,{" "}
+---
+33:// Fixtures — one open trade, no closed trades (R15-UI-061).
+88:  it("splits the trade-log header into closed vs open counts (R15-UI-061)", () => {
+90:    expect(container.textContent).toContain("Trades: 0");
+91:    expect(container.textContent).toContain("Trades (0 closed, 1 open)");

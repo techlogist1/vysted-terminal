@@ -1,0 +1,9 @@
+candidate ace7dd76; cwd sidecar; cmd: .venv/bin/python <<script
+from services.backtest_dsl import compile_rule
+for s in ['SMA(20) > 50 AND close > 1','SMA(20) > 50 and close > 1']:
+    try: compile_rule(s); print('OK',s)
+    except Exception as e: print('ERR',s,type(e).__name__,e)
+---
+OK SMA(20) > 50 AND close > 1
+OK SMA(20) > 50 and close > 1
+exit=

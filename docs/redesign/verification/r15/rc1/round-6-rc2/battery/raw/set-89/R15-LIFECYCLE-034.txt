@@ -1,0 +1,18 @@
+candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd, sidecar :52349 from candidate source
+CMD: in-process (pytest shim for module import only; no suite run) searxng_manager.setup() with write_settings raising OSError, using the test module's FakeDocker helpers
+LOG services.searxng_manager ERROR searxng guided setup failed
+Traceback (most recent call last):
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/services/searxng_manager.py", line 739, in setup
+    return await self._setup_locked()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/rc1-round-6-rc2-cand/sidecar/services/searxng_manager.py", line 789, in _setup_locked
+    write_settings(settings_dir)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "/private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/bat9/p_lows.py", line 32, in boom
+    def boom(_d): raise OSError('[Errno 28] No space left on device')
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 28] No space left on device
+LC034 state error | reason setup failed: [Errno 28] No space left on device | last_error setup failed: [Errno 28] No space left on device
+logger used in module: ok
+pinned test: 546:async def test_setup_write_settings_oserror_reports_error_with_reason(
+EXIT=0

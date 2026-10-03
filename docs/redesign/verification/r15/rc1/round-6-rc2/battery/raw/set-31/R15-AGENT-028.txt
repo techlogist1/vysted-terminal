@@ -1,0 +1,11 @@
+# ollama validate + chat probes at ace7dd7
+$ POST /llm/keys/validate ollama gemma3:4b
+{"ok":false,"reason":"model_not_pulled","detail":"gemma3:4b is not downloaded in Ollama (local) yet."}
+$ POST /llm/keys/validate ollama llama3.1:8b
+{"ok":true,"reason":null,"detail":null}
+$ POST /llm/chat ollama unpulled model b14-notpulled:1b
+data: {"kind": "error", "message": "The model b14-notpulled:1b is not downloaded in Ollama.", "action": "Run `ollama pull b14-notpulled:1b`, or pick an installed model in Settings.", "detail": "model 'b14-notpulled:1b' not found (status code: 404)", "code": "model_not_pulled"}
+
+
+# installed models
+{"models":[{"name":"qwen3:8b","model":"qwen3:8b","modified_at":"2026-09-23T04:12:46.829428968+05:30","size":5225388164,"digest":"500a1f067a9f782620b40bee6f7b0c89e17ae61f686b92c24933e4ca4b2b8b41","details":{"parent_model":"","format":"gguf","family":"qwen3","families":["qwen3"],"parameter_size":"8.2B","quantization_level":"Q4_K_M"}},{"name":"qwen2.5:7b","model":"qwen2.5:7b","modified_at":"2026-05-30T20:37:24.567297304+05:30","size":4683087332,"digest":"845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e","details":{"parent_model":"","format":"gguf","family":"qwen2","families":["qwe

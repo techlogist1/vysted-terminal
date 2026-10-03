@@ -1,0 +1,3 @@
+CMD: grep -n 'fromJSON with a sub-minimum panel grows it' src/components/PanelHost.test.tsx; grep -n "chat-sidebar\|broker-order-entry\|brief-panel\|notes-panel" src/components/PanelHost.tsx | head
+198:  it("fromJSON with a sub-minimum panel grows it", async () => {
+EXIT=0

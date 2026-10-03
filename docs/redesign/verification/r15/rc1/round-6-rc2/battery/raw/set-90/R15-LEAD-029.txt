@@ -1,0 +1,8 @@
+candidate ace7dd76; cmd: grep -n '5,156\|5156\|~5' services/screener_universe_india.py; and python: len(load_india_universe('india-all').symbols)
+grep exit=1
+['asset_class', 'construct', 'copy', 'dict', 'from_orm', 'id', 'json', 'label', 'model_computed_fields', 'model_config']
+5891
+``{SYMBOL: row}`` — hoisted so :func:`india_symbol_meta` is
+O(1). The boot seed calls it once per ``india-all`` symbol;
+rebuilding both master dicts per call was O(n²) and blocked the event
+loop ~4 s at startup.

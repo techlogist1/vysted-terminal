@@ -1,0 +1,5 @@
+CMD: node -e _httpGetOk: 404 on live sidecar, offline port
+404: {"ok":false,"status":404,"error":null}
+200: {"ok":true,"status":200,"error":null}
+offline: {"ok":false,"status":null,"error":"fetch failed"}
+EXIT=0

@@ -1,0 +1,7 @@
+ace7dd76 candidate venv, cwd sidecar
+COMMAND: reflect_says_complete (public name of _reflect_says_complete) on original string + controls
+EXIT: 0
+OUTPUT:
+'Price action is not covered yet' -> False
+'COMPLETE' -> True
+'no gaps' -> True

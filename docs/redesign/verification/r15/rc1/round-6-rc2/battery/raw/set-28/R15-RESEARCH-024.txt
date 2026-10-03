@@ -1,0 +1,21 @@
+COMMAND: PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b3/p024.py (candidate ace7dd76, venv from cand/sidecar)
+SHA: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+--- script ---
+import asyncio, httpx, dataclasses
+from services.search.searxng import SearxngBackend
+from services.agent_tools.web_search import _dispatch
+from services.research.deep import Findings, record_web
+rows=[{"url":"https://www.reuters.com/markets/x","title":"TCS results","content":"TCS margin","publishedDate":"2026-07-17T10:05:00"}]
+def h(req): return httpx.Response(200,json={"results":rows})
+async def main():
+    async with httpx.AsyncClient(transport=httpx.MockTransport(h)) as c:
+        out=await _dispatch(SearxngBackend("http://127.0.0.1:1",client=c),"TCS results",3,"general","IN")
+        print("dispatch result row:",out["results"][0]); print("citations:",out.get("citations"))
+        f=Findings(); record_web(f,out,query="TCS results")
+        for s in f.web_sources: print("ResearchSource:",dataclasses.asdict(s) if dataclasses.is_dataclass(s) else s)
+asyncio.run(main())
+--- output ---
+dispatch result row: {'url': 'https://www.reuters.com/markets/x', 'title': 'TCS results', 'snippet': 'TCS margin', 'domain': 'reuters.com', 'published_at': '2026-07-17T10:05:00', 'source': 'searxng'}
+citations: [{'url': 'https://www.reuters.com/markets/x', 'title': 'TCS results', 'excerpt': 'TCS margin', 'domain': 'reuters.com', 'published_at': '2026-07-17T10:05:00'}]
+ResearchSource: {'url': 'https://www.reuters.com/markets/x', 'title': 'TCS results', 'excerpt': 'TCS margin', 'domain': 'reuters.com', 'source_type': None, 'published_at': '2026-07-17T10:05:00', 'provider': None}
+EXIT=0

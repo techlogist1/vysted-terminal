@@ -1,0 +1,29 @@
+# R15-DATA-045 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd, 2026-10-03T00:35:58Z, sidecar :52348
+# kind=py
+# command:
+#   import asyncio, threading, http.server, socketserver, json
+#   hits=[]
+#   class H(http.server.BaseHTTPRequestHandler):
+#       def do_GET(s):
+#           hits.append(s.path); s.send_response(200); s.send_header('Content-Type','text/html'); s.end_headers(); s.wfile.write(b'<html><body><p>INTERNAL SECRET CANARY</p></body></html>')
+#       def log_message(*a): pass
+#   srv=socketserver.TCPServer(('127.0.0.1',0),H); port=srv.server_address[1]
+#   threading.Thread(target=srv.serve_forever,daemon=True).start()
+#   from services.search import extract
+#   async def main():
+#       for label,url in [('redirect to loopback canary', f'https://httpbin.org/redirect-to?url=http://127.0.0.1:{port}/canary&status_code=302'),
+#                         ('control: public->public', 'https://httpbin.org/redirect-to?url=https://example.com/&status_code=302')]:
+#           try:
+#               r=await extract.fetch_page(url)
+#               print(label,'->', type(r).__name__, str(getattr(r,'error',None) or getattr(r,'content',None) or r)[:160].replace('\n',' '))
+#           except Exception as e: print(label,'-> raised',type(e).__name__,str(e)[:160])
+#       v=await extract.visit_for_research(f'https://httpbin.org/redirect-to?url=http://127.0.0.1:{port}/canary&status_code=302')
+#       print('visit_for_research content:', getattr(v,'content',v) if not isinstance(v,type(None)) else None, '| page:', getattr(v,'page',None) is not None)
+#       print('CANARY SERVER HITS:', hits)
+#   asyncio.run(main())
+# output:
+redirect to loopback canary -> dict {'ok': False, 'url': 'https://httpbin.org/redirect-to?url=http://127.0.0.1:64464/canary&status_code=302', 'error': 'blocked redirect to a non-public or non-http
+control: public->public -> dict {'ok': True, 'url': 'https://httpbin.org/redirect-to?url=https://example.com/&status_code=302', 'final_url': 'https://example.com/', 'title': 'Example Domain', 
+visit_for_research content: VisitResult(text=None, reason='blocked redirect to a non-public or non-http(s) URL') | page: False
+CANARY SERVER HITS: []
+# exit=0

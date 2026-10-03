@@ -1,0 +1,7 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/ip.sh /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b4_025.py
+McpClient sig: (self, server_id: 'str', *, transport: 'str', endpoint: 'str | None' = None, command: 'str | None' = None, args: 'list[str] | None' = None, env: 'dict[str, str] | None' = None) -> 'None'
+call_tool result: {"isError": false, "content": [], "structuredContent": {"x": 1}}
+sec decode -> {'x': 1}
+
+exit=0

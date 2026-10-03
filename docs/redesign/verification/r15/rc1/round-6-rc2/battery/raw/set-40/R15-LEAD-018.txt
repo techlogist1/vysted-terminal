@@ -1,0 +1,7 @@
+RAW rc1-battery-12 @ ace7dd76 in-process (candidate venv) probe 018
+$ cd sidecar && .venv/bin/python3 probe40.py 018
+fixture reasoning chunks 24 content chunks 1
+thinking len 296 answer len 0
+answer repr: ''
+PASS
+exit=0

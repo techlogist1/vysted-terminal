@@ -1,0 +1,8 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b4_003b.py
+GUJGASLTD isError False resolved equal: True rename: {'renamed_from': 'GUJGASLTD', 'renamed_to': 'GUJENERGY', 'effective_date': '2026-07-01', 'note': 'GUJGASLTD was renamed to GUJENERGY on NSE (effective 2026-07-01); the resolver answers the current symbol.'}
+ cand equal: True [1.0, 0.6188, 0.6188] [1.0, 0.6188, 0.6188]
+Marico Kaya limited isError False resolved equal: True rename: None
+ cand equal: True [0.8485, 0.7805, 0.7742, 0.7647] [0.8485, 0.7805, 0.7742, 0.7647]
+
+exit=0

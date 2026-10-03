@@ -1,0 +1,11 @@
+[  10.0s] heartbeat: {"kind": "heartbeat"}
+[  20.0s] heartbeat: {"kind": "heartbeat"}
+[  30.0s] heartbeat: {"kind": "heartbeat"}
+[  33.8s] tool_result: {"kind": "tool_result", "tool_call_id": "call_c37ad8e85fd54ae48fea00b31a25721c", "name": "portfolio_add_position", "ok": false, "error": "invalid arguments for portfolio_add_position: missing cost_basis \u2014 ask the user for it; do not guess"}
+[  36.6s] done: {"kind": "done", "usage": {"input_tokens": 1714, "output_tokens": 46, "cache_read_input_tokens": null, "cache_creation_input_tokens": null, "web_search_requests": null, "served_model": null}, "finish_reason": "stop", "context_window": 16384, "spend_usd": 0.0}
+
+=== ASSISTANT TEXT ===
+To add your shares of Sumax Enterprises to your portfolio, I need to know what you paid for them. Can you please tell me the cost basis (price per share) at which you bought 40 shares last month?
+
+=== ok · 36.6s · events {'heartbeat': 3, 'tool_result': 1, 'delta': 46, 'done': 1} · usage in=1714 out=46 · est $0.00000 · llama3.1:8b
+EXIT=0

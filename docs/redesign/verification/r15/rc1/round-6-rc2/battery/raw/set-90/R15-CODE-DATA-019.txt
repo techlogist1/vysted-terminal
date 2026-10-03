@@ -1,0 +1,7 @@
+candidate ace7dd76; cmd: curl -s -m 100 -X POST :52353/screener/run (group, or)
+{"universe":"custom","custom_symbols":["AAPL","MSFT"],"criteria":[],"group":{"combinator":"or","criteria":[{"field":"market_cap","operator":"gt","value":1000}]},"limit":5}
+HTTP 200
+top keys ['universe', 'evaluated_count', 'skipped_count', 'skip_details', 'result_count', 'matched_count', 'rows', 'duration_ms', 'partial', 'coverage', 'freshness', 'basis_counts']
+rows 2
+row0 keys ['symbol', 'name', 'sector', 'industry', 'market_cap', 'pe_ratio', 'forward_pe', 'peg_ratio', 'price_to_book', 'dividend_yield', 'roe', 'debt_to_equity', 'price', 'change_percent_1d', 'volume', 'currency', 'data_basis', 'data_as_of']
+matched_criteria in row0: False

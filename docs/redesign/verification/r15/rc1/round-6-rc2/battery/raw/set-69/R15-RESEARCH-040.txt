@@ -1,0 +1,38 @@
+# ace7dd76 source check (vitest-pinned)
+$ grep estimate in src/modules/chat (the entry repro: grep estimate -> none)
+src/modules/chat/DepthControl.tsx:9:import { formatResearchCostEstimate, useSearchSettingsStore } from "@/store/search-settings";
+src/modules/chat/DepthControl.tsx:75:  const costEstimate =
+src/modules/chat/DepthControl.tsx:76:    researchTier === "tier_b" ? formatResearchCostEstimate(researchModels[depth]) : null;
+src/modules/chat/DepthControl.tsx:83:        aria-label={`Research depth: ${RESEARCH_DEPTH_LABEL[depth]} — switch to ${RESEARCH_DEPTH_LABEL[next]}${costEstimate ? `, ${costEstimate}` : ""}`}
+src/modules/chat/DepthControl.tsx:89:        {costEstimate && <span className="text-charcoal-500 ml-1">{costEstimate}</span>}
+src/modules/chat/DepthControl.tsx:153:            {active && costEstimate && (
+src/modules/chat/DepthControl.tsx:154:              <span className="text-charcoal-500 relative z-10 ml-1">{costEstimate}</span>
+src/modules/chat/DepthControl.tsx:9:import { formatResearchCostEstimate, useSearchSettingsStore } from "@/store/search-settings";
+src/modules/chat/DepthControl.tsx:75:  const costEstimate =
+src/modules/chat/DepthControl.tsx:76:    researchTier === "tier_b" ? formatResearchCostEstimate(researchModels[depth]) : null;
+src/modules/chat/DepthControl.tsx:83:        aria-label={`Research depth: ${RESEARCH_DEPTH_LABEL[depth]} — switch to ${RESEARCH_DEPTH_LABEL[next]}${costEstimate ? `, ${costEstimate}` : ""}`}
+src/modules/chat/DepthControl.tsx:89:        {costEstimate && <span className="text-charcoal-500 ml-1">{costEstimate}</span>}
+$ pinned test
+18:  it("Tier B + ULTRA renders an estimate before dispatch", () => {
+19-    useSearchSettingsStore.getState().setResearchTier("tier_b");
+20-    render(<DepthControl depth="ultra" onChange={vi.fn()} liveDepth={null} expandable={false} />);
+21-    expect(screen.getByText(/^~\$\d+\.\d{2} est\.$/)).toBeInTheDocument();
+22-  });
+23-
+24-  it("Tier A (Unlimited Local) shows no cost estimate — nothing is billed", () => {
+25-    useSearchSettingsStore.getState().setResearchTier("tier_a");
+26-    render(<DepthControl depth="ultra" onChange={vi.fn()} liveDepth={null} expandable={false} />);
+27-    expect(screen.queryByText(/est\.$/)).not.toBeInTheDocument();
+28-  });
+29-
+30-  it("Tier B renders an estimate for every stop, not only Ultra", () => {
+31-    useSearchSettingsStore.getState().setResearchTier("tier_b");
+32-    render(<DepthControl depth="normal" onChange={vi.fn()} liveDepth={null} expandable={false} />);
+33-    expect(screen.getByText(/^~\$\d+\.\d{2} est\.$/)).toBeInTheDocument();
+34-  });
+35-
+36-  it("the expandable pill shows the estimate beside the ACTIVE stop only", () => {
+37-    useSearchSettingsStore.getState().setResearchTier("tier_b");
+38-    render(<DepthControl depth="ultra" onChange={vi.fn()} liveDepth={null} expandable />);
+39-    expect(screen.getAllByText(/^~\$\d+\.\d{2} est\.$/)).toHaveLength(1);
+40-  });

@@ -1,0 +1,13 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ grep -n -B2 'sidecar("' src-tauri/src/openbb_mcp.rs src-tauri/src/sec_edgar_mcp.rs; grep -n 'usePluginsStore' src/modules/node-editor/node-registry.ts | head -3; grep -n 'syncPluginAgents' src/lib/plugin-bootstrap.ts | head -2
+exit=0
+src-tauri/src/openbb_mcp.rs-90-    let sidecar = match app
+src-tauri/src/openbb_mcp.rs-91-        .shell()
+src-tauri/src/openbb_mcp.rs:92:        .sidecar("vysted-openbb-mcp-sidecar")
+--
+src-tauri/src/sec_edgar_mcp.rs-89-    let sidecar = match app
+src-tauri/src/sec_edgar_mcp.rs-90-        .shell()
+src-tauri/src/sec_edgar_mcp.rs:91:        .sidecar("vysted-sec-edgar-mcp-sidecar")
+4: * plugin-contributed node types surfaced through `usePluginsStore.nodes`
+26:import { syncPluginAgents } from "@/lib/plugin-agents";
+225:    await syncPluginAgents(pluginId, true);

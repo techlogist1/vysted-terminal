@@ -1,0 +1,83 @@
+# probe at ace7dd768c3b809b0e72b20b20cfc94eea2368bd (source read + the date-defaults helper evaluated; vitest not run, heavy lane owns it)
+CMD: sed -n 1,40p src/lib/date-defaults.ts; grep date-defaults usage in BacktestPanel.tsx; sed -n 146,175p BacktestPanel.test.tsx
+/**
+ * Mount-time date defaults for panels that used to ship frozen literal
+ * dates (R15-UI-062, R15-UI-063) — every open showed an expired example
+ * instead of a usable one. Each helper derives its dates from `now`
+ * (defaulting to `new Date()`) — call these in a `useState(() => ...)`
+ * lazy initializer so the panel picks up "today" on the render that
+ * mounts it, not at module-load / authoring time.
+ */
+
+function toISODate(d: Date): string {
+  // Local-date formatting — toISOString() shifts by the UTC offset, which
+  // is wrong for a plain calendar-date input default.
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function addDays(d: Date, days: number): Date {
+  const copy = new Date(d);
+  copy.setDate(copy.getDate() + days);
+  return copy;
+}
+
+function addYears(d: Date, years: number): Date {
+  const copy = new Date(d);
+  copy.setFullYear(copy.getFullYear() + years);
+  return copy;
+}
+
+/** Option Pricer / Greeks Dashboard: valuation = today, expiry = today + 45d. */
+export function optionDateDefaults(now: Date = new Date()): {
+  valuationDate: string;
+  expiryDate: string;
+} {
+  return {
+    valuationDate: toISODate(now),
+    expiryDate: toISODate(addDays(now, 45)),
+  };
+}
+7:import { backtestDateDefaults } from "@/lib/date-defaults";
+51:  const [endDate, setEndDate] = useState(() => backtestDateDefaults().endDate);
+141:      endDate,
+146:  }, [selectedSpec, params, symbols, startDate, endDate, capital, walkForwardSlices, launch]);
+235:                  value={endDate}
+describe("BacktestPanel date defaults (R15-UI-062)", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 25)); // 2026-09-25, local time
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("defaults the date range to today and today - 2y, not a frozen literal", () => {
+    render(<BacktestPanel />);
+    expect(screen.getByLabelText("Start date")).toHaveValue("2024-09-25");
+    expect(screen.getByLabelText("End date")).toHaveValue("2026-09-25");
+  });
+});
+
+describe("BacktestPanel", () => {
+  it("loads strategies on mount and selects the first", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+    render(<BacktestPanel />);
+    await waitFor(() => {
+      expect(screen.getByText("Mean Reversion")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Trend Following")).toBeInTheDocument();
+    // The first strategy is auto-selected — params form fills with defaults.
+    await waitFor(() => {
+      expect(screen.getByLabelText("window")).toHaveValue(20);
+    });
+  });
+
+  it("renders the params form from the selected strategy's schema", async () => {
+    vi.mocked(sidecarGet).mockResolvedValueOnce({ strategies: SAMPLE_STRATEGIES });
+    render(<BacktestPanel />);
+    await waitFor(() => screen.getByText("Trend Following"));
+date today: 2026-10-03

@@ -1,0 +1,10 @@
+# candidate ace7dd768c3b809b0e72b20b20cfc94eea2368bd; sidecar :52342 (rc1-battery-2)
+$ grep -rn 'default_universe_for_region\|defaultUniverseForRegion\|regionDefault' sidecar/routers sidecar/services src types --include=*.py --include=*.ts --include=*.tsx | grep -v test | head -20; curl -s localhost:52342/screener/universes | head -c 500
+exit=0
+sidecar/routers/screener.py:178:    :func:`services.screener.default_universe_for_region`; the panel adopts
+sidecar/routers/screener.py:181:    return {"universe": screener.default_universe_for_region()}
+sidecar/services/screener.py:54:universe (:func:`default_universe_for_region`), and a later run from another
+sidecar/services/screener.py:118:def default_universe_for_region(region: str | None = None) -> ScreenerUniverseId:
+sidecar/services/screener.py:1360:    _warm_universe = default_universe_for_region()
+sidecar/services/screener.py:1480:    "default_universe_for_region",
+{"detail":"Not Found"}

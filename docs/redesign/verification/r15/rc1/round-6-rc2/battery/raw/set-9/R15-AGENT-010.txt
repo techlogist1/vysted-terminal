@@ -1,0 +1,8 @@
+# in-process probe at ace7dd7: event-loop stall during agent resolve_symbol tool
+CMD: sidecar/.venv/bin/python3 /private/tmp/b17/a010.py
+infosys -> bound wall 355 ms max loop gap so far 57 ms
+tata steel -> bound wall 397 ms max loop gap so far 57 ms
+reliance q4 results -> disambiguate wall 1203 ms max loop gap so far 57 ms
+hdfc bank limited results -> disambiguate wall 936 ms max loop gap so far 57 ms
+zzqqxx nonexistent corp -> disambiguate wall 1988 ms max loop gap so far 57 ms
+ticks 501 MAX LOOP STALL ms 57

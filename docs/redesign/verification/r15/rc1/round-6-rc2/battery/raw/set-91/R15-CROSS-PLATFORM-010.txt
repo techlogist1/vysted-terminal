@@ -1,0 +1,35 @@
+CMD: grep ci-local + ensure scripts for python resolution
+21:    "ci-local": "pnpm install --frozen-lockfile && node scripts/ensure-all-sidecars.mjs && pnpm lint && pnpm format:check && pnpm typecheck && cargo fmt --manifest-path src-tauri/Cargo.toml --check && cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings && python3 -m pip install ruff==0.15.12 && ruff check sidecar && ruff format --check sidecar && vitest run --coverage && cargo test --manifest-path src-tauri/Cargo.toml && cd sidecar && python3 -m pip install -r requirements-dev.txt && pytest",
+scripts/ensure-sidecar.mjs:3:// Idempotently builds the Python sidecar into a single-file binary that Tauri
+---
+python not found
+/opt/homebrew/bin/python3
+Python 3.14.5
+--- build-python.mjs 3.13 check:
+3:// The one place the sidecar build venvs get their interpreter. The stack
+4:// declares Python 3.13; a bare `python3` follows whatever the OS package
+6:// ensure script resolves and verifies 3.13 here instead (R15-LEAD-012).
+12:const WANT = "3.13";
+14:/** "3.13" for an interpreter command, or null when it cannot be run. */
+27: * The command for a Python 3.13 interpreter: `VYSTED_PYTHON` when set, else the
+28: * first of `python3.13`, `py -3.13` (Windows) or a plain `python3`/`python`
+29: * that reports 3.13. Throws a message naming the fix when none does.
+31:export function resolveBuildPython() {
+44:    platform() === "win32" ? ["py -3.13", "python3.13", "python"] : ["python3.13", "python3"];
+50:      `(e.g. \`brew install python@3.13\`) or set VYSTED_PYTHON to its path.`,
+55: * Make `venvDir` a Python 3.13 venv: create it when missing and recreate it
+58:export function ensureBuildVenv(venvDir, venvPython, run) {
+59:  if (existsSync(venvPython)) {
+60:    const got = versionOf(`"${venvPython}"`);
+62:    console.log(`[build-python] ${venvDir} is Python ${got ?? "(broken)"}, recreating on ${WANT}.`);
+63:    rmSync(venvDir, { recursive: true, force: true });
+65:  run(`${resolveBuildPython()} -m venv "${venvDir}"`);
+--- ensure scripts use:
+--- who imports build-python:
+scripts/sidecar-specs.mjs:19:import { ensureBuildVenv } from "./build-python.mjs";
+scripts/sidecar-specs.mjs:78:  join(import.meta.dirname, "build-python.mjs"),
+scripts/sidecar-specs.mjs:266:  ensureBuildVenv(venvDir, venvPython, run);
+--- live: resolveBuildPython():
+python3.13
+EXIT=0
+

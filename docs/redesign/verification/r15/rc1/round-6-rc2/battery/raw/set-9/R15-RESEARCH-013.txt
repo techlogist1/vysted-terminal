@@ -1,0 +1,6 @@
+# in-process probe at ace7dd7: fast._filings_leg with the real corporate_announcements tool (live BSE/NSE) + simulated BSE-lane-down
+CMD: sidecar/.venv/bin/python3 /private/tmp/b17/r013.py
+JUMBO.BO ok= True provider= bse n= 7
+AMAL.BO ok= True provider= nse+bse n= 7
+RELIANCE.NS ok= True provider= nse+bse n= 7
+BSE lane down (simulated): provider= nse

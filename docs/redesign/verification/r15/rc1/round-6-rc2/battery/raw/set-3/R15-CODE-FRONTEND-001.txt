@@ -1,0 +1,4 @@
+ci_pinned: repro is a frontend store/workspace.ts scenario (vitest only); battery never runs suites. Existence check at ace7dd76:
+COMMAND: grep -nE 'never rolls back portfolios or notes \(R15-CODE-FRONTEND-001' src/lib/workspace.test.ts
+664:  it("loading a named workspace never rolls back portfolios or notes (R15-CODE-FRONTEND-001)", async () => {
+EXIT: 0

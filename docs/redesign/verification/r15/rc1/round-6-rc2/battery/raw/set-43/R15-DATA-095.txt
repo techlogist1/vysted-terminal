@@ -1,0 +1,6 @@
+$ venv python p095.py (existing DB + next numeric field simulated from candidate source)
+existing db created by current module, columns: 52 False
+simulated next numeric field: ebitda_margin in _NUMERIC_FIELDS = True in _ALL_COLUMNS = True
+after _connect() on the EXISTING db: ebitda_margin present = True
+[(0,)]
+exit=0

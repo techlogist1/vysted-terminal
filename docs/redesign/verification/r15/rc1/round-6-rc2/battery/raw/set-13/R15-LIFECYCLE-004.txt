@@ -1,0 +1,6 @@
+# in-process probe at ace7dd76 (sidecar venv, scratch data dir), script scratchpad/b19_set13.py 004
+# exit=0
+== A0 real rows: 10
+== A1 nse_provider direct raises: ProviderError: nse_direct: historical row for 2026-09-22 lacks CH_OPENING_PRICE, CH_TRADE_HIGH_PRICE, CH_TRADE_LOW_PRICE, CH_TOT_TRADED_QTY (payload shape changed)
+WARNING:services.provider_registry:provider nse_direct failed for ohlcv, falling through: nse_direct: historical row for 2026-09-22 lacks CH_OPENING_PRICE, CH_TRADE_HIGH_PRICE, CH_TRADE_LOW_PRICE, CH_TOT_TRADED_QTY (payload shape changed)
+== A2 registry served: {'provider': 'nse', 'n': 26, 'flat': 0, 'zero_vol': 0}

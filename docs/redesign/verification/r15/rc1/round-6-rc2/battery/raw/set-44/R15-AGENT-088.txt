@@ -1,0 +1,6 @@
+# rc1-battery-22 raw R15-AGENT-088 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -rn "bare base with one suffixed known match\|M&M.NS and BAJAJ-AUTO.NS resolve\|ambiguous bare base stays raw" src --include=*.test.ts* | cut -c1-220; grep -n 'bare-ticker' src/modules/chat/ChatSidebar.tsx | head
+src/modules/chat/slash-commands.test.ts:79:      it("a bare base with one suffixed known match resolves to the suffixed symbol", () => {
+428:  // The composer's known-ticker set for the bare-ticker fast path (R15-AGENT-088,
+749:      if (result.kind === "bare-ticker") {
+EXIT=0

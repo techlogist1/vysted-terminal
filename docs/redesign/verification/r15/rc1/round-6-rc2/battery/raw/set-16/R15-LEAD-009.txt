@@ -1,0 +1,22 @@
+# R15-LEAD-009
+$ region IN estimates INFY
+{"symbol":"INFY.NS","fiscal_period":null,"eps_estimate_mean":19.67185,"eps_estimate_median":null,"eps_estimate_high":20.37,"eps_estimate_low":19.0,"eps_estimate_stddev":null,"estimate_analyst_count":12,"revenue_estimate_mean":493278155300.0,"revenue_estimate_median":null,"revenue_estimate_high":510007656000.0,"revenue_estimate_low":472000000000.0,"revenue_analyst_count":24,"currency":"INR","revenue_currency":"INR","provider":"yfinance","as_of":"2026-10-03T00:40:07.409950Z"}
+HTTP 200
+
+$ region US estimates INFY
+{"symbol":"INFY","fiscal_period":null,"eps_estimate_mean":0.20543,"eps_estimate_median":null,"eps_estimate_high":0.21,"eps_estimate_low":0.2,"eps_estimate_stddev":null,"estimate_analyst_count":7,"revenue_estimate_mean":493278155300.0,"revenue_estimate_median":null,"revenue_estimate_high":510007656000.0,"revenue_estimate_low":472000000000.0,"revenue_analyst_count":24,"currency":"USD","revenue_currency":"INR","provider":"yfinance","as_of":"2026-10-03T00:40:09.179002Z"}
+HTTP 200
+
+$ region IN estimates INFY
+{"symbol":"INFY.NS","fiscal_period":null,"eps_estimate_mean":19.67185,"eps_estimate_median":null,"eps_estimate_high":20.37,"eps_estimate_low":19.0,"eps_estimate_stddev":null,"estimate_analyst_count":12,"revenue_estimate_mean":493278155300.0,"revenue_estimate_median":null,"revenue_estimate_high":510007656000.0,"revenue_estimate_low":472000000000.0,"revenue_analyst_count":24,"currency":"INR","revenue_currency":"INR","provider":"yfinance","as_of":"2026-10-03T00:40:07.409950Z"}
+HTTP 200
+
+--- cache keys in code
+64:    cache_key = (
+82:    cache_key = f"earnings:{_yahoo_symbol(normalized)}:history"  # the resolved listing
+97:    cache_key = f"earnings:{_yahoo_symbol(normalized)}:surprises"  # the resolved listing
+112:    cache_key = f"earnings:{_yahoo_symbol(normalized)}:estimates"  # the resolved listing
+ratings IN
+{"symbol":"INFY.NS","consensus":"buy","target_mean":1189.9048,"target_high":1610.0,"target_low":940.0,"strong_buy":6,"buy":17,"hold":16,"sell":1,"strong_sell":2,"provider":"yfinance","as_of":"2026-10-03T00:40:09.414777Z"}
+ratings US
+{"symbol":"INFY","consensus":"hold","target_mean":11.66904,"target_high":14.1,"target_low":9.0,"strong_buy":2,"buy":1,"hold":11,"sell":0,"strong_sell":0,"provider":"yfinance","as_of":"2026-10-03T00:40:09.763959Z"}

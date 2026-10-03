@@ -1,0 +1,13 @@
+$ grep -n "FRONTEND-032" src/modules/chat/ChatSidebar.test.tsx src/modules/chat/ChatSidebar.tsx src/store/proposed-changes.ts
+src/modules/chat/ChatSidebar.test.tsx:747:  it("/clear rejects a pending write_note and acks it failed (R15-CODE-FRONTEND-032)", async () => {
+src/modules/chat/ChatSidebar.test.tsx:762:  it("switching to a new chat space rejects pending proposals (R15-CODE-FRONTEND-032)", () => {
+src/modules/chat/ChatSidebar.tsx:604:  // can never apply a change reviewed against another thread (R15-CODE-FRONTEND-032).
+
+449:  const rejectAllChanges = useProposedChangesStore((state) => state.rejectAll);
+575:  // `changes.rejectAll` are non-global (the dispatcher already skips them
+591:    const unregisterReject = registerAction("changes.rejectAll", () => {
+593:        rejectAllChanges();
+600:  }, [pendingChangeCount, acceptAllChanges, rejectAllChanges]);
+609:      rejectAllChanges();
+611:  }, [activeSpaceId, rejectAllChanges]);
+678:          rejectAllChanges();

@@ -1,0 +1,9 @@
+# R15-DOCS-020 at ace7dd76
+$ grep -n -i "unwired\|no found dispatcher\|desktop-notification\|useDesktopNotificationBridge" docs/CURRENT_STATE.md
+149:  unwired. No filesystem/marketplace loader yet.
+437:fixtures are gone outright, D81 — not merely unwired.)
+576:  desktop-notification-intent slice — its dispatcher is
+577:  `useDesktopNotificationBridge` (`src/lib/desktop-notification.ts`), mounted
+$ grep useDesktopNotificationBridge src/app/page.tsx
+18:import { useDesktopNotificationBridge } from "@/lib/desktop-notification";
+55:  useDesktopNotificationBridge();

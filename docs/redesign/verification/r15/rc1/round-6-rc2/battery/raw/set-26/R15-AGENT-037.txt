@@ -1,0 +1,4 @@
+CMD: in-process replay of the original scratch proof (candidate venv, fake provider, temp data dir) via /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/b1/inproc_runs.py; EXIT=0
+P5 AGENT-037: provider calls after 1-round breach: 1 | error token ceiling 1000 reached (100000 used) | cost tokens=100000 spend_usd=0.0 steps=1
+CMD (live, ollama llama3.1:8b, copilot, max_tokens=1000): see run C
+run C: error 'token ceiling 1000 reached (6453 used)', steps=1, activity [], transcript only the user prompt (no tool turn)

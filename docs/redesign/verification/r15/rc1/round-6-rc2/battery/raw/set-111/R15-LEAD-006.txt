@@ -1,0 +1,14 @@
+# rc1-battery-22 raw R15-LEAD-006 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -rn '_row_value' sidecar/services --include=*.py | cut -c1-200
+sidecar/services/growth_check.py:93:def _row_value(frame: pd.DataFrame, labels: tuple[str, ...], column: Any) -> float | None:
+sidecar/services/growth_check.py:151:        _row_value(frame, _REVENUE_ROWS, mrq_col),
+sidecar/services/growth_check.py:152:        _row_value(frame, _REVENUE_ROWS, prior_col),
+sidecar/services/growth_check.py:155:        _row_value(frame, _EARNINGS_ROWS, mrq_col),
+sidecar/services/growth_check.py:156:        _row_value(frame, _EARNINGS_ROWS, prior_col),
+sidecar/services/earnings_quality.py:52:from services.growth_check import _row_value
+sidecar/services/earnings_quality.py:62:#: :func:`services.growth_check._row_value`.
+sidecar/services/earnings_quality.py:154:    reported = _row_value(frame, _REPORTED_ROWS, col)
+sidecar/services/earnings_quality.py:155:    normalized = _row_value(frame, _NORMALIZED_ROWS, col)
+sidecar/services/earnings_quality.py:156:    unusual = _row_value(frame, _UNUSUAL_ROWS, col)
+sidecar/services/earnings_quality.py:157:    tax_effect = _row_value(frame, _TAX_EFFECT_ROWS, col)
+EXIT=0

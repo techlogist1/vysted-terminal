@@ -1,0 +1,9 @@
+# candidate ace7dd76, sidecar :52344
+# CMD: for q in GUJGAS GUJGASLTD GUJEN; do echo "q=$q"; curl -s "localhost:52344/resolve/autocomplete?q=$q" | python3 -c 'import sys,json;d=json.load(sys.stdin);[print(c["symbol"],c["exchange"],c.get("isin"),c.get("bse_code"),c.get("former_name")) for c in d["candidates"][:5]]'; done
+q=GUJGAS
+q=GUJGASLTD
+GUJENERGY NSE INE844O01030 539336 GUJGASLTD
+q=GUJEN
+GUJENERGY NSE INE844O01030 539336 GUJGASLTD
+
+exit=0

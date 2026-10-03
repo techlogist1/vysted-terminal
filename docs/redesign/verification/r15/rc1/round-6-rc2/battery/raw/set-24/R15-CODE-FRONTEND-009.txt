@@ -1,0 +1,42 @@
+RAW (candidate ace7dd76) ci_pinned-by-source-probe: pinned test save_screen saves the agent recipe
+head: ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ grep -n 'R15-CODE-FRONTEND-009' src/lib/host-actions.test.ts
+1416:  it("save_screen saves the agent's recipe, not the on-screen draft, and says when it replaces (R15-CODE-FRONTEND-009)", () => {
+exit=0
+$ sed -n 1416,1450p src/lib/host-actions.test.ts
+  it("save_screen saves the agent's recipe, not the on-screen draft, and says when it replaces (R15-CODE-FRONTEND-009)", () => {
+    // The real store at its defaults: pe<20 + mcap + sector on screen.
+    useScreenerStore.getState().__resetForTests();
+    useScreenerStore.getState().setFormula("roe > 0.1");
+    const input = {
+      name: "IT value",
+      criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
+      universe: "nse-all",
+    };
+    expect(describeHostAction("save_screen", input).after).toBe(
+      'Saved screens: +"IT value" (1 criterion)',
+    );
+    expect(applyHostAction("save_screen", input)).toBe('Saved the screen as "IT value"');
+    expect(useScreenerStore.getState().savedScreens).toEqual([
+      {
+        name: "IT value",
+        universe: "nse-all",
+        criteria: [{ field: "pe_ratio", operator: "lt", value: 15 }],
+        group: null,
+        formula: undefined,
+        combinator: "and",
+      },
+    ]);
+    // Same name again: the diff and the label say "replaced"; one screen remains.
+    const again = { name: "IT value", criteria: [{ field: "roe", operator: "gt", value: 0.2 }] };
+    expect(describeHostAction("save_screen", again).after).toBe(
+      'Saved screens: "IT value" replaced (1 criterion)',
+    );
+    expect(applyHostAction("save_screen", again)).toBe('Replaced the saved screen "IT value"');
+    const saved = useScreenerStore.getState().savedScreens;
+    expect(saved).toHaveLength(1);
+    expect(saved[0].criteria).toEqual([{ field: "roe", operator: "gt", value: 0.2 }]);
+    expect(applyHostAction("save_screen", { name: " " })).toBeNull();
+    useScreenerStore.getState().__resetForTests();
+  });
+exit=0

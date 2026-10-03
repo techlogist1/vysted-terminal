@@ -1,0 +1,6 @@
+# rc1-battery-22 raw R15-AGENT-063 at ace7dd768c3b809b0e72b20b20cfc94eea2368bd
+$ cd sidecar && PYTHONPATH=. .venv/bin/python3 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/p22_063c.py
+'Bitcoin options expiry looms' ['BTC/USDT'] -0.1531 negative
+'Ethereum ETF inflows surge' ['ETH/USDT'] 0.0 neutral
+'Solana outage hits validators' ['SOL/USDT'] 0.0 neutral
+EXIT=0

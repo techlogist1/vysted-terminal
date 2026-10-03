@@ -1,0 +1,4 @@
+RAW rc1-battery-12 @ ace7dd76 in-process (candidate venv) probe 104
+120 symbols: max concurrent fetches 8 cap 8
+breaker open: fetch calls 0
+exit=

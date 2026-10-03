@@ -1,0 +1,25 @@
+CMD: GET /fundamentals/{SYM}/income with X-Vysted-Region: IN
+-- DAL
+HTTP=200
+symbol DAL.BO provider openbb-mcp
+{"symbol": "DAL.BO", "periods": ["2026-03-31", "2025-03-31", "2024-03-31", "2023-03-31"], "lines": [{"label": "operating_revenue", "values": {"2026-03-31": 20668000.0, "2025-03-31": 37418000.0, "2024-03-31": 23620000.0, "2023-03-31": 18540000.0}}, {"label": "total_revenue", "values": {"2026-03-31": 20668000.0, "2025-03-31": 37418000.0, "2024-03-31": 23620000.0, "2023-03-31": 18540000.0}}, {"label": "cost_of_revenue",
+-- CHTR
+HTTP=200
+symbol CHTR.BO provider openbb-mcp
+{"symbol": "CHTR.BO", "periods": ["2026-03-31", "2025-03-31", "2024-03-31", "2023-03-31"], "lines": [{"label": "operating_revenue", "values": {"2026-03-31": 842218000.0, "2025-03-31": 591258000.0, "2024-03-31": 548537000.0, "2023-03-31": 399147000.0}}, {"label": "total_revenue", "values": {"2026-03-31": 842218000.0, "2025-03-31": 591258000.0, "2024-03-31": 548537000.0, "2023-03-31": 399147000.0}}, {"label": "cost_of_
+-- SMR
+HTTP=200
+symbol SMR.BO provider openbb-mcp
+{"symbol": "SMR.BO", "periods": ["2025-03-31", "2024-03-31", "2023-03-31"], "lines": [{"label": "operating_revenue", "values": {"2025-03-31": 2632469000.0, "2024-03-31": 1244698000.0, "2023-03-31": 675128000.0}}, {"label": "total_revenue", "values": {"2025-03-31": 2632469000.0, "2024-03-31": 1244698000.0, "2023-03-31": 675128000.0}}, {"label": "cost_of_revenue", "values": {"2025-03-31": 2458140000.0, "2024-03-31": 11
+-- SUMAX
+HTTP=200
+symbol SUMAX-SM.NS provider yfinance
+{"symbol": "SUMAX-SM.NS", "periods": [], "lines": [], "provider": "yfinance", "gaps": []}
+-- DAL balance
+HTTP=200
+symbol DAL.BO provider openbb-mcp
+{"symbol": "DAL.BO", "periods": ["2026-03-31", "2025-03-31", "2024-03-31", "2023-03-31"], "lines": [{"label": "cash_financial", "values": {"2026-03-31": 4736000.0, "2025-03-31": 3644000.0, "2024-03-31": 4984000.0, "2023-03-31": 16313000.0}}, {"label": "cash_and_cash_equivalents", "values": {"2026-03-31": 4736000.0, "2025-03-31": 3644000.0, "2024-03-31": 4984000.0, "2023-03-31": 16313000.0}}, {"label": "cash_cash_equi
+-- RELIANCE.NS
+HTTP=200
+symbol RELIANCE.NS provider openbb-mcp
+{"symbol": "RELIANCE.NS", "periods": ["2026-03-31", "2025-03-31", "2024-03-31", "2023-03-31", "2022-03-31"], "lines": [{"label": "operating_revenue", "values": {"2026-03-31": 10572190000000.0, "2025-03-31": 9646930000000.0, "2024-03-31": 9010640000000.0, "2023-03-31": 8778350000000.0, "2022-03-31": null}}, {"label": "total_revenue", "values": {"2026-03-31": 10572190000000.0, "2025-03-31": 9646930000000.0, "2024-03-31
