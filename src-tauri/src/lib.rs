@@ -29,7 +29,7 @@ enum SidecarPhase {
 
 /// What `get_sidecar_port` hands the renderer: the port, the phase, and — once
 /// `Failed` — the reason, so a spawn failure or a crash is named at once instead
-/// of a 120 s probe of a port nothing will bind.
+/// of a 300 s probe of a port nothing will bind.
 #[derive(Clone, Debug, serde::Serialize)]
 struct SidecarSnapshot {
     port: u16,
@@ -183,6 +183,14 @@ pub(crate) const MCP_PORT_WAIT_SECS: u64 = 45;
 /// One retry (2 attempts) gives a cold boot a second window without
 /// unbounding startup — total worst case ~`MCP_PORT_WAIT_SECS * MCP_PORT_WAIT_ATTEMPTS`.
 pub(crate) const MCP_PORT_WAIT_ATTEMPTS: u32 = 2;
+
+/// R15-LEAD-123: the main sidecar's own attempt count (45 s x 6 = 270 s). Under
+/// load its cold bind was measured at 96-108 s, past the shared 90 s MCP budget,
+/// and a timeout latches `Failed` for the session. A dead child still reports at
+/// once via the Terminated arm; only a hung-but-alive one waits the full budget.
+/// ponytail: a boot slower than 270 s still latches; the real fix is `--onedir`
+/// (BLOCKERS.md "Phase 9.5 UC1").
+pub(crate) const MAIN_SIDECAR_WAIT_ATTEMPTS: u32 = 6;
 
 /// Poll a port across a bounded number of attempts, each lasting
 /// `MCP_PORT_WAIT_SECS`. Returns `true` on the first successful TCP connect.
@@ -441,15 +449,14 @@ fn start_main_sidecar(app: &AppHandle, port: u16, openbb: Option<u16>, sec_edgar
     let endpoint_data_dir = data_dir.clone();
     let wait_app = app.clone();
     thread::spawn(move || {
-        // R8: the main sidecar gets the same cold-extraction budget as the MCP
-        // subprocesses (45s x 2) — a cold `--onefile` boot (~60s observed: _MEI
-        // extraction + heavy imports) outlives the old flat 15s probe, which
-        // logged a false "did not come up" and skipped the FR-025 endpoint file
-        // while the frontend's own retries connected fine moments later.
+        // R8 + R15-LEAD-123: a cold `--onefile` boot (_MEI extraction + heavy
+        // imports) binds at ~40s idle and 96-108s under load, so the main
+        // sidecar waits 45s x MAIN_SIDECAR_WAIT_ATTEMPTS (270s), not the MCP
+        // pair's 90s — a timeout here latches `Failed` for the whole session.
         let bound = wait_for_port_with_retries(
             port,
             MCP_PORT_WAIT_SECS,
-            MCP_PORT_WAIT_ATTEMPTS,
+            MAIN_SIDECAR_WAIT_ATTEMPTS,
             |attempt, attempts| {
                 diag_eprintln!(
                     "[vysted] Python sidecar not up yet on port {port} after attempt \
@@ -790,8 +797,8 @@ mod tests {
         clear_mcp_endpoint_file, mcp_endpoint_json, mcp_endpoint_path, parse_data_dir_override,
         pick_free_port, sidecar_healthy, terminated_reason, wait_for_port_timeout,
         wait_for_port_with_retries, write_bytes_atomic, write_text_atomic, SidecarPhase,
-        SidecarStatus, MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS, MCP_PORT_WAIT_SECS,
-        MCP_PROTOCOL_VERSION,
+        SidecarStatus, MAIN_SIDECAR_WAIT_ATTEMPTS, MCP_ENDPOINT_FILENAME, MCP_PORT_WAIT_ATTEMPTS,
+        MCP_PORT_WAIT_SECS, MCP_PROTOCOL_VERSION,
     };
     use std::net::TcpListener;
     use std::sync::atomic::{AtomicU32, Ordering};
@@ -1125,6 +1132,26 @@ mod tests {
             ms,
             MCP_PORT_WAIT_SECS * u64::from(MCP_PORT_WAIT_ATTEMPTS) * 1000
         );
+    }
+
+    #[test]
+    fn main_sidecar_budget_fits_inside_the_renderer_deadline() {
+        // R15-LEAD-123: the core's main-sidecar wait (+15 s /health) must end
+        // before the renderer's readiness deadline, and must outlast a contended
+        // cold bind (108 s measured), or a late bind latches the session failed.
+        let client = include_str!("../../src/lib/sidecar-client.ts");
+        let deadline_ms: u64 = client
+            .lines()
+            .find_map(|l| l.strip_prefix("const READY_DEADLINE_MS = "))
+            .expect("sidecar-client declares READY_DEADLINE_MS")
+            .trim_end_matches(';')
+            .replace('_', "")
+            .parse()
+            .unwrap();
+        let main_secs =
+            std::hint::black_box(MCP_PORT_WAIT_SECS * u64::from(MAIN_SIDECAR_WAIT_ATTEMPTS));
+        assert!(main_secs + 15 < deadline_ms / 1000);
+        assert!(main_secs >= 240);
     }
 
     #[test]

@@ -9,7 +9,7 @@ vi.mock("@tauri-apps/api/core", () => ({
 /** `get_sidecar_port` for a bound engine. */
 const READY = { port: 54321, state: "ready", reason: null };
 
-/** R15-LIFECYCLE-010: a spawn failure is named at once, never a 120 s probe. */
+/** R15-LIFECYCLE-010: a spawn failure is named at once, never a 300 s probe. */
 describe("a failed sidecar boot", () => {
   beforeEach(() => {
     vi.resetModules();
@@ -97,6 +97,30 @@ describe("getSidecarBaseUrl readiness gate", () => {
 
     await expect(pending).resolves.toBe("http://127.0.0.1:54321");
     expect(attempts).toBe(3);
+  });
+
+  it("R15-LEAD-123: an engine that binds at +130 s still resolves (the deadline outlasts the core's budget)", async () => {
+    vi.useFakeTimers();
+    const start = Date.now();
+    const bound = () => Date.now() - start >= 130_000;
+    invokeMock.mockImplementation(async () =>
+      bound() ? READY : { port: 54321, state: "starting", reason: null },
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        if (!bound()) {
+          throw new TypeError("Load failed"); // still extracting
+        }
+        return { ok: true } as Response;
+      }),
+    );
+
+    const { getSidecarBaseUrl } = await import("@/lib/sidecar-client");
+    const pending = getSidecarBaseUrl().catch((e: unknown) => e);
+    await vi.advanceTimersByTimeAsync(140_000);
+
+    expect(await pending).toBe("http://127.0.0.1:54321");
   });
 
   it("shares one in-flight probe across concurrent callers (single invoke)", async () => {
