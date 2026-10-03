@@ -1,0 +1,31 @@
+{
+  "sha": "ace7dd768c3b809b0e72b20b20cfc94eea2368bd",
+  "certified": [
+    "R15-UI-025",
+    "R15-UI-050",
+    "R15-UI-083"
+  ],
+  "needs_gui": [
+    "R15-CODE-AGENT-001",
+    "R15-LIFECYCLE-001",
+    "R15-LIFECYCLE-008",
+    "R15-UI-022",
+    "R15-DOCS-024"
+  ],
+  "not_certified": [
+    {
+      "id": "R15-UI-009",
+      "reason": "Capture ace7dd7-11 (after the Screener Export CSV click) matches ace7dd7-10 (before the click): no saved path, no toast, no error. The file was written to disk, but the note requires every panel to show the saved path. ScreenerResultsTable.tsx:283-285 throws away the export result. Watchlist (06) and Portfolio (04) do show the path."
+    },
+    {
+      "id": "R15-UI-084",
+      "reason": "Captures 03 and 05 (handle double-click) and 08 (header button) show the maximize state turning on: the icon flips and the dock box widens under the panels. The Chart and Brief panels are still painted on top at their old positions, so PanelHost is not hidden. Restore of the prior 458 pt width does work (04, 07, 09 and the saved blob)."
+    },
+    {
+      "id": "R15-LIFECYCLE-040",
+      "reason": "On the true first cold boot (boot 1, raw/vysted-boot2.log lines 3 and 42), sec-edgar-mcp did not bind within the 45 s x 2 budget and was declared unavailable (/sec routes 501). The main sidecar missed its budget too. The passing evidence comes only from the warm second launch. Windows was not driven, and there is no DECISIONS.md record."
+    }
+  ],
+  "concur_not_defect": [],
+  "refused_not_defect": []
+}

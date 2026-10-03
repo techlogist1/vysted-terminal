@@ -1,0 +1,13 @@
+[
+ {"cmd":"click","x":768,"y":598},
+ {"cmd":"wait","seconds":4},
+ {"cmd":"click","x":502,"y":728},
+ {"cmd":"wait","seconds":5},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-084/ace7dd7-02-dock-open-1396w.png"},
+ {"cmd":"click","x":464,"y":500,"double":true},
+ {"cmd":"wait","seconds":2},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-084/ace7dd7-03-dock-maximized.png"},
+ {"cmd":"click","x":1390,"y":500,"double":true},
+ {"cmd":"wait","seconds":2},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-round/R15-UI-084/ace7dd7-04-dock-restored.png"}
+]

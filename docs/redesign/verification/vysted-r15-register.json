@@ -1265,7 +1265,7 @@
    "tier4": false,
    "operator_areas": [],
    "status": "needs_gui",
-   "note": "Batch-5 (1574ed8) needs_gui. Sidecar side verified live on both /health and /mcp/, including preflight: an evil Origin and the null Origin get 403; tauri://localhost, http(s)://tauri.localhost and localhost:5173 get 200 with ACAO; no Origin gets 200. GUI check: launch the packaged app (macOS and Windows) and pnpm tauri:dev -- confirm every panel loads and the sidecar log shows no 403 for the webview's origin."
+   "note": "Batch-5 (1574ed8) needs_gui. Sidecar side verified live on both /health and /mcp/, including preflight: an evil Origin and the null Origin get 403; tauri://localhost, http(s)://tauri.localhost and localhost:5173 get 200 with ACAO; no Origin gets 200. GUI check: launch the packaged app (macOS and Windows) and pnpm tauri:dev -- confirm every panel loads and the sidecar log shows no 403 for the webview's origin. || gui-round@ace7dd7: stays needs_gui: still_needs_gui: macOS packaged and dev both hold: every panel loads and no webview 403 appears (65 and 96 preflights, all 200). Remaining: launch the Windows packaged app (origin http(s)://tauri.localhost), tour every panel and grep the sidecar log for 403., evidence docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-CODE-AGENT-001/VERIFY.md"
   },
   {
    "id": "R15-CODE-AGENT-034",
@@ -2928,7 +2928,7 @@
     "ui-panels"
    ],
    "status": "needs_gui",
-   "note": "Batch-8 (68bb7aa4) needs_gui. Headless: the Rust pin boot_returns_at_once_and_spawns_the_sidecar_before_any_mcp_bind_wait_ends passes; setup() hands spawn_boot(start_openbb, start_sec, start_main) to one thread, env vars set before main spawn, bind waits run after it. GUI check on a packaged cold launch (after a reboot) must confirm: (1) the window paints and accepts input while both MCP children are still binding, no beachball for 25-90 s; (2) the data engine answers /health before the MCP binds finish; (3) rename the bundled vysted-sidecar binary and launch -- the status chip goes red and panels name \"The data engine could not start (...)\" at once, not after 120 s; (4) kill the running sidecar -- the chip flips to \"Sidecar error\", panels and chat say \"The data engine stopped (exit code ...)\"."
+   "note": "Batch-8 (68bb7aa4) needs_gui. Headless: the Rust pin boot_returns_at_once_and_spawns_the_sidecar_before_any_mcp_bind_wait_ends passes; setup() hands spawn_boot(start_openbb, start_sec, start_main) to one thread, env vars set before main spawn, bind waits run after it. GUI check on a packaged cold launch (after a reboot) must confirm: (1) the window paints and accepts input while both MCP children are still binding, no beachball for 25-90 s; (2) the data engine answers /health before the MCP binds finish; (3) rename the bundled vysted-sidecar binary and launch -- the status chip goes red and panels name \"The data engine could not start (...)\" at once, not after 120 s; (4) kill the running sidecar -- the chip flips to \"Sidecar error\", panels and chat say \"The data engine stopped (exit code ...)\". || gui-round@ace7dd7: stays needs_gui: blocked_env: ace7dd7, 3 warm launches plus a broken copy on a loaded machine (load 3 to 6.6). Window painted and took input at +3.7 to 11.8 s with no child bound (check 1). The renamed sidecar was named at +4 s (check 3). Main sidecar spawned at +1.5 s every time, but /health came last 3 of 3 times (check 2 not shown). Check 4: the chip settled to 'The data engine stopped (signal 15).', Portfolio showed generic copy, chat was blocked by the missing key. Adjacent: a main sidecar that binds after 90 s stays failed for the whole session (05, 10). Real data mtime unchanged at 1790978102. Commit 7bd9e9f5., evidence docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-001/DRIVE.md"
   },
   {
    "id": "R15-LIFECYCLE-002",
@@ -3123,7 +3123,7 @@
    "tier4": false,
    "operator_areas": [],
    "status": "needs_gui",
-   "note": "Batch-5 (1574ed8) needs_gui. /system/diagnostics was verified live: version, status and a redacted logTail; no planted canary leaked (key, public IP, query, prompt); cargo test diag_log tests pass. GUI check: on the packaged app, confirm <data-dir>/logs/vysted.log receives timestamped [sidecar]/[vysted]/MCP lines and rotates; confirm Settings 'Copy diagnostics' previews and then copies."
+   "note": "Batch-5 (1574ed8) needs_gui. /system/diagnostics was verified live: version, status and a redacted logTail; no planted canary leaked (key, public IP, query, prompt); cargo test diag_log tests pass. GUI check: on the packaged app, confirm <data-dir>/logs/vysted.log receives timestamped [sidecar]/[vysted]/MCP lines and rotates; confirm Settings 'Copy diagnostics' previews and then copies. || gui-round@ace7dd7: stays needs_gui: blocked_env: Rotation shown on disk: filler at 2096828 B moved to vysted.log.1 and a fresh vysted.log started at 01:16:36.737Z with [sidecar]/[vysted]/[openbb-mcp]/[sec-edgar-mcp] lines. Copy diagnostics was not driven: both boots missed the core's 90 s sidecar window under machine load (bound at 96 s and 108 s), which left the UI stuck in the failed state., evidence docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-008/DRIVE.md"
   },
   {
    "id": "R15-LIFECYCLE-009",
@@ -3755,8 +3755,8 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "needs_gui",
-   "note": "Batch-4 (dcbe7ba) needs_gui. jsdom shows downloadCsv going through saveTextArtifact, and get_app_data_dir/write_text_atomic are registered Tauri commands; the defect is WKWebView-only. GUI check: in the packaged macOS app, click Export CSV in Watchlist, Portfolio and (fresh) Screener -- each must show the saved path and the file must exist under <app data>/exports/csv/, not silently no-op. (See issue 5: SettingsPanel.tsx export and ChatSidebar.tsx /export still use the Blob + <a download> path.)"
+   "status": "open",
+   "note": "Batch-4 (dcbe7ba) needs_gui. jsdom shows downloadCsv going through saveTextArtifact, and get_app_data_dir/write_text_atomic are registered Tauri commands; the defect is WKWebView-only. GUI check: in the packaged macOS app, click Export CSV in Watchlist, Portfolio and (fresh) Screener -- each must show the saved path and the file must exist under <app data>/exports/csv/, not silently no-op. (See issue 5: SettingsPanel.tsx export and ChatSidebar.tsx /export still use the Blob + <a download> path.) || gui-round@ace7dd7: not certified: Capture ace7dd7-11 (after the Screener Export CSV click) matches ace7dd7-10 (before the click): no saved path, no toast, no error. The file was written to disk, but the note requires every panel to show the saved path. ScreenerResultsTable.tsx:283-285 throws away the export result. Watchlist (06) and Portfolio (04) do show the path., evidence docs/redesign/verification/r15/gui-round/R15-UI-009/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-UI-009/VERIFY.md"
   },
   {
    "id": "R15-UI-090",
@@ -11298,7 +11298,7 @@
     "ui-panels"
    ],
    "status": "needs_gui",
-   "note": "Batch-7 (e81c9e7) needs_gui. The click path is pinned in vitest against a mocked chart (anchor from coordinateToPrice, off-bar logical index, Text prompt, locked-delete disabled). The actual placement on the lightweight-charts canvas cannot be seen headless. GUI check (native event injection, not chrome-devtools) must confirm: (1) a trendline/horizontal line clicked mid-candle renders at the clicked y; (2) a click right of the last bar places a visible drawing; (3) the Text tool asks for a label and shows the typed text, not \"label\"; (4) a locked drawing's row delete control is disabled and the drawing survives a click on it."
+   "note": "Batch-7 (e81c9e7) needs_gui. The click path is pinned in vitest against a mocked chart (anchor from coordinateToPrice, off-bar logical index, Text prompt, locked-delete disabled). The actual placement on the lightweight-charts canvas cannot be seen headless. GUI check (native event injection, not chrome-devtools) must confirm: (1) a trendline/horizontal line clicked mid-candle renders at the clicked y; (2) a click right of the last bar places a visible drawing; (3) the Text tool asks for a label and shows the typed text, not \"label\"; (4) a locked drawing's row delete control is disabled and the drawing survives a click on it. || gui-round@ace7dd7: stays needs_gui: still_needs_gui: Check 2 remains. Pan a plain chart, with no Ichimoku or future timeline, into the empty space right of the last bar. Click a trendline twice there. Confirm it renders and its stored points read time:null with a logical index. The driven off-bar case had future bar times, so the pre-fix code would also have drawn it., evidence docs/redesign/verification/r15/gui-round/R15-UI-022/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-UI-022/VERIFY.md"
   },
   {
    "id": "R15-UI-023",
@@ -11376,8 +11376,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "needs_gui",
-   "note": "Batch-4 (dcbe7ba) needs_gui. No window.prompt/alert/confirm remains in src/ and eslint bans them; the failure is WKWebView-only. GUI check: in the packaged app, select text in a note and click Link -- an inline URL popover must appear, and applying it must set the link mark on the selection."
+   "status": "fixed",
+   "note": "Batch-4 (dcbe7ba) needs_gui. No window.prompt/alert/confirm remains in src/ and eslint bans them; the failure is WKWebView-only. GUI check: in the packaged app, select text in a note and click Link -- an inline URL popover must appear, and applying it must set the link mark on the selection. || gui-round@ace7dd7: certified, evidence docs/redesign/verification/r15/gui-round/R15-UI-025/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-UI-025/VERIFY.md",
+   "closure_evidence": "gui-round@ace7dd7 docs/redesign/verification/r15/gui-round/R15-UI-025/DRIVE.md"
   },
   {
    "id": "R15-UI-026",
@@ -12037,8 +12038,9 @@
    "operator_areas": [
     "ui-panels"
    ],
-   "status": "needs_gui",
-   "note": "Batch-9 (6b70230) needs_gui: headless evidence holds (slash rows are now min-h-8 ... py-1, NotesPanel.tsx:390). GUI check: whether a two-line row still clips is visual."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) needs_gui: headless evidence holds (slash rows are now min-h-8 ... py-1, NotesPanel.tsx:390). GUI check: whether a two-line row still clips is visual. || gui-round@ace7dd7: certified, evidence docs/redesign/verification/r15/gui-round/R15-UI-050/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-UI-050/VERIFY.md",
+   "closure_evidence": "gui-round@ace7dd7 docs/redesign/verification/r15/gui-round/R15-UI-050/DRIVE.md"
   },
   {
    "id": "R15-UI-051",
@@ -12308,8 +12310,9 @@
     "ui-panels",
     "research-search"
    ],
-   "status": "needs_gui",
-   "note": "Batch-9 (6b70230) needs_gui: headless evidence holds (Save .md/PDF/PNG buttons exist, gated on bodySettled, route through saveTextArtifact/savePdfArtifact/savePngArtifact; chain vitest passes). GUI check: whether the PDF/PNG raster of a settled brief renders correctly needs the WKWebView."
+   "status": "fixed",
+   "note": "Batch-9 (6b70230) needs_gui: headless evidence holds (Save .md/PDF/PNG buttons exist, gated on bodySettled, route through saveTextArtifact/savePdfArtifact/savePngArtifact; chain vitest passes). GUI check: whether the PDF/PNG raster of a settled brief renders correctly needs the WKWebView. || gui-round@ace7dd7: certified, evidence docs/redesign/verification/r15/gui-round/R15-UI-083/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-UI-083/VERIFY.md",
+   "closure_evidence": "gui-round@ace7dd7 docs/redesign/verification/r15/gui-round/R15-UI-083/DRIVE.md"
   },
   {
    "id": "R15-UI-084",
@@ -12334,8 +12337,8 @@
     "ui-panels",
     "agent-chat"
    ],
-   "status": "needs_gui",
-   "note": "Batch-10 (f407107) needs_gui. agent-dock store test 'maximize takes the full cockpit and restore returns the prior width' passes (vitest). GUI check: open the dock, maximize, confirm it spans the cockpit at 2560 wide, un-maximize, confirm the prior width returns."
+   "status": "open",
+   "note": "Batch-10 (f407107) needs_gui. agent-dock store test 'maximize takes the full cockpit and restore returns the prior width' passes (vitest). GUI check: open the dock, maximize, confirm it spans the cockpit at 2560 wide, un-maximize, confirm the prior width returns. || gui-round@ace7dd7: not certified: Captures 03 and 05 (handle double-click) and 08 (header button) show the maximize state turning on: the icon flips and the dock box widens under the panels. The Chart and Brief panels are still painted on top at their old positions, so PanelHost is not hidden. Restore of the prior 458 pt width does work (04, 07, 09 and the saved blob)., evidence docs/redesign/verification/r15/gui-round/R15-UI-084/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-UI-084/VERIFY.md"
   },
   {
    "id": "R15-UI-085",
@@ -16593,7 +16596,7 @@
     "agent-chat"
    ],
    "status": "needs_gui",
-   "note": "triage@e032be7: still_reproduces, confidence 4, doc + one manual GUI session, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-024/; needs_gui (lows partition, 25 Sep): run a real Claude Desktop session over mcp-remote/stdio, invoke a Vysted tool, and capture what the slash picker actually shows."
+   "note": "triage@e032be7: still_reproduces, confidence 4, doc + one manual GUI session, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-DOCS-024/; needs_gui (lows partition, 25 Sep): run a real Claude Desktop session over mcp-remote/stdio, invoke a Vysted tool, and capture what the slash picker actually shows. || gui-round@ace7dd7: stays needs_gui: blocked_env: needs a real Claude Desktop session over mcp-remote/stdio; the rig drives only the Vysted window and the driver never types into another app, evidence docs/redesign/verification/r15/gui-round/R15-DOCS-024/DRIVE.md"
   },
   {
    "id": "R15-LEAD-006",
@@ -18132,8 +18135,8 @@
    ],
    "tier4": false,
    "operator_areas": [],
-   "status": "needs_gui",
-   "note": "triage@e032be7: still_reproduces, confidence 4, documentation of a manual gate; touches no code, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-040/; needs_gui (lows partition, 25 Sep): launch the packaged-app bundle on each platform (Windows included) and record the cold-boot MCP-spawn check in DECISIONS.md."
+   "status": "open",
+   "note": "triage@e032be7: still_reproduces, confidence 4, documentation of a manual gate; touches no code, evidence docs/redesign/verification/r15/stage-c/lows-triage/evidence/R15-LIFECYCLE-040/; needs_gui (lows partition, 25 Sep): launch the packaged-app bundle on each platform (Windows included) and record the cold-boot MCP-spawn check in DECISIONS.md. || gui-round@ace7dd7: not certified: On the true first cold boot (boot 1, raw/vysted-boot2.log lines 3 and 42), sec-edgar-mcp did not bind within the 45 s x 2 budget and was declared unavailable (/sec routes 501). The main sidecar missed its budget too. The passing evidence comes only from the warm second launch. Windows was not driven, and there is no DECISIONS.md record., evidence docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-040/DRIVE.md, verifier docs/redesign/verification/r15/gui-round/R15-LIFECYCLE-040/VERIFY.md"
   },
   {
    "id": "R15-RELEASE-008",

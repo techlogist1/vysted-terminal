@@ -1,0 +1,63 @@
+2026-10-03T01:16:36.737Z [openbb-mcp] not bound on 127.0.0.1:63304 after attempt 1/2 (45s); cold PyInstaller extraction may be slow — retrying.
+2026-10-03T01:16:49.354Z [openbb-mcp] [10/03/26 06:46:49] INFO     Loaded bundled skills from               app.py:573
+2026-10-03T01:16:49.354Z [openbb-mcp]                              '/private/var/folders/1s/3bgs17xd07z839y
+2026-10-03T01:16:49.354Z [openbb-mcp]                              f5kj6mc3m0000gn/T/_MEIbjLAQB/openbb_mcp_
+2026-10-03T01:16:49.354Z [openbb-mcp]                              server/skills'
+2026-10-03T01:16:49.354Z [openbb-mcp]                     INFO     Added default system prompt with skill   app.py:342
+2026-10-03T01:16:49.354Z [openbb-mcp]                              awareness nudge.
+2026-10-03T01:16:49.867Z [openbb-mcp]
+2026-10-03T01:16:49.867Z [openbb-mcp]
+2026-10-03T01:16:49.867Z [openbb-mcp] ╭──────────────────────────────────────────────────────────────────────────────╮
+2026-10-03T01:16:49.867Z [openbb-mcp] │                                                                              │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                                                                              │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                         ▄▀▀ ▄▀█ █▀▀ ▀█▀ █▀▄▀█ █▀▀ █▀█                        │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                         █▀  █▀█ ▄▄█  █  █ ▀ █ █▄▄ █▀▀                        │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                                                                              │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                                                                              │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                                                                              │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                                FastMCP 3.3.1                                 │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                            https://gofastmcp.com                             │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                                                                              │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                  🖥  Server:      OpenBB MCP, 3.3.1                           │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                  🚀 Deploy free: https://horizon.prefect.io                  │
+2026-10-03T01:16:49.867Z [openbb-mcp] │                                                                              │
+2026-10-03T01:16:49.867Z [openbb-mcp] ╰──────────────────────────────────────────────────────────────────────────────╯
+2026-10-03T01:16:49.867Z [openbb-mcp] ╭──────────────────────────────────────────────────────────────────────────────╮
+2026-10-03T01:16:49.868Z [openbb-mcp] │                         🎉 Update available: 4.0.10                          │
+2026-10-03T01:16:49.868Z [openbb-mcp] │                      Run: pip install --upgrade fastmcp                      │
+2026-10-03T01:16:49.868Z [openbb-mcp] ╰──────────────────────────────────────────────────────────────────────────────╯
+2026-10-03T01:16:49.868Z [openbb-mcp]
+2026-10-03T01:16:49.868Z [openbb-mcp]
+2026-10-03T01:16:49.869Z [openbb-mcp]                     INFO     Starting MCP server 'OpenBB MCP'   transport.py:301
+2026-10-03T01:16:49.869Z [openbb-mcp]                              with transport 'streamable-http'
+2026-10-03T01:16:49.869Z [openbb-mcp]                              on http://127.0.0.1:63304/mcp
+2026-10-03T01:16:50.504Z [openbb-mcp] INFO:     Started server process [30196]
+2026-10-03T01:16:50.504Z [openbb-mcp] INFO:     Waiting for application startup.
+2026-10-03T01:16:50.505Z [openbb-mcp] INFO:     Application startup complete.
+2026-10-03T01:16:50.505Z [openbb-mcp] INFO:     Uvicorn running on http://127.0.0.1:63304 (Press CTRL+C to quit)
+2026-10-03T01:16:50.644Z [openbb-mcp] subprocess healthy on 127.0.0.1:63304
+2026-10-03T01:17:21.729Z [vysted] Python sidecar did not come up on port 63303
+2026-10-03T01:17:21.896Z [sec-edgar-mcp] subprocess did not bind to 127.0.0.1:63305 within 45s x 2 attempts; treating as unavailable. /sec routes will 501. Check the bundled binary for a startup deadlock (Phase 8 finding UC1-sec-edgar-mcp-not-listening; Phase 9 residual: cold-boot bind latency — see BLOCKERS.md).
+2026-10-03T01:17:26.517Z [sidecar] 2026-10-03 06:47:26,517 INFO services.backtest_strategies: backtest_strategies: registered mean_reversion, trend_following, regime_aware, custom
+2026-10-03T01:17:26.517Z [sidecar] 2026-10-03 06:47:26,517 INFO services.agent_tools: agent_tools: registered v0.5.0 tools (price_data, fundamentals)
+2026-10-03T01:17:26.517Z [sidecar] 2026-10-03 06:47:26,517 INFO services.agent_tools: agent_tools: registered v0.6.0 domains: macro, sec, quant, earnings+analyst, screener, news, market_overview, resolve_symbol, compare_symbols, web_search, research, disclosures, backtest-custom
+2026-10-03T01:17:27.324Z [sidecar] 2026-10-03 06:47:27,324 INFO uvicorn.error: Started server process [30197]
+2026-10-03T01:17:27.324Z [sidecar] 2026-10-03 06:47:27,324 INFO uvicorn.error: Waiting for application startup.
+2026-10-03T01:17:27.329Z [sidecar] 2026-10-03 06:47:27,329 INFO mcp.server.streamable_http_manager: StreamableHTTP session manager started
+2026-10-03T01:17:27.380Z [sidecar] 2026-10-03 06:47:27,380 INFO uvicorn.error: Application startup complete.
+2026-10-03T01:17:27.387Z [sidecar] 2026-10-03 06:47:27,387 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:63303 (Press CTRL+C to quit)
+2026-10-03T01:17:27.761Z [sidecar] 2026-10-03 06:47:27,761 INFO services.fundamentals_warm: fundamentals warm: seeded 5891 india rows
+2026-10-03T01:17:27.807Z [openbb-mcp] INFO:     127.0.0.1:64598 - "POST /mcp HTTP/1.1" 200 OK
+2026-10-03T01:17:27.808Z [sidecar] 2026-10-03 06:47:27,808 INFO httpx: HTTP Request: POST http://127.0.0.1:63304/mcp "HTTP/1.1 200 OK"
+2026-10-03T01:17:27.808Z [sidecar] 2026-10-03 06:47:27,808 INFO mcp.client.streamable_http: Received session ID: 63a610264d74446d83340d7d62ebd41b
+2026-10-03T01:17:27.808Z [sidecar] 2026-10-03 06:47:27,808 INFO mcp.client.streamable_http: Negotiated protocol version: 2025-11-25
+2026-10-03T01:17:27.810Z [openbb-mcp] INFO:     127.0.0.1:64601 - "GET /mcp HTTP/1.1" 200 OK
+2026-10-03T01:17:27.811Z [openbb-mcp] INFO:     127.0.0.1:64600 - "POST /mcp HTTP/1.1" 202 Accepted
+2026-10-03T01:17:27.811Z [sidecar] 2026-10-03 06:47:27,811 INFO httpx: HTTP Request: GET http://127.0.0.1:63304/mcp "HTTP/1.1 200 OK"
+2026-10-03T01:17:27.811Z [sidecar] 2026-10-03 06:47:27,811 INFO httpx: HTTP Request: POST http://127.0.0.1:63304/mcp "HTTP/1.1 202 Accepted"
+2026-10-03T01:17:27.812Z [openbb-mcp] INFO:     127.0.0.1:64603 - "POST /mcp HTTP/1.1" 200 OK
+2026-10-03T01:17:27.813Z [sidecar] 2026-10-03 06:47:27,812 INFO httpx: HTTP Request: POST http://127.0.0.1:63304/mcp "HTTP/1.1 200 OK"
+2026-10-03T01:17:27.831Z [sidecar] 2026-10-03 06:47:27,831 INFO services.fundamentals_warm: fundamentals warm: bhavcopy EOD applied to 2923 NSE rows (trade date 2026-10-02)
+2026-10-03T01:17:27.981Z [sidecar] 2026-10-03 06:47:27,981 INFO services.fundamentals_warm: fundamentals warm: seed pack applied to 5050 rows (2026-07-08)
+2026-10-03T01:17:28.122Z [sidecar] 2026-10-03 06:47:28,122 INFO httpx: HTTP Request: GET http://127.0.0.1:8888/search?q=test&format=json "HTTP/1.1 200 OK"
+2026-10-03T01:17:28.302Z [sidecar] 2026-10-03 06:47:28,302 INFO httpx: HTTP Request: GET http://127.0.0.1:8888/search?q=test&format=json "HTTP/1.1 200 OK"
