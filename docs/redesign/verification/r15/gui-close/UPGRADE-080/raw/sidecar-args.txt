@@ -1,0 +1,2 @@
+  PID  PPID COMMAND
+68893 68876 /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-close/Applications/Vysted Terminal.app/Contents/MacOS/vysted-sidecar --port 53675 --data-dir /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-close-upgrade-run --cache-dir /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-close-upgrade-run
