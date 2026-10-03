@@ -558,12 +558,12 @@ function StatementTable({
       <h3 className="text-charcoal-200 border-charcoal-700 text-micro border-b px-3 py-2">
         {title}
       </h3>
-      {statement === null ? (
+      {statement === null || statement.periods.length === 0 ? (
         <EmptyState
           icon={FileSpreadsheet}
           dense
           headline={`${title} unavailable`}
-          hint="The provider returned no data for this statement."
+          hint={statement?.reason ?? "The provider returned no data for this statement."}
           className="pt-4"
         />
       ) : (

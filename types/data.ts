@@ -307,6 +307,8 @@ export interface FinancialStatement {
   provider: string;
   /** Expected periods the provider did not serve: listed in `periods`, null in every line. */
   gaps?: string[];
+  /** Why the statement is empty (e.g. no provider covers NSE Emerge statements); null when it has periods. */
+  reason?: string | null;
 }
 
 /** Income statement excerpt. */

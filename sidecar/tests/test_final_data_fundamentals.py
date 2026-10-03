@@ -179,3 +179,161 @@ def test_another_companys_bse_row_under_the_same_ticker_is_not_used(
     out = asyncio.run(correctness_gate.apply_witnesses(_served("ZEAL.NS")))
     assert out.market_cap is None
     assert out.shares_outstanding is None
+
+
+# --- R15-FINAL-005: NSE Emerge (SME) fundamentals from the exchange filings ----
+
+#: YASHOPTICS as NSE served it (live probe 2026-10-03, evidence
+#: fix-r1/data-fundamentals/final-005-yashoptics-filed-periods.txt).
+_YASH_FILED = FiledPeriods(
+    venue="nse",
+    basis="standalone",
+    periods=(
+        FiledPeriod(date(2025, 10, 1), date(2026, 3, 31), 306_140_000.0, 59_271_000.0, 2.39),
+        FiledPeriod(date(2025, 4, 1), date(2025, 9, 30), 233_758_000.0, 31_210_000.0, 1.26),
+        FiledPeriod(date(2024, 10, 1), date(2025, 3, 31), 237_077_000.0, 50_384_000.0, 2.03),
+    ),
+)
+
+
+def _sme_lanes(monkeypatch: pytest.MonkeyPatch, filed: dict[str, FiledPeriods]) -> None:
+    """Every fundamentals provider not_found, empty statements, a live quote,
+    and the exchange lane answering ``filed`` per listing."""
+    from datetime import UTC, datetime
+
+    from models.fundamentals import IncomeStatement
+    from models.market import Quote
+    from services import exchange_financials, provider_registry, yfinance_provider
+    from services.errors import ProviderError
+    from services.provider_registry import ProviderDeclaration
+
+    def not_found(symbol: str) -> None:
+        raise ProviderError(f"yfinance has no instrument data for {symbol!r}", kind="not_found")
+
+    def quote(symbol: str) -> Quote:
+        return Quote(
+            symbol=yfinance_provider._yahoo_symbol(symbol),
+            price=135.0,
+            change=None,
+            change_percent=None,
+            currency="INR",
+            timestamp=datetime.now(UTC),
+            provider="nse_direct",
+        )
+
+    def income(symbol: str, _period: str) -> IncomeStatement:
+        return IncomeStatement(
+            symbol=yfinance_provider._yahoo_symbol(symbol), periods=[], lines=[], provider="yf"
+        )
+
+    async def filed_periods(listing: str) -> FiledPeriods | None:
+        return filed.get(listing)
+
+    monkeypatch.setattr(
+        provider_registry,
+        "_PROVIDERS",
+        (
+            ProviderDeclaration(
+                id="yf",
+                rank=10,
+                serves={"fundamentals": not_found, "quote": quote, "income_statement": income},
+            ),
+        ),
+    )
+    monkeypatch.setattr(exchange_financials, "get_filed_periods", filed_periods)
+
+
+def _route(monkeypatch: pytest.MonkeyPatch, symbol: str):  # noqa: ANN202
+    """GET /fundamentals/<symbol> (IN) with the route's other network reads stubbed."""
+    from fastapi.testclient import TestClient
+
+    from app import create_app
+    from routers import fundamentals as route
+    from services import exchange_financials
+
+    async def none(*_args: object) -> None:
+        return None
+
+    async def same(f: Fundamentals) -> Fundamentals:
+        return f
+
+    monkeypatch.setattr(exchange_financials, "filed_basis", none)
+    monkeypatch.setattr(route, "_identity_note", none)
+    monkeypatch.setattr(correctness_gate, "apply_witnesses", same)
+    return TestClient(create_app()).get(
+        f"/fundamentals/{symbol}", headers={"X-Vysted-Region": "IN"}
+    )
+
+
+def test_yashoptics_fundamentals_come_from_the_nse_filings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _sme_lanes(monkeypatch, {"YASHOPTICS-SM.NS": _YASH_FILED})
+    resp = _route(monkeypatch, "YASHOPTICS")
+
+    assert resp.status_code == 200, resp.text
+    f = resp.json()
+    assert f["symbol"] == "YASHOPTICS-SM.NS"
+    assert f["revenue_ttm"] == pytest.approx(539_898_000.0)  # 53.99 Cr, screener FY26
+    assert f["net_income_ttm"] == pytest.approx(90_481_000.0)
+    assert f["eps"] == pytest.approx(3.65)
+    assert f["pe_ratio"] == pytest.approx(135.0 / 3.65)
+    meta = f["field_meta"]
+    assert meta["revenue_ttm"]["provider"] == "nse"
+    assert "sum of 2 filed half-years" in meta["revenue_ttm"]["label"]
+    assert meta["pe_ratio"]["provider"] == "derived"
+
+
+def test_an_sme_listing_with_no_filings_says_it_is_not_covered(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _sme_lanes(monkeypatch, {})
+    resp = _route(monkeypatch, "SUMAX")
+    assert resp.status_code == 404
+    detail = resp.json()["detail"]
+    assert "No data provider covers fundamentals for this NSE Emerge (SME) listing" in detail
+    assert "no results filing" in detail
+    assert "check the symbol" not in detail
+
+
+def test_the_registry_crawler_path_never_walks_the_filings(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The screener/warm crawlers read ``get_fundamentals``: it states the
+    coverage gap but never hits the exchange lane (one NSE walk per symbol)."""
+    from services import exchange_financials, provider_registry
+    from services.errors import ProviderError, provider_error_response
+
+    _sme_lanes(monkeypatch, {"YASHOPTICS-SM.NS": _YASH_FILED})
+
+    async def boom(_listing: str) -> None:
+        raise AssertionError("the exchange lane rode the crawler path")
+
+    monkeypatch.setattr(exchange_financials, "get_filed_periods", boom)
+    with pytest.raises(ProviderError) as caught:
+        asyncio.run(provider_registry.get_fundamentals("YASHOPTICS.NS", region="IN"))
+    status, body = provider_error_response(caught.value)
+    assert status == 404
+    assert "NSE Emerge (SME) listing" in body["detail"]
+    assert "check the symbol" not in body["detail"]
+
+
+def test_an_unknown_symbol_still_reads_check_the_symbol(monkeypatch: pytest.MonkeyPatch) -> None:
+    from services import provider_registry
+    from services.errors import ProviderError, provider_error_response
+
+    _sme_lanes(monkeypatch, {})
+    with pytest.raises(ProviderError) as caught:
+        asyncio.run(provider_registry.get_fundamentals("ZZQXNOTREAL.NS", region="IN"))
+    assert "check the symbol" in provider_error_response(caught.value)[1]["detail"]
+
+
+def test_an_empty_sme_statement_carries_the_not_covered_reason(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from services import provider_registry
+
+    _sme_lanes(monkeypatch, {})
+    statement = asyncio.run(provider_registry.get_income_statement("SUMAX.NS", region="IN"))
+    assert statement.periods == []
+    assert "NSE Emerge (SME)" in (statement.reason or "")
