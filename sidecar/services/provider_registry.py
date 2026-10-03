@@ -613,8 +613,8 @@ async def get_fundamentals_from_filings(symbol: str, not_found: ProviderError) -
 async def _fundamentals_from_filings(symbol: str, listing: str, region: str) -> Fundamentals | None:
     """Fundamentals built from the exchange-filed results alone (R15-FINAL-005):
     revenue / net income / EPS TTM and the filed growth through the same
-    overlay the witnesses run, priced by the quote lane so the P/E is derived.
-    ``None`` when the filings give no trailing figure or growth at all."""
+    overlay the witnesses run, priced by the quote lane so the P/E and market
+    cap are derived. ``None`` only when no filing could be read."""
     filed = await exchange_financials.get_filed_periods(listing)
     if filed is None:
         return None
@@ -636,9 +636,9 @@ async def _fundamentals_from_filings(symbol: str, listing: str, region: str) -> 
         provider=filed.venue,
         field_meta=meta,
     )
-    served = correctness_gate.overlay_filed_periods(shell, filed)
-    filed_fields = ("revenue_ttm", "net_income_ttm", "eps", "revenue_growth", "earnings_growth")
-    return served if any(getattr(served, name) is not None for name in filed_fields) else None
+    # Served even when the filings size nothing: each null headline field then
+    # carries the typed reason the overlay states (R15-FINAL-005 round 2).
+    return correctness_gate.overlay_filed_periods(shell, filed)
 
 
 #: A period end this close to the expected one is that period (fiscal calendars

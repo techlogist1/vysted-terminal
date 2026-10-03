@@ -337,3 +337,168 @@ def test_an_empty_sme_statement_carries_the_not_covered_reason(
     statement = asyncio.run(provider_registry.get_income_statement("SUMAX.NS", region="IN"))
     assert statement.periods == []
     assert "NSE Emerge (SME)" in (statement.reason or "")
+
+
+# --- R15-FINAL-005 round 2: SME filers whose Sep/Mar filing is half-year only ---
+
+#: VOLERCAR as NSE served it (live probe 2026-10-03, round 2): quarterly results
+#: in Jun/Dec, but the Sep-25 and Mar-26 Integrated Filings carry only the
+#: 6-month context, so no four filed quarters or two filed halves end on
+#: 2026-06-30 and round 1's trailing chain came back empty.
+_VOLERCAR_FILED = FiledPeriods(
+    venue="nse",
+    basis="standalone",
+    periods=(
+        FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 142_105_000.0, 10_954_000.0, 0.98),
+        FiledPeriod(date(2025, 10, 1), date(2026, 3, 31), 266_055_000.0, 13_384_000.0, 1.2),
+        FiledPeriod(date(2025, 10, 1), date(2025, 12, 31), 126_540_000.0, 6_417_000.0, 0.58),
+        FiledPeriod(date(2025, 4, 1), date(2025, 9, 30), 262_386_000.0, 21_322_000.0, 1.91),
+        FiledPeriod(date(2025, 4, 1), date(2025, 6, 30), 123_519_000.0, 12_704_000.0, 1.14),
+    ),
+)
+#: GANESHIN consolidated (live probe 2026-10-03): consolidated filings start at
+#: Sep-25, so Apr-Jun 2025 has no consolidated quarter and no chain reaches
+#: 2026-06-30; the two FY26 halves are the newest complete year.
+_GANESHIN_FILED = FiledPeriods(
+    venue="nse",
+    basis="consolidated",
+    periods=(
+        FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 3_787_661_000.0, 297_144_000.0, 6.96),
+        FiledPeriod(date(2025, 10, 1), date(2026, 3, 31), 4_449_132_000.0, 434_998_000.0, 10.18),
+        FiledPeriod(date(2025, 10, 1), date(2025, 12, 31), 2_153_286_000.0, 190_413_000.0, 4.46),
+        FiledPeriod(date(2025, 4, 1), date(2025, 9, 30), 3_906_324_000.0, 326_729_000.0, 7.65),
+    ),
+)
+_VOLERCAR_TTM_REVENUE = 142_105_000.0 + 266_055_000.0 + (262_386_000.0 - 123_519_000.0)
+_VOLERCAR_TTM_INCOME = 10_954_000.0 + 13_384_000.0 + (21_322_000.0 - 12_704_000.0)
+_VOLERCAR_TTM_EPS = 0.98 + 1.2 + (21_322_000.0 - 12_704_000.0) * 1.91 / 21_322_000.0
+_HEADLINE = ("revenue_ttm", "net_income_ttm", "eps", "pe_ratio", "market_cap")
+
+
+def test_volercar_ttm_is_built_from_its_half_year_less_the_filed_quarter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _sme_lanes(monkeypatch, {"VOLERCAR-SM.NS": _VOLERCAR_FILED})
+    resp = _route(monkeypatch, "VOLERCAR")
+
+    assert resp.status_code == 200, resp.text
+    f = resp.json()
+    assert f["revenue_ttm"] == pytest.approx(_VOLERCAR_TTM_REVENUE)  # 54.70 Cr
+    assert f["net_income_ttm"] == pytest.approx(_VOLERCAR_TTM_INCOME)
+    assert f["eps"] == pytest.approx(_VOLERCAR_TTM_EPS)
+    assert f["pe_ratio"] == pytest.approx(135.0 / _VOLERCAR_TTM_EPS)
+    shares = _VOLERCAR_TTM_INCOME / _VOLERCAR_TTM_EPS
+    assert f["market_cap"] == pytest.approx(135.0 * shares)
+    meta = f["field_meta"]
+    revenue = meta["revenue_ttm"]
+    assert (revenue["provider"], revenue["as_of"]) == ("nse", "2026-06-30")
+    assert (
+        "2025-07-01..2025-09-30 derived as the filed half-year 2025-04-01..2025-09-30"
+        in (revenue["label"])
+    )
+    assert meta["pe_ratio"]["provider"] == "derived"
+    assert meta["market_cap"]["provider"] == "derived"
+    assert "imply" in meta["market_cap"]["basis_note"]
+
+
+def test_the_derived_fill_never_replaces_a_provider_size() -> None:
+    """The witness path (Yahoo answered a name+price shell, stamping every null
+    'provider did not publish this field') fills VOLERCAR from the filings;
+    a main-board listing whose provider sized it keeps the provider's figure
+    and its quarterly-gap cadence label (R15-LEAD-004 unchanged)."""
+    from models.fundamentals import FieldMeta
+
+    generic = FieldMeta(
+        status="unavailable", provider="yfinance", reason="provider did not publish this field"
+    )
+    shell = Fundamentals(
+        symbol="VOLERCAR-SM.NS",
+        currency="INR",
+        ratio_price=216.3,
+        provider="yfinance",
+        field_meta={name: generic for name in _HEADLINE},
+    )
+    served = correctness_gate.overlay_filed_periods(shell, _VOLERCAR_FILED)
+    assert served.revenue_ttm == pytest.approx(_VOLERCAR_TTM_REVENUE)
+    assert served.pe_ratio == pytest.approx(216.3 / _VOLERCAR_TTM_EPS)
+    assert served.field_meta is not None
+    assert all(served.field_meta[name].status == "ok" for name in _HEADLINE)
+
+    sized = Fundamentals(symbol="NDTV.NS", currency="INR", revenue_ttm=4.0e9, provider="yfinance")
+    kept = correctness_gate.overlay_filed_periods(sized, _VOLERCAR_FILED)
+    assert kept.revenue_ttm == 4.0e9
+    assert _VOLERCAR_FILED.cadence() == "quarterly-gap"
+
+
+def test_ganeshin_serves_the_newest_complete_filed_year_stating_its_end(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _sme_lanes(monkeypatch, {"GANESHIN-SM.NS": _GANESHIN_FILED})
+    resp = _route(monkeypatch, "GANESHIN")
+
+    assert resp.status_code == 200, resp.text
+    f = resp.json()
+    assert f["revenue_ttm"] == pytest.approx(8_355_456_000.0)  # FY26 consolidated
+    assert f["net_income_ttm"] == pytest.approx(761_727_000.0)
+    assert f["eps"] == pytest.approx(17.83)
+    revenue = f["field_meta"]["revenue_ttm"]
+    assert revenue["as_of"] == "2026-03-31"
+    assert "sum of 2 filed half-years to 2026-03-31" in revenue["label"]
+
+
+def test_too_few_filed_periods_state_a_typed_reason_on_every_headline_field(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A fresh SME listing with one filed quarter: 200 with the price and a
+    typed reason on every null headline field, never a silent null or a 404."""
+    one = FiledPeriods(
+        venue="nse",
+        basis="standalone",
+        periods=(FiledPeriod(date(2026, 4, 1), date(2026, 6, 30), 50_000_000.0, 4_000_000.0, 0.5),),
+    )
+    _sme_lanes(monkeypatch, {"FRESHSME-SM.NS": one})
+    from services import provider_registry
+
+    monkeypatch.setattr(provider_registry, "_is_known_india_listing", lambda _listing: True)
+    resp = _route(monkeypatch, "FRESHSME-SM.NS")
+
+    assert resp.status_code == 200, resp.text
+    f = resp.json()
+    for name in _HEADLINE:
+        assert f[name] is None
+        meta = f["field_meta"][name]
+        assert meta["status"] == "unavailable"
+        assert "not published by the data provider" in meta["reason"]
+        assert "check the symbol" not in meta["reason"]
+    assert "insufficient filed periods" in f["field_meta"]["revenue_ttm"]["reason"]
+    assert "no trailing EPS" in f["field_meta"]["pe_ratio"]["reason"]
+
+
+def test_an_unread_filing_states_why_each_headline_field_is_null(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The witness path with no filing read (SUMAX, QUALIANCE): every null
+    headline field names that, over the provider's generic stamp."""
+    from models.fundamentals import FieldMeta
+    from services import exchange_financials, market_cap_witness
+
+    async def none(*_args: object) -> None:
+        return None
+
+    monkeypatch.setattr(exchange_financials, "get_filed_periods", none)
+    monkeypatch.setattr(market_cap_witness, "get_market_cap_witness", none)
+    generic = FieldMeta(
+        status="unavailable", provider="nse_direct", reason="provider did not publish this field"
+    )
+    shell = Fundamentals(
+        symbol="SUMAX-SM.NS",
+        currency="INR",
+        ratio_price=50.0,
+        provider="nse_direct",
+        field_meta={"revenue_ttm": generic},
+    )
+    served = asyncio.run(correctness_gate.apply_witnesses(shell))
+    assert served.field_meta is not None
+    for name in _HEADLINE:
+        reason = served.field_meta[name].reason or ""
+        assert "no exchange-filed results could be read" in reason, name

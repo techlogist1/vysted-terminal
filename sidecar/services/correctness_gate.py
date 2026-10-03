@@ -54,6 +54,7 @@ from services.research.semantics import (
     _GROWTH_RELATIVE_TOLERANCE,
     _RANGE_TOLERANCE,
 )
+from services.witness import is_india_listing
 
 logger = logging.getLogger(__name__)
 
@@ -756,7 +757,12 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
     old_basis_is_inr = old_basis is None or old_basis == "INR"
 
     def serve(
-        name: str, value: float, label: str, disagrees: bool, basis_note: str | None = None
+        name: str,
+        value: float,
+        label: str,
+        disagrees: bool,
+        basis_note: str | None = None,
+        when: str = as_of,
     ) -> None:
         served = getattr(f, name)
         reason = basis_note
@@ -774,13 +780,24 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
             )
         updates[name] = value
         meta[name] = FieldMeta(
-            status="ok", provider=filed.venue, as_of=as_of, reason=reason, label=label
+            status="ok", provider=filed.venue, as_of=when, reason=reason, label=label
         )
 
     trail = filed.trailing()
+    if trail is None and all(getattr(f, name) is None for name, _ in _FILED_SIZES):
+        # No provider size to keep (an NSE Emerge listing): fill from a derived
+        # quarter or the newest complete earlier year, stating which (R15-FINAL-005).
+        trail = filed.trailing(best_effort=True)
     if trail is not None:
-        kind = "quarters" if all(p.months == 3 for p in trail) else "half-years"
-        label = f"{filed.basis}, sum of {len(trail)} filed {kind} to {as_of}"
+        size_as_of = trail[0].end.isoformat()
+        spans = {p.months for p in trail}
+        kind = "quarters" if spans == {3} else "half-years" if spans == {6} else "periods"
+        derived = [p.derived for p in trail if p.derived]
+        label = (
+            f"{filed.basis}, sum of {len(trail)} {kind} to {size_as_of}; " + "; ".join(derived)
+            if derived
+            else f"{filed.basis}, sum of {len(trail)} filed {kind} to {size_as_of}"
+        )
         for name, attr in _FILED_SIZES:
             values = [getattr(p, attr) for p in trail]
             if any(v is None for v in values):
@@ -803,9 +820,10 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
                     _relative_divergence(served, total) > _REVENUE_STATEMENT_DIVERGENCE
                 )
                 basis_note = None
-            serve(name, total, label, off, basis_note)
+            serve(name, total, label, off, basis_note, size_as_of)
         if "eps" in updates:
-            _rebase_pe_on_filed_eps(f, updates["eps"], as_of, meta, updates)
+            _rebase_pe_on_filed_eps(f, updates["eps"], size_as_of, meta, updates)
+        _fill_market_cap_from_filed(f, updates, meta, size_as_of)
         if "revenue_ttm" in updates or "net_income_ttm" in updates:
             updates["financial_currency"] = None if f.currency == "INR" else "INR"
             if not old_basis_is_inr:
@@ -839,10 +857,96 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
             served = getattr(f, name)
             serve(name, growth, label, served is not None and _growth_disagrees(served, growth))
             updates["growth_basis"] = "mrq_yoy"
-    if not updates:
+    _state_headline_gaps(f, updates, meta, filed, trail)
+    if not updates and meta == (f.field_meta or {}):
         return f
     updates["field_meta"] = meta
     return f.model_copy(update=updates)
+
+
+def _fill_market_cap_from_filed(
+    f: Fundamentals, updates: dict[str, Any], meta: dict[str, FieldMeta], as_of: str
+) -> None:
+    """A market cap no provider or master serves, on the share count the filed
+    TTM net income / TTM EPS imply (R15-FINAL-005)."""
+    income, eps, price = updates.get("net_income_ttm"), updates.get("eps"), f.ratio_price
+    if f.market_cap is not None or not income or not eps or not price or price <= 0:
+        return
+    shares = income / eps
+    if shares <= 0:
+        return
+    # ponytail: a weighted-average implied share count, drifts after a fresh
+    # issue; the filed paid-up capital / face value is the upgrade (VOLERCAR
+    # files a face value of 0, so it needs this fallback anyway).
+    updates["market_cap"] = price * shares
+    meta["market_cap"] = FieldMeta(
+        status="ok",
+        provider="derived",
+        as_of=as_of,
+        basis_note=(
+            f"ratio price x the share count the exchange-filed TTM net income / TTM EPS "
+            f"imply ({price:,.4g} x {shares:,.0f})"
+        ),
+    )
+
+
+#: The fields a fundamentals card leads with: none of them is ever a silent null.
+_HEADLINE_FIELDS = ("revenue_ttm", "net_income_ttm", "eps", "pe_ratio", "market_cap")
+
+
+def _state_headline_gaps(
+    f: Fundamentals,
+    updates: dict[str, Any],
+    meta: dict[str, FieldMeta],
+    filed: exchange_financials.FiledPeriods | None,
+    trail: tuple[exchange_financials.FiledPeriod, ...] | None,
+) -> None:
+    """Give every headline field left null with no reason (or only the
+    provider's generic one) a typed reason naming what the exchange filings
+    could and could not supply (R15-FINAL-005). A withheld or flagged field
+    keeps its own reason."""
+    venue = filed.venue.upper() if filed is not None else "exchange"
+    if filed is None:
+        sizes = "no exchange-filed results could be read for this listing"
+    elif trail is None:
+        sizes = (
+            f"the {venue} filings (newest period to {filed.periods[0].end}) do not cover a "
+            "trailing 12 months — insufficient filed periods"
+        )
+    else:
+        sizes = f"the {venue} filings do not report it for every period of the trailing year"
+    eps = updates.get("eps", f.eps)
+    income = updates.get("net_income_ttm", f.net_income_ttm)
+    reasons = {
+        "revenue_ttm": sizes,
+        "net_income_ttm": sizes,
+        "eps": sizes,
+        "pe_ratio": (
+            f"no trailing EPS to derive it from ({sizes})"
+            if eps is None
+            else f"the trailing EPS {eps:,.2f} is not positive — no trailing P/E"
+            if eps <= 0
+            else "no price to derive it from"
+        ),
+        "market_cap": (
+            f"no trailing net income / EPS to imply a share count from ({sizes})"
+            if eps is None or income is None
+            else "no price to derive it from"
+            if not f.ratio_price
+            else "the trailing net income / EPS imply no positive share count"
+        ),
+    }
+    for name in _HEADLINE_FIELDS:
+        current = meta.get(name)
+        if updates.get(name, getattr(f, name)) is not None:
+            continue
+        if current is not None and current.status != "unavailable":
+            continue
+        meta[name] = FieldMeta(
+            status="unavailable",
+            provider=filed.venue if filed is not None else f.provider,
+            reason=f"not published by the data provider; {reasons[name]}",
+        )
 
 
 async def apply_exchange_financials(f: Fundamentals) -> Fundamentals:
@@ -1157,6 +1261,11 @@ async def apply_witnesses(f: Fundamentals) -> Fundamentals:
         f = reconcile_ownership(f, exchange)
     if filed is not None:
         f = overlay_filed_periods(f, filed)
+    elif is_india_listing(f.symbol) and f.symbol.strip().upper().endswith("-SM.NS"):
+        # An NSE Emerge listing no provider sizes: say no filing was read.
+        meta = dict(f.field_meta or {})
+        _state_headline_gaps(f, {}, meta, None, None)
+        f = f.model_copy(update={"field_meta": meta})
     revenue_meta = (f.field_meta or {}).get("revenue_ttm")
     exchange_revenue = filed is not None and revenue_meta is not None
     exchange_revenue = exchange_revenue and revenue_meta.provider == filed.venue
