@@ -55,6 +55,20 @@ export interface HoldingInput {
   note?: string;
 }
 
+/**
+ * The currency a holding is priced in when no live quote has said so: a crypto
+ * pair's quote side (`BTC/USDT` -> `USDT`), an NSE/BSE suffix's INR, else
+ * `null` (unknown). Never the session region, and never the holding's stored
+ * region either: AAPL added under IN is still a USD listing (R15-FINAL-007).
+ */
+export function listingCurrency(symbol: string, assetClass: string): string | null {
+  const upper = symbol.trim().toUpperCase();
+  if (assetClass === "crypto" && upper.includes("/")) {
+    return upper.split("/")[1] || null;
+  }
+  return /\.(NS|BO)$/.test(upper) ? "INR" : null;
+}
+
 const DEFAULT_PORTFOLIO_NAME = "Portfolio";
 /** Stable id for the seed portfolio so a fresh blob restores predictably. */
 const DEFAULT_PORTFOLIO_ID = "default";

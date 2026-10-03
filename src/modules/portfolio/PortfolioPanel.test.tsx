@@ -174,6 +174,20 @@ describe("PortfolioPanel", () => {
     expect(new Set(payload.holdings.map((h) => h.id)).size).toBe(2);
   });
 
+  it("R15-FINAL-007: an unquoted holding publishes its listing currency, never the region's", async () => {
+    useSettingsStore.setState({ region: "IN" });
+    render(<PortfolioPanel />);
+    await addHolding("aapl", "2", "190");
+    await addHolding("reliance.ns", "5", "1263");
+    const payload = usePanelContextBus.getState().lastEventBySource["portfolio"]?.payload as {
+      holdings: { symbol: string; currency: string | null }[];
+    };
+    expect(payload.holdings.map((h) => [h.symbol, h.currency])).toEqual([
+      ["AAPL", null],
+      ["RELIANCE.NS", "INR"],
+    ]);
+  });
+
   it("R15-UI-005: an all-unresolved portfolio publishes totalValue null, never 0, and never fakes concentration/P&L", async () => {
     mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 1, missing: [] });
     render(<PortfolioPanel />);

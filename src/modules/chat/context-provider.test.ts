@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { usePanelContextBus } from "@/store/panel-context";
 import { usePortfoliosStore } from "@/store/portfolios";
+import { useSettingsStore } from "@/store/settings";
 import type { PanelContextEvent } from "../../../types/panel-context";
 
 import { useNotesStore } from "@/store/notes";
@@ -74,7 +75,7 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
         quantity: 100,
         costBasis: 150,
         assetClass: "equity",
-        currency: "INR", // no currency on the payload -> region default (IN)
+        currency: null, // no currency on the payload, bare US ticker -> unknown, never the region's (R15-FINAL-007)
         marketValue: 19_000,
         pnl: 4_000,
       },
@@ -116,7 +117,7 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
         quantity: 10,
         costBasis: 5,
         assetClass: "equity",
-        currency: "INR",
+        currency: null, // unknown listing currency, never the region's (R15-FINAL-007)
         marketValue: null,
         pnl: null,
       },
@@ -151,7 +152,7 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
     const store = usePortfoliosStore.getState();
     const active = store.portfolios.find((p) => p.id === store.activeId)!;
     store.addHolding(active.id, {
-      symbol: "RELIANCE",
+      symbol: "RELIANCE.NS",
       quantity: 5,
       costBasis: 1263,
       assetClass: "equity",
@@ -164,7 +165,7 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
       // fabricated 0 (E3/E6).
       expect(portfolio?.totalValue).toBeNull();
       expect(portfolio?.holdings[0]).toMatchObject({
-        symbol: "RELIANCE",
+        symbol: "RELIANCE.NS",
         quantity: 5,
         costBasis: 1263,
         currency: "INR",
@@ -200,7 +201,7 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
         quantity: 2,
         costBasis: 300,
         assetClass: "equity",
-        currency: "INR",
+        currency: null,
         marketValue: null,
         pnl: null,
       },
@@ -221,17 +222,54 @@ describe("captureTerminalState — portfolio holdings (FR-110/111, SC-024)", () 
     usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
 
     // Store-fallback path: panel never published -> the store fallback still
-    // stamps a currency (region default, never undefined/guessed by the model).
+    // stamps the listing's currency (never undefined/guessed by the model).
     const store = usePortfoliosStore.getState();
     const active = store.portfolios.find((p) => p.id === store.activeId)!;
     store.addHolding(active.id, {
-      symbol: "INFY",
+      symbol: "INFY.NS",
       quantity: 20,
       costBasis: 1500,
       assetClass: "equity",
     });
     try {
       expect(captureTerminalState().portfolio?.holdings[0]?.currency).toBe("INR");
+    } finally {
+      usePortfoliosStore.getState().setAll([], undefined);
+    }
+  });
+
+  it("R15-FINAL-007: the closed-panel fallback takes each holding's listing currency, never the session region's", () => {
+    useSettingsStore.setState({ region: "IN" });
+    const store = usePortfoliosStore.getState();
+    const active = store.portfolios.find((p) => p.id === store.activeId)!;
+    store.addHolding(active.id, {
+      symbol: "RELIANCE.NS",
+      quantity: 5,
+      costBasis: 1263,
+      assetClass: "equity",
+    });
+    store.addHolding(active.id, {
+      symbol: "AAPL",
+      quantity: 2,
+      costBasis: 190,
+      assetClass: "equity",
+    });
+    store.addHolding(active.id, {
+      symbol: "BTC/USDT",
+      quantity: 0.1,
+      costBasis: 60_000,
+      assetClass: "crypto",
+    });
+    try {
+      const currencies = captureTerminalState().portfolio?.holdings.map((h) => [
+        h.symbol,
+        h.currency,
+      ]);
+      expect(currencies).toEqual([
+        ["RELIANCE.NS", "INR"],
+        ["AAPL", null],
+        ["BTC/USDT", "USDT"],
+      ]);
     } finally {
       usePortfoliosStore.getState().setAll([], undefined);
     }

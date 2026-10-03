@@ -20,15 +20,14 @@ import {
   instrumentCurrency,
 } from "@/lib/format";
 import { useMarketSession } from "@/lib/market-session";
-import { regionConfig } from "@/lib/region";
 import { useContainerWidth } from "@/lib/use-container-width";
 import { usePanelContextBus } from "@/store/panel-context";
-import { useSettingsStore } from "@/store/settings";
 import { assetClassOf } from "@/store/symbols";
 import {
   type AssetClass,
   type Holding,
   type HoldingInput,
+  listingCurrency,
   usePortfoliosStore,
   validateHolding,
 } from "@/store/portfolios";
@@ -468,13 +467,9 @@ export function PortfolioPanel() {
         costBasis: position.costBasis,
         assetClass: position.assetClass,
         // R15-AGENT-091: the tracked position's currency, so the agent never
-        // guesses one — a resolved quote's currency, else the pair's quote
-        // side for an unresolved crypto lot, else the region default (the
-        // same fallback chain the form/table money cells use).
-        currency:
-          quote?.currency ??
-          pairCurrency(position.symbol) ??
-          regionConfig(useSettingsStore.getState().region).currency,
+        // guesses one — a resolved quote's currency, else the listing's own,
+        // else null (unknown), never the session region's (R15-FINAL-007).
+        currency: quote?.currency ?? listingCurrency(position.symbol, position.assetClass),
         marketValue: marketValue ?? null,
         pnl: pnl ?? null,
       })),
