@@ -92,6 +92,17 @@ _STEPS = (schema_version.statements(";".join((_DDL, _INDEX_DDL, _META_DDL))),)
 #: The data-dir children a pre-upgrade backup never copies.
 _BACKUP_EXCLUDES = frozenset({"backups", "logs"})
 
+#: The data-dir children holding user data: the user stores and the saved dirs.
+_USER_DATA = (
+    "portfolio.db",
+    "custom_agents.db",
+    "delegate_runs.db",
+    "plugins.db",
+    "workflows.db",
+    "workspaces",
+    "backtests",
+)
+
 logger = logging.getLogger(__name__)
 
 _lock = asyncio.Lock()
@@ -126,7 +137,9 @@ async def ensure_build(version: str) -> bool:
     after the upgrade. The lifespan calls this once at boot with the app
     version, before any other store opens its database, so when a previous
     build is recorded the data dir is first copied as that build left it
-    (R15-LIFECYCLE-024). Returns ``True`` when the cache was cleared.
+    (R15-LIFECYCLE-024). With no build recorded, a data dir already holding
+    user data (a build from before the meta row) is copied as
+    ``unversioned-<date>``. Returns ``True`` when the cache was cleared.
     """
 
     def switch(conn: sqlite3.Connection) -> tuple[bool, Any]:
@@ -136,8 +149,12 @@ async def ensure_build(version: str) -> bool:
         if row is not None:
             conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
             _backup_data_dir(row[0])
-        elif (legacy := _legacy_build()) is not None and legacy != version:
-            _backup_data_dir(legacy)
+        elif (legacy := _legacy_build()) is not None:
+            if legacy != version:
+                _backup_data_dir(legacy)
+        elif _holds_user_data():
+            # A build from before the meta row recorded nothing to name the backup by.
+            _backup_data_dir(f"unversioned-{time.strftime('%Y-%m-%d')}")
         conn.execute("DELETE FROM cache")
         conn.execute(
             "INSERT INTO meta(key, value) VALUES('build', ?) "
@@ -186,6 +203,16 @@ def _backup_data_dir(old_build: str) -> None:
         return
     logger.info("data_cache: data dir backed up to %s before the upgrade", target)
     _prune_old_backups(target.parent)
+
+
+def _holds_user_data() -> bool:
+    """Whether the data dir holds a user store or a non-empty saved dir."""
+    data_dir = get_data_dir()
+    for name in _USER_DATA:
+        path = data_dir / name
+        if path.is_file() or (path.is_dir() and any(path.iterdir())):
+            return True
+    return False
 
 
 def _legacy_build() -> str | None:

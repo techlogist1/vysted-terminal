@@ -215,15 +215,15 @@ def test_a_failed_step_rolls_back_to_the_last_completed_version(tmp_path: Path) 
 async def test_a_build_change_backs_the_data_dir_up_once_and_the_same_build_never(
     tmp_path: Path,
 ) -> None:
+    data_cache.reset_for_tests(tmp_path / data_cache.DB_FILENAME)
+    await data_cache.ensure_build("0.8.0")  # first boot of an empty data dir: nothing to back up
+    assert not (tmp_path / "backups").exists()
+
     (tmp_path / "workflows.db").write_bytes(b"old build's workflows")
     (tmp_path / "workspaces").mkdir()
     (tmp_path / "workspaces" / "__autosave__.vysted-workspace").write_text("{}", encoding="utf-8")
     (tmp_path / "logs").mkdir()
     (tmp_path / "logs" / "vysted.log").write_text("log", encoding="utf-8")
-    data_cache.reset_for_tests(tmp_path / data_cache.DB_FILENAME)
-
-    await data_cache.ensure_build("0.8.0")  # first boot: nothing to back up
-    assert not (tmp_path / "backups").exists()
 
     await data_cache.ensure_build("0.8.0")
     assert not (tmp_path / "backups").exists()
@@ -242,6 +242,44 @@ async def test_a_build_change_backs_the_data_dir_up_once_and_the_same_build_neve
 
     await data_cache.ensure_build("0.9.0")
     assert [p.name for p in backups.iterdir()] == ["0.8.0"]
+
+
+@pytest.mark.asyncio
+async def test_a_pre_meta_data_dir_is_backed_up_on_the_first_boot_only(tmp_path: Path) -> None:
+    """R15-LIFECYCLE-024 case a: a released build from before the meta row left
+    user stores and a cache with no build recorded; the first boot backs it up."""
+    (tmp_path / portfolio_db.DB_FILENAME).write_bytes(b"positions")
+    (tmp_path / "workspaces").mkdir()
+    (tmp_path / "workspaces" / "__autosave__.vysted-workspace").write_text("{}", encoding="utf-8")
+    _write(
+        tmp_path / data_cache.DB_FILENAME,
+        "CREATE TABLE cache (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at REAL NOT "
+        "NULL); INSERT INTO cache VALUES ('old', '1', 1)",
+    )
+    data_cache.reset_for_tests(tmp_path / data_cache.DB_FILENAME)
+
+    assert await data_cache.ensure_build("0.9.0") is True
+
+    backups = tmp_path / "backups"
+    [copy] = list(backups.iterdir())
+    assert copy.name.startswith("unversioned-")
+    assert (copy / portfolio_db.DB_FILENAME).read_bytes() == b"positions"
+    assert (copy / "workspaces" / "__autosave__.vysted-workspace").exists()
+
+    assert await data_cache.ensure_build("0.9.0") is False
+    assert list(backups.iterdir()) == [copy]
+
+
+@pytest.mark.asyncio
+async def test_a_first_boot_with_only_empty_saved_dirs_takes_no_backup(tmp_path: Path) -> None:
+    (tmp_path / "workspaces").mkdir()
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "logs" / "vysted.log").write_text("log", encoding="utf-8")
+    data_cache.reset_for_tests(tmp_path / data_cache.DB_FILENAME)
+
+    await data_cache.ensure_build("0.9.0")
+
+    assert not (tmp_path / "backups").exists()
 
 
 def _quarantined(db: Path) -> list[Path]:
