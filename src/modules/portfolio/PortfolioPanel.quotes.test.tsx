@@ -164,4 +164,48 @@ describe("PortfolioPanel live quotes (real client)", () => {
     expect(requestsFor("TCS").length).toBeGreaterThanOrEqual(2);
     expect(requestsFor("TCS").every((r) => r.region === "US")).toBe(true);
   });
+
+  it("R15-FINAL-006: 100 holdings refresh as ONE request, never re-sent while it is in flight", async () => {
+    usePortfoliosStore.setState({
+      portfolios: [
+        {
+          id: "default",
+          name: "Portfolio",
+          holdings: Array.from({ length: 100 }, (_, i) => ({
+            id: `h${i}`,
+            symbol: `NSE${i}`,
+            quantity: 1,
+            costBasis: 100,
+            assetClass: "equity" as const,
+            region: "IN" as const,
+          })),
+        },
+      ],
+      activeId: "default",
+    });
+    respond = () => new Promise<Response>(() => {}); // a cold sidecar that never answers
+    render(<PortfolioPanel />);
+    await tick(100);
+    await tick();
+    await tick();
+    await tick();
+    expect(requests).toHaveLength(1);
+    expect(requests[0].symbols).toHaveLength(100);
+    expect(requests[0].region).toBe("IN");
+  });
+
+  it("R15-FINAL-006: a failed refresh backs off instead of re-sending every 5 s", async () => {
+    useSettingsStore.setState({ region: "IN" });
+    respond = () =>
+      Promise.resolve(new Response(JSON.stringify({ detail: "boom" }), { status: 502 }));
+    render(<PortfolioPanel />);
+    await addHolding("infy", "20", "1500");
+    requests = [];
+    for (let i = 0; i < 6; i += 1) {
+      await tick(5_000);
+    }
+    // 30 s of 5 s ticks: 6 re-sends without a backoff; 10 s then 20 s with it.
+    expect(requests.length).toBeLessThanOrEqual(2);
+    expect(await screen.findByText(/Couldn.t refresh live quotes/)).toBeInTheDocument();
+  });
 });

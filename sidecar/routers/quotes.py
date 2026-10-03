@@ -11,11 +11,19 @@ serialised the whole batch (~26s for 55 symbols) and tied up the uvicorn worker
 pool, starving other routes. Fanning out to threads makes the batch latency the
 slowest single symbol, not the sum. Mirrors the established pattern in
 ``services/agent_tools/price_data.py`` + ``services/bar_loader.py``.
+
+Batch lookups run on their OWN bounded pool, never the event loop's default
+executor: a 100-symbol portfolio batch used to occupy every default worker, so
+a single ``/quotes/{symbol}`` (and every other ``to_thread`` route) queued
+behind it for minutes (R15-FINAL-006).
 """
 
 from __future__ import annotations
 
 import asyncio
+import contextvars
+import functools
+from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import APIRouter, Query
 
@@ -24,6 +32,19 @@ from services import provider_registry
 from services.locale import REGION_FOREIGN, REGION_US, freshness_for, instrument_region
 
 router = APIRouter(prefix="/quotes", tags=["quotes"])
+
+# ponytail: one process-wide pool shared by every batch; per-caller pools if a
+# second heavy batch client ever starves the watchlist.
+_BATCH_POOL = ThreadPoolExecutor(max_workers=16, thread_name_prefix="quotes-batch")
+
+
+def _on_batch_pool(symbol: str, asset_class: str) -> asyncio.Future[Quote]:
+    """``asyncio.to_thread`` onto the batch pool: the copied context carries the
+    request's region ContextVar into the worker, as ``to_thread`` does."""
+    call = functools.partial(
+        contextvars.copy_context().run, provider_registry.get_quote, symbol, asset_class
+    )
+    return asyncio.get_running_loop().run_in_executor(_BATCH_POOL, call)
 
 
 def _label_freshness(quote: Quote, asset_class: str) -> Quote:
@@ -74,8 +95,8 @@ async def get_quotes(
 ) -> list[Quote]:
     """Return latest quotes for a batch of symbols; failures are skipped.
 
-    Each symbol's blocking provider lookup runs on its own worker thread and all
-    of them are awaited concurrently. A single symbol's failure (any exception,
+    Each symbol's blocking provider lookup runs on the bounded batch pool and
+    all of them are awaited concurrently. A single symbol's failure (any exception,
     e.g. ``ProviderError``) is skipped, not fatal — matching the prior
     sequential skip-on-failure semantics — so one bad symbol never aborts the
     batch. ``return_exceptions=True`` keeps ``gather`` from short-circuiting on
@@ -86,9 +107,7 @@ async def get_quotes(
     a requested symbol absent from the list is one that failed.
     """
     parsed = [s.strip() for s in symbols.split(",") if s.strip()]
-    tasks = [
-        asyncio.to_thread(provider_registry.get_quote, symbol, asset_class) for symbol in parsed
-    ]
+    tasks = [_on_batch_pool(symbol, asset_class) for symbol in parsed]
     results = await asyncio.gather(*tasks, return_exceptions=True)
     quotes: list[Quote] = []
     for requested, result in zip(parsed, results, strict=True):

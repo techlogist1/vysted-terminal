@@ -195,6 +195,9 @@ export function PortfolioPanel() {
   // Guards the interval tick below against piling a new fan-out on top of one
   // still in flight (mirrors WatchlistPanel's inFlightRef, WatchlistPanel.tsx:182-251).
   const quoteFetchInFlightRef = useRef(false);
+  // After a failed refresh the interval backs off (10 s, 20 s, ... 60 s) instead
+  // of re-sending the whole portfolio every 5 s (R15-FINAL-006).
+  const quoteBackoffRef = useRef({ failures: 0, until: 0 });
   // R15-UI-009: the CSV export now writes a real file via the Rust
   // atomic-write path — surface the saved path (or a write failure) since
   // there is no browser download UI to confirm it landed.
@@ -210,6 +213,13 @@ export function PortfolioPanel() {
   // Holdings render synchronously from the store; only the price / market-value
   // / P&L columns wait on the quote (they show "—" until it resolves).
   const quotesKey = holdings.map((h) => `${h.symbol}:${h.assetClass}:${h.region}`).join(",");
+  const noteQuoteOutcome = (failed: boolean) => {
+    const backoff = quoteBackoffRef.current;
+    backoff.failures = failed ? backoff.failures + 1 : 0;
+    backoff.until = failed
+      ? Date.now() + Math.min(QUOTE_REFRESH_MS * 2 ** backoff.failures, 60_000)
+      : 0;
+  };
   useEffect(() => {
     let cancelled = false;
     quoteFetchInFlightRef.current = true;
@@ -224,6 +234,7 @@ export function PortfolioPanel() {
           // R15-UI-004: `failed` counts real fetch failures (never a swallowed
           // null), so the banner + Retry now actually reach the DOM.
           setQuotesError(failed > 0);
+          noteQuoteOutcome(failed > 0);
         }
       })
       .catch(() => {
@@ -231,6 +242,7 @@ export function PortfolioPanel() {
         // values are stale/absent rather than reading "—" as "no data".
         if (!cancelled) {
           setQuotesError(true);
+          noteQuoteOutcome(true);
         }
       })
       .finally(() => {
@@ -254,7 +266,7 @@ export function PortfolioPanel() {
     const timer = setInterval(() => {
       // Skip this tick while the previous fan-out hasn't settled, so a slow
       // symbol can't pile up overlapping full-portfolio fetches.
-      if (quoteFetchInFlightRef.current) return;
+      if (quoteFetchInFlightRef.current || Date.now() < quoteBackoffRef.current.until) return;
       setQuotesNonce((n) => n + 1);
     }, QUOTE_REFRESH_MS);
     return () => clearInterval(timer);
