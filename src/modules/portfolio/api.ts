@@ -29,12 +29,13 @@ export const QUOTES_BATCH_TIMEOUT_MS = 120_000;
  * Fetch live quotes for a set of holdings through the batch `/quotes` route:
  * one request per (region, asset class), each sent with that listing region
  * (R15-FINAL-001). Quotes are keyed by upper-cased symbol; `failed` counts the
- * batch REQUESTS that failed (sidecar down, timeout), never a symbol the
- * sidecar answered without (R15-UI-004 keeps the two apart).
+ * batch REQUESTS that failed (sidecar down, timeout), while `missing` lists the
+ * symbols a completed batch answered without — a row-level "no quote", never
+ * the transport banner (R15-FINAL-017; R15-UI-004 is the converse).
  */
 export async function fetchPositionQuotes(
   targets: QuoteTarget[],
-): Promise<{ quotes: Map<string, Quote>; failed: number }> {
+): Promise<{ quotes: Map<string, Quote>; failed: number; missing: string[] }> {
   const groups = new Map<string, { region?: string; assetClass: string; symbols: Set<string> }>();
   for (const t of targets) {
     const key = `${t.region ?? ""}|${t.assetClass}`;
@@ -47,6 +48,7 @@ export async function fetchPositionQuotes(
     groups.set(key, group);
   }
   const quotes = new Map<string, Quote>();
+  const missing: string[] = [];
   let failed = 0;
   await Promise.all(
     [...groups.values()].map(async ({ region, assetClass, symbols }) => {
@@ -56,15 +58,18 @@ export async function fetchPositionQuotes(
           headers: { "X-Vysted-Region": region },
           timeoutMs: QUOTES_BATCH_TIMEOUT_MS,
         });
+        const answered = new Set<string>();
         for (const quote of rows) {
           quotes.set(quote.symbol.toUpperCase(), quote);
+          answered.add(quote.symbol.toUpperCase());
         }
+        missing.push(...[...symbols].filter((symbol) => !answered.has(symbol)));
       } catch {
         failed += 1;
       }
     }),
   );
-  return { quotes, failed };
+  return { quotes, failed, missing };
 }
 
 /**

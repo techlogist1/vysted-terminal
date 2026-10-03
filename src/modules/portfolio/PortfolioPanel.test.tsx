@@ -70,7 +70,7 @@ beforeEach(() => {
   // assertions below prove the instrument's symbol wins over the region
   // (an INR quote renders ₹ under region US).
   useSettingsStore.setState({ region: "US" });
-  mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 0 });
+  mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 0, missing: [] });
   mockDownloadCsv.mockResolvedValue({ path: "/tmp/exports/csv/out.csv", fellBack: false });
   // No history by default — existing tests that don't exercise the Risk
   // section see it settle to "insufficient" rather than hang.
@@ -128,6 +128,7 @@ describe("PortfolioPanel", () => {
     mockFetchQuotes.mockResolvedValueOnce({
       quotes: new Map([["AAPL", quote("AAPL", 200)]]),
       failed: 0,
+      missing: [],
     });
     await act(async () => {
       fireEvent.click(retry);
@@ -145,6 +146,7 @@ describe("PortfolioPanel", () => {
     mockFetchQuotes.mockResolvedValue({
       quotes: new Map([["AAPL", quote("AAPL", 200)]]),
       failed: 1,
+      missing: [],
     });
     render(<PortfolioPanel />);
     await addHolding("aapl", "10", "150");
@@ -173,7 +175,7 @@ describe("PortfolioPanel", () => {
   });
 
   it("R15-UI-005: an all-unresolved portfolio publishes totalValue null, never 0, and never fakes concentration/P&L", async () => {
-    mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 1 });
+    mockFetchQuotes.mockResolvedValue({ quotes: new Map(), failed: 1, missing: [] });
     render(<PortfolioPanel />);
     await addHolding("zzznotreal", "10", "100");
 
@@ -194,6 +196,7 @@ describe("PortfolioPanel", () => {
     mockFetchQuotes.mockResolvedValue({
       quotes: new Map([["AAPL", quote("AAPL", 200)]]),
       failed: 0,
+      missing: [],
     });
     render(<PortfolioPanel />);
     await addHolding("aapl", "10", "150");
@@ -219,6 +222,7 @@ describe("PortfolioPanel", () => {
           ["MSFT", { ...quote("MSFT", 400), timestamp: "2026-05-15T14:00:00Z" }],
         ]),
         failed: 0,
+        missing: [],
       });
       render(<PortfolioPanel />);
       await addHolding("aapl", "10", "150");
@@ -240,7 +244,9 @@ describe("PortfolioPanel", () => {
   it("skips a quote-refresh tick while the previous fan-out is still in flight, then refetches once it settles (rc1-drive-portfolio-notes:1)", async () => {
     vi.useFakeTimers();
     try {
-      let resolveFetch: ((v: { quotes: Map<string, Quote>; failed: number }) => void) | null = null;
+      let resolveFetch:
+        | ((v: { quotes: Map<string, Quote>; failed: number; missing: string[] }) => void)
+        | null = null;
       mockFetchQuotes.mockImplementation(
         () =>
           new Promise((resolve) => {
@@ -271,7 +277,7 @@ describe("PortfolioPanel", () => {
 
       // Let the pending fetch settle; the next tick refetches.
       await act(async () => {
-        resolveFetch?.({ quotes: new Map([["AAPL", quote("AAPL", 200)]]), failed: 0 });
+        resolveFetch?.({ quotes: new Map([["AAPL", quote("AAPL", 200)]]), failed: 0, missing: [] });
         await vi.advanceTimersByTimeAsync(0);
       });
       await act(async () => {
@@ -287,6 +293,7 @@ describe("PortfolioPanel", () => {
     mockFetchQuotes.mockResolvedValue({
       quotes: new Map([["AAPL", { ...quote("AAPL", 200), freshness: "eod" as const }]]),
       failed: 0,
+      missing: [],
     });
     render(<PortfolioPanel />);
     await addHolding("aapl", "10", "150");
@@ -301,6 +308,7 @@ describe("PortfolioPanel", () => {
     mockFetchQuotes.mockResolvedValue({
       quotes: new Map([["RELIANCE.NS", quote("RELIANCE.NS", 1293, "INR")]]),
       failed: 0,
+      missing: [],
     });
     render(<PortfolioPanel />);
     await addHolding("reliance.ns", "50", "1200");
@@ -341,6 +349,7 @@ describe("PortfolioPanel", () => {
     mockFetchQuotes.mockResolvedValue({
       quotes: new Map([["BTC/USDT", quote("BTC/USDT", 67000, "USDT")]]),
       failed: 0,
+      missing: [],
     });
     render(<PortfolioPanel />);
 
@@ -359,6 +368,7 @@ describe("PortfolioPanel", () => {
         ["AAPL", quote("AAPL", 120, "USD")],
       ]),
       failed: 0,
+      missing: [],
     });
     render(<PortfolioPanel />);
     await addHolding("reliance.ns", "50", "1200");
@@ -583,6 +593,7 @@ describe("PortfolioPanel", () => {
     mockFetchQuotes.mockResolvedValue({
       quotes: new Map([["AAPL", quote("AAPL", 200)]]),
       failed: 0,
+      missing: [],
     });
     render(<PortfolioPanel />);
     await addHolding("aapl", "10", "150");
@@ -619,6 +630,7 @@ describe("PortfolioPanel", () => {
         ["AAPL", quote("AAPL", 120, "USD")],
       ]),
       failed: 0,
+      missing: [],
     });
     render(<PortfolioPanel />);
     await addHolding("reliance.ns", "50", "1200");
@@ -663,6 +675,7 @@ describe("PortfolioPanel", () => {
       mockFetchQuotes.mockResolvedValue({
         quotes: new Map([["AAPL", quote("AAPL", 200)]]),
         failed: 0,
+        missing: [],
       });
       let resolveCloses: (v: Map<string, number> | null) => void = () => {};
       mockFetchDailyCloses.mockReturnValue(
@@ -683,6 +696,7 @@ describe("PortfolioPanel", () => {
       mockFetchQuotes.mockResolvedValue({
         quotes: new Map([["AAPL", quote("AAPL", 200)]]),
         failed: 0,
+        missing: [],
       });
       mockFetchDailyCloses.mockResolvedValue(closesFrom("2026-01-01", 10, 100));
       render(<PortfolioPanel />);
@@ -697,6 +711,7 @@ describe("PortfolioPanel", () => {
       mockFetchQuotes.mockResolvedValue({
         quotes: new Map([["AAPL", quote("AAPL", 200)]]),
         failed: 0,
+        missing: [],
       });
       mockFetchDailyCloses.mockResolvedValue(closesFrom("2026-01-01", 40, 100));
       render(<PortfolioPanel />);
@@ -717,6 +732,7 @@ describe("PortfolioPanel", () => {
           ["MSFT", quote("MSFT", 300, "USD")],
         ]),
         failed: 0,
+        missing: [],
       });
       mockFetchDailyCloses.mockImplementation((symbol: string) =>
         Promise.resolve(closesFrom("2026-01-01", 40, symbol === "AAPL" ? 100 : 250)),

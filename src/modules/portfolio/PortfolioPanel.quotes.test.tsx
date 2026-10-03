@@ -28,7 +28,12 @@ interface QuoteRequest {
 
 /** Listing prices per region: INFY is NSE (INR) under IN, the NYSE ADR under US. */
 const LISTINGS: Record<string, Record<string, { price: number; currency: string }>> = {
-  IN: { INFY: { price: 1035, currency: "INR" }, TCS: { price: 3900, currency: "INR" } },
+  IN: {
+    INFY: { price: 1035, currency: "INR" },
+    TCS: { price: 3900, currency: "INR" },
+    RELIANCE: { price: 1400, currency: "INR" },
+    HDFCBANK: { price: 1700, currency: "INR" },
+  },
   US: { INFY: { price: 11.04, currency: "USD" }, TCS: { price: 7.5, currency: "USD" } },
 };
 
@@ -207,5 +212,37 @@ describe("PortfolioPanel live quotes (real client)", () => {
     // 30 s of 5 s ticks: 6 re-sends without a backoff; 10 s then 20 s with it.
     expect(requests.length).toBeLessThanOrEqual(2);
     expect(await screen.findByText(/Couldn.t refresh live quotes/)).toBeInTheDocument();
+  });
+
+  it("R15-FINAL-017: a symbol with no quote is a row-level miss, not the transport banner, and not re-asked every tick", async () => {
+    usePortfoliosStore.setState({
+      portfolios: [
+        {
+          id: "default",
+          name: "Portfolio",
+          holdings: ["INFY", "TCS", "RELIANCE", "HDFCBANK", "ZZZZNOTREAL"].map((symbol) => ({
+            id: symbol,
+            symbol,
+            quantity: 10,
+            costBasis: 100,
+            assetClass: "equity" as const,
+            region: "IN" as const,
+          })),
+        },
+      ],
+      activeId: "default",
+    });
+    render(<PortfolioPanel />);
+    await tick(100);
+    await tick();
+    await tick();
+    await tick();
+
+    expect(screen.queryByText(/Couldn.t refresh live quotes/)).not.toBeInTheDocument();
+    expect(screen.getByText(/1 without a live quote/)).toBeInTheDocument();
+    expect(screen.getByText("no quote")).toBeInTheDocument();
+    expect(requests.length).toBeGreaterThanOrEqual(4);
+    expect(requestsFor("ZZZZNOTREAL")).toHaveLength(1);
+    expect(requestsFor("INFY").length).toBe(requests.length);
   });
 });

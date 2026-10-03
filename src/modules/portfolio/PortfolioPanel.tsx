@@ -198,6 +198,11 @@ export function PortfolioPanel() {
   // After a failed refresh the interval backs off (10 s, 20 s, ... 60 s) instead
   // of re-sending the whole portfolio every 5 s (R15-FINAL-006).
   const quoteBackoffRef = useRef({ failures: 0, until: 0 });
+  // Symbols a completed batch had no quote for (R15-FINAL-017): shown as "no
+  // quote" on their row and left out of the 5 s ticks, re-asked once a minute
+  // or when the holding set changes.
+  const [missingQuotes, setMissingQuotes] = useState<ReadonlySet<string>>(new Set());
+  const missingRef = useRef({ key: "", symbols: new Set<string>(), retryAt: 0 });
   // R15-UI-009: the CSV export now writes a real file via the Rust
   // atomic-write path — surface the saved path (or a write failure) since
   // there is no browser download UI to confirm it landed.
@@ -223,13 +228,29 @@ export function PortfolioPanel() {
   useEffect(() => {
     let cancelled = false;
     quoteFetchInFlightRef.current = true;
+    const known = missingRef.current;
+    if (known.key !== quotesKey) {
+      missingRef.current = { key: quotesKey, symbols: new Set(), retryAt: 0 };
+    }
+    const skipMissing = Date.now() < missingRef.current.retryAt;
+    const skipped = skipMissing ? missingRef.current.symbols : new Set<string>();
     // fetchPositionQuotes([]) resolves to an empty map, so an emptied portfolio
     // clears its quotes via the async path — no synchronous setState in-effect.
     void fetchPositionQuotes(
-      holdings.map((h) => ({ symbol: h.symbol, assetClass: h.assetClass, region: h.region })),
+      holdings
+        .filter((h) => !skipped.has(h.symbol.toUpperCase()))
+        .map((h) => ({ symbol: h.symbol, assetClass: h.assetClass, region: h.region })),
     )
-      .then(({ quotes: resolved, failed }) => {
+      .then(({ quotes: resolved, failed, missing }) => {
         if (!cancelled) {
+          if (!skipMissing) {
+            missingRef.current = {
+              key: quotesKey,
+              symbols: new Set(missing),
+              retryAt: Date.now() + 60_000,
+            };
+            setMissingQuotes(new Set(missing));
+          }
           setQuotes(resolved);
           // R15-UI-004: `failed` counts real fetch failures (never a swallowed
           // null), so the banner + Retry now actually reach the DOM.
@@ -614,7 +635,12 @@ export function PortfolioPanel() {
         numeric: true,
         tier: "secondary",
         width: HOLDING_TRACKS.price,
-        format: (r) => (r.quote !== null ? lotMoney(r.quote.price, r.quote.currency) : null),
+        format: (r) =>
+          r.quote !== null
+            ? lotMoney(r.quote.price, r.quote.currency)
+            : missingQuotes.has(r.position.symbol.toUpperCase())
+              ? "no quote"
+              : null,
       });
     }
     cols.push(
@@ -679,7 +705,16 @@ export function PortfolioPanel() {
       ),
     });
     return cols;
-  }, [showQty, showCost, showPrice, showWeight, mixedCurrencies, handleEdit, handleDelete]);
+  }, [
+    showQty,
+    showCost,
+    showPrice,
+    showWeight,
+    mixedCurrencies,
+    missingQuotes,
+    handleEdit,
+    handleDelete,
+  ]);
 
   const submitPfName = () => {
     const name = pfName.trim();
