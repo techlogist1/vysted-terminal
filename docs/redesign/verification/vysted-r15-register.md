@@ -2,7 +2,7 @@
 
 887 raw findings -> 745 entries + 76 rejections. critical: 16 . high: 124 . medium: 331 . low: 274
 
-Status: blocked_tier4: 35 . fixed: 595 . needs_gui: 5 . not_a_defect: 6 . open: 90 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 596 . needs_gui: 5 . not_a_defect: 6 . open: 89 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -1237,5 +1237,5 @@ Status: blocked_tier4: 35 . fixed: 595 . needs_gui: 5 . not_a_defect: 6 . open: 
 | R15-LEAD-120 | low | research | research-relevance | Bare 2-letter ticker absent from the company name (KO / Coca-Cola) still fails the non-IN relevance gate; _entity_signals credits a ticker mention only for len(symbol)>=3 | open | rc1-battery-14:1 |
 | R15-LEAD-121 | low | agent | agent-tools | llama3.1:8b prints USD portfolio holdings with the rupee sign although each holding carries currency:'USD' (IN default region) | open | rc1-gate8:1 |
 | R15-LEAD-122 | medium | ui | screener | Screener 'Export CSV' writes the file but shows no saved path, toast or error (the result of downloadCsv is discarded) | open |  |
-| R15-LEAD-123 | high | lifecycle | boot | The core latches the main sidecar 'failed' after a fixed 90 s window and the renderer never re-probes, so a data engine that binds late (cold --onefile extraction on a first launch or a busy machine) comes up into a session that stays failed | open |  |
+| R15-LEAD-123 | high | lifecycle | boot | The core latches the main sidecar 'failed' after a fixed 90 s window and the renderer never re-probes, so a data engine that binds late (cold --onefile extraction on a first launch or a busy machine) comes up into a session that stays failed | fixed |  |
 | R15-LEAD-124 | medium | lifecycle | mcp | sec-edgar-mcp is killed while still extracting on a cold or busy launch (~91 s) and /sec routes return 501 for the whole session | open |  |
