@@ -675,12 +675,52 @@ def _growth_disagrees(served: float, filed: float) -> bool:
     return abs(served - filed) > band
 
 
+def _rebase_pe_on_filed_eps(
+    f: Fundamentals,
+    eps: float,
+    as_of: str,
+    meta: dict[str, FieldMeta],
+    updates: dict[str, Any],
+) -> None:
+    """Recompute ``pe_ratio`` on the exchange-filed TTM EPS the overlay serves
+    (R15-FINAL-003): a P/E left on the provider EPS the payload says is not
+    served is a third figure. Priced at the ratio price (pe x provider eps
+    only as fallback); a non-positive filed EPS has no trailing P/E, so the
+    provider's is withheld, never left beside it."""
+    price = f.ratio_price if f.ratio_price is not None and f.ratio_price > 0 else _implied_price(f)
+    if eps > 0 and price is not None:
+        source = "the ratio price" if price == f.ratio_price else "pe x provider eps"
+        updates["pe_ratio"] = price / eps
+        meta["pe_ratio"] = FieldMeta(
+            status="ok",
+            provider="derived",
+            as_of=as_of,
+            basis_note=(
+                f"price / exchange-filed TTM EPS ({price:,.4g} / {eps:,.2f}, price from {source})"
+            ),
+        )
+    elif f.pe_ratio is not None:
+        updates["pe_ratio"] = None
+        meta["pe_ratio"] = FieldMeta(
+            status="withheld",
+            provider=f.provider,
+            reason=(
+                f"the exchange-filed TTM EPS {eps:,.2f} is not positive — no trailing P/E; withheld"
+                if eps <= 0
+                else "the provider's P/E sits on an EPS the exchange filing does not bear out, "
+                "and no price is available to recompute it; withheld"
+            ),
+        )
+
+
 def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPeriods) -> Fundamentals:
     """Serve the exchange-filed figures over the provider's (D-B7-1).
 
       * ``revenue_ttm`` / ``net_income_ttm`` / ``eps`` — the sum of the filed
         periods covering the trailing 12 months (four quarters, or two halves);
         nothing when the filings leave a hole in that year;
+      * ``pe_ratio`` — re-derived on the served EPS
+        (:func:`_rebase_pe_on_filed_eps`);
       * ``revenue_growth`` / ``earnings_growth`` — the newest filed period
         against the same-length period a year earlier (MRQ-YoY), when filed.
 
@@ -762,6 +802,8 @@ def overlay_filed_periods(f: Fundamentals, filed: exchange_financials.FiledPerio
                 )
                 basis_note = None
             serve(name, total, label, off, basis_note)
+        if "eps" in updates:
+            _rebase_pe_on_filed_eps(f, updates["eps"], as_of, meta, updates)
         if "revenue_ttm" in updates or "net_income_ttm" in updates:
             updates["financial_currency"] = None if f.currency == "INR" else "INR"
             if not old_basis_is_inr:
