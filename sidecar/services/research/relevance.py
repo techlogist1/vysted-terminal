@@ -538,9 +538,11 @@ logger = logging.getLogger(__name__)
 
 @functools.cache
 def _english_words() -> frozenset[str]:
-    """Lower-case dictionary words of 4+ letters — Webster's 2nd International
-    (public domain, the BSD ``/usr/share/dict/web2``; capitalised proper nouns
-    excluded), bundled with ``services.resolver_masters``."""
+    """Dictionary words of 4+ letters, CASE-FOLDED — every alphabetic entry of
+    Webster's 2nd International (public domain, the BSD ``/usr/share/dict/web2``),
+    lower-cased, so a proper-noun-only entry ("Titan", "Apollo", "Trent", "Cupid")
+    counts: a ticker that is any dictionary entry is ambiguous (R15-LEAD-136).
+    Bundled with ``services.resolver_masters``."""
     try:
         raw = resources.files("services.resolver_masters").joinpath("english_words.txt.gz")
         return frozenset(gzip.decompress(raw.read_bytes()).decode("utf-8").split())
@@ -564,29 +566,55 @@ def _marquee_families() -> frozenset[str]:
 def _reads_as_word(token: str, *, india: bool) -> bool:
     """Does a name/ticker token also read as ordinary English? A curated
     :data:`COMMON_WORD_TICKERS` entry always does; for an Indian target any
-    dictionary word does too (CAMPUS, SAFARI, ETERNAL — R15-LEAD-136), unless it
-    is a marquee family name."""
+    dictionary entry does too, matched case-folded (CAMPUS, SAFARI, ETERNAL,
+    TITAN, TRENT — R15-LEAD-136), unless it is a marquee family name."""
     if token.upper() in COMMON_WORD_TICKERS:
         return True
-    return (
-        india and token.isalpha() and token in _english_words() and token not in _marquee_families()
+    low = token.lower()
+    return india and low.isalpha() and low in _english_words() and low not in _marquee_families()
+
+
+# ponytail: a bare word-brand + verb ("Persistent wins deal") with no snippet
+# corroboration reads as prose and drops; an alias/brand table (Zudio -> TRENT)
+# is the upgrade if news recall for those names matters.
+#: Words that, right after the name word, make it the company: a corporate
+#: suffix or a security noun ("Eternal Ltd", "Safari shares", "Campus Q2").
+_NAME_FOLLOWERS = (
+    r"ltd|limited|inc|corp|company|co(?:\.|(?=\s))|shares?|stocks?|scrip|ipo|q[1-4]|fy\s?\d{2,4}"
+    r"|results|earnings|revenue|profit|quarterly|dividend"
+)
+
+
+def _named_by_neighbour(token: str, text_lc: str, name_toks: list[str]) -> bool:
+    """Is ``token`` written next to a corroborating token of the company in
+    ``text_lc``: followed by another name token or a :data:`_NAME_FOLLOWERS` word
+    ("Safari Industries", "Eternal shares", "Titan Company", "ixigo IPO"), or
+    preceded by another name token, an NSE/BSE marker or a marquee group's
+    possessive ("Vodafone Idea", "NSE: titan", "Tata's Trent")?"""
+    others = [re.escape(t) for t in name_toks if t != token]
+    follow = "|".join([*others, _NAME_FOLLOWERS])
+    tok = re.escape(token)
+    if re.search(rf"(?<![a-z0-9]){tok}(?:['’]s)?\s+(?:{follow})(?![a-z0-9])", text_lc):
+        return True
+    precede = "|".join([*others, "nse", "bse"])
+    if re.search(rf"(?<![a-z0-9])(?:{precede})\s*:?\s*{tok}(?![a-z0-9])", text_lc):
+        return True
+    groups = "|".join(re.escape(f) for f in sorted(_marquee_families()))
+    return bool(
+        groups
+        and re.search(rf"(?<![a-z0-9])(?:{groups})(?:\s+group)?['’]s\s+{tok}(?![a-z0-9])", text_lc)
     )
 
 
-# ponytail: a bare word-brand + verb ("Persistent wins deal") reads as prose and
-# drops; an alias/brand table is the upgrade if news recall for those names matters.
-#: Words that, right after the name word, make it the company: a corporate
-#: suffix or a security noun ("Eternal Ltd", "Safari shares", "Campus Q2").
-_NAME_FOLLOWERS = r"ltd|limited|inc|corp|shares?|stocks?|scrip|ipo|q[1-4]|fy\s?\d{2,4}"
-
-
-def _word_used_as_name(token: str, title: str, name_toks: list[str]) -> bool:
+def _word_used_as_name(token: str, title: str, name_toks: list[str], snippet: str = "") -> bool:
     """Is a word-like token (:func:`_reads_as_word`) used AS the company in
     ``title`` (original case)? Only when anchored: an :func:`anchored_ticker`
     form, the ticker written ALL-CAPS in a mixed-case title, NSE/BSE context in
-    the title, or the word followed by another of the company's name tokens or
-    a :data:`_NAME_FOLLOWERS` word ("Safari Industries", "Eternal shares").
-    "Apple Safari update" and "Campus placements surge" are prose."""
+    the title, or a corroborating neighbour (:func:`_named_by_neighbour`) in the
+    title. A name-shaped (capitalised) title occurrence is also corroborated by a
+    snippet that names the company the same way ("Trent rallies as Zudio
+    expands" over "Shares of Trent Ltd rose ..."). "Apple Safari update",
+    "Campus placements surge" and "Tech titan Elon Musk ..." are prose."""
     upper = token.upper()
     if anchored_ticker(upper, title):
         return True
@@ -596,12 +624,22 @@ def _word_used_as_name(token: str, title: str, name_toks: list[str]) -> bool:
         rf"(?<![A-Za-z0-9]){re.escape(upper)}(?![A-Za-z0-9])", title
     ):
         return True
-    follow = "|".join([re.escape(t) for t in name_toks if t != token] + [_NAME_FOLLOWERS])
-    return bool(
-        re.search(
-            rf"(?<![a-z0-9]){re.escape(token)}(?:['’]s)?\s+(?:{follow})(?![a-z0-9])",
-            title.lower(),
-        )
+    if _named_by_neighbour(token, title.lower(), name_toks):
+        return True
+    capitalised = re.search(rf"(?<![A-Za-z0-9]){re.escape(token.capitalize())}(?![a-z0-9])", title)
+    return bool(capitalised and snippet and _named_by_neighbour(token, snippet.lower(), name_toks))
+
+
+def _lowercase_word_use(token: str, title: str, name_toks: list[str]) -> bool:
+    """The OCCURRENCE-FORM rule, independent of any word list (R15-LEAD-136): a
+    token written only in lower case in the title ("Tech titan Elon Musk ...",
+    "the reliance of the matter") is word usage, not the company, unless a
+    corroborating neighbour names it ("ixigo shares jump")."""
+    hits = list(re.finditer(rf"(?<![A-Za-z0-9]){re.escape(token)}(?![A-Za-z0-9])", title, re.I))
+    return (
+        bool(hits)
+        and all(m.group(0).islower() for m in hits)
+        and not _named_by_neighbour(token, title.lower(), name_toks)
     )
 
 
@@ -725,7 +763,13 @@ def _symbol_only_in_index_form(symbol: str, title_lc: str) -> bool:
 
 
 def _entity_signals(
-    target: ResearchTarget, *, title: str, title_lc: str, host: str, url_lc: str
+    target: ResearchTarget,
+    *,
+    title: str,
+    title_lc: str,
+    host: str,
+    url_lc: str,
+    snippet: str = "",
 ) -> tuple[bool, bool]:
     """Classify how strongly the title/host/url NAMES the target as
     ``(distinctive, short_only)``:
@@ -741,7 +785,9 @@ def _entity_signals(
     A symbol or name token that reads as an ordinary word (:func:`_reads_as_word`:
     FOCUS, CAMPUS, SAFARI, ETERNAL) is prose, not a name: it counts only when
     :func:`_word_used_as_name` finds it anchored in ``title``, or when the full
-    multi-token name matches below (R15-FINAL-004, R15-LEAD-136).
+    multi-token name matches below (R15-FINAL-004, R15-LEAD-136). Independently
+    of any list, a title occurrence written only in lower case is word usage
+    (:func:`_lowercase_word_use`) and grants no title signal.
     """
     symbol = target.symbol.lower()
     distinctive_sig = False
@@ -751,13 +797,16 @@ def _entity_signals(
 
     def prose(token: str) -> bool:
         return _reads_as_word(token, india=india) and not _word_used_as_name(
-            token, title, name_toks
+            token, title, name_toks, snippet
         )
+
+    def in_title(token: str) -> bool:
+        return _bounded(token, title_lc) and not _lowercase_word_use(token, title, name_toks)
 
     if len(symbol) >= 3:
         # The index-form exclusion only applies under foreign-market evidence
         # (a Karachi/KSE-100 row); elsewhere a ticker plus a number is a real match.
-        sym_in_title = _bounded(symbol, title_lc) and not (
+        sym_in_title = in_title(symbol) and not (
             _foreign_shadow(title_lc, host) and _symbol_only_in_index_form(symbol, title_lc)
         )
         sym_hit = (
@@ -781,7 +830,7 @@ def _entity_signals(
     for token in branded:
         if prose(token):
             continue
-        if _bounded(token, title_lc) or (len(token) >= 4 and token in host):
+        if in_title(token) or (len(token) >= 4 and token in host):
             if len(token) >= _SHORT_SYMBOL_LEN:
                 distinctive_sig = True
             else:
@@ -789,7 +838,7 @@ def _entity_signals(
 
     # A one-word name that is a word ("ETERNAL") is prose on its own.
     distinctive = [] if len(name_toks) == 1 and prose(name_toks[0]) else name_toks
-    if distinctive and all(_bounded(t, title_lc) for t in distinctive):
+    if distinctive and all(in_title(t) for t in distinctive):
         # A single short distinctive token is still short; ≥2 together, or any
         # long one, is distinctive (covers "Global Industries").
         if len(distinctive) >= 2 or any(len(t) >= _SHORT_SYMBOL_LEN for t in distinctive):
@@ -804,7 +853,7 @@ def _entity_signals(
 
 
 def _strong_entity_score(
-    target: ResearchTarget, *, title: str, host: str, url_lc: str, text_lc: str
+    target: ResearchTarget, *, title: str, host: str, url_lc: str, text_lc: str, snippet: str = ""
 ) -> float:
     """The STRONG-channel score: does the title/host/url itself name the target?
 
@@ -829,11 +878,13 @@ def _strong_entity_score(
     writes the word, not the ticker (R15-LEAD-050/052). Otherwise it falls to
     the WEAK ceiling, and naming the company is the distinctive signal above.
 
-    Snippets are consulted ONLY for the India/foreign CONTEXT judgement, never
-    for entity identity (a snippet passing-mention is still the leak shape).
+    Snippets are consulted for the India/foreign CONTEXT judgement and, for a
+    word-like name the TITLE already writes capitalised, as its corroboration
+    (:func:`_word_used_as_name`) — never as entity identity on their own (a
+    snippet passing-mention is still the leak shape).
     """
     distinctive_sig, short_sig = _entity_signals(
-        target, title=title, title_lc=title.lower(), host=host, url_lc=url_lc
+        target, title=title, title_lc=title.lower(), host=host, url_lc=url_lc, snippet=snippet
     )
     if distinctive_sig:
         return 1.0
@@ -906,7 +957,10 @@ def entity_match(
             return 1.0
         return _token_score(tokens, text, host)
 
-    strong = _strong_entity_score(target, title=title, host=host, url_lc=url_lc, text_lc=text)
+    snippet = str(row.get("excerpt") or row.get("snippet") or "")
+    strong = _strong_entity_score(
+        target, title=title, host=host, url_lc=url_lc, text_lc=text, snippet=snippet
+    )
     if strong > 0.0:
         return min(strong, 1.0)
     # Explicit foreign-market negative evidence (R13): for an Indian target with

@@ -610,3 +610,142 @@ def test_dictionary_gate_is_india_scoped() -> None:
     assert relevance.row_relevant(
         _row("https://x.example/a", "Apple unveils new iPhone"), target=aapl
     )
+
+
+# --- R15-LEAD-136 attempt 2: case-folded words + the occurrence-form rule -----
+
+
+def _nse_word_symbols() -> list[tuple[str, str]]:
+    """Every alphabetic NSE symbol (bundled master snapshot) that is a dictionary
+    entry, matched case-insensitively against the bundled word list."""
+    import json
+    from importlib import resources
+
+    raw = resources.files("services.resolver_masters").joinpath("nse_instruments.json")
+    rows = json.loads(raw.read_text(encoding="utf-8"))["instruments"]
+    words = relevance._english_words()
+    return [(sym, name) for sym, name, *_ in rows if sym.isalpha() and sym.lower() in words]
+
+
+def test_every_nse_word_symbol_needs_an_anchor() -> None:
+    """The class, enumerated: for EVERY NSE symbol that is a dictionary entry
+    (TITAN, CUPID, TRENT, APOLLO fall out of the enumeration, not a hand list), a
+    lower-case word use is dropped and an anchored headline is kept."""
+    pairs = _nse_word_symbols()
+    print(f"NSE symbols in the word list: {len(pairs)}")
+    found = {sym for sym, _ in pairs}
+    assert {"TITAN", "CUPID", "TRENT", "APOLLO", "CAMPUS", "SAFARI", "ETERNAL"} <= found
+    assert len(pairs) >= 200
+    url = "https://economictimes.indiatimes.com/markets/stocks/news/a"
+    failures = []
+    for sym, name in pairs:
+        target = _target(symbol=sym, name=name)
+        word = sym.lower()
+        for title in (f"the {word} of the matter", f"Why the {word} debate is back"):
+            if relevance.row_relevant(_row(url, title), target=target):
+                failures.append(("kept", sym, title))
+        anchored = f"{sym} shares hit upper circuit on NSE"
+        if not relevance.row_relevant(_row(url, anchored), target=target):
+            failures.append(("dropped", sym, anchored))
+    assert not failures, failures
+
+
+_PROPER_NOUN_WORD_CASES = [
+    # (symbol, resolved name, prose headlines, company headlines)
+    (
+        "TITAN",
+        "Titan Company Limited",
+        [
+            "Tech titan Elon Musk unveils new rocket",
+            "Media titan Murdoch steps down",
+            "Titan submersible inquiry report released",
+            "Tech titan co-founder steps down",
+        ],
+        [
+            "Titan Company shares rise",
+            "Titan Q2 profit jumps 20%",
+            "NSE: TITAN hits record",
+            "Titan Co Ltd Q1 FY27 revenue grows 41%",
+            "Titan Co. slips Thursday, underperforms market",
+        ],
+    ),
+    (
+        "CUPID",
+        "Cupid Limited",
+        ["Cupid's arrow: Valentine's Day spending hits record"],
+        ["Cupid Ltd shares hit upper circuit", "Cupid Q1 results: profit doubles"],
+    ),
+    (
+        "TRENT",
+        "Trent Limited",
+        ["River Trent floods as storm lashes England"],
+        [
+            "Trent Q2 profit jumps as Zudio expands",
+            "Trent shares fall 4% after results",
+            "Indian fashion retailer Trent's quarterly profit jumps",
+            "Tata's Trent sees 22% profit rise as Zudio expands",
+        ],
+    ),
+    (
+        "APOLLO",
+        "Apollo Micro Systems Limited",
+        ["Apollo 11 anniversary: NASA looks back", "The apollo of modern pop"],
+        ["Apollo Micro Systems bags defence order", "APOLLO surges 10% on order win"],
+    ),
+]
+
+
+@pytest.mark.parametrize(("symbol", "name", "dropped", "kept"), _PROPER_NOUN_WORD_CASES)
+def test_proper_noun_dictionary_word_needs_an_anchor(
+    symbol: str, name: str, dropped: list[str], kept: list[str]
+) -> None:
+    """Webster's lists "Titan", "Cupid", "Trent", "Apollo" only capitalised; the
+    word property is case-folded, so they are ambiguous like CAMPUS/SAFARI."""
+    target = _target(symbol=symbol, name=name)
+    url = "https://economictimes.indiatimes.com/a"
+    for title in dropped:
+        row = _row(url, title)
+        assert relevance.entity_match(row, target=target) <= relevance.WEAK_MATCH_CEILING, title
+        assert not relevance.row_relevant(row, target=target), title
+    for title in kept:
+        assert relevance.row_relevant(_row(url, title), target=target), title
+
+
+def test_lowercase_occurrence_is_word_use_without_any_list(monkeypatch) -> None:
+    """The occurrence-form rule holds with NO word list at all: a ticker written
+    only in lower case in a mixed-case title is word usage. A corroborating
+    neighbour ("ixigo shares") still names the company, and a capitalised
+    non-word brand is untouched."""
+    monkeypatch.setattr(relevance, "_english_words", frozenset)
+    titan = _target(symbol="TITAN", name="Titan Company Limited")
+    url = "https://economictimes.indiatimes.com/a"
+    for title in ("Tech titan Elon Musk unveils new rocket", "Media titan Murdoch steps down"):
+        assert not relevance.row_relevant(_row(url, title), target=titan), title
+    assert relevance.row_relevant(_row(url, "Titan shares rise 3%"), target=titan)
+    ixigo = _target(symbol="IXIGO", name="Le Travenues Technology Limited")
+    assert relevance.row_relevant(_row(url, "ixigo shares jump 10% on Q2 beat"), target=ixigo)
+    aapl = _target(symbol="AAPL", name="Apple Inc.", exchange="NASDAQ", region="US")
+    assert not relevance.row_relevant(
+        _row("https://x.example/a", "Why an apple a day still beats the Fed"), target=aapl
+    )
+    assert relevance.row_relevant(
+        _row("https://x.example/a", "Apple unveils new iPhone"), target=aapl
+    )
+
+
+def test_snippet_naming_the_company_corroborates_a_capitalised_title_word() -> None:
+    """A brand-only headline ("Trent rallies as Zudio expands") is kept when the
+    snippet names the company with a corroborating token ("Trent Ltd"); a
+    lower-case title use is never rescued by the snippet."""
+    trent = _target(symbol="TRENT", name="Trent Limited")
+    url = "https://economictimes.indiatimes.com/a"
+    snippet = "Shares of Trent Ltd rose after the Tata retailer's Zudio added 60 stores."
+    assert relevance.row_relevant(
+        _row(url, "Trent rallies as Zudio expands", snippet), target=trent
+    )
+    assert not relevance.row_relevant(_row(url, "Trent rallies as Zudio expands"), target=trent)
+    titan = _target(symbol="TITAN", name="Titan Company Limited")
+    assert not relevance.row_relevant(
+        _row(url, "Tech titan Elon Musk unveils new rocket", "Titan Company shares were flat."),
+        target=titan,
+    )

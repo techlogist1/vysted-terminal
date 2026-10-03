@@ -31,7 +31,7 @@ import logging
 import re
 import time
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date, datetime, timedelta
 from xml.etree import ElementTree as ET
 
@@ -65,6 +65,8 @@ _NSE_EPS = (
     "BasicEarningsPerShareAfterExtraordinaryItems",
     "BasicEarningsLossPerShareFromContinuingOperations",
 )
+_NSE_PAID_UP = "PaidUpValueOfEquityShareCapital"
+_NSE_FACE_VALUE = "FaceValueOfEquityShareCapital"
 _BSE_MILLION = 1_000_000.0
 _BSE_QTR_RE = re.compile(r"/corporates/(results|NBFC)\.aspx\?.*?qtr=([0-9.]+)", re.IGNORECASE)
 
@@ -83,6 +85,9 @@ class FiledPeriod:
     #: How a period no filing reports was derived from two that do; ``None``
     #: for a filed period (R15-FINAL-005).
     derived: str | None = None
+    #: Paid-up equity share capital (INR) and face value (INR/share) as filed.
+    paid_up: float | None = None
+    face_value: float | None = None
 
     @property
     def months(self) -> int:
@@ -96,6 +101,24 @@ class FiledPeriods:
     venue: str
     basis: str
     periods: tuple[FiledPeriod, ...]
+    #: The listing's CURRENT issued share count from the NSE quote API, read
+    #: for an Emerge (``-SM.NS``) listing only (R15-LEAD-137).
+    issued_shares: float | None = None
+
+    def current_shares(self) -> tuple[float, str] | None:
+        """A CURRENT share count and its provenance: the NSE quote's issued
+        size, else the newest filed paid-up equity capital / face value (face
+        value > 0; VOLERCAR files 0). Never the weighted count TTM net income /
+        EPS implies, which lags a fresh issue (CURIS: 23% low)."""
+        if self.issued_shares is not None and self.issued_shares > 0:
+            return self.issued_shares, "NSE quote issued size"
+        for p in self.periods:
+            if p.paid_up and p.paid_up > 0 and p.face_value and p.face_value > 0:
+                return p.paid_up / p.face_value, (
+                    f"{self.venue.upper()}-filed paid-up equity capital / face value "
+                    f"({p.paid_up:,.0f} / {p.face_value:g}) for the period to {p.end}"
+                )
+        return None
 
     def trailing(self, *, best_effort: bool = False) -> tuple[FiledPeriod, ...] | None:
         """The contiguous filed periods covering the 12 months to the newest
@@ -256,7 +279,13 @@ def parse_nse_xbrl(text: str) -> list[FiledPeriod]:
         values = facts.get(ref, {})
         revenue = first(values, _NSE_REVENUE)
         period = FiledPeriod(
-            start, end, revenue, first(values, _NSE_PROFIT), first(values, _NSE_EPS)
+            start,
+            end,
+            revenue,
+            first(values, _NSE_PROFIT),
+            first(values, _NSE_EPS),
+            paid_up=values.get(_NSE_PAID_UP),
+            face_value=values.get(_NSE_FACE_VALUE),
         )
         if revenue is not None and period.months in (3, 6):
             periods.append(period)
@@ -306,10 +335,7 @@ def _nse_periods(bare: str) -> FiledPeriods | None:
         row = latest[quarter_end]
         for p in parse_nse_xbrl(nse_provider.get_archive_text(row["xbrl"])):
             filed = _nse_day(row.get("broadcast_Date") or row.get("creation_Date"))
-            periods.setdefault(
-                (p.start, p.end),
-                FiledPeriod(p.start, p.end, p.revenue, p.net_profit, p.eps, filed, row["xbrl"]),
-            )
+            periods.setdefault((p.start, p.end), replace(p, filed=filed, url=row["xbrl"]))
     return _assemble(VENUE_NSE, basis.lower(), periods.values())
 
 
@@ -447,9 +473,17 @@ def reset_for_tests() -> None:
 
 def _fetch(listing: str) -> FiledPeriods | None:
     bare = locale.strip_exchange_suffix(listing).removesuffix("-SM")
-    if listing.upper().endswith(".NS"):
-        return _nse_periods(bare)
-    return _bse_periods(bare)
+    if not listing.upper().endswith(".NS"):
+        return _bse_periods(bare)
+    filed = _nse_periods(bare)
+    if filed is not None and listing.upper().endswith("-SM.NS"):
+        # The current count an Emerge listing's market cap needs (R15-LEAD-137);
+        # a failed read leaves the filed paid-up capital as the fallback.
+        try:
+            filed = replace(filed, issued_shares=nse_provider.get_issued_size(bare))
+        except Exception as exc:  # noqa: BLE001 — never costs the filed periods
+            logger.debug("NSE issued size unavailable for %s: %s", listing, exc)
+    return filed
 
 
 def _fetch_and_cache(key: str) -> FiledPeriods | None:
