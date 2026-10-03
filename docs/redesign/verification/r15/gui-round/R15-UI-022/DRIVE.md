@@ -77,3 +77,17 @@
 - (4) Lock: row delete disabled; click on the drawing leaves it: SHOWN — 15, 16; locked:true persisted, drawing intact.
 
 ## Verdict: HOLDS — all four R15-UI-022 checks shown on screen in the packaged ace7dd7 app and read back from the isolated autosave blob.
+
+---
+
+# Round at r15-rc2 1fddb2b (1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056)
+- Driver: Opus 5.5 (gui-drive-R15-UI-022). App path (not launched): /private/tmp/claude-501/-Users-lokavyasingh-Documents-dev-vysted-terminal/454f42d1-ac9f-4d44-ba99-216c6bad682f/scratchpad/gui-1fddb2b/src-tauri/target/debug/bundle/macos/Vysted Terminal.app. Isolated home (not built): .../scratchpad/gui-round-home-R15-UI-022. Window size: not launched.
+- presence 2026-10-03T18:36:27Z: idle=2070.3 sentinel=2026-10-03 21:43:50+00:00 front="LSDisplayName"="SecurityAgent" vysted=[0 Vysted apps] load=2.95 3.87 3.06 (presence.log line).
+- **Hard stop before launch:** the same pre-existing SecurityAgent window the R15-LIFECYCLE-008 1fddb2b round stopped on (its DRIVE.md, 18:35:50Z) is still on screen and frontmost: CGWindowListCopyWindowInfo (owner/layer/bounds only, no capture) at 18:36Z gives SecurityAgent layer 1000, screen x 539-973, y 206-392 (434x186 pt). The app opens at screen [116,43,1280,832], so the dialog floats over window points x 423-857, y 163-349 — the middle of the chart canvas where the mid-candle H-line/trendline and Text clicks land (ace7dd7 round: canvas clicks at pt x~190-760, y~227-490). A rig click there could answer someone's keychain/auth prompt; the rule treats any SecurityAgent dialog as a hard stop, and with the operator away it cannot clear, so waiting the 45 min would not help. Nothing launched, no rig input or capture, no isolated home, no seed write.
+- Real ~/Library/Application Support/com.vysted.terminal mtime (stat only): 1790978102 before; unchanged (nothing launched). No process of mine running.
+
+## Checks (1fddb2b round)
+- (1) H-line + trendline at clicked y: not_driven. (2) off-bar trendline visible: not_driven. (3) Text label "gui-check": not_driven. (4) Lock: not_driven. The ace7dd7 HOLDS round above stands as prior evidence only.
+
+## Verdict (1fddb2b round)
+blocked_env — pre-existing SecurityAgent dialog (layer 1000) frontmost over the chart canvas; driving would risk clicking a foreign keychain/auth prompt.
