@@ -559,9 +559,22 @@ describe("PortfolioPanel", () => {
     expect(activeHoldings()).toHaveLength(0);
   });
 
+  it("R15-FINAL-033: a whitespace cost, a hex quantity and an exponent are refused through the form", async () => {
+    render(<PortfolioPanel />);
+    await addHolding("tcs.ns", "5", "   ");
+    expect(screen.getByText("Avg cost per share is required")).toBeInTheDocument();
+    await addHolding("tcs.ns", "0x10", "100");
+    expect(screen.getByText(/Quantity must be a plain number/)).toBeInTheDocument();
+    await addHolding("tcs.ns", "1e3", "100");
+    expect(screen.getByText(/Quantity must be a plain number/)).toBeInTheDocument();
+    expect(activeHoldings()).toHaveLength(0);
+    await addHolding("tcs.ns", " 5 ", "0.5");
+    expect(activeHoldings()).toMatchObject([{ symbol: "TCS.NS", quantity: 5, costBasis: 0.5 }]);
+  });
+
   it("R15-UI-078: an absurd quantity (1e20) is refused, not saved unbounded", async () => {
     render(<PortfolioPanel />);
-    await addHolding("nvda", "1e20", "150");
+    await addHolding("nvda", "100000000000000000000", "150"); // 1e20, written as a plain decimal
     expect(screen.getByText("Quantity is too large")).toBeInTheDocument();
     expect(activeHoldings()).toHaveLength(0);
   });

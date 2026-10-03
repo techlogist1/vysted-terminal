@@ -108,6 +108,19 @@ export interface HoldingValidation {
  * blank/missing) values so a blank cost is rejected as blank, never coerced
  * to 0 by `Number("")`. Each failure names its field.
  */
+/** A typed quantity/cost must be a plain decimal ("1500", "0.5"): `Number()`
+ *  alone also takes "0x10", "1e3", and whitespace as 0 (R15-FINAL-033). */
+const PLAIN_DECIMAL = /^-?(\d+\.?\d*|\.\d+)$/;
+
+/** A raw field as a number: `undefined` when blank, NaN when not a plain decimal. */
+function fieldNumber(value: unknown): number | undefined {
+  const text = typeof value === "string" ? value.trim() : value;
+  if (text === "" || text === null || text === undefined) {
+    return undefined;
+  }
+  return typeof text === "string" && !PLAIN_DECIMAL.test(text) ? Number.NaN : Number(text);
+}
+
 export function validateHolding(raw: {
   symbol?: unknown;
   quantity?: unknown;
@@ -117,10 +130,10 @@ export function validateHolding(raw: {
   if (symbol === "") {
     return { valid: false, field: "symbol", message: "Symbol is required" };
   }
-  if (raw.quantity === "" || raw.quantity === null || raw.quantity === undefined) {
+  const quantity = fieldNumber(raw.quantity);
+  if (quantity === undefined) {
     return { valid: false, field: "quantity", message: "Quantity is required" };
   }
-  const quantity = Number(raw.quantity);
   if (!Number.isFinite(quantity)) {
     return {
       valid: false,
@@ -134,10 +147,10 @@ export function validateHolding(raw: {
   if (quantity > MAX_HOLDING_QUANTITY) {
     return { valid: false, field: "quantity", message: "Quantity is too large" };
   }
-  if (raw.costBasis === "" || raw.costBasis === null || raw.costBasis === undefined) {
+  const costBasis = fieldNumber(raw.costBasis);
+  if (costBasis === undefined) {
     return { valid: false, field: "costBasis", message: "Avg cost per share is required" };
   }
-  const costBasis = Number(raw.costBasis);
   if (!Number.isFinite(costBasis)) {
     return {
       valid: false,
