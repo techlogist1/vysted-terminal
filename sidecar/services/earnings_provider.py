@@ -212,6 +212,21 @@ def _yf_ticker(symbol: str) -> Any:
     return yf.Ticker(symbol)
 
 
+def _optional(ticker: Any, attr: str, symbol: str) -> Any:
+    """One optional yfinance accessor: a failure is ``None`` (the field is
+    simply absent), except a throttle, which raises ``rate_limited`` so the
+    router's cache never stores the empty answer it would otherwise become
+    (R15-LEAD-071: a 429 on ``earnings_history`` was cached for 24 h)."""
+    try:
+        return getattr(ticker, attr)
+    except Exception as exc:  # noqa: BLE001 — optional accessor
+        if provider_health.is_rate_limit(exc):
+            raise ProviderError(
+                f"yfinance {attr} throttled for {symbol!r}", kind="rate_limited"
+            ) from exc
+        return None
+
+
 def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
     """Return a dict of the yfinance calendar (dates + estimates).
 
@@ -225,22 +240,12 @@ def _fetch_calendar_sync(symbol: str) -> dict[str, Any]:
     try:
         ticker = _yf_ticker(normalized)
         calendar = getattr(ticker, "calendar", None) or {}
-        try:
-            earnings_dates = ticker.earnings_dates
-        except Exception:  # noqa: BLE001 — optional accessor
-            earnings_dates = None
-        try:
-            info = ticker.info or {}
-        except Exception:  # noqa: BLE001
-            info = {}
-        try:
-            est_frame = ticker.earnings_estimate
-        except Exception:  # noqa: BLE001
-            est_frame = None
-        try:
-            rev_frame = ticker.revenue_estimate
-        except Exception:  # noqa: BLE001
-            rev_frame = None
+        earnings_dates = _optional(ticker, "earnings_dates", symbol)
+        info = _optional(ticker, "info", symbol) or {}
+        est_frame = _optional(ticker, "earnings_estimate", symbol)
+        rev_frame = _optional(ticker, "revenue_estimate", symbol)
+    except ProviderError:
+        raise
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance earnings calendar failed for {symbol!r}: {exc}") from exc
 
@@ -267,18 +272,11 @@ def _fetch_history_sync(symbol: str) -> dict[str, Any]:
     normalized = _yahoo_symbol(symbol)
     try:
         ticker = _yf_ticker(normalized)
-        try:
-            history = ticker.earnings_history
-        except Exception:  # noqa: BLE001
-            history = None
-        try:
-            earnings_dates = ticker.earnings_dates
-        except Exception:  # noqa: BLE001
-            earnings_dates = None
-        try:
-            info = ticker.info or {}
-        except Exception:  # noqa: BLE001
-            info = {}
+        history = _optional(ticker, "earnings_history", symbol)
+        earnings_dates = _optional(ticker, "earnings_dates", symbol)
+        info = _optional(ticker, "info", symbol) or {}
+    except ProviderError:
+        raise
     except Exception as exc:  # noqa: BLE001
         raise ProviderError(f"yfinance earnings history failed for {symbol!r}: {exc}") from exc
     return {
