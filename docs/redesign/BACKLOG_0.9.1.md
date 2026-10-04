@@ -130,6 +130,17 @@ Regenerated directly from the register's `open` entries at `4b460027`, not carri
 | R15-LIFECYCLE-040     | low      | The Tauri-Rust MCP spawn (the Windows deadlock fix) has never been exercised inside a launched packaged app; CI builds the bundle and smoke-tests the raw binaries, but no packaged cold boot...  | Run one packaged-app cold boot on each platform (launch the built bundle, check /openbb-mcp/status and /sec/status bind) and record it in DECISIONS.md;                                                                                                         |
 | R15-UI-068            | low      | DataTable, 'the ONE table primitive', has no loading/empty slot and its sort headers are not keyboard-operable, so panels hand-roll skeleton tables and four surfaces still hand-roll data tab... | Add loading?:{rows} and empty?:ReactNode rendered through the same colgroup;                                                                                                                                                                                    |
 
+Filed after the tag by the second GUI pass (4 Oct, `docs/redesign/verification/r15/gui-close-2/VERDICTS.md`):
+
+| ID           | Severity | Title                                                                                                                                                       | Plan          |
+| ------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| R15-LEAD-145 | medium   | Legacy import silently drops 3 of 84 positions with no notice                                                                                               | to be planned |
+| R15-LEAD-146 | low      | Settings clips buttons at narrow group width                                                                                                                | to be planned |
+| R15-LEAD-147 | low      | AAPL EOD quote flickers in and out of the Portfolio summary                                                                                                 | to be planned |
+| R15-LEAD-148 | low      | The Diagnostics preview shows the bundle in upper case, but the clipboard gets lower-case JSON, so the preview does not match the copied text byte for byte | to be planned |
+| R15-LEAD-149 | medium   | The Diagnostics hint promises 'symbols removed', but tickers inside log message text are left in the copied log tail                                        | to be planned |
+| R15-LEAD-150 | low      | The onboarding Local step and the chat lane resolve the Ollama endpoint differently                                                                         | to be planned |
+
 ## 3. Sidecar and boot
 
 - **R15-LEAD-124** (medium, open): sec-edgar-mcp is killed while still extracting on a cold or busy launch (~91 s) and /sec routes return 501 for the whole session. Fix shape: size the MCP bind budget to the cold-extraction worst case (keep the smoke-test budget in lockstep) or move to --onedir (CLAUDE.md Deferred). Note: split out of the R15-LEAD-123 root cause (R15-LEAD-123 itself is fixed in 0.9.0). 0.9.1 unless addressed sooner.
@@ -179,16 +190,15 @@ Each entry with the `DECISIONS_FOR_OPERATOR.md` section that covers it (nearest 
 
 The four local-model entries (R15-LEAD-030, -035, -037, -038) are the signed-off known limitation, not a 0.9.1 item unless reopened.
 
-## 5. Awaiting manual check - needs_gui (4)
+## 5. Awaiting manual check - needs_gui (3)
 
-Down from 5: R15-LIFECYCLE-001 (the boot-freeze item) is now **fixed** and dropped from this list.
+Down from 5: R15-LIFECYCLE-001 (the boot-freeze item) is now **fixed**, and R15-LIFECYCLE-008 passed its macOS click-through on 4 Oct and is **fixed**; both are dropped from this list.
 
-| ID                 | Severity | Awaiting manual check                                                                                                                                                                                                                                                                         |
-| ------------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R15-CODE-AGENT-001 | high     | Windows half only — macOS packaged and `pnpm tauri:dev` both confirmed live (every panel loads, no webview 403). Remaining: launch the Windows packaged app and confirm the same.                                                                                                             |
-| R15-LIFECYCLE-008  | high     | No diagnostics exist and a shipped build persists no log at all: every Rust, sidecar and MCP line goes to process stdout (no console at all on a Windows release build), so a user with a problem has no record. Packaged click-through on "Copy diagnostics" still needed on both platforms. |
-| R15-UI-022         | medium   | Chart drawing tools cannot place what the user clicks: anchors snap to the bar close, clicks past the last bar commit invisible drawings, Text always reads 'label', and Lock is a dead control.                                                                                              |
-| R15-DOCS-024       | low      | MCP_INTEGRATION.md's Claude Desktop (mcp-remote) setup has never been demonstrated end to end, and its claim that tools appear in Claude Desktop's slash picker as /vysted\_\_price_data is unverified.                                                                                       |
+| ID                 | Severity | Awaiting manual check                                                                                                                                                                                   |
+| ------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R15-CODE-AGENT-001 | high     | Windows half only — macOS packaged and `pnpm tauri:dev` both confirmed live (every panel loads, no webview 403). Remaining: launch the Windows packaged app and confirm the same.                       |
+| R15-UI-022         | medium   | Chart drawing tools cannot place what the user clicks: anchors snap to the bar close, clicks past the last bar commit invisible drawings, Text always reads 'label', and Lock is a dead control.        |
+| R15-DOCS-024       | low      | MCP_INTEGRATION.md's Claude Desktop (mcp-remote) setup has never been demonstrated end to end, and its claim that tools appear in Claude Desktop's slash picker as /vysted\_\_price_data is unverified. |
 
 ## 6. Features
 

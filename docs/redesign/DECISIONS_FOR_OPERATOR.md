@@ -4,18 +4,24 @@ Things R15 did that reverse a standing rule of yours, or that are yours alone to
 (Tier-4). Newest concerns at the top of each section. Each entry: what, why, my
 recommendation, and how to undo it in one step.
 
-## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026, updated 03:15 IST after the GUI pass; r15-launch = `1fddb2b1`, unmoved)
+## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026, updated 18:55 IST after the second GUI pass; r15-launch = `1fddb2b1`, unmoved)
 
 Do these in this order; each line names where the detail lives.
 
 1. **Finish the hand-test of the unsigned dmg** before anything public (`docs/HAND_TESTING_GUIDE.md`
-   §1–3). The GUI pass on 4 Oct (`docs/redesign/verification/r15/gui-close/VERDICTS.md`) covered part of it. Done: the fresh dmg install and
-   launch passed, and you answered the R15-LEAD-143 keychain prompt **Always Allow** at 01:55 IST. The
-   release app read back a copy of your 0.8.0 profile intact (84/84 positions, layout, agents,
-   workflows). Log rotation was shown. Still to do by hand: the on-screen half of the 0.8.0 → 0.9.0
-   upgrade, Copy diagnostics (R15-LIFECYCLE-008), the chart drawing tools (R15-UI-022), and the six
-   parked scenarios in `r15/final-pass/NEEDS_GUI.md` (UI-5, UI-7 first run on a profile with no terms
-   acknowledgement in the keychain, RS-2/AC-1, favicon fallback, arrange-compare, composer collapse).
+   §1–3). Two GUI passes on 4 Oct covered most of it (`docs/redesign/verification/r15/gui-close/VERDICTS.md`, `docs/redesign/verification/r15/gui-close-2/VERDICTS.md`). Done:
+   - The fresh dmg install and launch, twice. At 01:55 you answered the R15-LEAD-143 keychain prompt
+     **Always Allow**; at the second install (14:27, new path) no prompt appeared.
+   - Copy diagnostics (R15-LIFECYCLE-008, now fixed).
+   - The upgrade's data half (84/84 stored), plus its on-screen layout and providers.
+   - The drawing tools (UI-022) where driven, and the first-run walk (UI-7) where driven.
+     Still to do by hand:
+   - UI-022's drawing past the last bar on a plain, panned chart (the rig cannot pan).
+   - UI-7's Cloud and Done steps and its Ollama-down send.
+   - The five scenarios not run: UI-5, composer collapse, arrange-compare, RS-2/AC-1, favicon
+     fallback (`r15/final-pass/NEEDS_GUI.md`).
+     Decide whether R15-LEAD-145 (an upgrade hides invalid legacy rows with no notice; medium, data kept)
+     should ship as a known issue or be fixed before you publish.
 2. **Put a real commercial contact address** in `LICENSING.md` and `COMMERCIAL_LICENSE.md`
    (R15-DOCS-002) — a published release announces it.
 3. **Merge → tag → sign → swap dmg → publish**: `docs/redesign/OPERATOR_BRIEFING.md` §2 (commands) and

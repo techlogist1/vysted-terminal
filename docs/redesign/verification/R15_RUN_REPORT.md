@@ -54,6 +54,38 @@ first-run profile. A rig round followed (4 agents, 65.7 min). Its result: 0 pass
 
 No critical or high came up, so there was no fix round and `r15-launch` stays at `1fddb2b1`.
 
+The second GUI run (4 Oct 2026, 14:27–18:49 IST, at `1fddb2b1`, with the fixed rig). First the rig was
+fixed: the "frontmost app is Zed" stops came from its own stale reading, not from macOS (`7a07c82f`).
+The release dmg was then installed fresh to a new location and launched at 14:27:12. No keychain
+prompt appeared in 3½ min of watching, so there was nothing for you to answer. `/health` returned 0.9.0
+(`docs/redesign/verification/r15/gui-close-2/fresh-install/FRESH_INSTALL.md`). The rig round (11 agents, 4.3 h) drove 4 of the 9 items with
+no rig abort. Result: 1 passed, 1 failed, 2 partial, 6 filed, all medium or low (`docs/redesign/verification/r15/gui-close-2/VERDICTS.md`).
+
+- **R15-LIFECYCLE-008 passed** and is now `fixed`. The Copy diagnostics preview showed version and
+  status, and the "Copied" status showed after the copy. The clipboard held the redacted bundle, with
+  no key shapes.
+- **0.8.0 → 0.9.0 upgrade, on screen: failed on one part, medium.** The release app on a copy of your May
+  0.8.0 backup showed the phase9test layout (it loaded), the AI Providers state and 81 of the 84
+  positions. Three test rows with impossible values (quantity 1e15, and −50 at −10) are hidden from the
+  Portfolio panel with no notice. They are still in the stored ledger (84 over HTTP), so nothing is lost;
+  filed as R15-LEAD-145 for 0.9.1.
+- **R15-UI-022 partial.** Lines land at the clicked price, the Text tool asks for a label and shows it,
+  and Lock holds. A drawing past the last bar was shown only on an Ichimoku chart; the plain-chart case
+  needs a pan, which the rig cannot input.
+- **UI-7 (first run) partial.** On a clean profile the terms, welcome, local step, back and skip work. The
+  composer lands on the keyless Ollama lane, and with that lane down a keyless banner shows, not an
+  error. The Cloud and Done steps, a send on the down lane, and the Local step's unreachable state were
+  not driven.
+- **Not run:** UI-5, composer collapse, arrange-compare, RS-2/AC-1 and favicon fallback. The four-hour
+  away window you granted ended at 18:27 IST before the rig had 900 s of quiet again after UI-7.
+- **Filed for 0.9.1** (mediums and lows only): R15-LEAD-145 (medium, above), R15-LEAD-149 (medium: the
+  diagnostics log tail keeps tickers inside log text although the hint says symbols are removed), and
+  four lows (R15-LEAD-146 Settings buttons clip at a narrow width, 147 an EOD quote flickers in the
+  Portfolio summary, 148 preview vs clipboard case mismatch, 150 onboarding and chat resolve the Ollama
+  endpoint differently).
+
+No critical or high, so no fix round; `r15-launch` stays at `1fddb2b1`.
+
 What is waiting for you. A draft GitHub release `v0.9.0` exists, unpublished, with the unsigned dmg
 attached (228,480,607 bytes). The button sequence — merge, tag, sign, swap the dmg on the draft,
 publish — is section 2 of `docs/redesign/OPERATOR_BRIEFING.md`; the decisions in priority order are at
