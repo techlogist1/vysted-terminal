@@ -2,7 +2,7 @@
 
 887 raw findings -> 814 entries + 76 rejections. critical: 19 . high: 134 . medium: 356 . low: 305
 
-Status: blocked_tier4: 35 . fixed: 630 . needs_gui: 4 . not_a_defect: 6 . open: 125 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 631 . needs_gui: 3 . not_a_defect: 7 . open: 124 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -1338,7 +1338,7 @@ Status: blocked_tier4: 35 . fixed: 630 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LEAD-142 | medium | research | research-relevance | Recall regression from the LEAD-136 fix: brand-only and list headlines for the 234 NSE word tickers now drop ('Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks', 'Titan, Trent lead Nifty gains...', 'Trent rallies 5% as Zudio...' were kept at base) | open |  |
 | R15-LEAD-143 | low | distribution | keychain-signing | An unsigned 0.9.0 release launch raises a login-keychain SecurityAgent consent prompt at boot when vysted-terminal keychain items from another build exist; VYSTED_DATA_DIR isolates the data dir but not the keychain, so an isolated launch check still touches the real login keychain (and a window-only capture never shows the prompt) | open |  |
 | R15-LEAD-144 | low | data | symbol-normalisation | A double-suffixed spelling (RELIANCE.NS.NS) is normalised to the known listing by /fundamentals (200, NSE filings fallback, P/E and market cap typed null) but 404s on /quotes; five slash-containing symbols 404 with a bare {"detail":"Not Found"} and no typed code | open |  |
-| R15-LEAD-145 | critical |  |  | Legacy import silently drops 3 of 84 positions with no notice | needs_gui |  |
+| R15-LEAD-145 | critical |  |  | Legacy import silently drops 3 of 84 positions with no notice | fixed |  |
 | R15-LEAD-146 | low |  |  | Settings clips buttons at narrow group width | open |  |
 | R15-LEAD-147 | low |  |  | AAPL EOD quote flickers in and out of the Portfolio summary | open |  |
 | R15-LEAD-148 | low |  |  | The Diagnostics preview shows the bundle in upper case, but the clipboard gets lower-case JSON, so the preview does not match the copied text byte for byte | open |  |
@@ -1348,4 +1348,4 @@ Status: blocked_tier4: 35 . fixed: 630 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LEAD-152 | low |  |  | The agent-context skipped-rows note omits negative cost from its general line and lists at most 5 rows | open |  |
 | R15-LEAD-153 | low |  |  | Import notice edge cases: all rows skipped leaves only the selector caveat after dismiss; a deleted default portfolio leaves an undismissed notice about totals that no longer exist | open |  |
 | R15-LEAD-154 | low |  |  | The import notice gives only the first validation failure for AAPL -50 @ -10 and leaves out the negative cost | open |  |
-| R15-LEAD-155 | low |  |  | A driver mis-click reordered the provider fallback order (isolated run copy only; this is not a product defect) | open |  |
+| R15-LEAD-155 | low |  |  | A driver mis-click reordered the provider fallback order (isolated run copy only; this is not a product defect) | not_a_defect |  |

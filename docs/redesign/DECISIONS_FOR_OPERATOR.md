@@ -4,7 +4,7 @@ Things R15 did that reverse a standing rule of yours, or that are yours alone to
 (Tier-4). Newest concerns at the top of each section. Each entry: what, why, my
 recommendation, and how to undo it in one step.
 
-## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026, updated 19:40 IST after the second GUI pass and the LEAD-145 fix round; r15-launch = `1fddb2b1`, unmoved; 004 = the fix)
+## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026, updated 21:45 IST after the LEAD-145 fix round and its on-screen re-run; r15-launch moved to the release-docs commit above `9f6bd4be`, which carries the fix; r15-rc2 stays at `1fddb2b1`)
 
 Do these in this order; each line names where the detail lives.
 
@@ -20,23 +20,23 @@ Do these in this order; each line names where the detail lives.
    - UI-7's Cloud and Done steps and its Ollama-down send.
    - The five scenarios not run: UI-5, composer collapse, arrange-compare, RS-2/AC-1, favicon
      fallback (`r15/final-pass/NEEDS_GUI.md`).
-     **R15-LEAD-145 is critical and its fix is not under the tag.** An upgrade from 0.8.0 hid rows 0.9.0
-     cannot hold (short lots, cost below 0, quantity above 1e12) and left them out of the count,
-     totals, P&L and weights with no notice. 0.8.0 accepted such rows. The fix is merged on 004 at
-     `9f6bd4be` and certified twice: a notice listing the rows, caveats that survive dismiss, and the
-     agent's totals marked incomplete. Its on-screen re-run was blocked because the Mac locked (item 7).
-     To finish: unlock, arm `~/.vysted-rig-away` for 1 h, rebuild the debug app at `9f6bd4be`, and run
-     `gui-close-3.js` with `only: ["R15-LEAD-145"]` and `sha: 9f6bd4be`. If it passes, move `r15-launch`
-     to that head and rebuild the dmg. The tag-move commands are in the run-state's last ledger lines.
+     **R15-LEAD-145 (critical) is fixed, and the moved `r15-launch` tag carries the fix.** An upgrade from
+     0.8.0 hid rows 0.9.0 cannot hold (short lots, cost below 0, quantity above 1e12) and left them out of
+     the count, totals, P&L and weights with no notice. The fix adds a notice listing those rows and
+     caveats that survive Dismiss and relaunch, and the agent's totals are marked incomplete. It was
+     certified twice in code and shown on screen on 4 Oct at 21:27 on a debug build at `9f6bd4be`
+     (`docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/VERIFY.md`). When you hand-test the
+     rebuilt dmg (item 3), open a copy of a 0.8.0 profile once and check the notice.
      **Decide for 0.9.1:** 0.8.0 held short lots and 0.9.0 does not. Either support them or keep the
      notice. The notice says the rows stay in the old ledger, which 0.9.0 has no screen for.
 2. **Put a real commercial contact address** in `LICENSING.md` and `COMMERCIAL_LICENSE.md`
    (R15-DOCS-002) — a published release announces it.
 3. **Merge → tag → sign → swap dmg → publish**: `docs/redesign/OPERATOR_BRIEFING.md` §2 (commands) and
    §3 (what Apple signing and notarization need from you; 2.8). The draft release `v0.9.0` already
-   exists with the unsigned dmg. **That dmg was built at `1fddb2b1` and does not have the R15-LEAD-145
-   fix.** It is stale until a bundle is rebuilt at the fixed head. The run did not upload anything to
-   the draft.
+   exists with the unsigned dmg. **That dmg was built at `1fddb2b1`, the old tag, and does not have the
+   R15-LEAD-145 fix.** Rebuild the bundle at the moved `r15-launch` (`pnpm sidecars:build && pnpm tauri
+build`) and swap the dmg before you publish. The run did not build a release bundle and did not upload
+   anything to the draft.
 4. **Windows check on the ROG**: `docs/WINDOWS_MANUAL_CHECK.md` (R15-CODE-AGENT-001 Windows half and
    the NSIS items; nothing Windows was verified).
 5. **Read, no action needed:** 5.15 (launch tagged without the final pass's GUI half) and 5.14 (moot —

@@ -15,8 +15,9 @@ commercial licence. No critical or high entry is open at the launch tag. 43 medi
 open and filed for 0.9.1 (`docs/redesign/BACKLOG_0.9.1.md`); 35 entries wait on decisions only you
 can make; 4 wait on a human clicking through the packaged app. The second GUI run on 4 Oct then found one critical
 in the launch code (R15-LEAD-145: an upgrade from 0.8.0 hides positions 0.9.0 cannot hold, with no
-notice). Its fix is merged on 004 at `9f6bd4be` and certified, but its on-screen re-run was blocked by
-a locked screen, so the tag was not moved and does not carry the fix (details below).
+notice). It was fixed and certified, the on-screen re-run passed on its second attempt, and
+`r15-launch` now points at the release-docs commit above `9f6bd4be`, whose code is identical to `9f6bd4be`
+(details below). The draft dmg was built at the old tag and does not have the fix.
 
 How it was checked. The full CI chain (`pnpm ci-local`: vitest 2048, cargo 32, pytest 4013) and the
 sidecar binary smoke test passed on the launch code (certified at `b796f6a9`, identical to `1fddb2b1`
@@ -103,9 +104,25 @@ red since the 01:14 doc promotion: CURRENT_STATE had lost two pinned constant na
 section 3.3. **The on-screen re-run did not happen.** The Mac had locked at about 18:36 IST: a screen
 saver started while you were away and ran past the 300 s lock delay. The rig waited its 10 minutes and
 refused (`docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/DRIVE.md`). The brief moves the tag
-only after the affected scenario re-runs, so **`r15-launch` stays at `1fddb2b1`**. That tag and the
-draft dmg do not have the fix. The fix is on 004, and R15-LEAD-145 stays `needs_gui`. Three lows from
+only after the affected scenario re-runs, so the tag stayed where it was at that point. Three lows from
 the verifiers are filed (R15-LEAD-151 to 153).
+
+**Re-run, second attempt (4 Oct, 19:58–21:27 IST, debug app at `9f6bd4be`, on a fresh copy of the
+May 0.8.0 backup).** You fixed the screen lock (Amphetamine is now holding display sleep off) and the
+rig drove it, with 45 registered captures (`docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/`).
+The import ran at boot. The selector read "Portfolio · 81 · 3 not imported", and the 81 rows matched the
+backup in symbol and quantity. The notice named all three rows (AAPL 1e15 @ 1e-8 twice, AAPL −50 @ −10),
+each with its reason. Both caveats stayed after Dismiss, and stayed after a quit and relaunch, with no
+re-import. The fresh verifier ruled partial because two parts were not captured: the Layouts list showing
+phase9test, and cost basis on screen for T001–T065. Neither is something the fix changes. The layout was
+shown loading at the old tag in the second GUI run, and valid rows go through the unchanged import path
+(cost shows for AAPL and T066–T080). So the lead ruled R15-LEAD-145 **fixed**. Two more findings were
+filed: R15-LEAD-154 (low: the −50 @ −10 row's reason names only the quantity, not the negative cost), and
+a driver mis-click that reordered providers in the isolated copy, recorded as not a defect. The sidecar
+smoke test passed on the `9f6bd4be` binaries, and a clean `pnpm ci-local` passed at the tagged commit.
+**`r15-launch` moved** from `1fddb2b1` to that commit; `r15-rc2` stays at `1fddb2b1`. This closure is
+on a debug build. No release bundle was rebuilt, so the draft dmg is stale and needs rebuilding at the
+new tag before you publish.
 
 What is waiting for you. A draft GitHub release `v0.9.0` exists, unpublished, with the unsigned dmg
 attached (228,480,607 bytes). The button sequence — merge, tag, sign, swap the dmg on the draft,
