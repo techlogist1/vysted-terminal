@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 803 entries + 76 rejections. critical: 18 . high: 134 . medium: 355 . low: 296
+887 raw findings -> 809 entries + 76 rejections. critical: 18 . high: 134 . medium: 357 . low: 300
 
-Status: blocked_tier4: 35 . fixed: 629 . needs_gui: 4 . not_a_defect: 6 . open: 115 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 630 . needs_gui: 3 . not_a_defect: 6 . open: 121 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -648,7 +648,7 @@ Status: blocked_tier4: 35 . fixed: 629 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LIFECYCLE-005 | high | research | mcp-servers | When the openbb-mcp child dies, /fundamentals 500s and the research SSE stream ends mid-run with no done/error frame, while /openbb-mcp/status still reports available with no lastError | fixed | SURF-RESEARCH-BRIEFS-13 |
 | R15-LIFECYCLE-006 | high | research | research-depth-iter-deep | A retired research model turns a research request into a blank turn: every research step reports 'ok', the HTTP 404 reaches only the model, and Settings offers two already-retired slugs marked price-verified | fixed | LIFE-L2-ROT-1 |
 | R15-LIFECYCLE-007 | high | research | research-retrieval-relevance | Opened from Finder/Dock, the macOS app cannot find an installed Docker/OrbStack: SearXNG setup says 'docker CLI not found - install Docker Desktop or OrbStack' to users who have it, and search stays keyless | fixed | LIFE-L1-STRANGER-1 |
-| R15-LIFECYCLE-008 | high | lifecycle | rust-core | No diagnostics exist and a shipped build persists no log at all: every Rust, sidecar and MCP line goes to process stdout (no console at all on a Windows release build), so a user with a problem has nothing to hand a maintainer | needs_gui | LIFE-L3-DIAGNOSTICS-1 |
+| R15-LIFECYCLE-008 | high | lifecycle | rust-core | No diagnostics exist and a shipped build persists no log at all: every Rust, sidecar and MCP line goes to process stdout (no console at all on a Windows release build), so a user with a problem has nothing to hand a maintainer | fixed | LIFE-L3-DIAGNOSTICS-1 |
 | R15-LIFECYCLE-009 | high | lifecycle | portfolio | A v0.8.0-tag user's tracked portfolio does not survive the upgrade: holdings stay in portfolio.db, but the current panel never reads them and shows 'This portfolio is empty' | fixed | LIFE-L4-UPGRADE-3 |
 | R15-RELEASE-001 | high | release | scripts-build | Every desktop bundle ships unsigned on macOS and Windows: a downloaded .dmg is refused by Gatekeeper as 'damaged' and the NSIS installer is flagged by SmartScreen, before the app ever opens | blocked_tier4 | INT-blueprint-144-2, INT-blueprint-144-3, INT-blueprint-144-4, INT-blueprint-0-5, INT-deferred-0-15, INT-deferred-42-1 |
 | R15-RELEASE-002 | high | release | scripts-build | No GitHub release pipeline: pushing a v* tag produces no Release and no downloadable asset, so the public repo (tags v0.6.0..v0.8.0) has zero installable builds | blocked_tier4 | INT-blueprint-144-1 |
@@ -1338,3 +1338,9 @@ Status: blocked_tier4: 35 . fixed: 629 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LEAD-142 | medium | research | research-relevance | Recall regression from the LEAD-136 fix: brand-only and list headlines for the 234 NSE word tickers now drop ('Stocks to buy: Titan, Lenskart, Dabur among Nomura's 17 consumer picks', 'Titan, Trent lead Nifty gains...', 'Trent rallies 5% as Zudio...' were kept at base) | open |  |
 | R15-LEAD-143 | low | distribution | keychain-signing | An unsigned 0.9.0 release launch raises a login-keychain SecurityAgent consent prompt at boot when vysted-terminal keychain items from another build exist; VYSTED_DATA_DIR isolates the data dir but not the keychain, so an isolated launch check still touches the real login keychain (and a window-only capture never shows the prompt) | open |  |
 | R15-LEAD-144 | low | data | symbol-normalisation | A double-suffixed spelling (RELIANCE.NS.NS) is normalised to the known listing by /fundamentals (200, NSE filings fallback, P/E and market cap typed null) but 404s on /quotes; five slash-containing symbols 404 with a bare {"detail":"Not Found"} and no typed code | open |  |
+| R15-LEAD-145 | medium |  |  | Legacy import silently drops 3 of 84 positions with no notice | open |  |
+| R15-LEAD-146 | low |  |  | Settings clips buttons at narrow group width | open |  |
+| R15-LEAD-147 | low |  |  | AAPL EOD quote flickers in and out of the Portfolio summary | open |  |
+| R15-LEAD-148 | low |  |  | The Diagnostics preview shows the bundle in upper case, but the clipboard gets lower-case JSON, so the preview does not match the copied text byte for byte | open |  |
+| R15-LEAD-149 | medium |  |  | The Diagnostics hint promises 'symbols removed', but tickers inside log message text are left in the copied log tail | open |  |
+| R15-LEAD-150 | low |  |  | The onboarding Local step and the chat lane resolve the Ollama endpoint differently | open |  |

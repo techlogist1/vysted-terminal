@@ -1,0 +1,97 @@
+{
+ "sha": "1fddb2b19dd41ae2085a78ef5d02d7e5ee3af056",
+ "items": [
+  {
+   "id": "UPGRADE-080",
+   "drive": "holds",
+   "verify": "failed",
+   "reason": "The Portfolio shows 81 of the 84 legacy positions. Three AAPL rows (qty 1e15 twice, and −50 @ −10) are dropped with no notice (medium). Everything else holds on registered captures: the cockpit, the 81 rows matching (T054 only via HTTP), phase9test listed and loaded, AI Providers state with no values, and the real dir mtime unchanged."
+  },
+  {
+   "id": "R15-LIFECYCLE-008",
+   "drive": "holds",
+   "verify": "passed",
+   "reason": "The registered captures show the Diagnostics preview with version and status before any copy (06/07/11) and the \"Copied\" status after the copy (12/13). raw/clipboard.txt holds the same bundle string with the redacted 300-line log tail, and the key-shape grep finds nothing. Two side defects were found, but neither is the defect this item was filed for."
+  },
+  {
+   "id": "R15-UI-022",
+   "drive": "partial",
+   "verify": "partial",
+   "reason": "Clicked-y anchors (04, 05, 08), the Text prompt and gui-check (06, 07) and Lock (10, 11) are all visible and match the read-back. Part 2 holds only on an Ichimoku future timeline. The discriminating panned plain-chart case (time:null plus logical) was not driven because the rig has no pan input."
+  },
+  {
+   "id": "UI-7",
+   "drive": "partial",
+   "verify": "partial",
+   "reason": "The terms, welcome, local step, back and skip all hold. The composer lands on Ollama (local)/qwen2.5:7b with no key. With the lane down there is a keyless CTA banner and no error. Not driven: the Cloud and Done onboarding steps, a send on the down lane, and the Local step's Ollama-unreachable state."
+  },
+  {
+   "id": "UI-5",
+   "drive": "operator_present",
+   "verify": null,
+   "reason": "presence.log UI-5 lines 12:48:31Z-13:18:18Z: the sentinel expired 12:57:00Z while idle was 185.9-714.5 s (reset by UI-7), so idle>=900 and a live sentinel were never true together; no launch, no captures; real-dir mtime 1790978102 unchanged"
+  },
+  {
+   "id": "COMPOSER-COLLAPSE",
+   "drive": "operator_present",
+   "verify": null,
+   "reason": "not attempted: lane stopped at UI-5 (operator present or screen locked 10 min)"
+  },
+  {
+   "id": "ARRANGE-COMPARE",
+   "drive": "operator_present",
+   "verify": null,
+   "reason": "not attempted: lane stopped at UI-5 (operator present or screen locked 10 min)"
+  },
+  {
+   "id": "RS2-AC1",
+   "drive": "operator_present",
+   "verify": null,
+   "reason": "not attempted: lane stopped at UI-5 (operator present or screen locked 10 min)"
+  },
+  {
+   "id": "FAVICON-FALLBACK",
+   "drive": "operator_present",
+   "verify": null,
+   "reason": "not attempted: lane stopped at UI-5 (operator present or screen locked 10 min)"
+  }
+ ],
+ "filed": [
+  {
+   "id": "R15-LEAD-145",
+   "severity": "medium",
+   "title": "Legacy import silently drops 3 of 84 positions with no notice",
+   "item": "UPGRADE-080"
+  },
+  {
+   "id": "R15-LEAD-146",
+   "severity": "low",
+   "title": "Settings clips buttons at narrow group width",
+   "item": "UPGRADE-080"
+  },
+  {
+   "id": "R15-LEAD-147",
+   "severity": "low",
+   "title": "AAPL EOD quote flickers in and out of the Portfolio summary",
+   "item": "UPGRADE-080"
+  },
+  {
+   "id": "R15-LEAD-148",
+   "severity": "low",
+   "title": "The Diagnostics preview shows the bundle in upper case, but the clipboard gets lower-case JSON, so the preview does not match the copied text byte for byte",
+   "item": "R15-LIFECYCLE-008"
+  },
+  {
+   "id": "R15-LEAD-149",
+   "severity": "medium",
+   "title": "The Diagnostics hint promises 'symbols removed', but tickers inside log message text are left in the copied log tail",
+   "item": "R15-LIFECYCLE-008"
+  },
+  {
+   "id": "R15-LEAD-150",
+   "severity": "low",
+   "title": "The onboarding Local step and the chat lane resolve the Ollama endpoint differently",
+   "item": "UI-7"
+  }
+ ]
+}
