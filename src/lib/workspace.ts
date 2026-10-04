@@ -43,7 +43,13 @@ import { type SearchSettingsBundle, useSearchSettingsStore } from "@/store/searc
 import { type SavedScreen, deserializeSavedScreens, useScreenerStore } from "@/store/screener";
 import { type SettingsBundle, useSettingsStore } from "@/store/settings";
 import { type SymbolEntry, useSymbolsStore } from "@/store/symbols";
-import { type Portfolio, seedDefaultPortfolio, usePortfoliosStore } from "@/store/portfolios";
+import {
+  type Portfolio,
+  type SkippedHolding,
+  normalizeSkippedHolding,
+  seedDefaultPortfolio,
+  usePortfoliosStore,
+} from "@/store/portfolios";
 import { AUTOSAVE_LAYOUT_NAME, isReservedLayoutName, useWorkspaceStore } from "@/store/workspace";
 import type { LLMProviderId } from "../../types/ai";
 import { type AgentMode, coerceAgentMode } from "../../types/agent-modes";
@@ -88,8 +94,15 @@ export interface SerializedWorkspace {
    * The user's named portfolios + the active one. Persisted so manually tracked
    * holdings survive a relaunch (frontend-managed, hand-entered). Optional for
    * blobs saved before multi-portfolio shipped (absent → one empty default).
+   * `importSkipped` / `importNoticeDismissed` record the legacy-ledger rows the
+   * one-time import could not hold (R15-LEAD-145); older blobs lack them.
    */
-  portfolios?: { list: Portfolio[]; activeId: string };
+  portfolios?: {
+    list: Portfolio[];
+    activeId: string;
+    importSkipped?: SkippedHolding[];
+    importNoticeDismissed?: boolean;
+  };
   /**
    * The active agent mode (Ask / Edit / Build / Delegate). Persisted so a
    * cockpit reopens in the mode the user left it in (FR-003). Optional for
@@ -382,6 +395,13 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
       portfolios: {
         list: usePortfoliosStore.getState().portfolios,
         activeId: usePortfoliosStore.getState().activeId,
+        // Written only when set: absent restores as an empty, undismissed record.
+        ...(usePortfoliosStore.getState().importSkipped.length > 0
+          ? { importSkipped: usePortfoliosStore.getState().importSkipped }
+          : {}),
+        ...(usePortfoliosStore.getState().importNoticeDismissed
+          ? { importNoticeDismissed: true }
+          : {}),
       },
     }),
     restore: (workspace) => {
@@ -396,12 +416,21 @@ export const PERSISTED_SLICES: readonly PersistedSlice[] = [
             workspace.portfolios.activeId,
             isRegion(savedRegion) ? savedRegion : undefined,
           );
+        const { importSkipped, importNoticeDismissed } = workspace.portfolios;
+        usePortfoliosStore.getState().setImportRecord(
+          (Array.isArray(importSkipped) ? importSkipped : [])
+            .map(normalizeSkippedHolding)
+            .filter((row): row is SkippedHolding => row !== null),
+          importNoticeDismissed === true,
+        );
       }
     },
     subscribe: onChange(
       usePortfoliosStore,
       (s) => s.portfolios,
       (s) => s.activeId,
+      (s) => s.importSkipped,
+      (s) => s.importNoticeDismissed,
     ),
   },
   {

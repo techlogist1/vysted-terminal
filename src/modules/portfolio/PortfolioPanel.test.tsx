@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 
 import { usePanelContextBus } from "@/store/panel-context";
 import { usePortfoliosStore } from "@/store/portfolios";
@@ -772,5 +772,119 @@ describe("PortfolioPanel", () => {
       expect(screen.getAllByText("AAPL").length).toBeGreaterThan(0);
       expect(screen.getAllByText("MSFT").length).toBeGreaterThan(0);
     });
+  });
+});
+
+describe("PortfolioPanel legacy-import notice (R15-LEAD-145)", () => {
+  const SKIPPED = [
+    {
+      symbol: "FAT",
+      quantity: 1e15,
+      costBasis: 1e-8,
+      assetClass: "equity" as const,
+      reason: "Quantity is too large",
+    },
+    {
+      symbol: "SHORT",
+      quantity: -50,
+      costBasis: -10,
+      assetClass: "equity" as const,
+      reason: "Quantity must be greater than 0",
+    },
+  ];
+
+  function seed(skipped: typeof SKIPPED, dismissed = false) {
+    usePortfoliosStore.setState({
+      portfolios: [
+        {
+          id: "default",
+          name: "Portfolio",
+          holdings: [
+            {
+              id: "h1",
+              symbol: "AAPL",
+              quantity: 10,
+              costBasis: 150,
+              assetClass: "equity",
+              region: "US",
+            },
+          ],
+        },
+      ],
+      activeId: "default",
+      importSkipped: skipped,
+      importNoticeDismissed: dismissed,
+    });
+    mockFetchQuotes.mockResolvedValue({
+      quotes: new Map([["AAPL", quote("AAPL", 200)]]),
+      failed: 0,
+      missing: [],
+    });
+  }
+
+  afterEach(() => {
+    usePortfoliosStore.setState({ importSkipped: [], importNoticeDismissed: false });
+  });
+
+  it("names each skipped row, says the figures exclude them, and caveats the count and totals", async () => {
+    seed(SKIPPED);
+    render(<PortfolioPanel />);
+
+    const notice = await screen.findByTestId("portfolio-import-skipped");
+    expect(notice).toHaveTextContent(
+      "2 holdings from your previous version could not be imported.",
+    );
+    expect(notice).toHaveTextContent(
+      "Totals, P&L and weights exclude these rows. Short lots (negative quantity) and quantities above 1e12 are not supported in this version; the rows are kept in the old ledger.",
+    );
+    expect(
+      within(notice)
+        .getAllByRole("listitem")
+        .map((li) => li.textContent),
+    ).toEqual([
+      "FAT 1,000,000,000,000,000 @ 0.00000001 — Quantity is too large",
+      "SHORT -50 @ -10 — Quantity must be greater than 0",
+    ]);
+    expect(await screen.findByTestId("portfolio-import-caveat")).toHaveTextContent(
+      "excludes 2 rows not imported",
+    );
+    expect(within(screen.getByLabelText("Active portfolio")).getByRole("option").textContent).toBe(
+      "Portfolio · 1 · 2 not imported",
+    );
+  });
+
+  it("Dismiss hides the notice and persists the flag; the count caveat stays", async () => {
+    seed(SKIPPED);
+    render(<PortfolioPanel />);
+    await screen.findByTestId("portfolio-import-skipped");
+
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss import notice" }));
+
+    expect(screen.queryByTestId("portfolio-import-skipped")).not.toBeInTheDocument();
+    expect(usePortfoliosStore.getState().importNoticeDismissed).toBe(true);
+    expect(await screen.findByTestId("portfolio-import-caveat")).toHaveTextContent(
+      "excludes 2 rows not imported",
+    );
+    expect(within(screen.getByLabelText("Active portfolio")).getByRole("option").textContent).toBe(
+      "Portfolio · 1 · 2 not imported",
+    );
+  });
+
+  it("an already-dismissed record still caveats the figures", async () => {
+    seed(SKIPPED, true);
+    render(<PortfolioPanel />);
+    expect(await screen.findByTestId("portfolio-import-caveat")).toBeInTheDocument();
+    expect(screen.queryByTestId("portfolio-import-skipped")).not.toBeInTheDocument();
+  });
+
+  it("a clean import shows no notice and no caveat", async () => {
+    seed([]);
+    render(<PortfolioPanel />);
+    expect((await screen.findAllByText("+$500.00 (+33.33%)")).length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByTestId("portfolio-import-skipped")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("portfolio-import-caveat")).not.toBeInTheDocument();
+    expect(within(screen.getByLabelText("Active portfolio")).getByRole("option").textContent).toBe(
+      "Portfolio · 1",
+    );
   });
 });

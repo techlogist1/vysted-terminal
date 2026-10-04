@@ -1856,3 +1856,204 @@ describe("legacy positions import (R15-LIFECYCLE-009)", () => {
     expect(holdings()).toEqual([]);
   });
 });
+
+// ── the legacy rows the 0.9.0 import cannot hold are recorded (R15-LEAD-145) ─
+
+describe("legacy import skipped-row record (R15-LEAD-145)", () => {
+  const row = (id: number, symbol: string, quantity: number, costBasis: number) => ({
+    id,
+    symbol,
+    quantity,
+    cost_basis: costBasis,
+    asset_class: "equity",
+    opened_at: null,
+    note: null,
+  });
+  /** The UPGRADE-080 fixture shapes: one valid lot, a 1e15 typo, a short lot. */
+  const MIXED_LEDGER = [
+    row(1, "AAPL", 10, 150),
+    row(2, "FAT", 1e15, 1e-8),
+    row(3, "SHORT", -50, -10),
+  ];
+  const LEGACY_BLOB = { name: "__autosave__", layout: LAYOUT_A, enabledModules: {} };
+  let unwire: (() => void) | null = null;
+
+  /** Stub the sidecar with `autosave` (404 when null) and `ledger`; collects POSTed blobs. */
+  function stub(autosave: unknown, ledger: unknown[], posts: SerializedWorkspace[]): string[] {
+    const requests: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const path = new URL(url).pathname;
+        requests.push(`${init?.method ?? "GET"} ${path}`);
+        if (init?.method === "POST") {
+          posts.push(
+            (JSON.parse(String(init.body)) as { workspace: SerializedWorkspace }).workspace,
+          );
+          return { ok: true, status: 200, json: async () => ({}) } as unknown as Response;
+        }
+        if (path === "/portfolio/positions") {
+          return { ok: true, status: 200, json: async () => ledger } as unknown as Response;
+        }
+        if (path === "/workspace/__autosave__" && autosave) {
+          return { ok: true, status: 200, json: async () => autosave } as unknown as Response;
+        }
+        return { ok: false, status: 404, json: async () => ({}) } as unknown as Response;
+      }),
+    );
+    return requests;
+  }
+
+  const record = () => {
+    const { importSkipped, importNoticeDismissed } = usePortfoliosStore.getState();
+    return { importSkipped, importNoticeDismissed };
+  };
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    resetWorkspacePersistenceForTests();
+    useModulesStore.setState({ modules: [], enabled: {} });
+    useWorkspaceStore.setState({ name: "default", researchSymbol: null, dockviewApi: null });
+    usePortfoliosStore.getState().setAll([], undefined);
+    usePortfoliosStore.getState().setImportRecord([], false);
+  });
+
+  afterEach(() => {
+    unwire?.();
+    unwire = null;
+    resetWorkspacePersistenceForTests();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it("imports the valid rows, records the invalid ones, saves the record, and a dismiss persists across relaunch", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const posts: SerializedWorkspace[] = [];
+    stub(LEGACY_BLOB, MIXED_LEDGER, posts);
+    unwire = wireAutosaveTriggers();
+
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    const skipped = [
+      {
+        symbol: "FAT",
+        quantity: 1e15,
+        costBasis: 1e-8,
+        assetClass: "equity",
+        reason: "Quantity is too large",
+      },
+      {
+        symbol: "SHORT",
+        quantity: -50,
+        costBasis: -10,
+        assetClass: "equity",
+        reason: "Quantity must be greater than 0",
+      },
+    ];
+    const holdingSymbols = () =>
+      usePortfoliosStore
+        .getState()
+        .portfolios.flatMap((p) => p.holdings)
+        .map((h) => h.symbol);
+    expect(holdingSymbols()).toEqual(["AAPL"]);
+    expect(record()).toEqual({ importSkipped: skipped, importNoticeDismissed: false });
+    expect(posts).toHaveLength(1);
+    expect(posts[0].portfolios?.importSkipped).toEqual(skipped);
+    expect(posts[0].portfolios?.importNoticeDismissed).toBeUndefined();
+
+    // Relaunch on the saved blob: the ledger is not read again; the record restores.
+    unwire();
+    resetWorkspacePersistenceForTests();
+    usePortfoliosStore.getState().setAll([], undefined);
+    usePortfoliosStore.getState().setImportRecord([], false);
+    const requests = stub(posts[0], MIXED_LEDGER, posts);
+    unwire = wireAutosaveTriggers();
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    expect(requests).toEqual(["GET /workspace/__autosave__"]);
+    expect(holdingSymbols()).toEqual(["AAPL"]);
+    expect(record()).toEqual({ importSkipped: skipped, importNoticeDismissed: false });
+
+    // A dismiss autosaves; the next relaunch keeps it dismissed, record intact.
+    usePortfoliosStore.getState().dismissImportNotice();
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(posts).toHaveLength(2);
+    expect(posts[1].portfolios?.importNoticeDismissed).toBe(true);
+    unwire();
+    resetWorkspacePersistenceForTests();
+    usePortfoliosStore.getState().setImportRecord([], false);
+    stub(posts[1], MIXED_LEDGER, []);
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    expect(record()).toEqual({ importSkipped: skipped, importNoticeDismissed: true });
+  });
+
+  it("an all-valid ledger records nothing", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const posts: SerializedWorkspace[] = [];
+    stub(LEGACY_BLOB, [row(1, "AAPL", 10, 150), row(2, "MSFT", 5, 280)], posts);
+
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+    await vi.advanceTimersByTimeAsync(1_000);
+
+    expect(record()).toEqual({ importSkipped: [], importNoticeDismissed: false });
+    expect(posts[0].portfolios).toBeDefined();
+    expect(posts[0].portfolios?.importSkipped).toBeUndefined();
+  });
+
+  it("an empty ledger records nothing", async () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    stub(LEGACY_BLOB, [], []);
+
+    await restoreLastSessionOrDefault(api as never, new Set(["chart"]));
+
+    expect(record()).toEqual({ importSkipped: [], importNoticeDismissed: false });
+  });
+
+  it("the blob round-trips the record and the dismissed flag; a malformed entry is dropped", () => {
+    const api = createFakeDockviewApi(LAYOUT_A);
+    useWorkspaceStore.setState({ dockviewApi: api as never });
+    const entry = {
+      symbol: "SHORT",
+      quantity: -50,
+      costBasis: -10,
+      assetClass: "crypto" as const,
+      region: "IN" as const,
+      reason: "Quantity must be greater than 0",
+    };
+    usePortfoliosStore.getState().setImportRecord([entry], true);
+
+    const saved = serializeWorkspace("roundtrip");
+    usePortfoliosStore.getState().setImportRecord([], false);
+    deserializeWorkspace({
+      ...saved,
+      portfolios: {
+        ...saved.portfolios!,
+        importSkipped: [...saved.portfolios!.importSkipped!, { symbol: 7 } as never],
+      },
+    });
+
+    expect(record()).toEqual({ importSkipped: [entry], importNoticeDismissed: true });
+  });
+
+  it("an older blob without the fields restores as an empty, undismissed record", () => {
+    useWorkspaceStore.setState({ dockviewApi: createFakeDockviewApi(LAYOUT_A) as never });
+    usePortfoliosStore
+      .getState()
+      .setImportRecord([{ symbol: "X", quantity: -1, costBasis: 1, reason: "r" }], true);
+
+    deserializeWorkspace({
+      name: "old",
+      layout: LAYOUT_A,
+      enabledModules: {},
+      portfolios: {
+        list: [{ id: "default", name: "Portfolio", holdings: [] }],
+        activeId: "default",
+      },
+    } as SerializedWorkspace);
+
+    expect(record()).toEqual({ importSkipped: [], importNoticeDismissed: false });
+  });
+});

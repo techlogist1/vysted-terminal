@@ -27,6 +27,7 @@ import {
   type AssetClass,
   type Holding,
   type HoldingInput,
+  IMPORT_TARGET_PORTFOLIO_ID,
   listingCurrency,
   usePortfoliosStore,
   validateHolding,
@@ -79,6 +80,11 @@ function pairCurrency(symbol: string): string | undefined {
 function fmtQuantity(quantity: number): string {
   if (Math.abs(quantity) >= 1000) return formatUnit(quantity);
   return quantity.toLocaleString("en-US", { maximumFractionDigits: 8 });
+}
+
+/** A legacy ledger value exactly as recorded — no compaction, so 1e15 and 1e-8 read as typed. */
+function fmtLedgerValue(value: number | null): string {
+  return value === null ? "—" : value.toLocaleString("en-US", { maximumFractionDigits: 12 });
 }
 
 /** The P&L signal tone — green/red by direction, quiet neutral at zero. */
@@ -172,6 +178,13 @@ export function PortfolioPanel() {
     [portfolios, activeId],
   );
   const holdings = useMemo(() => active?.holdings ?? [], [active]);
+  const importSkipped = usePortfoliosStore((s) => s.importSkipped);
+  const importNoticeDismissed = usePortfoliosStore((s) => s.importNoticeDismissed);
+  const dismissImportNotice = usePortfoliosStore((s) => s.dismissImportNotice);
+  // The legacy import's skipped rows belong to the portfolio it seeded; its
+  // figures carry a caveat for as long as they exist, dismissed or not.
+  const skippedCount = importSkipped.length;
+  const activeExcludes = active.id === IMPORT_TARGET_PORTFOLIO_ID ? skippedCount : 0;
 
   const [form, setForm] = useState<FormState>(emptyForm());
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -844,6 +857,9 @@ export function PortfolioPanel() {
                 <option key={p.id} value={p.id}>
                   {p.name}
                   {p.holdings.length > 0 ? ` · ${p.holdings.length}` : ""}
+                  {p.id === IMPORT_TARGET_PORTFOLIO_ID && skippedCount > 0
+                    ? ` · ${skippedCount} not imported`
+                    : ""}
                 </option>
               ))}
             </select>
@@ -995,6 +1011,47 @@ export function PortfolioPanel() {
         </div>
       )}
 
+      {skippedCount > 0 && !importNoticeDismissed && (
+        // The one-time legacy import's skipped rows (R15-LEAD-145): each row the
+        // 0.9.0 portfolio cannot hold, named, with the figures it is missing from.
+        <div
+          role="status"
+          data-testid="portfolio-import-skipped"
+          className="border-charcoal-700 bg-charcoal-850 text-caption flex items-start gap-2 border-b px-3 py-2"
+        >
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <p className="text-warning font-medium">
+              {skippedCount} {skippedCount === 1 ? "holding" : "holdings"} from your previous
+              version could not be imported.
+            </p>
+            <p className="text-charcoal-300">
+              Totals, P&amp;L and weights exclude these rows. Short lots (negative quantity) and
+              quantities above 1e12 are not supported in this version; the rows are kept in the old
+              ledger.
+            </p>
+            <ul className="text-charcoal-200 flex flex-col gap-0.5 font-mono tabular-nums">
+              {importSkipped.map((row, i) => (
+                <li key={`${row.symbol}-${i}`} className="break-words">
+                  {row.symbol || "(no symbol)"} {fmtLedgerValue(row.quantity)} @{" "}
+                  {fmtLedgerValue(row.costBasis)}
+                  <span className="text-charcoal-400"> — {row.reason}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <Button
+            type="button"
+            size="xs"
+            variant="ghost"
+            aria-label="Dismiss import notice"
+            onClick={dismissImportNotice}
+          >
+            <X />
+            Dismiss
+          </Button>
+        </div>
+      )}
+
       {summary.rows.length > 0 && (
         <div className="border-charcoal-700 text-charcoal-200 text-caption flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-3 py-2 tabular-nums">
           {/* D57: single-currency portfolios sum exactly as before (with the
@@ -1088,6 +1145,20 @@ export function PortfolioPanel() {
                   dateStyle: "medium",
                   timeStyle: "short",
                 })}
+              </span>
+            </>
+          )}
+          {activeExcludes > 0 && (
+            <>
+              <span aria-hidden="true" className="text-charcoal-500">
+                ·
+              </span>
+              <span
+                className="text-warning whitespace-nowrap"
+                title="Legacy rows the 0.9.0 import could not hold (short lots, negative cost, quantity above 1e12) are not in these totals, P&L or weights; they stay in the old ledger."
+                data-testid="portfolio-import-caveat"
+              >
+                excludes {activeExcludes} {activeExcludes === 1 ? "row" : "rows"} not imported
               </span>
             </>
           )}
