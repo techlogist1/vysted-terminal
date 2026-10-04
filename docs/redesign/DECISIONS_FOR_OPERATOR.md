@@ -27,12 +27,14 @@ Do these in this order; each line names where the detail lives.
    the fail-safe fixed both highs).
 6. **The Tier-4 bucket** (35 `blocked_tier4` entries, unfunded lanes 2.1, Docker, CI, plugin model):
    sequenced in `docs/redesign/BACKLOG_0.9.1.md`; nothing in it blocks 0.9.0.
-7. **Before the next rig-driven GUI round:** on macOS 26 the rig's activation call
-   (`scripts/rig/rig.py` `real_activate`, `activateWithOptions_` with IgnoringOtherApps) is ignored
-   when a background process asks. The rig therefore cannot bring Vysted in front of another app, and
-   it aborts with exit 4 ("frontmost app is 'Zed'"). Either give the rig an activation path macOS 26
-   honours (for example `open -a` or LaunchServices), or leave Vysted frontmost when you step away.
-   Every future GUI round hits this otherwise.
+7. **Rig exit 4 ("frontmost app is 'Zed'") is fixed (4 Oct).** Activation was never what failed. A
+   test at 14:20 IST showed every route bringing Vysted in front of Zed on macOS 26.3, including the
+   old `activateWithOptions_`. The rig's re-check read `NSWorkspace.frontmostApplication()`, which is
+   cached and never updates in a process without a run loop. `scripts/rig/rig.py` now reads the
+   frontmost app fresh (`lsappinfo`), brings Vysted forward with `open -a <running bundle>` before
+   every acting step, and waits up to 10 min for a locked screen or sleeping display. For an
+   unattended run, the screen must not lock on its own: set Lock Screen → "Start Screen Saver when
+   inactive" to Never.
 8. **One leftover worktree for you to keep or discard:** `.claude/worktrees/wf_4ed38558-4d0-26`
    (branch `worktree-agent-rc1-4c6dfe8-fix-r1-W1-citation-pseudo-class`) holds 346 lines of
    uncommitted rc1-round-2 citation-grammar writer code (26 Sep) that a later round superseded. The

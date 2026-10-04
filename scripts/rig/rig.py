@@ -39,6 +39,8 @@ EXIT_SURPRISE = 4
 DEFAULT_MIN_IDLE = 900.0
 IDLE_FLOOR = 300.0  # VYSTED_RIG_MIN_IDLE may raise the bar, never drop below this
 EVENT_TOLERANCE = 1.5  # seconds of slack between our own event and the idle clock
+SCREEN_WAIT_MAX = 600.0  # a locked screen or sleeping display is waited out this long
+SCREEN_POLL = 15.0
 OWNER_MATCH = "vysted"
 
 # Idle is input silence, not absence: measured 2026-09-19, idle climbed past 3480s
@@ -72,8 +74,27 @@ def real_idle() -> float:
 
 
 def real_frontmost() -> str:
-    app = NSWorkspace.sharedWorkspace().frontmostApplication()
-    return app.localizedName() if app else ""
+    # Not NSWorkspace.frontmostApplication(): with no run loop it is a cached value
+    # that never updates inside one process, so a batch re-read after activation kept
+    # saying "Zed" while Vysted was already in front (measured 4 Oct 2026, macOS 26.3).
+    asn = subprocess.run(
+        ["lsappinfo", "front"], capture_output=True, text=True
+    ).stdout.strip()
+    if not asn:
+        return ""
+    out = subprocess.run(
+        ["lsappinfo", "info", "-only", "name", asn], capture_output=True, text=True
+    ).stdout
+    return parse_lsappinfo_name(out)
+
+
+def parse_lsappinfo_name(out: str) -> str:
+    """'"LSDisplayName"="Zed"' -> 'Zed'; anything else (e.g. [ NULL ]) -> ''."""
+    _, sep, value = out.strip().partition("=")
+    value = value.strip()
+    if not sep or not (value.startswith('"') and value.endswith('"')):
+        return ""
+    return value[1:-1]
 
 
 def real_windows() -> list[dict]:
@@ -102,10 +123,34 @@ def real_windows() -> list[dict]:
 
 
 def real_activate() -> None:
-    for app in NSWorkspace.sharedWorkspace().runningApplications():
-        if is_vysted(app.localizedName()):
-            app.activateWithOptions_(1 << 1)  # NSApplicationActivateIgnoringOtherApps
-            return
+    """Bring the running Vysted app forward via LaunchServices (`open -a <its bundle>`).
+
+    By the running app's bundle path, not its name: a name could resolve to another
+    installed copy (the operator's /Applications one) and launch it.
+    """
+    path = vysted_bundle_path(NSWorkspace.sharedWorkspace().runningApplications())
+    if path:
+        subprocess.run(["open", "-a", path], capture_output=True)
+
+
+def vysted_bundle_path(apps) -> str | None:
+    # Regular (policy 0) apps only: WebKit helpers are named "Vysted Terminal Web
+    # Content" etc. and are not what the operator would switch to.
+    for app in apps:
+        if is_vysted(app.localizedName()) and app.activationPolicy() == 0:
+            url = app.bundleURL()
+            return url.path() if url else None
+    return None
+
+
+def real_screen_state() -> str:
+    """'locked', 'asleep' or 'ok' -- a rig can neither see nor reach a locked session."""
+    session = Quartz.CGSessionCopyCurrentDictionary() or {}
+    if session.get("CGSSessionScreenIsLocked"):
+        return "locked"
+    if Quartz.CGDisplayIsAsleep(Quartz.CGMainDisplayID()):
+        return "asleep"
+    return "ok"
 
 
 def is_vysted(name: str | None) -> bool:
@@ -152,6 +197,7 @@ class Guard:
         away=real_away,
         clock=time.monotonic,
         sleep=time.sleep,
+        screen_state=real_screen_state,
     ):
         self.min_idle = min_idle
         self.idle = idle
@@ -161,6 +207,7 @@ class Guard:
         self.away = away
         self.clock = clock
         self.sleep = sleep
+        self.screen_state = screen_state
         self.last_event: float | None = None
 
     def presence(self) -> float:
@@ -186,6 +233,23 @@ class Guard:
             raise Refused(AWAY_HINT.format(idle=idle))
         return idle
 
+    def wait_for_screen(self) -> None:
+        """A locked screen or sleeping display is waited out, not a stop -- up to a limit."""
+        start = self.clock()
+        state = self.screen_state()
+        while state != "ok":
+            waited = self.clock() - start
+            if waited >= SCREEN_WAIT_MAX:
+                raise Refused(
+                    f"screen {state} for {waited:.0f}s (limit {SCREEN_WAIT_MAX:.0f}s)"
+                )
+            print(
+                f"WAIT: screen {state}, retrying ({waited:.0f}s waited)",
+                file=sys.stderr,
+            )
+            self.sleep(SCREEN_POLL)
+            state = self.screen_state()
+
     def require_front(self, may_activate: bool = False) -> str:
         name = self.frontmost()
         if is_vysted(name):
@@ -199,6 +263,7 @@ class Guard:
         raise Aborted(f"frontmost app is {name!r}, not Vysted")
 
     def before(self, may_activate: bool = False) -> None:
+        self.wait_for_screen()
         self.presence()
         self.require_front(may_activate=may_activate)
 

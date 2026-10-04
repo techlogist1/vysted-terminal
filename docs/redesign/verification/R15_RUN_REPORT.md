@@ -43,9 +43,9 @@ first-run profile. A rig round followed (4 agents, 65.7 min). Its result: 0 pass
 
 - **0.8.0 → 0.9.0 upgrade.** The release app was opened on a copy of your May 0.8.0 backup profile.
   Through its own sidecar it read back 84 of 84 positions, the layout, 0 agents and 0 workflows, all
-  identical. Nothing was driven on screen. On macOS 26 the rig cannot bring a window in front of
-  another app (cooperative activation), and it aborted with "frontmost app is Zed". That half still
-  needs a manual check.
+  identical. Nothing was driven on screen. The rig aborted with "frontmost app is Zed". The cause, found
+  on 4 Oct, was the rig's own stale frontmost reading, not macOS refusing to activate; it is fixed in
+  `scripts/rig/rig.py`. That half still needs a check.
 - **R15-LIFECYCLE-008 (partial).** Run on the debug bundle built at `1fddb2b1`. Log rotation was shown
   at boot: a 2 MB log rotated to `vysted.log.1`, and the new log had fresh timestamped lines from all
   four processes. Copy diagnostics was not driven, because the screen locked and then you were active.

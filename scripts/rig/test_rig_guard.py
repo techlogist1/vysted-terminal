@@ -24,8 +24,9 @@ def guard(
     activate=None,
     min_idle=900.0,
     away=ARMED,
+    screen="ok",
 ):
-    """Guard wired to fakes. `idle`/`front`/`away` accept a list to script reads."""
+    """Guard wired to fakes. `idle`/`front`/`away`/`screen` accept a list to script reads."""
     clock = [0.0]
     wins = (
         windows
@@ -51,7 +52,8 @@ def guard(
         activate=activate or (lambda: None),
         away=pop(away),
         clock=lambda: clock[0],
-        sleep=lambda _s: None,
+        sleep=lambda s: clock.__setitem__(0, clock[0] + s),
+        screen_state=pop(screen),
     )
     g.tick = lambda dt: clock.__setitem__(0, clock[0] + dt)
     return g
@@ -207,6 +209,196 @@ def test_presence_gate_runs_before_activation():
     with pytest.raises(rig.Refused):
         g.before(may_activate=True)
     assert called == []
+
+
+# --- activation helper (macOS 26) --------------------------------------------
+
+
+class FakeApp:
+    def __init__(self, name, policy=0, path=None):
+        self.name, self.policy, self.path = name, policy, path
+
+    def localizedName(self):
+        return self.name
+
+    def activationPolicy(self):
+        return self.policy
+
+    def bundleURL(self):
+        return (
+            None
+            if self.path is None
+            else type("U", (), {"path": lambda _s: self.path})()
+        )
+
+
+def test_activation_targets_the_running_app_bundle_not_a_helper_or_name():
+    apps = [
+        FakeApp("Zed", path="/Applications/Zed.app"),
+        FakeApp("Vysted Terminal Web Content", policy=1, path="/x/WebContent.xpc"),
+        FakeApp("Vysted Terminal", path="/tmp/run/Vysted Terminal.app"),
+    ]
+    assert rig.vysted_bundle_path(apps) == "/tmp/run/Vysted Terminal.app"
+    assert rig.vysted_bundle_path([FakeApp("Zed")]) is None
+
+
+def test_real_activate_runs_open_a_on_the_bundle_path(monkeypatch):
+    ran = []
+    monkeypatch.setattr(
+        rig,
+        "NSWorkspace",
+        type(
+            "W",
+            (),
+            {
+                "sharedWorkspace": staticmethod(
+                    lambda: type(
+                        "S",
+                        (),
+                        {
+                            "runningApplications": lambda _s: [
+                                FakeApp("Vysted Terminal", path="/a/V.app")
+                            ]
+                        },
+                    )()
+                )
+            },
+        ),
+    )
+    monkeypatch.setattr(rig.subprocess, "run", lambda cmd, **_k: ran.append(cmd))
+    rig.real_activate()
+    assert ran == [["open", "-a", "/a/V.app"]]
+
+
+def test_lsappinfo_name_parse():
+    assert (
+        rig.parse_lsappinfo_name('"LSDisplayName"="Vysted Terminal"\n')
+        == "Vysted Terminal"
+    )
+    assert rig.parse_lsappinfo_name('"LSDisplayName"=[ NULL ] ') == ""
+    assert rig.parse_lsappinfo_name("") == ""
+
+
+def test_frontmost_is_read_fresh_not_from_the_nsworkspace_cache():
+    # NSWorkspace.frontmostApplication() never updates without a run loop; that stale
+    # read was the real cause of the 4 Oct exit-4 aborts ("frontmost app is 'Zed'").
+    src = Path(rig.__file__).read_text()
+    assert "frontmostApplication()" not in src.split("def real_frontmost", 1)[1].split(
+        "\ndef ", 1
+    )[0].replace("Not NSWorkspace.frontmostApplication()", "")
+
+
+def test_activation_retries_the_front_check_once_then_hard_stops():
+    called = []
+    g = guard(
+        front=["Zed", "Zed", "Vysted Terminal"], activate=lambda: called.append(1)
+    )
+    with pytest.raises(rig.Aborted, match="Zed"):
+        g.require_front(may_activate=True)
+    assert called == [1], "one activation, one re-check, then the hard stop"
+
+
+def test_no_activation_when_vysted_is_already_in_front():
+    called = []
+    assert (
+        guard(activate=lambda: called.append(1)).require_front(True)
+        == "vysted-terminal"
+    )
+    assert called == []
+
+
+# --- locked screen / sleeping display: wait, not stop ------------------------
+
+
+def test_a_locked_screen_is_waited_out_then_the_step_proceeds():
+    g = guard(screen=["locked", "asleep", "ok"])
+    g.before(may_activate=True)
+    assert g.clock() == 2 * rig.SCREEN_POLL
+
+
+def test_a_screen_locked_past_ten_minutes_refuses_without_acting():
+    called = []
+    g = guard(screen="locked", activate=lambda: called.append(1))
+    with pytest.raises(rig.Refused, match="screen locked"):
+        g.before(may_activate=True)
+    assert g.clock() >= rig.SCREEN_WAIT_MAX == 600.0
+    assert called == []
+
+
+def test_presence_is_still_checked_after_the_screen_unlocks():
+    # Someone unlocking the machine resets idle -> the gate refuses, never acts.
+    with pytest.raises(rig.Refused, match="operator may be present"):
+        guard(screen=["locked", "ok"], idle=3.0).before(may_activate=True)
+
+
+# --- dry run: the activation helper runs before every acting step -------------
+
+
+def test_dry_run_batch_brings_vysted_forward_before_every_step(tmp_path, monkeypatch):
+    events = []
+    front = {"name": "Zed"}
+
+    def activate():
+        events.append("activate")
+        front["name"] = "Vysted Terminal"
+
+    g = guard(activate=activate)
+    g.frontmost = lambda: front["name"]
+    orig = g.require_front
+
+    def spy(may_activate=False):
+        events.append(f"require_front(may_activate={may_activate})")
+        return orig(may_activate=may_activate)
+
+    g.require_front = spy
+    monkeypatch.setattr(rig, "Guard", lambda _min_idle: g)
+    monkeypatch.setattr(rig.Quartz, "CGPointMake", lambda x, y: (x, y))
+    monkeypatch.setattr(rig.Quartz, "CGEventCreateMouseEvent", lambda *a: object())
+    monkeypatch.setattr(rig.Quartz, "CGEventSetIntegerValueField", lambda *a: None)
+    monkeypatch.setattr(rig.Quartz, "CGEventPost", lambda *a: events.append("POST"))
+    monkeypatch.setattr(rig.Quartz, "CGWindowListCreateImage", lambda *a: object())
+    monkeypatch.setattr(
+        rig, "png_write", lambda _i, p: (events.append("CAPTURE"), p.write_bytes(b"x"))
+    )
+    monkeypatch.setattr(rig.capture_registry, "CAPTURES", tmp_path / "CAPTURES.jsonl")
+    monkeypatch.setattr(rig, "osascript", lambda s: events.append("OSA"))
+    monkeypatch.setattr(rig.time, "sleep", lambda _s: None)
+    batch = tmp_path / "batch.json"
+    batch.write_text(
+        json.dumps(
+            [
+                {"cmd": "capture", "out": str(tmp_path / "a.png")},
+                {"cmd": "click", "x": 5, "y": 5},
+                {"cmd": "type", "text": "AAPL"},
+                {"cmd": "key", "combo": "return"},
+                {"cmd": "capture", "out": str(tmp_path / "b.png")},
+            ]
+        )
+    )
+    assert rig.main(["batch", str(batch)]) == 0
+    action = ("POST", "CAPTURE", "OSA")
+    # a click posts down+up: one step's action is a run of consecutive events
+    acts = [
+        i
+        for i, e in enumerate(events)
+        if e in action and (i == 0 or events[i - 1] not in action)
+    ]
+    assert len(acts) == 5, events
+    starts = [i for i, e in enumerate(events) if e.startswith("require_front")]
+    assert len(starts) == 5, events
+    # every action is preceded by its own helper call since the previous action
+    prev = -1
+    for a in acts:
+        assert any(prev < s < a for s in starts), events
+        prev = a
+    assert events.index("activate") < acts[0], (
+        "Zed was in front: activation precedes the first action"
+    )
+    assert all(
+        e == "require_front(may_activate=True)"
+        for e in events
+        if e.startswith("require_front")
+    )
 
 
 # --- surprise detection ------------------------------------------------------

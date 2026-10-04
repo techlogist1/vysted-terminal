@@ -49,9 +49,13 @@ Checked before **every** guarded action, and before **every step** of a batch:
    after the first action the gate stops comparing to the raw bar and instead compares idle
    against time since the rig's own last event (1.5s tolerance). Idle younger than our last
    event ⇒ a _human_ touched the machine ⇒ refuse, exit **3**.
-4. **Foreground gate.** Vysted must own the foreground. The rig may `activate` it only on
-   the first step and only after gates 1–3 have already passed — a present operator never
-   gets their window yanked forward.
+4. **Foreground gate.** Vysted must own the foreground. Before every acting step, and only
+   after gates 1–3 have passed (so a present operator never gets their window yanked forward),
+   the rig brings it forward with `open -a <the running app's bundle>`, re-checks once, and
+   exits **4** if it is still not in front. The frontmost app is read fresh via `lsappinfo`.
+   `NSWorkspace.frontmostApplication()` is cached in a process with no run loop, and that stale
+   read caused the 4 Oct exit-4 aborts. Before any of that, a locked screen or sleeping display
+   is waited out (polled every 15 s, up to 10 min, then refused with exit **3**).
 5. **Surprise detector.** After each action: no new window from a foreign app, frontmost
    still Vysted, and (for a capture) the captured window id still owned by Vysted. On any
    surprise the batch **aborts**, the capture file is **deleted**, exit **4**, and a line
