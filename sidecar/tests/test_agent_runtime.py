@@ -485,6 +485,24 @@ def test_terminal_preamble_omits_prior_values_when_no_claims() -> None:
     assert "PRIOR STATED VALUES" not in preamble
 
 
+def test_terminal_preamble_portfolio_caveats_import_skipped_rows() -> None:
+    """R15-LEAD-145: a portfolio snapshot carrying importSkippedCount renders a
+    caveat that the count/total exclude those legacy rows; none without it."""
+    base = {"positionCount": 81, "totalValue": 1000}
+    caveated = agent_runtime._render_terminal_preamble(
+        {"portfolio": {**base, "importSkippedCount": 3}}
+    )
+    assert "Portfolio: 81 positions, total value 1000." in caveated
+    assert "EXCLUDE 3 legacy rows the import could not hold" in caveated
+    assert "these totals are incomplete" in caveated
+
+    for pf in (base, {**base, "importSkippedCount": 0}):
+        clean = agent_runtime._render_terminal_preamble({"portfolio": pf})
+        assert "Portfolio: 81 positions, total value 1000." in clean
+        assert "EXCLUDE" not in clean
+        assert "incomplete" not in clean
+
+
 def test_capabilities_preamble_carries_self_consistency_instruction() -> None:
     """R13 JARVIS 3c: the shared capabilities preamble tells the agent to
     reconcile a contradicting figure openly, never silently switch."""

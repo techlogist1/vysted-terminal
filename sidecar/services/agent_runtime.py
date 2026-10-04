@@ -450,7 +450,17 @@ def _render_terminal_preamble(ts: dict[str, Any]) -> str:
             if tv is not None
             else "total value not marked-to-market (open the Portfolio panel for live values)"
         )
-        lines.append(f"Portfolio: {pf.get('positionCount', 0)} positions, {tv_str}.")
+        line = f"Portfolio: {pf.get('positionCount', 0)} positions, {tv_str}."
+        # R15-LEAD-145: legacy rows the 0.9.0 import could not hold are not in
+        # the count or the total — say so, never state incomplete totals as whole.
+        skipped = pf.get("importSkippedCount")
+        if isinstance(skipped, int) and not isinstance(skipped, bool) and skipped > 0:
+            rows = "row" if skipped == 1 else "rows"
+            line += (
+                f" The count and total EXCLUDE {skipped} legacy {rows} the import could"
+                " not hold (see get_portfolio importSkippedNote) — these totals are incomplete."
+            )
+        lines.append(line)
     if ts.get("openPanels"):
         lines.append("Open panels: " + ", ".join(ts["openPanels"]) + ".")
     vp = ts.get("viewport")
