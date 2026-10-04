@@ -4,7 +4,7 @@ Things R15 did that reverse a standing rule of yours, or that are yours alone to
 (Tier-4). Newest concerns at the top of each section. Each entry: what, why, my
 recommendation, and how to undo it in one step.
 
-## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026, updated 18:55 IST after the second GUI pass; r15-launch = `1fddb2b1`, unmoved)
+## 0. Start here — priority order at close-out (01:30 IST Sun 4 Oct 2026, updated 19:40 IST after the second GUI pass and the LEAD-145 fix round; r15-launch = `1fddb2b1`, unmoved; 004 = the fix)
 
 Do these in this order; each line names where the detail lives.
 
@@ -20,13 +20,23 @@ Do these in this order; each line names where the detail lives.
    - UI-7's Cloud and Done steps and its Ollama-down send.
    - The five scenarios not run: UI-5, composer collapse, arrange-compare, RS-2/AC-1, favicon
      fallback (`r15/final-pass/NEEDS_GUI.md`).
-     Decide whether R15-LEAD-145 (an upgrade hides invalid legacy rows with no notice; medium, data kept)
-     should ship as a known issue or be fixed before you publish.
+     **R15-LEAD-145 is critical and its fix is not under the tag.** An upgrade from 0.8.0 hid rows 0.9.0
+     cannot hold (short lots, cost below 0, quantity above 1e12) and left them out of the count,
+     totals, P&L and weights with no notice. 0.8.0 accepted such rows. The fix is merged on 004 at
+     `9f6bd4be` and certified twice: a notice listing the rows, caveats that survive dismiss, and the
+     agent's totals marked incomplete. Its on-screen re-run was blocked because the Mac locked (item 7).
+     To finish: unlock, arm `~/.vysted-rig-away` for 1 h, rebuild the debug app at `9f6bd4be`, and run
+     `gui-close-3.js` with `only: ["R15-LEAD-145"]` and `sha: 9f6bd4be`. If it passes, move `r15-launch`
+     to that head and rebuild the dmg. The tag-move commands are in the run-state's last ledger lines.
+     **Decide for 0.9.1:** 0.8.0 held short lots and 0.9.0 does not. Either support them or keep the
+     notice. The notice says the rows stay in the old ledger, which 0.9.0 has no screen for.
 2. **Put a real commercial contact address** in `LICENSING.md` and `COMMERCIAL_LICENSE.md`
    (R15-DOCS-002) — a published release announces it.
 3. **Merge → tag → sign → swap dmg → publish**: `docs/redesign/OPERATOR_BRIEFING.md` §2 (commands) and
    §3 (what Apple signing and notarization need from you; 2.8). The draft release `v0.9.0` already
-   exists with the unsigned dmg.
+   exists with the unsigned dmg. **That dmg was built at `1fddb2b1` and does not have the R15-LEAD-145
+   fix.** It is stale until a bundle is rebuilt at the fixed head. The run did not upload anything to
+   the draft.
 4. **Windows check on the ROG**: `docs/WINDOWS_MANUAL_CHECK.md` (R15-CODE-AGENT-001 Windows half and
    the NSIS items; nothing Windows was verified).
 5. **Read, no action needed:** 5.15 (launch tagged without the final pass's GUI half) and 5.14 (moot —
@@ -39,8 +49,14 @@ Do these in this order; each line names where the detail lives.
    cached and never updates in a process without a run loop. `scripts/rig/rig.py` now reads the
    frontmost app fresh (`lsappinfo`), brings Vysted forward with `open -a <running bundle>` before
    every acting step, and waits up to 10 min for a locked screen or sleeping display. For an
-   unattended run, the screen must not lock on its own: set Lock Screen → "Start Screen Saver when
-   inactive" to Never.
+   unattended run, the screen must not lock on its own. **The setting did not hold on 4 Oct.** After
+   you set the screen saver to Never, `defaults -currentHost read com.apple.screensaver` still showed
+   no domain, and `sysadminctl -screenLock status` showed a 300 s delay. presence.log shows
+   loginwindow in front at 11:54Z, cleared within two minutes, and again from 13:06Z (18:36 IST)
+   onward. So a screen saver started twice, and the second one ran past the lock delay and locked
+   the Mac. Re-check "Start Screen Saver when inactive → Never". As a backstop, also set "Require
+   password after screen saver begins" to a long delay or Never. Then read
+   `sysadminctl -screenLock status` again.
 8. **One leftover worktree for you to keep or discard:** `.claude/worktrees/wf_4ed38558-4d0-26`
    (branch `worktree-agent-rc1-4c6dfe8-fix-r1-W1-citation-pseudo-class`) holds 346 lines of
    uncommitted rc1-round-2 citation-grammar writer code (26 Sep) that a later round superseded. The

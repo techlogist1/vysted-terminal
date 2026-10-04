@@ -13,7 +13,10 @@ register, and fixed 629 of them. It removed trading from the product permanently
 connection, no orders, no paper account) and relicensed the core to PolyForm Strict 1.0.0 plus a
 commercial licence. No critical or high entry is open at the launch tag. 43 mediums and 72 lows are
 open and filed for 0.9.1 (`docs/redesign/BACKLOG_0.9.1.md`); 35 entries wait on decisions only you
-can make; 4 wait on a human clicking through the packaged app.
+can make; 4 wait on a human clicking through the packaged app. The second GUI run on 4 Oct then found one critical
+in the launch code (R15-LEAD-145: an upgrade from 0.8.0 hides positions 0.9.0 cannot hold, with no
+notice). Its fix is merged on 004 at `9f6bd4be` and certified, but its on-screen re-run was blocked by
+a locked screen, so the tag was not moved and does not carry the fix (details below).
 
 How it was checked. The full CI chain (`pnpm ci-local`: vitest 2048, cargo 32, pytest 4013) and the
 sidecar binary smoke test passed on the launch code (certified at `b796f6a9`, identical to `1fddb2b1`
@@ -59,16 +62,18 @@ fixed: the "frontmost app is Zed" stops came from its own stale reading, not fro
 The release dmg was then installed fresh to a new location and launched at 14:27:12. No keychain
 prompt appeared in 3½ min of watching, so there was nothing for you to answer. `/health` returned 0.9.0
 (`docs/redesign/verification/r15/gui-close-2/fresh-install/FRESH_INSTALL.md`). The rig round (11 agents, 4.3 h) drove 4 of the 9 items with
-no rig abort. Result: 1 passed, 1 failed, 2 partial, 6 filed, all medium or low (`docs/redesign/verification/r15/gui-close-2/VERDICTS.md`).
+no rig abort. Result: 1 passed, 1 failed, 2 partial, 6 filed (`docs/redesign/verification/r15/gui-close-2/VERDICTS.md`). The upgrade finding was first filed as medium and then re-ruled critical, which set off a fix round (below).
 
 - **R15-LIFECYCLE-008 passed** and is now `fixed`. The Copy diagnostics preview showed version and
   status, and the "Copied" status showed after the copy. The clipboard held the redacted bundle, with
   no key shapes.
-- **0.8.0 → 0.9.0 upgrade, on screen: failed on one part, medium.** The release app on a copy of your May
-  0.8.0 backup showed the phase9test layout (it loaded), the AI Providers state and 81 of the 84
-  positions. Three test rows with impossible values (quantity 1e15, and −50 at −10) are hidden from the
-  Portfolio panel with no notice. They are still in the stored ledger (84 over HTTP), so nothing is lost;
-  filed as R15-LEAD-145 for 0.9.1.
+- **0.8.0 → 0.9.0 upgrade, on screen: failed, critical (R15-LEAD-145).** The release app on a copy of
+  your May 0.8.0 backup showed the phase9test layout (it loaded), the AI Providers state and 81 of the
+  84 positions. Three rows (quantity 1e15 twice, and −50 at −10) were hidden from the Portfolio panel
+  with no notice, though the stored ledger still holds all 84. The verifier called it medium on the
+  grounds that the rows could be re-added by hand. They cannot. A fresh Opus judge, given the v0.8.0
+  code, ruled it critical: 0.8.0 accepted any finite quantity or cost, so a real short lot would vanish
+  from the count, value, P&L and weights with nothing on screen, and the 0.9.0 form rejects re-entering it.
 - **R15-UI-022 partial.** Lines land at the clicked price, the Text tool asks for a label and shows it,
   and Lock holds. A drawing past the last bar was shown only on an Ichimoku chart; the plain-chart case
   needs a pan, which the rig cannot input.
@@ -76,15 +81,31 @@ no rig abort. Result: 1 passed, 1 failed, 2 partial, 6 filed, all medium or low 
   composer lands on the keyless Ollama lane, and with that lane down a keyless banner shows, not an
   error. The Cloud and Done steps, a send on the down lane, and the Local step's unreachable state were
   not driven.
-- **Not run:** UI-5, composer collapse, arrange-compare, RS-2/AC-1 and favicon fallback. The four-hour
-  away window you granted ended at 18:27 IST before the rig had 900 s of quiet again after UI-7.
-- **Filed for 0.9.1** (mediums and lows only): R15-LEAD-145 (medium, above), R15-LEAD-149 (medium: the
+- **Not run:** UI-5, composer collapse, arrange-compare, RS-2/AC-1 and favicon fallback. The away
+  sentinel ended at 18:27 IST before the rig had 900 s of quiet again after UI-7. The lead chose that
+  4-hour length when arming it at 14:27; the round needed more. These five can run as one further
+  round with `gui-close-2.js` `only: [...]` under a longer window.
+- **Filed for 0.9.1** (mediums and lows only): R15-LEAD-149 (medium: the
   diagnostics log tail keeps tickers inside log text although the hint says symbols are removed), and
   four lows (R15-LEAD-146 Settings buttons clip at a narrow width, 147 an EOD quote flickers in the
   Portfolio summary, 148 preview vs clipboard case mismatch, 150 onboarding and chat resolve the Ollama
   endpoint differently).
 
-No critical or high, so no fix round; `r15-launch` stays at `1fddb2b1`.
+**Fix round for R15-LEAD-145 (4 Oct, 18:58–19:40 IST).** The positive-only holding rule stays. The
+import now records each row it cannot hold, with its reason, in the workspace blob. The Portfolio panel
+lists those rows in a notice, and the counts carry a caveat that stays after the notice is dismissed:
+"Portfolio · 81 · 3 not imported" in the selector, and "excludes 3 rows not imported" next to the
+totals. The agent's portfolio context and its preamble line now say its totals leave those rows out.
+Commits `67531aef`, `0012eca6` and `a9427162` were merged at `9f6bd4be`. A fresh Opus verifier
+certified both parts (148/148 and 14/14 vitest, 284 pytest). The full chain on `9f6bd4be` is green:
+vitest 2062/2062, plus lint, format, typecheck, clippy and cargo test. Full pytest passed: 4013, 1 skipped. One test was run separately and passed on the identical sidecar tree. In this Mac's main checkout it reads a stray RAR file named `.py` from May inside `sidecar/.venv`. One full run also hit an order-dependent failure in `test_symbol_resolver`. That test passed in the other two full runs and 3 of 3 times on its own. Getting there turned up and fixed two doc gaps that had made 004
+red since the 01:14 doc promotion: CURRENT_STATE had lost two pinned constant names and its pinned
+section 3.3. **The on-screen re-run did not happen.** The Mac had locked at about 18:36 IST: a screen
+saver started while you were away and ran past the 300 s lock delay. The rig waited its 10 minutes and
+refused (`docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/DRIVE.md`). The brief moves the tag
+only after the affected scenario re-runs, so **`r15-launch` stays at `1fddb2b1`**. That tag and the
+draft dmg do not have the fix. The fix is on 004, and R15-LEAD-145 stays `needs_gui`. Three lows from
+the verifiers are filed (R15-LEAD-151 to 153).
 
 What is waiting for you. A draft GitHub release `v0.9.0` exists, unpublished, with the unsigned dmg
 attached (228,480,607 bytes). The button sequence — merge, tag, sign, swap the dmg on the draft,

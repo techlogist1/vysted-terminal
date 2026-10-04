@@ -134,12 +134,16 @@ Filed after the tag by the second GUI pass (4 Oct, `docs/redesign/verification/r
 
 | ID           | Severity | Title                                                                                                                                                       | Plan          |
 | ------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| R15-LEAD-145 | medium   | Legacy import silently drops 3 of 84 positions with no notice                                                                                               | to be planned |
 | R15-LEAD-146 | low      | Settings clips buttons at narrow group width                                                                                                                | to be planned |
 | R15-LEAD-147 | low      | AAPL EOD quote flickers in and out of the Portfolio summary                                                                                                 | to be planned |
 | R15-LEAD-148 | low      | The Diagnostics preview shows the bundle in upper case, but the clipboard gets lower-case JSON, so the preview does not match the copied text byte for byte | to be planned |
 | R15-LEAD-149 | medium   | The Diagnostics hint promises 'symbols removed', but tickers inside log message text are left in the copied log tail                                        | to be planned |
 | R15-LEAD-150 | low      | The onboarding Local step and the chat lane resolve the Ollama endpoint differently                                                                         | to be planned |
+| R15-LEAD-151 | low      | Profiles already autosaved by a 0.9.0 rc build never re-import, so their skipped legacy rows carry no caveat                                                | to be planned |
+| R15-LEAD-152 | low      | The agent-context skipped-rows note omits negative cost from its general line and lists at most 5 rows                                                      | to be planned |
+| R15-LEAD-153 | low      | Import notice edge cases: all rows skipped leaves only the selector caveat after dismiss; a deleted default portfolio leaves an undismissed notice          | to be planned |
+
+R15-LEAD-145 (critical, re-ruled from medium) left this table: its fix round ran on 4 Oct (`9f6bd4be`, certified in code). It waits only on its on-screen re-run (section 5). **Decide for 0.9.1:** 0.8.0 accepted short lots and 0.9.0 does not. Either support them or keep the notice.
 
 ## 3. Sidecar and boot
 
@@ -190,15 +194,16 @@ Each entry with the `DECISIONS_FOR_OPERATOR.md` section that covers it (nearest 
 
 The four local-model entries (R15-LEAD-030, -035, -037, -038) are the signed-off known limitation, not a 0.9.1 item unless reopened.
 
-## 5. Awaiting manual check - needs_gui (3)
+## 5. Awaiting manual check - needs_gui (4)
 
 Down from 5: R15-LIFECYCLE-001 (the boot-freeze item) is now **fixed**, and R15-LIFECYCLE-008 passed its macOS click-through on 4 Oct and is **fixed**; both are dropped from this list.
 
-| ID                 | Severity | Awaiting manual check                                                                                                                                                                                   |
-| ------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R15-CODE-AGENT-001 | high     | Windows half only — macOS packaged and `pnpm tauri:dev` both confirmed live (every panel loads, no webview 403). Remaining: launch the Windows packaged app and confirm the same.                       |
-| R15-UI-022         | medium   | Chart drawing tools cannot place what the user clicks: anchors snap to the bar close, clicks past the last bar commit invisible drawings, Text always reads 'label', and Lock is a dead control.        |
-| R15-DOCS-024       | low      | MCP_INTEGRATION.md's Claude Desktop (mcp-remote) setup has never been demonstrated end to end, and its claim that tools appear in Claude Desktop's slash picker as /vysted\_\_price_data is unverified. |
+| ID                 | Severity | Awaiting manual check                                                                                                                                                                                                             |
+| ------------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R15-LEAD-145       | critical | Fix merged on 004 at `9f6bd4be` and certified in code; the on-screen 0.8.0 upgrade re-run (`gui-close-3.js`, debug app at that sha) was blocked by a locked screen on 4 Oct. Pass it, then move `r15-launch` and rebuild the dmg. |
+| R15-CODE-AGENT-001 | high     | Windows half only — macOS packaged and `pnpm tauri:dev` both confirmed live (every panel loads, no webview 403). Remaining: launch the Windows packaged app and confirm the same.                                                 |
+| R15-UI-022         | medium   | Chart drawing tools cannot place what the user clicks: anchors snap to the bar close, clicks past the last bar commit invisible drawings, Text always reads 'label', and Lock is a dead control.                                  |
+| R15-DOCS-024       | low      | MCP_INTEGRATION.md's Claude Desktop (mcp-remote) setup has never been demonstrated end to end, and its claim that tools appear in Claude Desktop's slash picker as /vysted\_\_price_data is unverified.                           |
 
 ## 6. Features
 
