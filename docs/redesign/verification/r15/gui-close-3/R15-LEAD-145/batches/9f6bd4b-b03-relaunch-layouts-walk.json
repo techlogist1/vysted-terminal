@@ -1,0 +1,918 @@
+[
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-28-relaunch-first-screen.png"
+ },
+ {
+  "cmd": "click",
+  "x": 397,
+  "y": 294
+ },
+ {
+  "cmd": "wait",
+  "seconds": 1
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-29-relaunch-sections-menu.png"
+ },
+ {
+  "cmd": "click",
+  "x": 390,
+  "y": 440
+ },
+ {
+  "cmd": "wait",
+  "seconds": 2.5
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-30-relaunch-advanced.png"
+ },
+ {
+  "cmd": "click",
+  "x": 448,
+  "y": 706
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.5
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-31-layouts-tab1.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-32-layouts-tab2.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-33-layouts-tab3.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-34-layouts-tab4.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-35-layouts-tab5.png"
+ },
+ {
+  "cmd": "click",
+  "x": 1139,
+  "y": 205
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.5
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-36-wide-walk-aapl.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-37-wide-walk-tab22.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-38-wide-walk-tab42.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-39-wide-walk-tab62.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-40-wide-walk-tab82.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-41-wide-walk-tab102.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-42-wide-walk-tab122.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-43-wide-walk-tab142.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-44-wide-walk-tab162.png"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "key",
+  "combo": "tab"
+ },
+ {
+  "cmd": "wait",
+  "seconds": 0.6
+ },
+ {
+  "cmd": "capture",
+  "out": "/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/9f6bd4b-45-wide-walk-tab182.png"
+ }
+]
