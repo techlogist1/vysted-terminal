@@ -1,12 +1,25 @@
 {
- "sha": "f163d85856c427adeccd1a6919a70400cd3504f4",
+ "sha": "9f6bd4be5837aa982f2fb0828899856e275503cc",
  "items": [
   {
    "id": "R15-LEAD-145",
-   "drive": "blocked_env",
-   "verify": null,
-   "reason": "The first passive rig capture waited 600 s on a locked screen (frontmost loginwindow) and the rig refused with EXIT=3 \"screen locked for 600s\" (raw/rig-01.log). No capture was written and no input was posted. Committed as 79da3648."
+   "drive": "partial",
+   "verify": "partial",
+   "reason": "Registered captures show that the import ran with 81 rows matching before.txt in symbol and quantity. The notice names all 3 flagged rows with reasons, and both caveats survive dismiss and relaunch with no re-import. Two parts were not driven: check 6 (no capture shows Layouts listing phase9test) and on-screen cost bases for T001-T065."
   }
  ],
- "filed": []
+ "filed": [
+  {
+   "id": "R15-LEAD-154",
+   "severity": "low",
+   "title": "The import notice gives only the first validation failure for AAPL -50 @ -10 and leaves out the negative cost",
+   "item": "R15-LEAD-145"
+  },
+  {
+   "id": "R15-LEAD-155",
+   "severity": "low",
+   "title": "A driver mis-click reordered the provider fallback order (isolated run copy only; this is not a product defect)",
+   "item": "R15-LEAD-145"
+  }
+ ]
 }

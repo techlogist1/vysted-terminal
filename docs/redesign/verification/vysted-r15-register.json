@@ -20923,7 +20923,7 @@
    "tier4": false,
    "operator_areas": [],
    "status": "needs_gui",
-   "note": "filed by gui-close@1fddb2b from docs/redesign/verification/r15/gui-close-2/UPGRADE-080/VERIFY.md || gui-close-3@f163d85: blocked_env (needs_gui unchanged): The first passive rig capture waited 600 s on a locked screen (frontmost loginwindow) and the rig refused with EXIT=3 \"screen locked for 600s\" (raw/rig-01.log). No capture was written and no input was posted. Committed as 79da3648. evidence docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/DRIVE.md, verifier docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/VERIFY.md (none, drive blocked) || lead 4 Oct 19:00 IST: RE-RULED CRITICAL by a fresh Opus judge with the v0.8.0 code (wrong figures shown as fact; no re-add path for shorts); the verifier's medium rested on a workaround that does not exist. Fix round: 67531aef (import record, notice, caveats, persistence) + 0012eca6 (agent portfolio context) + a9427162 (agent preamble line), merged at f163d858/9f6bd4be; fresh Opus verifier CERTIFIED both deltas (148/148, 14/14, 284 passed). On-screen re-run blocked_env (screen locked, gui-close-3 DRIVE.md), so status needs_gui until the rig drive at 9f6bd4be passes.",
+   "note": "filed by gui-close@1fddb2b from docs/redesign/verification/r15/gui-close-2/UPGRADE-080/VERIFY.md || gui-close-3@f163d85: blocked_env (needs_gui unchanged): The first passive rig capture waited 600 s on a locked screen (frontmost loginwindow) and the rig refused with EXIT=3 \"screen locked for 600s\" (raw/rig-01.log). No capture was written and no input was posted. Committed as 79da3648. evidence docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/DRIVE.md, verifier docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/VERIFY.md (none, drive blocked) || lead 4 Oct 19:00 IST: RE-RULED CRITICAL by a fresh Opus judge with the v0.8.0 code (wrong figures shown as fact; no re-add path for shorts); the verifier's medium rested on a workaround that does not exist. Fix round: 67531aef (import record, notice, caveats, persistence) + 0012eca6 (agent portfolio context) + a9427162 (agent preamble line), merged at f163d858/9f6bd4be; fresh Opus verifier CERTIFIED both deltas (148/148, 14/14, 284 passed). On-screen re-run blocked_env (screen locked, gui-close-3 DRIVE.md), so status needs_gui until the rig drive at 9f6bd4be passes. || gui-close-3@9f6bd4b: partial: Registered captures show that the import ran with 81 rows matching before.txt in symbol and quantity. The notice names all 3 flagged rows with reasons, and both caveats survive dismiss and relaunch with no re-import. Two parts were not driven: check 6 (no capture shows Layouts listing phase9test) and on-screen cost bases for T001-T065. evidence docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/DRIVE.md, verifier docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/VERIFY.md",
    "closure_evidence": ""
   },
   {
@@ -21076,6 +21076,44 @@
    "operator_areas": [],
    "status": "open",
    "note": "filed by the lead from the LEAD-145 fix-round verifier, 4 Oct 2026",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-154",
+   "title": "The import notice gives only the first validation failure for AAPL -50 @ -10 and leaves out the negative cost",
+   "severity": "low",
+   "area": "",
+   "subsystem": "",
+   "files": [],
+   "repro": "Boot 0.9.0 (9f6bd4be) on the 0.8.0 profile with position id 3 AAPL -50 @ -10, then open Portfolio and read the import notice.",
+   "evidence": "9f6bd4b-08: 'AAPL -50 @ -10 — Quantity must be greater than 0'. In code at 9f6bd4be, validateHolding (src/store/portfolios.ts:159) returns at quantity <= 0 before it checks cost. The row is still named with -10 visible and excluded, and the totals carry the caveat.",
+   "root_cause": "",
+   "fix_shape": "",
+   "defect_class": "",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "filed by gui-close-3@9f6bd4b from docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/VERIFY.md",
+   "closure_evidence": ""
+  },
+  {
+   "id": "R15-LEAD-155",
+   "title": "A driver mis-click reordered the provider fallback order (isolated run copy only; this is not a product defect)",
+   "severity": "low",
+   "area": "",
+   "subsystem": "",
+   "files": [],
+   "repro": "n/a (driver action in b03 at pt (448,706) on OpenAI's down arrow)",
+   "evidence": "28/29 show the fallback order Anthropic, OpenAI, Gemini; 31-35 show Anthropic, Gemini, OpenAI after the b03 mis-click. Driver side effect in the isolated run-copy profile, not a product defect.",
+   "root_cause": "",
+   "fix_shape": "",
+   "defect_class": "",
+   "raw_ids": [],
+   "tier4": false,
+   "operator_areas": [],
+   "status": "open",
+   "note": "filed by gui-close-3@9f6bd4b from docs/redesign/verification/r15/gui-close-3/R15-LEAD-145/VERIFY.md",
    "closure_evidence": ""
   }
  ],

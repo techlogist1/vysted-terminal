@@ -1,8 +1,8 @@
 # R15 register (readable view)
 
-887 raw findings -> 812 entries + 76 rejections. critical: 19 . high: 134 . medium: 356 . low: 303
+887 raw findings -> 814 entries + 76 rejections. critical: 19 . high: 134 . medium: 356 . low: 305
 
-Status: blocked_tier4: 35 . fixed: 630 . needs_gui: 4 . not_a_defect: 6 . open: 123 . removed_with_feature: 14
+Status: blocked_tier4: 35 . fixed: 630 . needs_gui: 4 . not_a_defect: 6 . open: 125 . removed_with_feature: 14
 
 ## The operator's four areas
 
@@ -1347,3 +1347,5 @@ Status: blocked_tier4: 35 . fixed: 630 . needs_gui: 4 . not_a_defect: 6 . open: 
 | R15-LEAD-151 | low |  |  | Profiles already autosaved by a 0.9.0 rc build never re-import, so their skipped legacy rows carry no caveat | open |  |
 | R15-LEAD-152 | low |  |  | The agent-context skipped-rows note omits negative cost from its general line and lists at most 5 rows | open |  |
 | R15-LEAD-153 | low |  |  | Import notice edge cases: all rows skipped leaves only the selector caveat after dismiss; a deleted default portfolio leaves an undismissed notice about totals that no longer exist | open |  |
+| R15-LEAD-154 | low |  |  | The import notice gives only the first validation failure for AAPL -50 @ -10 and leaves out the negative cost | open |  |
+| R15-LEAD-155 | low |  |  | A driver mis-click reordered the provider fallback order (isolated run copy only; this is not a product defect) | open |  |
