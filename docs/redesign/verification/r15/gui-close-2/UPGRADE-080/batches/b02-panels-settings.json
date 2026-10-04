@@ -1,0 +1,6 @@
+[{"cmd":"click","x":838,"y":348},{"cmd":"wait","seconds":1.5},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-02-news-closed.png"},
+ {"cmd":"click","x":856,"y":97},{"cmd":"wait","seconds":1.5},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-03-portfolio-full-column.png"},
+ {"cmd":"click","x":1248,"y":56},{"cmd":"wait","seconds":2.5},
+ {"cmd":"capture","out":"/Users/lokavyasingh/Documents/dev/vysted-terminal/docs/redesign/verification/r15/gui-close-2/UPGRADE-080/1fddb2b-04-settings-open.png"}]

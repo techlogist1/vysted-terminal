@@ -1,0 +1,3 @@
+GET /portfolio/positions -> list rows 84
+keys ['asset_class', 'cost_basis', 'id', 'note', 'opened_at', 'quantity', 'symbol']
+rows differing from before.txt (symbol, qty, cost basis, class): 0 of 84 ; before had 84
