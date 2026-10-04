@@ -55,6 +55,21 @@ export interface HoldingInput {
   note?: string;
 }
 
+/** A legacy-ledger row the one-time import could not hold (it fails
+ *  {@link validateHolding}: a short lot, a negative cost, a quantity above
+ *  {@link MAX_HOLDING_QUANTITY}). Kept so the panel can say its totals exclude
+ *  it; the row itself stays in the old ledger (R15-LEAD-145). */
+export interface SkippedHolding {
+  symbol: string;
+  /** `null` when the ledger value was not a finite number. */
+  quantity: number | null;
+  costBasis: number | null;
+  assetClass?: AssetClass;
+  region?: Region;
+  /** validateHolding's own message. */
+  reason: string;
+}
+
 /**
  * The currency a holding is priced in when no live quote has said so: a crypto
  * pair's quote side (`BTC/USDT` -> `USDT`), an NSE/BSE suffix's INR, else
@@ -214,11 +229,28 @@ interface PortfoliosState {
    *  corruption). A holding saved without a region is stamped `region`
    *  (default: the session region). */
   setAll: (portfolios: Portfolio[], activeId?: string, region?: Region) => void;
+  /** Legacy-ledger rows the one-time import could not hold (R15-LEAD-145). */
+  importSkipped: SkippedHolding[];
+  /** The user dismissed the import notice (the count caveat stays regardless). */
+  importNoticeDismissed: boolean;
+  dismissImportNotice: () => void;
+  /** Replace the import record — the legacy import and blob restore. */
+  setImportRecord: (skipped: SkippedHolding[], dismissed: boolean) => void;
 }
+
+/** The import record's portfolio: the legacy ledger seeds the default one. */
+export const IMPORT_TARGET_PORTFOLIO_ID = DEFAULT_PORTFOLIO_ID;
 
 export const usePortfoliosStore = create<PortfoliosState>((set, get) => ({
   portfolios: [makeEmptyPortfolio(DEFAULT_PORTFOLIO_NAME, DEFAULT_PORTFOLIO_ID)],
   activeId: DEFAULT_PORTFOLIO_ID,
+  importSkipped: [],
+  importNoticeDismissed: false,
+
+  dismissImportNotice: () => set({ importNoticeDismissed: true }),
+
+  setImportRecord: (skipped, dismissed) =>
+    set({ importSkipped: skipped, importNoticeDismissed: dismissed }),
 
   createPortfolio: (name) => {
     const id = genId("pf");
@@ -319,17 +351,62 @@ export const usePortfoliosStore = create<PortfoliosState>((set, get) => ({
     }),
 }));
 
+/** A finite number, else null. */
+function finiteOrNull(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+/** Coerce a (possibly corrupt-blob) import record entry, or drop it. */
+export function normalizeSkippedHolding(raw: unknown): SkippedHolding | null {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  const r = raw as Record<string, unknown>;
+  if (typeof r.symbol !== "string" || typeof r.reason !== "string") {
+    return null;
+  }
+  return {
+    symbol: r.symbol,
+    quantity: finiteOrNull(r.quantity),
+    costBasis: finiteOrNull(r.costBasis),
+    ...(r.assetClass === "crypto" || r.assetClass === "equity" ? { assetClass: r.assetClass } : {}),
+    ...(isRegion(r.region) ? { region: r.region } : {}),
+    reason: r.reason,
+  };
+}
+
 /**
  * Replace every portfolio with the default one holding `holdings` — the
  * one-time import of the legacy sidecar positions ledger (R15-LIFECYCLE-009).
+ * A row {@link validateHolding} rejects is not imported but recorded in
+ * `importSkipped` with its reason, so the panel never shows a total that
+ * silently excludes it (R15-LEAD-145). The ledger itself is never touched.
  */
 export function seedDefaultPortfolio(holdings: HoldingInput[]): void {
+  const valid: HoldingInput[] = [];
+  const skipped: SkippedHolding[] = [];
+  for (const holding of holdings) {
+    const check = validateHolding(holding);
+    if (check.valid) {
+      valid.push(holding);
+      continue;
+    }
+    skipped.push({
+      symbol: typeof holding.symbol === "string" ? holding.symbol.trim().toUpperCase() : "",
+      quantity: finiteOrNull(holding.quantity),
+      costBasis: finiteOrNull(holding.costBasis),
+      assetClass: holding.assetClass,
+      ...(holding.region ? { region: holding.region } : {}),
+      reason: check.message ?? "Invalid holding",
+    });
+  }
+  usePortfoliosStore.getState().setImportRecord(skipped, false);
   usePortfoliosStore.getState().setAll(
     [
       {
         id: DEFAULT_PORTFOLIO_ID,
         name: DEFAULT_PORTFOLIO_NAME,
-        holdings: holdings.map((holding) => ({
+        holdings: valid.map((holding) => ({
           ...holding,
           id: genId("h"),
           region: holding.region ?? useSettingsStore.getState().region,

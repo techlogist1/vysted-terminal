@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { usePortfoliosStore, validateHolding, type HoldingInput } from "./portfolios";
+import {
+  seedDefaultPortfolio,
+  usePortfoliosStore,
+  validateHolding,
+  type HoldingInput,
+} from "./portfolios";
 import { useSettingsStore } from "./settings";
 
 /**
@@ -169,5 +174,69 @@ describe("holding region (R15-FINAL-001)", () => {
       "IN",
     );
     expect(holdings().map((h) => h.region)).toEqual(["IN", "US"]);
+  });
+});
+
+describe("legacy import records the rows it cannot hold (R15-LEAD-145)", () => {
+  beforeEach(() => {
+    usePortfoliosStore.setState({ importSkipped: [], importNoticeDismissed: true });
+  });
+
+  it("imports the valid rows and records each invalid one with validateHolding's reason", () => {
+    seedDefaultPortfolio([
+      RELIANCE,
+      { symbol: "fat", quantity: 1e15, costBasis: 1e-8, assetClass: "equity" },
+      { symbol: "SHORT", quantity: -50, costBasis: -10, assetClass: "crypto" },
+      { symbol: "NEG", quantity: 3, costBasis: -1, assetClass: "equity", region: "IN" },
+    ]);
+    expect(holdings().map((h) => [h.symbol, h.quantity, h.costBasis])).toEqual([
+      ["RELIANCE", 5, 1263],
+    ]);
+    const state = usePortfoliosStore.getState();
+    expect(state.importNoticeDismissed).toBe(false);
+    expect(state.importSkipped).toEqual([
+      {
+        symbol: "FAT",
+        quantity: 1e15,
+        costBasis: 1e-8,
+        assetClass: "equity",
+        reason: "Quantity is too large",
+      },
+      {
+        symbol: "SHORT",
+        quantity: -50,
+        costBasis: -10,
+        assetClass: "crypto",
+        reason: "Quantity must be greater than 0",
+      },
+      {
+        symbol: "NEG",
+        quantity: 3,
+        costBasis: -1,
+        assetClass: "equity",
+        region: "IN",
+        reason: "Avg cost cannot be negative",
+      },
+    ]);
+  });
+
+  it("an all-valid ledger records nothing", () => {
+    seedDefaultPortfolio([RELIANCE, { ...RELIANCE, symbol: "TCS" }]);
+    expect(holdings()).toHaveLength(2);
+    expect(usePortfoliosStore.getState().importSkipped).toEqual([]);
+  });
+
+  it("an empty ledger records nothing", () => {
+    seedDefaultPortfolio([]);
+    expect(holdings()).toEqual([]);
+    expect(usePortfoliosStore.getState().importSkipped).toEqual([]);
+  });
+
+  it("dismissing the notice keeps the record", () => {
+    seedDefaultPortfolio([{ ...RELIANCE, quantity: -50 }]);
+    usePortfoliosStore.getState().dismissImportNotice();
+    const state = usePortfoliosStore.getState();
+    expect(state.importNoticeDismissed).toBe(true);
+    expect(state.importSkipped).toHaveLength(1);
   });
 });
