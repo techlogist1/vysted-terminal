@@ -14,7 +14,11 @@ import { type Region } from "@/lib/region";
 import { useBriefStore } from "@/store/brief";
 import { useNotesStore } from "@/store/notes";
 import { usePanelContextBus } from "@/store/panel-context";
-import { listingCurrency, usePortfoliosStore } from "@/store/portfolios";
+import {
+  IMPORT_TARGET_PORTFOLIO_ID,
+  listingCurrency,
+  usePortfoliosStore,
+} from "@/store/portfolios";
 import { useResearchSpacesStore } from "@/store/research-spaces";
 import { useSettingsStore } from "@/store/settings";
 import { useSymbolsStore } from "@/store/symbols";
@@ -74,6 +78,42 @@ export interface TerminalPortfolio {
   activePortfolioId?: string;
   activePortfolioName?: string;
   holdings: TerminalHolding[];
+  /** Legacy-ledger rows the one-time import could not hold, on the portfolio
+   *  it seeded: positionCount, totalValue and weights exclude them
+   *  (R15-LEAD-145). Absent when there are none. */
+  importSkippedCount?: number;
+  importSkippedNote?: string;
+}
+
+/** The skipped rows named in the note before it summarises the rest. */
+const SKIPPED_NAMED_MAX = 5;
+
+/** The import-skipped fields for `portfolioId`, or none (R15-LEAD-145). */
+function importSkippedFields(
+  portfolioId: string | undefined,
+): Pick<TerminalPortfolio, "importSkippedCount" | "importSkippedNote"> {
+  const skipped = usePortfoliosStore.getState().importSkipped;
+  if (skipped.length === 0 || portfolioId !== IMPORT_TARGET_PORTFOLIO_ID) {
+    return {};
+  }
+  const named = skipped
+    .slice(0, SKIPPED_NAMED_MAX)
+    .map(
+      (r) =>
+        `${r.symbol || "(no symbol)"} ${r.quantity ?? "?"} @ ${r.costBasis ?? "?"} (${r.reason})`,
+    )
+    .join("; ");
+  const more =
+    skipped.length > SKIPPED_NAMED_MAX ? `; +${skipped.length - SKIPPED_NAMED_MAX} more` : "";
+  const rows = skipped.length === 1 ? "row" : "rows";
+  return {
+    importSkippedCount: skipped.length,
+    importSkippedNote:
+      `positionCount, totalValue, P&L and weights EXCLUDE ${skipped.length} legacy ${rows} ` +
+      `the 0.9.0 import could not hold (short lots and quantities above 1e12 are not ` +
+      `supported in this version; the rows are kept in the old ledger): ${named}${more}. ` +
+      `State these totals as incomplete.`,
+  };
 }
 
 /** The active research space the user is working in, with prior-research memory. */
@@ -419,6 +459,9 @@ export function captureTerminalState(): TerminalState {
   // blind get_portfolio — the portfolios store is the canonical truth.
   if (portfolio === null) {
     portfolio = portfolioFromStore();
+  }
+  if (portfolio !== null) {
+    portfolio = { ...portfolio, ...importSkippedFields(portfolio.activePortfolioId) };
   }
 
   // The focused panel's own symbol wins (a focused Equity Overview on INFY is
