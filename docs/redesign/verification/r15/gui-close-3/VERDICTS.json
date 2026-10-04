@@ -1,0 +1,12 @@
+{
+ "sha": "f163d85856c427adeccd1a6919a70400cd3504f4",
+ "items": [
+  {
+   "id": "R15-LEAD-145",
+   "drive": "blocked_env",
+   "verify": null,
+   "reason": "The first passive rig capture waited 600 s on a locked screen (frontmost loginwindow) and the rig refused with EXIT=3 \"screen locked for 600s\" (raw/rig-01.log). No capture was written and no input was posted. Committed as 79da3648."
+  }
+ ],
+ "filed": []
+}
