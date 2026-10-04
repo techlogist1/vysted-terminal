@@ -28,7 +28,7 @@ Do these in this order; each line names where the detail lives.
 6. **The Tier-4 bucket** (35 `blocked_tier4` entries, unfunded lanes 2.1, Docker, CI, plugin model):
    sequenced in `docs/redesign/BACKLOG_0.9.1.md`; nothing in it blocks 0.9.0.
 7. **Rig exit 4 ("frontmost app is 'Zed'") is fixed (4 Oct).** Activation was never what failed. A
-   test at 14:20 IST showed every route bringing Vysted in front of Zed on macOS 26.3, including the
+   test at about 14:10 IST showed every route bringing Vysted in front of Zed on macOS 26.3, including the
    old `activateWithOptions_`. The rig's re-check read `NSWorkspace.frontmostApplication()`, which is
    cached and never updates in a process without a run loop. `scripts/rig/rig.py` now reads the
    frontmost app fresh (`lsappinfo`), brings Vysted forward with `open -a <running bundle>` before
