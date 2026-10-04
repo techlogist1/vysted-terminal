@@ -26,7 +26,7 @@ A source-available, AI-native finance desktop terminal: bring-your-own-keys, loc
 
 ## 4. Safety model (section 6.5, Tier-1 locked)
 
-Every agent host action is staged by the proposed-changes gate (`src/store/proposed-changes.ts`). AUTO autonomy auto-applies only panel, chart and watchlist kinds (`types/proposed-change.ts`); portfolio and other data writes always wait for review. The read-intent strip (`agent_runtime`) and the no-trading invariant (`sidecar/tests/test_no_trading_surface.py`) stay. The sidecar allows only allow-listed browser Origins and returns 403 to any other, including on `/mcp` (R15-CODE-AGENT-001; sidecar side and the macOS packaged app and `pnpm tauri:dev` are all verified live; the Windows packaged click-through is the one piece still awaiting manual check, open high, `needs_gui`). Secrets: the renderer reads the OS keychain and passes keys in request headers; the sidecar cannot read the keychain and never logs a key. Debug builds use a git-ignored dev keystore, release builds the OS keychain.
+Every agent host action (`HOST_ACTION_NAMES`, `src/lib/host-actions.ts`) is staged by the proposed-changes gate (`src/store/proposed-changes.ts`). AUTO autonomy auto-applies only panel, chart and watchlist kinds (`AUTO_APPLIED_KINDS`, `types/proposed-change.ts`); portfolio and other data writes always wait for review. The read-intent strip (`agent_runtime`) and the no-trading invariant (`sidecar/tests/test_no_trading_surface.py`) stay. The sidecar allows only allow-listed browser Origins and returns 403 to any other, including on `/mcp` (R15-CODE-AGENT-001; sidecar side and the macOS packaged app and `pnpm tauri:dev` are all verified live; the Windows packaged click-through is the one piece still awaiting manual check, open high, `needs_gui`). Secrets: the renderer reads the OS keychain and passes keys in request headers; the sidecar cannot read the keychain and never logs a key. Debug builds use a git-ignored dev keystore, release builds the OS keychain.
 
 ## 5. Known limitation - agent chat with a keyless local model
 
@@ -78,7 +78,7 @@ Reproduced verbatim from the operator briefing (`docs/redesign/OPERATOR_BRIEFING
 >   > can say the change was made or staged for your review and can describe holdings that do not
 >   > exist.
 >
-> Fail-safe (why this ships): `data-write` proposed changes always stage for review — AUTO only auto-applies `panel`/`chart`/`watchlist` kinds (`types/proposed-change.ts:38-46`); a narrated
+> Fail-safe (why this ships): `data-write` proposed changes always stage for review — AUTO only auto-applies `panel`/`chart`/`watchlist` kinds (`AUTO_APPLIED_KINDS`, `types/proposed-change.ts:38-46`); a narrated
 > write stages nothing (no `tool_use` event); there is no `audit_orders` table any more (D81), so no order row can exist. Figure grounding by provenance
 > (`sidecar/services/figure_grounding.py` + `agent_runtime._judge_clause`, `agent_runtime.py:2321`, rules 1/2a/2b/2c/3) replaces an ungrounded figure tied to an errored or never-called
 > subject with an honest "returned no data" note. The rule-2c fail-safe (`agent_runtime.py:2378-2383`) fires only in a turn with an errored tool call — **a figure for a subject whose call
