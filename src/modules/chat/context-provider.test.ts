@@ -372,3 +372,47 @@ describe("captureNotes — the __notes__ entry (R15-AGENT-020)", () => {
     expect(notes.bySymbol.BDL).toBe(long.slice(0, NOTE_CHAR_CAP) + NOTE_TRUNCATION_MARKER);
   });
 });
+
+describe("captureTerminalState — legacy import skipped rows (R15-LEAD-145)", () => {
+  afterEach(() => {
+    usePanelContextBus.setState({ lastEventBySource: {}, focusedSource: null, updatedAt: 0 });
+    usePortfoliosStore.setState({ importSkipped: [], importNoticeDismissed: false });
+  });
+
+  it("names the skipped rows on the default portfolio's context, and says nothing extra when there are none", () => {
+    const payload = {
+      positionCount: 81,
+      totalValue: 1000,
+      activePortfolioId: "default",
+      activePortfolioName: "Portfolio",
+      holdings: [],
+    };
+    publishPortfolio(payload);
+    const clean = captureTerminalState().portfolio;
+    expect(clean).not.toHaveProperty("importSkippedCount");
+    expect(clean).not.toHaveProperty("importSkippedNote");
+
+    usePortfoliosStore.setState({
+      importSkipped: [
+        { symbol: "FAT", quantity: 1e15, costBasis: 1e-8, reason: "Quantity is too large" },
+        {
+          symbol: "SHORT",
+          quantity: -50,
+          costBasis: -10,
+          reason: "Quantity must be greater than 0",
+        },
+      ],
+      importNoticeDismissed: true,
+    });
+    const caveated = captureTerminalState().portfolio;
+    expect(caveated?.positionCount).toBe(81);
+    expect(caveated?.importSkippedCount).toBe(2);
+    expect(caveated?.importSkippedNote).toBe(
+      "positionCount, totalValue, P&L and weights EXCLUDE 2 legacy rows the 0.9.0 import could not hold (short lots and quantities above 1e12 are not supported in this version; the rows are kept in the old ledger): FAT 1000000000000000 @ 1e-8 (Quantity is too large); SHORT -50 @ -10 (Quantity must be greater than 0). State these totals as incomplete.",
+    );
+
+    // Another portfolio's context carries no caveat — the rows belong to the default one.
+    publishPortfolio({ ...payload, activePortfolioId: "pf-growth" });
+    expect(captureTerminalState().portfolio).not.toHaveProperty("importSkippedNote");
+  });
+});
